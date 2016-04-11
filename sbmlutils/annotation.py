@@ -25,7 +25,7 @@ import re
 import uuid
 import datetime
 
-from .validation import check
+from validation import check
 
 # create logger
 logger = logging.getLogger('annotation')

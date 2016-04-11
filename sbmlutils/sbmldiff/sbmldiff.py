@@ -1,9 +1,11 @@
 from __future__ import print_function, division
+
+import libsbml
 import tellurium as te
 import lxml.etree as ET
 import StringIO
 import tempfile
-import libsbml
+
 
 r = te.loada('''
     J0: S1 -> S2; k1*S1;

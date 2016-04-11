@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import tempfile
 import unittest
 
-from sbmlutils.examples.testfiles import demo_sbml, galactose_singlecell_sbml, test_sbml, vdp_sbml
+from sbmlutils.examples.testfiles import demo_sbml, galactose_singlecell_sbml, small_sbml, vdp_sbml
 from sbmlutils.validation import validate_sbml, check_sbml
 
 
@@ -57,7 +57,7 @@ class TestValidation(unittest.TestCase):
         self.validate_file(galactose_singlecell_sbml)
 
     def test_validate_test(self):
-        self.validate_file(test_sbml)
+        self.validate_file(small_sbml)
 
     def test_validate_vdp(self):
         self.validate_file(vdp_sbml, ucheck=False)

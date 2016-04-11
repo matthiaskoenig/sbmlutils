@@ -4,6 +4,7 @@ Test the SBML report.
 from __future__ import print_function, division
 import unittest
 
+import libsbml
 import tempfile
 from sbmlutils.examples import testfiles
 from sbmlutils.report import sbmlreport
@@ -25,7 +26,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_test_report(self):
         tmpdir = tempfile.mkdtemp(suffix="_sbml_report")
-        sbmlreport.create_sbml_report(testfiles.test_sbml, tmpdir)
+        sbmlreport.create_sbml_report(testfiles.small_sbml, tmpdir)
 
     def test_vdp_report(self):
         tmpdir = tempfile.mkdtemp(suffix="_sbml_report")

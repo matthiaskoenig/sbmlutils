@@ -27,9 +27,9 @@ glucose_id = 'Hepatic_glucose_1'
 glucose_sbml = os.path.join(test_dir, 'models/glucose', '{}.xml'.format(glucose_id))
 
 
-# test -----------------------
-test_id = 'test_6'
-test_sbml = os.path.join(test_dir, 'models/test', '{}.xml'.format(test_id))
+# small -----------------------
+small_id = 'small_6'
+small_sbml = os.path.join(test_dir, 'models/small', '{}.xml'.format(small_id))
 
 # van_der_pol ---------------
 vdp_id = "van_der_pol"
