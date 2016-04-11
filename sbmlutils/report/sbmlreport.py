@@ -28,7 +28,7 @@ import libsbml
 from jinja2 import Environment, FileSystemLoader
 
 import sbmlfilters
-from multiscale.sbmlutils.validation import validate_sbml
+from sbmlutils.validation import validate_sbml
 
 
 # Change default encoding to UTF-8
@@ -143,6 +143,7 @@ def _create_value_dictionary(model):
         values[sid] = rule
     return values
 
+
 def _copy_directory(src, dest):
     """ Copy directory from source to destination.
     :param src:
@@ -166,37 +167,9 @@ def _copy_directory(src, dest):
 #################################################################################################
 # Create report
 #################################################################################################
-# TODO: add test
+
 if __name__ == '__main__':
     import os
     os.chdir("/home/mkoenig/Desktop/splines_interpolate")
     create_sbml_report('cubicSpline.xml', '.')
 
-
-    exit()
-
-    import antimony
-    antimony.loadAntimonyString("""
-    model test
-        J0: S1 -> S2; k1*S1;
-        S1 = 10.0; S2 = 0; k1=1.0;
-    end
-    """)
-    """
-    sbml_str = antimony.getSBMLString('test')
-    doc = libsbml.readSBMLFromString(sbml_str)
-
-    create_sbml_report(doc,
-                       out_dir='/home/mkoenig/tmp/sbmlreport/',
-                       html_template='report.html')
-
-    doc = libsbml.readSBMLFromFile('/home/mkoenig/git/multiscale-galactose/python/multiscalepy/multiscale/examples/models/demo/Koenig_demo_10_annotated.xml')
-    create_sbml_report(doc,
-                       out_dir='/home/mkoenig/tmp/sbmlreport/',
-                       html_template='report.html')
-
-    doc = libsbml.readSBMLFromFile('/home/mkoenig/git/multiscale-galactose/python/multiscalepy/multiscale/examples/models/galactose/galactose_30_annotated.xml')
-    create_sbml_report(doc,
-                       out_dir='/home/mkoenig/tmp/sbmlreport/',
-                       html_template='report.html')
-    """

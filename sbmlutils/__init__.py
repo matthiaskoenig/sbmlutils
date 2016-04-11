@@ -1,4 +1,4 @@
-from . import sbmlreport
+from . import report
 from . import annotation
 from . import comp
 from . import equation

@@ -6,7 +6,7 @@ of units.
 """
 
 import libsbml
-from multiscale.sbmlutils.formating import *
+from sbmlutils.formating import *
 
 filters = [
     'SBML_astnodeToString',

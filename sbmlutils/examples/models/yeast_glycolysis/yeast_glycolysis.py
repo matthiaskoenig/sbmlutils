@@ -1,8 +1,6 @@
 from __future__ import print_function, division
-from multiscale.sbmlutils.sbmlreport import sbmlreport
+from sbmlutils.report import sbmlreport
 import os.path
-
-
 
 if __name__ == "__main__":
 

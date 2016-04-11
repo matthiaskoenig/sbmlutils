@@ -21,13 +21,9 @@ et.write_c14n(output)
 c14n_xml = output.getvalue()
 # TODO: in addition sort all elements of the listOfs
 
-# libsbml has no problem reading
+# read with libsbml
 doc = libsbml.readSBMLFromString(c14n_xml)
 
-# file has no problems
-# from multiscale.sbmlutils.validation import check_sbml
-# check_sbml(libsbml.writeSBMLToString(doc))
-
-# roadrunner has problems
+# read with roadrunner
 te.loadSBMLModel(c14n_xml)
 

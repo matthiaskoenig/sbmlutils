@@ -63,7 +63,7 @@ class TestAnnotation(unittest.TestCase):
     def test_demo_annotation(self):
         """ Annotate the demo network. """
         f_tmp = tempfile.NamedTemporaryFile()
-        annotate_sbml_file(testdata.demo_sbml_no_annotations, testdata.demo_annotations, f_sbml_annotated=f_tmp.name)
+        annotate_sbml_file(testfiles.demo_sbml_no_annotations, testfiles.demo_annotations, f_sbml_annotated=f_tmp.name)
         f_tmp.flush()
 
         import re
@@ -80,8 +80,7 @@ class TestAnnotation(unittest.TestCase):
         # model
         model = doc.getModel()
         cvterms = model.getCVTerms()
-        print(cvterms)
-        self.assertEqual(len(cvterms), 1)
+        self.assertEqual(len(cvterms), 0)
 
         # compartments
         ce = model.getCompartment('e')
@@ -148,7 +147,7 @@ class TestAnnotation(unittest.TestCase):
     def test_galactose_annotation(self):
         """ Annotate the galactose network. """
         f_tmp = tempfile.NamedTemporaryFile()
-        annotate_sbml_file(testdata.galactose_singlecell_sbml_no_annotations, testdata.galactose_annotations,
+        annotate_sbml_file(testfiles.galactose_singlecell_sbml_no_annotations, testfiles.galactose_annotations,
                            f_sbml_annotated=f_tmp.name)
         f_tmp.flush()
 

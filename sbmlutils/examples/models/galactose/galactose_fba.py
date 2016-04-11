@@ -2,19 +2,18 @@
 Check the charge and formula balance of the model.
 Run some simple FBA simulations.
 """
+
 from __future__ import print_function, division
 import os
-import cobra
-from multiscale.sbmlutils import fbc
+from sbmlutils import fbc
+from sbmlutils.examples import testfiles
 
-curdir = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
+    sbml_path = testfiles.galactose_singlecell_sbml
 
-    path = os.path.join(curdir, 'galactose_30.xml')
-    fbc.check_balance(path)
-
-    model = fbc.load_cobra_model(path)
+    fbc.check_balance(sbml_path)
+    model = fbc.load_cobra_model(sbml_path)
 
 
 
