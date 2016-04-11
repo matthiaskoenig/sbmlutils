@@ -6,9 +6,11 @@ SBMLValidator based on the sbml.org validator example code.
 # TODO: only one SBML checking functionality (-> remove duplicate code between check_sbml and validate_SBML)
 
 from __future__ import print_function, division
-import sys
+
 import os.path
+import sys
 import time
+
 import libsbml
 
 
@@ -199,9 +201,9 @@ class SBMLValidator:
 
 
 if __name__ == "__main__":
-    from multiscale.examples.testdata import test_sbml
+    from sbmlutils.tests.testdata import test_sbml
     check_sbml(test_sbml)
 
-    from multiscale.examples.testdata import vdp_sbml
+    from sbmlutils.tests.testdata import vdp_sbml
     check_sbml(vdp_sbml)
 

@@ -1,11 +1,9 @@
 """
-Test the equations.
+Test equations.
 """
-
+from __future__ import print_function, division
 import unittest
-
-from multiscale.sbmlutils.equation import Equation, REV_SEP, IRREV_SEP
-
+from sbmlutils.equation import Equation, REV_SEP, IRREV_SEP
 
 class TestEquation(unittest.TestCase):
     """ Unit tests for modelcreator. """

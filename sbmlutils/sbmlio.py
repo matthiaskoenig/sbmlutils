@@ -2,12 +2,10 @@
 Utility objects and methods for the work with SBML.
 """
 from libsbml import *
-from ..sbmlutils import validation
+from sbmlutils import validation
 
 
-
-### MODEL CHECKING #####################################################################################################
-
+### MODEL CHECKING ###
 def check(value, message):
     """If 'value' is None, prints an error message constructed using
       'message' and then exits with status code 1. If 'value' is an integer,
@@ -33,7 +31,7 @@ def check(value, message):
         return
 
 
-### MODEL IO ###########################################################################################################
+### MODEL IO ###
 
 def write_and_check(doc, sbml_file):
     # write and check the SBML file

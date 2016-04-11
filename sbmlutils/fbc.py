@@ -2,10 +2,11 @@
 Working with fbc models.
 """
 from __future__ import print_function, division
-from multiscale.sbmlutils.factory import create_parameters, A_ID, A_VALUE, A_UNIT
 import cobra
 import libsbml
 from warnings import warn
+
+from sbmlutils.factory import create_parameters, A_ID, A_VALUE, A_UNIT
 
 
 def load_cobra_model(sbml_path):

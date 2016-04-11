@@ -2,7 +2,7 @@ import unittest
 import libsbml
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_DIMENSIONLESS
 
-import multiscale.sbmlutils.formating as formating
+import sbmlutils.formating as formating
 
 class FormatingTestCase(unittest.TestCase):
 

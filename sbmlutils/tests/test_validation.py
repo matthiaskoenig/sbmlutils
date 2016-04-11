@@ -1,9 +1,10 @@
 from __future__ import print_function, division
 
-import unittest
 import tempfile
-from multiscale.sbmlutils.validation import validate_sbml, check_sbml
-from multiscale.examples.testdata import demo_sbml, galactose_singlecell_sbml, test_sbml, vdp_sbml
+import unittest
+
+from sbmlutils.examples.testfiles import demo_sbml, galactose_singlecell_sbml, test_sbml, vdp_sbml
+from sbmlutils.validation import validate_sbml, check_sbml
 
 
 class TestValidation(unittest.TestCase):

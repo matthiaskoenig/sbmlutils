@@ -1,16 +1,13 @@
 """
 Test annotation functions and annotating of SBML models.
 """
-
 from __future__ import print_function, division
 
-import os
 import tempfile
 import unittest
-import libsbml
 
-from multiscale.examples import testdata
-from multiscale.sbmlutils.annotation import *
+from sbmlutils.annotation import *
+from sbmlutils.examples import testfiles
 
 
 class TestAnnotation(unittest.TestCase):
