@@ -1,0 +1,72 @@
+<!------------------------------------------------------->
+<!--  HELPERS 									       -->
+<!------------------------------------------------------->
+
+{% macro notes(item) %}
+    {% if item.isSetNotes() %}
+        {{ item.notes_string.decode('utf-8') }}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro cvterm(item) %}
+    {% if item.isSetAnnotation() %}
+       <div class="cvterm">{{ item|SBML_annotationToString }}</div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro sbo(item) %}
+    {% if item.getSBOTerm() != -1 %}
+        <div class="cvterm">
+        <a href="{{ item.getSBOTermAsURL() }}" target="_blank">{{ item.getSBOTermID() }}</a>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro annotation(item) %}
+    <div class="cvterm">
+    {% if item.getSBOTerm() != -1 %}
+        <a href="{{ item.getSBOTermAsURL() }}" target="_blank">{{ item.getSBOTermID() }}</a><br />
+    {% endif %}
+    {% if item.isSetAnnotation() %}
+       {{ item|SBML_annotationToString }}
+    {% endif %}
+    </div>
+{% endmacro %}
+
+
+{% macro math(item) %}
+    {{ item.getMath()|SBML_astnodeToMathML }}
+{% endmacro %}
+
+
+{% macro boolean(condition) %}
+    {% if condition %}
+        <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    {% else %}
+        <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro annotation_xml(item) %}
+    {% if item.isSetAnnotation() %}
+        <pre>{{ item.getAnnotationString().decode('utf-8') }}</pre>
+    {% endif %}
+{% endmacro %}
+
+{%  macro xml(item) %}
+    <textarea style="border:none;">
+        {{ item.toSBML() }}
+    </textarea>
+{%  endmacro %}
+
+
+{% macro derived_units(item) %}
+    {#
+        {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString1 }}
+     #}
+    {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString|SBML_stringToMathML }}
+{% endmacro %}

@@ -1,0 +1,222 @@
+{% extends "report_base.html" %}
+{% import 'macros_helpers.html' as helpers %}
+{% import 'macros_sbml.html' as macros %}
+
+
+{% block content %}
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="Model"></a>
+
+    {% if doc.isSetNotes() %}
+        {{ helpers.notes(doc) }}
+        <hr />
+    {% endif %}
+
+    {% if model.isSetNotes() %}
+        {{ helpers.notes(model) }}
+        <hr />
+    {% endif %}
+
+    <h1>Model : {{ model.id }}</h1>
+    {{ model.getModelHistory()|SBML_modelHistoryToString }}
+    <table id="table_model_annotation" class="table table-condensed table-nonfluid table-hover">
+        <tr>
+            <td>
+                <a href="{{ model.id }}.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a><br /><br />
+                {{ helpers.annotation(doc) }}<br />
+                {{ helpers.annotation(model) }}
+            </td>
+            <td>
+                <table id="table_model" class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr>{{ macros.model(model) }}</tr>
+                </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+    {% if functions %}
+        <a class="anchor" id="FunctionDefinitions"></a>
+        <table id="table_functions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.function_header(functions|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in functions %}
+                <tr>{{ macros.function_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+    {% if units %}
+        <a class="anchor" id="UnitDefinitions"></a>
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.unit_header(units|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in units %}
+                <tr>{{ macros.unit_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+    {% if compartments %}
+        <a class="anchor" id="Compartments"></a>
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.compartment_header(compartments|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in compartments %}
+                <tr>{{ macros.compartment_content(item, values) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+    {% if species %}
+        <a class="anchor" id="Species"></a>
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.species_header(species|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in species %}
+                <tr>{{ macros.species_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    {% if parameters %}
+        <a class="anchor" id="Parameters"></a>
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.parameter_header(parameters|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in parameters %}
+                <tr>{{ macros.parameter_content(item, values) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    {% if assignments %}
+        <a class="anchor" id="InitialAssignments"></a>
+        <table id="table_assignments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.assignment_header(assignments|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in assignments %}
+                <tr>{{ macros.assignment_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    {% if rules %}
+        <a class="anchor" id="Rules"></a>
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.rule_header(rules|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in rules %}
+                <tr>{{ macros.rule_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+    
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+    {% if constraints %}
+        <a class="anchor" id="Constraints"></a>
+        <table id="table_constraints" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.constraint_header(constraints|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in constraints %}
+                <tr>{{ macros.constraint_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+    {% if reactions %}
+        <a class="anchor" id="Reactions"></a>
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.reaction_header(reactions|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in reactions %}
+                <tr>{{ macros.reaction_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
+    
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+    {% if events %}
+        <a class="anchor" id="Events"></a>
+        <table id="table_events" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.event_header(events|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in events %}
+                <tr>{{ macros.event_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+
+
+{% endblock %}
