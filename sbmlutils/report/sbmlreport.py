@@ -169,6 +169,7 @@ def _copy_directory(src, dest):
 #################################################################################################
 
 if __name__ == '__main__':
+    from sbmlutils.examples.testfiles import test_dir
     import os
     os.chdir("/home/mkoenig/Desktop/splines_interpolate")
     create_sbml_report('cubicSpline.xml', '.')
