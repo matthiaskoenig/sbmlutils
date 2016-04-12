@@ -44,6 +44,12 @@ def add_submodel_from_emd(mplugin, submodel_sid, emd):
 
 
 def get_submodel_frameworks(doc):
+    """
+    Reads the SBO terms of the submodels.
+    These are used to distinguish the different frameworks of the submodels.
+    :param doc:
+    :return:
+    """
     frameworks = {}
     # get list of submodels
     model = doc.getModel()
