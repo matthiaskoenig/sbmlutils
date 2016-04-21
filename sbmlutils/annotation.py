@@ -98,8 +98,13 @@ def set_model_history(model, creators):
 def _create_history(creators):
     h = libsbml.ModelHistory()
 
+    if isinstance(creators, dict):
+        values = creators.itervalues()
+    else:
+        values = creators
+
     # add all creators
-    for creator in creators.itervalues():
+    for creator in values:
         c = libsbml.ModelCreator()
         c.setFamilyName(creator['FamilyName'])
         c.setGivenName(creator['GivenName'])
