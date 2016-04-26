@@ -11,9 +11,9 @@ import libsbml
 import warnings
 
 
+INTERPOLATION_CONSTANT = "constant"
 INTERPOLATION_LINEAR = "linear"
 INTERPOLATION_CUBIC_SPLINE = "cubic spline"
-
 
 
 class Interpolator(object):
@@ -23,7 +23,6 @@ class Interpolator(object):
         self.functions = None
         self.functionConditions = None
         self.interpolation = interpolation
-
 
     @staticmethod
     def formula_constant(col1, col2):
@@ -115,4 +114,11 @@ if __name__ == "__main__":
     from pandas import DataFrame
     x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
     y = [0.0, 2.0, 1.0, 1.5, 2.5, 3.5]
-    self.data = DataFrame(data=(x, y), columns=('x', 'y'))
+    data = DataFrame({'x': x, 'y': y})
+    print(data)
+    interpolator = Interpolator(data=data, interpolation=INTERPOLATION_CONSTANT)
+
+    columns = data.columns
+    formula = interpolator.formula_constant(data[columns[0]], data[columns[1]])
+    print(formula)
+
