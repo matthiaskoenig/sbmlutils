@@ -11,6 +11,39 @@ import libsbml
 import warnings
 
 
+##########################################################################
+# Model information
+##########################################################################
+
+notes = libsbml.XMLNode.convertStringToXMLNode("""
+    <body xmlns='http://www.w3.org/1999/xhtml'>
+    <h1>Data interpolator</h1>
+    <h2>Description</h2>
+    <p>This is a SBML submodel for interpolation of spreadsheet data.</p>
+
+    <div class="dc:publisher">This file has been produced by
+      <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
+      </div>
+
+    <h2>Terms of use</h2>
+      <div class="dc:rightsHolder">Copyright © 2016 Wholecell Consortium.</div>
+      <div class="dc:license">
+      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+          <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+        </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+      </div>
+    </body>
+""")
+
+
 INTERPOLATION_CONSTANT = "constant"
 INTERPOLATION_LINEAR = "linear"
 INTERPOLATION_CUBIC_SPLINE = "cubic spline"
@@ -25,6 +58,16 @@ class Interpolator(object):
         self.interpolation = interpolation
 
     @staticmethod
+    def formula_cubic_spline(col1, col2):
+        # TODO: implement
+        pass
+
+    @staticmethod
+    def formula_linear(col1, col2):
+        # TODO: implement
+        pass
+
+    @staticmethod
     def formula_constant(col1, col2):
         """ Constant value between data points
         piecewise x1, y1, [x2, y2, ][...][z]
@@ -34,15 +77,20 @@ class Interpolator(object):
         """
         items = []
 
-        for k in range(len(col1)-1):
-            s = 'time >= {} && time <= {}, {}'.format(col1.ix[k], col1.ix[k+1], col2.ix[k])
+        for k in range(len(col1) - 1):
+            s = 'time >= {} && time <= {}, {}'.format(col1.ix[k], col1.ix[k + 1], col2.ix[k])
             items.append(s)
         items.append('0.0')
         return ', '.join(items)
 
-    def __str__(self):
-        return Interpolator.formula_constant(self.data[0], self.data[1])
 
+
+    def _add_data_to_model(self):
+        """
+        Adds the data into the SBML model as a parameter
+        with an assignment rule.
+        """
+        pass
 
 
 class Interpolation(object):
@@ -54,18 +102,42 @@ class Interpolation(object):
 
     """
 
-
     def from_csv(self, csv_file, interpolation="linear"):
         data = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, interpolation=interpolation)
 
     def __init__(self, data, interpolation="linear", xIsTime=False):
-        self.doc = libsbml.SBMLDocument()
+        self.doc = None
+        self.model = None
         self.data = data
         self.interpolation = interpolation
+        self.interpolators = []
         self.xIsTime
 
         self.validate_data()
+
+
+    def create_sbml(self, sbml_out):
+        self.init_sbml_model()
+        self.create_interpolators()
+        libsbml.writeSBMLToFile(self.doc, sbml_out)
+
+
+
+    def init_sbml_model()
+        """ Initializes the SBML model.
+
+        :return:
+        :rtype:
+        """
+        sbmlns = SBMLNamespaces(3, 1)
+        sbmlns.addPackageNamespace("fbc", 2)
+        sbmlns.addPackageNamespace("comp", 1)
+
+        doc = SBMLDocument(sbmlns)
+        doc.setPackageRequired("comp", True)
+
+    def create_interpolators(self):
 
 
     def validate_data(self):
@@ -94,12 +166,8 @@ class Interpolation(object):
             self.data = self.data.sort_values(by=self.data.columns[0])
 
 
-    def add_data_to_doc(self):
-        """
-        Adds the data into the SBML model as a parameter
-        with an assignment rule.
-        """
-        pass
+
+    def add_interpolation_to_sbml()
 
 
     def create_sbml(self):
