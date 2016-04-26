@@ -51,14 +51,22 @@ INTERPOLATION_CUBIC_SPLINE = "cubic spline"
 
 class Interpolator(object):
 
-    def __init__(self, data, interpolation):
-        self.data = data
-        self.functions = None
-        self.functionConditions = None
+    def __init__(self, series1, series2, interpolation):
+        self.series1 = series1
+        self.series2 = series2
         self.interpolation = interpolation
+
+    def formula(self):
+        """"""
 
     @staticmethod
     def formula_cubic_spline(col1, col2):
+        """ Formula for the cubic spline.
+
+        This is more complicated and requires the coefficients
+        from the spline interpolation.
+
+        """
         # TODO: implement
         pass
 
@@ -123,21 +131,27 @@ class Interpolation(object):
         libsbml.writeSBMLToFile(self.doc, sbml_out)
 
 
-
-    def init_sbml_model()
+    def init_sbml_model(self):
         """ Initializes the SBML model.
 
         :return:
         :rtype:
         """
-        sbmlns = SBMLNamespaces(3, 1)
-        sbmlns.addPackageNamespace("fbc", 2)
+        sbmlns = libsbml.SBMLNamespaces(3, 1)
         sbmlns.addPackageNamespace("comp", 1)
-
-        doc = SBMLDocument(sbmlns)
+        doc = libsbml.SBMLDocument(sbmlns)
         doc.setPackageRequired("comp", True)
+        self.doc = doc
+        model = doc.createModel()
+        model.setNotes(notes)
+        model.setId("Interpolation_{}".format(self.interpolation))
+        model.setName("Interpolation_{}".format(self.interpolation))
+        self.model = model
 
     def create_interpolators(self):
+        columns = self.data.columns
+        for k in range(len(columns)-1):
+
 
 
     def validate_data(self):
