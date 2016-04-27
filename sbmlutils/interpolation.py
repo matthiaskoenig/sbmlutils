@@ -7,6 +7,7 @@ https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
 
 """
+from __future__ import print_function, division
 import pandas as pd
 import libsbml
 import warnings
@@ -107,8 +108,29 @@ class Interpolator(object):
 
     @staticmethod
     def formula_linear(col1, col2):
-        # TODO: implement
-        pass
+        """ Linear interpolation between data points.
+
+        :return:
+        :rtype:
+        """
+        items = []
+
+        for k in range(len(col1) - 1):
+            x1 = col1.ix[k]
+            x2 = col1.ix[k+1]
+            y1 = col2.ix[k]
+            y2 = col2.ix[k+1]
+            m = (y2-y1)/(x2-x1)
+            formula = '{} + {}*(time-{})'.format(y1, m, x1)
+            condition = 'time >= {} && time < {}'.format(x1, x2)
+            s = '{}, {}'.format(formula, condition)
+            items.append(s)
+        # last value after last time
+        s = '{}, time >= {}'.format(col2.ix[len(col1) - 1], col1.ix[len(col1) - 1])
+        items.append(s)
+        # otherwise
+        items.append('0.0')
+        return 'piecewise({})'.format(', '.join(items))
 
     @staticmethod
     def formula_constant(col1, col2):
@@ -119,12 +141,24 @@ class Interpolator(object):
         :rtype:
         """
         items = []
+        # first value before first time
+        s = '{}, time < {}'.format(col2.ix[0], col1.ix[0])
+        items.append(s)
 
+        # intermediate vales
         for k in range(len(col1) - 1):
-            s = 'time >= {} && time <= {}, {}'.format(col1.ix[k], col1.ix[k + 1], col2.ix[k])
+            condition = 'time >= {} && time < {}'.format(col1.ix[k], col1.ix[k+1])
+            formula = '{}'.format(col2.ix[k])
+            s = '{}, {}'.format(formula, condition)
             items.append(s)
+
+        # last value after last time
+        s = '{}, time >= {}'.format(col2.ix[len(col1)-1], col1.ix[len(col1)-1])
+        items.append(s)
+
+        # otherwise
         items.append('0.0')
-        return ',\n '.join(items)
+        return 'piecewise({})'.format(', '.join(items))
 
 
 class Interpolation(object):
@@ -304,22 +338,34 @@ class Interpolation(object):
         pass
 
 if __name__ == "__main__":
+    import os.path
+    from sbmlutils.examples.testfiles import test_dir
     from pandas import DataFrame
+
+    # data to interpolate in the SBML
     x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
     y = [0.0, 2.0, 1.0, 1.5, 2.5, 3.5]
     z = [10.0, 5.0, 2.5, 1.25, 0.6, 0.3]
     data = DataFrame({'x': x, 'y': y, 'z': z})
-    # print(data)
-    # interpolator = Interpolator(data['x'], data['y'], method=INTERPOLATION_CONSTANT)
-    # print(interpolator)
+    data_out = os.path.join(test_dir, "interpolation", "data1.tsv")
+    data.to_csv(data_out, sep='\t', index=False)
 
-    interpolation = Interpolation(data=data, method=INTERPOLATION_CONSTANT)
-    sbml_out = "test_constant.xml"
-    print("Writing SBML")
-    interpolation.write_sbml(sbml_out)
+    def print_sbml(sbml_out):
+        doc = libsbml.readSBMLFromFile(sbml_constant)
+        print(libsbml.writeSBMLToString(doc))
 
-    # what was written in the file
-    doc = libsbml.readSBMLFromFile(sbml_out)
-    print(libsbml.writeSBMLToString(doc))
+    # constant interpolation
+    ip_constant = Interpolation(data=data, method=INTERPOLATION_CONSTANT)
+    sbml_constant = os.path.join(test_dir, "interpolation", "data1_constant.xml")
+    ip_constant.write_sbml(sbml_constant)
+    # print_sbml(sbml_constant)
+
+    # constant interpolation
+    ip_linear = Interpolation(data=data, method=INTERPOLATION_LINEAR)
+    sbml_linear = os.path.join(test_dir, "interpolation", "data1_linear.xml")
+    ip_linear.write_sbml(sbml_linear)
+    # print_sbml(sbml_constant)
+
+
 
 
