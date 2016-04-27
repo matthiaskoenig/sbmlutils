@@ -12,7 +12,7 @@ import pandas as pd
 import libsbml
 import warnings
 
-from sbmlutils.factory import *
+from sbmlutils import validation
 
 ##########################################################################
 # Model information
@@ -101,15 +101,12 @@ class Interpolator(object):
 
         This is more complicated and requires the coefficients
         from the spline interpolation.
-
         """
-
         # calculate spline coefficients
         coeffs = Interpolator.natural_spline_coeffs(x, y)
 
+        # create piecewise terms
         items = []
-
-        print(coeffs)
         for k in range(len(x)-1):
             x1 = x.ix[k]
             x2 = x.ix[k+1]
@@ -148,9 +145,9 @@ class Interpolator(object):
         a = Y[:]
         b = [0.0] * n
         d = [0.0] * n
-        h = [X[i+1] - X[i] for i in xrange(n)]
+        h = [X[i+1] - X[i] for i in range(n)]
         alpha = [0.0] * n
-        for i in xrange(1, n):
+        for i in range(1, n):
             alpha[i] = 3 / h[i] * (a[i+1] - a[i]) - 3 / h[i - 1] * (a[i] - a[i-1])
         c = [0.0] * np1
         L = [0.0] * np1
@@ -158,19 +155,19 @@ class Interpolator(object):
         z = [0.0] * np1
         L[0] = 1.0
         u[0] = z[0] = 0.0
-        for i in xrange(1, n):
+        for i in range(1, n):
             L[i] = 2 * (X[i+1] - X[i-1]) - h[i-1] * u[i-1]
             u[i] = h[i] / L[i]
             z[i] = (alpha[i] - h[i-1] * z[i-1]) / L[i]
         L[n] = 1.0
         z[n] = c[n] = 0.0
-        for j in xrange(n - 1, -1, -1):
+        for j in range(n-1, -1, -1):
             c[j] = z[j] - u[j] * c[j + 1]
             b[j] = (a[j+1] - a[j]) / h[j] - (h[j] * (c[j+1] + 2 * c[j])) / 3
             d[j] = (c[j+1] - c[j]) / (3 * h[j])
         # store coefficients
         coeffs = []
-        for i in xrange(n):
+        for i in range(n):
             coeffs.append((a[i], b[i], c[i], d[i]))
         return coeffs
 
@@ -183,7 +180,6 @@ class Interpolator(object):
         :rtype:
         """
         items = []
-
         for k in range(len(col1) - 1):
             x1 = col1.ix[k]
             x2 = col1.ix[k+1]
@@ -306,6 +302,7 @@ class Interpolation(object):
         """
         self._create_sbml()
         libsbml.writeSBMLToFile(self.doc, sbml_out)
+        validation.validate_sbml(sbml_out, ucheck=False)
 
     def _create_sbml(self):
         """ Create the SBMLDocument.
@@ -317,8 +314,6 @@ class Interpolation(object):
         self.interpolators = Interpolation.create_interpolators(self.data, self.method)
         for interpolator in self.interpolators:
             Interpolation.add_interpolator_to_model(interpolator, self.model)
-
-        # TODO: validation
 
     def _init_sbml_model(self):
         """ Initializes the SBML model.
