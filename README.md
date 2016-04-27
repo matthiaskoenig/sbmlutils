@@ -5,11 +5,15 @@ python bindings.
 
 
 ## Installation
-Clone the repository
+Either install directly from the git repository
+```
+pip install git+https://github.com/matthiaskoenig/sbmlutils.git
+```
+or via local cloning
 ```
 git clone https://github.com/matthiaskoenig/sbmlutils.git
 ```
-and install via
+followed by
 ```
 cd sbmlutils
 python setup.py install
