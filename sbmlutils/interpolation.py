@@ -96,15 +96,84 @@ class Interpolator(object):
             return Interpolator.formula_cubic_spline(self.x, self.y)
 
     @staticmethod
-    def formula_cubic_spline(col1, col2):
+    def formula_cubic_spline(x, y):
         """ Formula for the cubic spline.
 
         This is more complicated and requires the coefficients
         from the spline interpolation.
 
         """
-        # TODO: implement
-        pass
+
+        # calculate spline coefficients
+        coeffs = Interpolator.natural_spline_coeffs(x, y)
+
+        items = []
+
+        print(coeffs)
+        for k in range(len(x)-1):
+            x1 = x.ix[k]
+            x2 = x.ix[k+1]
+            (a, b, c, d) = coeffs[k]
+            formula = '{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}'.format(a=a, b=b, c=c, d=d, x1=x1)
+            condition = 'time >= {x1} && time <= {x2}'.format(x1=x1, x2=x2)
+            s = '{}, {}'.format(formula, condition)
+            items.append(s)
+
+        # otherwise
+        items.append('0.0')
+        return 'piecewise({})'.format(', '.join(items))
+
+    @staticmethod
+    def natural_spline_coeffs(X, Y):
+        """ Calculate natural spline coefficients.
+
+        Calculation of coefficients for
+            di*(x - xi)^3 + ci*(x - xi)^2 + bi*(x - xi) + ai
+        for x in [xi, xi+1]
+
+        Natural splines use a fixed second derivative, such that S''(x0)=S''(xn)=0,
+        whereas clamped splines use fixed bounding conditions for S(x) at x0 and xn.
+
+        A trig-diagonal matrix is constructed which can be efficiently solved.
+
+        Equations and derivation from:
+        https://jayemmcee.wordpress.com/cubic-splines/
+        http://pastebin.com/EUs31Hvh
+
+        :return:
+        :rtype:
+        """
+        np1 = len(X)
+        n = np1 - 1
+        a = Y[:]
+        b = [0.0] * n
+        d = [0.0] * n
+        h = [X[i+1] - X[i] for i in xrange(n)]
+        alpha = [0.0] * n
+        for i in xrange(1, n):
+            alpha[i] = 3 / h[i] * (a[i+1] - a[i]) - 3 / h[i - 1] * (a[i] - a[i-1])
+        c = [0.0] * np1
+        L = [0.0] * np1
+        u = [0.0] * np1
+        z = [0.0] * np1
+        L[0] = 1.0
+        u[0] = z[0] = 0.0
+        for i in xrange(1, n):
+            L[i] = 2 * (X[i+1] - X[i-1]) - h[i-1] * u[i-1]
+            u[i] = h[i] / L[i]
+            z[i] = (alpha[i] - h[i-1] * z[i-1]) / L[i]
+        L[n] = 1.0
+        z[n] = c[n] = 0.0
+        for j in xrange(n - 1, -1, -1):
+            c[j] = z[j] - u[j] * c[j + 1]
+            b[j] = (a[j+1] - a[j]) / h[j] - (h[j] * (c[j+1] + 2 * c[j])) / 3
+            d[j] = (c[j+1] - c[j]) / (3 * h[j])
+        # store coefficients
+        coeffs = []
+        for i in xrange(n):
+            coeffs.append((a[i], b[i], c[i], d[i]))
+        return coeffs
+
 
     @staticmethod
     def formula_linear(col1, col2):
@@ -326,17 +395,9 @@ class Interpolation(object):
         else:
             rule.setMath(ast_node)
 
+        # TODO: add ports for connection with other model
 
-
-
-    def _add_data_to_model(self):
-        """
-        Adds the data into the SBML model as a parameter
-        with an assignment rule.
-        """
-        # TODO: implement
-        pass
-
+##################################################################################
 if __name__ == "__main__":
     import os.path
     from sbmlutils.examples.testfiles import test_dir
@@ -364,6 +425,12 @@ if __name__ == "__main__":
     ip_linear = Interpolation(data=data, method=INTERPOLATION_LINEAR)
     sbml_linear = os.path.join(test_dir, "interpolation", "data1_linear.xml")
     ip_linear.write_sbml(sbml_linear)
+    # print_sbml(sbml_constant)
+
+    # cubic spline
+    ip_cubic = Interpolation(data=data, method=INTERPOLATION_CUBIC_SPLINE)
+    sbml_cubic = os.path.join(test_dir, "interpolation", "data1_cubic.xml")
+    ip_cubic.write_sbml(sbml_cubic)
     # print_sbml(sbml_constant)
 
 
