@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Examples &mdash; sbmlutils 0.1.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="sbmlutils 0.1.1 documentation" href="index.html"/>
+        <link rel="prev" title="Installation" href="installation.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> sbmlutils
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fba-model">FBA Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unit-definitions">Unit definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-building">Model building</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#interpolation">Interpolation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dataset">Dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interpolate-data">Interpolate data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#combine-models">Combine models</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">sbmlutils</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Examples</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/notebooks.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<p>All tellurium examples are available as interactive <a class="reference external" href="http://jupyter.readthedocs.org/en/latest/install.html">jupyter notebooks</a>.</p>
+<p>To run the examples clone the git repository</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">matthiaskoenig</span><span class="o">/</span><span class="n">sbmlutils</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>and start jupyter in the notebooks folder</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">sbmlutils</span><span class="o">/</span><span class="n">sbmlutils</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">notebooks</span>
+<span class="n">jupyter</span> <span class="n">notebook</span> <span class="n">index</span><span class="o">.</span><span class="n">ipynb</span>
+</pre></div>
+</div>
+<div class="section" id="fba-model">
+<h2>FBA Model<a class="headerlink" href="#fba-model" title="Permalink to this headline">¶</a></h2>
+<p>This example demonstrates the creation of an SBML FBA model from
+scratch.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sbmlutils</span> <span class="k">import</span> <span class="n">comp</span>
+<span class="kn">from</span> <span class="nn">sbmlutils</span> <span class="k">import</span> <span class="n">sbmlio</span>
+<span class="kn">from</span> <span class="nn">sbmlutils.factory</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">libsbml</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="section" id="unit-definitions">
+<h3>Unit definitions<a class="headerlink" href="#unit-definitions" title="Permalink to this headline">¶</a></h3>
+<p>Units for the model are defined in the following manner.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Unit definitions</span>
+<span class="n">main_units</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;extent&#39;</span><span class="p">:</span> <span class="n">UNIT_KIND_ITEM</span><span class="p">,</span>
+    <span class="s1">&#39;substance&#39;</span><span class="p">:</span> <span class="n">UNIT_KIND_ITEM</span><span class="p">,</span>
+    <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="s1">&#39;m2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m3&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">units</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_SECOND</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)],</span>
+    <span class="s1">&#39;kg&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_KILOGRAM</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)],</span>
+    <span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_METRE</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)],</span>
+    <span class="s1">&#39;m2&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_METRE</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)],</span>
+    <span class="s1">&#39;m3&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_METRE</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)],</span>
+    <span class="s1">&#39;mM&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_MOLE</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+           <span class="p">(</span><span class="n">UNIT_KIND_METRE</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">)],</span>
+    <span class="s1">&#39;per_s&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_SECOND</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)],</span>
+    <span class="s1">&#39;item_per_s&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_ITEM</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                   <span class="p">(</span><span class="n">UNIT_KIND_SECOND</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)],</span>
+    <span class="s1">&#39;item_per_m3&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">UNIT_KIND_ITEM</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">UNIT_KIND_METRE</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">)],</span>
+<span class="p">}</span>
+
+<span class="n">UNIT_AMOUNT</span> <span class="o">=</span> <span class="n">UNIT_KIND_ITEM</span>
+<span class="n">UNIT_AREA</span> <span class="o">=</span> <span class="s1">&#39;m2&#39;</span>
+<span class="n">UNIT_VOLUME</span> <span class="o">=</span> <span class="s1">&#39;m3&#39;</span>
+<span class="n">UNIT_CONCENTRATION</span> <span class="o">=</span> <span class="s1">&#39;item_per_m3&#39;</span>
+<span class="n">UNIT_FLUX</span> <span class="o">=</span> <span class="s1">&#39;item_per_s&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="model-building">
+<h3>Model building<a class="headerlink" href="#model-building" title="Permalink to this headline">¶</a></h3>
+<p>Creation of FBA model using multiple packages (<code class="docutils literal"><span class="pre">comp</span></code>, <code class="docutils literal"><span class="pre">fbc</span></code>).</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Create the FBA model</span>
+<span class="n">sbmlns</span> <span class="o">=</span> <span class="n">SBMLNamespaces</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">sbmlns</span><span class="o">.</span><span class="n">addPackageNamespace</span><span class="p">(</span><span class="s2">&quot;fbc&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">sbmlns</span><span class="o">.</span><span class="n">addPackageNamespace</span><span class="p">(</span><span class="s2">&quot;comp&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">doc_fba</span> <span class="o">=</span> <span class="n">SBMLDocument</span><span class="p">(</span><span class="n">sbmlns</span><span class="p">)</span>
+<span class="n">doc_fba</span><span class="o">.</span><span class="n">setPackageRequired</span><span class="p">(</span><span class="s2">&quot;comp&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">mdoc</span> <span class="o">=</span> <span class="n">doc_fba</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">(</span><span class="s2">&quot;comp&quot;</span><span class="p">)</span>
+<span class="n">doc_fba</span><span class="o">.</span><span class="n">setPackageRequired</span><span class="p">(</span><span class="s2">&quot;fbc&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">doc_fba</span><span class="o">.</span><span class="n">createModel</span><span class="p">()</span>
+<span class="n">mplugin</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">(</span><span class="s2">&quot;fbc&quot;</span><span class="p">)</span>
+<span class="n">mplugin</span><span class="o">.</span><span class="n">setStrict</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># model</span>
+<span class="n">model</span><span class="o">.</span><span class="n">setId</span><span class="p">(</span><span class="s1">&#39;toy_fba&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s1">&#39;FBA submodel&#39;</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">setSBOTerm</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">SBO_FLUX_BALANCE_FRAMEWORK</span><span class="p">)</span>
+
+<span class="n">create_unit_definitions</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+<span class="n">set_main_units</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">main_units</span><span class="p">)</span>
+
+<span class="c1"># compartments</span>
+<span class="n">compartments</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_VOLUME</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s1">&#39;external compartment&#39;</span><span class="p">,</span> <span class="n">A_SPATIAL_DIMENSION</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_VOLUME</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="n">A_SPATIAL_DIMENSION</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;membrane&#39;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_AREA</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s1">&#39;membrane&#39;</span><span class="p">,</span> <span class="n">A_SPATIAL_DIMENSION</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="p">]</span>
+<span class="n">create_compartments</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">compartments</span><span class="p">)</span>
+
+<span class="c1"># species</span>
+<span class="n">species</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># external</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_AMOUNT</span><span class="p">,</span> <span class="n">A_HAS_ONLY_SUBSTANCE_UNITS</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+     <span class="n">A_COMPARTMENT</span><span class="p">:</span> <span class="s2">&quot;extern&quot;</span><span class="p">,</span> <span class="n">A_BOUNDARY_CONDITION</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_AMOUNT</span><span class="p">,</span> <span class="n">A_HAS_ONLY_SUBSTANCE_UNITS</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+     <span class="n">A_COMPARTMENT</span><span class="p">:</span> <span class="s2">&quot;extern&quot;</span><span class="p">,</span> <span class="n">A_BOUNDARY_CONDITION</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="c1"># internal</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;B1&#39;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;B1&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_AMOUNT</span><span class="p">,</span> <span class="n">A_HAS_ONLY_SUBSTANCE_UNITS</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+     <span class="n">A_COMPARTMENT</span><span class="p">:</span> <span class="s2">&quot;cell&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;B2&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_AMOUNT</span><span class="p">,</span> <span class="n">A_HAS_ONLY_SUBSTANCE_UNITS</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+     <span class="n">A_COMPARTMENT</span><span class="p">:</span> <span class="s2">&quot;cell&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+<span class="n">create_species</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
+<span class="c1"># parameters</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># bounds</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s2">&quot;ub_R1&quot;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;ub R1&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_FLUX</span><span class="p">,</span> <span class="n">A_CONSTANT</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s2">&quot;lb&quot;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;lower bound&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_FLUX</span><span class="p">,</span> <span class="n">A_CONSTANT</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">{</span><span class="n">A_ID</span><span class="p">:</span> <span class="s2">&quot;ub&quot;</span><span class="p">,</span> <span class="n">A_NAME</span><span class="p">:</span> <span class="s2">&quot;upper bound&quot;</span><span class="p">,</span> <span class="n">A_VALUE</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span> <span class="n">A_UNIT</span><span class="p">:</span> <span class="n">UNIT_FLUX</span><span class="p">,</span> <span class="n">A_CONSTANT</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<span class="p">]</span>
+<span class="n">create_parameters</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+
+<span class="c1"># reactions</span>
+<span class="n">r1</span> <span class="o">=</span> <span class="n">create_reaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">rid</span><span class="o">=</span><span class="s2">&quot;R1&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;A import (R1)&quot;</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reversible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">reactants</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">products</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;B1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">compartment</span><span class="o">=</span><span class="s1">&#39;membrane&#39;</span><span class="p">)</span>
+<span class="n">r2</span> <span class="o">=</span> <span class="n">create_reaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">rid</span><span class="o">=</span><span class="s2">&quot;R2&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;B1 &lt;-&gt; B2 (R2)&quot;</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reversible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">reactants</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;B1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">products</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;B2&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">compartment</span><span class="o">=</span><span class="s1">&#39;cell&#39;</span><span class="p">)</span>
+<span class="n">r3</span> <span class="o">=</span> <span class="n">create_reaction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">rid</span><span class="o">=</span><span class="s2">&quot;R3&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;B2 export (R3)&quot;</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reversible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">reactants</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;B2&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">products</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">compartment</span><span class="o">=</span><span class="s1">&#39;membrane&#39;</span><span class="p">)</span>
+
+<span class="c1"># flux bounds</span>
+<span class="n">set_flux_bounds</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">lb</span><span class="o">=</span><span class="s2">&quot;lb&quot;</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="s2">&quot;ub_R1&quot;</span><span class="p">)</span>
+<span class="n">set_flux_bounds</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">lb</span><span class="o">=</span><span class="s2">&quot;lb&quot;</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="s2">&quot;ub&quot;</span><span class="p">)</span>
+<span class="n">set_flux_bounds</span><span class="p">(</span><span class="n">r3</span><span class="p">,</span> <span class="n">lb</span><span class="o">=</span><span class="s2">&quot;lb&quot;</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="s2">&quot;ub&quot;</span><span class="p">)</span>
+
+<span class="c1"># objective function</span>
+<span class="n">create_objective</span><span class="p">(</span><span class="n">mplugin</span><span class="p">,</span> <span class="n">oid</span><span class="o">=</span><span class="s2">&quot;R3_maximize&quot;</span><span class="p">,</span> <span class="n">otype</span><span class="o">=</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="n">fluxObjectives</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;R3&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">})</span>
+
+<span class="c1"># create ports</span>
+<span class="n">comp</span><span class="o">.</span><span class="n">_create_port</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="s2">&quot;R3_port&quot;</span><span class="p">,</span> <span class="n">idRef</span><span class="o">=</span><span class="s2">&quot;R3&quot;</span><span class="p">,</span> <span class="n">portType</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">PORT_TYPE_PORT</span><span class="p">)</span>
+<span class="n">comp</span><span class="o">.</span><span class="n">_create_port</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="s2">&quot;ub_R1_port&quot;</span><span class="p">,</span> <span class="n">idRef</span><span class="o">=</span><span class="s2">&quot;ub_R1&quot;</span><span class="p">,</span> <span class="n">portType</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">PORT_TYPE_PORT</span><span class="p">)</span>
+<span class="n">comp</span><span class="o">.</span><span class="n">_create_port</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="s2">&quot;cell_port&quot;</span><span class="p">,</span> <span class="n">idRef</span><span class="o">=</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="n">portType</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">PORT_TYPE_PORT</span><span class="p">)</span>
+<span class="n">comp</span><span class="o">.</span><span class="n">_create_port</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="s2">&quot;extern_port&quot;</span><span class="p">,</span> <span class="n">idRef</span><span class="o">=</span><span class="s2">&quot;extern&quot;</span><span class="p">,</span> <span class="n">portType</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">PORT_TYPE_PORT</span><span class="p">)</span>
+<span class="n">comp</span><span class="o">.</span><span class="n">_create_port</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="s2">&quot;C_port&quot;</span><span class="p">,</span> <span class="n">idRef</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="n">portType</span><span class="o">=</span><span class="n">comp</span><span class="o">.</span><span class="n">PORT_TYPE_PORT</span><span class="p">)</span>
+
+<span class="c1"># write SBML file</span>
+<span class="n">sbml_file</span> <span class="o">=</span> <span class="s2">&quot;fba_example.xml&quot;</span>
+<span class="n">sbmlio</span><span class="o">.</span><span class="n">write_and_check</span><span class="p">(</span><span class="n">doc_fba</span><span class="p">,</span> <span class="n">sbml_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="n">read</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">):</span> <span class="mf">0.009998</span>
+ <span class="n">validation</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">3</span>
+
+<span class="n">line</span> <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="mi">10701</span> <span class="p">[</span><span class="ne">Warning</span><span class="p">])</span> <span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">the</span> <span class="s1">&#39;sboTerm&#39;</span> <span class="n">attribute</span> <span class="n">on</span> <span class="n">a</span> <span class="o">&lt;</span><span class="n">model</span><span class="o">&gt;</span> <span class="ow">is</span> <span class="n">expected</span> <span class="n">to</span> <span class="n">be</span> <span class="n">an</span> <span class="n">SBO</span> <span class="n">identifier</span> <span class="p">(</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">biomodels</span><span class="o">.</span><span class="n">net</span><span class="o">/</span><span class="n">SBO</span><span class="o">/</span><span class="p">)</span><span class="o">.</span>  <span class="n">In</span> <span class="n">SBML</span> <span class="n">Level</span> <span class="mi">2</span> <span class="n">prior</span> <span class="n">to</span> <span class="n">Version</span> <span class="mi">4</span> <span class="n">the</span> <span class="n">value</span> <span class="ow">is</span> <span class="n">expected</span> <span class="n">to</span> <span class="n">be</span> <span class="n">a</span> <span class="n">term</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">SBO</span><span class="p">:</span><span class="mi">0000004</span><span class="p">,</span> <span class="s2">&quot;modeling framework&quot;</span><span class="p">;</span> <span class="ow">in</span> <span class="n">Version</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">above</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">expected</span> <span class="n">to</span> <span class="n">be</span> <span class="n">a</span> <span class="n">term</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">SBO</span><span class="p">:</span><span class="mi">0000231</span> <span class="s2">&quot;occurring entity representation&quot;</span>
+<span class="n">Reference</span><span class="p">:</span> <span class="n">L3V1</span> <span class="n">Section</span> <span class="mi">5</span>
+ <span class="n">SBO</span> <span class="n">term</span> <span class="s1">&#39;SBO:0000624&#39;</span> <span class="n">on</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">model</span><span class="o">&gt;</span> <span class="ow">is</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">appropriate</span> <span class="n">branch</span><span class="o">.</span>
+
+<span class="n">line</span> <span class="mi">1</span><span class="p">:</span> <span class="p">(</span><span class="n">comp</span><span class="o">-</span><span class="mi">90106</span> <span class="p">[</span><span class="ne">Warning</span><span class="p">])</span> <span class="n">Due</span> <span class="n">to</span> <span class="n">the</span> <span class="n">need</span> <span class="n">to</span> <span class="n">instantiate</span> <span class="n">models</span><span class="p">,</span> <span class="n">modelDefinitions</span><span class="p">,</span> <span class="n">submodels</span> <span class="n">etc</span><span class="o">.</span> <span class="k">for</span> <span class="n">the</span> <span class="n">purposes</span> <span class="n">of</span> <span class="n">validation</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">problematic</span> <span class="n">to</span> <span class="n">reliably</span> <span class="n">report</span> <span class="n">line</span> <span class="n">numbers</span> <span class="n">when</span> <span class="n">performing</span> <span class="n">validation</span> <span class="n">on</span> <span class="n">models</span> <span class="n">using</span> <span class="n">the</span> <span class="n">Hierarchical</span> <span class="n">Model</span> <span class="n">Composition</span> <span class="n">package</span><span class="o">.</span>
+
+<span class="n">line</span> <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="mi">10701</span> <span class="p">[</span><span class="ne">Warning</span><span class="p">])</span> <span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">the</span> <span class="s1">&#39;sboTerm&#39;</span> <span class="n">attribute</span> <span class="n">on</span> <span class="n">a</span> <span class="o">&lt;</span><span class="n">model</span><span class="o">&gt;</span> <span class="ow">is</span> <span class="n">expected</span> <span class="n">to</span> <span class="n">be</span> <span class="n">an</span> <span class="n">SBO</span> <span class="n">identifier</span> <span class="p">(</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">biomodels</span><span class="o">.</span><span class="n">net</span><span class="o">/</span><span class="n">SBO</span><span class="o">/</span><span class="p">)</span><span class="o">.</span>  <span class="n">In</span> <span class="n">SBML</span> <span class="n">Level</span> <span class="mi">2</span> <span class="n">prior</span> <span class="n">to</span> <span class="n">Version</span> <span class="mi">4</span> <span class="n">the</span> <span class="n">value</span> <span class="ow">is</span> <span class="n">expected</span> <span class="n">to</span> <span class="n">be</span> <span class="n">a</span> <span class="n">term</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">SBO</span><span class="p">:</span><span class="mi">0000004</span><span class="p">,</span> <span class="s2">&quot;modeling framework&quot;</span><span class="p">;</span> <span class="ow">in</span> <span class="n">Version</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">above</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">expected</span> <span class="n">to</span> <span class="n">be</span> <span class="n">a</span> <span class="n">term</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">SBO</span><span class="p">:</span><span class="mi">0000231</span> <span class="s2">&quot;occurring entity representation&quot;</span>
+<span class="n">Reference</span><span class="p">:</span> <span class="n">L3V1</span> <span class="n">Section</span> <span class="mi">5</span>
+ <span class="n">SBO</span> <span class="n">term</span> <span class="s1">&#39;SBO:0000624&#39;</span> <span class="n">on</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">model</span><span class="o">&gt;</span> <span class="ow">is</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">appropriate</span> <span class="n">branch</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="interpolation">
+<h2>Interpolation<a class="headerlink" href="#interpolation" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">sbmlutils</span></code> provides functionality for creating interpolated functions
+in SBML models. This allows to drive the model with experimental data
+sets.</p>
+<div class="section" id="dataset">
+<h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h3>
+<p>In a first step an experimental data set is loaded as a <code class="docutils literal"><span class="pre">pandas</span></code>
+DataFrame.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sbmlutils</span>
+<span class="c1"># load the data</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;../../interpolation/data1.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>     <span class="n">x</span>    <span class="n">y</span>      <span class="n">z</span>
+<span class="mi">0</span>  <span class="mf">0.0</span>  <span class="mf">0.0</span>  <span class="mf">10.00</span>
+<span class="mi">1</span>  <span class="mf">1.0</span>  <span class="mf">2.0</span>   <span class="mf">5.00</span>
+<span class="mi">2</span>  <span class="mf">2.0</span>  <span class="mf">1.0</span>   <span class="mf">2.50</span>
+<span class="mi">3</span>  <span class="mf">3.0</span>  <span class="mf">1.5</span>   <span class="mf">1.25</span>
+<span class="mi">4</span>  <span class="mf">4.0</span>  <span class="mf">2.5</span>   <span class="mf">0.60</span>
+<span class="mi">5</span>  <span class="mf">5.0</span>  <span class="mf">3.5</span>   <span class="mf">0.30</span>
+</pre></div>
+</div>
+<img alt="_images/Interpolation_1_1.png" src="_images/Interpolation_1_1.png" />
+</div>
+<div class="section" id="interpolate-data">
+<h3>Interpolate data<a class="headerlink" href="#interpolate-data" title="Permalink to this headline">¶</a></h3>
+<p>Now we interpolate the experimental data with different methods.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># import the interpolation functionality</span>
+<span class="kn">from</span> <span class="nn">sbmlutils.interpolation</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1"># constant interpolation</span>
+<span class="n">ip_constant</span> <span class="o">=</span> <span class="n">Interpolation</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">INTERPOLATION_CONSTANT</span><span class="p">)</span>
+<span class="n">ip_constant</span><span class="o">.</span><span class="n">write_sbml_to_file</span><span class="p">(</span><span class="s2">&quot;data1_constant.xml&quot;</span><span class="p">)</span>
+
+<span class="c1"># linear interpolation</span>
+<span class="n">ip_linear</span> <span class="o">=</span> <span class="n">Interpolation</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">INTERPOLATION_LINEAR</span><span class="p">)</span>
+<span class="n">ip_linear</span><span class="o">.</span><span class="n">write_sbml_to_file</span><span class="p">(</span><span class="s2">&quot;data1_linear.xml&quot;</span><span class="p">)</span>
+
+<span class="c1"># natural cubic spline</span>
+<span class="n">ip_cubic</span> <span class="o">=</span> <span class="n">Interpolation</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">INTERPOLATION_CUBIC_SPLINE</span><span class="p">)</span>
+<span class="n">ip_cubic</span><span class="o">.</span><span class="n">write_sbml_to_file</span><span class="p">(</span><span class="s2">&quot;data1_cubic.xml&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">filename</span> <span class="p">:</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">tmpYWAHSA</span><span class="o">/</span><span class="n">validated</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">file</span> <span class="n">size</span> <span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="p">:</span> <span class="mi">8341</span>
+<span class="n">read</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">4.124880</span>
+<span class="n">c</span><span class="o">-</span><span class="n">check</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">4.273176</span>
+<span class="n">validation</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">consistency</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+<span class="n">validation</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">consistency</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+
+<span class="n">filename</span> <span class="p">:</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">tmpjegjVu</span><span class="o">/</span><span class="n">validated</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">file</span> <span class="n">size</span> <span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="p">:</span> <span class="mi">11902</span>
+<span class="n">read</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">6.021023</span>
+<span class="n">c</span><span class="o">-</span><span class="n">check</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">5.322933</span>
+<span class="n">validation</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">consistency</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+<span class="n">validation</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">consistency</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+
+<span class="n">filename</span> <span class="p">:</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">tmp1aLtPK</span><span class="o">/</span><span class="n">validated</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">file</span> <span class="n">size</span> <span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="p">:</span> <span class="mi">20914</span>
+<span class="n">read</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">10.004044</span>
+<span class="n">c</span><span class="o">-</span><span class="n">check</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">6.201982</span>
+<span class="n">validation</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">consistency</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+<span class="n">validation</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">consistency</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="simulate">
+<h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
+<p>In the next step we can use the interpolation SBML models for
+simulation.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># simulate</span>
+<span class="k">def</span> <span class="nf">plot_data</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Helper function for plotting interpolation with data. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;y data&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;z data&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> interpolation&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="kn">import</span> <span class="nn">tellurium</span> <span class="k">as</span> <span class="nn">te</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">]:</span>
+    <span class="n">sbml_file</span> <span class="o">=</span> <span class="s1">&#39;data1_</span><span class="si">{}</span><span class="s1">.xml&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">te</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">sbml_file</span><span class="p">)</span>
+
+    <span class="c1"># Simulate the interpolation</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">timeCourseSelections</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="n">plot_data</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/Interpolation_5_0.png" src="_images/Interpolation_5_0.png" />
+<img alt="_images/Interpolation_5_1.png" src="_images/Interpolation_5_1.png" />
+<img alt="_images/Interpolation_5_2.png" src="_images/Interpolation_5_2.png" />
+</div>
+<div class="section" id="combine-models">
+<h3>Combine models<a class="headerlink" href="#combine-models" title="Permalink to this headline">¶</a></h3>
+<p>Combination of a fitted data model with a regular model via comp.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sbmlutils.interpolation</span> <span class="k">import</span> <span class="n">Interpolation</span><span class="p">,</span> <span class="n">INTERPOLATION_CUBIC_SPLINE</span>
+<span class="n">ip</span> <span class="o">=</span> <span class="n">Interpolation</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">INTERPOLATION_CUBIC_SPLINE</span><span class="p">)</span>
+<span class="n">sbml_str</span> <span class="o">=</span> <span class="n">ip</span><span class="o">.</span><span class="n">write_sbml_to_string</span><span class="p">()</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">te</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">sbml_str</span><span class="p">)</span>
+<span class="n">a_spline</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">getAntimony</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">a_spline</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="n">filename</span> <span class="p">:</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">tmppPHrUr</span><span class="o">/</span><span class="n">validated</span><span class="o">.</span><span class="n">xml</span>
+ <span class="n">file</span> <span class="n">size</span> <span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="p">:</span> <span class="mi">20914</span>
+ <span class="n">read</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">7.255793</span>
+ <span class="n">c</span><span class="o">-</span><span class="n">check</span> <span class="n">time</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="p">:</span> <span class="mf">6.713867</span>
+ <span class="n">validation</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+ <span class="n">consistency</span> <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+ <span class="n">validation</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+ <span class="n">consistency</span> <span class="n">warning</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="mi">0</span>
+
+<span class="o">//</span> <span class="n">Created</span> <span class="n">by</span> <span class="n">libAntimony</span> <span class="n">v2</span><span class="o">.</span><span class="mf">9.0</span>
+<span class="n">model</span> <span class="o">*</span><span class="n">Interpolation_cubic_spline</span><span class="p">()</span>
+
+  <span class="o">//</span> <span class="n">Assignment</span> <span class="n">Rules</span><span class="p">:</span>
+  <span class="n">y</span> <span class="p">:</span><span class="o">=</span> <span class="n">piecewise</span><span class="p">(</span><span class="o">-</span><span class="mf">0.901913875598</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">0</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">2.9019138756</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">),</span> <span class="mf">1.50956937799</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="o">-</span><span class="mf">2.70574162679</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.196172248804</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.636363636364</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mf">1.82296650718</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="o">-</span><span class="mf">0.686602870813</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">),</span> <span class="mf">0.0358851674641</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="o">-</span><span class="mf">0.0861244019139</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">1.05023923445</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.5</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.00717703349282</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mf">0.0215311004785</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.985645933014</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.5</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="n">z</span> <span class="p">:</span><span class="o">=</span> <span class="n">piecewise</span><span class="p">(</span><span class="mf">0.58995215311</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">0</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="o">-</span><span class="mf">5.58995215311</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.44976076555</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mf">1.76985645933</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="o">-</span><span class="mf">3.82009569378</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.0409090909091</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mf">0.420574162679</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="o">-</span><span class="mf">1.62966507177</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.5</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.0366028708134</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mf">0.297846889952</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="o">-</span><span class="mf">0.911244019139</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.25</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.0626794258373</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span><span class="o">^</span><span class="mi">3</span> <span class="o">+</span> <span class="mf">0.188038277512</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="o">-</span><span class="mf">0.425358851675</span><span class="o">*</span><span class="p">(</span><span class="n">time</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.6</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+
+  <span class="o">//</span> <span class="n">Other</span> <span class="n">declarations</span><span class="p">:</span>
+  <span class="n">var</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">;</span>
+<span class="n">end</span>
+</pre></div>
+</div>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># combine the models with antimony</span>
+<span class="n">a_test</span> <span class="o">=</span> <span class="n">a_spline</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">model *test()</span>
+<span class="s2">    // add spline submodel to the model</span>
+<span class="s2">    A: Interpolation_cubic_spline();</span>
+
+<span class="s2">    J0: S1 -&gt; S2; k1*S1;</span>
+<span class="s2">    J1: $S3 -&gt; S2; k1*S3;</span>
+<span class="s2">    J2: $S4 -&gt; S2; k1*S4;</span>
+<span class="s2">    S1 = 10.0; S2=0.0; S3=0.0; S4=0.0</span>
+<span class="s2">    k1 = 0.3;</span>
+
+<span class="s2">    // use the submodel info in model not working</span>
+<span class="s2">    A.y is y;</span>
+<span class="s2">    A.z is z;</span>
+
+<span class="s2">    S3 := y</span>
+<span class="s2">    S4 := z</span>
+<span class="s2">end</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">r2</span> <span class="o">=</span> <span class="n">te</span><span class="o">.</span><span class="n">loada</span><span class="p">(</span><span class="n">a_test</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">getAntimony</span><span class="p">())</span>
+<span class="n">r2</span><span class="o">.</span><span class="n">timeCourseSelections</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">r2</span><span class="o">.</span><span class="n">getBoundarySpeciesIds</span><span class="p">()</span> <span class="o">+</span> <span class="n">r2</span><span class="o">.</span><span class="n">getFloatingSpeciesIds</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">timeCourseSelections</span><span class="p">)</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">r2</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">r2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>// Created by libAntimony v2.9.0
+model *test()
+
+  // Compartments and Species:
+  species S1, S2, $S3, $S4;
+
+  // Assignment Rules:
+  S3 := y;
+  y := piecewise(-0.901913875598*(time - 0)^3 + 0*(time - 0)^2 + 2.9019138756*(time - 0) + 0, (time &gt;= 0) &amp;&amp; (time &lt;= 1), 1.50956937799*(time - 1)^3 + -2.70574162679*(time - 1)^2 + 0.196172248804*(time - 1) + 2, (time &gt;= 1) &amp;&amp; (time &lt;= 2), -0.636363636364*(time - 2)^3 + 1.82296650718*(time - 2)^2 + -0.686602870813*(time - 2) + 1, (time &gt;= 2) &amp;&amp; (time &lt;= 3), 0.0358851674641*(time - 3)^3 + -0.0861244019139*(time - 3)^2 + 1.05023923445*(time - 3) + 1.5, (time &gt;= 3) &amp;&amp; (time &lt;= 4), -0.00717703349282*(time - 4)^3 + 0.0215311004785*(time - 4)^2 + 0.985645933014*(time - 4) + 2.5, (time &gt;= 4) &amp;&amp; (time &lt;= 5), 0);
+  S4 := z;
+  z := piecewise(0.58995215311*(time - 0)^3 + 0*(time - 0)^2 + -5.58995215311*(time - 0) + 10, (time &gt;= 0) &amp;&amp; (time &lt;= 1), -0.44976076555*(time - 1)^3 + 1.76985645933*(time - 1)^2 + -3.82009569378*(time - 1) + 5, (time &gt;= 1) &amp;&amp; (time &lt;= 2), -0.0409090909091*(time - 2)^3 + 0.420574162679*(time - 2)^2 + -1.62966507177*(time - 2) + 2.5, (time &gt;= 2) &amp;&amp; (time &lt;= 3), -0.0366028708134*(time - 3)^3 + 0.297846889952*(time - 3)^2 + -0.911244019139*(time - 3) + 1.25, (time &gt;= 3) &amp;&amp; (time &lt;= 4), -0.0626794258373*(time - 4)^3 + 0.188038277512*(time - 4)^2 + -0.425358851675*(time - 4) + 0.6, (time &gt;= 4) &amp;&amp; (time &lt;= 5), 0);
+
+  // Reactions:
+  J0: S1 -&gt; S2; k1*S1;
+  J1: $S3 -&gt; S2; k1*S3;
+  J2: $S4 -&gt; S2; k1*S4;
+
+  // Species initializations:
+  S1 = 10;
+  S2 = 0;
+
+  // Variable initializations:
+  k1 = 0.3;
+
+  // Other declarations:
+  var y, z;
+  const k1;
+end
+
+[&#39;time&#39;, &#39;S3&#39;, &#39;S4&#39;, &#39;S1&#39;, &#39;S2&#39;]
+</pre></div>
+</div>
+<img alt="_images/Interpolation_8_1.png" src="_images/Interpolation_8_1.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, matthiaskoenig.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

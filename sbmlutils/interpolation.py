@@ -9,9 +9,12 @@ https://github.com/allyhume/SBMLDataTools.git
 """
 from __future__ import print_function, division
 import pandas as pd
-import libsbml
 import warnings
+import os.path
+import tempfile
+import shutil
 
+import libsbml
 from sbmlutils import validation
 
 ##########################################################################
@@ -290,7 +293,7 @@ class Interpolation(object):
 
     # --- SBML & Interpolation --------------------
 
-    def write_sbml(self, sbml_out):
+    def write_sbml_to_file(self, sbml_out):
         """ Write the SBML file.
 
         First create clean SBML file.
@@ -302,7 +305,19 @@ class Interpolation(object):
         """
         self._create_sbml()
         libsbml.writeSBMLToFile(self.doc, sbml_out)
-        validation.validate_sbml(sbml_out, ucheck=False)
+
+    def write_sbml_to_string(self):
+        """ Write the SBML file.
+
+        First create clean SBML file.
+
+        :param sbml_out:
+        :type sbml_out:
+        :return:
+        :rtype:
+        """
+        self._create_sbml()
+        return libsbml.writeSBMLToString(self.doc)
 
     def _create_sbml(self):
         """ Create the SBMLDocument.
@@ -314,6 +329,15 @@ class Interpolation(object):
         self.interpolators = Interpolation.create_interpolators(self.data, self.method)
         for interpolator in self.interpolators:
             Interpolation.add_interpolator_to_model(interpolator, self.model)
+
+        # validation of SBML document
+        try:
+            temp_dir = tempfile.mkdtemp()
+            tmp_f = os.path.join(temp_dir, 'validated.xml')
+            libsbml.writeSBMLToFile(self.doc, tmp_f)
+            validation.validate_sbml(tmp_f, ucheck=False)
+        finally:
+            shutil.rmtree(temp_dir)
 
     def _init_sbml_model(self):
         """ Initializes the SBML model.
@@ -413,19 +437,19 @@ if __name__ == "__main__":
     # constant interpolation
     ip_constant = Interpolation(data=data, method=INTERPOLATION_CONSTANT)
     sbml_constant = os.path.join(test_dir, "interpolation", "data1_constant.xml")
-    ip_constant.write_sbml(sbml_constant)
+    ip_constant.write_sbml_to_file(sbml_constant)
     # print_sbml(sbml_constant)
 
-    # constant interpolation
+    # linear interpolation
     ip_linear = Interpolation(data=data, method=INTERPOLATION_LINEAR)
     sbml_linear = os.path.join(test_dir, "interpolation", "data1_linear.xml")
-    ip_linear.write_sbml(sbml_linear)
+    ip_linear.write_sbml_to_file(sbml_linear)
     # print_sbml(sbml_constant)
 
     # cubic spline
     ip_cubic = Interpolation(data=data, method=INTERPOLATION_CUBIC_SPLINE)
     sbml_cubic = os.path.join(test_dir, "interpolation", "data1_cubic.xml")
-    ip_cubic.write_sbml(sbml_cubic)
+    ip_cubic.write_sbml_to_file(sbml_cubic)
     # print_sbml(sbml_constant)
 
 

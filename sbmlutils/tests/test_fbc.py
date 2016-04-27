@@ -1,3 +1,7 @@
+"""
+Unit tests for fbc.
+"""
+
 import unittest
 
 import libsbml

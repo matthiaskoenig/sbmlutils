@@ -10,6 +10,7 @@ from __future__ import print_function, division
 import os.path
 import sys
 import time
+import warnings
 
 import libsbml
 
@@ -92,8 +93,9 @@ class SBMLValidator:
         :param infile:
         :return:
         """
+
         if not os.path.exists(infile):
-            print("[Error] %s : No such file." % (infile))
+            warnings.warn("[Error] {} : No such file.".format(infile))
             self.numinvalid += 1
             return
  
