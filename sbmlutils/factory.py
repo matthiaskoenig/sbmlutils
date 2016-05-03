@@ -53,7 +53,7 @@ def check_valid(data, dtype):
 def ast_node_from_formula(model, formula):
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        warnings.warn('Formula could not be parsed:', formula)
+        warnings.warn("Formula could not be parsed: '{}'".format(formula))
         warnings.warn(libsbml.getLastParseL3Error())
     return ast_node
 
