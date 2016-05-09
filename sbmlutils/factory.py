@@ -299,6 +299,11 @@ def _create_rules(model, rules, rule_type):
         # Create parameter if symbol is neither parameter or species, or compartment
         if (not model.getParameter(sid)) and (not model.getSpecies(sid)) and (not model.getCompartment(sid)):
             _create_parameter(model, sid, unit=data.get(A_UNIT, None), name=name, value=None, constant=False)
+        # Make sure the parameter is const=False
+        p = model.getParameter(sid)
+        if p is not None:
+            p.setConstant(False)
+        # Add rule if not existing
         if not model.getRule(sid):
             if rule_type == "RateRule":
                 sbml_rules[sid] = _create_rate_rule(model, sid=sid, formula=data[A_VALUE])

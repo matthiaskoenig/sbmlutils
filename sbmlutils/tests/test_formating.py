@@ -40,7 +40,7 @@ class FormatingTestCase(unittest.TestCase):
             [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_METRE, -3.0)])
         print(unit_def)
         self.assertEqual(formating.unitDefinitionToString(unit_def),
-                         'mole/m^3')
+                         '(mole)/(m^3)')
 
     def test_unitDefinitionToString2(self):
         unit_def = FormatingTestCase._create_unit_definition('test',
