@@ -2,8 +2,7 @@
 Test the ReactionTemplate
 """
 import unittest
-from sbmlutils.modelcreator.processes import ReactionTemplate
-
+from sbmlutils.modelcreator import ReactionTemplate
 
 
 class TestReactionTemplate(unittest.TestCase):

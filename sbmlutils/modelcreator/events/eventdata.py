@@ -10,6 +10,7 @@ Here only the triggers are defined. Part of the events are encoded directly in t
 
 """
 
+
 class EventData(object):
     def __init__(self, eid, name, trigger, assignments):
         self.eid = eid

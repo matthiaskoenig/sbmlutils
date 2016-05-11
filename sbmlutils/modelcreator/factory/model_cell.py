@@ -9,14 +9,16 @@ Uses the importlib to import the information.
 from __future__ import print_function, division
 
 from libsbml import SBMLDocument, SBMLNamespaces
-from ..modelcreator_settings import PROGRAM_NAME, PROGRAM_VERSION
-from ..processes.ReactionFactory import *
-from ..processes.ReactionTemplate import ReactionTemplate
-from ..utils import naming
 
 from sbmlutils.factory import *
 from sbmlutils.sbmlio import check, write_sbml
 from sbmlutils import annotation
+
+from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
+
+from sbmlutils.modelcreator.processes.ReactionTemplate import ReactionTemplate
+from sbmlutils.modelcreator.processes.ReactionFactory import *
+from sbmlutils.modelcreator.utils import naming
 
 
 class CellModel(object):
@@ -90,7 +92,7 @@ class CellModel(object):
             for key, value in mdict.iteritems():
 
                 # lists of higher modules are extended
-                if type(value) is list:
+                if type(value) in [list, tuple]:
                     # create new list
                     if key not in cdict:
                         cdict[key] = []
@@ -137,6 +139,7 @@ class CellModel(object):
                 if key in CellModel._dictkeys:
                     # zip info with dictkeys and add id
                     dzip = dict()
+                    print('info:', info)
                     for k, v in info.iteritems():
                         dzip[k] = dict(zip(CellModel._dictkeys[key], v))
                         dzip[k]['id'] = k
@@ -297,8 +300,8 @@ class CellModel(object):
         init_data = []
         for k in self.cell_range():
             d = dict()
-            d['h__'] = '{}__'.format(getHepatocyteId(k))
-            d['c__'] = '{}__'.format(getCytosolId(k))
+            d['h__'] = '{}__'.format(naming.getHepatocyteId(k))
+            d['c__'] = '{}__'.format(naming.getCytosolId(k))
             init_data.append(d)
         return init_data
 
@@ -310,9 +313,9 @@ class CellModel(object):
         for k in self.cell_range():
             for i in range( (k-1)*self.Nf+1, k*self.Nf+1):
                 d = dict()
-                d['h__'] = '{}__'.format(getHepatocyteId(k))
-                d['c__'] = '{}__'.format(getCytosolId(k))
-                d['e__'] = '{}__'.format(getDisseId(i))
+                d['h__'] = '{}__'.format(naming.getHepatocyteId(k))
+                d['c__'] = '{}__'.format(naming.getCytosolId(k))
+                d['e__'] = '{}__'.format(naming.getDisseId(i))
                 init_data.append(d)
         return init_data
 
@@ -346,27 +349,3 @@ class CellModel(object):
         """
         if self.events:
             createSimulationEvents(self.model, self.events)
-
-
-
-    # def createCellAssignmentRules(self):
-    #     rules = []
-    #     rep_dicts = self.createCellExtReplacementDicts()
-    #     for rule in self.cellModel.rules:
-    #         for d in rep_dicts:
-    #             r_new = [initString(rpart, d) for rpart in rule]
-    #             rules.append(r_new)
-    #     createAssignmentRules(self.model, rules, self.names)
-    #
-    #
-
-    #
-    # # TODO: how to handle boundaryConditions and Constant best.
-    # # Boundary Conditions
-    # def createBoundaryConditions(self):
-    #     ''' Set constant in periportal. '''
-    #     sdict = self.createExternalSpeciesDict()
-    #     for key in sdict.keys():
-    #         if isPPSpeciesId(key):
-    #             s = self.model.getSpecies(key)
-    #             s.setBoundaryCondition(True)

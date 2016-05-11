@@ -1,7 +1,5 @@
 """
 ReactionTemplate.
-TODO: handle the compartment initialization (comp?)
-
 """
 from __future__ import print_function
 
