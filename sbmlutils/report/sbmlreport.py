@@ -21,7 +21,8 @@ from __future__ import print_function, division
 import warnings
 import codecs
 import os
-import shutil
+import distutils
+from distutils import dir_util
 import sys
 
 import libsbml
@@ -154,15 +155,8 @@ def _copy_directory(src, dest):
     :rtype:
     """
 
-    # todo handle the rsync
-    try:
-        shutil.copytree(src, dest)
-    # Directories are the same
-    except shutil.Error as e:
-        print('Directory not copied. Error: %s' % e)
-    # Any error saying that the directory doesn't exist
-    except OSError as e:
-        print('Directory not copied. Error: %s' % e)
+    # copy
+    dir_util.copy_tree(src, dest)
 
 #################################################################################################
 # Create report
