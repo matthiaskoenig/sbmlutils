@@ -7,11 +7,23 @@ import os
 import cobra
 import libsbml
 from sbmlutils import fbc
+import Cell
 
-curdir = os.path.dirname(os.path.abspath(__file__))
+# SBML file
+demo_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'results',
+                         '{}_{}.xml'.format(Cell.mid, Cell.version))
 
-if __name__ == "__main__":
-    path = os.path.join(curdir, 'Koenig_demo_10.xml')
+
+def example(path):
+    """
+    Example FBA with demo model.
+
+    :param path:
+    :type path:
+    :return:
+    :rtype:
+    """
     doc = libsbml.readSBMLFromFile(path)
 
     # add defaults
@@ -27,3 +39,7 @@ if __name__ == "__main__":
     for r in model.reactions:
         mb = r.check_mass_balance()
         print(r.id, mb)
+
+
+if __name__ == "__main__":
+    example(path=demo_sbml)

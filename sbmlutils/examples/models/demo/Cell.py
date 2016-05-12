@@ -2,9 +2,11 @@
 """
 Demo kinetic network.
 """
+from __future__ import print_function, division
 import libsbml
-from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_KILOGRAM
+from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from sbmlutils.modelcreator import templates
+
 from Reactions import *
 
 ##############################################################
@@ -134,6 +136,7 @@ rules.update({
 ##############################################################
 # Reactions
 ##############################################################
+
 reactions.extend([
     bA, bB, bC, v1, v2, v3, v4
 ])

@@ -1,17 +1,21 @@
+"""
+Test the demo network.
+"""
+
 from __future__ import print_function
 
 import unittest
-
 import roadrunner
 from sbmlutils import validation
 
-from sbmlutils.examples.testfiles import demo_sbml
+import os
+import Cell
+demo_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'results',
+                         '{}_{}.xml'.format(Cell.mid, Cell.version))
 
 
-class GalactoseTestCase(unittest.TestCase):
-    """
-    Unit tests on the galactose model to check the model behavior.
-    """
+class DemoTestCase(unittest.TestCase):
 
     def test_validate_sbml(self):
         vres = validation.validate_sbml(demo_sbml, ucheck=True)
@@ -25,7 +29,6 @@ class GalactoseTestCase(unittest.TestCase):
 
     def test_fixed_step_simulation(self):
         rr = roadrunner.RoadRunner(demo_sbml)
-
         tend = 10.0
         steps = 100
         s = rr.simulate(start=0, end=tend, steps=steps)
