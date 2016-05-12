@@ -11,15 +11,15 @@ test_dir = os.path.dirname(os.path.abspath(__file__))
 
 # demo -----------------------
 demo_id = 'Koenig_demo_10'
-demo_sbml = os.path.join(test_dir, 'models/demo', '{}.xml'.format(demo_id))
-demo_sbml_no_annotations = os.path.join(test_dir, 'models/demo', '{}_no_annotations.xml'.format(demo_id))
+demo_sbml = os.path.join(test_dir, 'models/demo/results', '{}.xml'.format(demo_id))
+demo_sbml_no_annotations = os.path.join(test_dir, 'models/demo/results', '{}_no_annotations.xml'.format(demo_id))
 demo_annotations = os.path.join(test_dir, 'models/demo', 'demo_annotations.xlsx.csv')
 
 # galactose ------------------
 galactose_id = 'galactose_30'
-galactose_singlecell_sbml = os.path.join(test_dir, 'models/galactose', '{}.xml'.format(galactose_id))
-galactose_singlecell_sbml_no_annotations = os.path.join(test_dir, 'models/galactose', '{}_no_annotations.xml'.format(galactose_id))
-galactose_tissue_sbml = os.path.join(test_dir, 'models/galactose', 'Galactose_v128_Nc20_dilution.xml')
+galactose_singlecell_sbml = os.path.join(test_dir, 'models/galactose/results', '{}.xml'.format(galactose_id))
+galactose_singlecell_sbml_no_annotations = os.path.join(test_dir, 'models/galactose/results', '{}_no_annotations.xml'.format(galactose_id))
+galactose_tissue_sbml = os.path.join(test_dir, 'models/galactose/results', 'Galactose_v128_Nc20_dilution.xml')
 galactose_annotations = os.path.join(test_dir, 'models/galactose', 'galactose_annotations.xlsx.csv')
 
 # galactose ------------------
