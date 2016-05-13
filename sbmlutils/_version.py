@@ -1,7 +1,7 @@
 """
 Definition of version string.
 """
-PROGRAM_NAME = 'sbmlutils'
-PROGRAM_VERSION = "0.1.2"
+__version__ = "0.1.2"
 
-__version__ = PROGRAM_VERSION
+PROGRAM_VERSION = __version__
+PROGRAM_NAME = 'sbmlutils'
