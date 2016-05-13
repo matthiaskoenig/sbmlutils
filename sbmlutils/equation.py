@@ -5,6 +5,10 @@ from __future__ import print_function, division
 import re
 import warnings
 
+from collections import namedtuple
+
+Part = namedtuple('Part', 'stoichiometry sid')
+
 REV_PATTERN = '<[-=]>'
 IRREV_PATTERN = '[-=]>'
 MOD_PATTERN = '\[.*\]'
@@ -83,7 +87,7 @@ class Equation(object):
         else:
             stoichiometry = float(tokens[0])
             sid = ' '.join(tokens[1:])
-        return (stoichiometry, sid)
+        return Part(stoichiometry, sid)
 
     def toString(self, modifiers=False):
         left = self._toStringSide(self.reactants)

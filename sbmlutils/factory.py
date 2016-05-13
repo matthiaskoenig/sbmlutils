@@ -9,6 +9,7 @@ certain keys (TODO: better via classes)
 
 """
 # TODO: support SBOTerms & MetaIds via keyword
+# TODO: events
 
 from __future__ import print_function, division
 
@@ -18,6 +19,7 @@ from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 
 SBML_LEVEL = 3
 SBML_VERSION = 1
+
 
 #####################################################################
 # Information storage classes

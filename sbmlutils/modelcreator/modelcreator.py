@@ -2,15 +2,14 @@
 SBML model creator.
 
 Creates SBML models from information stored in python modules.
-
 Creates the core SBML models from given modules with python information.
 
 The model definition modules are imported in order. From the available
 model information (dictionaries and lists
 
 Uses the importlib to import the information.
-
 """
+
 from __future__ import print_function, division
 import os
 import copy
@@ -24,10 +23,6 @@ from sbmlutils.factory import *
 from sbmlutils.sbmlio import check, write_sbml
 from sbmlutils import annotation
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
-
-
-from sbmlutils.modelcreator.processes.ReactionFactory import *
-from sbmlutils.modelcreator.utils import naming
 
 
 def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True):
@@ -93,7 +88,8 @@ class Preprocess(object):
              'assignments',
              'rules',
              'rate_rules',
-             'reactions']
+             'reactions',
+             'events']
 
     @staticmethod
     def combine_modules(modules):
@@ -227,22 +223,13 @@ class CoreModel(object):
                      'assignments',
                      'rules',
                      'rate_rules',
-                     'species']:
+                     'species',
+                     'reactions',
+                     'events']:
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
                 create_objects(self.model, objects)
-
-        # missing pieces
-        # TODO:
-        # self.createCellReactions()
-        # self.createEvents()
-
-        """
-        # events
-        self.createCellEvents()
-        self.createSimulationEvents()
-        """
 
     def write_sbml(self, filepath):
         """ Write sbml to file.
@@ -254,84 +241,3 @@ class CoreModel(object):
         """
         write_sbml(self.doc, filepath, validate=True,
                    program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)
-
-    #########################################################################
-    # Reactions
-    #########################################################################
-    def createCellReactions(self):
-        """ Initializes the generic compartments with the actual
-            list of compartments for the given geometry.
-        """
-        # set the model for the template
-        ReactionTemplate.model = self.model
-        for r in self.reactions:
-            # create reactions without replacements
-            r.createReactions(self.model, None)
-
-        """
-        rep_dicts = self.createCellReplacementDicts()
-        for r in self.cellModel.reactions:
-            # Get the right replacement dictionaries for the reactions
-            if ('c__' in r.compartments) and not ('e__' in r.compartments):
-                rep_dicts = self.createCellReplacementDicts()
-            if ('c__' in r.compartments) and ('e__' in r.compartments):
-                rep_dicts = self.createCellExtReplacementDicts()
-            r.createReactions(self.model, rep_dicts)
-        """
-
-    def createCellReplacementDicts(self):
-        """ Definition of replacement information for initialization of the cell ids.
-            Creates all possible combinations.
-        """
-        init_data = []
-        for k in self.cell_range():
-            d = dict()
-            d['h__'] = '{}__'.format(naming.getHepatocyteId(k))
-            d['c__'] = '{}__'.format(naming.getCytosolId(k))
-            init_data.append(d)
-        return init_data
-
-    def createCellExtReplacementDicts(self):
-        """ Definition of replacement information for initialization of the cell ids.
-            Creates all possible combinations.
-        """
-        init_data = []
-        for k in self.cell_range():
-            for i in range( (k-1)*self.Nf+1, k*self.Nf+1):
-                d = dict()
-                d['h__'] = '{}__'.format(naming.getHepatocyteId(k))
-                d['c__'] = '{}__'.format(naming.getCytosolId(k))
-                d['e__'] = '{}__'.format(naming.getDisseId(i))
-                init_data.append(d)
-        return init_data
-
-    #########################################################################
-    # Events
-    #########################################################################
-    def createCellEvents(self):
-        """ Creates the additional events defined in the cell model.
-            These can be metabolic deficiencies, or other defined
-            parameter changes.
-            TODO: make this cleaner and more general.
-        """
-        ddict = self.cellModel.deficiencies
-        dunits = self.cellModel.deficiencies_units
-
-        for deficiency, data in ddict.iteritems():
-            e = createDeficiencyEvent(self.model, deficiency)
-            # create all the event assignments for the event
-            for key, value in data.iteritems():
-                p = self.model.getParameter(key)
-                p.setConstant(False)
-                formula = '{} {}'.format(value, dunits[key])
-                astnode = libsbml.parseL3FormulaWithModel(formula, self.model)
-                ea = e.createEventAssignment()
-                ea.setVariable(key)
-                ea.setMath(astnode)
-
-    def createSimulationEvents(self):
-        """ Create the simulation timecourse events based on the
-            event data.
-        """
-        if self.events:
-            createSimulationEvents(self.model, self.events)

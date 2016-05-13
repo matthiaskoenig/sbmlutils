@@ -12,7 +12,7 @@ GLUT2_GAL = ReactionTemplate(
     name='galactose transport [e__]',
     equation='e__gal <-> c__gal []',
     # C6H1206 (0) <-> C6H1206 (0)
-    localization='pm',
+    compartment='pm',
     compartments=['cyto__', 'ext__'],
     pars=[
             ('GLUT2_Vmax',    1E-13,   'mole_per_s'),

@@ -16,7 +16,7 @@ class TestReactionTemplate(unittest.TestCase):
             rid='bA',
             name='bA (A import)',
             equation='A_ext => A []',
-            localization='membrane',
+            compartment='membrane',
             compartments=['cell, extern'],
             pars=[],
             rules=[],

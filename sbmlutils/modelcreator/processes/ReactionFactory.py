@@ -5,7 +5,7 @@ Factory methods for the creation of flow and diffusion reactions.
 #   defining rules and parameters
 
 from sbmlutils.modelcreator import *
-from ReactionTemplate import setKineticLaw
+import ReactionTemplate
 
 def createFlowReaction(model, sid, c_from, c_to, flow):
     """ Creates the convection reaction of sid between c_from -> c_to."""
@@ -34,7 +34,7 @@ def createFlowReaction(model, sid, c_from, c_to, flow):
     
     # kinetics
     formula = '{} * {}'.format(flow, sid_from)  # in [mole/s]
-    setKineticLaw(model, r, formula) 
+    ReactionTemplate.setKineticLaw(model, r, formula)
 
     return r
 
@@ -69,6 +69,6 @@ def createDiffusionReaction(model, sid, c_from, c_to, D):
         formula = "{} * ({} - {})".format(D, sid_from, sid_to)  # in [mole/s]
     else:
         formula = "{} * ({})".format(D, sid_from)
-    setKineticLaw(model, r, formula) 
+    ReactionTemplate.setKineticLaw(model, r, formula)
 
     return r

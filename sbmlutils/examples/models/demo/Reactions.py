@@ -10,7 +10,7 @@ bA = ReactionTemplate(
     rid='bA',
     name='bA (A import)',
     equation='e__A => c__A []',
-    localization='m',
+    compartment='m',
     compartments=['c, e'],
     pars=[],
     rules=[],
@@ -22,7 +22,7 @@ bB = ReactionTemplate(
     rid='bB',
     name='bB (B export)',
     equation='c__B => e__B []',
-    localization='m',
+    compartment='m',
     compartments=['c, e'],
     pars=[],
     rules=[],
@@ -33,7 +33,7 @@ bC = ReactionTemplate(
     rid='bC',
     name='bC (C export)',
     equation='c__C => e__C []',
-    localization='m',
+    compartment='m',
     compartments=['c, e'],
     pars=[],
     rules=[],
@@ -44,7 +44,7 @@ v1 = ReactionTemplate(
     rid='v1',
     name='v1 (A -> B)',
     equation='c__A -> c__B []',
-    localization='c',
+    compartment='c',
     compartments=['c'],
     formula=('(scale_f*Vmax_v1)/Km_A*(c__A - 1 dimensionless/Keq_v1*c__B)', 'mole_per_s')
 )
@@ -53,7 +53,7 @@ v2 = ReactionTemplate(
     rid='v2',
     name='v2 (A -> C)',
     equation='c__A -> c__C []',
-    localization='c',
+    compartment='c',
     compartments=['c'],
     formula=('(scale_f*Vmax_v2)/Km_A*c__A', 'mole_per_s')
 )
@@ -62,7 +62,7 @@ v3 = ReactionTemplate(
     rid='v3',
     name='v3 (C -> A)',
     equation='c__C -> c__A []',
-    localization='c',
+    compartment='c',
     compartments=['c'],
     formula=('(scale_f*Vmax_v3)/Km_A*c__C', 'mole_per_s')
 )
@@ -71,7 +71,7 @@ v4 = ReactionTemplate(
     rid='v4',
     name='v4 (C -> B)',
     equation='c__C -> c__B []',
-    localization='c',
+    compartment='c',
     compartments=['c'],
     formula=('(scale_f*Vmax_v4)/Km_A*(c__C - 1 dimensionless/Keq_v4*c__B)', 'mole_per_s')
 )
