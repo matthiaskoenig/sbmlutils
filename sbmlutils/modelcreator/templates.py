@@ -32,6 +32,6 @@ terms_of_use = """
 """.format(year=2016, given_name=creators[0].givenName, family_name=creators[0].familyName, site=creators[0].site)
 
 
-
+#####################################################################################
 if __name__ == "__main__":
     print(terms_of_use)

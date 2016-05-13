@@ -6,7 +6,7 @@ import cobra
 import libsbml
 from warnings import warn
 
-from sbmlutils.factory import create_parameters, A_ID, A_VALUE, A_UNIT
+from sbmlutils import factory
 
 
 def load_cobra_model(sbml_path):
@@ -34,7 +34,7 @@ def load_cobra_model(sbml_path):
     return model
 
 
-def add_default_flux_bounds(doc, lower=0.0, upper=100.0):
+def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
     """ Adds default flux bounds to SBMLDocument.
     :param doc:
     :type doc:
@@ -43,14 +43,16 @@ def add_default_flux_bounds(doc, lower=0.0, upper=100.0):
     :param upper:
     :type upper:
     """
-    # FIXME: overwrites lower/upper parameter
+    # FIXME: overwrites lower/upper parameter (check if exisiting)
+    # TODO: the units are very specific (more generic)
     warn('Adding default flux bounds', UserWarning)
-    m = doc.getModel()
-    keys = (A_ID, A_VALUE, A_UNIT)
-    create_parameters(m, [dict(zip(keys, ('upper', upper, 'mole_per_s'))),
-                          dict(zip(keys, ('lower', lower, 'mole_per_s')))]
-                      )
-    for r in m.reactions:
+    model = doc.getModel()
+    parameters = [
+        factory.Parameter(sid='upper', value=upper, unit=unit),
+        factory.Parameter(sid='lower', value=lower, unit=unit),
+    ]
+    factory.create_objects(model, parameters)
+    for r in model.reactions:
         rfbc = r.getPlugin("fbc")
         if not rfbc.isSetLowerFluxBound():
             rfbc.setLowerFluxBound('lower')

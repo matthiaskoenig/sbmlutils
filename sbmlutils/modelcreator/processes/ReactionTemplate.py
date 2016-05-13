@@ -6,7 +6,7 @@ from __future__ import print_function
 import warnings
 
 import libsbml
-from sbmlutils.factory import _create_parameter, create_assignment_rules, get_unit_string
+from sbmlutils import factory
 from sbmlutils.sbmlio import check
 from sbmlutils.equation import Equation
 from ..utils.naming import initString
@@ -27,11 +27,6 @@ class ReactionTemplate(object):
 
     def createReactions(self, model, initData):
         """ Create the reaction based on the given comps dictionary """
-        # TODO: check if everything is initialized
-        # i.e. are all the comp keys in the init dict
-        
-        # TODO: get the allowed initDicts from the the initData for the given
-        # reaction and create this subset of reactions
 
         # Create the identical replacement
         if not initData:
@@ -50,7 +45,7 @@ class ReactionTemplate(object):
                 _create_parameter(self.model, pid, unit, name=None, value=value, constant=True)
     
     def _createRules(self, initDict):
-        rules = dict()
+        rules = []
         for rule in self.rules:
             r_new = [initString(part, initDict) for part in rule]
             rid = r_new[0]

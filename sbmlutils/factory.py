@@ -66,11 +66,11 @@ def create_objects(model, obj_iter):
 
     Calls the respective create_sbml function of the object.
     """
-    created = {}
+    sbml_objects = {}
     for obj in obj_iter:
-        obj.create_sbml(model)
-        created[obj.getId()] = obj
-    return created
+        sbml_obj = obj.create_sbml(model)
+        sbml_objects[sbml_obj.getId()] = sbml_obj
+    return sbml_objects
 
 ##########################################################################
 # Units
@@ -151,9 +151,8 @@ class Function(Value):
 
 
 def _create_function(model, sid, formula, name):
+    """ Create libsbml FunctionDefinition. """
     f = model.createFunctionDefinition()
-    # f = libsbml.FunctionDefinition()
-
     f.setId(sid)
     ast_node = ast_node_from_formula(model, formula)
     f.setMath(ast_node)
@@ -166,8 +165,8 @@ def _create_function(model, sid, formula, name):
 # Parameters
 ##########################################################################
 class Parameter(ValueWithUnit):
-    def __init__(self, sid, value=None, unit=None, constant=True, name=None):
-        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name)
+    def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
+        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
 
     def create_sbml(self, model):
@@ -175,12 +174,13 @@ class Parameter(ValueWithUnit):
                   sid=self.sid,
                   value=self.value,
                   unit=self.unit,
-                  constant=p.constant,
+                  constant=self.constant,
                   name =self.name)
         return obj
 
 
 def _create_parameter(model, sid, unit, name, value, constant):
+    """ Create libsbml Parameter. """
     p = model.createParameter()
     p.setId(sid)
     if unit is not None:
@@ -197,11 +197,20 @@ def _create_parameter(model, sid, unit, name, value, constant):
 # Compartments
 ##########################################################################
 class Compartment(ValueWithUnit):
-    def __init__(self, sid, value, unit, constant, spatialDimension=3, name=None):
-        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name)
+    def __init__(self, sid, value, unit, constant, spatialDimension=3, name=None, sboTerm=None, metaId=None):
+        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
         self.spatialDimension = spatialDimension
 
+    def create_sbml(self, model):
+        obj = _create_compartment(model,
+            sid=self.sid,
+            name=self.name,
+            dims=self.spatialDimension,
+            unit=self.unit,
+            constant=self.constant,
+            value=self.value)
+        return obj
 
 def create_compartments(model, compartments):
     sbml_compartments = {}
@@ -218,6 +227,7 @@ def create_compartments(model, compartments):
 
 
 def _create_compartment(model, sid, name, dims, unit, constant, value):
+    """ Create libsbml Compartment. """
     c = model.createCompartment()
     c.setId(sid)
     if name is not None:
@@ -239,32 +249,31 @@ def _create_compartment(model, sid, name, dims, unit, constant, value):
 ##########################################################################
 # Species
 ##########################################################################
-
 class Species(ValueWithUnit):
-    def __init__(self, sid, value, unit, compartment, boundaryCondition, name=None):
-        super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name)
+    def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
+                 hasOnlySubstanceUnits=False, name=None, sboTerm=None, metaId=None):
+        super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.compartment = compartment
+        self.constant = constant
         self.boundaryCondition = boundaryCondition
+        self.hasOnlySubstanceUnits = hasOnlySubstanceUnits
 
-
-def create_species(model, species):
-    sbml_species = {}
-    for data in get_values(species):
-        sid = data[A_ID]
-        sbml_species[sid] = _create_specie(model,
-                                           sid=data[A_ID],
-                                           name=data.get(A_NAME, None),
-                                           value=data[A_VALUE],
-                                           unit=data.get(A_UNIT, None),
-                                           compartment=data[A_COMPARTMENT],
-                                           boundaryCondition=data.get(A_BOUNDARY_CONDITION, False),
-                                           constant=data.get(A_CONSTANT, False),
-                                           hasOnlySubstanceUnits=data.get(A_HAS_ONLY_SUBSTANCE_UNITS, False))
-    return sbml_species
+    def create_sbml(self, model):
+        obj = _create_specie(model,
+                       sid=self.sid,
+                       name=self.name,
+                       value=self.value,
+                       unit=self.unit,
+                       compartment=self.compartment,
+                       boundaryCondition=self.boundaryCondition,
+                       constant=self.constant,
+                       hasOnlySubstanceUnits=self.hasOnlySubstanceUnits)
+        return obj
 
 
 def _create_specie(model, sid, name, value, unit, compartment,
                    boundaryCondition, constant, hasOnlySubstanceUnits):
+    """ Create libsbml Species. """
     s = model.createSpecies()
     s.setId(sid)
     if name:
@@ -291,21 +300,26 @@ def _create_specie(model, sid, name, value, unit, compartment,
 # InitialAssignments
 ##########################################################################
 class Assignment(ValueWithUnit):
+    """ InitialAssignments. """
     pass
 
-
-def create_initial_assignments(model, assignments):
-    sbml_assignments = {}
-    for data in get_values(assignments):
-        sid = data[A_ID]
+    def create_sbml(self, model):
+        sid = self.sid
         # Create parameter if not existing
         if (not model.getParameter(sid)) and (not model.getSpecies(sid)):
-            _create_parameter(model, sid, unit=data.get(A_UNIT, None), name=data.get(A_NAME, None),
-                              value=None, constant=True)
-        sbml_assignments[sid] = _create_initial_assignment(model, sid=sid, formula=data[A_VALUE])
+            _create_parameter(model,
+                              sid=sid,
+                              unit=self.unit,
+                              name=self.name,
+                              value=None,
+                              constant=True)
+
+        obj = _create_initial_assignment(model, sid=sid, formula=self.value)
+        return obj
 
 
 def _create_initial_assignment(model, sid, formula):
+    """ Create libsbml InitialAssignment. """
     a = model.createInitialAssignment()
     a.setSymbol(sid)
     ast_node = ast_node_from_formula(model, formula)
@@ -319,40 +333,36 @@ def _create_initial_assignment(model, sid, formula):
 class Rule(ValueWithUnit):
     pass
 
+    def create_sbml(self, model):
+        return _rule_factory(model, self, rule_type="AssignmentRule")
+
 
 class RateRule(ValueWithUnit):
     pass
 
-
-def create_assignment_rules(model, rules):
-    return _create_rules(model, rules, rule_type="AssignmentRule")
-
-
-def create_rate_rules(model, rules):
-    return _create_rules(model, rules, rule_type="RateRule")
+    def create_sbml(self, model):
+        return _rule_factory(model, self, rule_type="RateRule")
 
 
-def _create_rules(model, rules, rule_type):
+def _rule_factory(model, rule, rule_type):
     assert rule_type in ["AssignmentRule", "RateRule"]
-    sbml_rules = {}
-    for data in get_values(rules):
-        check_valid(data, 'rule')
-        sid = data[A_ID]
-        name = data.get(A_NAME, None)
-        # Create parameter if symbol is neither parameter or species, or compartment
-        if (not model.getParameter(sid)) and (not model.getSpecies(sid)) and (not model.getCompartment(sid)):
-            _create_parameter(model, sid, unit=data.get(A_UNIT, None), name=name, value=None, constant=False)
-        # Make sure the parameter is const=False
-        p = model.getParameter(sid)
-        if p is not None:
-            p.setConstant(False)
-        # Add rule if not existing
-        if not model.getRule(sid):
-            if rule_type == "RateRule":
-                sbml_rules[sid] = _create_rate_rule(model, sid=sid, formula=data[A_VALUE])
-            elif rule_type == "AssignmentRule":
-                sbml_rules[sid] = _create_assignment_rule(model, sid=sid, formula=data[A_VALUE])
-    return sbml_rules
+    sid = rule.sid
+
+    # Create parameter if symbol is neither parameter or species, or compartment
+    if (not model.getParameter(sid)) and (not model.getSpecies(sid)) and (not model.getCompartment(sid)):
+        _create_parameter(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
+
+    # Make sure the parameter is const=False
+    p = model.getParameter(sid)
+    if p is not None:
+        p.setConstant(False)
+    # Add rule if not existing
+    if not model.getRule(sid):
+        if rule_type == "RateRule":
+            obj = _create_rate_rule(model, sid=sid, formula=rule.value)
+        elif rule_type == "AssignmentRule":
+            obj = _create_assignment_rule(model, sid=sid, formula=rule.value)
+    return obj
 
 
 def _create_rate_rule(model, sid, formula):

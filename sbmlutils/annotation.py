@@ -105,7 +105,6 @@ def _create_history(creators):
 
     # add all creators
     for creator in values:
-        print(creator)
         c = libsbml.ModelCreator()
         c.setFamilyName(creator.familyName)
         c.setGivenName(creator.givenName)

@@ -20,12 +20,12 @@ from libsbml import SBMLDocument, SBMLNamespaces
 from sbmlutils.annotation import annotate_sbml_file
 from sbmlutils.report import sbmlreport
 from sbmlutils.factory import *
+
 from sbmlutils.sbmlio import check, write_sbml
 from sbmlutils import annotation
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 
 
-from sbmlutils.modelcreator.processes.ReactionTemplate import ReactionTemplate
 from sbmlutils.modelcreator.processes.ReactionFactory import *
 from sbmlutils.modelcreator.utils import naming
 
@@ -44,7 +44,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     :return:
     """
     # preprocess
-    print("***", modules, "***")
+    print("create model:", modules)
     model_dict = Preprocess.combine_modules(modules)
 
     # create SBML model
@@ -52,12 +52,15 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     core_model.create_sbml()
 
     # write file
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
     mid = core_model.model.getId()
     if suffix is not None:
         filename = '{}{}.xml'.format(mid, suffix)
     else:
         filename = '{}.xml'.format(mid)
     sbml_path = os.path.join(target_dir, filename)
+
     core_model.write_sbml(sbml_path)
 
     # annotate
@@ -144,7 +147,7 @@ class Preprocess(object):
         module = importlib.import_module(module_name, package=package)
 
         # get attributes from class
-        print('\nPreprocess: <{}>'.format(module_name))
+        print('Preprocess: <{}>'.format(module_name))
 
         d = dict()
         for key in Preprocess._keys:
@@ -178,9 +181,6 @@ class CoreModel(object):
         self.doc = None
         self.model = None
 
-        # add dynamical parameters
-        print('\n', '*'*40, '\n', self.model_id, '\n', '*'*40)
-
     def info(self):
         """ Print information of model dictionary.
 
@@ -196,6 +196,8 @@ class CoreModel(object):
         :return:
         :rtype:
         """
+        print('\n', '*' * 40, '\n', self.model_id, '\n', '*' * 40)
+
         # create core model
         sbmlns = SBMLNamespaces(sbml_level, sbml_version, "fbc", 2)
         self.doc = SBMLDocument(sbmlns)
@@ -231,8 +233,9 @@ class CoreModel(object):
                 create_objects(self.model, objects)
 
         # missing pieces
-        self.createCellReactions()
-        self.createEvents()
+        # TODO:
+        # self.createCellReactions()
+        # self.createEvents()
 
         """
         # events
@@ -241,6 +244,13 @@ class CoreModel(object):
         """
 
     def write_sbml(self, filepath):
+        """ Write sbml to file.
+
+        :param filepath:
+        :type filepath:
+        :return:
+        :rtype:
+        """
         write_sbml(self.doc, filepath, validate=True,
                    program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)
 
