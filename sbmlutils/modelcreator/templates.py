@@ -3,9 +3,14 @@
 Template information for the model creation.
 """
 from __future__ import print_function, division
+from sbmlutils.modelcreator import modelcreator as mc
 
 # id : ('FamilyName', 'GivenName', 'Email', 'Organization')
-creators = {'default': ('Koenig', 'Matthias', 'konigmatt@googlemail.com', 'Humboldt-University Berlin, Institute for Theoretical Biology')}
+creators = [mc.Creator(familyName='Koenig',
+                       givenName='Matthias',
+                       email='konigmatt@googlemail.com',
+                       organization='Humboldt-University Berlin, Institute for Theoretical Biology',
+                       site="https://livermetabolism.com/contact.html")]
 
 terms_of_use = """
     <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
@@ -24,7 +29,7 @@ terms_of_use = """
         This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
         </p>
     </div>
-""".format(year=2016, given_name=creators['default'][0], family_name=creators['default'][1], site="https://livermetabolism.com/contact.html", )
+""".format(year=2016, given_name=creators[0].givenName, family_name=creators[0].familyName, site=creators[0].site)
 
 
 

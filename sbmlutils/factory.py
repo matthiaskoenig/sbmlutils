@@ -19,35 +19,38 @@ from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 SBML_LEVEL = 3
 SBML_VERSION = 1
 
-# attribute ids
-A_ID = 'id'
-A_NAME = 'name'
-A_UNIT = 'unit'
-A_VALUE = 'value'
-A_CONSTANT = 'constant'
-A_SPATIAL_DIMENSION = 'spatialDimension'
-A_COMPARTMENT = 'compartment'
-A_BOUNDARY_CONDITION = 'boundaryCondition'
-A_HAS_ONLY_SUBSTANCE_UNITS = 'hasOnlySubstanceUnits'
+#####################################################################
+# Information storage classes
+#####################################################################
+class Creator(object):
+    def __init__(self, familyName, givenName, email, organization, site=None):
+        self.familyName = familyName
+        self.givenName = givenName
+        self.email = email
+        self.organization = organization
+        self.site = site
 
 
-def get_values(data_struct):
-    if isinstance(data_struct, dict):
-        values = data_struct.values()
-    elif isinstance(data_struct, list):
-        values = data_struct
-    else:
-        raise Exception("data_struct type not supported.")
-    return values
+class Sbase(object):
+    def __init__(self, sid, name=None, sboTerm=None, metaId=None):
+        self.sid = sid
+        self.name = name
+        self.sboTerm = sboTerm
+        self.metaId = metaId
 
 
-def check_valid(data, dtype):
-    """
-    Check if the information for a certain data type is valid.
-    """
-    # TODO: implement checks based on the keys
-    if dtype is 'rule':
-        assert(data.has_key(A_ID))
+class Value(Sbase):
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
+        super(Value, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.value = value
+
+
+class ValueWithUnit(Value):
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
+        super(ValueWithUnit, self).__init__(sid=sid, value=value, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.unit = unit
+
+#####################################################################
 
 
 def ast_node_from_formula(model, formula):
@@ -58,31 +61,43 @@ def ast_node_from_formula(model, formula):
     return ast_node
 
 
+def create_objects(model, obj_iter):
+    """ Create the objects in the model.
+
+    Calls the respective create_sbml function of the object.
+    """
+    created = {}
+    for obj in obj_iter:
+        obj.create_sbml(model)
+        created[obj.getId()] = obj
+    return created
+
 ##########################################################################
 # Units
 ##########################################################################
-def create_unit_definitions(model, definitions):
-    for sid, units in definitions.iteritems():
-        _create_unit_definition(model, sid, units)
+class Unit(Sbase):
+    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None):
+        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.definition = definition
 
+    def create_sbml(self, model):
+        """ Creates the defined unit definitions.
+        (kind, exponent, scale, multiplier)
+        """
+        unit_def = model.createUnitDefinition()
+        unit_def.setId(self.sid)
+        for data in self.definition:
+            kind = data[0]
+            exponent = data[1]
+            scale = 0
+            multiplier = 1.0
+            if len(data) > 2:
+                scale = data[2]
+            if len(data) > 3:
+                multiplier = data[3]
 
-def _create_unit_definition(model, sid, units):
-    """ Creates the defined unit definitions.
-    (kind, exponent, scale, multiplier)
-    """
-    unit_def = model.createUnitDefinition()
-    unit_def.setId(sid)
-    for data in units:
-        kind = data[0]
-        exponent = data[1]
-        scale = 0
-        multiplier = 1.0
-        if len(data) > 2:
-            scale = data[2]
-        if len(data) > 3:
-            multiplier = data[3]
-
-        _create_unit(unit_def, kind, exponent, scale, multiplier)
+            _create_unit(unit_def, kind, exponent, scale, multiplier)
+        return unit_def
 
 
 def _create_unit(unit_def, kind, exponent, scale=0, multiplier=1.0):
@@ -124,15 +139,15 @@ def get_unit_string(unit):
 ##########################################################################
 # Functions
 ##########################################################################
-def create_functions(model, functions):
-    sbml_functions = {}
-    for data in get_values(functions):
-        sid = data[A_ID]
-        sbml_functions[sid] = _create_function(model,
-            sid=sid,
-            formula=data[A_VALUE],
-            name=data.get(A_NAME, None))
-    return sbml_functions
+class Function(Value):
+    pass
+
+    def create_sbml(self, model):
+        obj = _create_function(model,
+            sid=self.sid,
+            formula=self.value,
+            name=self.name)
+        return obj
 
 
 def _create_function(model, sid, formula, name):
@@ -150,17 +165,19 @@ def _create_function(model, sid, formula, name):
 ##########################################################################
 # Parameters
 ##########################################################################
-def create_parameters(model, parameters):
-    sbml_parameters = {}
-    for data in get_values(parameters):
-        sid = data[A_ID]
-        sbml_parameters[sid] = _create_parameter(model,
-            sid=sid,
-            unit=data.get(A_UNIT, None),
-            name=data.get(A_NAME, None),
-            value=data.get(A_VALUE, None),
-            constant=data.get(A_CONSTANT, True))
-    return sbml_parameters
+class Parameter(ValueWithUnit):
+    def __init__(self, sid, value=None, unit=None, constant=True, name=None):
+        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name)
+        self.constant = constant
+
+    def create_sbml(self, model):
+        obj = _create_parameter(model,
+                  sid=self.sid,
+                  value=self.value,
+                  unit=self.unit,
+                  constant=p.constant,
+                  name =self.name)
+        return obj
 
 
 def _create_parameter(model, sid, unit, name, value, constant):
@@ -179,6 +196,13 @@ def _create_parameter(model, sid, unit, name, value, constant):
 ##########################################################################
 # Compartments
 ##########################################################################
+class Compartment(ValueWithUnit):
+    def __init__(self, sid, value, unit, constant, spatialDimension=3, name=None):
+        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name)
+        self.constant = constant
+        self.spatialDimension = spatialDimension
+
+
 def create_compartments(model, compartments):
     sbml_compartments = {}
     for data in get_values(compartments):
@@ -215,6 +239,14 @@ def _create_compartment(model, sid, name, dims, unit, constant, value):
 ##########################################################################
 # Species
 ##########################################################################
+
+class Species(ValueWithUnit):
+    def __init__(self, sid, value, unit, compartment, boundaryCondition, name=None):
+        super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name)
+        self.compartment = compartment
+        self.boundaryCondition = boundaryCondition
+
+
 def create_species(model, species):
     sbml_species = {}
     for data in get_values(species):
@@ -258,6 +290,10 @@ def _create_specie(model, sid, name, value, unit, compartment,
 ##########################################################################
 # InitialAssignments
 ##########################################################################
+class Assignment(ValueWithUnit):
+    pass
+
+
 def create_initial_assignments(model, assignments):
     sbml_assignments = {}
     for data in get_values(assignments):
@@ -280,6 +316,13 @@ def _create_initial_assignment(model, sid, formula):
 ##########################################################################
 # Rules
 ##########################################################################
+class Rule(ValueWithUnit):
+    pass
+
+
+class RateRule(ValueWithUnit):
+    pass
+
 
 def create_assignment_rules(model, rules):
     return _create_rules(model, rules, rule_type="AssignmentRule")
