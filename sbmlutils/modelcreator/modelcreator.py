@@ -223,6 +223,7 @@ class CoreModel(object):
         for attr in ['units',
                      'functions',
                      'parameters',
+                     'compartments',
                      'assignments',
                      'rules',
                      'rate_rules',
