@@ -1,19 +1,20 @@
 """
-Creates the cell model from given module name.
-The underlying idea is to import the respective model information and use
-the module dictionaries to create the actual model.
+Creates the core SBML models from given modules with python information.
+
+The model definition modules are imported in order. From the available
+model information (dictionaries and lists
 
 Uses the importlib to import the information.
 """
 
 from __future__ import print_function, division
 
+import copy
 from libsbml import SBMLDocument, SBMLNamespaces
 
 from sbmlutils.factory import *
 from sbmlutils.sbmlio import check, write_sbml
 from sbmlutils import annotation
-
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 
 from sbmlutils.modelcreator.processes.ReactionTemplate import ReactionTemplate
@@ -21,7 +22,7 @@ from sbmlutils.modelcreator.processes.ReactionFactory import *
 from sbmlutils.modelcreator.utils import naming
 
 
-class CellModel(object):
+class CoreModel(object):
     """
     Class creates the SBML models from given dictionaries and lists
     of information.
@@ -74,7 +75,7 @@ class CellModel(object):
         print('\n', '*'*40, '\n', self.model_id, '\n', '*'*40)
 
     def info(self):
-        for key in CellModel._keys:
+        for key in CoreModel._keys:
             print(key, ' : ', getattr(self, key))
 
     @staticmethod
@@ -83,11 +84,10 @@ class CellModel(object):
         Creates one information dictionary from various modules by combining the information.
         Information in earlier modules if overwritten by information in later modules.
         """
-        import copy
         cdict = dict()
         for directory in module_dirs:
             # get single module dict
-            mdict = CellModel._createDict(directory)
+            mdict = CoreModel._createDict(directory)
             # add information to overall dict
             for key, value in mdict.iteritems():
 
@@ -133,15 +133,15 @@ class CellModel(object):
         print(dir(module))
 
         d = dict()
-        for key in CellModel._keys:
+        for key in CoreModel._keys:
             if hasattr(module, key):
                 info = getattr(module, key)
-                if key in CellModel._dictkeys:
+                if key in CoreModel._dictkeys:
                     # zip info with dictkeys and add id
                     dzip = dict()
                     print('info:', info)
                     for k, v in info.iteritems():
-                        dzip[k] = dict(zip(CellModel._dictkeys[key], v))
+                        dzip[k] = dict(zip(CoreModel._dictkeys[key], v))
                         dzip[k]['id'] = k
                     d[key] = dzip
                 else:

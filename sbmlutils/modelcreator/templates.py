@@ -26,5 +26,7 @@ terms_of_use = """
     </div>
 """.format(year=2016, given_name=creators['default'][0], family_name=creators['default'][1], site="https://livermetabolism.com/contact.html", )
 
+
+
 if __name__ == "__main__":
     print(terms_of_use)
