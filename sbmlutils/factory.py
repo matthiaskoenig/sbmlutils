@@ -74,6 +74,7 @@ def create_objects(model, obj_iter):
         sbml_objects[sbml_obj.getId()] = sbml_obj
     return sbml_objects
 
+
 ##########################################################################
 # Units
 ##########################################################################
@@ -137,6 +138,7 @@ def get_unit_string(unit):
     if unit == '-':
         unit = UnitKind_toString(UNIT_KIND_DIMENSIONLESS)
     return unit
+
 
 ##########################################################################
 # Functions

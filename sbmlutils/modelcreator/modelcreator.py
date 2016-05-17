@@ -215,6 +215,8 @@ class CoreModel(object):
         if hasattr(self, 'main_units'):
             set_main_units(self.model, self.main_units)
 
+        # additional units
+
         # lists ofs
         for attr in ['units',
                      'functions',
