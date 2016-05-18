@@ -1,7 +1,9 @@
 """
 Sinusoidal tissue factory.
-Similar strategy than in the CellModel.
-Create the information from given module files which are imported dynamically.
+
+Creates a sinusoidal tissue model from given information
+of the structure (number of cells/compartments) and the properties of the
+transported substances.
 """
 
 from libsbml import SBMLDocument, SBMLWriter
@@ -11,50 +13,31 @@ from sbmlutils.modelcreator.processes import *
 from sbmlutils.modelcreator.processes import ReactionTemplate
 
 
+from sbmlutils.factory import Species
+
 class TissueModelException(Exception):
     pass
 
+class SinusoidSpecies(Species):
+    """ Species/Substance transported in the sinusoidal unit. """
+    def __init__(self, sid, value, unit, D, name=None):
 
-class TissueModel(object):
-    """
-    The SBML model is created from the tissue information
-    and the single cell models.
-    """
-    _keys = ['main_units', 'units', 'names',
-             'pars', 'external', 'assignments', 'rules']
 
-    def __init__(self, Nc, Nf, version,
-                 tissue_dict, cell_model, sim_id='core', events=None):
-        """
-        Initialize with the tissue information dictionary and
-        the respective cell model used for creation.
-        """
+
+
+class SinusoidalUnitFactory(object):
+    """
+    Creates the necessary information to create
+    a model.
+
+    The file creates an intermediary model object from which
+    in a subsequent step the SBML is created.
+    """
+    def __init__(self, Nc, species):
         self.Nc = Nc
-        self.Nf = Nf
-        self.version = version
-        self.simId = sim_id
-        self.cellModel = cell_model
-        # print self.cellModel.info()
-        
-        # tissue information fields
-        for key, value in tissue_dict.iteritems():
-            setattr(self, key, value)
-        self.events = events
-   
-        # sbmlutils
-        self.id = self.createId()
-        self.doc = SBMLDocument(SBML_LEVEL, SBML_VERSION)
-        self.model = self.doc.createModel()
-        
-        check(self.model.setId(self.id), 'set id')
-        check(self.model.setName(self.id), 'set name')
-        
-        # add dynamical parameters
-        self.pars.extend(
-            [('Nc', self.Nc, '-', True),
-            ('Nf', self.Nf, '-', True),]
-        )
-    
+
+
+
         print '\n', '*'*40, '\n', self.id, '\n', '*'*40
     
     @staticmethod

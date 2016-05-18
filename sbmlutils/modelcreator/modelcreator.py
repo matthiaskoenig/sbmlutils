@@ -43,7 +43,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     model_dict = Preprocess.combine_modules(modules)
 
     # create SBML model
-    core_model = CoreModel(model_dict=model_dict)
+    core_model = CoreModel.from_dict(model_dict=model_dict)
     core_model.create_sbml()
 
     # write file
@@ -71,25 +71,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
 
 
 class Preprocess(object):
-    """ Helper class for preprocessing the model modules."""
-
-    # keys of possible information in the modules.
-    _keys = ['mid',
-             'version',
-             'notes',
-             'creators',
-             'main_units',
-
-             'units',
-             'functions',
-             'compartments',
-             'species',
-             'parameters',
-             'assignments',
-             'rules',
-             'rate_rules',
-             'reactions',
-             'events']
+    """ Helper class for preprocessing model modules."""
 
     @staticmethod
     def combine_modules(modules):
@@ -161,21 +143,59 @@ class CoreModel(object):
     Class creates the SBML models from given dictionaries and lists
     of information.
     """
+    # keys of possible information in the modules.
+    _keys = {'mid': None,
+             'version': None,
+             'notes': '',
+             'creators': [],
+             'main_units': {},
 
-    def __init__(self, model_dict):
+             'units': [],
+             'functions': [],
+             'compartments': [],
+             'species': [],
+             'parameters': [],
+             'assignments': [],
+             'rules': [],
+             'rate_rules': [],
+             'reactions': [],
+             'events': []}
+
+    def __init__(self):
         """
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
-        self.model_dict = model_dict
-
-        # add all info from dict to instance
-        for key, value in model_dict.iteritems():
+        for key, value in CoreModel._keys().iteritems():
             setattr(self, key, value)
 
-        self.model_id = '{}_{}'.format(self.mid, self.version)
+        # SBMLDocument and Model
         self.doc = None
         self.model = None
+
+    @property
+    def model_id(self):
+        return '{}_{}'.format(self.mid, self.version)
+
+    @staticmethod
+    def from_dict(model_dict):
+        """ Creates the CoreModel instance from given dictionary
+
+        :param self:
+        :type self:
+        :param model_dict:
+        :type model_dict:
+        :return:
+        :rtype:
+        """
+        m = CoreModel()
+        # add info from model_dict to instance
+        for key, value in model_dict.iteritems():
+            if key in CoreModel._keys():
+                setattr(m, key, value)
+            else:
+                warnings.warn('Unsupported key for CoreModel: {}'.format(key))
+        return m
 
     def info(self):
         """ Print information of model dictionary.
