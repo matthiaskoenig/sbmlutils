@@ -1,4 +1,6 @@
 """
+Naming functions for sinusoidal unit.
+
 Definition of identifiers and names for species in the model.
 General set of helper functions to work naming and identifier issues in the models.
 

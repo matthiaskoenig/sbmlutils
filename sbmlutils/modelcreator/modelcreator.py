@@ -166,7 +166,7 @@ class CoreModel(object):
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
-        for key, value in CoreModel._keys().iteritems():
+        for key, value in CoreModel._keys.iteritems():
             setattr(self, key, value)
 
         # SBMLDocument and Model
@@ -203,7 +203,7 @@ class CoreModel(object):
         :return:
         :rtype:
         """
-        for key in self.model_dict:
+        for key in CoreModel._keys:
             print(key, ' : ', getattr(self, key))
 
     def create_sbml(self, sbml_level=3, sbml_version=1):
