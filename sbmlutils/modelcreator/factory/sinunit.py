@@ -166,13 +166,6 @@ class SinusoidalUnitFactory(object):
     def createDiffusionRules(self):
         return self.createDiffusionAssignments()
 
-
-    # Species
-    def createExternalSpecies(self):
-        species = self.createExternalSpeciesDict()
-        createSpecies(self.model, species)
-
-
  
     # InitialAssignments
     def createInitialAssignments(self):

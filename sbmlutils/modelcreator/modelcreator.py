@@ -41,7 +41,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     """
     # preprocess
     print("create model:", modules)
-    model_dict = Preprocess.combine_modules(modules)
+    model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
     core_model = CoreModel.from_dict(model_dict=model_dict)
@@ -75,7 +75,7 @@ class Preprocess(object):
     """ Helper class for preprocessing model modules."""
 
     @staticmethod
-    def combine_modules(modules):
+    def dict_from_modules(modules):
         """
         Creates one information dictionary from various modules by combining the information.
         Information in earlier modules if overwritten by information in later modules.
@@ -129,7 +129,7 @@ class Preprocess(object):
         print('Preprocess: <{}>'.format(module_name))
 
         d = dict()
-        for key in Preprocess._keys:
+        for key in CoreModel._keys:
             if hasattr(module, key):
                 info = getattr(module, key)
                 d[key] = info
@@ -192,7 +192,7 @@ class CoreModel(object):
         m = CoreModel()
         # add info from model_dict to instance
         for key, value in model_dict.iteritems():
-            if key in CoreModel._keys():
+            if key in CoreModel._keys:
                 setattr(m, key, value)
             else:
                 warnings.warn('Unsupported key for CoreModel: {}'.format(key))
