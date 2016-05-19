@@ -40,6 +40,9 @@ class Sbase(object):
         self.sboTerm = sboTerm
         self.metaId = metaId
 
+    def __str__(self):
+        return '<{} : {}>'.format(self.sid, self.name)
+
 
 class Value(Sbase):
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
@@ -51,6 +54,7 @@ class ValueWithUnit(Value):
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
         super(ValueWithUnit, self).__init__(sid=sid, value=value, name=name, sboTerm=sboTerm, metaId=metaId)
         self.unit = unit
+
 
 #####################################################################
 
@@ -115,6 +119,9 @@ def _create_unit(unit_def, kind, exponent, scale=0, multiplier=1.0):
 def set_main_units(model, main_units):
     """ Sets the main units for the model. """
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
+        if not hasattr(main_units, key):
+            warnings.warn('The following key is missing in main_units: {}'.format(key))
+            continue
         unit = main_units[key]
         unit = get_unit_string(unit)
         # set the values
@@ -144,8 +151,6 @@ def get_unit_string(unit):
 # Functions
 ##########################################################################
 class Function(Value):
-    pass
-
     def create_sbml(self, model):
         obj = _create_function(model,
             sid=self.sid,
@@ -305,7 +310,6 @@ def _create_specie(model, sid, name, value, unit, compartment,
 ##########################################################################
 class Assignment(ValueWithUnit):
     """ InitialAssignments. """
-    pass
 
     def create_sbml(self, model):
         sid = self.sid
@@ -335,14 +339,11 @@ def _create_initial_assignment(model, sid, formula):
 # Rules
 ##########################################################################
 class Rule(ValueWithUnit):
-    pass
-
     def create_sbml(self, model):
         return _rule_factory(model, self, rule_type="AssignmentRule")
 
 
 class RateRule(ValueWithUnit):
-    pass
 
     def create_sbml(self, model):
         return _rule_factory(model, self, rule_type="RateRule")
@@ -490,3 +491,9 @@ def create_objective(mplugin, oid, otype, fluxObjectives, active=True):
         fluxObjective.setReaction(rid)
         fluxObjective.setCoefficient(coefficient)
     return objective
+
+
+if __name__ == "__main__":
+    s = Sbase(sid='test', name='Test name')
+    ls = [s]
+    print(ls)

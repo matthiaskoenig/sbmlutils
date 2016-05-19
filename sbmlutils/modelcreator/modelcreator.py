@@ -20,7 +20,8 @@ from sbmlutils.annotation import annotate_sbml_file
 from sbmlutils.report import sbmlreport
 from sbmlutils.factory import *
 
-from sbmlutils.sbmlio import check, write_sbml
+from sbmlutils.sbmlio import write_sbml
+from sbmlutils.validation import check
 from sbmlutils import annotation
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 
@@ -146,7 +147,7 @@ class CoreModel(object):
     # keys of possible information in the modules.
     _keys = {'mid': None,
              'version': None,
-             'notes': '',
+             'notes': None,
              'creators': [],
              'main_units': {},
 
@@ -203,8 +204,16 @@ class CoreModel(object):
         :return:
         :rtype:
         """
-        for key in CoreModel._keys:
-            print(key, ' : ', getattr(self, key))
+        print('-'*80)
+        print(self)
+        print('-' * 80)
+        for key in sorted(CoreModel._keys):
+            # string representation
+            obj_str = getattr(self, key)
+            if isinstance(obj_str, (list, tuple)):
+                # probably tuple or list
+                obj_str = [str(obj) for obj in obj_str]
+            print('{:<15}: {}'.format(key, obj_str))
 
     def create_sbml(self, sbml_level=3, sbml_version=1):
         """ Creats the SBML model
@@ -226,10 +235,11 @@ class CoreModel(object):
         check(self.model.setId(self.model_id), 'set id')
         check(self.model.setName(self.model_id), 'set name')
         # notes
-        if hasattr(self, 'notes'):
+        if hasattr(self, 'notes') and self.notes is not None:
             check(self.model.setNotes(self.notes), 'set notes')
         # history
-        annotation.set_model_history(self.model, self.creators)
+        if hasattr(self, 'creators'):
+            annotation.set_model_history(self.model, self.creators)
 
         # main units
         if hasattr(self, 'main_units'):

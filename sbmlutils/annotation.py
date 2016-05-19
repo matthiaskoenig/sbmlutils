@@ -26,6 +26,8 @@ import uuid
 import datetime
 
 from validation import check
+import libsbml
+
 
 # create logger
 logger = logging.getLogger('annotation')
@@ -46,7 +48,7 @@ logger.addHandler(ch)
 ########################################################################
 # from libsbmlconstants
 # TODO: use ModelQualifierType_toString
-import libsbml
+
 
 QualifierType = {
   0: "MODEL_QUALIFIER",
@@ -86,16 +88,30 @@ BiologicalQualifierType = {
 ########################################################################
 
 def set_model_history(model, creators):
-    # TODO: check if history is existing and add info to the existing history
+    """ Sets the model history from given creators.
+
+    :param model: SBML model
+    :type model: libsbml.Model
+    :param creators: list of creators
+    :type creators:
+    """
     if not model.isSetMetaId():
         model.setMetaId(create_meta_id())
 
-    # set history
-    h = _create_history(creators)
-    check(model.setModelHistory(h), 'set model history')
+    if creators is None or len(creators)is 0:
+        # at least on
+        return
+    else:
+        # create and set model history
+        h = _create_history(creators)
+        check(model.setModelHistory(h), 'set model history')
 
 
 def _create_history(creators):
+    """ Creates the model history.
+
+    Sets the create and modified date to the current time.
+    """
     h = libsbml.ModelHistory()
 
     if isinstance(creators, dict):
@@ -115,11 +131,12 @@ def _create_history(creators):
     # create time is now
     date = date_now()
     check(h.setCreatedDate(date), 'set creation date')
-    check(h.setModifiedDate(date), 'set creation date')
+    check(h.setModifiedDate(date), 'set modified date')
     return h
 
 
 def date_now():
+    """ Get the current time. """
     time = datetime.datetime.now()
     timestr = time.strftime('%Y-%m-%dT%H:%M:%S')
     return libsbml.Date(timestr)
@@ -129,6 +146,10 @@ def date_now():
 # Annotation
 ########################################################################
 def create_meta_id():
+    """ Creates a unique meta id.
+
+    Meta ids are required to store annotation elements.
+    """
     meta_id = uuid.uuid4()
     return 'meta_{}'.format(meta_id.hex)
 

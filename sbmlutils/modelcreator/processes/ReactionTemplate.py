@@ -7,7 +7,7 @@ import warnings
 import libsbml
 
 from sbmlutils import factory
-from sbmlutils.sbmlio import check
+from sbmlutils.validation import check
 from sbmlutils.equation import Equation
 
 
