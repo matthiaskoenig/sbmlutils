@@ -14,7 +14,7 @@ creators = [mc.Creator(familyName='Koenig',
 
 terms_of_use = """
     <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
-    <div class="dc:publisher">This file has been produced by
+    <div class="dc:publisher">This file has been created by
     <a href="{site}" title="{given_name} {family_name}" target="_blank">{given_name} {family_name}</a>.</div>
 
     <h2>Terms of use</h2>

@@ -18,6 +18,10 @@ diffusion = {
     'suc': Parameter('Dsuc', 720E-12, 'm2_per_s', name='diffusion constant sucrose'),
     'alb': Parameter('Dalb', 90E-12, 'm2_per_s', name='diffusion constant albumin'),
     'rbcM': Parameter('DrbcM', 0.0E-12, 'm2_per_s', name='diffusion constant rbc M*'),
+
+    'S': Parameter('DS', 910E-12, 'm2_per_s', name='diffusion constant S'),
+    'P': Parameter('DP', 720E-12, 'm2_per_s', name='diffusion constant P'),
+
 }
 
 # effective radius [m]
@@ -28,4 +32,7 @@ radius = {
     'suc': Parameter('r_suc', 0.44E-9, 'm', name='effective radius sucrose'),
     'alb': Parameter('r_alb', 3.64E-9, 'm', name='effective radius albumin'),
     'rbcM': Parameter('r_rbcM', 3000E-9, 'm', name='effective radius RBC M*'),
+
+    'S': Parameter('r_S', 0.36E-9, 'm', name='effective radius S'),
+    'P': Parameter('r_P', 0.44E-9, 'm', name='effective radius P'),
 }

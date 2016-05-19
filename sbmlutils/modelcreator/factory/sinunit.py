@@ -6,7 +6,7 @@ of the structure (number of cells/compartments) and the properties of the
 transported substances.
 """
 
-from sbmlutils.modelcreator.processes import *
+from sbmlutils.modelcreator.processes.ReactionFactory import createFlowReactionTemplate, createDiffusionReactionTemplate
 from sbmlutils.modelcreator.processes import ReactionTemplate
 from sbmlutils.modelcreator.modelcreator import CoreModel
 import sbmlutils.modelcreator.modelcreator as mc
@@ -31,6 +31,8 @@ class SinusoidSpecies(object):
         self.unit = unit
         self.D = D
         self.r = r
+        if name is None:
+            name = sid
         self.name = name
 
     @staticmethod
@@ -69,7 +71,6 @@ class SinusoidalUnitFactory(object):
         for s in self.sin_species:
             self.core_model.parameters.extend([s.D, s.r])
 
-
     def cell_range(self):
         """ Helper to iterate over the cells & respective compartments. """
         return range(1, self.Nc+1)
@@ -89,9 +90,9 @@ class SinusoidalUnitFactory(object):
         self.core_model.rules.extend(self.createFlowRules())
 
         # transport reactions
-        # self.createFlowReactions()
-        # self.createFlowPoreReactions()
-        # self.createDiffusionReactions()
+        self.core_model.reactions.extend(self.createFlowReactions())
+        self.core_model.reactions.extend(self.createFlowPoreReactions())
+        self.core_model.reactions.extend(self.createDiffusionReactions())
 
     #########################################################################
     # Compartments
@@ -147,6 +148,20 @@ class SinusoidalUnitFactory(object):
                 ])
         return species
 
+    def getFenestraetionRadius(self):
+        return self.getParameterValue(sid='r_fen')
+
+    def getParameterValue(self, sid):
+        """ Get fenestraetion radius from model. """
+        value = None
+        for p in self.core_model.parameters:
+            if p.sid is sid:
+                value = p.value
+                break
+        if not value:
+            warnings.warn('parameter sid={} not defined in parameters.'.format(sid))
+        return value
+
     ##########################################################################
     # Transport
     ##########################################################################
@@ -159,13 +174,7 @@ class SinusoidalUnitFactory(object):
             Depending on the radius the diffusion rules are created.
         """
         # get fenestration radius
-        r_fen = None
-        for p in self.core_model.parameters:
-            if p.sid is 'r_fen':
-                r_fen = p.value
-                break
-        if not r_fen:
-            warnings.warn('Fenestraetion radius not defined.')
+        r_fen = self.getFenestraetionRadius()
 
         # create diffusion rules
         rules = []
@@ -177,7 +186,7 @@ class SinusoidalUnitFactory(object):
               mc.Rule('Dx_dis_{}'.format(sid), 'D{}/x_sin * A_dis'.format(sid), "m3_per_s"),
             ])
             # test if substance larger than fenestration radius
-            if s.r > r_fen:
+            if s.r.value > r_fen:
                 rules.extend([
                     mc.Rule('Dy_sindis_{}'.format(sid), '0 m3_per_s', "m3_per_s"),
                 ])
@@ -251,58 +260,99 @@ class SinusoidalUnitFactory(object):
 
         return rules
 
-
     def createFlowReactions(self):
         """
         Creates the local flow reactions based on the local volume flows.
         The amount of substance transported via the volume flow is calculated.
         """
+        reactions = []
         # flow = 'flow_sin * A_sin'     # [m3/s] global volume flow (converts to local volume flow in pressure model)
-        for data in self.external:
-            sid = data[0]    
+        for s in self.sin_species:
+            sid = s.sid
             # flow PP -> S01
             Q_str = getQFlowId(getPPId()) # [m3/s] local volume flow
-            createFlowReaction(self.model, sid, c_from=getPPId(), c_to=getSinusoidId(1), flow=Q_str) # [m3/s] local volume flow
+            reactions.append(
+                createFlowReactionTemplate(sid, c_from=getPPId(), c_to=getSinusoidId(1), flow=Q_str)  # [m3/s] local volume flow
+            )
             # flow S[k] -> S[k+1] 
-            for k in range(1, self.Nc*self.Nf):
+            for k in range(1, self.Nc):
                 Q_str = getQFlowId(getSinusoidId(k), getSinusoidId(k+1))
-                createFlowReaction(self.model, sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k+1), flow=Q_str)
+                reactions.append(
+                    createFlowReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k + 1), flow=Q_str)
+                )
+
             # flow S[Nc*Nf] -> PV
             Q_str = getQFlowId(getPVId())
-            createFlowReaction(self.model, sid, c_from=getSinusoidId(self.Nc*self.Nf), c_to=getPVId(), flow=Q_str)
+            reactions.append(
+                createFlowReactionTemplate(sid, c_from=getSinusoidId(self.Nc), c_to=getPVId(), flow=Q_str)
+            )
             # flow PV ->
-            createFlowReaction(self.model, sid, c_from=getPVId(), c_to=NONE_ID, flow=Q_str);
-    
+            reactions.append(
+                createFlowReactionTemplate(sid, c_from=getPVId(), c_to=NONE_ID, flow=Q_str)
+            )
+        return reactions
+
     def createFlowPoreReactions(self):
         """ Filtration and reabsorption reactions through pores. """
-        for data in self.external:
-            sid = data[0]      
-            if sid in ["rbcM"]: 
-                continue   # only create for substances fitting through pores
-            
-            # flow S[k] -> D[k] 
-            for k in self.comp_range():
-                Q_str = getqFlowId(getSinusoidId(k)) + ' * {}'.format('x_sin')  # [m2/s] * [m] (area flow)
-                createFlowReaction(self.model, sid, c_from=getSinusoidId(k), c_to=getDisseId(k), flow=Q_str)
+        r_fen = self.getFenestraetionRadius()
+        reactions = []
+        for s in self.sin_species:
+            # only process if larger than pores
+            if s.r.value > r_fen:
+                continue
 
-    def createDiffusionReactions(self):        
-        for data in self.external:
-            sid = data[0]    
+            # flow S[k] -> D[k]
+            sid = s.sid
+            for k in self.cell_range():
+                Q_str = getqFlowId(getSinusoidId(k)) + ' * {}'.format('x_sin')  # [m2/s] * [m] (area flow)
+                reactions.append(
+                    createFlowReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getDisseId(k), flow=Q_str)
+                )
+
+        return reactions
+
+    def createDiffusionReactions(self):
+        """ Diffusion reactions.
+
+        Creates the diffusion in the sinusoidal space, in the Disse space
+        and between adjacent sinusoidal and Disse spaces.
+
+        :return:
+        :rtype:
+        """
+        r_fen = self.getFenestraetionRadius()
+        reactions = []
+        for s in self.sin_species:
+            sid = s.sid
             # [1] sinusoid diffusion
             Dx_sin = 'Dx_sin_{}'.format(sid)
-            createDiffusionReaction(self.model, sid, c_from=getPPId(), c_to=getSinusoidId(1), D=Dx_sin)
-            
-            for k in range(1, self.Nc*self.Nf):
-                createDiffusionReaction(self.model, sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k+1), D=Dx_sin)
-            createDiffusionReaction(self.model, sid, c_from=getSinusoidId(self.Nc*self.Nf), c_to=getPVId(), D=Dx_sin)
-            
+            reactions.append(
+                createDiffusionReactionTemplate(sid, c_from=getPPId(), c_to=getSinusoidId(1), D=Dx_sin)
+            )
+            for k in range(1, self.Nc):
+                reactions.append(
+                    createDiffusionReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k+1), D=Dx_sin)
+                )
+            reactions.append(
+                createDiffusionReactionTemplate(sid, c_from=getSinusoidId(self.Nc), c_to=getPVId(), D=Dx_sin)
+            )
+
+            # only disse diffusion if larger than pores
+            if s.r.value > r_fen:
+                continue
+
             # [2] disse diffusion
             Dx_dis = 'Dx_dis_{}'.format(sid)
-            for k in range(1, self.Nc*self.Nf):
-                createDiffusionReaction(self.model, sid, c_from=getDisseId(k), c_to=getDisseId(k+1), D=Dx_dis)
-            
+            for k in range(1, self.Nc):
+                reactions.append(
+                    createDiffusionReactionTemplate(sid, c_from=getDisseId(k), c_to=getDisseId(k+1), D=Dx_dis)
+                )
+
             # [3] sinusoid - disse diffusion
             Dy_sindis = 'Dy_sindis_{}'.format(sid)
-            for k in self.comp_range():
-                createDiffusionReaction(self.model, sid, c_from=getSinusoidId(k), c_to=getDisseId(k), D=Dy_sindis)
+            for k in self.cell_range():
+                reactions.append(
+                    createDiffusionReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getDisseId(k), D=Dy_sindis)
+                )
 
+        return reactions
