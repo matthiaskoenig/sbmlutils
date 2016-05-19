@@ -45,6 +45,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
 
     # create SBML model
     core_model = CoreModel.from_dict(model_dict=model_dict)
+    core_model.info()
     core_model.create_sbml()
 
     # write file

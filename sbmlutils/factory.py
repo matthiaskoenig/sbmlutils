@@ -119,7 +119,7 @@ def _create_unit(unit_def, kind, exponent, scale=0, multiplier=1.0):
 def set_main_units(model, main_units):
     """ Sets the main units for the model. """
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
-        if not hasattr(main_units, key):
+        if not key in main_units:
             warnings.warn('The following key is missing in main_units: {}'.format(key))
             continue
         unit = main_units[key]
