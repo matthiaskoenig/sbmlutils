@@ -53,12 +53,17 @@ class SinusoidalUnitFactory(object):
     The file creates an intermediary model object from which
     in a subsequent step the SBML is created.
     """
-    def __init__(self, Nc, sin_species, core_model):
+    TYPE_PRESSURE = 'sinusoid_pressure'
+    TYPE_FLOW = 'sinusoid_flow'
+
+
+    def __init__(self, Nc, sin_species, core_model, model_type):
 
         self.Nc = Nc
         self.sin_species = sin_species
         self.mid = 'SinusoidalUnit_Nc{}'.format(self.Nc)
         self.core_model = core_model
+        self.model_type = model_type
 
         # extend the core model with sinusoidal unit information
         self.create_sinusoid_model()
@@ -81,6 +86,7 @@ class SinusoidalUnitFactory(object):
         :return:
         :rtype:
         """
+        print("* Creating sinusoid model *")
         # sinusoidal unit model
         self.core_model.compartments.extend(self.createCompartments())
         self.core_model.species.extend(self.createSpecies())
@@ -91,8 +97,11 @@ class SinusoidalUnitFactory(object):
 
         # transport reactions
         self.core_model.reactions.extend(self.createFlowReactions())
-        self.core_model.reactions.extend(self.createFlowPoreReactions())
         self.core_model.reactions.extend(self.createDiffusionReactions())
+
+        # pore reactions only occure in the pressure model
+        if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
+            self.core_model.reactions.extend(self.createFlowPoreReactions())
 
     #########################################################################
     # Compartments
@@ -163,7 +172,7 @@ class SinusoidalUnitFactory(object):
         return value
 
     ##########################################################################
-    # Transport
+    # Diffusion
     ##########################################################################
     def createDiffusionRules(self):
         """ Create the geometrical diffusion constants
@@ -198,8 +207,78 @@ class SinusoidalUnitFactory(object):
                 ])
         return rules
 
+    def createDiffusionReactions(self):
+        """ Diffusion reactions.
+
+        Creates the diffusion in the sinusoidal space, in the Disse space
+        and between adjacent sinusoidal and Disse spaces.
+
+        :return:
+        :rtype:
+        """
+        r_fen = self.getFenestraetionRadius()
+        reactions = []
+        for s in self.sin_species:
+            sid = s.sid
+            # [1] sinusoid diffusion
+            Dx_sin = 'Dx_sin_{}'.format(sid)
+            reactions.append(
+                createDiffusionReactionTemplate(sid, c_from=getPPId(), c_to=getSinusoidId(1), D=Dx_sin)
+            )
+            for k in range(1, self.Nc):
+                reactions.append(
+                    createDiffusionReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k+1), D=Dx_sin)
+                )
+            reactions.append(
+                createDiffusionReactionTemplate(sid, c_from=getSinusoidId(self.Nc), c_to=getPVId(), D=Dx_sin)
+            )
+
+            # only disse diffusion if larger than pores
+            if s.r.value > r_fen:
+                continue
+
+            # [2] disse diffusion
+            Dx_dis = 'Dx_dis_{}'.format(sid)
+            for k in range(1, self.Nc):
+                reactions.append(
+                    createDiffusionReactionTemplate(sid, c_from=getDisseId(k), c_to=getDisseId(k+1), D=Dx_dis)
+                )
+
+            # [3] sinusoid - disse diffusion
+            Dy_sindis = 'Dy_sindis_{}'.format(sid)
+            for k in self.cell_range():
+                reactions.append(
+                    createDiffusionReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getDisseId(k), D=Dy_sindis)
+                )
+
+        return reactions
+
+    ##########################################################################
+    # Flow
+    ##########################################################################
 
     def createFlowRules(self):
+        """ Creates rules for flow transport.
+
+        Depending on type of flow model different rules are created.
+
+        :return:
+        :rtype:
+        """
+        if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
+            return self._createFlowRulesPressure()
+        elif self.model_type == SinusoidalUnitFactory.TYPE_FLOW:
+            return self._createFlowRulesFlow()
+
+    def _createFlowRulesFlow(self):
+        """ The rules in the constant flow model.
+
+        Identical flow along the complete sinuosoid.
+        """
+        return []
+
+
+    def _createFlowRulesPressure(self):
         """ The rules in the capillary pressure model.
 
             Creates the rules for positions Si_x, pressures Si_P,
@@ -266,23 +345,33 @@ class SinusoidalUnitFactory(object):
         The amount of substance transported via the volume flow is calculated.
         """
         reactions = []
+
+        # constant flow
+        if self.model_type == SinusoidalUnitFactory.TYPE_FLOW:
+            Q_str = 'Q_sinunit'
+
         # flow = 'flow_sin * A_sin'     # [m3/s] global volume flow (converts to local volume flow in pressure model)
         for s in self.sin_species:
             sid = s.sid
             # flow PP -> S01
-            Q_str = getQFlowId(getPPId()) # [m3/s] local volume flow
+            if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
+                Q_str = getQFlowId(getPPId()) # [m3/s] local volume flow
+
             reactions.append(
                 createFlowReactionTemplate(sid, c_from=getPPId(), c_to=getSinusoidId(1), flow=Q_str)  # [m3/s] local volume flow
             )
             # flow S[k] -> S[k+1] 
             for k in range(1, self.Nc):
-                Q_str = getQFlowId(getSinusoidId(k), getSinusoidId(k+1))
+                if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
+                    Q_str = getQFlowId(getSinusoidId(k), getSinusoidId(k+1))
                 reactions.append(
                     createFlowReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k + 1), flow=Q_str)
                 )
 
             # flow S[Nc*Nf] -> PV
-            Q_str = getQFlowId(getPVId())
+            if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
+                Q_str = getQFlowId(getPVId())
+
             reactions.append(
                 createFlowReactionTemplate(sid, c_from=getSinusoidId(self.Nc), c_to=getPVId(), flow=Q_str)
             )
@@ -311,48 +400,3 @@ class SinusoidalUnitFactory(object):
 
         return reactions
 
-    def createDiffusionReactions(self):
-        """ Diffusion reactions.
-
-        Creates the diffusion in the sinusoidal space, in the Disse space
-        and between adjacent sinusoidal and Disse spaces.
-
-        :return:
-        :rtype:
-        """
-        r_fen = self.getFenestraetionRadius()
-        reactions = []
-        for s in self.sin_species:
-            sid = s.sid
-            # [1] sinusoid diffusion
-            Dx_sin = 'Dx_sin_{}'.format(sid)
-            reactions.append(
-                createDiffusionReactionTemplate(sid, c_from=getPPId(), c_to=getSinusoidId(1), D=Dx_sin)
-            )
-            for k in range(1, self.Nc):
-                reactions.append(
-                    createDiffusionReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k+1), D=Dx_sin)
-                )
-            reactions.append(
-                createDiffusionReactionTemplate(sid, c_from=getSinusoidId(self.Nc), c_to=getPVId(), D=Dx_sin)
-            )
-
-            # only disse diffusion if larger than pores
-            if s.r.value > r_fen:
-                continue
-
-            # [2] disse diffusion
-            Dx_dis = 'Dx_dis_{}'.format(sid)
-            for k in range(1, self.Nc):
-                reactions.append(
-                    createDiffusionReactionTemplate(sid, c_from=getDisseId(k), c_to=getDisseId(k+1), D=Dx_dis)
-                )
-
-            # [3] sinusoid - disse diffusion
-            Dy_sindis = 'Dy_sindis_{}'.format(sid)
-            for k in self.cell_range():
-                reactions.append(
-                    createDiffusionReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getDisseId(k), D=Dy_sindis)
-                )
-
-        return reactions

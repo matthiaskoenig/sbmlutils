@@ -81,7 +81,6 @@ class Preprocess(object):
         Creates one information dictionary from various modules by combining the information.
         Information in earlier modules if overwritten by information in later modules.
         """
-        # TODO: defaults
         cdict = dict()
 
         # add info from modules
@@ -149,19 +148,19 @@ class CoreModel(object):
     _keys = {'mid': None,
              'version': None,
              'notes': None,
-             'creators': [],
-             'main_units': {},
+             'creators': list,
+             'main_units': dict,
 
-             'units': [],
-             'functions': [],
-             'compartments': [],
-             'species': [],
-             'parameters': [],
-             'assignments': [],
-             'rules': [],
-             'rate_rules': [],
-             'reactions': [],
-             'events': []}
+             'units': list,
+             'functions': list,
+             'compartments': list,
+             'species': list,
+             'parameters': list,
+             'assignments': list,
+             'rules': list,
+             'rate_rules': list,
+             'reactions': list,
+             'events': list}
 
     def __init__(self):
         """
@@ -169,6 +168,14 @@ class CoreModel(object):
         the respective cell model used for creation.
         """
         for key, value in CoreModel._keys.iteritems():
+            # necessary to init the lists for every instance,
+            # to not share them between instances
+            if value is not None:
+                if value == list:
+                    value = []
+                elif value == dict:
+                    value = {}
+
             setattr(self, key, value)
 
         # SBMLDocument and Model
@@ -181,7 +188,9 @@ class CoreModel(object):
 
     @staticmethod
     def from_dict(model_dict):
-        """ Creates the CoreModel instance from given dictionary
+        """ Creates the CoreModel instance from given dictionary.
+
+        Only the references to the dictionary are stored.
 
         :param self:
         :type self:
