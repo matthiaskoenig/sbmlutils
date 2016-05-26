@@ -101,7 +101,7 @@ class SinusoidalUnitFactory(object):
 
         # pore reactions only occure in the pressure model
         if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
-            self.core_model.reactions.extend(self.createFlowPoreReactions())
+           self.core_model.reactions.extend(self.createFlowPoreReactions())
 
     #########################################################################
     # Compartments
@@ -333,9 +333,13 @@ class SinusoidalUnitFactory(object):
 
         # midpoint
         for k in self.cell_range():
+            # depending of the direction of q, either transport
             x_str = '{}_x'.format(getSinusoidId(k))
             q_str = '{}_q'.format(getSinusoidId(k))
+
+            # create the rule
             rules.append(mc.Rule(q_str, q_formula.format(x_str, x_str), 'm2_per_s'))
+
 
         return rules
 
@@ -393,10 +397,18 @@ class SinusoidalUnitFactory(object):
             # flow S[k] -> D[k]
             sid = s.sid
             for k in self.cell_range():
-                Q_str = getqFlowId(getSinusoidId(k)) + ' * {}'.format('x_sin')  # [m2/s] * [m] (area flow)
-                reactions.append(
-                    createFlowReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getDisseId(k), flow=Q_str)
-                )
+                # depending on the pore flow direction either transport
+                # from sinusoid to disse or reverse direction
+                q_str = getqFlowId(getSinusoidId(k)) + ' * {}'.format('x_sin')  # [m2/s] * [m] (area flow)
+
+                if k <= self.Nc/2.0:
+                    reactions.append(
+                        createFlowReactionTemplate(sid, c_from=getSinusoidId(k), c_to=getDisseId(k), flow=q_str)
+                    )
+                else:
+                    reactions.append(
+                        createFlowReactionTemplate(sid, c_from=getDisseId(k), c_to=getSinusoidId(k), flow='-{}'.format(q_str))
+                    )
 
         return reactions
 
