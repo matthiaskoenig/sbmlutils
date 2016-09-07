@@ -6,31 +6,30 @@
  This utilities are implemented on top of the libsbml python bindings. This package works with the latest
  develop version of libsbml.
 
-## Features
-### SBML Model Creator
-The model creator creates SBML models from stored information.
-The information is handled in python data structures like lists and dictionaries.
+### modelcreator
+The modelcreator provides utilities to create SBML models.
+Model information is managed in python data structures which are used
+to create the models.
 
-#### Model structure
-Models consist of
-* Cell.py: cell model information
+The model definition consists of
+* Cell.py: basic model information
 * Reactions.py: reaction information
 
-Models should be able to import information from general models.
-This is handled via the combination of the dictionaries/list of the various models.
-The combined model is the combination of the information, with later information
-overwriting the general information of the model.
+Models can extend other models and reuse information from 
+defined models.
 
-Within the reaction equations the role of the species have to be defined, i.e. the
-SBO terms for the SpeciesReferences.
-In addition the kinetic law has to be annotated.
+### annotator
+The annotator provides simple means for the annotation of models.
+Annotations are hereby defined in separate annotation files with 
+annotations being matched to ids based on regular expression matching.
 
-### SBML annotator
-Annotations are defined in separate annotation files. 
-For a id regular pattern the annotations are listed.
+### report
+HTML report of SBML models. This provides simple overview of the 
+information defined in the model
 
-### SBML Report
-HTML report of SBML models.
+## License
+* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
+* Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Installation
 Either install directly from the git repository
@@ -48,20 +47,7 @@ To work in develop use
 python setup.py develop
 ```
 ### Requirements
-See `requirements.txt`. Currently
-```
-python-libsbml
-roadrunner
-antimony
-pandas
-tabulate
-cobra
-```
-
-## License
-* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
-* Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
-
+See `requirements.txt` and `setup.py`.
 
 ## Changelog
 **v0.1.2** [2016-09-07]

@@ -25,15 +25,11 @@ if mo:
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
-# long description
-with open(os.path.join(here, 'DESCRIPTION.rst')) as f:
-    long_description = f.read()
-
 setup(
     name='sbmlutils',
     version=verstr,
     description='SBML python utilities',
-    long_description=long_description,
+    long_description='SBML python utilities',
     url='https://github.com/matthiaskoenig/sbmlutils',
 
     # Author details
