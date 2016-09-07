@@ -17,7 +17,6 @@ class TestReactionTemplate(unittest.TestCase):
             name='bA (A import)',
             equation='A_ext => A []',
             compartment='membrane',
-            compartments=['cell, extern'],
             pars=[],
             rules=[],
             formula=('scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A', 'mole_per_s')

@@ -3,7 +3,7 @@ Test naming.
 """
 
 import unittest
-from naming import *
+from sinnaming import *
 
 
 class TestNaming(unittest.TestCase):

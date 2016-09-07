@@ -1,7 +1,10 @@
 # sbmlutils
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=RYHNRJFBMWD5N" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal donate button" /></a>
+[![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
 
-**sbmlutils** are python utilities for working with [SBML](http://www.sbml.org) models implemented on top of the libsbml python bindings.
+**sbmlutils** are a collection of python utilities for working with [SBML](http://www.sbml.org) models.
+ This utilities are implemented on top of the libsbml python bindings. This package works with the latest
+ develop version of libsbml.
 
 Features
 * SBML model creator
@@ -13,12 +16,9 @@ Either install directly from the git repository
 ```
 pip install git+https://github.com/matthiaskoenig/sbmlutils.git
 ```
-or via local cloning
+clone the repository locally
 ```
 git clone https://github.com/matthiaskoenig/sbmlutils.git
-```
-followed by
-```
 cd sbmlutils
 python setup.py install
 ```
@@ -31,7 +31,7 @@ python setup.py develop
 
 
 ## License
-* Source Code: [GPLv3](http://opensource.org/licenses/GPL-3.0)
+* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
 * Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Features
@@ -60,7 +60,10 @@ For a id regular pattern the annotations are listed.
 ### SBML Report
 HTML report of SBML models.
 
+
 ## Changelog
+**v0.1.2** [2016-09-07]
+* fixed unittests and bug fixes
 
 **v0.1.1** [2016-05-12]
 * bug fixes, refactoring, unit tests
