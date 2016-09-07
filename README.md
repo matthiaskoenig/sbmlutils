@@ -6,34 +6,6 @@
  This utilities are implemented on top of the libsbml python bindings. This package works with the latest
  develop version of libsbml.
 
-Features
-* SBML model creator
-* SBML annotator
-* SBML report
-
-## Installation
-Either install directly from the git repository
-```
-pip install git+https://github.com/matthiaskoenig/sbmlutils.git
-```
-clone the repository locally
-```
-git clone https://github.com/matthiaskoenig/sbmlutils.git
-cd sbmlutils
-python setup.py install
-```
-To work in develop use
-```
-python setup.py develop
-```
-### Requirements
-* libsbml python bindings
-
-
-## License
-* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
-* Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
-
 ## Features
 ### SBML Model Creator
 The model creator creates SBML models from stored information.
@@ -59,6 +31,36 @@ For a id regular pattern the annotations are listed.
 
 ### SBML Report
 HTML report of SBML models.
+
+## Installation
+Either install directly from the git repository
+```
+pip install git+https://github.com/matthiaskoenig/sbmlutils.git
+```
+clone the repository locally
+```
+git clone https://github.com/matthiaskoenig/sbmlutils.git
+cd sbmlutils
+python setup.py install
+```
+To work in develop use
+```
+python setup.py develop
+```
+### Requirements
+See `requirements.txt`. Currently
+```
+python-libsbml
+roadrunner
+antimony
+pandas
+tabulate
+cobra
+```
+
+## License
+* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
+* Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
 
 ## Changelog
