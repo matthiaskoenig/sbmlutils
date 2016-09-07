@@ -1,10 +1,25 @@
 # sbmlutils
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=RYHNRJFBMWD5N" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal donate button" /></a>
 [![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
+[![DOI](https://zenodo.org/badge/5066/matthiaskoenig/sbmlutils.svg)](https://zenodo.org/badge/latestdoi/5066/matthiaskoenig/sbmlutils)
 
 **sbmlutils** are a collection of python utilities for working with [SBML](http://www.sbml.org) models.
  This utilities are implemented on top of the libsbml python bindings. This package works with the latest
  develop version of libsbml.
+
+    @MISC{libsbgnpy,
+      author        = {Matthias Koenig},
+      title         = {sbmlutils: python utilities for SBML},
+      month         = {Sep.},
+      year          = {2016},
+      doi           = "{10.5281/zenodo.61737}",
+      url           = "{http://dx.doi.org/10.5281/zenodo.61737}",
+      howpublished  = {https://github.com/matthiaskoenig/sbmlutils/blob/master/README.md}
+    }
+
+## License
+* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
+* Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
 ### modelcreator
 The modelcreator provides utilities to create SBML models.
@@ -12,8 +27,8 @@ Model information is managed in python data structures which are used
 to create the models.
 
 The model definition consists of
-* Cell.py: basic model information
-* Reactions.py: reaction information
+* `Cell.py`: basic model information
+* `Reactions.py`: reaction information
 
 Models can extend other models and reuse information from 
 defined models.
@@ -27,9 +42,7 @@ annotations being matched to ids based on regular expression matching.
 HTML report of SBML models. This provides simple overview of the 
 information defined in the model
 
-## License
-* Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
-* Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
+
 
 ## Installation
 Either install directly from the git repository
