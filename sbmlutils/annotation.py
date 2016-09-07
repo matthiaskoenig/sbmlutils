@@ -111,6 +111,7 @@ def _create_history(creators):
     """ Creates the model history.
 
     Sets the create and modified date to the current time.
+    Creators are a list or dictionary with values as
     """
     h = libsbml.ModelHistory()
 

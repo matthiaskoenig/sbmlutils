@@ -39,11 +39,9 @@ class TestValidation(unittest.TestCase):
 
         self.validate_file(f.name, ucheck=False)
 
-
     def test_check_vdp(self):
         Nerrors = check_sbml(vdp_sbml)
         self.assertEqual(Nerrors, 10)
-
 
     def validate_file(self, sbml_file, ucheck=True):
         results = validate_sbml(sbml_file, ucheck=ucheck)

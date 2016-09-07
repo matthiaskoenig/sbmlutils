@@ -9,6 +9,8 @@ import unittest
 from sbmlutils.annotation import *
 from sbmlutils.examples import testfiles
 
+from sbmlutils.modelcreator.modelcreator import Creator
+
 
 class TestAnnotation(unittest.TestCase):
 
@@ -42,11 +44,8 @@ class TestAnnotation(unittest.TestCase):
         annotator.annotate_model()
 
     def test_set_model_history(self):
-        creators = {'Test' :
-                        {'FamilyName': 'Koenig',
-                         'GivenName': 'Matthias',
-                         'Email': 'konigmatt@googlemail.com',
-                         'Organization': 'Test organisation'}}
+        creators = [Creator(familyName='Koenig', givenName="Matthias",
+                            email="konigmatt@googlemail.com", organization="Test organisation")]
         sbmlns = libsbml.SBMLNamespaces(3, 1)
         doc = libsbml.SBMLDocument(sbmlns)
         model = doc.createModel()
