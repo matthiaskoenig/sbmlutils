@@ -13,7 +13,7 @@ def create_AssignmentTest():
     """ Test model for assignments in PKPD models. """
     name = 'AssignmentTest'
     return modelcreator.create_model(target_dir=os.path.join(models_dir, name, 'results'),
-                                     model_info=['{}.AssignmentTest'.format(model_module)])
+                                     model_inf=['{}.AssignmentTest'.format(model_module)])
 
 
 def create_demo():

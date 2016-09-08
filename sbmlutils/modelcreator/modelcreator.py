@@ -105,6 +105,7 @@ class Preprocess(object):
                         cdict[key] = dict()
                     # now add the elements by copy
                     d = cdict[key]
+                    print(d)
                     for k, v in value.iteritems():
                         d[k] = copy.deepcopy(v)
 
