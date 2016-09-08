@@ -7,8 +7,10 @@
 #
 ############################################################
 
+# only run tests
 nosetests
 
 # coverage report
+# issue with import directories
 # nosetests --with-coverage --cover-erase --cover-inclusive --cover-package=sbmlutils --cover-html
 # firefox cover/index.html
