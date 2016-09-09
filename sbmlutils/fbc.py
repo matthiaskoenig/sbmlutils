@@ -36,6 +36,7 @@ def load_cobra_model(sbml_path):
 
 def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
     """ Adds default flux bounds to SBMLDocument.
+
     :param doc:
     :type doc:
     :param lower:
@@ -43,7 +44,7 @@ def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
     :param upper:
     :type upper:
     """
-    # FIXME: overwrites lower/upper parameter (check if exisiting)
+    # FIXME: overwrites lower/upper parameter (check if existing)
     # TODO: the units are very specific (more generic)
     warn('Adding default flux bounds', UserWarning)
     model = doc.getModel()
@@ -61,7 +62,8 @@ def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
 
 
 def no_boundary_conditions(doc):
-    """ Sets all boundaryCondition=False in model.
+    """ Sets all boundaryCondition to False in the model.
+
     :param doc:
     :type doc:
     :return:
@@ -91,6 +93,12 @@ def check_balance(sbml_path):
 
 
 if __name__ == "__main__":
+    """
+    Example for creation of fbc model.
+
+    Extension package information is set via getting the
+    respective plugins from the core model.
+    """
     from libsbml import *
 
     sbmlns = SBMLNamespaces(3, 1, "fbc", 2)

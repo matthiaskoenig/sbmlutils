@@ -14,6 +14,7 @@ The basic steps of template creation are
 - compile template
 - render with SBML context
 """
+# TODO: implement offline version of the report
 # TODO: rate rules are not displayed correctly (they need dy/dt on the left side, compared to AssignmentRules)
 
 
@@ -163,8 +164,8 @@ def _copy_directory(src, dest):
 #################################################################################################
 
 if __name__ == '__main__':
-    from sbmlutils.examples.testfiles import test_dir
     import os
-    os.chdir("/home/mkoenig/Desktop/splines_interpolate")
-    create_sbml_report('cubicSpline.xml', '.')
+    from sbmlutils.examples import testfiles
+    os.chdir(os.path.join(testfiles.test_dir, 'report'))
+    create_sbml_report(sbml='galactose_30_annotated.xml', out_dir='.')
 

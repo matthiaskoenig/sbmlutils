@@ -10,9 +10,8 @@ Annotation is performed via searching for ontology terms which describe the mode
 model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
-
 """
-# TODO: general logging for the whole system
+
 # TODO: check annotations against the MIRIAM info (load miriam info)
 # TODO: check how the meta id is generated & use general mechanism
 

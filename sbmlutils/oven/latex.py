@@ -19,12 +19,6 @@ def astnode_to_latex(astnode):
     pass
 
 
-
-
-
-
-
-
 def string_to_latex(string, symbols):
     pass
 

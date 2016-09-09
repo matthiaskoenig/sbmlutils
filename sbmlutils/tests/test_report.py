@@ -4,7 +4,6 @@ Test the SBML report.
 from __future__ import print_function, division
 import unittest
 
-import libsbml
 import tempfile
 from sbmlutils.examples import testfiles
 from sbmlutils.report import sbmlreport

@@ -7,6 +7,7 @@ during the generation of cell and tissue model.
 The objects send to the create_... functions have to be dictionaries with
 certain keys (TODO: better via classes)
 
+Only model definition in the latest SBML versions are allowed.
 """
 # TODO: support SBOTerms & MetaIds via keyword
 # TODO: events

@@ -1,43 +1,70 @@
 """
 Utility objects and methods for the work with SBML.
 """
+
+import os
 from libsbml import *
 from sbmlutils import validation
 
 
-def write_and_check(doc, sbml_file):
-    # write and check the SBML file
+def filepath_from_model_id(model_id, directory):
+    """
+    Create a filepath from model_id in given directory.
+
+    :param model_id:
+    :param directory:
+    :return: filepath
+    """
+    return os.path.join(directory, '{}.xml'.format(model_id))
+
+
+def write_and_check(doc, filename):
+    """
+    Write and check a given SBMLDocument to file.
+
+    :param doc: SBMLDocument to write and check
+    :param filename: output file
+    :return: None
+    """
     writer = SBMLWriter()
-    writer.writeSBML(doc, sbml_file)
-    from validation import check_sbml
-    check_sbml(sbml_file)
+    writer.writeSBML(doc, filename)
+
+    validation.check_sbml(filename)
 
 
-def write_sbml(doc, sbml_file, validate=True, program_name=None, program_version=None):
-    """ Write SBML to file. """
+def write_sbml(doc, filename, validate=True, program_name=None, program_version=None):
+    """
+    Write SBMLDocument to file.
+
+    :param doc: SBMLDocument to write
+    :param filename: output file to write
+    :param validate: boolean flag for validation
+    :param program_name: Program name for SBML file
+    :param program_version: Program version for SBML file
+    :return:
+    """
     writer = SBMLWriter()
     if program_name:
         writer.setProgramName(program_name)
     if program_version:
         writer.setProgramVersion(program_version)
-    writer.writeSBMLToFile(doc, sbml_file)
+    writer.writeSBMLToFile(doc, filename)
 
     # validate the model with units (only for small models)
     if validate:
-        validation.validate_sbml(sbml_file)
+        validation.validate_sbml(filename)
 
 
-def writeModelToSBML(model, filename):
+def writeModelToSBML(model, filepath):
+    """
+    Write SBML Model to output file.
+    An empty SBMLDocument is created for the model.
+
+    :param model: SBML Model
+    :param filepath: output file path
+    :return:
+    """
     writer = SBMLWriter()
     doc = SBMLDocument()
     doc.setModel(model)
-    writer.writeSBMLToFile(doc, filename)
-
-
-def createSBMLFileNameFromModelId(modelId, folder):
-    return folder + '/' + modelId + '.xml'
-
-########################################################################################################################
-
-
-
+    writer.writeSBMLToFile(doc, filepath)

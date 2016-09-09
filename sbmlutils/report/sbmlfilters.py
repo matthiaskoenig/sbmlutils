@@ -1,8 +1,8 @@
 """
 Template filters for rendering SBML.
 
-Additional functionality for templates like displaying the annotations and proper rendering
-of units.
+Additional functionality for templates like displaying
+annotations or rendering of units.
 """
 
 import libsbml
@@ -49,6 +49,7 @@ def SBML_modelHistoryToString(mhistory):
 def SBML_reactionToString(reaction):
     return equationStringFromReaction(reaction)
 
+
 def SBML_formulaChargeString(species):
     return formulaChargeStringFromSpecies(species)
 
@@ -59,6 +60,7 @@ def SBML_unitDefinitionToString1(ud):
 
 def SBML_unitDefinitionToString(udef):
     return unitDefinitionToString(udef)
+
 
 def SBML_ruleVariableToString(udef):
     return ruleVariableToString(udef)
