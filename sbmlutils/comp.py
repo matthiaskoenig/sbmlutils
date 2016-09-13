@@ -243,3 +243,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
         print("Flattened model written to {}".format(output_file))
 
     return doc
+
+
+if __name__ == "__main__":
+    from libsbml import SBaseRef
