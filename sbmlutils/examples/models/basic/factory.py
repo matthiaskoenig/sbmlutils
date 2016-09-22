@@ -6,20 +6,18 @@ from sbmlutils.modelcreator.modelcreator import Factory
 models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class DemoFactory(Factory):
+class BasicFactory(Factory):
     """
     Implements model factory.
     """
-    modules = ['sbmlutils.examples.models.demo.Cell']
+    modules = ['sbmlutils.examples.models.basic.Cell']
     target_dir = os.path.join(models_dir, 'results')
-    annotations = os.path.join(models_dir, 'demo_annotations.xlsx')
 
     @classmethod
     def create(cls):
         """ Create model. """
         return modelcreator.create_model(modules=cls.modules,
-                                         target_dir=cls.target_dir,
-                                         annotations=cls.annotations)
+                                         target_dir=cls.target_dir)
 
 if __name__ == "__main__":
-    DemoFactory.create()
+    BasicFactory.create()

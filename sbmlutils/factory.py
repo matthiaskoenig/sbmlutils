@@ -91,6 +91,7 @@ def create_objects(model, obj_iter):
     """
     sbml_objects = {}
     for obj in obj_iter:
+        print(obj)
         sbml_obj = obj.create_sbml(model)
         sbml_objects[sbml_obj.getId()] = sbml_obj
     return sbml_objects

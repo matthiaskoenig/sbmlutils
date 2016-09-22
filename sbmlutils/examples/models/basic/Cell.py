@@ -6,12 +6,13 @@ Mainly volumes which are calculated based on other parameters.
 from __future__ import print_function, division
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
+from sbmlutils.modelcreator import modelcreator as mc
 from Reactions import *
 
 ##############################################################
 creators = templates.creators
 mid = 'test'
-version = 6
+version = 7
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Koenig Test Model</h1>
@@ -21,77 +22,52 @@ notes = XMLNode.convertStringToXMLNode("""
     """ + templates.terms_of_use + """
     </body>
     """)
-units = dict()
-compartments = dict()
-species = dict()
-parameters = dict()
-names = dict()
-assignments = dict()
-rules = dict()
+units = []
+compartments = []
+species = []
+parameters = []
+names = []
+assignments = []
+rules = []
 reactions = []
 
 ##############################################################
 # Compartments
 ##############################################################
-compartments.update({
-    # id : ('spatialDimension', 'unit', 'constant', 'assignment')
-    'ext': (3, 'm3', True, 'Vol_e'),
-    'cyto': (3, 'm3', False, 'Vol_c'),
-    'pm': (2, 'm2', True, 'A_m'),
-})
-names.update({
-    'ext': 'external',
-    'cyto': 'cytosol',
-    'pm': 'membrane',
-})
+compartments.extend([
+    mc.Compartment(sid='ext', value='Vol_e', unit='m3', constant=True, name="external"),
+    mc.Compartment(sid='cyto', value='Vol_c', unit='m3', constant=False, name="cytosol"),
+    mc.Compartment(sid='pm', value='A_m', unit="m2", constant=True, spatialDimension=2, name="membrane"),
+])
 
 ##############################################################
 # Species
 ##############################################################
-species.update({
-    # id : ('compartment', 'value', 'unit', 'boundaryCondition')
-    'e__gal':       ('ext', 3.0, 'mM', True),
-    'c__gal':       ('cyto', 0.00012, 'mM', False),
-})
-names.update({
-    'gal': 'D-galactose',
-})
+species.extend([
+    mc.Species(sid='e__gal', compartment='ext', value=3.0, unit='mM', boundaryCondition=True, name='D-galactose'),
+    mc.Species(sid='c__gal', compartment='cyto', value=0.00012, unit='mM', boundaryCondition=False, name='D-galactose'),
+])
 
 ##############################################################
 # Parameters
 ##############################################################
-parameters.update({
-    # id: ('value', 'unit', 'constant')
-    'x_cell':       (25E-6, 'm', True),
-    'Vol_e':        (100E-14, 'm3', True),
-    'A_m':          (1.0, 'm2', True),
-})
-names.update({
-    'x_cell': 'cell diameter',
-    'Vol_e': 'external volume',
-    'Vol_c': 'cell volume',
-    'A_m': 'membrane area',
-})
+parameters.extend([
+    mc.Parameter(sid='x_cell', value=25E-6, unit='m', constant=True, name="cell diameter"),
+    mc.Parameter(sid='Vol_e', value=100E-14, unit='m3', constant=True, name="external volume"),
+    mc.Parameter(sid='A_m', value=1.0, unit='m2', constant=True, name="membrane area"),
+])
 
 ##############################################################
 # Assignments
 ##############################################################
-assignments.update({
-    # id: ('value', 'unit')
-    'Vol_c': ('x_cell*x_cell*x_cell', 'm3'),
-})
+assignments.extend([
+    mc.Assignment(sid='Vol_c', value='x_cell*x_cell*x_cell', unit='m3'),
+])
 
 ##############################################################
 # Rules
 ##############################################################
-rules.update({
-    # id: ('value', 'unit')
-    # driving a boundaryCondition species
-    # 'e__gal': ('1.0 mM * (1 dimensionless + sin(time/1 s))', 'mM'),
-})
-names.update({
-})
-
+rules.extend([])
 
 ##############################################################
 # Reactions
