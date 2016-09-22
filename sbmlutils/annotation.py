@@ -260,23 +260,30 @@ class ModelAnnotator(object):
         return id_dict
 
     def annotate_model(self):
-        """ Annotates the model with the given annotations. """
+        """
+        Annotates the model with the given annotations.
+        """
         for a in self.annotations:
             pattern = a.pattern
             if a.sbml_type == "document":
                 elements = [self.doc]
             else:
                 # lookup of allowed ids for given sbmlutils type
-                ids = self.id_dict[a.sbml_type]
-                # find the subset of ids matching the pattern
-                pattern_ids = self.__class__.get_matching_ids(ids, pattern)
-                elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
+                ids = self.id_dict.get(a.sbml_type, None)
+                elements = []
+                if ids:
+                    # find the subset of ids matching the pattern
+                    pattern_ids = self.__class__.get_matching_ids(ids, pattern)
+                    elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
+
             self.annotate_components(elements, a)
 
 
     @staticmethod
     def get_matching_ids(ids, pattern):
-        """ Finds the model ids based on the regular expression pattern. """
+        """
+        Finds the model ids based on the regular expression pattern.
+        """
         match_ids = []
         for string in ids:
             match = re.match(pattern, string)
@@ -287,6 +294,14 @@ class ModelAnnotator(object):
 
     @staticmethod
     def elements_from_ids(model, sbml_ids, sbml_type=None):
+        """
+        Get list of SBML elements from given ids.
+
+        :param model:
+        :param sbml_ids:
+        :param sbml_type:
+        :return:
+        """
         elements = []
         for sid in sbml_ids:
             if sbml_type == 'rule':
@@ -407,7 +422,6 @@ class ModelAnnotator(object):
         xlsx is converted to csv file and than parsed with csv reader.
         """
         import pyexcel as pe
-        import pyexcel.ext.xlsx
 
         csvfile = "{}.csv".format(xslxfile)
         pe.save_as(file_name=xslxfile, dest_file_name=csvfile, dest_delimiter=delimiter)

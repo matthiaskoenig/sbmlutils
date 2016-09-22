@@ -272,7 +272,10 @@ class CoreModel(object):
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
-                create_objects(self.model, objects)
+                if (objects):
+                    create_objects(self.model, objects)
+                else:
+                    warnings.warn("Attribute <{}> missing from model.".format(attr))
 
     def write_sbml(self, filepath):
         """ Write sbml to file.
