@@ -13,6 +13,7 @@ ontology lookup service.
 """
 
 # TODO: check annotations against the MIRIAM info (load miriam info)
+# analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
 
 from __future__ import print_function
