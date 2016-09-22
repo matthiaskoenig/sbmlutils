@@ -7,6 +7,7 @@ from __future__ import print_function, division
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator import modelcreator as mc
+from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from Reactions import *
 
 ##############################################################
@@ -22,6 +23,16 @@ notes = XMLNode.convertStringToXMLNode("""
     """ + templates.terms_of_use + """
     </body>
     """)
+creators = templates.creators
+main_units = {
+    'time': 's',
+    'extent': UNIT_KIND_MOLE,
+    'substance': UNIT_KIND_MOLE,
+    'length': 'm',
+    'area': 'm2',
+    'volume': 'm3',
+}
+
 units = []
 compartments = []
 species = []
@@ -30,6 +41,20 @@ names = []
 assignments = []
 rules = []
 reactions = []
+
+##############################################################
+# Units
+##############################################################
+# units (kind, exponent, scale=0, multiplier=1.0)
+units.extend([
+    mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)]),
+    mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)]),
+    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
+    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
+    mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)]),
+    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)] ),
+    mc.Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
+])
 
 ##############################################################
 # Compartments
