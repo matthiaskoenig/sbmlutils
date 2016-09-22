@@ -121,64 +121,64 @@ compartments.extend([
 ##############################################################
 species.extend([
     mc.Species('atp', compartment='cyto', value=2.8000, unit='mM', boundaryCondition=True, name='ATP'),
-    mc.Species('adp', 'cyto', 0.8000, 'mM', True, name='ADP'),
-    mc.Species('amp','cyto', 0.1600, 'mM', True, name='AMP'),
-    mc.Species('utp', 'cyto', 0.2700, 'mM', False, name='UTP'),
-    mc.Species('udp', 'cyto', 0.0900, 'mM', False, name='UDP'),
-    mc.Species('gtp', 'cyto', 0.2900, 'mM', False, name='GTP'),
-    mc.Species('gdp', 'cyto', 0.1000, 'mM', False, name='GDP'),
-    mc.Species('nad', 'cyto', 1.2200, 'mM', True, name='NAD+'),
-    mc.Species('nadh', 'cyto', 0.56E-3, 'mM', True, name='NADH'),
-    mc.Species('phos', 'cyto', 5.0000, 'mM', True, name='phosphate'),
-    mc.Species('pp', 'cyto', 0.0080, 'mM', False, name='pyrophosphate'),
-    mc.Species('co2', 'cyto', 5.0000, 'mM', True, name='CO2'),
-    mc.Species('h2o', 'cyto', 0.0, 'mM', True, name='H2O'),
-    mc.Species('h', 'cyto', 0.0, 'mM', True, name='H+'),
+    mc.Species('adp', compartment='cyto', value=0.8000, unit='mM', boundaryCondition=True, name='ADP'),
+    mc.Species('amp', compartment='cyto', value=0.1600, unit='mM', boundaryCondition=True, name='AMP'),
+    mc.Species('utp', compartment='cyto', value=0.2700, unit='mM', boundaryCondition=False, name='UTP'),
+    mc.Species('udp', compartment='cyto', value=0.0900, unit='mM', boundaryCondition=False, name='UDP'),
+    mc.Species('gtp', compartment='cyto', value=0.2900, unit='mM', boundaryCondition=False, name='GTP'),
+    mc.Species('gdp', compartment='cyto', value=0.1000, unit='mM', boundaryCondition=False, name='GDP'),
+    mc.Species('nad', compartment='cyto', value=1.2200, unit='mM', boundaryCondition=True, name='NAD+'),
+    mc.Species('nadh', compartment='cyto', value=0.56E-3, unit='mM', boundaryCondition=True, name='NADH'),
+    mc.Species('phos', compartment='cyto', value=5.0000, unit='mM', boundaryCondition=True, name='phosphate'),
+    mc.Species('pp', compartment='cyto', value=0.0080, unit='mM', boundaryCondition=False, name='pyrophosphate'),
+    mc.Species('co2', compartment='cyto', value=5.0000, unit='mM', boundaryCondition=True, name='CO2'),
+    mc.Species('h2o', compartment='cyto', value=0.0, unit='mM', boundaryCondition=True, name='H2O'),
+    mc.Species('h', compartment='cyto', value=0.0, unit='mM', boundaryCondition=True, name='H+'),
     
-    mc.Species('glc1p', 'cyto', 0.0120, 'mM', False, name='glucose-1 phosphate'),
-    mc.Species('udpglc', 'cyto', 0.3800, 'mM', False, name='UDP-glucose'),
-    mc.Species('glyglc', 'cyto', 250.0000, 'mM', False, name='glycogen'),
-    mc.Species('glc', 'cyto', 5.0000, 'mM', False, name='glucose'),
-    mc.Species('glc6p', 'cyto', 0.1200, 'mM', False, name='glucose-6 phosphate'),
-    mc.Species('fru6p', 'cyto', 0.0500, 'mM', False, name='fructose-6 phosphate'),
-    mc.Species('fru16bp', 'cyto', 0.0200, 'mM', False, name='fructose-16 bisphosphate'),
-    mc.Species('fru26bp', 'cyto', 0.0040, 'mM', False, name='fructose-26 bisphosphate'),
-    mc.Species('grap', 'cyto', 0.1000, 'mM', False, name='glyceraldehyde 3-phosphate'),
-    mc.Species('dhap', 'cyto', 0.0300, 'mM', False, name='dihydroxyacetone phosphate'),
-    mc.Species('bpg13', 'cyto', 0.3000, 'mM', False, name='13-bisphospho-glycerate'),
-    mc.Species('pg3', 'cyto', 0.2700, 'mM', False, name='3-phosphoglycerate'),
-    mc.Species('pg2', 'cyto', 0.0300, 'mM', False, name='2-phosphoglycerate'),
-    mc.Species('pep', 'cyto', 0.1500, 'mM', False, name='phosphoenolpyruvate'),
-    mc.Species('pyr', 'cyto', 0.1000, 'mM', False, name='pyruvate'),
-    mc.Species('oaa','cyto', 0.0100, 'mM', False, name='oxaloacetate'),
-    mc.Species('lac','cyto', 0.5000, 'mM', False, name='lactate'),
+    mc.Species('glc1p', compartment='cyto', value=0.0120, unit='mM', boundaryCondition=False, name='glucose-1 phosphate'),
+    mc.Species('udpglc', compartment='cyto', value=0.3800, unit='mM', boundaryCondition=False, name='UDP-glucose'),
+    mc.Species('glyglc', compartment='cyto', value=250.0000, unit='mM', boundaryCondition=False, name='glycogen'),
+    mc.Species('glc', compartment='cyto', value=5.0000, unit='mM', boundaryCondition=False, name='glucose'),
+    mc.Species('glc6p', compartment='cyto', value=0.1200, unit='mM', boundaryCondition=False, name='glucose-6 phosphate'),
+    mc.Species('fru6p', compartment='cyto', value=0.0500, unit='mM', boundaryCondition=False, name='fructose-6 phosphate'),
+    mc.Species('fru16bp', compartment='cyto', value=0.0200, unit='mM', boundaryCondition=False, name='fructose-16 bisphosphate'),
+    mc.Species('fru26bp', compartment='cyto', value=0.0040, unit='mM', boundaryCondition=False, name='fructose-26 bisphosphate'),
+    mc.Species('grap', compartment='cyto', value=0.1000, unit='mM', boundaryCondition=False, name='glyceraldehyde 3-phosphate'),
+    mc.Species('dhap', compartment='cyto', value=0.0300, unit='mM', boundaryCondition=False, name='dihydroxyacetone phosphate'),
+    mc.Species('bpg13', compartment='cyto', value=0.3000, unit='mM', boundaryCondition=False, name='13-bisphospho-glycerate'),
+    mc.Species('pg3', compartment='cyto', value=0.2700, unit='mM', boundaryCondition=False, name='3-phosphoglycerate'),
+    mc.Species('pg2', compartment='cyto', value=0.0300, unit='mM', boundaryCondition=False, name='2-phosphoglycerate'),
+    mc.Species('pep', compartment='cyto', value=0.1500, unit='mM', boundaryCondition=False, name='phosphoenolpyruvate'),
+    mc.Species('pyr', compartment='cyto', value=0.1000, unit='mM', boundaryCondition=False, name='pyruvate'),
+    mc.Species('oaa', compartment='cyto', value=0.0100, unit='mM', boundaryCondition=False, name='oxaloacetate'),
+    mc.Species('lac',compartment='cyto', value=0.5000, unit='mM', boundaryCondition=False, name='lactate'),
 
-    mc.Species('glc_ext', 'ext', 3.0000, 'mM', True, name='glucose'),
-    mc.Species('lac_ext', 'ext', 1.2000, 'mM', True, name='lactate'),
+    mc.Species('glc_ext', compartment='ext', value=3.0000, unit='mM', boundaryCondition=True, name='glucose'),
+    mc.Species('lac_ext', compartment='ext', value=1.2000, unit='mM', boundaryCondition=True, name='lactate'),
 
-    mc.Species('co2_mito', 'mito', 5.0000, 'mM', True, name='CO2'),
-    mc.Species('phos_mito', 'mito', 5.0000, 'mM', True, name='phosphate'),
-    mc.Species('oaa_mito', 'mito', 0.0100, 'mM', False, name=' oxaloacetate'),
-    mc.Species('pep_mito', 'mito', 0.1500, 'mM', False, name='phosphoenolpyruvate'),
-    mc.Species('acoa_mito', 'mito', 0.0400, 'mM', True, name='acetyl-coenzyme A'),
-    mc.Species('pyr_mito', 'mito', 0.1000, 'mM', False, name='pyruvate'),
-    mc.Species('cit_mito', 'mito', 0.3200, 'mM', True, name='citrate'),
+    mc.Species('co2_mito', compartment='mito', value=5.0000, unit='mM', boundaryCondition=True, name='CO2'),
+    mc.Species('phos_mito', compartment='mito', value=5.0000, unit='mM', boundaryCondition=True, name='phosphate'),
+    mc.Species('oaa_mito', compartment='mito', value=0.0100, unit='mM', boundaryCondition=False, name=' oxaloacetate'),
+    mc.Species('pep_mito', compartment='mito', value=0.1500, unit='mM', boundaryCondition=False, name='phosphoenolpyruvate'),
+    mc.Species('acoa_mito', compartment='mito', value=0.0400, unit='mM', boundaryCondition=True, name='acetyl-coenzyme A'),
+    mc.Species('pyr_mito', compartment='mito', value=0.1000, unit='mM', boundaryCondition=False, name='pyruvate'),
+    mc.Species('cit_mito', compartment='mito', value=0.3200, unit='mM', boundaryCondition=True, name='citrate'),
 
-    mc.Species('atp_mito', 'mito', 2.8000, 'mM', True, name='ATP'),
-    mc.Species('adp_mito', 'mito', 0.8000, 'mM', True, name='ADP'),
-    mc.Species('gtp_mito', 'mito', 0.2900, 'mM', False, name='GTP'),
-    mc.Species('gdp_mito', 'mito', 0.1000, 'mM', False, name='GDP'),
-    mc.Species('coa_mito', 'mito', 0.0550, 'mM', True, name='coenzyme A'),
-    mc.Species('nadh_mito', 'mito', 0.2400, 'mM', True, name='NADH'),
-    mc.Species('nad_mito', 'mito', 0.9800, 'mM', True, name='NAD+'),
-    mc.Species('h2o_mito', 'mito', 0.0, 'mM', True, name='H20'),
-    mc.Species('h_mito', 'mito', 0.0, 'mM', True, name='H+'),
+    mc.Species('atp_mito', compartment='mito', value=2.8000, unit='mM', boundaryCondition=True, name='ATP'),
+    mc.Species('adp_mito', compartment='mito', value=0.8000, unit='mM', boundaryCondition=True, name='ADP'),
+    mc.Species('gtp_mito', compartment='mito', value=0.2900, unit='mM', boundaryCondition=False, name='GTP'),
+    mc.Species('gdp_mito', compartment='mito', value=0.1000, unit='mM', boundaryCondition=False, name='GDP'),
+    mc.Species('coa_mito', compartment='mito', value=0.0550, unit='mM', boundaryCondition=True, name='coenzyme A'),
+    mc.Species('nadh_mito', compartment='mito', value=0.2400, unit='mM', boundaryCondition=True, name='NADH'),
+    mc.Species('nad_mito', compartment='mito', value=0.9800, unit='mM', boundaryCondition=True, name='NAD+'),
+    mc.Species('h2o_mito', compartment='mito', value=0.0, unit='mM', boundaryCondition=True, name='H20'),
+    mc.Species('h_mito', compartment='mito', value=0.0, unit='mM', boundaryCondition=True, name='H+'),
 ])
 
 ##############################################################
 # Parameters
 ##############################################################
-parameters.extend([]
+parameters.extend([
     mc.Parameter('V_cyto', 1.0E-3, 'm3', True, name='cytosolic volume'),
     mc.Parameter('f_ext', 10.0, 'dimensionless', True, name='external volume factor'),
     mc.Parameter('f_mito', 0.2, 'dimensionless', True, name='mitochondrial volume factor'),
@@ -205,7 +205,7 @@ parameters.extend([]
 
     mc.Parameter('K_val', 0.1, 'dimensionless', True),
     mc.Parameter('epi_f', 0.8, 'dimensionless', True),
-)
+])
 
 ##############################################################
 # Assignments
@@ -213,7 +213,7 @@ parameters.extend([]
 assignments.extend([
     mc.Assignment('V_ext', 'f_ext * V_cyto', 'm3', name='external volume'),
     mc.Assignment('V_mito', 'f_mito * V_cyto', 'm3', name='mitochondrial volume'),
-    mc.Assignment('conversion_factor', 'fliver*Vliver/V_cyto*sec_per_min * 1E3 dimensionless/bodyweight', 's_per_min_kg')),
+    mc.Assignment('conversion_factor', 'fliver*Vliver/V_cyto*sec_per_min * 1E3 dimensionless/bodyweight', 's_per_min_kg'),
 
     # scaling factors
     mc.Assignment('scale', '1 dimensionless /60 dimensionless', 'dimensionless', name='scaling factor rates'),
@@ -227,7 +227,7 @@ assignments.extend([
 rules.extend([
     # hormonal regulation
     mc.Rule('ins', 'x_ins2 + (x_ins1-x_ins2) * glc_ext^x_ins4/(glc_ext^x_ins4 + x_ins3^x_ins4)', 'pM', name='insulin'),
-    mc.Rule('ins_norm', 'max(0.0 pM, ins-x_ins2)', 'pM', name='insulin normalized')
+    mc.Rule('ins_norm', 'max(0.0 pM, ins-x_ins2)', 'pM', name='insulin normalized'),
     mc.Rule('glu', 'x_glu2 + (x_glu1-x_glu2)*(1 dimensionless - glc_ext^x_glu4/(glc_ext^x_glu4 + x_glu3^x_glu4))', 'pM', name='glucagon'),
     mc.Rule('glu_norm', 'max(0.0 pM, glu-x_glu2)', 'pM', name='glucagon normalized'),
     mc.Rule('epi', 'x_epi2 + (x_epi1-x_epi2) * (1 dimensionless - glc_ext^x_epi4/(glc_ext^x_epi4 + x_epi3^x_epi4))', 'pM', name='epinephrine'),
