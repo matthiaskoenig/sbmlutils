@@ -210,76 +210,48 @@ parameters.extend([]
 ##############################################################
 # Assignments
 ##############################################################
-assignments.update({
-    # id: ('value', 'unit')
-    'V_ext': ('f_ext * V_cyto', 'm3'),
-    'V_mito': ('f_mito * V_cyto', 'm3'),
-    'conversion_factor': ('fliver*Vliver/V_cyto*sec_per_min * 1E3 dimensionless/bodyweight', 's_per_min_kg'),
+assignments.extend([
+    mc.Assignment('V_ext', 'f_ext * V_cyto', 'm3', name='external volume'),
+    mc.Assignment('V_mito', 'f_mito * V_cyto', 'm3', name='mitochondrial volume'),
+    mc.Assignment('conversion_factor', 'fliver*Vliver/V_cyto*sec_per_min * 1E3 dimensionless/bodyweight', 's_per_min_kg')),
 
     # scaling factors
-    'scale': ('1 dimensionless /60 dimensionless', 'dimensionless'),
-    'f_gly': ('scale', 'dimensionless'),
-    'f_glyglc': ('scale', 'dimensionless'),
-})
-names.update({
-    'V_mito': 'mitochondrial volume',
-    'V_ext': 'external volume',
-    'scale': 'scaling factor rates',
-    'f_glc': 'scaling factor glycolysis',
-    'f_glyglc': 'scaling factor glycogen metabolism',
-})
+    mc.Assignment('scale', '1 dimensionless /60 dimensionless', 'dimensionless', name='scaling factor rates'),
+    mc.Assignment('f_gly', 'scale', 'dimensionless', name='scaling factor glycolysis'),
+    mc.Assignment('f_glyglc', 'scale', 'dimensionless', name='scaling factor glycogen metabolism'),
+])
 
 ##############################################################
 # Rules
 ##############################################################
-rules.update({
-    # id: ('value', 'unit')
-
+rules.extend([
     # hormonal regulation
-    'ins': ('x_ins2 + (x_ins1-x_ins2) * glc_ext^x_ins4/(glc_ext^x_ins4 + x_ins3^x_ins4)', 'pM'),
-    'ins_norm': ('max(0.0 pM, ins-x_ins2)', 'pM'),
-    'glu': ('x_glu2 + (x_glu1-x_glu2)*(1 dimensionless - glc_ext^x_glu4/(glc_ext^x_glu4 + x_glu3^x_glu4))', 'pM'),
-    'glu_norm': ('max(0.0 pM, glu-x_glu2)', 'pM'),
-    'epi': ('x_epi2 + (x_epi1-x_epi2) * (1 dimensionless - glc_ext^x_epi4/(glc_ext^x_epi4 + x_epi3^x_epi4))', 'pM'),
-    'epi_norm': ('max(0.0 pM, epi-x_epi2)', 'pM'),
-    'K_ins': ('(x_ins1-x_ins2) * K_val', 'pM'),
-    'K_glu': ('(x_glu1-x_glu2) * K_val', 'pM'),
-    'K_epi': ('(x_epi1-x_epi2) * K_val', 'pM'),
-    'gamma': ('0.5 dimensionless * (1 dimensionless - ins_norm/(ins_norm+K_ins) + max(glu_norm/(glu_norm+K_glu), epi_f*epi_norm/(epi_norm+K_epi)))', 'dimensionless'),
+    mc.Rule('ins', 'x_ins2 + (x_ins1-x_ins2) * glc_ext^x_ins4/(glc_ext^x_ins4 + x_ins3^x_ins4)', 'pM', name='insulin'),
+    mc.Rule('ins_norm', 'max(0.0 pM, ins-x_ins2)', 'pM', name='insulin normalized')
+    mc.Rule('glu', 'x_glu2 + (x_glu1-x_glu2)*(1 dimensionless - glc_ext^x_glu4/(glc_ext^x_glu4 + x_glu3^x_glu4))', 'pM', name='glucagon'),
+    mc.Rule('glu_norm', 'max(0.0 pM, glu-x_glu2)', 'pM', name='glucagon normalized'),
+    mc.Rule('epi', 'x_epi2 + (x_epi1-x_epi2) * (1 dimensionless - glc_ext^x_epi4/(glc_ext^x_epi4 + x_epi3^x_epi4))', 'pM', name='epinephrine'),
+    mc.Rule('epi_norm', 'max(0.0 pM, epi-x_epi2)', 'pM', name='epinephrine normalized'),
+    mc.Rule('K_ins', '(x_ins1-x_ins2) * K_val', 'pM'),
+    mc.Rule('K_glu', '(x_glu1-x_glu2) * K_val', 'pM'),
+    mc.Rule('K_epi', '(x_epi1-x_epi2) * K_val', 'pM'),
+    mc.Rule('gamma', '0.5 dimensionless * (1 dimensionless - ins_norm/(ins_norm+K_ins) + max(glu_norm/(glu_norm+K_glu), epi_f*epi_norm/(epi_norm+K_epi)))', 'dimensionless',
+            name='phosphorylation state'),
 
     # balance rules
-    'nadh_tot': ('nadh + nad', 'mM'),
-    'atp_tot': ('atp + adp + amp', 'mM'),
-    'utp_tot': ('utp + udp + udpglc', 'mM'),
-    'gtp_tot': ('gtp + gdp', 'mM'),
-    'nadh_mito_tot': ('nadh_mito + nad_mito', 'mM'),
-    'atp_mito_tot': ('atp_mito + adp_mito', 'mM'),
-    'gtp_mito_tot': ('gtp_mito + gdp_mito', 'mM'),
+    mc.Rule('nadh_tot', 'nadh + nad', 'mM', name='NADH balance'),
+    mc.Rule('atp_tot', 'atp + adp + amp', 'mM', 'ATP balance'),
+    mc.Rule('utp_tot', 'utp + udp + udpglc', 'mM', name='UTP balance'),
+    mc.Rule('gtp_tot', 'gtp + gdp', 'mM', name='GTP balance'),
+    mc.Rule('nadh_mito_tot', 'nadh_mito + nad_mito', 'mM', name='NADH mito balance'),
+    mc.Rule('atp_mito_tot', 'atp_mito + adp_mito', 'mM', name='ATP mito balance'),
+    mc.Rule('gtp_mito_tot', 'gtp_mito + gdp_mito', 'mM', name='GTP mito balance'),
 
     # whole liver output
-    'HGP': ('GLUT2 * conversion_factor', 'mumol_per_min_kg'),
-    'GNG': ('GPI * conversion_factor', 'mumol_per_min_kg'),
-    'GLY': ('-G16PI * conversion_factor', 'mumol_per_min_kg'),
-})
-names.update({
-    'ins': 'insulin',
-    'epi': 'epinephrine',
-    'glu': 'glucagon',
-    'gamma': 'phosphorylation state',
-
-    'nadh_tot': 'NADH balance',
-    'atp_tot': 'ATP balance',
-    'utp_tot': 'UTP balance',
-    'gtp_tot': 'GTP balance',
-    'nadh_mito_tot': 'NADH mito balance',
-    'atp_mito_tot': 'ATP mito balance',
-    'gtp_mito_tot': 'GTP mito balance',
-
-    'HGP': 'hepatic glucose production/utilization',
-    'GNG': 'gluconeogenesis/glycolysis',
-    'GLY': 'glycogenolysis/glycogen synthesis',
-})
-
+    mc.Rule('HGP', 'GLUT2 * conversion_factor', 'mumol_per_min_kg', name='hepatic glucose production/utilization'),
+    mc.Rule('GNG', 'GPI * conversion_factor', 'mumol_per_min_kg', name='gluconeogenesis/glycolysis'),
+    mc.Rule('GLY', '-G16PI * conversion_factor', 'mumol_per_min_kg', name='glycogenolysis/glycogen synthesis'),
+])
 
 ##############################################################
 # Reactions
