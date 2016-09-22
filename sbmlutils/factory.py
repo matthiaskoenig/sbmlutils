@@ -22,6 +22,22 @@ SBML_LEVEL = 3
 SBML_VERSION = 1
 
 
+class Factory(object):
+    """
+    Generic model factory, which should be subclassed by the individual
+    ModelFactories.
+    """
+
+    def __init__(self, modules, target_dir, annotations):
+        self.modules = modules
+        self.target_dir = target_dir
+        self.annotations = annotations
+
+    @staticmethod
+    def create():
+        raise NotImplementedError("abstract method not implemented")
+
+
 #####################################################################
 # Information storage classes
 #####################################################################

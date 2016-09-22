@@ -42,12 +42,12 @@ if __name__ == "__main__":
     # ------------------------------------------
     # Test models
     # ------------------------------------------
-    [cell_dict, cell_model] = create_test()
+    # [cell_dict, cell_model] = create_test()
     [cell_dict, cell_model] = create_demo()
 
     # ------------------------------------------
     # PKPD models
     # ------------------------------------------
-    [cell_dict, cell_model] = create_AssignmentTest()
+    # [cell_dict, cell_model] = create_AssignmentTest()
 
 

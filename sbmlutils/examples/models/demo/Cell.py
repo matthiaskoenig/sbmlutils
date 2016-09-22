@@ -12,7 +12,7 @@ from Reactions import *
 
 ##############################################################
 mid = 'Koenig_demo'
-version = 10
+version = 11
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Koenig Demo Metabolism</h1>
