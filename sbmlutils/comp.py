@@ -6,7 +6,7 @@ Simplifies the port linking, submodel generation, ...
 from __future__ import print_function, division
 from validation import check
 
-import factory
+from . import factory
 import libsbml
 
 # TODO: allow generic arguments the factory function and use them to set

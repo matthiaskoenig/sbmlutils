@@ -6,7 +6,7 @@ from collections import namedtuple
 import warnings
 import libsbml
 
-from sbmlutils import factory
+
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
 
@@ -28,9 +28,10 @@ class ReactionTemplate(object):
         self.fast = fast
 
     def create_sbml(self, model):
+        from sbmlutils.factory import create_objects
         # parameters and rules
-        factory.create_objects(model, self.pars)
-        factory.create_objects(model, self.rules)
+        create_objects(model, self.pars)
+        create_objects(model, self.rules)
 
         # reaction
         r = model.createReaction()

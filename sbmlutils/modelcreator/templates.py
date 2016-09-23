@@ -3,10 +3,10 @@
 Template information for the model creation.
 """
 from __future__ import print_function, division
-from sbmlutils.modelcreator import modelcreator as mc
+from sbmlutils.factory import Creator
 
 # id : ('FamilyName', 'GivenName', 'Email', 'Organization')
-creators = [mc.Creator(familyName='Koenig',
+creators = [Creator(familyName='Koenig',
                        givenName='Matthias',
                        email='konigmatt@googlemail.com',
                        organization='Humboldt-University Berlin, Institute for Theoretical Biology',

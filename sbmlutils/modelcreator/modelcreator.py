@@ -13,17 +13,17 @@ Uses the importlib to import the information.
 from __future__ import print_function, division
 import os
 import copy
+import warnings
 
 from libsbml import SBMLDocument, SBMLNamespaces
 
-from sbmlutils.annotation import annotate_sbml_file
-from sbmlutils.report import sbmlreport
-from sbmlutils.factory import *
+import sbmlutils.annotation as annotation
+import sbmlutils.report as report
+import sbmlutils.factory as factory
+import sbmlutils.sbmlio as sbmlio
 
-from sbmlutils.sbmlio import write_sbml
-from sbmlutils.validation import check
-from sbmlutils import annotation
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
+
 
 
 def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True):
@@ -63,11 +63,11 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     # annotate
     if annotations is not None:
         # overwrite the normal file
-        annotate_sbml_file(sbml_path, annotations, sbml_path)
+        annotation.annotate_sbml_file(sbml_path, annotations, sbml_path)
 
     # create report
     if create_report:
-        sbmlreport.create_sbml_report(sbml=sbml_path, out_dir=target_dir)
+        report.sbmlreport.create_sbml_report(sbml=sbml_path, out_dir=target_dir)
 
     return [model_dict, core_model]
 
@@ -232,6 +232,7 @@ class CoreModel(object):
         :return:
         :rtype:
         """
+        from sbmlutils.validation import check
         print('\n', '*' * 40, '\n', self.model_id, '\n', '*' * 40)
 
         # create core model
@@ -254,7 +255,7 @@ class CoreModel(object):
 
         # main units
         if hasattr(self, 'main_units'):
-            set_main_units(self.model, self.main_units)
+            factory.set_main_units(self.model, self.main_units)
 
         # additional units
 
@@ -273,7 +274,7 @@ class CoreModel(object):
             if hasattr(self, attr):
                 objects = getattr(self, attr)
                 if (objects):
-                    create_objects(self.model, objects)
+                    factory.create_objects(self.model, objects)
                 else:
                     warnings.warn("Attribute <{}> missing from model.".format(attr))
 
@@ -285,5 +286,5 @@ class CoreModel(object):
         :return:
         :rtype:
         """
-        write_sbml(self.doc, filepath, validate=True,
+        sbmlio.write_sbml(self.doc, filepath, validate=True,
                    program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)

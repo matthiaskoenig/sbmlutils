@@ -9,7 +9,7 @@ addition with the definition of the individual units of the model.
 from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
-from sbmlutils.modelcreator import modelcreator as mc
+from sbmlutils import factory as mc
 
 ##############################################################
 creators = templates.creators

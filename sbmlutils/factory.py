@@ -17,6 +17,7 @@ from __future__ import print_function, division
 import warnings
 import libsbml
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
+from sbmlutils.modelcreator import modelcreator
 
 SBML_LEVEL = 3
 SBML_VERSION = 1
@@ -33,9 +34,14 @@ class Factory(object):
         self.target_dir = target_dir
         self.annotations = annotations
 
-    @staticmethod
-    def create():
-        raise NotImplementedError("abstract method not implemented")
+    def create(self):
+        """
+        Create the SBML model and returns it.
+        """
+        [model_dict, core_model] = modelcreator.create_model(modules=self.modules,
+                                                             target_dir=self.target_dir,
+                                                             annotations=self.annotations)
+        return [model_dict, core_model]
 
 
 #####################################################################
