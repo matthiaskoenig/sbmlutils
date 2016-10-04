@@ -12,7 +12,7 @@ from Reactions import *
 
 ##############################################################
 creators = templates.creators
-mid = 'test'
+mid = 'basic'
 version = 7
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>

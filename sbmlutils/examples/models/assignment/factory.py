@@ -13,7 +13,7 @@ def create():
     print(models_dir)
     print('-' * 80)
 
-    factory = Factory(modules=['sbmlutils.examples.models.basic.Cell'],
+    factory = Factory(modules=['sbmlutils.examples.models.assignment.Cell'],
                       target_dir=os.path.join(models_dir, 'results'))
     factory.create()
 

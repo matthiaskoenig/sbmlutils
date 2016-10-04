@@ -2,7 +2,7 @@
 Reactions and transporters of test model.
 """
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate
-from sbmlutils.modelcreator import creator as mc
+from sbmlutils import factory as mc
 
 #############################################################################################
 #    REACTIONS

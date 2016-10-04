@@ -31,10 +31,11 @@ class Factory(object):
     ModelFactories.
     """
 
-    def __init__(self, modules, target_dir, annotations):
+    def __init__(self, modules, target_dir, annotations=None, mid=None):
         self.modules = modules
         self.target_dir = target_dir
         self.annotations = annotations
+        self.mid = mid
 
     def create(self):
         """
@@ -42,11 +43,12 @@ class Factory(object):
         """
         [model_dict, core_model] = create_model(modules=self.modules,
                                                 target_dir=self.target_dir,
-                                                annotations=self.annotations)
+                                                annotations=self.annotations,
+                                                mid=self.mid)
         return [model_dict, core_model]
 
 
-def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True):
+def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, mid=None):
     """ Create SBML model from given information.
 
     This is the entry point for creating models.
@@ -71,7 +73,9 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     # write file
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
-    mid = core_model.model.getId()
+
+    if mid is None:
+        mid = core_model.model.getId()
     if suffix is not None:
         filename = '{}{}.xml'.format(mid, suffix)
     else:

@@ -60,6 +60,7 @@ class TestAnnotation(unittest.TestCase):
 
     def test_demo_annotation(self):
         """ Annotate the demo network. """
+
         f_tmp = tempfile.NamedTemporaryFile()
         annotate_sbml_file(testfiles.demo_sbml_no_annotations, testfiles.demo_annotations, f_sbml_annotated=f_tmp.name)
         f_tmp.flush()
