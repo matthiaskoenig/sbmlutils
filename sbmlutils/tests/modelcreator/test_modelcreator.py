@@ -6,7 +6,7 @@ and creation of the SBML.
 """
 
 import unittest
-from sbmlutils.modelcreator import CoreModel, Preprocess
+from sbmlutils.modelcreator.creator import CoreModel, Preprocess
 
 
 class TestCellModel(unittest.TestCase):

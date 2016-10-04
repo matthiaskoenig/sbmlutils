@@ -4,10 +4,10 @@ Utils for the creation and work with comp models.
 Simplifies the port linking, submodel generation, ...
 """
 from __future__ import print_function, division
-from validation import check
 
-from . import factory
 import libsbml
+import sbmlutils.factory as factory
+from sbmlutils.validation import check
 
 # TODO: allow generic arguments the factory function and use them to set
 #   metaId, sbo, name, id,

@@ -6,13 +6,13 @@ from __future__ import print_function, division
 import libsbml
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from sbmlutils.modelcreator import templates
-from sbmlutils.modelcreator import modelcreator as mc
+import sbmlutils.factory as mc
 
 from Reactions import *
 
 ##############################################################
 mid = 'Koenig_demo'
-version = 11
+version = 12
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Koenig Demo Metabolism</h1>
@@ -61,7 +61,7 @@ units.extend([
 compartments.extend([
     mc.Compartment(sid='e', value=1e-06, unit='m3', constant=False, name='external compartment'),
     mc.Compartment(sid='c', value=1e-06, unit='m3', constant=False, name='cell compartment'),
-    mc.Compartment(sid='m', value=1, unit='m2', constant=False, name='plasma membrane'),
+    mc.Compartment(sid='m', value=1, unit='m2', constant=False, spatialDimension=2, name='plasma membrane'),
 ])
 
 

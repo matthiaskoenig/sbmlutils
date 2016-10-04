@@ -6,7 +6,7 @@ Mainly volumes which are calculated based on other parameters.
 from __future__ import print_function, division
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
-from sbmlutils.modelcreator import modelcreator as mc
+from sbmlutils.modelcreator import creator as mc
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from Reactions import *
 

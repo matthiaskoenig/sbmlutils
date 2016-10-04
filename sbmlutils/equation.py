@@ -5,8 +5,6 @@ Simplifies the creation of SBML models from given strings.
 """
 from __future__ import print_function, division
 import re
-import warnings
-
 from collections import namedtuple
 
 Part = namedtuple('Part', 'stoichiometry sid')

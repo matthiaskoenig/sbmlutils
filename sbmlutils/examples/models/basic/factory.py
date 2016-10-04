@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 import os
 from sbmlutils import modelcreator
-from sbmlutils.modelcreator.modelcreator import Factory
+from sbmlutils.modelcreator.creator import Factory
 
 models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 

@@ -1,13 +1,8 @@
 """
-Definition of general helper functions to create the various
-objects in the SBML. 
+Definition of general helper functions to create SBML objects.
+
 These functions are called with the information dictionaries 
 during the generation of cell and tissue model.
-
-The objects send to the create_... functions have to be dictionaries with
-certain keys (TODO: better via classes)
-
-Only model definition in the latest SBML versions are allowed.
 """
 # TODO: support SBOTerms & MetaIds via keyword
 # TODO: events
@@ -17,32 +12,9 @@ from __future__ import print_function, division
 import warnings
 import libsbml
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
-from sbmlutils.modelcreator import modelcreator
 
 SBML_LEVEL = 3
 SBML_VERSION = 1
-
-
-class Factory(object):
-    """
-    Generic model factory, which should be subclassed by the individual
-    ModelFactories.
-    """
-
-    def __init__(self, modules, target_dir, annotations):
-        self.modules = modules
-        self.target_dir = target_dir
-        self.annotations = annotations
-
-    def create(self):
-        """
-        Create the SBML model and returns it.
-        """
-        [model_dict, core_model] = modelcreator.create_model(modules=self.modules,
-                                                             target_dir=self.target_dir,
-                                                             annotations=self.annotations)
-        return [model_dict, core_model]
-
 
 #####################################################################
 # Information storage classes

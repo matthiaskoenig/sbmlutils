@@ -5,7 +5,6 @@ from __future__ import print_function, division
 import cobra
 import libsbml
 from warnings import warn
-
 from sbmlutils import factory
 
 

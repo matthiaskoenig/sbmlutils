@@ -1,7 +1,7 @@
 """
 Factory methods to create flow and diffusion reactions.
 """
-from ReactionTemplate import ReactionTemplate
+from reaction import ReactionTemplate
 import sbmlutils.modelcreator.factory.sinnaming as naming
 
 

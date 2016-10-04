@@ -8,8 +8,7 @@ import unittest
 
 from sbmlutils.annotation import *
 from sbmlutils.examples import testfiles
-
-from sbmlutils.modelcreator.modelcreator import Creator
+from sbmlutils.factory import Creator
 
 
 class TestAnnotation(unittest.TestCase):

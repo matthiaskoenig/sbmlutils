@@ -19,6 +19,7 @@ ontology lookup service.
 from __future__ import print_function
 import logging
 import warnings
+import libsbml
 
 import csv
 import re
@@ -26,7 +27,7 @@ import uuid
 import datetime
 
 from validation import check
-import libsbml
+
 
 
 # create logger

@@ -6,10 +6,10 @@ of the structure (number of cells/compartments) and the properties of the
 transported substances.
 """
 
-from sbmlutils.modelcreator.processes.ReactionFactory import createFlowReactionTemplate, createDiffusionReactionTemplate
-from sbmlutils.modelcreator.processes import ReactionTemplate
-from sbmlutils.modelcreator.modelcreator import CoreModel
-import sbmlutils.modelcreator.modelcreator as mc
+from sbmlutils.modelcreator.processes.reactiontemplate import createFlowReactionTemplate, createDiffusionReactionTemplate
+from sbmlutils.modelcreator.processes import reaction
+from sbmlutils.modelcreator.creator import CoreModel
+import sbmlutils.modelcreator.creator as mc
 from sbmlutils.factory import Species, Compartment
 import warnings
 

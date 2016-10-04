@@ -18,12 +18,32 @@ import warnings
 from libsbml import SBMLDocument, SBMLNamespaces
 
 import sbmlutils.annotation as annotation
-import sbmlutils.report as report
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
+from sbmlutils.report import sbmlreport
 
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 
+
+class Factory(object):
+    """
+    Generic model factory, which should be subclassed by the individual
+    ModelFactories.
+    """
+
+    def __init__(self, modules, target_dir, annotations):
+        self.modules = modules
+        self.target_dir = target_dir
+        self.annotations = annotations
+
+    def create(self):
+        """
+        Create the SBML model and returns it.
+        """
+        [model_dict, core_model] = create_model(modules=self.modules,
+                                                target_dir=self.target_dir,
+                                                annotations=self.annotations)
+        return [model_dict, core_model]
 
 
 def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True):
@@ -67,7 +87,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
 
     # create report
     if create_report:
-        report.sbmlreport.create_sbml_report(sbml=sbml_path, out_dir=target_dir)
+        sbmlreport.create_sbml_report(sbml=sbml_path, out_dir=target_dir)
 
     return [model_dict, core_model]
 

@@ -3,7 +3,7 @@ Test eventdata.
 """
 
 import unittest
-from eventdata import EventData
+from sbmlutils.modelcreator.events.eventdata import EventData
 
 
 class TestEventData(unittest.TestCase):

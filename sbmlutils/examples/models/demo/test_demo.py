@@ -4,15 +4,16 @@ Test the demo network.
 
 from __future__ import print_function
 
+import os
 import unittest
 import roadrunner
 from sbmlutils import validation
 
-import os
-import Cell
+
+from Cell import mid, version
 demo_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'results',
-                         '{}_{}.xml'.format(Cell.mid, Cell.version))
+                         '{}_{}.xml'.format(mid, version))
 
 
 class DemoTestCase(unittest.TestCase):

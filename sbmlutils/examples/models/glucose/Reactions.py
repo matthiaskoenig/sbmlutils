@@ -1,7 +1,7 @@
 """
 Reactions and transporters of glucose metabolism.
 """
-from sbmlutils.modelcreator.processes.ReactionTemplate import ReactionTemplate
+from sbmlutils.modelcreator.processes.reaction import ReactionTemplate
 from sbmlutils import factory as mc
 
 #############################################################################################

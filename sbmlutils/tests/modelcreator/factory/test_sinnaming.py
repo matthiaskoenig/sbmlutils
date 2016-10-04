@@ -3,7 +3,7 @@ Test naming.
 """
 
 import unittest
-from sinnaming import *
+from sbmlutils.modelcreator.factory.sinnaming import *
 
 
 class TestNaming(unittest.TestCase):
