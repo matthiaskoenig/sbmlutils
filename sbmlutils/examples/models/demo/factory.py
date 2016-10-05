@@ -30,7 +30,7 @@ def create(tmp=False):
         modules=['sbmlutils.examples.models.demo.Cell'],
         target_dir=os.path.join(models_dir, 'results'),
         mid="{}_{}_{}".format(mid, version, "no_annotations"))
-    factory_no_annotations.create()
+    factory_no_annotations.create(tmp)
 
 
 if __name__ == "__main__":

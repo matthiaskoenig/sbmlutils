@@ -16,9 +16,9 @@ def create(tmp=False):
 
     factory = Factory(
         modules=['sbmlutils.examples.models.glucose.Cell'],
-        target_dir = os.path.join(models_dir, 'results'),
-        annotations = os.path.join(models_dir, 'glucose_annotations.xlsx'))
-    factory.create()
+        target_dir=os.path.join(models_dir, 'results'),
+        annotations=os.path.join(models_dir, 'glucose_annotations.xlsx'))
+    factory.create(tmp)
 
 if __name__ == "__main__":
     create(tmp)
