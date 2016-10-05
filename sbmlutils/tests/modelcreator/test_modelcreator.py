@@ -21,28 +21,28 @@ class TestCellModel(unittest.TestCase):
         Create assignment model.
         :return:
         """
-        assignment_factory.create()
+        assignment_factory.create(tmp=True)
 
     def test_create_basic(self):
         """
         Create basic model.
         :return:
         """
-        basic_factory.create()
+        basic_factory.create(tmp=True)
 
     def test_create_demo(self):
         """
         Create demo model.
         :return:
         """
-        demo_factory.create()
+        demo_factory.create(tmp=True)
 
     def test_create_glucose(self):
         """
         Create glucose model.
         :return:
         """
-        glucose_factory.create()
+        glucose_factory.create(tmp=True)
 
     def test_demo(self):
         """

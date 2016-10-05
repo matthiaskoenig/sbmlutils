@@ -8,9 +8,10 @@ import os
 from sbmlutils.modelcreator.creator import Factory
 from Cell import mid, version
 
-def create():
-    """
-    Create demo model.
+
+def create(tmp=False):
+    """ Create demo model.
+
     :return:
     """
     models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +23,7 @@ def create():
     factory = Factory(modules=['sbmlutils.examples.models.demo.Cell'],
                       target_dir=os.path.join(models_dir, 'results'),
                       annotations=os.path.join(models_dir, 'demo_annotations.xlsx'))
-    factory.create()
+    factory.create(tmp)
 
     # without annotations
     factory_no_annotations = Factory(

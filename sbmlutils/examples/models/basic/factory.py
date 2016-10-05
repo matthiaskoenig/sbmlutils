@@ -3,7 +3,7 @@ import os
 from sbmlutils.modelcreator.creator import Factory
 
 
-def create():
+def create(tmp=False):
     """ Create model.
     :return:
     """
@@ -15,7 +15,7 @@ def create():
 
     factory = Factory(modules=['sbmlutils.examples.models.basic.Cell'],
                       target_dir=os.path.join(models_dir, 'results'))
-    factory.create()
+    factory.create(tmp)
 
 if __name__ == "__main__":
     create()

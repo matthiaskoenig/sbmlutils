@@ -12,11 +12,13 @@ Uses the importlib to import the information.
 
 from __future__ import print_function, division
 import os
+import shutil
 import copy
 import warnings
 
 from libsbml import SBMLDocument, SBMLNamespaces
 
+import tempfile
 import sbmlutils.annotation as annotation
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
@@ -37,14 +39,27 @@ class Factory(object):
         self.annotations = annotations
         self.mid = mid
 
-    def create(self):
+    def create(self, tmp=False):
+        """ Create the SBML model and returns it.
+
+        :param tmp: write files in temporary folder. Used for testing.
+        :return:
         """
-        Create the SBML model and returns it.
-        """
-        [model_dict, core_model] = create_model(modules=self.modules,
-                                                target_dir=self.target_dir,
-                                                annotations=self.annotations,
-                                                mid=self.mid)
+        if tmp:
+            target_dir = tempfile.mkdtemp()
+        else:
+            target_dir = self.target_dir
+
+        try:
+            [model_dict, core_model] = create_model(
+                modules=self.modules,
+                target_dir=target_dir,
+                annotations=self.annotations,
+                mid=self.mid)
+        finally:
+            if tmp:
+                shutil.rmtree(target_dir)
+
         return [model_dict, core_model]
 
 
