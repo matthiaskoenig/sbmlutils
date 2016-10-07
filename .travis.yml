@@ -1,25 +1,13 @@
-language: python
+language: generic
 sudo: required
-python:
-  - "2.7"
-cache:
-  directories:
-    - $HOME/.cache/pip
+
 branches:
-  only:
-    - master
-    - develop
+    only:
+        - master
+        - develop
 
-# commands to install dependencies
-before_install:
-  # - (git clone https://github.com/matthiaskoenig/linux-setup.git && cd linux-setup && git checkout v0.1)
-  - (git clone https://github.com/matthiaskoenig/linux-setup.git && cd linux-setup)
-  - ls
-  - (cd linux-setup && sudo ./simulation.sh)
+services:
+    - docker
 
-install:
-    - pip install Cython
-    - pip install -r requirements.txt
-
-# command to run tests
-script: nosetests
+script:
+    - make build

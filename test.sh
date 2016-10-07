@@ -3,7 +3,7 @@
 # Run all the unittests and create coverage report.
 #
 # Usage: 
-#	./run_tests.sh 2>&1 | tee ./run_tests.log
+#	./test.sh 2>&1 | tee ./run_tests.log
 #
 ############################################################
 
