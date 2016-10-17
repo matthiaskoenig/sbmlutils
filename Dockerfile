@@ -16,6 +16,7 @@ RUN git checkout mkoenig
 RUN python setup.py install
 
 # run the tests on source code
+WORKDIR $HOME
 RUN git clone https://github.com/matthiaskoenig/sbmlutils
 WORKDIR $HOME/sbmlutils
 RUN nosetests
