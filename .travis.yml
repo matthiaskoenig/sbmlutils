@@ -9,5 +9,17 @@ branches:
 services:
     - docker
 
+install:
+    - docker build -t sbmlutils .
+
+before_script:
+    # test dependencies
+    - sudo pip install -r requirements.txt
+    - sudo pip install coverage
+    - sudo pip install coveralls
+
 script:
-    - make build
+    - coverage run nosetests
+
+after_success:
+    - coveralls
