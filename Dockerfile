@@ -1,4 +1,4 @@
-# docker build -t matthiaskoenig/sbmlutils . && docker run -ti matthiaskoenig/sbmlutils /bin/bash
+# docker build --no-cache -t matthiaskoenig/sbmlutils . && docker run -ti matthiaskoenig/sbmlutils /bin/bash
 FROM matthiaskoenig/linux-setup-combine:latest
 MAINTAINER Matthias Koenig <konigmatt@googlemail.com>
 

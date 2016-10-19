@@ -3,11 +3,11 @@ import os
 import tempfile
 import shutil
 import matplotlib
+# no backend for testing, must be imported before pyplot
+matplotlib.use('Agg')
 from sbmlutils.dfba.toymodel import run_all
 from sbmlutils.dfba.toymodel import toysettings
 
-# for testing
-matplotlib.use('Agg')
 
 class DFBATestCase(unittest.TestCase):
     def setUp(self):
@@ -48,7 +48,7 @@ class DFBATestCase(unittest.TestCase):
         :return:
         """
         run_all.create_toy_model(self.test_dir)
-        run_all.simulate_model(self.test_dir, tend=50.0, steps=500)
+        run_all.simulate_model(self.test_dir, tend=50.0, steps=20)
 
         self.file_exists("reactions.png")
         self.file_exists("species.png")
