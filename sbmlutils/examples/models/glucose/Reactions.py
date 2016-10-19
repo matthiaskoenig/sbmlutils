@@ -39,7 +39,7 @@ GK = ReactionTemplate(
         mc.Parameter('GK_Vmax', 25.2, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('GK_gc_free', '(glc^GK_n_gkrp / (glc^GK_n_gkrp + GK_k_glc1^GK_n_gkrp) ) * (1 dimensionless - GK_b*fru6p/(fru6p + GK_k_fru6p))', 'dimensionless'),
+       mc.AssignmentRule('GK_gc_free', '(glc^GK_n_gkrp / (glc^GK_n_gkrp + GK_k_glc1^GK_n_gkrp) ) * (1 dimensionless - GK_b*fru6p/(fru6p + GK_k_fru6p))', 'dimensionless'),
     ],
     formula=('f_gly * GK_Vmax * GK_gc_free * (atp/(GK_k_atp + atp)) * (glc^GK_n/(glc^GK_n + GK_k_glc^GK_n))', 'mole_per_s')
 )
@@ -133,11 +133,11 @@ GS = ReactionTemplate(
        mc.Parameter('GS_Vmax', 13.2, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('GS_fs', '(1 dimensionless + GS_k1_max) * (GS_C - glyglc)/( (GS_C - glyglc) + GS_k1_max * GS_C)', 'dimensionless'),
-       mc.Rule('GSn_k_udpglc', 'GSn_k1 / (glc6p + GSn_k2)', 'mM'),
-       mc.Rule('GSp_k_udpglc', 'GSp_k1 / (glc6p + GSp_k2)', 'mM'),
-       mc.Rule('GSn', 'f_glyglc * GS_Vmax * GS_fs * udpglc / (GSn_k_udpglc + udpglc)', 'mole_per_s'),
-       mc.Rule('GSp', 'f_glyglc * GS_Vmax * GS_fs * udpglc / (GSp_k_udpglc + udpglc)', 'mole_per_s'),
+       mc.AssignmentRule('GS_fs', '(1 dimensionless + GS_k1_max) * (GS_C - glyglc)/( (GS_C - glyglc) + GS_k1_max * GS_C)', 'dimensionless'),
+       mc.AssignmentRule('GSn_k_udpglc', 'GSn_k1 / (glc6p + GSn_k2)', 'mM'),
+       mc.AssignmentRule('GSp_k_udpglc', 'GSp_k1 / (glc6p + GSp_k2)', 'mM'),
+       mc.AssignmentRule('GSn', 'f_glyglc * GS_Vmax * GS_fs * udpglc / (GSn_k_udpglc + udpglc)', 'mole_per_s'),
+       mc.AssignmentRule('GSp', 'f_glyglc * GS_Vmax * GS_fs * udpglc / (GSp_k_udpglc + udpglc)', 'mole_per_s'),
     ],
     formula=('(1 dimensionless - gamma)*GSn + gamma*GSp', 'mole_per_s')
 )
@@ -167,11 +167,11 @@ GP = ReactionTemplate(
        mc.Parameter('GP_Vmax', 6.8, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('GP_fmax', '(1 dimensionless +GS_k1_max) * glyglc /( glyglc + GS_k1_max * GS_C)', 'dimensionless'),
-       mc.Rule('GPn_Vmax', 'f_glyglc * GP_Vmax * GP_fmax * (GPn_base_amp + (GPn_max_amp - GPn_base_amp) *amp/(amp+GPn_ka_amp))', 'mole_per_s'),
-       mc.Rule('GPn', 'GPn_Vmax/(GPn_k_glyglc*GPn_k_phos) * (glyglc*phos - glc1p/GP_keq) / ( (1 dimensionless + glyglc/GPn_k_glyglc)*(1 dimensionless + phos/GPn_k_phos) + (1 dimensionless + glc1p/GPn_k_glc1p) - 1 dimensionless)', 'mole_per_s'),
-       mc.Rule('GPp_Vmax', 'f_glyglc * GP_Vmax * GP_fmax * exp(-log(2 dimensionless)/GPp_ki_glc * glc)', 'mole_per_s'),
-       mc.Rule('GPp', 'GPp_Vmax/(GPp_k_glyglc*GPp_k_phos) * (glyglc*phos - glc1p/GP_keq) / ( (1 dimensionless + glyglc/GPp_k_glyglc)*(1 dimensionless + phos/GPp_k_phos) + (1 dimensionless + glc1p/GPp_k_glc1p) - 1 dimensionless)', 'mole_per_s'),
+       mc.AssignmentRule('GP_fmax', '(1 dimensionless +GS_k1_max) * glyglc /( glyglc + GS_k1_max * GS_C)', 'dimensionless'),
+       mc.AssignmentRule('GPn_Vmax', 'f_glyglc * GP_Vmax * GP_fmax * (GPn_base_amp + (GPn_max_amp - GPn_base_amp) *amp/(amp+GPn_ka_amp))', 'mole_per_s'),
+       mc.AssignmentRule('GPn', 'GPn_Vmax/(GPn_k_glyglc*GPn_k_phos) * (glyglc*phos - glc1p/GP_keq) / ( (1 dimensionless + glyglc/GPn_k_glyglc)*(1 dimensionless + phos/GPn_k_phos) + (1 dimensionless + glc1p/GPn_k_glc1p) - 1 dimensionless)', 'mole_per_s'),
+       mc.AssignmentRule('GPp_Vmax', 'f_glyglc * GP_Vmax * GP_fmax * exp(-log(2 dimensionless)/GPp_ki_glc * glc)', 'mole_per_s'),
+       mc.AssignmentRule('GPp', 'GPp_Vmax/(GPp_k_glyglc*GPp_k_phos) * (glyglc*phos - glc1p/GP_keq) / ( (1 dimensionless + glyglc/GPp_k_glyglc)*(1 dimensionless + phos/GPp_k_phos) + (1 dimensionless + glc1p/GPp_k_glc1p) - 1 dimensionless)', 'mole_per_s'),
     ],
     formula=('(1 dimensionless - gamma) * GPn + gamma*GPp', 'mole_per_s')
 )
@@ -245,8 +245,8 @@ PFK2 = ReactionTemplate(
        mc.Parameter('PFK2_Vmax', 0.0042, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('PFK2n', 'f_gly * PFK2_Vmax * fru6p^PFK2n_n / (fru6p^PFK2n_n + PFK2n_k_fru6p^PFK2n_n) * atp/(atp + PFK2n_k_atp)', 'mole_per_s'),
-       mc.Rule('PFK2p', 'f_gly * PFK2_Vmax * fru6p^PFK2p_n / (fru6p^PFK2p_n + PFK2p_k_fru6p^PFK2p_n) * atp/(atp + PFK2p_k_atp)', 'mole_per_s'),
+       mc.AssignmentRule('PFK2n', 'f_gly * PFK2_Vmax * fru6p^PFK2n_n / (fru6p^PFK2n_n + PFK2n_k_fru6p^PFK2n_n) * atp/(atp + PFK2n_k_atp)', 'mole_per_s'),
+       mc.AssignmentRule('PFK2p', 'f_gly * PFK2_Vmax * fru6p^PFK2p_n / (fru6p^PFK2p_n + PFK2p_k_fru6p^PFK2p_n) * atp/(atp + PFK2p_k_atp)', 'mole_per_s'),
     ],
     formula=('(1 dimensionless - gamma) * PFK2n + gamma*PFK2p', 'mole_per_s')
 )
@@ -265,8 +265,8 @@ FBP2 = ReactionTemplate(
        mc.Parameter('FBP2_Vmax', 0.126, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('FBP2n', 'f_gly * FBP2_Vmax/(1 dimensionless + fru6p/FBP2n_ki_fru6p) * fru26bp / ( FBP2n_k_fru26bp + fru26bp)', 'mole_per_s'),
-       mc.Rule('FBP2p', 'f_gly * FBP2_Vmax/(1 dimensionless + fru6p/FBP2p_ki_fru6p) * fru26bp / ( FBP2p_k_fru26bp + fru26bp)', 'mole_per_s'),
+       mc.AssignmentRule('FBP2n', 'f_gly * FBP2_Vmax/(1 dimensionless + fru6p/FBP2n_ki_fru6p) * fru26bp / ( FBP2n_k_fru26bp + fru26bp)', 'mole_per_s'),
+       mc.AssignmentRule('FBP2p', 'f_gly * FBP2_Vmax/(1 dimensionless + fru6p/FBP2p_ki_fru6p) * fru26bp / ( FBP2p_k_fru26bp + fru26bp)', 'mole_per_s'),
     ],
     formula=('(1 dimensionless - gamma) * FBP2n + gamma * FBP2p', 'mole_per_s')
 )
@@ -440,14 +440,14 @@ PK = ReactionTemplate(
        mc.Parameter('PK_Vmax', 46.2, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('PKn_f', 'fru16bp^PKn_n_fbp / (PKn_k_fbp^PKn_n_fbp + fru16bp^PKn_n_fbp)', 'dimensionless'),
-       mc.Rule('PKp_f', 'fru16bp^PKp_n_fbp / (PKp_k_fbp^PKp_n_fbp + fru16bp^PKp_n_fbp)', 'dimensionless'),
-       mc.Rule('PKn_alpha_inp', '(1 dimensionless - PKn_f) * (PKn_alpha - PK_ae) + PK_ae', 'dimensionless'),
-       mc.Rule('PKp_alpha_inp', '(1 dimensionless - PKp_f) * (PKp_alpha - PK_ae) + PK_ae', 'dimensionless'),
-       mc.Rule('PKn_pep_inp', '(1 dimensionless - PKn_f) * (PKn_k_pep - PKn_k_pep_end) + PKn_k_pep_end', 'mM'),
-       mc.Rule('PKp_pep_inp', '(1 dimensionless - PKp_f) * (PKp_k_pep - PKn_k_pep_end) + PKn_k_pep_end', 'mM'),
-       mc.Rule('PKn', 'f_gly * PK_Vmax * PKn_alpha_inp * pep^PKn_n/(PKn_pep_inp^PKn_n + pep^PKn_n) * adp/(adp + PK_k_adp) * ( PKn_ba + (1 dimensionless - PKn_ba) * PKn_f )', 'mole_per_s'),
-       mc.Rule('PKp', 'f_gly * PK_Vmax * PKp_alpha_inp * pep^PKp_n/(PKp_pep_inp^PKp_n + pep^PKp_n) * adp/(adp + PK_k_adp) * ( PKp_ba + (1 dimensionless - PKp_ba) * PKp_f )', 'mole_per_s'),
+       mc.AssignmentRule('PKn_f', 'fru16bp^PKn_n_fbp / (PKn_k_fbp^PKn_n_fbp + fru16bp^PKn_n_fbp)', 'dimensionless'),
+       mc.AssignmentRule('PKp_f', 'fru16bp^PKp_n_fbp / (PKp_k_fbp^PKp_n_fbp + fru16bp^PKp_n_fbp)', 'dimensionless'),
+       mc.AssignmentRule('PKn_alpha_inp', '(1 dimensionless - PKn_f) * (PKn_alpha - PK_ae) + PK_ae', 'dimensionless'),
+       mc.AssignmentRule('PKp_alpha_inp', '(1 dimensionless - PKp_f) * (PKp_alpha - PK_ae) + PK_ae', 'dimensionless'),
+       mc.AssignmentRule('PKn_pep_inp', '(1 dimensionless - PKn_f) * (PKn_k_pep - PKn_k_pep_end) + PKn_k_pep_end', 'mM'),
+       mc.AssignmentRule('PKp_pep_inp', '(1 dimensionless - PKp_f) * (PKp_k_pep - PKn_k_pep_end) + PKn_k_pep_end', 'mM'),
+       mc.AssignmentRule('PKn', 'f_gly * PK_Vmax * PKn_alpha_inp * pep^PKn_n/(PKn_pep_inp^PKn_n + pep^PKn_n) * adp/(adp + PK_k_adp) * ( PKn_ba + (1 dimensionless - PKn_ba) * PKn_f )', 'mole_per_s'),
+       mc.AssignmentRule('PKp', 'f_gly * PK_Vmax * PKp_alpha_inp * pep^PKp_n/(PKp_pep_inp^PKp_n + pep^PKp_n) * adp/(adp + PK_k_adp) * ( PKp_ba + (1 dimensionless - PKp_ba) * PKp_f )', 'mole_per_s'),
     ],
     formula=('(1 dimensionless - gamma)* PKn + gamma * PKp', 'mole_per_s')
 )
@@ -575,9 +575,9 @@ PDH = ReactionTemplate(
        mc.Parameter('PDH_Vmax', 13.44, 'mole_per_s'),
     ],
     rules=[
-       mc.Rule('PDH_base', 'f_gly * PDH_Vmax * pyr_mito/(pyr_mito + PDH_k_pyr) * nad_mito/(nad_mito + PDH_k_nad*(1 dimensionless + nadh_mito/PDH_ki_nadh)) * coa_mito/(coa_mito + PDH_k_coa*(1 dimensionless +acoa_mito/PDH_ki_acoa))', 'mole_per_s'),
-       mc.Rule('PDHn', 'PDH_base * PDHn_alpha', 'mole_per_s'),
-       mc.Rule('PDHp', 'PDH_base * PDHp_alpha', 'mole_per_s'),
+       mc.AssignmentRule('PDH_base', 'f_gly * PDH_Vmax * pyr_mito/(pyr_mito + PDH_k_pyr) * nad_mito/(nad_mito + PDH_k_nad*(1 dimensionless + nadh_mito/PDH_ki_nadh)) * coa_mito/(coa_mito + PDH_k_coa*(1 dimensionless +acoa_mito/PDH_ki_acoa))', 'mole_per_s'),
+       mc.AssignmentRule('PDHn', 'PDH_base * PDHn_alpha', 'mole_per_s'),
+       mc.AssignmentRule('PDHp', 'PDH_base * PDHp_alpha', 'mole_per_s'),
     ],
     formula=('(1 dimensionless - gamma) * PDHn + gamma*PDHp', 'mole_per_s')
 )

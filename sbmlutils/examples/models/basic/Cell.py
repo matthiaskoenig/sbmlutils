@@ -86,7 +86,7 @@ parameters.extend([
 # Assignments
 ##############################################################
 assignments.extend([
-    mc.Assignment(sid='Vol_c', value='x_cell*x_cell*x_cell', unit='m3'),
+    mc.InitialAssignment(sid='Vol_c', value='x_cell*x_cell*x_cell', unit='m3'),
 ])
 
 ##############################################################

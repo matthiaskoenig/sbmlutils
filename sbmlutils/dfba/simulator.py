@@ -1,15 +1,17 @@
 """
-Simulator to run the models consisting of multiple
-modeling frameworks.
+Simulator module to simulate SBML models with multiple modeling frameworks.
+This currently supports dynamic FBA by coupling ODE models with
+FBA based models.
 
-Simulation of the combined toy model consisting of FBA and kinetic submodels.
-Using FBA simulator & kinetic simulator to simulate submodels with
-synchronization between the partial simulations.
+Model composition is encoded by SBML comp with single submodels having a single
+simulation framework.
+ODE models are simulated with roadrunner, FBA models using cobrapy.
 """
 # TODO: Fix the zero time point of the simulation, how to handle this correctly (when are fluxes calculated
 #       and when are the updates written (order and timing of updates)
 
 from __future__ import print_function, division
+import os
 import logging
 import warnings
 import libsbml
@@ -40,7 +42,8 @@ MODEL_FRAMEWORKS = [
 
 
 class FBAModel(object):
-    """ Handling FBA submodels models
+    """ FBA models.
+    This are the submodels which are
 
     """
     # TODO: handle submodels directly defined in model
@@ -489,10 +492,11 @@ class Simulator(object):
         fig.savefig(path)
 
     def plot_reactions(self, df, rr_comp, filename="reactions.png"):
-        """ Plot reactions.
+        """ Create reactions plots.
 
-        :param df:
+        :param df: solution pandas DataFrame
         :type df:
+        :param filename
         :return:
         :rtype:
         """
@@ -517,7 +521,6 @@ if __name__ == "__main__":
     # Run simulation of the hybrid model
     logging.getLogger().setLevel(logging.INFO)
     from toymodel import toysettings
-    import os
     import timeit
 
     # Create simulator instance

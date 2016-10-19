@@ -102,7 +102,7 @@ def create_top_level_model(sbml_file, directory):
 
     # AssignmentRules
     mc.create_objects(model, [
-        mc.Rule(sid="vR3", value="R3"),
+        mc.AssignmentRule(sid="vR3", value="R3"),
     ])
 
     # --- replacements ---

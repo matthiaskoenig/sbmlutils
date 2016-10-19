@@ -109,8 +109,8 @@ parameters.extend([
 ##############################################################
 assignments.extend([
     # id, 'value', 'unit'
-    mc.Assignment('Ave', 'IVDOSE', 'mg'),
-    mc.Assignment('D', 'PODOSE', 'mg'),
+    mc.InitialAssignment('Ave', 'IVDOSE', 'mg'),
+    mc.InitialAssignment('D', 'PODOSE', 'mg'),
 ])
 
 ##############################################################
@@ -120,9 +120,9 @@ rules.extend([
     # id,  'value', 'unit'
 
     # concentrations
-    mc.Rule('Cve', 'Ave/Vve', 'mg_per_litre'),
+    mc.AssignmentRule('Cve', 'Ave/Vve', 'mg_per_litre'),
     # volumes
-    mc.Rule('Vve', 'BW*FVve', UNIT_KIND_LITRE),
+    mc.AssignmentRule('Vve', 'BW*FVve', UNIT_KIND_LITRE),
 ])
 
 rate_rules.extend([
