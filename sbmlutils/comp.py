@@ -1,18 +1,16 @@
 """
-Utils for the creation and work with comp models.
-
+Utilities for the creation and work with comp models.
 Simplifies the port linking, submodel generation, ...
+
+Heavily used in the dynamic FBA simulator.
 """
 # TODO: refactor and unify with fbc & factory
 
 from __future__ import print_function, division
-
 import libsbml
 import sbmlutils.factory as factory
 from sbmlutils.validation import check
 
-# TODO: allow generic arguments the factory function and use them to set
-#   metaId, sbo, name, id,
 
 # Modeling frameworks
 SBO_CONTINOUS_FRAMEWORK = 'SBO:0000062'
@@ -86,7 +84,20 @@ PORT_TYPE_INPUT = "input port"
 PORT_TYPE_OUTPUT = "output port"
 
 
-def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None, portType=PORT_TYPE_PORT):
+def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None,
+                 portType=PORT_TYPE_PORT):
+    """ Create port in given model.
+
+    :param model:
+    :param pid:
+    :param name:
+    :param portRef:
+    :param idRef:
+    :param unitRef:
+    :param metaIdRef:
+    :param portType:
+    :return:
+    """
     cmodel = model.getPlugin("comp")
     p = cmodel.createPort()
     p.setId(pid)
@@ -98,10 +109,7 @@ def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, 
         p.setIdRef(idRef)
     if unitRef is not None:
         unit_str = factory.get_unit_string(unitRef)
-        print("set unitRef")
-        print(unit_str)
         res = p.setUnitRef(unit_str)
-        print(res)
     if metaIdRef is not None:
         p.setMetaIdRef(metaIdRef)
     if portType == PORT_TYPE_PORT:
@@ -126,8 +134,13 @@ SBASE_REF_TYPE_METAID = "metIdRef"
 
 
 def replace_elements(model, sid, ref_type, replaced_elements):
-    """
-    Replace elements in comp.
+    """ Replace elements in comp.
+
+    :param model:
+    :param sid:
+    :param ref_type:
+    :param replaced_elements:
+    :return:
     """
     for submodel, rep_ids in replaced_elements.iteritems():
         for rep_id in rep_ids:
@@ -135,18 +148,33 @@ def replace_elements(model, sid, ref_type, replaced_elements):
 
 
 def replace_element_in_submodels(model, sid, ref_type, submodels):
-    """
-    Replace elements submodels with the identical id.
+    """ Replace elements submodels with the identical id.
+
     For instance to replace all the units in the submodels.
+
+    :param model:
+    :param sid:
+    :param ref_type:
+    :param submodels:
+    :return:
     """
     for submodel in submodels:
         _create_replaced_element(model, sid, submodel, sid, ref_type=ref_type)
 
 
 def _create_replaced_element(model, sid, submodel, replaced_id, ref_type):
+    """ Create a replaced element.
+
+    :param model:
+    :param sid:
+    :param submodel:
+    :param replaced_id:
+    :param ref_type:
+    :return:
+    """
     eplugin = _get_eplugin_by_sid(model, sid)
 
-    print(sid, '--rep-->', submodel, ':', replaced_id)
+    # print(sid, '--rep-->', submodel, ':', replaced_id)
     rep_element = eplugin.createReplacedElement()
     rep_element.setSubmodelRef(submodel)
     _set_ref(rep_element, ref_id=replaced_id, ref_type=ref_type)
@@ -158,6 +186,13 @@ def replaced_by(model, sid, ref_type, submodel, replaced_by):
     """
     The element with sid in the model is replaced by the
     replacing_id in the submodel with submodel_id.
+
+    :param model:
+    :param sid:
+    :param ref_type:
+    :param submodel:
+    :param replaced_by:
+    :return:
     """
     eplugin = _get_eplugin_by_sid(model=model, sid=sid)
     rby = eplugin.createReplacedBy()
@@ -166,8 +201,11 @@ def replaced_by(model, sid, ref_type, submodel, replaced_by):
 
 
 def _get_eplugin_by_sid(model, sid):
-    """
-    Gets the comp plugin by sid.
+    """ Gets the comp plugin by sid.
+
+    :param model: SBMLModel instance
+    :param sid: SBase id of object
+    :return:
     """
     e = model.getElementBySId(sid)
     if not e:
@@ -197,8 +235,12 @@ def _set_ref(object, ref_id, ref_type):
 # flatten model
 ##########################################################################
 def flattenSBMLFile(sbml_file, leave_ports=True, output_file=None):
-    """
-    Flatten the given SBML file.
+    """ Flatten given SBML file.
+
+    :param sbml_file:
+    :param leave_ports:
+    :param output_file:
+    :return:
     """
     reader = libsbml.SBMLReader()
     check(reader, 'create an SBMLReader object.')
@@ -212,7 +254,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
     :param doc: SBMLDocument to flatten.
     :type doc: SBMLDocument
     :return:
-    :rtype:
+    :rtype: SBMLDocument
     """
 
     if doc.getNumErrors() > 0:
@@ -245,7 +287,3 @@ def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
         print("Flattened model written to {}".format(output_file))
 
     return doc
-
-
-if __name__ == "__main__":
-    from libsbml import SBaseRef

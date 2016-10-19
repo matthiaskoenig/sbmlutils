@@ -101,7 +101,7 @@ def add_generic_info(model):
 ####################################################
 # ODE flux bounds
 ####################################################
-def create_ode_bounds(sbml_file):
+def create_ode_bounds(sbml_file, directory):
     """"
     Submodel for dynamically calculating the flux bounds.
     The dynamically changing flux bounds are the input to the
@@ -129,13 +129,13 @@ def create_ode_bounds(sbml_file):
     # ports
     comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
 
-    sbml_io.write_and_check(doc, sbml_file)
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
 
 ####################################################
 # FBA submodel
 ####################################################
-def create_fba(sbml_file):
+def create_fba(sbml_file, directory):
     """
     Create the fba model.
     FBA submodel in FBC v2 which uses parameters as flux bounds.
@@ -213,13 +213,13 @@ def create_fba(sbml_file):
     comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc_fba, sbml_file)
+    sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
 
 
 ####################################################
 # ODE species update
 ####################################################
-def create_ode_update(sbml_file):
+def create_ode_update(sbml_file, directory):
     """
         Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.
@@ -261,13 +261,13 @@ def create_ode_update(sbml_file):
     comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc, sbml_file)
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
 
 ####################################################
 # ODE/SSA model
 ####################################################
-def create_ode_model(sbml_file):
+def create_ode_model(sbml_file, directory):
     """" Kinetic submodel (coupled model to FBA). """
     sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
     doc = SBMLDocument(sbmlns)
@@ -307,18 +307,16 @@ def create_ode_model(sbml_file):
     comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc, sbml_file)
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    from simsettings import *
+    from toysettings import *
     import os
 
-    os.chdir(out_dir)
-
     # write & check sbml
-    create_ode_bounds(ode_bounds_file)
-    create_fba(fba_file)
-    create_ode_update(ode_update_file)
-    create_ode_model(ode_model_file)
+    create_ode_bounds(ode_bounds_file, out_dir)
+    create_fba(fba_file, out_dir)
+    create_ode_update(ode_update_file, out_dir)
+    create_ode_model(ode_model_file, out_dir)

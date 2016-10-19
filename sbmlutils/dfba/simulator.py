@@ -211,12 +211,16 @@ class Simulator(object):
     The simulator is initialized with the top level sbml file.
     """
 
-    def __init__(self, top_level_file):
+    def __init__(self, directory, top_level_file):
         """ Create the simulator with the top level SBML file.
 
         The models are resolved to their respective simulation framework.
         The top level network must be an ode network.
+
+        :param directory: directory where output files are written
+        :param top_level_file: comp top level file
         """
+        self.directory = directory
         self.sbml_top = top_level_file
         # read top level model
         self.doc_top = libsbml.readSBMLFromFile(self.sbml_top)

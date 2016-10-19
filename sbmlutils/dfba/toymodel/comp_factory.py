@@ -14,12 +14,14 @@ import model_factory
 from sbmlutils import factory as mc
 from sbmlutils import comp
 import sbmlutils.sbmlio as sbml_io
-from simsettings import *
+from toysettings import *
 
 
-def create_top_level_model(sbml_file):
+def create_top_level_model(sbml_file, directory):
     """
     Creates the full comp model as combination of FBA and comp models.
+
+    The submodels must already exist in the given directory
 
     connections
     ------------
@@ -40,6 +42,8 @@ def create_top_level_model(sbml_file):
         <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
     </listOfParameters>
     """
+    working_dir = os.getcwd()
+    os.chdir(directory)
     sbmlns = SBMLNamespaces(3, 1, "comp", 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
@@ -131,19 +135,19 @@ def create_top_level_model(sbml_file):
                                           submodels=['bounds', 'fba', 'update', 'model'])
 
     # write SBML file
-    sbml_io.write_and_check(doc, sbml_file)
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+
+    # flatten the combined model
+    comp.flattenSBMLFile(os.path.join(out_dir, top_level_file),
+                         output_file=os.path.join(out_dir, flattened_file))
+
+    # change back the working dir
+    os.chdir(working_dir)
 
 
 ###########################################################################################
 if __name__ == "__main__":
-    import os
-
-    os.chdir(out_dir)
-
     # create top comp model
-    create_top_level_model(top_level_file)
+    create_top_level_model(top_level_file, out_dir)
 
-    # flatten the combined model
-    from sbmlutils import comp
 
-    comp.flattenSBMLFile(top_level_file, output_file=flattened_file)

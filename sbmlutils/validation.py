@@ -69,10 +69,16 @@ def check_sbml(sbml):
     doc.checkConsistency()
     Nerrors = doc.getNumErrors()
 
-    print()
-    print(" read time (ms): " + str(time.clock() - current))
-    print(" validation error(s): " + str(Nerrors))
-    print()
+    if len(sbml) < 100:
+        name = sbml
+    else:
+        name = sbml[0:99] + '...'
+
+    print('-'*80)
+    print("file: " + name)
+    print("read time (ms): " + str(time.clock() - current))
+    print("validation error(s): " + str(Nerrors))
+    print('-' * 80)
 
     # prints errors to stderr
     # doc.printErrors()
