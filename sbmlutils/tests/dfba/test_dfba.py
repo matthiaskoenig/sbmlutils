@@ -2,10 +2,12 @@ import unittest
 import os
 import tempfile
 import shutil
-
+import matplotlib
 from sbmlutils.dfba.toymodel import run_all
 from sbmlutils.dfba.toymodel import toysettings
 
+# for testing
+matplotlib.use('Agg')
 
 class DFBATestCase(unittest.TestCase):
     def setUp(self):
