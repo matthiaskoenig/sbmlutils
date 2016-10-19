@@ -5,7 +5,7 @@ from __future__ import print_function, division
 import os
 
 # directory to write files to
-out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
+out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
 # FBA submodel
 fba_file = 'toy_fba.xml'

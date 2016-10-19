@@ -34,8 +34,9 @@ The model definition consists of
 Models can extend other models and reuse information from 
 defined models.
 
-### hybrid
-Model simulations of coupled ODE and FBA models as dynamic FBA.
+### dfba
+Simulator for simulation of multi-framework SBML models.
+Currently, supports dynamic FBA by coupling ODE and FBA models.
 
 ### annotator
 The annotator provides simple means for the annotation of models.

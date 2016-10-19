@@ -383,7 +383,7 @@ class Simulator(object):
             fba_rules[reaction.getId()] = parameter.getId()
         return fba_rules
 
-    def simulate(self, tstart=0.0, tend=10.0, points=51):
+    def simulate(self, tstart=0.0, tend=10.0, steps=20):
         """
         Performs model simulation.
 
@@ -397,6 +397,7 @@ class Simulator(object):
         logging.debug('# Simulation')
         logging.debug('###########################')
 
+        points = steps + 1
         all_time = numpy.linspace(start=tstart, stop=tend, num=points)
         all_results = []
         df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections)
@@ -509,7 +510,7 @@ if __name__ == "__main__":
     simulator = Simulator(top_level_file=top_level_file)
 
     start_time = timeit.default_timer()
-    df = simulator.simulate(tstart=0.0, tend=50.0, points=501)
+    df = simulator.simulate(tstart=0.0, tend=50.0, steps=500)
     elapsed = timeit.default_timer() - start_time
     logging.info("Simulation time: {}".format(elapsed))
     simulator.plot_reactions(df, rr_comp=simulator.rr_comp)

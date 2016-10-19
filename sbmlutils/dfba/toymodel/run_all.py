@@ -31,7 +31,7 @@ comp.flattenSBMLFile(top_level_file, output_file=flattened_file)
 ###########################################
 # Simulate the comp models
 ###########################################
-def simulate_model(tend=50.0, step_size=0.1):
+def simulate_model(tend=50.0, steps=500):
     # Run simulation of the hybrid model
     from simsettings import top_level_file, out_dir
     import timeit
@@ -39,14 +39,14 @@ def simulate_model(tend=50.0, step_size=0.1):
     # Simulate
     simulator = Simulator(top_level_file=top_level_file)
     start_time = timeit.default_timer()
-    df = simulator.simulate(tstart=0.0, tend=tend, step_size=step_size)
+    df = simulator.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time
 
     print("Simulation time: {}".format(elapsed))
-    simulator.plot_reactions(df)
-    simulator.plot_species(df)
+    simulator.plot_reactions(df, rr_comp=simulator.rr_comp)
+    simulator.plot_species(df, rr_comp=simulator.rr_comp)
     simulator.save_csv(df)
 
     print(df)
 
-simulate_model(tend=50.0, step_size=0.1)
+simulate_model(tend=50.0, steps=500)

@@ -363,6 +363,7 @@ def _create_initial_assignment(model, sid, formula):
 # Rules
 ##########################################################################
 class Rule(ValueWithUnit):
+    """ AssignmentRule. """
     def create_sbml(self, model):
         return _rule_factory(model, self, rule_type="AssignmentRule")
 
