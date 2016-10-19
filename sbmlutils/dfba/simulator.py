@@ -10,7 +10,6 @@ synchronization between the partial simulations.
 #       and when are the updates written (order and timing of updates)
 
 from __future__ import print_function, division
-import os
 import logging
 import warnings
 import libsbml
