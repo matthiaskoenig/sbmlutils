@@ -54,7 +54,7 @@ notes = XMLNode.convertStringToXMLNode("""
 """)
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
-            organization='Humboldt University Berlin', site='http://livermetabolism.com')
+               organization='Humboldt University Berlin', site='http://livermetabolism.com')
 ]
 main_units = {
     'time': 's',
@@ -74,9 +74,9 @@ units = [
                    (UNIT_KIND_METRE, -3.0)]),
     mc.Unit('per_s', [(UNIT_KIND_SECOND, -1.0)]),
     mc.Unit('item_per_s', [(UNIT_KIND_ITEM, 1.0),
-                   (UNIT_KIND_SECOND, -1.0)]),
+                           (UNIT_KIND_SECOND, -1.0)]),
     mc.Unit('item_per_m3', [(UNIT_KIND_ITEM, 1.0),
-                    (UNIT_KIND_METRE, -3.0)]),
+                            (UNIT_KIND_METRE, -3.0)]),
 ]
 
 UNIT_AMOUNT = UNIT_KIND_ITEM
@@ -109,6 +109,7 @@ def create_ode_bounds(sbml_file):
     """
     sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
     doc = SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
     model = doc.createModel()
     model.setId("toy_ode_bounds")
     model.setName("ODE bound calculation submodel")
@@ -117,11 +118,11 @@ def create_ode_bounds(sbml_file):
 
     objects = [
         # parameters
-        mc.Parameter(id='ub_R1', value=1.0, unit=UNIT_FLUX, name='ub_r1', constant=False),
-        mc.Parameter(id='k1', value=-0.2, unit="per_s", name="k1", constant=False),
-        
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, name='ub_r1', constant=False),
+        mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
+
         # rate rules
-        mc.RateRule(id="ub_R1", value="k1*ub_R1")
+        mc.RateRule(sid="ub_R1", value="k1*ub_R1")
     ]
     mc.create_objects(model, objects)
 
@@ -159,50 +160,50 @@ def create_fba(sbml_file):
 
     # Compartments
     compartments = [
-        mc.Compartment(id='extern', value=1.0, unit=UNIT_VOLUME, name='external compartment', spatialDimension=3),
-        mc.Compartment(id='cell', value=1.0, unit=UNIT_VOLUME, name='cell', spatialDimension=3),
-        mc.Compartment(id='membrane', value=1.0, unit=UNIT_AREA, name='membrane', spatialDimension=2),
+        mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment', spatialDimension=3),
+        mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimension=3),
+        mc.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimension=2),
     ]
     mc.create_objects(model, compartments)
 
     # Species
     species = [
         # external
-        mc.Species(id='A', name="A", value=10, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-         compartment="extern", boundaryCondition=True),
-        mc.Species(id='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-         compartment="extern", boundaryCondition=True),
+        mc.Species(sid='A', name="A", value=10, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=True),
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=True),
         # internal
-        mc.Species(id='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-         compartment="cell"),
-        mc.Species(id='B2', name="B2", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-         compartment="cell"),
+        mc.Species(sid='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="cell"),
+        mc.Species(sid='B2', name="B2", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="cell"),
     ]
     mc.create_objects(model, species)
 
     parameters = [
         # bounds
-        mc.Parameter(id="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=False),
-        mc.Parameter(id="lb", name="lower bound", value=0.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(id="ub", name="upper bound", value=1000.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=False),
+        mc.Parameter(sid="lb", name="lower bound", value=0.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub", name="upper bound", value=1000.0, unit=UNIT_FLUX, constant=True),
     ]
     mc.create_objects(model, parameters)
 
     # reactions with constant flux
-    r1 = create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
-                           reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
-    r2 = create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
-                           reactants={"B1": 1}, products={"B2": 1}, compartment='cell')
-    r3 = create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
-                           reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
+    r1 = mc.create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
+                            reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
+    r2 = mc.create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
+                            reactants={"B1": 1}, products={"B2": 1}, compartment='cell')
+    r3 = mc.create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
+                            reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
     # flux bounds
-    set_flux_bounds(r1, lb="lb", ub="ub_R1")
-    set_flux_bounds(r2, lb="lb", ub="ub")
-    set_flux_bounds(r3, lb="lb", ub="ub")
+    mc.set_flux_bounds(r1, lb="lb", ub="ub_R1")
+    mc.set_flux_bounds(r2, lb="lb", ub="ub")
+    mc.set_flux_bounds(r3, lb="lb", ub="ub")
 
     # objective function
-    create_objective(mplugin, oid="R3_maximize", otype="maximize", fluxObjectives={"R3": 1.0})
+    mc.create_objective(mplugin, oid="R3_maximize", otype="maximize", fluxObjectives={"R3": 1.0})
 
     # create ports
     comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
@@ -235,25 +236,25 @@ def create_ode_update(sbml_file):
     add_generic_info(model)
 
     compartments = [
-        {id='extern', value=1.0, unit="m3", name='external compartment', spatialDimension=3},
+        mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment', spatialDimension=3),
     ]
-    create_compartments(model, compartments)
+    mc.create_objects(model, compartments)
 
     # only update the boundarySpecies in the reactions
     species = [
-        {id='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-         compartment="extern", boundaryCondition=False},
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=False),
     ]
-    create_species(model, species)
+    mc.create_objects(model, species)
 
     parameters = [
-        {id="vR3", name="vR3 (FBA flux)", value=0.1, constant=True, unit="item_per_s"}
+        mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, constant=True, unit="item_per_s"),
     ]
-    create_parameters(model, parameters)
+    mc.create_objects(model, parameters)
 
     # kinetic reaction (MMK)
-    r4 = create_reaction(model, rid="R3", name="-> C", fast=False, reversible=False,
-                         reactants={}, products={"C": 1}, formula="vR3", compartment="extern")
+    mc.create_reaction(model, rid="R3", name="-> C", fast=False, reversible=False,
+                       reactants={}, products={"C": 1}, formula="vR3", compartment="extern")
 
     comp._create_port(model, pid="vR3_port", idRef="vR3", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
@@ -280,27 +281,27 @@ def create_ode_model(sbml_file):
     add_generic_info(model)
 
     compartments = [
-        {id='extern', value=1.0, unit="m3", name='external compartment', spatialDimension=3},
+        mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment', spatialDimension=3),
     ]
-    create_compartments(model, compartments)
+    mc.create_objects(model, compartments)
 
     species = [
         # external
-        {id='C', name="C", value=0, unit=UNIT_AMOUNT, A_HAS_ONLY_SUBSTANCE_UNITS:True,
-         compartment="extern", boundaryCondition=False},
-        {id='D', name="D", value=0, unit=UNIT_AMOUNT, A_HAS_ONLY_SUBSTANCE_UNITS:True,
-         compartment="extern", boundaryCondition=False},
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=False),
+        mc.Species(sid='D', name="D", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=False),
     ]
-    create_species(model, species)
+    mc.create_objects(model, species)
 
     parameters = [
-        {id="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"}
+        mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
     ]
-    create_parameters(model, parameters)
+    mc.create_objects(model, parameters)
 
     # kinetic reaction (MMK)
-    r4 = create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
-                         reactants={"C": 1}, products={"D": 1}, formula="k_R4*C", compartment="extern")
+    mc.create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
+                       reactants={"C": 1}, products={"D": 1}, formula="k_R4*C", compartment="extern")
 
     comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
@@ -313,6 +314,7 @@ def create_ode_model(sbml_file):
 if __name__ == "__main__":
     from simsettings import *
     import os
+
     os.chdir(out_dir)
 
     # write & check sbml
@@ -320,5 +322,3 @@ if __name__ == "__main__":
     create_fba(fba_file)
     create_ode_update(ode_update_file)
     create_ode_model(ode_model_file)
-
-    # TODO: create reports

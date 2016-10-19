@@ -44,7 +44,14 @@ class Sbase(object):
         self.metaId = metaId
 
     def __str__(self):
-        return '<{} : {}>'.format(self.sid, self.name)
+        tokens = str(self.__class__).split('.')
+        class_name = tokens[-1][:-2]
+        name = self.name
+        if name is None:
+            name = ''
+        else:
+            name = ' ' + name
+        return '<{}[{}]{}>'.format(class_name, self.sid, name)
 
 
 class Value(Sbase):
@@ -76,7 +83,7 @@ def ast_node_from_formula(model, formula):
     return ast_node
 
 
-def create_objects(model, obj_iter):
+def create_objects(model, obj_iter, debug=True):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -84,11 +91,13 @@ def create_objects(model, obj_iter):
 
     :param model: SBMLModel instance
     :param obj_iter: iterator of given model object classes like Parameter, ...
+    :param debug: print list of created objects
     :return:
     """
     sbml_objects = {}
     for obj in obj_iter:
-        print(obj)
+        if debug:
+            print(obj)
         sbml_obj = obj.create_sbml(model)
         sbml_objects[sbml_obj.getId()] = sbml_obj
     return sbml_objects
