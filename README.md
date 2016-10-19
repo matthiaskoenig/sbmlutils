@@ -1,5 +1,4 @@
 # sbmlutils
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=RYHNRJFBMWD5N" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal donate button" /></a>
 [![Build Status](https://travis-ci.org/matthiaskoenig/sbmlutils.svg?branch=develop)](https://travis-ci.org/matthiaskoenig/sbmlutils)
 [![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.61737.svg)](http://dx.doi.org/10.5281/zenodo.61737)
@@ -35,6 +34,9 @@ The model definition consists of
 Models can extend other models and reuse information from 
 defined models.
 
+### hybrid
+Model simulations of coupled ODE and FBA models as dynamic FBA.
+
 ### annotator
 The annotator provides simple means for the annotation of models.
 Annotations are hereby defined in separate annotation files with 
@@ -63,6 +65,9 @@ python setup.py develop
 See `requirements.txt` and `setup.py`.
 
 ## Changelog
+**v0.1.3** [2016-09-07]
+* fixed unittests and bug fixes
+
 **v0.1.2** [2016-09-07]
 * fixed unittests and bug fixes
 

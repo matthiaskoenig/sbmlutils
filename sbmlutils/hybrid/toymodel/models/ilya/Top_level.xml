@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" comp:required="true" level="3" version="1">
+  <model id="Top_level" name="Top level">
+    <listOfCompartments>
+      <compartment constant="false" id="default" name="Top_level" size="1" spatialDimensions="3"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="C" initialAmount="100.0">
+        <comp:listOfReplacedElements>
+          <comp:replacedElement comp:portRef="C_port" comp:submodelRef="kinetik" metaid="CONNECTION0019"/>
+          <comp:replacedElement comp:portRef="C_port" comp:submodelRef="fba_update" metaid="CONNECTION0020"/>
+        </comp:listOfReplacedElements>
+      </species>
+      <species boundaryCondition="false" compartment="default" constant="false" hasOnlySubstanceUnits="false" id="Dummy" initialAmount="0.0"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="boundary" value="0.0">
+        <comp:listOfReplacedElements>
+          <comp:replacedElement comp:portRef="r1_port_1" comp:submodelRef="fba" metaid="CONNECTION0017"/>
+        </comp:listOfReplacedElements>
+      </parameter>
+      <parameter constant="false" id="k" value="0.0"/>
+      <parameter constant="false" id="k_R4" value="0.0"/>
+      <parameter constant="false" id="kf" value="0.0"/>
+      <parameter constant="false" id="p" value="0.0">
+        <comp:listOfReplacedElements>
+          <comp:replacedElement comp:portRef="p_port" comp:submodelRef="fba_update" metaid="CONNECTION0030"/>
+        </comp:listOfReplacedElements>
+      </parameter>
+      <parameter constant="false" id="unknown" value="0.0"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="equation_1" variable="p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci>R000008</ci>
+        </math>
+      </assignmentRule>
+      <rateRule metaid="equation_2" variable="boundary">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <sin/>
+            <csymbol definitionURL="http://www.sbml.org/sbml/symbols/time" encoding="text">time</csymbol>
+          </apply>
+        </math>
+      </rateRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction fast="false" id="R000008" name="Dummy -&gt;" reversible="false">
+        <listOfReactants>
+          <speciesReference constant="false" species="Dummy" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+        <comp:replacedBy comp:portRef="R3_port" comp:submodelRef="fba" metaid="CONNECTION0021"/>
+      </reaction>
+    </listOfReactions>
+    <comp:listOfSubmodels>
+      <comp:submodel comp:id="fba" comp:modelRef="fba"/>
+      <comp:submodel comp:id="fba_update" comp:modelRef="fba_update"/>
+      <comp:submodel comp:id="kinetik" comp:modelRef="kinetik"/>
+    </comp:listOfSubmodels>
+  </model>
+  <comp:listOfExternalModelDefinitions>
+    <comp:externalModelDefinition comp:id="fba" comp:source="fba.xml"/>
+    <comp:externalModelDefinition comp:id="fba_update" comp:source="fba_update.xml"/>
+    <comp:externalModelDefinition comp:id="kinetik" comp:source="kinetik.xml"/>
+  </comp:listOfExternalModelDefinitions>
+</sbml>

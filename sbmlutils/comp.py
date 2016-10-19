@@ -3,6 +3,8 @@ Utils for the creation and work with comp models.
 
 Simplifies the port linking, submodel generation, ...
 """
+# TODO: refactor and unify with fbc & factory
+
 from __future__ import print_function, division
 
 import libsbml

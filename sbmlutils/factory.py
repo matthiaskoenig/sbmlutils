@@ -1,12 +1,19 @@
 """
-Definition of general helper functions to create SBML objects.
+Definition of general helper functions to create SBML objects
+and setting SBMLObjects in models.
+This are the low level helpers to create models from scratch.
 
-These functions are called with the information dictionaries 
-during the generation of cell and tissue model.
+The general workflow is to create a list/iterable of SBMLObjects by using the
+respective classes in this module, e.g. Compartment, Parameter, Species.
+The object are than created in the model by calling
+    create_objects(model, objects)
+This does NOT take care of the order of the creation.
+
+To create complete models one should use the modelcreator functionality,
+which takes care of the order of object creation.
+
+All model objects are created with the given SBML_LEVEL and SBML_VERSION.
 """
-# TODO: support SBOTerms & MetaIds via keyword
-# TODO: events
-
 from __future__ import print_function, division
 
 import warnings
@@ -20,6 +27,7 @@ SBML_VERSION = 1
 # Information storage classes
 #####################################################################
 class Creator(object):
+    """ Creator in ModelHistory. """
     def __init__(self, familyName, givenName, email, organization, site=None):
         self.familyName = familyName
         self.givenName = givenName
@@ -55,6 +63,12 @@ class ValueWithUnit(Value):
 
 
 def ast_node_from_formula(model, formula):
+    """ Parses the ASTNode from given formula string with model.
+
+    :param model: SBMLModel instance
+    :param formula: formula str
+    :return:
+    """
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
         warnings.warn("Formula could not be parsed: '{}'".format(formula))
@@ -65,7 +79,12 @@ def ast_node_from_formula(model, formula):
 def create_objects(model, obj_iter):
     """ Create the objects in the model.
 
-    Calls the respective create_sbml function of the object.
+    This function calls the respective create_sbml function of all objects
+    in the order of the objects.
+
+    :param model: SBMLModel instance
+    :param obj_iter: iterator of given model object classes like Parameter, ...
+    :return:
     """
     sbml_objects = {}
     for obj in obj_iter:
