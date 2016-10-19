@@ -10,14 +10,16 @@ synchronization between the partial simulations.
 #       and when are the updates written (order and timing of updates)
 
 from __future__ import print_function, division
+import os
+import logging
+import warnings
 import libsbml
 import roadrunner
 import cobra
 import pandas as pd
 from pandas import DataFrame
 import numpy
-import logging
-import warnings
+
 from collections import defaultdict
 
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
@@ -221,6 +223,8 @@ class Simulator(object):
         :param top_level_file: comp top level file
         """
         self.directory = directory
+        working_dir = os.getcwd()
+        os.chdir(directory)
         self.sbml_top = top_level_file
         # read top level model
         self.doc_top = libsbml.readSBMLFromFile(self.sbml_top)
@@ -235,6 +239,7 @@ class Simulator(object):
 
         self._process_top_level()
         self._prepare_models()
+        os.chdir(working_dir)
 
     @staticmethod
     def get_framework(model):
@@ -457,6 +462,7 @@ class Simulator(object):
 
             # store and update time
             kstep += 1
+            time += step_size
 
             logging.debug(result)
 
@@ -466,7 +472,7 @@ class Simulator(object):
         df_results.time = all_time
         return df_results
 
-    def plot_species(self, df, rr_comp, path="species.png"):
+    def plot_species(self, df, rr_comp, filename="species.png"):
         """ Plot species.
 
         :param df:
@@ -479,9 +485,11 @@ class Simulator(object):
 
         ax_s = df.plot(x='time', y=species_ids)
         fig = ax_s.get_figure()
+        path = os.path.join(self.directory, filename)
+        print(path)
         fig.savefig(path)
 
-    def plot_reactions(self, df, rr_comp, path="reactions.png"):
+    def plot_reactions(self, df, rr_comp, filename="reactions.png"):
         """ Plot reactions.
 
         :param df:
@@ -494,10 +502,14 @@ class Simulator(object):
 
         ax_r = df.plot(x='time', y=reaction_ids)
         fig = ax_r.get_figure()
+        path = os.path.join(self.directory, filename)
+        print(path)
         fig.savefig(path)
 
-    def save_csv(self, df, path="simulation.csv"):
+    def save_csv(self, df, filename="simulation.csv"):
         """ Save results to csv. """
+        path = os.path.join(self.directory, filename)
+        print(path)
         df.to_csv(path, sep="\t", index=False)
 
 
@@ -505,13 +517,13 @@ class Simulator(object):
 if __name__ == "__main__":
     # Run simulation of the hybrid model
     logging.getLogger().setLevel(logging.INFO)
-    from simsettings import top_level_file, out_dir
+    from toymodel import toysettings
     import os
-    os.chdir(out_dir)
     import timeit
 
     # Create simulator instance
-    simulator = Simulator(top_level_file=top_level_file)
+    simulator = Simulator(directory=toysettings.out_dir,
+                          top_level_file=toysettings.top_level_file)
 
     start_time = timeit.default_timer()
     df = simulator.simulate(tstart=0.0, tend=50.0, steps=500)

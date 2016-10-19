@@ -34,19 +34,21 @@ def simulate_model(directory, tend=50.0, steps=500):
     :return:
     """
     # Run simulation of the hybrid model
-    sim = Simulator(top_level_file=top_level_file)
+    sim = Simulator(directory, top_level_file=top_level_file)
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time
     print("Simulation time: {}".format(elapsed))
 
     # Create outputs
-    sim.plot_reactions(directory, df, rr_comp=sim.rr_comp)
-    sim.plot_species(directory, df, rr_comp=sim.rr_comp)
-    sim.save_csv(directory, df)
+    sim.plot_reactions(df, rr_comp=sim.rr_comp)
+    sim.plot_species(df, rr_comp=sim.rr_comp)
+    sim.save_csv(df)
 
     print(df)
 
 if __name__ == "__main__":
+
+    # TODO: create SED-ML and OMEX for toy model
     create_toy_model(out_dir)
-    # simulate_model(tend=50.0, steps=500)
+    simulate_model(out_dir, tend=50.0, steps=500)

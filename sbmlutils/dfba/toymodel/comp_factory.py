@@ -14,7 +14,7 @@ import model_factory
 from sbmlutils import factory as mc
 from sbmlutils import comp
 import sbmlutils.sbmlio as sbml_io
-from toysettings import *
+from toysettings import top_level_file, flattened_file, ode_update_file, ode_model_file, ode_bounds_file, fba_file
 
 
 def create_top_level_model(sbml_file, directory):
@@ -138,8 +138,8 @@ def create_top_level_model(sbml_file, directory):
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
     # flatten the combined model
-    comp.flattenSBMLFile(os.path.join(out_dir, top_level_file),
-                         output_file=os.path.join(out_dir, flattened_file))
+    comp.flattenSBMLFile(sbml_file=os.path.join(directory, top_level_file),
+                         output_file=os.path.join(directory, flattened_file))
 
     # change back the working dir
     os.chdir(working_dir)
@@ -147,7 +147,9 @@ def create_top_level_model(sbml_file, directory):
 
 ###########################################################################################
 if __name__ == "__main__":
+
     # create top comp model
+    from toysettings import out_dir, top_level_file
     create_top_level_model(top_level_file, out_dir)
 
 

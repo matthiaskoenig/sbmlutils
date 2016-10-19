@@ -83,7 +83,7 @@ def ast_node_from_formula(model, formula):
     return ast_node
 
 
-def create_objects(model, obj_iter, debug=True):
+def create_objects(model, obj_iter, debug=False):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
