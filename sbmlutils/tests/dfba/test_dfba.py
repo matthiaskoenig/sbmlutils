@@ -17,7 +17,6 @@ class DFBATestCase(unittest.TestCase):
         # Remove the directory after the test
         shutil.rmtree(self.test_dir)
 
-
     def file_exists(self, filename):
         """ Check if file with filename was generated in the test_dir.
 
