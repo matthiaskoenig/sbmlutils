@@ -269,6 +269,7 @@ class Parameter(ValueWithUnit):
         """
         p = model.createParameter()
         p.setId(sid)
+        print(p)
         if unit is not None:
             p.setUnits(Unit.get_unit_string(unit))
         if name is not None:

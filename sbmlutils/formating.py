@@ -176,6 +176,9 @@ def unitDefinitionToString(udef):
         (m * 10^s *k)^e
 
     """
+    if udef == None:
+        return 'None'
+
     libsbml.UnitDefinition_reorder(udef)
     # collect formated nominators and denominators
     nom = []
