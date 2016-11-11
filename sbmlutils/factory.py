@@ -269,7 +269,6 @@ class Parameter(ValueWithUnit):
         """
         p = model.createParameter()
         p.setId(sid)
-        print(p)
         if unit is not None:
             p.setUnits(Unit.get_unit_string(unit))
         if name is not None:
@@ -475,6 +474,8 @@ class Rule(ValueWithUnit):
                 obj = RateRule._create(model, sid=sid, formula=rule.value)
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
+        else:
+            warnings.warn('Rule with sid already exists in model: {}'.format(sid))
         return obj
 
     @staticmethod
