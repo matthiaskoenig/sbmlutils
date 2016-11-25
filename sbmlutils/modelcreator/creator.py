@@ -303,10 +303,10 @@ class CoreModel(object):
                      'functions',
                      'parameters',
                      'compartments',
+                     'species',
                      'assignments',
                      'rules',
                      'rate_rules',
-                     'species',
                      'reactions',
                      'events']:
             # create the respective objects

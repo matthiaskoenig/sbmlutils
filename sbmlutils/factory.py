@@ -417,7 +417,9 @@ class InitialAssignment(ValueWithUnit):
         """
         sid = self.sid
         # Create parameter if not existing
-        if (not model.getParameter(sid)) and (not model.getSpecies(sid)):
+        if (not model.getParameter(sid)) \
+                and (not model.getSpecies(sid)) \
+                and (not model.getCompartment(sid)):
             Parameter._create(model,
                               sid=sid,
                               unit=self.unit,
@@ -461,7 +463,9 @@ class Rule(ValueWithUnit):
         sid = rule.sid
 
         # Create parameter if symbol is neither parameter or species, or compartment
-        if (not model.getParameter(sid)) and (not model.getSpecies(sid)) and (not model.getCompartment(sid)):
+        if (not model.getParameter(sid)) \
+                and (not model.getSpecies(sid)) \
+                and (not model.getCompartment(sid)):
             Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
 
         # Make sure the parameter is const=False
