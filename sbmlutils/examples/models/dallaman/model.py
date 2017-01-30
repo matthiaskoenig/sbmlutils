@@ -73,6 +73,12 @@ units = [
                           (UNIT_KIND_KILOGRAM, -1.0)]),
     mc.Unit('mg_per_dl', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
                           (UNIT_KIND_LITRE, -1.0, -1, 1.0)]),
+    mc.Unit('pmol_per_kg', [(UNIT_KIND_MOLE, 1.0, -9, 1.0),
+                            (UNIT_KIND_KILOGRAM, -1.0)]),
+    mc.Unit('pmol_per_l', [(UNIT_KIND_MOLE, 1.0, -9, 1.0),
+                           (UNIT_KIND_LITRE, -1.0)]),
+    mc.Unit('pmol_per_kgmin', [(UNIT_KIND_MOLE, 1.0, -9, 1.0),
+                               (UNIT_KIND_KILOGRAM, -1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)]),
     mc.Unit('minkg_per_pmol', [(UNIT_KIND_SECOND, 1.0, 0, 60), (UNIT_KIND_KILOGRAM, 1.0),
                                (UNIT_KIND_MOLE, -1.0, -9, 1.0)]),
     mc.Unit('mg_per_kgmin', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
@@ -111,31 +117,31 @@ species = []
 parameters = [
 
     # state variables (initial values)
-    mc.Parameter('Gp', 178, '?', constant=False, name='glucose plasma'),
-    mc.Parameter('Gt', 135, '?', constant=False, name='glucose tissue'),
-    mc.Parameter('Il', 4.5, '?', constant=False),
-    mc.Parameter('Ip', 1.25, '?', constant=False),
+    mc.Parameter('Gp', 178, 'mg_per_kg', constant=False, name='glucose plasma'),
+    mc.Parameter('Gt', 135, 'mg_per_kg', constant=False, name='glucose tissue'),
+    mc.Parameter('Il', 4.5, 'pmol_per_kg', constant=False, name='insulin mass liver'),
+    mc.Parameter('Ip', 1.25, 'pmol_per_kg', constant=False, name='insulin mass plasma'),
     mc.Parameter('Qsto1', 78000, '?', constant=False),
     mc.Parameter('Qsto2', 0, '?', constant=False),
     mc.Parameter('Qgut', 0, '?', constant=False),
     mc.Parameter('I1', 25, '?', constant=False),
-    mc.Parameter('Id', 25, '?', constant=False),
+    mc.Parameter('Id', 25, 'pmol_per_l', constant=False, name='delayed insulin'),
     mc.Parameter('INS', 0, '?', constant=False),
-    mc.Parameter('Ipo', 3.6, '?', constant=False),
+    mc.Parameter('Ipo', 3.6, 'pmol_per_kg', constant=False, name='insulin portal vein'),
     mc.Parameter('Y', 0, '?', constant=False),
 
     # bodyweight
-    mc.Parameter('BW', 78, 'kg', constant=True, name='bodyweight'),
+    mc.Parameter('BW', 78, 'kg', constant=True, name='body weight'),
     mc.Parameter('D', 78000, '?', constant=True),
 
     # Glucose Kinetics
-    mc.Parameter('V_G', 1.88, 'dl_per_kg', constant=True, name='V_G plasma volume'),
+    mc.Parameter('V_G', 1.88, 'dl_per_kg', constant=True, name='V_G distribution volume glucose'),
     mc.Parameter('k_1', 0.065, 'per_min', constant=True, name='k_1 glucose kinetics'),
     mc.Parameter('k_2', 0.079, 'per_min', constant=True, name='k_2 glucose kinetics'),
     mc.Parameter('G_b', 95, '?', constant=True),
 
     # Insulin kinetics
-    mc.Parameter('V_I', 0.05, 'l_per_kg', constant=True),
+    mc.Parameter('V_I', 0.05, 'l_per_kg', constant=True, name='V_I distribution volume insulin'),
     mc.Parameter('m_1', 0.190, 'per_min', constant=True),
     mc.Parameter('m_2', 0.484, 'per_min', constant=True),
     mc.Parameter('m_4', 0.194, 'per_min', constant=True),
@@ -197,8 +203,10 @@ rate_rules = [
     # rate rules d/dt
     mc.RateRule('Gp', 'EGP +Ra -U_ii -E -k_1*Gp +k_2*Gt', 'mg_per_kgmin'),
     mc.RateRule('Gt', '-U_id + k_1*Gp -k_2*Gt', 'mg_per_kgmin'),
-    mc.RateRule('Il', '(-m_1*Il)-m_3*Il+m_2*Ip+S', '?'),
-    mc.RateRule('Ip', '(-m_2*Ip)-m_4*Ip+m_1*Il', '?'),
+
+    mc.RateRule('Il', '-(m_1+m_3)*Il + m_2*Ip + S', 'pmol_per_kg'),
+    mc.RateRule('Ip', '-(m_2+m_4)*Ip + m_1*Il', 'pmol_per_kg'),
+
     mc.RateRule('Qsto1', '-k_gri*Qsto1', '?'),
     mc.RateRule('Qsto2', '(-k_empt*Qsto2)+k_gri*Qsto1', '?'),
     mc.RateRule('Qgut', '(-k_abs*Qgut)+k_empt*Qsto2', '?'),
@@ -212,15 +220,15 @@ rate_rules = [
 rules = [
     mc.AssignmentRule('aa', '5/2/(1-b)/D', '?'),
     mc.AssignmentRule('cc', '5/2/d/D', '?'),
-    mc.AssignmentRule('EGP', 'k_p1-k_p2*Gp-k_p3*Id-k_p4*Ipo', '?', name='EGP endogenous glucose production'),
+    mc.AssignmentRule('EGP', 'k_p1-k_p2*Gp-k_p3*Id-k_p4*Ipo', 'mg_per_kgmin', name='EGP endogenous glucose production'),
     mc.AssignmentRule('V_mmax', '(1-part)*(V_m0+V_mX*INS)', '?'),
     mc.AssignmentRule('V_fmax', 'part*(V_f0+V_fX*INS)', '?'),
     mc.AssignmentRule('E', '0', 'mg_per_kgmin', 'renal excretion'),
-    mc.AssignmentRule('S', 'gamma*Ipo', '?', name='S insulin secretion'),
-    mc.AssignmentRule('I', 'Ip/V_I', '?', name='G plasma Insulin'),
+    mc.AssignmentRule('S', 'gamma*Ipo', 'pmol_per_kgmin', name='S insulin secretion'),
+    mc.AssignmentRule('I', 'Ip/V_I', 'pmol_per_l', name='I plasma insulin'),
     mc.AssignmentRule('G', 'Gp/V_G', 'mg_per_dl', name='G plasma Glucose'),
-    mc.AssignmentRule('HE', '(-m_5*S)+m_6', '?'),
-    mc.AssignmentRule('m_3', 'HE*m_1/(1-HE)', '?'),
+    mc.AssignmentRule('HE', '-m_5*S + m_6', '-', name="HE hepatic extraction insulin"),
+    mc.AssignmentRule('m_3', 'HE*m_1/(1-HE)', 'per_min'),
     mc.AssignmentRule('Q_sto', 'Qsto1+Qsto2', '?'),
     mc.AssignmentRule('Ra', '1.32 dimensionless*f*k_abs*Qgut/BW', 'mg_per_kgmin', name='Ra glucose rate of appearance'),
     # % Ra', f*k_abs*Qgut/BW
@@ -228,7 +236,7 @@ rules = [
     mc.AssignmentRule('U_idm', 'V_mmax*Gt/(K_m0+Gt)', 'mg_per_kgmin'),
     mc.AssignmentRule('U_idf', 'V_fmax*Gt/(K_f0+Gt)', 'mg_per_kgmin'),
     mc.AssignmentRule('U_id', 'U_idm+U_idf', 'mg_per_kgmin', name='insulin dependent glucose utilization'),
-    mc.AssignmentRule('U', 'U_ii+U_id', '?', name='U glucose uptake'),
+    mc.AssignmentRule('U', 'U_ii+U_id', 'mg_per_kgmin', name='U glucose uptake'),
     mc.AssignmentRule('S_po', 'Y+K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G+S_b', '?'),
 ]
 
