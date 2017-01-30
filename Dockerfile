@@ -1,3 +1,6 @@
+# Dockerfile
+# Docker setup for installing and testing the latest version against container.
+
 # docker build --no-cache -t matthiaskoenig/sbmlutils . && docker run -ti matthiaskoenig/sbmlutils /bin/bash
 FROM matthiaskoenig/linux-setup-combine:latest
 MAINTAINER Matthias Koenig <konigmatt@googlemail.com>
