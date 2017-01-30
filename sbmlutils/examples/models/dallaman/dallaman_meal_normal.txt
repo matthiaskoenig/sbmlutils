@@ -1,0 +1,116 @@
+********** MODEL NAME
+
+
+********** MODEL NOTES
+
+
+********** MODEL STATES
+d/dt(Gp) = EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt                                        
+d/dt(Gt) = (-U_id)+k_1*Gp-k_2*Gt                                              
+d/dt(Il) = (-m_1*Il)-m_3*Il+m_2*Ip+S                                         
+d/dt(Ip) = (-m_2*Ip)-m_4*Ip+m_1*Il                                           
+d/dt(Qsto1) = -k_gri*Qsto1                                                     
+d/dt(Qsto2) = (-k_empt*Qsto2)+k_gri*Qsto1                                     
+d/dt(Qgut) = (-k_abs*Qgut)+k_empt*Qsto2                                       
+d/dt(I1) = -k_i*(I1-I)                                                         
+d/dt(Id) = -k_i*(Id-I1)                                                       
+d/dt(INS) = (-p_2U*INS)+p_2U*(I-I_b)                                             
+d/dt(Ipo) = (-gamma*Ipo)+S_po                                                  
+d/dt(Y) = -alpha*(Y-beta*(G-G_b))                                                                                            
+
+Gp(0) = 178                                                                     
+Gt(0) = 135                                                                     
+Il(0) = 4.5                                                                     
+Ip(0) = 1.25                                                                    
+Qsto1(0) = 78000                                                                
+Qsto2(0) = 0                                                                    
+Qgut(0) = 0                                                                     
+I1(0) = 25                                                                      
+Id(0) = 25                                                                      
+INS(0) = 0                                                                       
+Ipo(0) = 3.6                                                    
+Y(0) = 0
+
+********** MODEL PARAMETERS
+V_G = 1.8799999999999999                                                         
+k_1 = 0.065000000000000002                                                       
+k_2 = 0.079000000000000001                                                       
+G_b = 95                                                                         
+V_I = 0.050000000000000003                                                       
+m_1 = 0.19                                                                       
+m_2 = 0.48399999999999999                                                        
+m_4 = 0.19400000000000001                                                        
+m_5 = 0.0304                                                                     
+m_6 = 0.64710000000000001                                                        
+HE_b = 0.59999999999999998                                                       
+I_b = 25                                                                         
+S_b = 1.8                                                                                                                                      
+k_max = 0.055800000000000002                                                     
+k_min = 0.0080000000000000002                                                    
+k_abs = 0.057000000000000002                                                     
+k_gri = 0.055800000000000002                                                     
+f = 0.90000000000000002                                                          
+b = 0.81999999999999995                                                          
+d = 0.01                                                                         
+BW = 78                                                                          
+k_p1 = 2.7000000000000002                                                        
+k_p2 = 0.0020999999999999999                                                     
+k_p3 = 0.0089999999999999993                                                     
+k_p4 = 0.061800000000000001                                                      
+k_i = 0.0079000000000000008                                                      
+U_ii = 1                                                                         
+V_m0 = 2.5                                                                       
+V_mX = 0.047                                                                     
+K_m0 = 225.59                                                                    
+V_f0 = 2.5                                                                       
+V_fX = 0.047                                                                     
+K_f0 = 225.59                                                                    
+p_2U = 0.033099999999999997                                                      
+part = 0.20000000000000001                                                       
+K = 2.2999999999999998                                                           
+alpha = 0.050000000000000003                                                     
+beta = 0.11                                                                      
+gamma = 0.5                                                                      
+k_e1 = 0.00050000000000000001                                                    
+k_e2 = 339                                                                       
+D = 78000
+
+********** MODEL VARIABLES
+aa = 5/2/(1-b)/D                                                                 
+cc = 5/2/d/D                                                                     
+EGP = k_p1-k_p2*Gp-k_p3*Id-k_p4*Ipo                                           
+V_mmax = (1-part)*(V_m0+V_mX*INS)                                                
+V_fmax = part*(V_f0+V_fX*INS)                                                    
+E = 0                                                                            
+S = gamma*Ipo                                                                                                                       
+I = Ip/V_I                                                                      
+G = Gp/V_G                                                                      
+HE = (-m_5*S)+m_6                                                                
+m_3 = HE*m_1/(1-HE)                                                              
+Q_sto = Qsto1+Qsto2                                                            
+Ra = 1.32*f*k_abs*Qgut/BW 
+% Ra = f*k_abs*Qgut/BW                                                            
+k_empt = k_min+(k_max-k_min)/2*(tanh(aa*(Q_sto-b*D))-tanh(cc*(Q_sto-d*D))+2)     
+U_idm = V_mmax*Gt/(K_m0+Gt)
+U_idf = V_fmax*Gt/(K_f0+Gt)                                                
+U_id = U_idm+U_idf                                                               
+U = U_ii+U_id                                                                    
+S_po = Y+K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G+S_b
+
+plasmaGlucose = G
+plasmaInsulin = I
+endogenousGlucoseProduction = EGP
+glucoseRateOfAppearance = Ra
+glucoseUptake = U
+insulinSecretion = S
+
+********** MODEL REACTIONS                                                                                                          
+
+********** MODEL FUNCTIONS
+
+
+********** MODEL EVENTS
+
+
+********** MODEL MATLAB FUNCTIONS
+
