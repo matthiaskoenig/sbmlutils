@@ -26,7 +26,7 @@ SBML_VERSION = 1
 
 #####################################################################
 
-def create_objects(model, obj_iter, debug=False):
+def create_objects(model, obj_iter, debug=True):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects

@@ -1,25 +1,12 @@
 from __future__ import print_function, division
 import os
-from sbmlutils.modelcreator.creator import Factory
+from sbmlutils.modelcreator import creator
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
+target_dir = os.path.join(base_dir, 'results')
 
-def create(tmp=False):
-    """
-    Create model.
-    :return:
-    """
-    models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-
-    print('-'*80)
-    print(models_dir)
-    print('-' * 80)
-
-    factory = Factory(
-        modules=['sbmlutils.examples.models.dallaman.Cell'],
-        target_dir=os.path.join(models_dir, 'results'),
-        annotations=os.path.join(models_dir, 'dallaman_annotations.xlsx'))
-    factory.create(tmp)
 
 if __name__ == "__main__":
-    create(tmp)
+    creator.create_model(modules=['sbmlutils.examples.models.dallaman.model'],
+                         target_dir=target_dir)
 
