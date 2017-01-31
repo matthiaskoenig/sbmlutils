@@ -11,6 +11,7 @@ class TestValidation(unittest.TestCase):
 
     def test_check_sbml(self):
         import tellurium as te
+
         sbml_str = te.antimonyToSBML('''
         model feedback()
            // Reactions:
@@ -27,6 +28,7 @@ class TestValidation(unittest.TestCase):
           // Variable initialization:
           VM1 = 10; Keq1 = 10; h = 10; V4 = 2.5; KS4 = 0.5;
         end''')
+
         f = tempfile.NamedTemporaryFile(suffix=".xml")
         f.write(sbml_str)
         f.flush()
@@ -61,4 +63,5 @@ class TestValidation(unittest.TestCase):
         self.validate_file(vdp_sbml, ucheck=False)
 
 if __name__ == '__main__':
+
     unittest.main()
