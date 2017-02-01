@@ -6,6 +6,63 @@ Submodels are
 - a FBA submodel
 - deterministic ODE models
 
+
+Along with the system of dynamic equations, several
+additional constraints must be imposed for a realistic prediction
+of the metabolite concentrations and the metabolic
+fluxes. These include non-negative metabolite and flux levels,
+limits on the rate of change of fluxes, and any additional
+nonlinear constraints on the transport fluxes.
+-----------------------------------------------
+vO2: -> O2
+vGlcxt: -> Glcxt
+
+v1: 39.43 Ac + 35 O2 -> X
+v2: 9.46 Glcxt + 12.92 O2 -> X
+v3: 9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X
+v4: 19.23 Glcxt -> 12.12 Ac + X
+
+objective: max(biomass) = max (w1*v1 + w2*v2 + w3*v3 + w4*v4),
+            w1 = w2 = w3 = w4
+
+boundaries:
+
+    ub(v1) = 0.1 [mmol/h/gdw]
+    ub(v2) = 0.3 [mmol/h/gdw]
+    ub(v3) = 0.3 [mmol/h/gdw]
+    ub(v4) = 0.1 [mmol/h/gdw]
+
+    ub(vO2) = 15 [mmol/h/gdw]
+    ub(vGlcxt) = 10 Glcxt/(Km + Glcxt) [mmol/h/gdw]  # Michaelis-Menten kineteics involving glucose concentration
+
+Km = 0.015 mM
+
+-----------------------------------------------
+
+Glcxt: glucose [mM], Glcxt(0) = 10.8 [mM]
+Ac: acetate [mM], Ac(0) = 0.4 [mM]
+O2: oxygen [mM], O2(0) = 0.21 [mM]
+X: biomass [?], X(0) = 0.001 [?]
+
+
+d/dt Glcxt = A_Glcxt * v * X
+d/dt Ac = A_Ac * v * X
+d/dt O2 = A_O2 * v * X + kLa * (O2_gas - O2)
+d/dt X2 = (v1 + v2 + v3 + v4)
+
+O2_gas = 0.21 [mM]  # oxygen in gas phase, constant
+kLa = 7.5 [per_h]  # mass transfer coefficient for oxygen
+
+z: vector of metabolite concentrations
+v: fluxes per gdw (gram dry weight)
+mu: growth rate
+
+-----------------------------------------------
+tend = 10 [h]
+steps = 10000
+
+-----------------------------------------------
+
 """
 from libsbml import *
 
@@ -25,6 +82,10 @@ notes = XMLNode.convertStringToXMLNode("""
     <h1>Diauxic Growth Model</h1>
     <h2>Description</h2>
     <p>Dynamic Flux Balance Analysis of Diauxic Growth in Escherichia coli</p>
+
+    <p>The key variables in the mathematical model of the metabolic
+network are the glucose concentration (Glcxt), the acetate concentration (Ac),
+the biomass concentration (X), and the oxygen concentration (O2) in the gas phase.</p>
 
     <div class="dc:publisher">This file has been produced by
       <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
@@ -91,6 +152,8 @@ def add_generic_info(model):
     mc.create_objects(model, units)
     mc.set_main_units(model, main_units)
     model.setNotes(notes)
+
+
 
 ####################################################
 # FBA submodel
@@ -264,34 +327,40 @@ def create_ode_update(sbml_file, directory):
 # ODE/SSA model
 ####################################################
 def create_ode_model(sbml_file, directory):
-    """" Kinetic submodel (coupled model to FBA). """
+    """" Kinetic submodel (coupled model to FBA).
+    Describing the change in the batch bioreactor.
+    """
     sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
     # model
     model = doc.createModel()
-    model.setId("toy_ode_model")
-    model.setName("ODE/SSA submodel")
+    model.setId("diauxic_ode")
+    model.setName("diauxic ODE submodel")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model)
 
     compartments = [
-        mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment', spatialDimension=3),
+        mc.Compartment(sid='bioreactor', value=1.0, unit="m3", constant=True, name='external compartment', spatialDimension=3),
     ]
     mc.create_objects(model, compartments)
 
     species = [
         # external
-        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                   compartment="extern", boundaryCondition=False),
-        mc.Species(sid='D', name="D", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                   compartment="extern", boundaryCondition=False),
+        mc.Species(sid='Glcxt', name="glucose", value=11, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor", boundaryCondition=False),
+        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor", boundaryCondition=False),
+        mc.Species(sid='Ac', name="acetate", value=0.5, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor", boundaryCondition=False),
+        mc.Species(sid='X', name="biomass", value=0, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor", boundaryCondition=False),
     ]
     mc.create_objects(model, species)
 
     parameters = [
-        mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
+        mc.Parameter(sid="A_Glcxt", name="k R4", value=0.1, constant=True, unit="per_s"),
     ]
     mc.create_objects(model, parameters)
 
