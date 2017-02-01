@@ -6,7 +6,12 @@ Submodels are
 - a FBA submodel
 - deterministic ODE models
 
+Questions:
+- how are the metabolite concentrations kept >= 0 ?
+    It seems that the relative change in flux bounds, relative
+    to the hard bounds on the exchanges avoids negative concentrations
 
+-----------------------------------------------
 Along with the system of dynamic equations, several
 additional constraints must be imposed for a realistic prediction
 of the metabolite concentrations and the metabolic
@@ -14,41 +19,49 @@ fluxes. These include non-negative metabolite and flux levels,
 limits on the rate of change of fluxes, and any additional
 nonlinear constraints on the transport fluxes.
 -----------------------------------------------
-vO2: -> O2
-vGlcxt: -> Glcxt
+vO2:  -> O2
+vGlcxt:  -> Glcxt
+Ac_out = Ac  # rule
 
 v1: 39.43 Ac + 35 O2 -> X
 v2: 9.46 Glcxt + 12.92 O2 -> X
 v3: 9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X
 v4: 19.23 Glcxt -> 12.12 Ac + X
 
-objective: max(biomass) = max (w1*v1 + w2*v2 + w3*v3 + w4*v4),
-            w1 = w2 = w3 = w4
+objective: max(biomass) = max (w1*v1 + w2*v2 + w3*v3 + w4*v4) = max(µ),
+            w1 = w2 = w3 = w4 [gdw/mmol]
 
 boundaries:
+    # rate of change boundaries => set new lower and upper bound based on
+    # the maximal allowed change in boundary over time
+    # |d/dt v| <= d/dt v_max
+    d/dt v_max(v1) = 0.1 [mmol/h/gdw]
+    d/dt v_max(v2) = 0.3 [mmol/h/gdw]
+    d/dt v_max(v3) = 0.3 [mmol/h/gdw]
+    d/dt v_max(v4) = 0.1 [mmol/h/gdw]
 
-    ub(v1) = 0.1 [mmol/h/gdw]
-    ub(v2) = 0.3 [mmol/h/gdw]
-    ub(v3) = 0.3 [mmol/h/gdw]
-    ub(v4) = 0.1 [mmol/h/gdw]
+    # in addition the flux bounds must be set, so that not resulting in negative
+    # concentrations
 
+    # ? exchange, how does it work ?
+    # no external concentrations, but upper bounds for entry in batch reactor
     ub(vO2) = 15 [mmol/h/gdw]
-    ub(vGlcxt) = 10 Glcxt/(Km + Glcxt) [mmol/h/gdw]  # Michaelis-Menten kineteics involving glucose concentration
+    ub(vGlcxt) = 10 Glcxt/(Km + Glcxt) [mmol/h/gdw]  # Michaelis-Menten kinetics involving glucose concentration
 
 Km = 0.015 mM
 
 -----------------------------------------------
 
-Glcxt: glucose [mM], Glcxt(0) = 10.8 [mM]
-Ac: acetate [mM], Ac(0) = 0.4 [mM]
-O2: oxygen [mM], O2(0) = 0.21 [mM]
-X: biomass [?], X(0) = 0.001 [?]
+Glcxt:  glucose [mM=mmol/l],    Glcxt(0) = 10.8 [mM]
+Ac:     acetate [mM=mmol/l],    Ac(0) = 0.4 [mM]
+O2:     oxygen [mM=mmol/l],     O2(0) = 0.21 [mM]
+X:      biomass [gdw/l],        X(0) = 0.001 [g/l]
 
-
-d/dt Glcxt = A_Glcxt * v * X
-d/dt Ac = A_Ac * v * X
-d/dt O2 = A_O2 * v * X + kLa * (O2_gas - O2)
-d/dt X2 = (v1 + v2 + v3 + v4)
+# A*v is row of stoichiometric matrix, i.e. all reactions which change the concentration
+d/dt Glcxt = A_Glcxt*v * X                      # [mmol/l/h]
+d/dt Ac = A_Ac*v * X                            # [mmol/l/h]
+d/dt O2 = A_O2 * v * X + kLa * (O2_gas - O2)    # [mmol/l/h]
+d/dt X = (w1*v1 + w2*v2 + w3*v3 + w4*v4)*X      # [g/l/h], due to coefficients conversions to g
 
 O2_gas = 0.21 [mM]  # oxygen in gas phase, constant
 kLa = 7.5 [per_h]  # mass transfer coefficient for oxygen
