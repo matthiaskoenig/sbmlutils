@@ -1,8 +1,10 @@
 # -*- coding=utf-8 -*-
 """
 DallaMan2006
-
 """
+# TODO: encode units for model
+# TODO: T2DM simulations (in current version not working)
+
 from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
 from libsbml import UNIT_KIND_GRAM
 from libsbml import XMLNode
