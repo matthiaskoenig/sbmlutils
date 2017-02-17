@@ -10,7 +10,8 @@ out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 # FBA submodel
 fba_file = 'diauxic_fba.xml'
 # ODE submodels
-ode_bounds_file = 'diauxic_ode_bounds.xml'
+bounds_file = 'diauxic_bounds.xml'
+
 ode_update_file = 'diauxic_ode_update.xml'
 ode_model_file = 'diauxic_ode_model.xml'
 # top level

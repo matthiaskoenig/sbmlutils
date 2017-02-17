@@ -210,7 +210,7 @@ def create_fba(sbml_file, directory):
     mc.create_objects(model, compartments)
 
     # Species
-    # TODO: fix external & internal species of model
+    # TODO: annotation of boundary fluxes
     species = [
         # internal
         mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
@@ -228,20 +228,24 @@ def create_fba(sbml_file, directory):
     parameters = [
         # bounds
         mc.Parameter(sid="lb_irrev", name="lower bound", value=0.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="lb", name="lower bound", value=1000.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb", name="lower bound", value=-1000.0, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid="ub", name="upper bound", value=1000.0, unit=UNIT_FLUX, constant=True),
-        # mc.Parameter(sid="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=False),
+
+        mc.Parameter(sid="ub_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False),
     ]
     mc.create_objects(model, parameters)
 
     # reactions with constant flux
 
-    r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", fast=False, reversible=True,
+    r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", fast=False, reversible=False,
                             reactants={}, products={"O2": 1}, compartment='bioreactor')
-    r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", fast=False, reversible=True,
+    r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", fast=False, reversible=False,
                             reactants={}, products={"Glcxt": 1}, compartment='bioreactor')
     r_vAc = mc.create_reaction(model, rid="vAc", name="Ac import (vAc)", fast=False, reversible=True,
                             reactants={}, products={"Ac": 1}, compartment='bioreactor')
+    r_vX = mc.create_reaction(model, rid="vX", name="biomass generation (vX)", fast=False, reversible=False,
+                            reactants={"X": 1}, products={}, compartment='bioreactor')
 
     r_v1 = mc.create_reaction(model, rid="v1", name="v1", fast=False, reversible=False,
                                reactants={"Ac": 39.43, "O2": 35}, products={"X": 1}, compartment='bioreactor')
@@ -252,14 +256,18 @@ def create_fba(sbml_file, directory):
     r_v4 = mc.create_reaction(model, rid="v4", name="v4", fast=False, reversible=False,
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
 
+
     # flux bounds
-    mc.set_flux_bounds(r_vO2, lb="lb", ub="ub")
-    mc.set_flux_bounds(r_vGlcxt, lb="lb", ub="ub")
+    mc.set_flux_bounds(r_vO2, lb="lb_irrev", ub="ub_vO2")
+    mc.set_flux_bounds(r_vGlcxt, lb="lb_irrev", ub="ub_vGlcxt")
     mc.set_flux_bounds(r_vAc, lb="lb", ub="ub")
+
+    mc.set_flux_bounds(r_vX, lb="lb_irrev", ub="ub")
     mc.set_flux_bounds(r_v1, lb="lb_irrev", ub="ub")
     mc.set_flux_bounds(r_v2, lb="lb_irrev", ub="ub")
     mc.set_flux_bounds(r_v3, lb="lb_irrev", ub="ub")
     mc.set_flux_bounds(r_v4, lb="lb_irrev", ub="ub")
+
 
     # objective function
     mc.create_objective(mplugin, oid="biomass_max", otype="maximize",
@@ -278,14 +286,57 @@ def create_fba(sbml_file, directory):
     sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
 
+####################################################
+# ODE flux bounds
+####################################################
+def create_bounds(sbml_file, directory):
+    """"
+    Submodel for dynamically calculating the flux bounds.
+    The dynamically changing flux bounds are the input to the
+    FBA model.
+    """
+    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
+    doc = SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+    model = doc.createModel()
+    model.setId("diauxic_bounds")
+    model.setName("ODE bounds submodel")
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    add_generic_info(model)
+
+    objects = [
+        mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
+                       spatialDimension=3),
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+
+        mc.Parameter(sid='ub_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
+        mc.Parameter(sid='Vmax_vGlcxt', value=15, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
+        mc.Parameter(sid='Km_vGlcxt', value=0.015, unit="mM", name="Km_vGlcxt", constant=True),
+
+        mc.AssignmentRule(sid="ub_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
+        # # driving function to test the bound update
+        # mc.AssignmentRule(sid="Glcxt", value="5.0 mM + 5.0 mM * sin(time/1 h)")
+    ]
+    mc.create_objects(model, objects)
+
+    # ports
+    comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
+
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
 ########################################################################################################################
 if __name__ == "__main__":
-    from dgsettings import fba_file, out_dir
+    from dgsettings import fba_file, bounds_file, out_dir
     import os
 
     # write & check sbml
-    # create_ode_bounds(ode_bounds_file, out_dir)
+
     create_fba(fba_file, out_dir)
+    create_bounds(bounds_file, out_dir)
+
     # create_ode_update(ode_update_file, out_dir)
     # create_ode_model(ode_model_file, out_dir)
