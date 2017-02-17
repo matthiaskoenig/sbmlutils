@@ -83,6 +83,8 @@ import sbmlutils.sbmlio as sbml_io
 import sbmlutils.annotation as sbml_annotation
 import sbmlutils.comp as comp
 from sbmlutils import factory as mc
+from sbmlutils.report import sbmlreport
+
 
 XMLOutputStream.setWriteTimestamp(False)
 
@@ -210,12 +212,12 @@ def create_fba(sbml_file, directory):
     # Species
     # TODO: fix external & internal species of model
     species = [
-        # external
-        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
-                   compartment="bioreactor", boundaryCondition=True),
-        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
-                   compartment="bioreactor", boundaryCondition=True),
         # internal
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+
         mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
         mc.Species(sid='X', name="biomass", value=0.001, unit='g_per_l', hasOnlySubstanceUnits=False,
@@ -254,10 +256,10 @@ def create_fba(sbml_file, directory):
     mc.set_flux_bounds(r_vO2, lb="lb", ub="ub")
     mc.set_flux_bounds(r_vGlcxt, lb="lb", ub="ub")
     mc.set_flux_bounds(r_vAc, lb="lb", ub="ub")
-    mc.set_flux_bounds(r_v1, lb="lb", ub="ub")
-    mc.set_flux_bounds(r_v2, lb="lb", ub="ub")
-    mc.set_flux_bounds(r_v3, lb="lb", ub="ub")
-    mc.set_flux_bounds(r_v4, lb="lb", ub="ub")
+    mc.set_flux_bounds(r_v1, lb="lb_irrev", ub="ub")
+    mc.set_flux_bounds(r_v2, lb="lb_irrev", ub="ub")
+    mc.set_flux_bounds(r_v3, lb="lb_irrev", ub="ub")
+    mc.set_flux_bounds(r_v4, lb="lb_irrev", ub="ub")
 
     # objective function
     mc.create_objective(mplugin, oid="biomass_max", otype="maximize",
@@ -272,6 +274,8 @@ def create_fba(sbml_file, directory):
 
     # write SBML file
     sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
+
+    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
 
 

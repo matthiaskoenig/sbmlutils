@@ -3,6 +3,8 @@ Working with fbc models.
 """
 from __future__ import print_function, division
 import cobra
+import numpy as np
+import pandas as pd
 import libsbml
 from warnings import warn
 from sbmlutils import factory
@@ -31,6 +33,24 @@ def load_cobra_model(sbml_path):
     f.flush()
     model = cobra.io.read_sbml_model(f.name)
     return model
+
+
+def cobra_reaction_info(cobra_model):
+    """ Creates data frame with bound and objective information.
+
+    :param cobra_model:
+    :return: pandas DataFrame
+    """
+    rids = [r.id for r in cobra_model.reactions]
+    df = pd.DataFrame(data=None, index=rids,
+                      columns=['lb', 'ub', 'objective'])
+
+    for rid in rids:
+        r = cobra_model.reactions.get_by_id(rid)
+        df.loc[rid] = [r.lower_bound, r.upper_bound, np.nan]
+    for r, obj in cobra_model.objective.iteritems():
+        df.objective.loc[r.id] = obj
+    return df
 
 
 def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):

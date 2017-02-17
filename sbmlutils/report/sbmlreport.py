@@ -52,6 +52,9 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False):
     :return:
     :rtype:
     """
+    # check if sbml_file exists
+    if not os.path.exists(sbml):
+        warnings.warn('SBML file does not exist: {}'.format(sbml))
 
     # check the sbml file
     validate_sbml(sbml)
