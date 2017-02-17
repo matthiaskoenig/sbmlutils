@@ -15,6 +15,6 @@ update_file = 'diauxic_update.xml'
 ode_file = 'diauxic_ode.xml'
 
 # top level
-top_level_file = 'diauxic_top_level.xml'
+comp_file = 'diauxic_comp.xml'
 # flattened top level
 flattened_file = 'diauxic_flattened.xml'

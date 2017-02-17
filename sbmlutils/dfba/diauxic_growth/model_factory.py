@@ -272,11 +272,19 @@ def create_fba(sbml_file, directory):
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # create ports
-
     comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
-    # comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
-    # comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
-    # comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
+
+    # input bounds
+    comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
+    # output fluxes
+    comp._create_port(model, pid="vGlcxt_port", idRef="vGlcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="vAc_port", idRef="vAc", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="vO2_port", idRef="vO2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="vX_port", idRef="vX", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
     sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
@@ -400,26 +408,6 @@ def create_update(sbml_file, directory):
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
     sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
-####################################################
-# ODE/SSA model
-####################################################
-def create_ode(sbml_file, directory):
-    """" Kinetic submodel (coupled model to FBA). """
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
-    doc.setPackageRequired("comp", True)
-
-    # model
-    model = doc.createModel()
-    model.setId("diauxic ode")
-    model.setName("ODE submodel")
-    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model)
-
-
-    # write SBML file
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
-    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
 ########################################################################################################################
 if __name__ == "__main__":
@@ -430,5 +418,4 @@ if __name__ == "__main__":
     create_fba(fba_file, out_dir)
     create_bounds(bounds_file, out_dir)
     create_update(update_file, out_dir)
-    create_ode(ode_file, out_dir)
 
