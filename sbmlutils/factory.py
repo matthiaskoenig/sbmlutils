@@ -647,11 +647,20 @@ def set_flux_bounds(reaction, lb, ub):
 
 
 def create_objective(mplugin, oid, otype, fluxObjectives, active=True):
+    """ Creates a given flux optimization objective.
+
+    :param mplugin:
+    :param oid:
+    :param otype:
+    :param fluxObjectives:
+    :param active:
+    :return:
+    """
     objective = mplugin.createObjective()
     objective.setId(oid)
     objective.setType(otype)
     if active:
-        mplugin.setActiveObjectiveId("R3_maximize")
+        mplugin.setActiveObjectiveId(oid)
     for rid, coefficient in fluxObjectives.iteritems():
         fluxObjective = objective.createFluxObjective()
         fluxObjective.setReaction(rid)
