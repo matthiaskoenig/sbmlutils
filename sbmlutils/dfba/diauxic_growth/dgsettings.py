@@ -11,9 +11,9 @@ out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 fba_file = 'diauxic_fba.xml'
 # ODE submodels
 bounds_file = 'diauxic_bounds.xml'
+update_file = 'diauxic_update.xml'
+ode_file = 'diauxic_ode.xml'
 
-ode_update_file = 'diauxic_ode_update.xml'
-ode_model_file = 'diauxic_ode_model.xml'
 # top level
 top_level_file = 'diauxic_top_level.xml'
 # flattened top level

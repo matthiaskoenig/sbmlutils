@@ -217,9 +217,9 @@ def create_fba(sbml_file, directory):
                    compartment="bioreactor"),
         mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-
         mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
+
         mc.Species(sid='X', name="biomass", value=0.001, unit='g_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
     ]
@@ -237,13 +237,12 @@ def create_fba(sbml_file, directory):
     mc.create_objects(model, parameters)
 
     # reactions with constant flux
-
     r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", fast=False, reversible=False,
-                            reactants={}, products={"O2": 1}, compartment='bioreactor')
+                            reactants={"O2_ext": 1}, products={"O2": 1}, compartment='bioreactor')
     r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", fast=False, reversible=False,
-                            reactants={}, products={"Glcxt": 1}, compartment='bioreactor')
+                            reactants={"Glcxt_ext": 1}, products={"Glcxt": 1}, compartment='bioreactor')
     r_vAc = mc.create_reaction(model, rid="vAc", name="Ac import (vAc)", fast=False, reversible=True,
-                            reactants={}, products={"Ac": 1}, compartment='bioreactor')
+                            reactants={"Ac_ext": 1}, products={"Ac": 1}, compartment='bioreactor')
     r_vX = mc.create_reaction(model, rid="vX", name="biomass generation (vX)", fast=False, reversible=False,
                             reactants={"X": 1}, products={}, compartment='bioreactor')
 
@@ -255,7 +254,6 @@ def create_fba(sbml_file, directory):
                               reactants={"Glcxt": 9.84, "O2": 12.73}, products={"Ac": 1.24, "X": 1}, compartment='bioreactor')
     r_v4 = mc.create_reaction(model, rid="v4", name="v4", fast=False, reversible=False,
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
-
 
     # flux bounds
     mc.set_flux_bounds(r_vO2, lb="lb_irrev", ub="ub_vO2")
@@ -328,15 +326,109 @@ def create_bounds(sbml_file, directory):
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
     sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
+
+####################################################
+# ODE species update
+####################################################
+def create_update(sbml_file, directory):
+    """
+        Submodel for dynamically updating the metabolite count/concentration.
+        This updates the ode model based on the FBA fluxes.
+    """
+    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
+    doc = SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+
+    # model
+    model = doc.createModel()
+    model.setId("diauxic_update")
+    model.setName("ODE metabolite update")
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    add_generic_info(model)
+
+    # Compartments
+    objects = [
+        mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
+                       spatialDimension=3),
+        # internal
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+
+        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+        mc.Species(sid='X', name="biomass", value=0.001, unit='g_per_l', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+
+        # fluxes from fba
+        mc.Parameter(sid="vGlcxt", name="vGlcxt (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        mc.Parameter(sid="vAc", name="vAc (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        mc.Parameter(sid="vO2", name="vO2 (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="g_per_lh"),
+        # Michaelis-Menten kinetics for flux updates
+        mc.Parameter(sid="Km_vFBA", name="Km_vFBA", value=0.02, constant=True, unit="mM"),
+
+    ]
+    mc.create_objects(model, objects)
+
+    # kinetic reaction using FBA flux as upper bound
+    # Michaelis-Menten-Terms for restriction
+    mc.create_reaction(model, rid="update_Glcxt", reversible=False,
+                       reactants={"Glcxt": 1}, products={}, modifiers=["X"], formula="(vGlcxt*X) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
+    mc.create_reaction(model, rid="update_Ac", reversible=False,
+                       reactants={"Ac": 1}, products={}, modifiers=["X"], formula="(vAc*X) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
+    mc.create_reaction(model, rid="update_O2", reversible=False,
+                       reactants={"O2": 1}, products={}, modifiers=["X"], formula="(vO2*X) * O2/(Km_vFBA + O2)", compartment="bioreactor")
+    mc.create_reaction(model, rid="update_X", reversible=False,
+                       reactants={}, products={"X": 1}, modifiers=["X"], formula="(vX*X)", compartment="bioreactor")
+
+    # ports
+    comp._create_port(model, pid="vGlcxt_port", idRef="vGlcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="vAc_port", idRef="vAc", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="vO2_port", idRef="vO2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="vX_port", idRef="vX", portType=comp.PORT_TYPE_PORT)
+
+    comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
+
+    comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
+
+    # write SBML file
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
+
+####################################################
+# ODE/SSA model
+####################################################
+def create_ode(sbml_file, directory):
+    """" Kinetic submodel (coupled model to FBA). """
+    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
+    doc = SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+
+    # model
+    model = doc.createModel()
+    model.setId("diauxic ode")
+    model.setName("ODE submodel")
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    add_generic_info(model)
+
+
+    # write SBML file
+    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
+
 ########################################################################################################################
 if __name__ == "__main__":
-    from dgsettings import fba_file, bounds_file, out_dir
+    from dgsettings import fba_file, bounds_file, update_file, ode_file, out_dir
     import os
 
     # write & check sbml
-
     create_fba(fba_file, out_dir)
     create_bounds(bounds_file, out_dir)
+    create_update(update_file, out_dir)
+    create_ode(ode_file, out_dir)
 
-    # create_ode_update(ode_update_file, out_dir)
-    # create_ode_model(ode_model_file, out_dir)

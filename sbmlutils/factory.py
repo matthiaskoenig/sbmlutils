@@ -551,12 +551,13 @@ class RateRule(Rule):
 
 # TODO: Reaction class
 
-def create_reaction(model, rid, name, fast=False, reversible=True, reactants={}, products={},
+def create_reaction(model, rid, name=None, fast=False, reversible=True, reactants={}, products={}, modifiers=[],
                     formula=None, compartment=None):
     """ Create basic reaction structure. """
     r = model.createReaction()
     r.setId(rid)
-    r.setName(name)
+    if name:
+        r.setName(name)
     r.setFast(fast)
     r.setReversible(reversible)
 
@@ -571,6 +572,10 @@ def create_reaction(model, rid, name, fast=False, reversible=True, reactants={},
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
         rt.setConstant(True)
+
+    for sid in modifiers:
+        rt = r.createModifier()
+        rt.setSpecies(sid)
 
     if formula is not None:
         # set formula in reaction
