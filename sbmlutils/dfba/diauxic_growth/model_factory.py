@@ -85,7 +85,6 @@ import sbmlutils.comp as comp
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 
-
 XMLOutputStream.setWriteTimestamp(False)
 
 ########################################################################
@@ -107,7 +106,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
       </div>
 
     <h2>Terms of use</h2>
-      <div class="dc:rightsHolder">Copyright © 2016 Matthias Koenig</div>
+      <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
       <div class="dc:license">
       <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
       the following conditions are met:
@@ -144,12 +143,16 @@ units = [
     mc.Unit('l', [(UNIT_KIND_LITRE, 1.0)]),
 
     mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+    mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                    (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
                         (UNIT_KIND_LITRE, -1.0)]),
 
     mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
+    mc.Unit('mmol_per_g', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                           (UNIT_KIND_GRAM, -1.0)]),
+    mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
+                           (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
     mc.Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                             (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
     mc.Unit('mmol_per_lh', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
@@ -213,14 +216,13 @@ def create_fba(sbml_file, directory):
     # TODO: annotation of boundary fluxes
     species = [
         # internal
-        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-
-        mc.Species(sid='X', name="biomass", value=0.001, unit='g_per_l', hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", value=0.001, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
     ]
     mc.create_objects(model, species)
@@ -238,11 +240,11 @@ def create_fba(sbml_file, directory):
 
     # reactions with constant flux
     r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", fast=False, reversible=False,
-                            reactants={"O2_ext": 1}, products={"O2": 1}, compartment='bioreactor')
+                            reactants={}, products={"O2": 1}, compartment='bioreactor')
     r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", fast=False, reversible=False,
-                            reactants={"Glcxt_ext": 1}, products={"Glcxt": 1}, compartment='bioreactor')
+                            reactants={}, products={"Glcxt": 1}, compartment='bioreactor')
     r_vAc = mc.create_reaction(model, rid="vAc", name="Ac import (vAc)", fast=False, reversible=True,
-                            reactants={"Ac_ext": 1}, products={"Ac": 1}, compartment='bioreactor')
+                            reactants={}, products={"Ac": 1}, compartment='bioreactor')
     r_vX = mc.create_reaction(model, rid="vX", name="biomass generation (vX)", fast=False, reversible=False,
                             reactants={"X": 1}, products={}, compartment='bioreactor')
 
@@ -318,7 +320,7 @@ def create_bounds(sbml_file, directory):
 
         mc.Parameter(sid='ub_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
         mc.Parameter(sid='Vmax_vGlcxt', value=15, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
-        mc.Parameter(sid='Km_vGlcxt', value=0.015, unit="mM", name="Km_vGlcxt", constant=True),
+        mc.Parameter(sid='Km_vGlcxt', value=0.015, unit="mmol_per_l", name="Km_vGlcxt", constant=True),
 
         mc.AssignmentRule(sid="ub_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
         # # driving function to test the bound update
@@ -359,23 +361,27 @@ def create_update(sbml_file, directory):
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
                        spatialDimension=3),
         # internal
-        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
-        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", value=0.001, unit='g_per_l', hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", value=0.001, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
+
+        # biomass conversion factor
+        mc.Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
+        mc.AssignmentRule('Y', '1 g_per_mmol * X'),
 
         # fluxes from fba
         mc.Parameter(sid="vGlcxt", name="vGlcxt (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
         mc.Parameter(sid="vAc", name="vAc (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
         mc.Parameter(sid="vO2", name="vO2 (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
-        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="g_per_lh"),
+        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
         # Michaelis-Menten kinetics for flux updates
-        mc.Parameter(sid="Km_vFBA", name="Km_vFBA", value=0.02, constant=True, unit="mM"),
+        mc.Parameter(sid="Km_vFBA", name="Km_vFBA", value=0.02, constant=True, unit="mmol_per_l"),
 
     ]
     mc.create_objects(model, objects)
@@ -383,13 +389,13 @@ def create_update(sbml_file, directory):
     # kinetic reaction using FBA flux as upper bound
     # Michaelis-Menten-Terms for restriction
     mc.create_reaction(model, rid="update_Glcxt", reversible=False,
-                       reactants={"Glcxt": 1}, products={}, modifiers=["X"], formula="(vGlcxt*X) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
+                       reactants={"Glcxt": 1}, products={}, formula="(vGlcxt*Y*bioreactor) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_Ac", reversible=False,
-                       reactants={"Ac": 1}, products={}, modifiers=["X"], formula="(vAc*X) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
+                       reactants={"Ac": 1}, products={}, formula="(vAc*Y*bioreactor) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_O2", reversible=False,
-                       reactants={"O2": 1}, products={}, modifiers=["X"], formula="(vO2*X) * O2/(Km_vFBA + O2)", compartment="bioreactor")
+                       reactants={"O2": 1}, products={}, formula="(vO2*Y*bioreactor) * O2/(Km_vFBA + O2)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_X", reversible=False,
-                       reactants={}, products={"X": 1}, modifiers=["X"], formula="(vX*X)", compartment="bioreactor")
+                       reactants={}, products={"X": 1}, formula="(vX*Y*bioreactor)", compartment="bioreactor")
 
     # ports
     comp._create_port(model, pid="vGlcxt_port", idRef="vGlcxt", portType=comp.PORT_TYPE_PORT)
@@ -419,3 +425,5 @@ if __name__ == "__main__":
     create_bounds(bounds_file, out_dir)
     create_update(update_file, out_dir)
 
+#Expected units are mole (exponent = 1, multiplier = 1, scale = -3), second (exponent = -1, multiplier = 3600, scale = 0)
+#                   mole (exponent = 1, multiplier = 0.001, scale = 0), second (exponent = -1, multiplier = 3600, scale = 0), litre (exponent = -1, multiplier = 1, scale = 0).

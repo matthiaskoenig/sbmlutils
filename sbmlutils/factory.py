@@ -26,7 +26,7 @@ SBML_VERSION = 1
 
 #####################################################################
 
-def create_objects(model, obj_iter, debug=True):
+def create_objects(model, obj_iter, debug=False):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -340,12 +340,13 @@ class Compartment(ValueWithUnit):
 class Species(ValueWithUnit):
     """ Species. """
     def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
-                 hasOnlySubstanceUnits=False, name=None, sboTerm=None, metaId=None):
+                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None):
         super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.compartment = compartment
         self.constant = constant
         self.boundaryCondition = boundaryCondition
         self.hasOnlySubstanceUnits = hasOnlySubstanceUnits
+        self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
         """ Create species in model.
@@ -361,11 +362,12 @@ class Species(ValueWithUnit):
                               compartment=self.compartment,
                               boundaryCondition=self.boundaryCondition,
                               constant=self.constant,
-                              hasOnlySubstanceUnits=self.hasOnlySubstanceUnits)
+                              hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
+                              conversionFactor=self.conversionFactor)
 
     @staticmethod
     def _create(model, sid, name, value, unit, compartment,
-                boundaryCondition, constant, hasOnlySubstanceUnits):
+                boundaryCondition, constant, hasOnlySubstanceUnits, conversionFactor):
         """ Create libsbml Species.
 
         :param model:
@@ -377,6 +379,7 @@ class Species(ValueWithUnit):
         :param boundaryCondition:
         :param constant:
         :param hasOnlySubstanceUnits:
+        :param conversionFactor
         :return:
         """
         s = model.createSpecies()
@@ -397,6 +400,9 @@ class Species(ValueWithUnit):
         else:
             s.setInitialConcentration(value)
         s.setSubstanceUnits(model.getSubstanceUnits())
+
+        if conversionFactor:
+            s.setConversionFactor(conversionFactor)
 
         return s
 

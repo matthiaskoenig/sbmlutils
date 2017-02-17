@@ -181,6 +181,7 @@
                     <li><a href="#Compartments">Compartments</a></li>
                     <li><a href="#Species">Species</a></li>
                     <li><a href="#Parameters">Parameters</a></li>
+                    <li><a href="#Rules">Rules</a></li>
                     <li><a href="#Reactions">Reactions</a></li>
             </ul>
         </div>
@@ -209,7 +210,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
       <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
       </div>
   <h2>Terms of use</h2>
-  <div class="dc:rightsHolder">Copyright © 2016 Matthias Koenig</div>
+  <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
   <div class="dc:license">
     <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
       the following conditions are met:
@@ -229,7 +230,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
         <hr />
 
     <h1>Model : diauxic_update</h1>
-    <b>Creator</b><br />Matthias, Koenig, Humboldt University Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-02-17 14:29<br /><b>Modified:</b> 2017-02-17 14:29<br /><br />
+    <b>Creator</b><br />Matthias, Koenig, Humboldt University Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-02-17 17:50<br /><b>Modified:</b> 2017-02-17 17:50<br /><br />
     <table id="table_model_annotation" class="table table-condensed table-nonfluid table-hover">
         <tr>
             <td>
@@ -273,7 +274,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
         <table id="table_units" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">UnitDefinitions [12]</th>
+	<th scope="col" class="warning">UnitDefinitions [14]</th>
 	<th scope="col">name</th>
 	<th scope="col">units</th>
     <th scope="col">sbo</th>
@@ -358,7 +359,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mM</td>
+	<td class="active">mmol_per_l</td>
 	<td></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -412,6 +413,56 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
       </apply>
     </apply>
     <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td class="active">mmol_per_g</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> g </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td class="active">g_per_mmol</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> g </ci>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
   </apply>
 </math></td>
 	<td></td>
@@ -724,7 +775,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
         <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Parameters [5]</th>
+	<th scope="col" class="warning">Parameters [6]</th>
 	<th scope="col">name</th>
 	<th scope="col">value</th>
 	<th scope="col">unit</th>
@@ -735,6 +786,26 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 </tr>
             </thead>
             <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	<td class="active">Y</td>
+	<td>biomass [g_per_l]</td>
+	<td>            1.0
+    </td>
+	<td>g_per_l</td>
+	<td>        <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> g </ci>
+    <ci> litre </ci>
+  </apply>
+</math>
+</td>
+            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+
+	<td></td>
+	<td></td>
+</tr>
                 <tr>    <td class="hidden">Parameter</td>
 	<td class="active">vGlcxt</td>
 	<td>vGlcxt (FBA flux)</td>
@@ -848,15 +919,26 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	<td>vX (FBA flux)</td>
 	<td>            1.0
     </td>
-	<td>g_per_lh</td>
+	<td>mmol_per_hg</td>
 	<td>        <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
-    <ci> g </ci>
     <apply>
       <times/>
-      <ci> litre </ci>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> g </ci>
       <cn> 3600 </cn>
       <ci> s </ci>
     </apply>
@@ -873,7 +955,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	<td>Km_vFBA</td>
 	<td>            0.02
     </td>
-	<td>mM</td>
+	<td>mmol_per_l</td>
 	<td>        <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -910,6 +992,46 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <!--------------------------------------------------->
     <!-- Rules -->
     <!--------------------------------------------------->
+        <a class="anchor" id="Rules"></a>
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [1]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	<td class="active">Y</td>
+	<td>=</td>
+	<td>    <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
+  <apply>
+    <times/>
+    <cn sbml:units="g_per_mmol" type="integer"> 1 </cn>
+    <ci> X </ci>
+  </apply>
+</math>
+</td>
+    <td>        <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> g </ci>
+    <ci> litre </ci>
+  </apply>
+</math>
+</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
     
     <!--------------------------------------------------->
     <!-- Constraints -->
@@ -940,7 +1062,6 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	    <td class="danger">&#10142;</td>
 	<td>Glcxt &#10142; </td>
 	<td>
-        	X<br />
     </td>
 	<td>    <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -949,7 +1070,8 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <apply>
       <times/>
       <ci> vGlcxt </ci>
-      <ci> X </ci>
+      <ci> Y </ci>
+      <ci> bioreactor </ci>
       <ci> Glcxt </ci>
     </apply>
     <apply>
@@ -967,16 +1089,10 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <apply>
       <times/>
       <cn> 0.001 </cn>
-      <apply>
-        <power/>
-        <ci> mole </ci>
-        <cn type="integer"> 2 </cn>
-      </apply>
+      <ci> mole </ci>
     </apply>
     <apply>
       <times/>
-      <ci> g </ci>
-      <ci> litre </ci>
       <cn> 3600 </cn>
       <ci> s </ci>
     </apply>
@@ -992,7 +1108,6 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	    <td class="danger">&#10142;</td>
 	<td>Ac &#10142; </td>
 	<td>
-        	X<br />
     </td>
 	<td>    <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1001,7 +1116,8 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <apply>
       <times/>
       <ci> vAc </ci>
-      <ci> X </ci>
+      <ci> Y </ci>
+      <ci> bioreactor </ci>
       <ci> Ac </ci>
     </apply>
     <apply>
@@ -1019,16 +1135,10 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <apply>
       <times/>
       <cn> 0.001 </cn>
-      <apply>
-        <power/>
-        <ci> mole </ci>
-        <cn type="integer"> 2 </cn>
-      </apply>
+      <ci> mole </ci>
     </apply>
     <apply>
       <times/>
-      <ci> g </ci>
-      <ci> litre </ci>
       <cn> 3600 </cn>
       <ci> s </ci>
     </apply>
@@ -1044,7 +1154,6 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	    <td class="danger">&#10142;</td>
 	<td>O2 &#10142; </td>
 	<td>
-        	X<br />
     </td>
 	<td>    <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1053,7 +1162,8 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <apply>
       <times/>
       <ci> vO2 </ci>
-      <ci> X </ci>
+      <ci> Y </ci>
+      <ci> bioreactor </ci>
       <ci> O2 </ci>
     </apply>
     <apply>
@@ -1071,16 +1181,10 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <apply>
       <times/>
       <cn> 0.001 </cn>
-      <apply>
-        <power/>
-        <ci> mole </ci>
-        <cn type="integer"> 2 </cn>
-      </apply>
+      <ci> mole </ci>
     </apply>
     <apply>
       <times/>
-      <ci> g </ci>
-      <ci> litre </ci>
       <cn> 3600 </cn>
       <ci> s </ci>
     </apply>
@@ -1096,14 +1200,14 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 	    <td class="danger">&#10142;</td>
 	<td> &#10142; X</td>
 	<td>
-        	X<br />
     </td>
 	<td>    <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
     <ci> vX </ci>
-    <ci> X </ci>
+    <ci> Y </ci>
+    <ci> bioreactor </ci>
   </apply>
 </math>
 </td>
@@ -1113,7 +1217,6 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     <divide/>
     <apply>
       <times/>
-      <ci> g </ci>
       <apply>
         <power/>
         <cn type="integer"> 10 </cn>
@@ -1126,11 +1229,6 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
     </apply>
     <apply>
       <times/>
-      <apply>
-        <power/>
-        <ci> litre </ci>
-        <cn type="integer"> 2 </cn>
-      </apply>
       <cn> 3600 </cn>
       <ci> s </ci>
     </apply>

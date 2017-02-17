@@ -98,7 +98,7 @@ def create_top_level_model(sbml_file, directory):
     # Parameters
     mc.create_objects(model, [
         # bounds
-        mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False),
+        mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit="mmol_per_hg", constant=False),
 
         # fluxes from fba
         mc.Parameter(sid="vGlcxt", name="vGlcxt (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
