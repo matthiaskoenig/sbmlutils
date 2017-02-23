@@ -149,10 +149,11 @@ units = [
                         (UNIT_KIND_LITRE, -1.0)]),
 
     mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
-    mc.Unit('mmol_per_g', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                           (UNIT_KIND_GRAM, -1.0)]),
+    mc.Unit('per_g', [(UNIT_KIND_GRAM, -1.0)]),
     mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+    mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                             (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
     mc.Unit('mmol_per_lh', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
@@ -239,22 +240,22 @@ def create_fba(sbml_file, directory):
     mc.create_objects(model, parameters)
 
     # reactions with constant flux
-    r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", fast=False, reversible=False,
+    r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", reversible=False,
                             reactants={}, products={"O2": 1}, compartment='bioreactor')
-    r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", fast=False, reversible=False,
+    r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", reversible=False,
                             reactants={}, products={"Glcxt": 1}, compartment='bioreactor')
-    r_vAc = mc.create_reaction(model, rid="vAc", name="Ac import (vAc)", fast=False, reversible=True,
+    r_vAc = mc.create_reaction(model, rid="vAc", name="Ac import (vAc)", reversible=True,
                             reactants={}, products={"Ac": 1}, compartment='bioreactor')
-    r_vX = mc.create_reaction(model, rid="vX", name="biomass generation (vX)", fast=False, reversible=False,
+    r_vX = mc.create_reaction(model, rid="vX", name="biomass generation (vX)", reversible=False,
                             reactants={"X": 1}, products={}, compartment='bioreactor')
 
-    r_v1 = mc.create_reaction(model, rid="v1", name="v1", fast=False, reversible=False,
+    r_v1 = mc.create_reaction(model, rid="v1", name="v1", reversible=False,
                                reactants={"Ac": 39.43, "O2": 35}, products={"X": 1}, compartment='bioreactor')
-    r_v2 = mc.create_reaction(model, rid="v2", name="v2", fast=False, reversible=False,
+    r_v2 = mc.create_reaction(model, rid="v2", name="v2", reversible=False,
                               reactants={"Glcxt": 9.46, "O2": 12.92}, products={"X": 1}, compartment='bioreactor')
-    r_v3 = mc.create_reaction(model, rid="v3", name="v3", fast=False, reversible=False,
+    r_v3 = mc.create_reaction(model, rid="v3", name="v3", reversible=False,
                               reactants={"Glcxt": 9.84, "O2": 12.73}, products={"Ac": 1.24, "X": 1}, compartment='bioreactor')
-    r_v4 = mc.create_reaction(model, rid="v4", name="v4", fast=False, reversible=False,
+    r_v4 = mc.create_reaction(model, rid="v4", name="v4", reversible=False,
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
 
     # flux bounds
@@ -480,7 +481,7 @@ def create_top_level_model(sbml_file, directory):
 
     # Compartments
     mc.create_objects(model, [
-        mc.Compartment(sid='bioreactor', value=1.0, unit='l', constant=True, name='bioreactor',
+        mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
                        spatialDimension=3),
     ])
 
@@ -499,6 +500,7 @@ def create_top_level_model(sbml_file, directory):
                    compartment="bioreactor"),
         mc.Species(sid='X', name="biomass", value=0.001, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
+
         # dummy species for dummy reactions
         mc.Species(sid='S_dummy', name="S_dummy", value=0, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
@@ -513,7 +515,7 @@ def create_top_level_model(sbml_file, directory):
         mc.Parameter(sid="vGlcxt", name="vGlcxt (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
         mc.Parameter(sid="vAc", name="vAc (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
         mc.Parameter(sid="vO2", name="vO2 (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
-        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="g_per_lh"),
+        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
 
     ])
 
@@ -529,10 +531,10 @@ def create_top_level_model(sbml_file, directory):
                        reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
     # AssignmentRules
     mc.create_objects(model, [
-        mc.AssignmentRule(sid="vGlcxt", value="dummy_vGlcxt"),
-        mc.AssignmentRule(sid="vAc", value="dummy_vAc"),
-        mc.AssignmentRule(sid="vO2", value="dummy_vO2"),
-        mc.AssignmentRule(sid="vX", value="dummy_vX"),
+        mc.AssignmentRule(sid="vGlcxt", value="1 per_g * dummy_vGlcxt"),
+        mc.AssignmentRule(sid="vAc", value="1 per_g * dummy_vAc"),
+        mc.AssignmentRule(sid="vO2", value="1 per_g * dummy_vO2"),
+        mc.AssignmentRule(sid="vX", value="1 per_g * dummy_vX"),
     ])
 
     # --- replacements ---
