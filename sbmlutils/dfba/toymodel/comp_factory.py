@@ -138,8 +138,8 @@ def create_top_level_model(sbml_file, directory):
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
     # flatten the combined model
-    comp.flattenSBMLFile(sbml_file=os.path.join(directory, top_level_file),
-                         output_file=os.path.join(directory, flattened_file))
+    comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_level_file),
+                         output_path=os.path.join(directory, flattened_file))
 
     # change back the working dir
     os.chdir(working_dir)

@@ -75,7 +75,7 @@ def check_sbml(sbml):
         name = sbml[0:99] + '...'
 
     print('-'*80)
-    print("file: " + name)
+    print(name)
     print("read time (ms): " + str(time.clock() - current))
     print("validation error(s): " + str(Nerrors))
     print('-' * 80)

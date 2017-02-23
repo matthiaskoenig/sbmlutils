@@ -412,7 +412,6 @@ def create_update(sbml_file, directory):
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
 
-
 ####################################################
 # comp model
 ####################################################
@@ -462,9 +461,9 @@ def create_top_level_model(sbml_file, directory):
     mdoc = doc.getPlugin("comp")
 
     # create listOfExternalModelDefinitions
-    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file="./" + fba_file)
-    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file="./" + bounds_file)
-    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file="./" + update_file)
+    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file=fba_file)
+    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file=bounds_file)
+    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file=update_file)
 
     # create models and submodels
     model = doc.createModel()
@@ -597,22 +596,19 @@ def create_top_level_model(sbml_file, directory):
 
 ########################################################################################################################
 if __name__ == "__main__":
-    from dgsettings import fba_file, bounds_file, update_file, top_file, out_dir
+    from dgsettings import fba_file, bounds_file, update_file, top_file, flattened_file, out_dir
     import os
 
-    # write & check sbml
-    # create_fba(fba_file, out_dir)
-    # create_bounds(bounds_file, out_dir)
-    # create_update(update_file, out_dir)
+    # create sbml
+    create_fba(fba_file, out_dir)
+    create_bounds(bounds_file, out_dir)
+    create_update(update_file, out_dir)
     create_top_level_model(top_file, out_dir)
 
-    # create reports
-    for fname in [fba_file, bounds_file, update_file, top_file]:
-        sbmlreport.create_sbml_report(os.path.join(out_dir, fname), out_dir, validate=False)
+    # flatten top model
+    comp.flattenSBMLFile(sbml_path=os.path.join(out_dir, top_file),
+                         output_path=os.path.join(out_dir, flattened_file))
 
-    # flatten comp model
-    '''
-    comp_path = os.path.join(out_dir, comp_file)
-    flattened_path = os.path.join(out_dir, comp_file)
-    comp.flattenSBMLFile(sbml_file=comp_file, output_file=flattened_path)
-    '''
+    # create reports
+    for fname in [fba_file, bounds_file, update_file, top_file, flattened_file]:
+        sbmlreport.create_sbml_report(os.path.join(out_dir, fname), out_dir, validate=False)

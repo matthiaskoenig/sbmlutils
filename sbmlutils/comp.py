@@ -7,6 +7,7 @@ Heavily used in the dynamic FBA simulator.
 # TODO: refactor and unify with fbc & factory
 
 from __future__ import print_function, division
+import os
 import libsbml
 import sbmlutils.factory as factory
 from sbmlutils.validation import check
@@ -233,18 +234,30 @@ def _set_ref(object, ref_id, ref_type):
 ##########################################################################
 # flatten model
 ##########################################################################
-def flattenSBMLFile(sbml_file, leave_ports=True, output_file=None):
+def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     """ Flatten given SBML file.
 
-    :param sbml_file:
+    :param sbml_path:
     :param leave_ports:
-    :param output_file:
+    :param output_path:
     :return:
     """
+    print('-> flattenSBMLFile: ', sbml_path)
+    # necessary to change the working directory to the sbml file directory
+    # to resolve relative links to external model definitions.
+    working_dir = os.getcwd()
+    sbml_dir = os.path.dirname(sbml_path)
+    os.chdir(sbml_dir)
+
     reader = libsbml.SBMLReader()
     check(reader, 'create an SBMLReader object.')
-    doc = reader.readSBML(sbml_file)
-    return flattenSBMLDocument(doc, leave_ports=leave_ports, output_file=output_file)
+    doc = reader.readSBML(sbml_path)
+    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_file=output_path)
+
+    # change back the working dir
+    os.chdir(working_dir)
+
+    return flat_doc
 
 
 def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
@@ -255,7 +268,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
     :return:
     :rtype: SBMLDocument
     """
-
+    print('-> flattenSBMLDocument')
     if doc.getNumErrors() > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
             # Handle case of unreadable file here.
