@@ -80,17 +80,33 @@ def check_sbml(sbml):
     print("validation error(s): " + str(Nerrors))
     print('-' * 80)
 
-    # prints errors to stderr
-    # doc.printErrors()
-
-    # print to stdout
-    stream = libsbml.ostringstream()
-    doc.printErrors(stream)
-    sys.stdout.write(stream.str())
-    # sys.stderr.write(stream.str())
+    for k in range(Nerrors):
+        error = doc.getError(k)
+        error_str = error_string(error, k)
+        print(error_str)
 
     return Nerrors
 
+
+def error_string(error, k=None):
+    """ String representation of SBMLError.
+
+    :param error:
+    :return:
+    """
+    package = error.getPackage()
+    if package == '':
+        package = 'core'
+
+    error_str = 'E{}: {} ({}, L{}, {})  \n' \
+                '{}\n' \
+                '[{}] {}\n' \
+                '{}\n'.format(
+        k, error.getCategoryAsString(), package, error.getLine(), 'code',
+        '-' * 60,
+        error.getSeverityAsString(), error.getShortMessage(),
+        error.getMessage())
+    return error_str
 
 class SBMLValidator:
     def __init__(self, ucheck):
@@ -214,6 +230,7 @@ class SBMLValidator:
 
 
 if __name__ == "__main__":
+    # TODO: fix
     from sbmlutils.tests.testdata import test_sbml
     check_sbml(test_sbml)
 

@@ -164,7 +164,7 @@ units = [
 UNIT_AMOUNT = 'mmol'
 UNIT_AREA = 'm2'
 UNIT_VOLUME ='l'
-UNIT_CONCENTRATION = 'mM'
+UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_hg'
 
 
@@ -177,8 +177,8 @@ def add_generic_info(model):
     sbml_annotation.set_model_history(model, creators)
     mc.create_objects(model, units)
     mc.set_main_units(model, main_units)
+    # TODO: model specific notes, to clarify which models are which
     model.setNotes(notes)
-
 
 ####################################################
 # FBA submodel
@@ -490,17 +490,17 @@ def create_top_level_model(sbml_file, directory):
     #    and do not depend on the actual concentrations)
     mc.create_objects(model, [
         # internal
-        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
-        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", value=0.001, unit='g_per_l', hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", value=0.001, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
         # dummy species for dummy reactions
-        mc.Species(sid='S_dummy', name="S_dummy", value=0, unit='mM', hasOnlySubstanceUnits=False,
+        mc.Species(sid='S_dummy', name="S_dummy", value=0, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
     ])
 
