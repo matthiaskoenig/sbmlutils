@@ -216,7 +216,7 @@ class Simulator(object):
     The simulator is initialized with the top level sbml file.
     """
 
-    def __init__(self, sbml_top_path, output_directory=None):
+    def __init__(self, sbml_top_path):
         """ Create the simulator with the top level SBML file.
 
         The models are resolved to their respective simulation framework.
@@ -228,10 +228,12 @@ class Simulator(object):
         :param top_level_path: absolute path of top level SBML file
         :param output_directory: directory where output files are written
         """
-        # self.directory = directory
-        # working_dir = os.getcwd()
-        # necessary to go in the model folder to resolve the files
-        # os.chdir(directory)
+
+        # necessary to change the working directory to the sbml file directory
+        # to resolve relative links to external model definitions.
+        working_dir = os.getcwd()
+        sbml_dir = os.path.dirname(sbml_top_path)
+        os.chdir(sbml_dir)
 
         self.sbml_top = sbml_top_path
         self.sbml_dir = os.path.dirname(sbml_top_path)
@@ -249,7 +251,9 @@ class Simulator(object):
 
         self._process_top_level()
         self._prepare_models()
-        # os.chdir(working_dir)
+
+        # change back the working dir
+        os.chdir(working_dir)
 
     @staticmethod
     def get_framework(model):
@@ -362,6 +366,7 @@ class Simulator(object):
         ###########################
         # prepare FBA models
         ###########################
+        # FBA models are found based on the FBA modeling framework
         mdoc = self.doc_top.getPlugin("comp")
         for submodel in self.submodels[MODEL_FRAMEWORK_FBA]:
             mref = submodel.getModelRef()
@@ -379,7 +384,6 @@ class Simulator(object):
             fba_model.process_replacements(self.model_top)
             fba_model.process_flat_mapping(self.rr_comp)
             self.fba_models.append(fba_model)
-
             print(fba_model)
 
 
@@ -489,7 +493,7 @@ class Simulator(object):
         df_results.time = all_time
         return df_results
 
-    def plot_species(self, df, rr_comp, filename="species.png"):
+    def plot_species(self, filepath, df, rr_comp):
         """ Plot species.
 
         :param df:
@@ -502,11 +506,9 @@ class Simulator(object):
 
         ax_s = df.plot(x='time', y=species_ids)
         fig = ax_s.get_figure()
-        path = os.path.join(self.directory, filename)
-        print(path)
-        fig.savefig(path)
+        fig.savefig(filepath)
 
-    def plot_reactions(self, df, rr_comp, filename="reactions.png"):
+    def plot_reactions(self, filepath, df, rr_comp):
         """ Create reactions plots.
 
         :param df: solution pandas DataFrame
@@ -520,15 +522,11 @@ class Simulator(object):
 
         ax_r = df.plot(x='time', y=reaction_ids)
         fig = ax_r.get_figure()
-        path = os.path.join(self.directory, filename)
-        print(path)
-        fig.savefig(path)
+        fig.savefig(filepath)
 
-    def save_csv(self, df, filename="simulation.csv"):
+    def save_csv(self, filepath, df):
         """ Save results to csv. """
-        path = os.path.join(self.directory, filename)
-        print(path)
-        df.to_csv(path, sep="\t", index=False)
+        df.to_csv(filepath, sep="\t", index=False)
 
 
 ########################################################################################################################
@@ -539,15 +537,16 @@ if __name__ == "__main__":
     import timeit
 
     # Create simulator instance
-    simulator = Simulator(directory=toysettings.out_dir,
-                          top_level_file=toysettings.top_level_file)
+    directory = toysettings.out_dir
+    simulator = Simulator(sbml_top_path=os.path.join(toysettings.out_dir, toysettings.top_level_file))
 
     start_time = timeit.default_timer()
     df = simulator.simulate(tstart=0.0, tend=50.0, steps=500)
     elapsed = timeit.default_timer() - start_time
     logging.info("Simulation time: {}".format(elapsed))
-    simulator.plot_reactions(df, rr_comp=simulator.rr_comp)
-    simulator.plot_species(df, rr_comp=simulator.rr_comp)
-    simulator.save_csv(df)
-
-    # print(df)
+    simulator.plot_reactions(filepath=os.path.join(toysettings.out_dir, "reactions.png"),
+                             df=df, rr_comp=simulator.rr_comp)
+    simulator.plot_species(filepath=os.path.join(toysettings.out_dir, "species.png"),
+                                                 df=df, rr_comp=simulator.rr_comp)
+    simulator.save_csv(filepath=os.path.join(toysettings.out_dir, "simulation.csv"),
+                       df=df)

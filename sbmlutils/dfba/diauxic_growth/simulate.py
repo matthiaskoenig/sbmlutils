@@ -14,7 +14,8 @@ def simulate_diauxic_growth():
 
     :return:
     """
-    sbml_top_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results/diauxic_top.xml')
+    directory = os.path.dirname(os.path.abspath(__file__))
+    sbml_top_path = os.path.join(directory, 'results/diauxic_top.xml')
 
     # Load model in simulator
     sim = Simulator(sbml_top_path=sbml_top_path)
@@ -29,13 +30,9 @@ def simulate_diauxic_growth():
 
     pprint(df)
 
-    '''
-    # Create outputs
-    sim.plot_reactions(df, rr_comp=sim.rr_comp)
-    sim.plot_species(df, rr_comp=sim.rr_comp)
-    sim.save_csv(df)
-    '''
-
+    sim.plot_reactions(os.path.join(directory, "results/reactions.png"), df, rr_comp=sim.rr_comp)
+    sim.plot_species(os.path.join(directory, "results/species.png"), df, rr_comp=sim.rr_comp)
+    sim.save_csv(os.path.join(directory, "results/simulation.csv"), df)
 
 
 if __name__ == "__main__":
