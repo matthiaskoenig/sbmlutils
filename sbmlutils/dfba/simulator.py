@@ -330,6 +330,7 @@ class Simulator(object):
         ###########################
         # find FBA rules
         ###########################
+
         # process FBA assignment rules of the top model
         self.fba_rules = self.find_fba_rules(self.model_top)
         logging.debug('FBA rules: {}'.format(self.fba_rules))

@@ -22,7 +22,7 @@ def simulate_diauxic_growth():
 
     # Run simulation of hybrid model
     tend = 100
-    steps = 100
+    steps = 10*tend
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time

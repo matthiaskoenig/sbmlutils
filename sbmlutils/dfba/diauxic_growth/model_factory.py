@@ -528,12 +528,20 @@ def create_top_level_model(sbml_file, directory):
                        reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
     mc.create_reaction(model, rid="dummy_vX", name="vX dummy", reversible=False,
                        reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
+
     # AssignmentRules
+    # This are the important assignment rules which update the fluxes
+    # must be of the form: pid = rid
     mc.create_objects(model, [
-        mc.AssignmentRule(sid="vGlcxt", value="1 per_g * dummy_vGlcxt"),
-        mc.AssignmentRule(sid="vAc", value="1 per_g * dummy_vAc"),
-        mc.AssignmentRule(sid="vO2", value="1 per_g * dummy_vO2"),
-        mc.AssignmentRule(sid="vX", value="1 per_g * dummy_vX"),
+        mc.AssignmentRule(sid="vGlcxt", value="dummy_vGlcxt"),
+        mc.AssignmentRule(sid="vAc", value="dummy_vAc"),
+        mc.AssignmentRule(sid="vO2", value="dummy_vO2"),
+        mc.AssignmentRule(sid="vX", value="dummy_vX"),
+
+        # mc.AssignmentRule(sid="vGlcxt", value="1 per_g * dummy_vGlcxt"),
+        # mc.AssignmentRule(sid="vAc", value="1 per_g * dummy_vAc"),
+        # mc.AssignmentRule(sid="vO2", value="1 per_g * dummy_vO2"),
+        # mc.AssignmentRule(sid="vX", value="1 per_g * dummy_vX"),
     ])
 
     # --- replacements ---
