@@ -14,14 +14,13 @@ def simulate_diauxic_growth():
 
     :return:
     """
-    directory = os.path.dirname(os.path.abspath(__file__))
-    sbml_top_path = os.path.join(directory, 'results/diauxic_top.xml')
+    sbml_top_path = os.path.join(out_dir, 'diauxic_top.xml')
 
     # Load model in simulator
     sim = Simulator(sbml_top_path=sbml_top_path)
 
     # Run simulation of hybrid model
-    tend = 100
+    tend = 12
     steps = 10*tend
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
@@ -30,10 +29,59 @@ def simulate_diauxic_growth():
 
     pprint(df)
 
-    sim.plot_reactions(os.path.join(directory, "results/reactions.png"), df, rr_comp=sim.rr_comp)
-    sim.plot_species(os.path.join(directory, "results/species.png"), df, rr_comp=sim.rr_comp)
-    sim.save_csv(os.path.join(directory, "results/simulation.csv"), df)
+    sim.plot_reactions(os.path.join(out_dir, "reactions.png"), df, rr_comp=sim.rr_comp)
+    sim.plot_species(os.path.join(out_dir, "species.png"), df, rr_comp=sim.rr_comp)
+    sim.save_csv(os.path.join(out_dir, "simulation.csv"), df)
 
+    print_species(df)
+
+def print_species(df):
+    """ Print diauxic species.
+
+    :param df:
+    :return:
+    """
+    from matplotlib import pylab as plt
+
+    plt.rcParams.update({
+        'axes.labelsize': 'large',
+        'axes.labelweight': 'bold',
+        'axes.titlesize': 'large',
+        'axes.titleweight': 'bold',
+        'legend.fontsize': 'small',
+        'xtick.labelsize': 'large',
+        'ytick.labelsize': 'large',
+    })
+
+    fig, ((ax1, ax2),(ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
+
+    for ax in (ax1, ax3):
+        ax.plot(df.time, df['[Ac]'],
+                 linestyle='-', marker='s', color='darkred', label="Ac")
+        ax.plot(df.time, df['[Glcxt]'],
+             linestyle='-', marker='s', color='darkblue', label="Glcxt")
+        ax.plot(df.time, df['[O2]'],
+             linestyle='-', marker='s', color='darkgreen', label="O2")
+    ax3.set_yscale('log')
+    ax3.set_ylim([10E-12, 15])
+
+    for ax in (ax2, ax4):
+        ax.plot(df.time, df['[X]'],
+             linestyle='-', marker='s', color='black', label="X biomass")
+    ax4.set_yscale('log')
+
+    for ax in (ax1, ax3):
+        ax.set_ylabel('Concentration [?]')
+
+    for ax in (ax2, ax4):
+        ax.set_ylabel('Biomass [?]')
+
+    for ax in (ax1, ax2, ax3, ax4):
+        ax.set_title('Diauxic Growth')
+        ax.set_xlabel('time [h]')
+        ax.legend()
+
+    fig.savefig(os.path.join(out_dir, "species_growth.png"))
 
 if __name__ == "__main__":
     simulate_diauxic_growth()
