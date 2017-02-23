@@ -453,8 +453,6 @@ def create_top_level_model(sbml_file, directory):
         <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
     </listOfParameters>
     """
-    working_dir = os.getcwd()
-    os.chdir(directory)
     sbmlns = SBMLNamespaces(3, 1, "comp", 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
@@ -537,7 +535,6 @@ def create_top_level_model(sbml_file, directory):
         mc.AssignmentRule(sid="vX", value="dummy_vX"),
     ])
 
-
     # --- replacements ---
 
     # compartments
@@ -593,13 +590,6 @@ def create_top_level_model(sbml_file, directory):
     # write SBML file
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
-    # flatten the combined model
-    comp.flattenSBMLFile(sbml_file=os.path.join(directory, comp_file),
-                         output_file=os.path.join(directory, flattened_file))
-
-    # change back the working dir
-    os.chdir(working_dir)
-
 
 ########################################################################################################################
 if __name__ == "__main__":
@@ -611,3 +601,8 @@ if __name__ == "__main__":
     # create_bounds(bounds_file, out_dir)
     # create_update(update_file, out_dir)
     create_top_level_model(comp_file, out_dir)
+
+    # flatten comp model
+    comp_path = os.path.join(out_dir, comp_file)
+    flattened_path = os.path.join(out_dir, comp_file)
+    comp.flattenSBMLFile(sbml_file=comp_file, output_file=flattened_path)
