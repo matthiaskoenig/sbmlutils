@@ -462,9 +462,9 @@ def create_top_level_model(sbml_file, directory):
     mdoc = doc.getPlugin("comp")
 
     # create listOfExternalModelDefinitions
-    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file=fba_file)
-    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file=bounds_file)
-    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file=update_file)
+    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file="./" + fba_file)
+    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file="./" + bounds_file)
+    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file="./" + update_file)
 
     # create models and submodels
     model = doc.createModel()

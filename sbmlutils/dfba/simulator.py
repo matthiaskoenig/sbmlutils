@@ -20,6 +20,7 @@ import cobra
 import pandas as pd
 from pandas import DataFrame
 import numpy
+import tempfile
 
 from collections import defaultdict
 
@@ -215,19 +216,26 @@ class Simulator(object):
     The simulator is initialized with the top level sbml file.
     """
 
-    def __init__(self, directory, top_level_file):
+    def __init__(self, sbml_top_path, output_directory=None):
         """ Create the simulator with the top level SBML file.
 
         The models are resolved to their respective simulation framework.
         The top level network must be an ode network.
 
-        :param directory: directory where output files are written
-        :param top_level_file: comp top level file
+        Provide absolute path for the top level file.
+
+
+        :param top_level_path: absolute path of top level SBML file
+        :param output_directory: directory where output files are written
         """
-        self.directory = directory
-        working_dir = os.getcwd()
-        os.chdir(directory)
-        self.sbml_top = top_level_file
+        # self.directory = directory
+        # working_dir = os.getcwd()
+        # necessary to go in the model folder to resolve the files
+        # os.chdir(directory)
+
+        self.sbml_top = sbml_top_path
+        self.sbml_dir = os.path.dirname(sbml_top_path)
+
         # read top level model
         self.doc_top = libsbml.readSBMLFromFile(self.sbml_top)
         self.model_top = self.doc_top.getModel()
@@ -241,7 +249,7 @@ class Simulator(object):
 
         self._process_top_level()
         self._prepare_models()
-        os.chdir(working_dir)
+        # os.chdir(working_dir)
 
     @staticmethod
     def get_framework(model):
@@ -258,7 +266,7 @@ class Simulator(object):
             sbo = model.getSBOTerm()
             if sbo == 624:
                 framework = MODEL_FRAMEWORK_FBA
-            elif sbo == 62:
+            elif sbo in [293]:
                 framework = MODEL_FRAMEWORK_ODE
             elif sbo == 63:
                 framework = MODEL_FRAMEWORK_STOCHASTIC
@@ -320,7 +328,7 @@ class Simulator(object):
         ###########################
         # process FBA assignment rules of the top model
         self.fba_rules = self.find_fba_rules(self.model_top)
-        logging.debug('FBA rules:', self.fba_rules)
+        logging.debug('FBA rules: {}'.format(self.fba_rules))
 
         ###########################
         # prepare ODE model
@@ -336,7 +344,6 @@ class Simulator(object):
         for variable in self.fba_rules.values():
             self.model_top.removeRuleByVariable(variable)
 
-        import tempfile
         mixed_sbml_cleaned = tempfile.NamedTemporaryFile("w", suffix=".xml")
         libsbml.writeSBMLToFile(self.doc_top, mixed_sbml_cleaned.name)
 
@@ -360,6 +367,14 @@ class Simulator(object):
             mref = submodel.getModelRef()
             emd = mdoc.getExternalModelDefinition(mref)
             source = emd.getSource()
+            # check if relative path
+            if not os.path.exists(source):
+                s2 = os.path.join(self.sbml_dir, source)
+                if not os.path.exists(s2):
+                    warnings.warn('FBA source cannot be resolved:' + source)
+                else:
+                    source = s2
+
             fba_model = FBAModel(submodel=submodel, source=source, fba_rules=self.fba_rules)
             fba_model.process_replacements(self.model_top)
             fba_model.process_flat_mapping(self.rr_comp)
