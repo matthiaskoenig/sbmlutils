@@ -75,13 +75,13 @@ tend = 10 [h]
 steps = 10000
 
 -----------------------------------------------
-
 """
+
 from libsbml import *
 
 import sbmlutils.sbmlio as sbml_io
 import sbmlutils.annotation as sbml_annotation
-import sbmlutils.comp as comp
+from sbmlutils import comp
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 
@@ -291,8 +291,6 @@ def create_fba(sbml_file, directory):
     # write SBML file
     sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
 
-    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
-
 
 ####################################################
 # ODE flux bounds
@@ -334,7 +332,6 @@ def create_bounds(sbml_file, directory):
     comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
 
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
-    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
 
 
 ####################################################
@@ -412,13 +409,12 @@ def create_update(sbml_file, directory):
 
     # write SBML file
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
-    sbmlreport.create_sbml_report(os.path.join(directory, sbml_file), directory)
+
 
 
 ####################################################
 # comp model
 ####################################################
-from sbmlutils import comp
 
 
 def create_top_level_model(sbml_file, directory):
@@ -453,6 +449,10 @@ def create_top_level_model(sbml_file, directory):
         <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
     </listOfParameters>
     """
+    # Necessary to change into directory with submodel files
+    working_dir = os.getcwd()
+    os.chdir(directory)
+
     sbmlns = SBMLNamespaces(3, 1, "comp", 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
@@ -589,20 +589,28 @@ def create_top_level_model(sbml_file, directory):
 
     # write SBML file
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    # change back into working dir
+    os.chdir(working_dir)
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    from dgsettings import fba_file, bounds_file, update_file, comp_file, out_dir
+    from dgsettings import fba_file, bounds_file, update_file, top_file, out_dir
     import os
 
     # write & check sbml
     # create_fba(fba_file, out_dir)
     # create_bounds(bounds_file, out_dir)
     # create_update(update_file, out_dir)
-    create_top_level_model(comp_file, out_dir)
+    create_top_level_model(top_file, out_dir)
+
+    # create reports
+    for fname in [fba_file, bounds_file, update_file, top_file]:
+        sbmlreport.create_sbml_report(os.path.join(out_dir, fname), out_dir, validate=False)
 
     # flatten comp model
+    '''
     comp_path = os.path.join(out_dir, comp_file)
     flattened_path = os.path.join(out_dir, comp_file)
     comp.flattenSBMLFile(sbml_file=comp_file, output_file=flattened_path)
+    '''

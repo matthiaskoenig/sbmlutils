@@ -42,7 +42,7 @@ from sbmlutils.validation import validate_sbml
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 
-def create_sbml_report(sbml, out_dir, template='report.html', promote=False):
+def create_sbml_report(sbml, out_dir, template='report.html', promote=False, validate=True):
     """ Creates the SBML report in the out_dir
 
     :param doc:
@@ -57,7 +57,8 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False):
         warnings.warn('SBML file does not exist: {}'.format(sbml))
 
     # check the sbml file
-    validate_sbml(sbml)
+    if validate:
+        validate_sbml(sbml)
 
     # read sbml
     doc = libsbml.readSBML(sbml)
