@@ -417,7 +417,7 @@ def create_update(sbml_file, directory):
 ####################################################
 
 
-def create_top_level_model(sbml_file, directory):
+def create_top_level_model(sbml_file, directory, emds):
     """
     Create diauxic comp model.
     Test script for working with the comp extension in SBML.
@@ -461,9 +461,9 @@ def create_top_level_model(sbml_file, directory):
     mdoc = doc.getPlugin("comp")
 
     # create listOfExternalModelDefinitions
-    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file=fba_file)
-    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file=bounds_file)
-    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file=update_file)
+    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file=emds["diauxic_fba"])
+    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file=emds["diauxic_bounds"])
+    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file=emds["diauxic_update"])
 
     # create models and submodels
     model = doc.createModel()
@@ -602,21 +602,41 @@ def create_top_level_model(sbml_file, directory):
     os.chdir(working_dir)
 
 
-########################################################################################################################
-if __name__ == "__main__":
+def create_models():
+    """ Create all models.
+
+    :return:
+    """
     from dgsettings import fba_file, bounds_file, update_file, top_file, flattened_file, out_dir
     import os
 
+    directory = os.path.join(out_dir, 'v{}'.format(version))
+    if not os.path.exists(directory):
+        print('Create directory: {}'.format(directory))
+        os.mkdir(directory)
+
     # create sbml
-    create_fba(fba_file, out_dir)
-    create_bounds(bounds_file, out_dir)
-    create_update(update_file, out_dir)
-    create_top_level_model(top_file, out_dir)
+    create_fba(fba_file, directory)
+    create_bounds(bounds_file, directory)
+    create_update(update_file, directory)
+
+    emds = {
+        "diauxic_fba": fba_file,
+        "diauxic_bounds": bounds_file,
+        "diauxic_update": update_file,
+    }
+
+    create_top_level_model(top_file, directory, emds)
 
     # flatten top model
-    comp.flattenSBMLFile(sbml_path=os.path.join(out_dir, top_file),
-                         output_path=os.path.join(out_dir, flattened_file))
+    comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_file),
+                         output_path=os.path.join(directory, flattened_file))
 
     # create reports
     for fname in [fba_file, bounds_file, update_file, top_file, flattened_file]:
-        sbmlreport.create_sbml_report(os.path.join(out_dir, fname), out_dir, validate=False)
+        sbmlreport.create_sbml_report(os.path.join(directory, fname), directory, validate=False)
+
+
+########################################################################################################################
+if __name__ == "__main__":
+    create_models()

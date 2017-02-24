@@ -3,18 +3,19 @@ from __future__ import print_function, division
 # directory to write files to
 import os
 import timeit
-from pprint import pprint
-out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
-
 from sbmlutils.dfba.simulator import Simulator
 
+import dgsettings
+import model_factory
+directory = os.path.join(dgsettings.out_dir, 'v{}'.format(model_factory.version))
+sbml_top_path = os.path.join(directory, dgsettings.top_file)
 
-def simulate_diauxic_growth(tend=12, steps=120):
+
+def simulate_diauxic_growth(sbml_top_path, tend, steps):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
     """
-    sbml_top_path = os.path.join(out_dir, 'diauxic_top.xml')
 
     # Load model in simulator
     sim = Simulator(sbml_top_path=sbml_top_path)
@@ -26,15 +27,15 @@ def simulate_diauxic_growth(tend=12, steps=120):
 
     print("\nSimulation time: {}\n".format(elapsed))
 
-    sim.plot_reactions(os.path.join(out_dir, "reactions.png"), df, rr_comp=sim.rr_comp)
-    sim.plot_species(os.path.join(out_dir, "species.png"), df, rr_comp=sim.rr_comp)
-    sim.save_csv(os.path.join(out_dir, "simulation.csv"), df)
+    sim.plot_reactions(os.path.join(directory, "reactions.png"), df, rr_comp=sim.rr_comp)
+    sim.plot_species(os.path.join(directory, "species.png"), df, rr_comp=sim.rr_comp)
+    sim.save_csv(os.path.join(directory, "simulation.csv"), df)
 
-    print_species(df)
+    print_species(os.path.join(directory, "species_growth.png"), df)
     return df
 
 
-def print_species(df):
+def print_species(filepath, df):
     """ Print diauxic species.
 
     :param df:
@@ -80,11 +81,13 @@ def print_species(df):
         ax.set_xlabel('time [h]')
         ax.legend()
 
-    fig.savefig(os.path.join(out_dir, "species_growth.png"))
+    fig.savefig(filepath)
 
 if __name__ == "__main__":
     tend = 15
     steps = 10*tend
-    df = simulate_diauxic_growth(tend, steps)
+    import logging
+    # logging.getLogger().setLevel(logging.INFO)
+    df = simulate_diauxic_growth(sbml_top_path, tend, steps)
 
 
