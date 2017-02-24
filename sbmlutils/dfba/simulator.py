@@ -10,7 +10,7 @@ ODE models are simulated with roadrunner, FBA models using cobrapy.
 # TODO: Fix the zero time point of the simulation, how to handle this correctly (when are fluxes calculated
 #       and when are the updates written (order and timing of updates)
 
-# TODO:
+# TODO: handle submodels directly defined in model
 
 from __future__ import print_function, division
 import os
@@ -42,174 +42,6 @@ MODEL_FRAMEWORKS = [
     MODEL_FRAMEWORK_LOGICAL,
 ]
 #################################################
-
-
-class FBAModel(object):
-    """ FBA models.
-    This are the submodels which are
-
-    """
-    # TODO: handle submodels directly defined in model
-
-    def __init__(self, submodel, source, fba_rules):
-        self.source = source
-        self.submodel = submodel
-
-        # read the model
-        self.fba_doc = libsbml.readSBMLFromFile(source)
-        self.fba_model = self.fba_doc.getModel()
-        self.cobra_model = cobra.io.read_sbml_model(source)
-
-        # parameters to replace in top model
-        self.fba_rules = self.process_fba_rules(fba_rules)
-
-        # bounds are mappings from parameters to reactions
-        #       parameter_id -> [rid1, rid2, ...]
-        self.ub_parameters = defaultdict(list)
-        self.lb_parameters = defaultdict(list)
-        self.ub_replacements = []
-        self.lb_replacements = []
-        self.flat_mapping = {}
-        self.process_bounds()
-
-    def __str__(self):
-        """ Information string. """
-        # s = "{}\n".format('-' * 80)
-        s = "{} {}\n".format(self.submodel, self.source)
-        # s += "{}\n".format('-' * 80)
-        s += "\t{:<20}: {}\n".format('FBA rules', self.fba_rules)
-        s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
-        s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
-        s += "\t{:<20}: {}\n".format('ub replacements', self.ub_replacements)
-        s += "\t{:<20}: {}\n".format('lb replacements', self.lb_replacements)
-        s += "\t{:<20}: {}\n".format('flat mapping', self.flat_mapping)
-        # s += "{}\n".format('-' * 80)
-
-        return s
-
-    def process_fba_rules(self, fba_rules):
-        """ Returns subset of fba_rules relevant for the FBA model.
-
-        :param fba_rules:
-        :type fba_rules:
-        :return:
-        :rtype:
-        """
-        rules = {}
-        for rid, pid in fba_rules.iteritems():
-            if self.fba_model.getReaction(rid) is not None:
-                rules[rid] = pid
-        return rules
-
-    def process_bounds(self):
-        """  Determine which parameters are upper or lower bounds.
-        :return:
-        :rtype:
-        """
-        for r in self.fba_model.getListOfReactions():
-            mr = r.getPlugin("fbc")
-            rid = r.getId()
-            if mr.isSetUpperFluxBound():
-                self.ub_parameters[mr.getUpperFluxBound()].append(rid)
-            if mr.isSetLowerFluxBound():
-                self.lb_parameters[mr.getLowerFluxBound()].append(rid)
-
-    def process_replacements(self, top_model):
-        """ Process the global replacements once. """
-        for p in top_model.getListOfParameters():
-            pid = p.getId()
-            mp = p.getPlugin("comp")
-            for rep_element in mp.getListOfReplacedElements():
-                # the submodel of the replacement belongs to the current model
-                if rep_element.getSubmodelRef() == self.submodel.getId():
-                    # and parameter is part of the bounds
-                    if pid in self.ub_parameters:
-                        self.ub_replacements.append(pid)
-                    if pid in self.lb_parameters:
-                        self.lb_replacements.append(pid)
-
-    def process_flat_mapping(self, rr_comp):
-        """ Get the id mapping of the fluxes to the
-        flattend model.
-
-        :param top_model:
-        :type top_model:
-        :return:
-        :rtype:
-        """
-        smid = self.submodel.getId()
-        map = {}
-
-        fba_rids = set()
-        for rid in rr_comp.model.getReactionIds():
-            if rid.startswith('{}__'.format(smid)):
-                fba_rids.add(rid)
-
-        for r in self.fba_model.getListOfReactions():
-            rid = r.getId()
-            if '{}__{}'.format(smid, rid) in fba_rids:
-                map[rid] = '{}__{}'.format(smid, rid)
-            else:
-                map[rid] = rid
-
-        self.flat_mapping = map
-
-    def update_fba_bounds(self, rr_comp):
-        """
-        Uses the global parameter replacements for replacements which replace the bounds
-        of reactions.
-
-        :param model:
-        :type model:
-        :return:
-        :rtype:
-        """
-        logging.debug('* update_fba_bounds *')
-        for pid in self.ub_replacements:
-            for rid in self.ub_parameters.get(pid):
-                logging.debug('{}: (upper) -> {}'.format(rid, pid))
-                cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                cobra_reaction.upper_bound = rr_comp[pid]
-
-        for pid in self.lb_replacements:
-            for rid in self.lb_parameters.get(pid):
-                logging.debug('{}: (lower) -> {}'.format(rid, pid))
-                cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                cobra_reaction.lower_bound = rr_comp[pid]
-
-    def optimize(self):
-        """ Optimize the model """
-        # TODO: start with last solution (speed improvement)
-        logging.debug("* optimize *")
-        self.cobra_model.optimize()
-
-        logging.debug('Solution status: {}'.format(self.cobra_model.solution.status))
-        logging.debug('Solution fluxes: {}'.format(self.cobra_model.solution.x_dict))
-
-    def set_ode_fluxes(self, rr_comp):
-        """ Set fluxes in ODE part.
-
-        Based on replacements the fluxes are written in the kinetic part
-        :param rr_comp:
-        :type rr_comp:
-        :return:
-        :rtype:
-        """
-        logging.debug("* set_ode_fluxes *")
-        for rid, pid in self.fba_rules.iteritems():
-            flux = self.cobra_model.solution.x_dict[rid]
-            rr_comp[pid] = flux
-            logging.debug('{}: {} = {}'.format(rid, pid, flux))
-
-    def log_flux_bounds(self):
-        """ Prints flux bounds for all reactions. """
-        info = []
-        for r in self.cobra_model.reactions:
-            info.append([r.id, r.lower_bound, r.upper_bound])
-        df = DataFrame(info, columns=['id', 'lb', 'ub'])
-        pd.set_option('display.max_rows', len(df))
-        logging.debug(df)
-        pd.reset_option('display.max_rows')
 
 
 class Simulator(object):
@@ -293,7 +125,10 @@ class Simulator(object):
         for framework in MODEL_FRAMEWORKS:
             s += "{:<10} : {}\n".format(framework, self.submodels[framework])
         # FBA rules
-        s += "{:<10} : {}\n".format('fba rules', self.fba_rules)
+        s += "{:<10} :\n".format('fba rules', self.fba_rules)
+        for key in sorted(self.fba_rules):
+            value = self.fba_rules[key]
+            s += "{:<12} {} <-> {}\n".format('', key, value)
 
         # FBA model information
         for fba_model in self.fba_models:
@@ -303,7 +138,7 @@ class Simulator(object):
         return s
 
     def fba_rules_str(self):
-        """ Printable string for the FBA rules
+        """ Information string of FBA rules.
 
         :return:
         """
@@ -445,7 +280,7 @@ class Simulator(object):
         # TODO: store directly in numpy arrays for speed improvements
 
         logging.debug('###########################')
-        logging.debug('# Simulation')
+        logging.debug('# Start Simulation')
         logging.debug('###########################')
 
         points = steps + 1
@@ -480,6 +315,7 @@ class Simulator(object):
             # --------------------------------------
             # ODE
             # --------------------------------------
+            logging.debug('* ODE integration')
             if points:
                 # constant step size
                 if kstep == 0:
@@ -494,24 +330,30 @@ class Simulator(object):
             row = result[1, :]
 
             # store fba fluxes
+            logging.debug('* Copy fluxes in ODE solution')
             for fba_model in self.fba_models:
                 for k, v in fba_model.flat_mapping.iteritems():
                     flux = fba_model.cobra_model.solution.x_dict[k]
                     vindex = df_results.columns.get_loc(v)
                     row[vindex] = flux
-
             all_results.append(row)
 
             # store and update time
             kstep += 1
             time += step_size
 
-            logging.debug(result)
+            from pandas import Series
+            logging.debug(Series(row, index=self.rr_comp.timeCourseSelections))
 
         # create result matrix
         df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections,
                                   data=all_results)
         df_results.time = all_time
+
+        logging.debug('###########################')
+        logging.debug('# Stop Simulation')
+        logging.debug('###########################')
+
         return df_results
 
     def plot_species(self, filepath, df, rr_comp):
@@ -539,7 +381,6 @@ class Simulator(object):
         :rtype:
         """
         reaction_ids = rr_comp.model.getReactionIds()
-        print(reaction_ids)
 
         ax_r = df.plot(x='time', y=reaction_ids)
         fig = ax_r.get_figure()
@@ -549,6 +390,182 @@ class Simulator(object):
         """ Save results to csv. """
         df.to_csv(filepath, sep="\t", index=False)
 
+
+class FBAModel(object):
+    """ FBA model.
+
+    This class provides functionality for the fba submodels.
+    Handles setting of FBA bounds & optimization.
+    """
+    def __init__(self, submodel, source, fba_rules):
+        self.source = source
+        self.submodel = submodel
+
+        # read model
+        self.fba_doc = libsbml.readSBMLFromFile(source)
+        self.fba_model = self.fba_doc.getModel()
+        self.cobra_model = cobra.io.read_sbml_model(source)
+
+        # parameters to replace in top model
+        self.fba_rules = self.process_fba_rules(fba_rules)
+
+        # bounds are mappings from parameters to reactions
+        #       parameter_id -> [rid1, rid2, ...]
+        self.ub_parameters = defaultdict(list)
+        self.lb_parameters = defaultdict(list)
+        self.ub_replacements = []
+        self.lb_replacements = []
+        self.flat_mapping = {}
+        self.process_bounds()
+
+    def __str__(self):
+        """ Information string. """
+        # s = "{}\n".format('-' * 80)
+        s = "{} {}\n".format(self.submodel, self.source)
+        # s += "{}\n".format('-' * 80)
+        s += "\t{:<20}: {}\n".format('FBA rules', self.fba_rules)
+        s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
+        s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
+        s += "\t{:<20}: {}\n".format('ub replacements', self.ub_replacements)
+        s += "\t{:<20}: {}\n".format('lb replacements', self.lb_replacements)
+        s += "\t{:<20}: {}\n".format('flat mapping', self.flat_mapping)
+        # s += "{}\n".format('-' * 80)
+
+        return s
+
+    def process_fba_rules(self, fba_rules):
+        """ Returns subset of fba_rules relevant for the FBA model.
+
+        Only fba rules are relevant which if there is a reaction in the fba submodel
+        which has the parameter id.
+
+        :param fba_rules:
+        :type fba_rules:
+        :return:
+        :rtype:
+        """
+        rules = {}
+        for rid, pid in fba_rules.iteritems():
+            if self.fba_model.getReaction(rid) is not None:
+                rules[rid] = pid
+        return rules
+
+    def process_bounds(self):
+        """  Determine which parameters are upper or lower bounds.
+        :return:
+        :rtype:
+        """
+        for r in self.fba_model.getListOfReactions():
+            mr = r.getPlugin("fbc")
+            rid = r.getId()
+            if mr.isSetUpperFluxBound():
+                self.ub_parameters[mr.getUpperFluxBound()].append(rid)
+            if mr.isSetLowerFluxBound():
+                self.lb_parameters[mr.getLowerFluxBound()].append(rid)
+
+    def process_replacements(self, top_model):
+        """ Process the global replacements once. """
+        for p in top_model.getListOfParameters():
+            pid = p.getId()
+            mp = p.getPlugin("comp")
+            for rep_element in mp.getListOfReplacedElements():
+                # the submodel of the replacement belongs to the current model
+                if rep_element.getSubmodelRef() == self.submodel.getId():
+                    # and parameter is part of the bounds
+                    if pid in self.ub_parameters:
+                        self.ub_replacements.append(pid)
+                    if pid in self.lb_parameters:
+                        self.lb_replacements.append(pid)
+
+    def process_flat_mapping(self, rr_comp):
+        """ Get the id mapping of the fluxes to the
+        flattend model.
+
+        :param top_model:
+        :type top_model:
+        :return:
+        :rtype:
+        """
+        smid = self.submodel.getId()
+        map = {}
+
+        fba_rids = set()
+        for rid in rr_comp.model.getReactionIds():
+            if rid.startswith('{}__'.format(smid)):
+                fba_rids.add(rid)
+
+        for r in self.fba_model.getListOfReactions():
+            rid = r.getId()
+            if '{}__{}'.format(smid, rid) in fba_rids:
+                map[rid] = '{}__{}'.format(smid, rid)
+            else:
+                map[rid] = rid
+
+        self.flat_mapping = map
+
+    def update_fba_bounds(self, rr_comp):
+        """
+        Uses the global parameter replacements to replace the bounds
+        of reactions with the current values in the kinetic model.
+
+        :param model:
+        :type model:
+        :return:
+        :rtype:
+        """
+        logging.debug('* FBA set bounds ')
+        for pid in self.ub_replacements:
+            for rid in self.ub_parameters.get(pid):
+                logging.debug('\t{}: (upper) -> {}'.format(rid, pid))
+                cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
+                cobra_reaction.upper_bound = rr_comp[pid]
+
+        for pid in self.lb_replacements:
+            for rid in self.lb_parameters.get(pid):
+                logging.debug('\t{}: (lower) -> {}'.format(rid, pid))
+                cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
+                cobra_reaction.lower_bound = rr_comp[pid]
+
+    def optimize(self):
+        """ Optimize FBA model.
+
+        """
+        # TODO: handle maximization & minimization, currently only maximization
+        logging.debug("* FBA optimize")
+        self.cobra_model.optimize()
+
+        logging.debug('\tstatus: {}'.format(self.cobra_model.solution.status))
+        for skey in sorted(self.cobra_model.solution.x_dict):
+            flux = self.cobra_model.solution.x_dict[skey]
+            logging.debug('\t{:<10}: {}'.format(skey, flux))
+            # logging.debug(''.format(self.cobra_model.solution.x_dict))
+
+    def set_ode_fluxes(self, rr_comp):
+        """ Set fluxes in ODE part.
+
+        Based on replacements the FBA fluxes are written in the kinetic flattended model.
+        :param rr_comp:
+        :type rr_comp:
+        :return:
+        :rtype:
+        """
+        logging.debug("* ODE set FBA fluxes")
+        for rid, pid in self.fba_rules.iteritems():
+            flux = self.cobra_model.solution.x_dict[rid]
+            rr_comp[pid] = flux
+            logging.debug('\t{}: {} = {}'.format(rid, pid, flux))
+        else:
+            logging.debug('\tNo flux replacements')
+
+    def log_flux_bounds(self):
+        """ Prints flux bounds for all reactions. """
+        info = []
+        for r in self.cobra_model.reactions:
+            info.append([r.id, r.lower_bound, r.upper_bound])
+        df = DataFrame(info, columns=['id', 'lb', 'ub'])
+        pd.set_option('display.max_rows', len(df))
+        logging.debug(df)
+        pd.reset_option('display.max_rows')
 
 ########################################################################################################################
 if __name__ == "__main__":

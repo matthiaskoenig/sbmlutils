@@ -23,7 +23,8 @@ def simulate_diauxic_growth(tend=12, steps=120):
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time
-    print("Simulation time: {}".format(elapsed))
+
+    print("\nSimulation time: {}\n".format(elapsed))
 
     sim.plot_reactions(os.path.join(out_dir, "reactions.png"), df, rr_comp=sim.rr_comp)
     sim.plot_species(os.path.join(out_dir, "species.png"), df, rr_comp=sim.rr_comp)
