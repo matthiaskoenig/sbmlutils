@@ -268,8 +268,7 @@ class Simulator(object):
             fba_rules[reaction.getId()] = parameter.getId()
         return fba_rules
 
-
-    def simulate(self, tstart=0.0, tend=10.0, steps=20):
+    def simulate(self, tstart=0.0, tend=10.0, steps=20, absTol=1E-6, relTol=1E-6):
         """
         Perform model simulation.
 
@@ -278,81 +277,91 @@ class Simulator(object):
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
         """
         # TODO: store directly in numpy arrays for speed improvements
+        # TODO: set tolerances for the ode integration
 
-        logging.debug('###########################')
-        logging.debug('# Start Simulation')
-        logging.debug('###########################')
+        try:
+            logging.debug('###########################')
+            logging.debug('# Start Simulation')
+            logging.debug('###########################')
 
-        points = steps + 1
-        all_time = numpy.linspace(start=tstart, stop=tend, num=points)
-        all_results = []
-        df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections)
+            points = steps + 1
+            all_time = numpy.linspace(start=tstart, stop=tend, num=points)
+            all_results = []
+            df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections)
 
-        step_size = (tend-tstart)/(points-1.0)
-        result = None
-        time = 0.0
+            step_size = (tend-tstart)/(points-1.0)
+            result = None
+            time = 0.0
 
-        # variable step size integration
-        # if not points:
-        #     self.rr_comp.integrator.setValue('variable_step_size', True)
+            # variable step size integration
+            # if not points:
+            #     self.rr_comp.integrator.setValue('variable_step_size', True)
 
-        kstep = 0
-        while kstep < points:
-            logging.debug("-" * 80)
-            logging.debug("Time: {}".format(time))
+            kstep = 0
+            while kstep < points:
+                logging.debug("-" * 80)
+                logging.debug("Time: {}".format(time))
 
-            # --------------------------------------
-            # FBA
-            # --------------------------------------
-            for fba_model in self.fba_models:
-                # update fba bounds from ode
-                fba_model.update_fba_bounds(self.rr_comp)
-                # optimize fba
-                fba_model.optimize()
-                # set ode fluxes from fba
-                fba_model.set_ode_fluxes(self.rr_comp)
+                # --------------------------------------
+                # FBA
+                # --------------------------------------
+                for fba_model in self.fba_models:
+                    # update fba bounds from ode
+                    fba_model.update_fba_bounds(self.rr_comp)
+                    # optimize fba
+                    fba_model.optimize()
+                    # set ode fluxes from fba
+                    fba_model.set_ode_fluxes(self.rr_comp)
 
-            # --------------------------------------
-            # ODE
-            # --------------------------------------
-            logging.debug('* ODE integration')
-            if points:
-                # constant step size
-                if kstep == 0:
-                    result = self.rr_comp.simulate(start=0, end=0, steps=1)
-                else:
-                    result = self.rr_comp.simulate(start=0, end=step_size, steps=1)
-            # else:
-                # variable step size
-                # result = self.rr_comp.simulate(start=0, steps=1)
+                # --------------------------------------
+                # ODE
+                # --------------------------------------
+                logging.debug('* ODE integration')
+                if points:
+                    # constant step size
+                    if kstep == 0:
+                        result = self.rr_comp.simulate(start=0, end=0, steps=1)
+                    else:
+                        result = self.rr_comp.simulate(start=0, end=step_size, steps=1)
+                # else:
+                    # variable step size
+                    # result = self.rr_comp.simulate(start=0, steps=1)
 
-            # store ode row
-            row = result[1, :]
+                # store ode row
+                row = result[1, :]
 
-            # store fba fluxes
-            logging.debug('* Copy fluxes in ODE solution')
-            for fba_model in self.fba_models:
-                for k, v in fba_model.flat_mapping.iteritems():
-                    flux = fba_model.cobra_model.solution.x_dict[k]
-                    vindex = df_results.columns.get_loc(v)
-                    row[vindex] = flux
-            all_results.append(row)
+                # store fba fluxes
+                logging.debug('* Copy fluxes in ODE solution')
+                for fba_model in self.fba_models:
+                    for k, v in fba_model.flat_mapping.iteritems():
+                        flux = fba_model.cobra_model.solution.x_dict[k]
+                        vindex = df_results.columns.get_loc(v)
+                        row[vindex] = flux
+                all_results.append(row)
 
-            # store and update time
-            kstep += 1
-            time += step_size
+                # store and update time
+                kstep += 1
+                time += step_size
 
-            from pandas import Series
-            logging.debug(Series(row, index=self.rr_comp.timeCourseSelections))
+                from pandas import Series
+                logging.debug(Series(row, index=self.rr_comp.timeCourseSelections))
 
-        # create result matrix
-        df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections,
-                                  data=all_results)
-        df_results.time = all_time
+            # create result matrix
+            df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections,
+                                      data=all_results)
+            df_results.time = all_time
 
-        logging.debug('###########################')
-        logging.debug('# Stop Simulation')
-        logging.debug('###########################')
+            logging.debug('###########################')
+            logging.debug('# Stop Simulation')
+            logging.debug('###########################')
+
+        except RuntimeError as e:
+            import traceback
+            traceback.print_exc()
+            # return the partial result until the error
+            df_results = pd.DataFrame(columns=self.rr_comp.timeCourseSelections,
+                                      data=all_results)
+            df_results.time = all_time[:len(all_results)]
 
         return df_results
 
@@ -503,7 +512,7 @@ class FBAModel(object):
 
         self.flat_mapping = map
 
-    def update_fba_bounds(self, rr_comp):
+    def update_fba_bounds(self, rr_comp, absTol=1E-8):
         """
         Uses the global parameter replacements to replace the bounds
         of reactions with the current values in the kinetic model.
@@ -516,15 +525,22 @@ class FBAModel(object):
         logging.debug('* FBA set bounds ')
         for pid in self.ub_replacements:
             for rid in self.ub_parameters.get(pid):
-                logging.debug('\t{}: (upper) -> {}'.format(rid, pid))
                 cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                cobra_reaction.upper_bound = rr_comp[pid]
+                ub = rr_comp[pid]
+                if abs(ub) <= absTol:
+                    ub = 0.0
+                cobra_reaction.upper_bound = ub
+                logging.debug('\tupper: {} = {} = {}'.format(pid, rid, ub))
 
         for pid in self.lb_replacements:
             for rid in self.lb_parameters.get(pid):
-                logging.debug('\t{}: (lower) -> {}'.format(rid, pid))
                 cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                cobra_reaction.lower_bound = rr_comp[pid]
+                lb = rr_comp[id]
+                if abs(lb) <= absTol:
+                    lb = 0.0
+                cobra_reaction.lower_bound = lb
+                logging.debug('\tupper: {} = {} = {}'.format(pid, rid, lb))
+
 
     def optimize(self):
         """ Optimize FBA model.

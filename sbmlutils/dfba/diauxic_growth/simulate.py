@@ -83,8 +83,8 @@ def print_species(df):
     fig.savefig(os.path.join(out_dir, "species_growth.png"))
 
 if __name__ == "__main__":
-    tend = 12
-    steps = tend
+    tend = 15
+    steps = 10*tend
     df = simulate_diauxic_growth(tend, steps)
 
 
