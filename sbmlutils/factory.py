@@ -23,6 +23,8 @@ from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 SBML_LEVEL = 3
 SBML_VERSION = 1
 
+# TODO: allow setting of sboTerms & metaIds, currently not taken into account
+
 
 #####################################################################
 
@@ -558,12 +560,14 @@ class RateRule(Rule):
 # TODO: Reaction class
 
 def create_reaction(model, rid, name=None, fast=False, reversible=True, reactants={}, products={}, modifiers=[],
-                    formula=None, compartment=None):
+                    formula=None, compartment=None, sboTerm=None):
     """ Create basic reaction structure. """
     r = model.createReaction()
     r.setId(rid)
     if name:
         r.setName(name)
+    if sboTerm:
+        r.setSBOTerm(sboTerm)
     r.setFast(fast)
     r.setReversible(reversible)
 
