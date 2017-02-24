@@ -10,6 +10,8 @@ ODE models are simulated with roadrunner, FBA models using cobrapy.
 # TODO: Fix the zero time point of the simulation, how to handle this correctly (when are fluxes calculated
 #       and when are the updates written (order and timing of updates)
 
+# TODO:
+
 from __future__ import print_function, division
 import os
 import logging
@@ -72,16 +74,16 @@ class FBAModel(object):
 
     def __str__(self):
         """ Information string. """
-        s = "{}\n".format('-' * 80)
-        s += "{} {}\n".format(self.submodel, self.source)
-        s += "{}\n".format('-' * 80)
-        s += "{:<20}: {}\n".format('FBA rules', self.fba_rules)
-        s += "{:<20}: {}\n".format('ub parameters', self.ub_parameters)
-        s += "{:<20}: {}\n".format('lb parameters', self.lb_parameters)
-        s += "{:<20}: {}\n".format('ub replacements', self.ub_replacements)
-        s += "{:<20}: {}\n".format('lb replacements', self.lb_replacements)
-        s += "{:<20}: {}\n".format('flat mapping', self.flat_mapping)
-        s += "{}\n".format('-' * 80)
+        # s = "{}\n".format('-' * 80)
+        s = "{} {}\n".format(self.submodel, self.source)
+        # s += "{}\n".format('-' * 80)
+        s += "\t{:<20}: {}\n".format('FBA rules', self.fba_rules)
+        s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
+        s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
+        s += "\t{:<20}: {}\n".format('ub replacements', self.ub_replacements)
+        s += "\t{:<20}: {}\n".format('lb replacements', self.lb_replacements)
+        s += "\t{:<20}: {}\n".format('flat mapping', self.flat_mapping)
+        # s += "{}\n".format('-' * 80)
 
         return s
 
@@ -239,18 +241,18 @@ class Simulator(object):
         self.sbml_dir = os.path.dirname(sbml_top_path)
 
         # read top level model
-        self.doc_top = libsbml.readSBMLFromFile(self.sbml_top)
-        self.model_top = self.doc_top.getModel()
-        self.framework_top = self.get_framework(self.model_top)
-        if self.framework_top is not MODEL_FRAMEWORK_ODE:
-            warnings.warn("The top level model framework is not ode: {}".format(self.framework_top))
-
+        self.doc_top = None
+        self.model_top = None
+        self.framework_top = None
         self.submodels = defaultdict(list)
         self.rr_comp = None
         self.fba_models = []
 
-        self._process_top_level()
-        self._prepare_models()
+        self._process_top()
+        self._process_models()
+
+        # log model information
+        logging.info(self)
 
         # change back the working dir
         os.chdir(working_dir)
@@ -284,59 +286,76 @@ class Simulator(object):
         """ Information string. """
         # top level
         s = "{}\n".format('-' * 80)
-        s += "{} {}\n".format(self.doc_top, self.framework_top)
+        s += "{} [{}]\n".format(self.model_top, self.framework_top)
         s += "{}\n".format('-' * 80)
 
         # sub models
         for framework in MODEL_FRAMEWORKS:
             s += "{:<10} : {}\n".format(framework, self.submodels[framework])
+        # FBA rules
+        s += "{:<10} : {}\n".format('fba rules', self.fba_rules)
+
+        # FBA model information
+        for fba_model in self.fba_models:
+            s += '\n' + fba_model.__str__()
         s += "{}\n".format('-' * 80)
 
         return s
 
-    def _process_top_level(self):
-        """ Process the top level information.
-
-        Reads all the submodels, creates the global data structure.
-        Order for executtion
+    def fba_rules_str(self):
+        """ Printable string for the FBA rules
 
         :return:
         """
-        # get list of submodels
-        model = self.doc_top.getModel()
-        if model is None:
+        lines = ['FBA rules:']
+        for key, value in self.fba_rules.iteritems():
+            lines.append('\t{} : {}'.format(key, value))
+        return "\n".join(lines)
+
+    def _process_top(self):
+        """ Process the top model.
+        Reads top model and submodels.
+
+        :return:
+        """
+        logging.debug('* _process_top')
+        self.doc_top = libsbml.readSBMLFromFile(self.sbml_top)
+        self.model_top = self.doc_top.getModel()
+        if self.model_top is None:
             warnings.warn("No top level model found.")
 
-        # Get submodel frameworks & store in respective list
+        self.framework_top = self.get_framework(self.model_top)
+        if self.framework_top is not MODEL_FRAMEWORK_ODE:
+            warnings.warn("The top level model framework is not ode: {}".format(self.framework_top))
+
+        # get submodels with frameworks
         top_plugin = self.model_top.getPlugin("comp")
         for submodel in top_plugin.getListOfSubmodels():
             # models are processed in the order they are listed in the listOfSubmodels
             framework = Simulator.get_framework(submodel)
             self.submodels[framework].append(submodel)
 
-        print(self)
-
-    def _prepare_models(self):
-        """ Prepare the models for simulation.
+    def _process_models(self):
+        """ Process and prepare models for simulation.
 
         Resolves the replacements and model couplings between the
-        different frameworks and creates the respective simulatable
-        models for the different frameworks.
+        different frameworks and creates models which can be simulated with
+        the different frameworks.
+
+        An important step is finding the fba rules in the top model.
 
         :return:
         :rtype:
         """
-        logging.debug('_prepare_models')
+        logging.debug('* _process_models')
         ###########################
-        # find FBA rules
+        # FBA rules
         ###########################
-
         # process FBA assignment rules of the top model
-        self.fba_rules = self.find_fba_rules(self.model_top)
-        logging.debug('FBA rules: {}'.format(self.fba_rules))
+        self.fba_rules = Simulator.find_fba_rules(self.model_top)
 
         ###########################
-        # prepare ODE model
+        # ODE model
         ###########################
         # the roadrunner ode file is the flattend comp file.
         # FBA subparts do not change change any of the kinetic subparts (only connections via replaced bounds
@@ -385,11 +404,11 @@ class Simulator(object):
             fba_model.process_replacements(self.model_top)
             fba_model.process_flat_mapping(self.rr_comp)
             self.fba_models.append(fba_model)
-            print(fba_model)
 
 
-    def find_fba_rules(self, top_model):
-        """ Finds FBA rules in top model.
+    @classmethod
+    def find_fba_rules(cls, top_model):
+        """ Find FBA rules in top model.
 
         Find the assignment rules which assign a reaction rate to a parameter.
         This are the assignment rules synchronizing between FBA and ODE models.
@@ -414,9 +433,10 @@ class Simulator(object):
             fba_rules[reaction.getId()] = parameter.getId()
         return fba_rules
 
+
     def simulate(self, tstart=0.0, tend=10.0, steps=20):
         """
-        Performs model simulation.
+        Perform model simulation.
 
         The simulator figures out based on the SBO terms in the list of submodels, which
         simulation/modelling framework to use.

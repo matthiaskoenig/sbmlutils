@@ -9,10 +9,10 @@ out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 from sbmlutils.dfba.simulator import Simulator
 
 
-def simulate_diauxic_growth():
+def simulate_diauxic_growth(tend=12, steps=120):
     """ Simulate the diauxic growth model.
 
-    :return:
+    :return: solution data frame
     """
     sbml_top_path = os.path.join(out_dir, 'diauxic_top.xml')
 
@@ -20,20 +20,18 @@ def simulate_diauxic_growth():
     sim = Simulator(sbml_top_path=sbml_top_path)
 
     # Run simulation of hybrid model
-    tend = 12
-    steps = 10*tend
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time
     print("Simulation time: {}".format(elapsed))
-
-    pprint(df)
 
     sim.plot_reactions(os.path.join(out_dir, "reactions.png"), df, rr_comp=sim.rr_comp)
     sim.plot_species(os.path.join(out_dir, "species.png"), df, rr_comp=sim.rr_comp)
     sim.save_csv(os.path.join(out_dir, "simulation.csv"), df)
 
     print_species(df)
+    return df
+
 
 def print_species(df):
     """ Print diauxic species.
@@ -53,7 +51,7 @@ def print_species(df):
         'ytick.labelsize': 'large',
     })
 
-    fig, ((ax1, ax2),(ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
 
     for ax in (ax1, ax3):
         ax.plot(df.time, df['[Ac]'],
@@ -84,6 +82,8 @@ def print_species(df):
     fig.savefig(os.path.join(out_dir, "species_growth.png"))
 
 if __name__ == "__main__":
-    simulate_diauxic_growth()
+    tend = 12
+    steps = tend
+    df = simulate_diauxic_growth(tend, steps)
 
 
