@@ -21,27 +21,37 @@ SBO_FLUX_BALANCE_FRAMEWORK = 'SBO:0000624'
 ##########################################################################
 # ModelDefinitions
 ##########################################################################
-def create_ExternalModelDefinition(mdoc, cid, sbml_file):
-    extdef = mdoc.createExternalModelDefinition()
-    extdef.setId(cid)
-    extdef.setName(cid)
-    extdef.setModelRef(cid)
-    extdef.setSource(sbml_file)
+def create_ExternalModelDefinition(comp_doc, emd_id, source):
+    """ Create comp ExternalModelDefinition.
+
+    :param comp_doc: comp plugin
+    :param emd_id: id of external model definition
+    :param source: source
+    :return:
+    """
+    extdef = comp_doc.createExternalModelDefinition()
+    extdef.setId(emd_id)
+    extdef.setName(emd_id)
+    extdef.setModelRef(emd_id)
+    extdef.setSource(source)
     return extdef
 
 
-def add_submodel_from_emd(mplugin, submodel_sid, emd):
-    model_ref = emd.getModelRef()
-    submodel = mplugin.createSubmodel()
-    submodel.setId(submodel_sid)
-    submodel.setModelRef(model_ref)
-    # copy the SBO term to the submodel
+def add_submodel_from_emd(comp_model, submodel_id, emd):
+    """ Adds submodel to the model from given ExternalModelDefinition.
 
-    # ! gets the model belonging the SBASe !
-    # model = emd.getModel()
-    model = emd.getReferencedModel()
-    if model.isSetSBOTerm():
-        submodel.setSBOTerm(model.getSBOTerm())
+    :param comp_model:
+    :param submodel_id:
+    :param emd:
+    :return:
+    """
+    model_ref = emd.getModelRef()
+    submodel = comp_model.createSubmodel()
+    submodel.setId(submodel_id)
+    submodel.setModelRef(model_ref)
+    comp_model = emd.getReferencedModel()
+    if comp_model.isSetSBOTerm():
+        submodel.setSBOTerm(comp_model.getSBOTerm())
     return submodel
 
 
@@ -269,7 +279,9 @@ def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
     :rtype: SBMLDocument
     """
     print('-> flattenSBMLDocument')
-    if doc.getNumErrors() > 0:
+
+    Nerrors = doc.getNumErrors()
+    if Nerrors > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
             # Handle case of unreadable file here.
             doc.printErrors()

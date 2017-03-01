@@ -480,9 +480,9 @@ def create_top_level_model(sbml_file, directory, emds):
     mdoc = doc.getPlugin("comp")
 
     # create listOfExternalModelDefinitions
-    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", sbml_file=emds["diauxic_fba"])
-    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", sbml_file=emds["diauxic_bounds"])
-    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", sbml_file=emds["diauxic_update"])
+    emd_fba = comp.create_ExternalModelDefinition(mdoc, "diauxic_fba", source=emds["diauxic_fba"])
+    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "diauxic_bounds", source=emds["diauxic_bounds"])
+    emd_update = comp.create_ExternalModelDefinition(mdoc, "diauxic_update", source=emds["diauxic_update"])
 
     # create models and submodels
     model = doc.createModel()
@@ -493,9 +493,9 @@ def create_top_level_model(sbml_file, directory, emds):
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
     # add submodel which references the external model definition
-    comp.add_submodel_from_emd(mplugin, submodel_sid="bounds", emd=emd_bounds)
-    comp.add_submodel_from_emd(mplugin, submodel_sid="fba", emd=emd_fba)
-    comp.add_submodel_from_emd(mplugin, submodel_sid="update", emd=emd_update)
+    comp.add_submodel_from_emd(mplugin, submodel_id="bounds", emd=emd_bounds)
+    comp.add_submodel_from_emd(mplugin, submodel_id="fba", emd=emd_fba)
+    comp.add_submodel_from_emd(mplugin, submodel_id="update", emd=emd_update)
 
     # Compartments
     mc.create_objects(model, [

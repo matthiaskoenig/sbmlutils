@@ -52,10 +52,10 @@ def create_top_level_model(sbml_file, directory):
     mdoc = doc.getPlugin("comp")
 
     # create listOfExternalModelDefinitions
-    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "toy_ode_bounds", sbml_file=ode_bounds_file)
-    emd_fba = comp.create_ExternalModelDefinition(mdoc, "toy_fba", sbml_file=fba_file)
-    emd_update = comp.create_ExternalModelDefinition(mdoc, "toy_ode_update", sbml_file=ode_update_file)
-    emd_model = comp.create_ExternalModelDefinition(mdoc, "toy_ode_model", sbml_file=ode_model_file)
+    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "toy_ode_bounds", source=ode_bounds_file)
+    emd_fba = comp.create_ExternalModelDefinition(mdoc, "toy_fba", source=fba_file)
+    emd_update = comp.create_ExternalModelDefinition(mdoc, "toy_ode_update", source=ode_update_file)
+    emd_model = comp.create_ExternalModelDefinition(mdoc, "toy_ode_model", source=ode_model_file)
 
     # create models and submodels
     model = doc.createModel()
@@ -66,10 +66,10 @@ def create_top_level_model(sbml_file, directory):
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
     # add submodel which references the external model definition
-    comp.add_submodel_from_emd(mplugin, submodel_sid="bounds", emd=emd_bounds)
-    comp.add_submodel_from_emd(mplugin, submodel_sid="fba", emd=emd_fba)
-    comp.add_submodel_from_emd(mplugin, submodel_sid="update", emd=emd_update)
-    comp.add_submodel_from_emd(mplugin, submodel_sid="model", emd=emd_model)
+    comp.add_submodel_from_emd(mplugin, submodel_id="bounds", emd=emd_bounds)
+    comp.add_submodel_from_emd(mplugin, submodel_id="fba", emd=emd_fba)
+    comp.add_submodel_from_emd(mplugin, submodel_id="update", emd=emd_update)
+    comp.add_submodel_from_emd(mplugin, submodel_id="model", emd=emd_model)
 
     # Compartments
     mc.create_objects(model, [
