@@ -80,12 +80,21 @@ def check_sbml(sbml):
     print("validation error(s): " + str(Nerrors))
     print('-' * 80)
 
-    for k in range(Nerrors):
+    print_errors(doc)
+
+    return Nerrors
+
+
+def print_errors(doc):
+    """ Prints errors of SBMLDocument.
+
+    :param doc:
+    :return:
+    """
+    for k in range(doc.getNumErrors()):
         error = doc.getError(k)
         error_str = error_string(error, k)
         print(error_str)
-
-    return Nerrors
 
 
 def error_string(error, k=None):
