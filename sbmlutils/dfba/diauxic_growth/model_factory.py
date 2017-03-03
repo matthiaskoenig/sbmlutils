@@ -483,7 +483,7 @@ def top_model(sbml_file, directory, emds):
 
     # create models and submodels
     model = doc.createModel()
-    model.setId("diauxic_comp")
+    model.setId("diauxic_top")
     model.setName("Top level model")
     add_generic_info(model)
     mplugin = model.getPlugin("comp")
@@ -654,9 +654,11 @@ def create_models():
                          output_path=os.path.join(directory, flattened_file))
 
     # create reports
-    # for fname in [fba_file, bounds_file, update_file, top_file, flattened_file]:
-    for fname in [fba_file, bounds_file, update_file, top_file]:
-        sbmlreport.create_sbml_report(os.path.join(directory, fname), directory, validate=False)
+    sbml_paths = [os.path.join(directory, fname) for fname in
+                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+
 
 
 ########################################################################################################################

@@ -22,6 +22,8 @@ from __future__ import print_function, division
 import warnings
 import codecs
 import os
+import ntpath
+
 import distutils
 from distutils import dir_util
 import sys
@@ -40,6 +42,55 @@ from sbmlutils.validation import validate_sbml
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+
+
+def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=False, validate=True):
+    """ Creates individual reports and an overview file.
+
+    :param sbmls:
+    :param out_dir:
+    :param template:
+    :param promote:
+    :param validate:
+    :return:
+    """
+    # individual reports
+    for sbml_path in sbml_paths:
+        create_sbml_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
+
+    # write index html (unicode)
+    html = _create_index_html(sbml_paths, out_dir)
+    f_index = codecs.open(os.path.join(out_dir, 'index.html'), encoding='utf-8', mode='w')
+    f_index.write(html)
+    f_index.close()
+
+
+def _create_index_html(sbml_paths, out_dir, html_template='index.html'):
+    """Create index for sbml_paths.
+    """
+
+    # template environment
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
+                         extensions=['jinja2.ext.autoescape'],
+                         trim_blocks=True,
+                         lstrip_blocks=True)
+
+    template = env.get_template(html_template)
+
+
+    sbml_basenames = [ntpath.basename(path) for path in sbml_paths]
+    sbml_links = []
+    for basename in sbml_basenames:
+        tokens = basename.split('.')
+        name = '.'.join(tokens[:-1]) + '.html'
+        sbml_links.append(name)
+
+    # Context
+    c = {
+        'sbml_basenames': sbml_basenames,
+        'sbml_links': sbml_links,
+    }
+    return template.render(c)
 
 
 def create_sbml_report(sbml, out_dir, template='report.html', promote=False, validate=True):
@@ -94,7 +145,7 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False, val
     _copy_directory(os.path.join(TEMPLATE_DIR, '_report'), os.path.join(out_dir, '_report'))
 
 
-def _create_html(doc, html_template='test_template.html'):
+def _create_html(doc, html_template='report.html'):
     """Create HTML from SBML.
 
     :param doc:
