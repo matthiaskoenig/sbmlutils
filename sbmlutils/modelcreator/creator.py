@@ -106,7 +106,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
 
     # create report
     if create_report:
-        sbmlreport.create_sbml_report(sbml=sbml_path, out_dir=target_dir)
+        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir)
 
     return [model_dict, core_model]
 

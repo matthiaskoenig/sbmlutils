@@ -59,13 +59,13 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
         create_sbml_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
 
     # write index html (unicode)
-    html = _create_index_html(sbml_paths, out_dir)
+    html = _create_index_html(sbml_paths)
     f_index = codecs.open(os.path.join(out_dir, 'index.html'), encoding='utf-8', mode='w')
     f_index.write(html)
     f_index.close()
 
 
-def _create_index_html(sbml_paths, out_dir, html_template='index.html'):
+def _create_index_html(sbml_paths, html_template='index.html'):
     """Create index for sbml_paths.
     """
 
@@ -93,7 +93,7 @@ def _create_index_html(sbml_paths, out_dir, html_template='index.html'):
     return template.render(c)
 
 
-def create_sbml_report(sbml, out_dir, template='report.html', promote=False, validate=True):
+def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False, validate=True):
     """ Creates the SBML report in the out_dir
 
     :param doc:
@@ -103,23 +103,20 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False, val
     :return:
     :rtype:
     """
-    # FIXME: the name of the original file is not maintained. This is problematic.
-    # use original filename instead of name based on modelId
-
     # check if sbml_file exists
-    if not os.path.exists(sbml):
-        warnings.warn('SBML file does not exist: {}'.format(sbml))
+    if not os.path.exists(sbml_path):
+        warnings.warn('SBML file does not exist: {}'.format(sbml_path))
 
     # check the sbml file
     if validate:
-        validate_sbml(sbml)
+        validate_sbml(sbml_path)
 
     # read sbml
-    doc = libsbml.readSBML(sbml)
-    model = doc.getModel()
-    mid = model.id
+    doc = libsbml.readSBML(sbml_path)
 
     if promote:
+        model = doc.getModel()
+        mid = model.id
         mid = '{}_{}'.format(mid, 'promoted')
         model.setId(mid)
 
@@ -131,12 +128,16 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False, val
         else:
             print("SBML Conversion successful")
 
-    f_sbml = os.path.join(out_dir, '{}.xml'.format(mid))
+    basename = os.path.basename(sbml_path)
+    tokens = basename.split('.')
+    name = '.'.join(tokens[:-1])
+
+    f_sbml = os.path.join(out_dir, basename)
     libsbml.writeSBMLToFile(doc, f_sbml)
 
     # write html (unicode)
-    html = _create_html(doc, html_template=template)
-    f_html = codecs.open(os.path.join(out_dir, '{}.html'.format(mid)),
+    html = _create_html(doc, basename, html_template=template)
+    f_html = codecs.open(os.path.join(out_dir, '{}.html'.format(name)),
                          encoding='utf-8', mode='w')
     f_html.write(html)
     f_html.close()
@@ -145,7 +146,7 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False, val
     _copy_directory(os.path.join(TEMPLATE_DIR, '_report'), os.path.join(out_dir, '_report'))
 
 
-def _create_html(doc, html_template='report.html'):
+def _create_html(doc, basename, html_template='report.html'):
     """Create HTML from SBML.
 
     :param doc:
@@ -171,6 +172,7 @@ def _create_html(doc, html_template='report.html'):
 
     # Context
     c = {
+        'basename': basename,
         'doc': doc,
         'model': model,
         'values': values,
@@ -225,5 +227,5 @@ if __name__ == '__main__':
     import os
     from sbmlutils.examples import testfiles
     os.chdir(os.path.join(testfiles.test_dir, 'report'))
-    create_sbml_report(sbml='galactose_30_annotated.xml', out_dir='.')
+    create_sbml_report(sbml_path='galactose_30_annotated.xml', out_dir='.')
 

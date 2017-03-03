@@ -262,7 +262,7 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     reader = libsbml.SBMLReader()
     check(reader, 'create an SBMLReader object.')
     doc = reader.readSBML(sbml_path)
-    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_file=output_path)
+    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=output_path)
 
     # change back the working dir
     os.chdir(working_dir)
@@ -270,7 +270,7 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     return flat_doc
 
 
-def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
+def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
     """ Flatten the given SBMLDocument.
 
     :param doc: SBMLDocument to flatten.
@@ -303,11 +303,11 @@ def flattenSBMLDocument(doc, leave_ports=True, output_file=None):
         doc.printErrors()
         return
 
-    if output_file is not None:
+    if output_path is not None:
         # Write the results to the output file.
         writer = libsbml.SBMLWriter()
         check(writer, 'create an SBMLWriter object.')
-        writer.writeSBML(doc, output_file)
-        print("Flattened model written to {}".format(output_file))
+        writer.writeSBML(doc, output_path)
+        print("Flattened model written to {}".format(output_path))
 
     return doc

@@ -651,11 +651,13 @@ def create_models():
     top_model(top_file, directory, emds)
 
     # flatten top model
+    # FIXME: top model overwritten by flat model
     comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_file),
                          output_path=os.path.join(directory, flattened_file))
 
     # create reports
     sbml_paths = [os.path.join(directory, fname) for fname in
+                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
                   [fba_file, bounds_file, update_file, top_file, flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
