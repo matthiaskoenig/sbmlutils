@@ -29,6 +29,13 @@ from collections import defaultdict
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 #################################################
+# Simulator constants
+#################################################
+LOWER_BOUND_PREFIX = 'lb'
+UPPER_BOUND_PREFIX = 'ub'
+LOWER_BOUND_DEFAULT = -1000
+UPPER_BOUND_DEFAULT = 1000
+
 
 MODEL_FRAMEWORK_FBA = 'fba'
 MODEL_FRAMEWORK_ODE = 'ode'
@@ -543,11 +550,11 @@ class FBAModel(object):
         for pid in self.lb_replacements:
             for rid in self.lb_parameters.get(pid):
                 cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                lb = rr_comp[id]
+                lb = rr_comp[pid]
                 if abs(lb) <= absTol:
                     lb = 0.0
                 cobra_reaction.lower_bound = lb
-                logging.debug('\tupper: {} = {} = {}'.format(pid, rid, lb))
+                logging.debug('\tlower: {} = {} = {}'.format(pid, rid, lb))
 
 
     def optimize(self):

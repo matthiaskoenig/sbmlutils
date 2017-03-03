@@ -87,6 +87,8 @@ from sbmlutils.report import sbmlreport
 
 XMLOutputStream.setWriteTimestamp(False)
 
+from sbmlutils.dfba.simulator import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, LOWER_BOUND_PREFIX, UPPER_BOUND_PREFIX
+
 ########################################################################
 # General model information
 ########################################################################
@@ -237,13 +239,13 @@ def fba_model(sbml_file, directory):
         # exchange fluxes bounds
         # The values of all exchange flux bounds can be overwritten from the outside
         mc.Parameter(sid="lb_vAc", name="lb vAc", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_vAc", name="ub vAc", value=1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_vAc", name="ub vAc", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
         mc.Parameter(sid="lb_vGlcxt", name="lb vGlcxt", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
         mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_vO2", name="lb vAc", value=-1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_vO2", name="lb vAc", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
         mc.Parameter(sid="ub_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
         mc.Parameter(sid="lb_vX", name="lb vX", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_vX", name="ub vX", value=1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_vX", name="ub vX", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
     ]
     mc.create_objects(model, parameters)
 
@@ -357,33 +359,42 @@ def bounds_model(sbml_file, directory):
         # kinetic bounds
         mc.Parameter(sid='ub_kin_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
 
-        # exchange fluxes bounds default
-        mc.Parameter(sid="lb_def_vAc", name="lb vAc", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vAc", name="ub vAc", value=1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_def_vGlcxt", name="lb vGlcxt", value=0.0, unit=UNIT_FLUX, constant=False,
+        # exchange fluxes default bounds
+        mc.Parameter(sid="lb_def_vAc", name="lb vAc", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vAc", name="ub vAc", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_def_vGlcxt", name="lb vGlcxt", value=0.0, unit=UNIT_FLUX, constant=True,
                      sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False,
-                     sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_def_vO2", name="lb vAc", value=-1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_def_vX", name="lb vX", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vX", name="ub vX", value=1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_def_vO2", name="lb vAc", value=-1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_def_vX", name="lb vX", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vX", name="ub vX", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
 
+        # exchange fluxes bounds
+        mc.Parameter(sid="lb_vAc", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_vAc", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_vGlcxt", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_vGlcxt", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_vO2", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_vO2", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_vX", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_vX", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
 
         # Assignment Rules
         # kinetic bounds
         mc.AssignmentRule(sid="ub_kin_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
 
         # species bounds
-        mc.AssignmentRule(sid="lb_vAc", value="max(lb_def_vAc, Ac*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_vGlcxt", value="max(lb_def_vGlcxt, Glcxt*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_vO2", value="max(lb_def_vO2, O2*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_vX", value="max(lb_def_vX, X*bioreactor/dt)"),
+        # FIXME: the units of the fluxes have to fit (normalization per g)
+        mc.AssignmentRule(sid="lb_vAc", value="max(lb_def_vAc, -Ac*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_vGlcxt", value="max(lb_def_vGlcxt, -Glcxt*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_vO2", value="max(lb_def_vO2, -O2*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_vX", value="max(lb_def_vX, -X*bioreactor/(dt*1 g))"),
 
-        mc.AssignmentRule(sid="ub_vAc", value="min(ub_def_vAc, Ac*bioreactor/dt)"),
-        mc.AssignmentRule(sid="ub_vGlcxt", value="min(ub_kin_vGlcxt, Glcxt*bioreactor/dt)"),
-        mc.AssignmentRule(sid="ub_vO2", value="min(ub_def_vO2, O2*bioreactor/dt)"),
-        mc.AssignmentRule(sid="ub_vX", value="min(ub_def_vX, X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="ub_vAc", value="min(ub_def_vAc, Ac*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="ub_vGlcxt", value="min(ub_kin_vGlcxt, Glcxt*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="ub_vO2", value="min(ub_def_vO2, O2*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="ub_vX", value="min(ub_def_vX, X*bioreactor/(dt*1 g))"),
 
     ]
     mc.create_objects(model, objects)
@@ -563,34 +574,42 @@ def top_model(sbml_file, directory, emds):
                    compartment="bioreactor"),
         mc.Species(sid='Ac', name="acetate", value=0.4, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-
         mc.Species(sid='O2', name="oxygen", value=0.21, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
         mc.Species(sid='X', name="biomass", value=0.001, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
-        # dummy species for dummy reactions
+        # dummy species for dummy reactions (empty set)
         mc.Species(sid='dummy_S', name="dummy_S", value=0, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor", sboTerm="SBO:0000291"),
     ])
 
     # Parameters
-    mc.create_objects(model, [
+    parameters = [
         # hardcoded time step for the update of the bounds
         mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
 
-        # bounds
-        mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit="mmol_per_hg", constant=False),
-
-        # fluxes from fba
-        mc.Parameter(sid="vGlcxt", name="vGlcxt (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg", sboTerm="SBO:0000612"),
-        mc.Parameter(sid="vAc", name="vAc (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg", sboTerm="SBO:0000612"),
-        mc.Parameter(sid="vO2", name="vO2 (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg", sboTerm="SBO:0000612"),
-        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg", sboTerm="SBO:0000612"),
-    ])
+        # fluxes from fba (rate of reaction)
+        mc.Parameter(sid="vGlcxt", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="vAc", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="vO2", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="vX", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+    ]
+    # flux bounds
+    for ex_rid in ['vAc', 'vGlcxt', 'vO2', 'vX']:
+        for bound_type in ['lb', 'ub']:
+            if bound_type == 'lb':
+                value = LOWER_BOUND_DEFAULT
+            elif bound_type == 'ub':
+                value = UPPER_BOUND_DEFAULT
+            parameters.append(
+                # lb_vGlcxt
+                mc.Parameter(sid="{}_{}".format(bound_type, ex_rid), value=value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625")
+            )
+    mc.create_objects(model, parameters)
 
     # Reactions
-    # dummy reaction in top model
+    # dummy reaction (pseudoreaction)
     mc.create_reaction(model, rid="dummy_vGlcxt", name="vGlcxt dummy", reversible=False,
                        reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
     mc.create_reaction(model, rid="dummy_vO2", name="vO2 dummy", reversible=False,
@@ -609,6 +628,7 @@ def top_model(sbml_file, directory, emds):
         mc.AssignmentRule(sid="vO2", value="dummy_vO2"),
         mc.AssignmentRule(sid="vX", value="dummy_vX"),
 
+        # This breaks the simulator
         # mc.AssignmentRule(sid="vGlcxt", value="1 per_g * dummy_vGlcxt"),
         # mc.AssignmentRule(sid="vAc", value="1 per_g * dummy_vAc"),
         # mc.AssignmentRule(sid="vO2", value="1 per_g * dummy_vO2"),
@@ -643,8 +663,15 @@ def top_model(sbml_file, directory, emds):
                                              'update': ['X_port'],
                                              'bounds': ['X_port']})
     # bounds
-    comp.replace_elements(model, 'ub_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'bounds': ['ub_vGlcxt_port'], 'fba': ['ub_vGlcxt_port']})
+    for bound_id in [
+        'lb_vAc', 'ub_vAc',
+        'lb_vGlcxt', 'ub_vGlcxt',
+        'lb_vO2', 'ub_vO2',
+        'lb_vX', 'ub_vX']:
+        print(bound_id)
+        comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['{}_port'.format(bound_id)], 'fba': ['{}_port'.format(bound_id)]})
+
     # fluxes
     comp.replace_elements(model, 'vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'update': ['vGlcxt_port']})
@@ -654,7 +681,6 @@ def top_model(sbml_file, directory, emds):
                           replaced_elements={'update': ['vO2_port']})
     comp.replace_elements(model, 'vX', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'update': ['vX_port']})
-
 
     # FBA: replace reaction by fba reaction
     comp.replaced_by(model, 'dummy_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
