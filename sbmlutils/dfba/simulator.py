@@ -473,18 +473,26 @@ class FBAModel(object):
                 self.lb_parameters[mr.getLowerFluxBound()].append(rid)
 
     def process_replacements(self, top_model):
-        """ Process the global replacements once. """
+        """ Process the global replacements once.
+
+        Find which fluxes should be replaced.
+        """
         for p in top_model.getListOfParameters():
             pid = p.getId()
             mp = p.getPlugin("comp")
-            for rep_element in mp.getListOfReplacedElements():
-                # the submodel of the replacement belongs to the current model
-                if rep_element.getSubmodelRef() == self.submodel.getId():
-                    # and parameter is part of the bounds
-                    if pid in self.ub_parameters:
-                        self.ub_replacements.append(pid)
-                    if pid in self.lb_parameters:
-                        self.lb_replacements.append(pid)
+
+            rep_elements = mp.getListOfReplacedElements()
+            if not rep_elements:
+                warnings.warn("No ReplacedBy Elements in top model.")
+            else:
+                for rep_element in rep_elements:
+                    # the submodel of the replacement belongs to the current model
+                    if rep_element.getSubmodelRef() == self.submodel.getId():
+                        # and parameter is part of the bounds
+                        if pid in self.ub_parameters:
+                            self.ub_replacements.append(pid)
+                        if pid in self.lb_parameters:
+                            self.lb_replacements.append(pid)
 
     def process_flat_mapping(self, rr_comp):
         """ Get the id mapping of the fluxes to the

@@ -9,7 +9,6 @@ import dgsettings
 import model_factory
 
 version = model_factory.version
-version = 2
 
 directory = os.path.join(dgsettings.out_dir, 'v{}'.format(version))
 sbml_top_path = os.path.join(directory, dgsettings.top_file)

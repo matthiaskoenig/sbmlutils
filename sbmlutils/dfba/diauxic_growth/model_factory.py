@@ -600,7 +600,7 @@ def top_model(sbml_file, directory, emds):
     comp.replace_elements(model, 'vX', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'update': ['vX_port']})
 
-    '''
+
     # FBA: replace reaction by fba reaction
     comp.replaced_by(model, 'dummy_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                      submodel='fba', replaced_by="vGlcxt_port")
@@ -610,7 +610,6 @@ def top_model(sbml_file, directory, emds):
                      submodel='fba', replaced_by="vO2_port")
     comp.replaced_by(model, 'dummy_vX', ref_type=comp.SBASE_REF_TYPE_PORT,
                      submodel='fba', replaced_by="vX_port")
-    '''
 
     # replace units
     # TODO
