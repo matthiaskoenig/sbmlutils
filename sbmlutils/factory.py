@@ -251,14 +251,16 @@ class Parameter(ValueWithUnit):
     def create_sbml(self, model):
         """ Create parameter in model."""
         return Parameter._create(model,
-                                sid=self.sid,
-                                value=self.value,
-                                unit=self.unit,
-                                constant=self.constant,
-                                name=self.name)
+                                 sid=self.sid,
+                                 value=self.value,
+                                 unit=self.unit,
+                                 constant=self.constant,
+                                 name=self.name,
+                                 sboTerm=self.sboTerm,
+                                 metaId=self.metaId)
 
     @staticmethod
-    def _create(model, sid, unit, name, value, constant):
+    def _create(model, sid, unit, name, value, constant, sboTerm, metaId):
         """ Create libsbml Parameter.
 
         :param model:
@@ -277,6 +279,10 @@ class Parameter(ValueWithUnit):
             p.setName(name)
         if value is not None:
             p.setValue(value)
+        if sboTerm is not None:
+            p.setSBOTerm(sboTerm)
+        if metaId is not None:
+            p.setMetaId(metaId)
         p.setConstant(constant)
         return p
 

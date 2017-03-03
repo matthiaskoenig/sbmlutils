@@ -181,13 +181,13 @@ def add_generic_info(model):
     # TODO: model specific notes, to clarify which models are which
     model.setNotes(notes)
 
-####################################################
-# FBA submodel
-####################################################
-def create_fba(sbml_file, directory):
-    """
-    Create the fba model.
-    FBA submodel in FBC v2 which uses parameters as flux bounds.
+########################################################################################################################
+
+
+def fba_model(sbml_file, directory):
+    """ Create FBA submodel.
+
+    FBA submodel in sbml:fbc-version 2.
     """
     sbmlns = SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("fbc", 2)
@@ -242,12 +242,14 @@ def create_fba(sbml_file, directory):
         mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False),
         mc.Parameter(sid="lb_vO2", name="lb vAc", value=-1000.0, unit=UNIT_FLUX, constant=False),
         mc.Parameter(sid="ub_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=False),
+        mc.Parameter(sid="lb_vX", name="lb vX", value=0.0, unit=UNIT_FLUX, constant=False),
+        mc.Parameter(sid="ub_vX", name="ub vX", value=1000.0, unit=UNIT_FLUX, constant=False),
     ]
     mc.create_objects(model, parameters)
 
     # reactions: exchange fluxes
     r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", reversible=False,
-                            reactants={}, products={"O2": 1}, compartment='bioreactor', sboTerm=)
+                            reactants={}, products={"O2": 1}, compartment='bioreactor')
     r_vGlcxt = mc.create_reaction(model, rid="vGlcxt", name="Glcxt import (vGlcxt)", reversible=False,
                             reactants={}, products={"Glcxt": 1}, compartment='bioreactor')
     r_vAc = mc.create_reaction(model, rid="vAc", name="Ac import (vAc)", reversible=True,
@@ -266,8 +268,9 @@ def create_fba(sbml_file, directory):
 
     # flux bounds: exchange fluxes
     mc.set_flux_bounds(r_vAc, lb="lb_vAc", ub="ub_vAc")
-    mc.set_flux_bounds(r_vGlcxt, lb="lb_Glcxt", ub="ub_vGlcxt")
+    mc.set_flux_bounds(r_vGlcxt, lb="lb_vGlcxt", ub="ub_vGlcxt")
     mc.set_flux_bounds(r_vO2, lb="lb_vO2", ub="ub_vO2")
+    mc.set_flux_bounds(r_vX, lb="lb_vX", ub="ub_vX")
     # flux bounds: internal fluxes
     mc.set_flux_bounds(r_vX, lb="lb_irrev", ub="ub")
     mc.set_flux_bounds(r_v1, lb="lb_irrev", ub="ub")
@@ -309,10 +312,7 @@ def create_fba(sbml_file, directory):
     sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
 
 
-####################################################
-# ODE flux bounds
-####################################################
-def create_bounds(sbml_file, directory):
+def bounds_model(sbml_file, directory):
     """"
     Submodel for dynamically calculating the flux bounds.
 
@@ -334,8 +334,8 @@ def create_bounds(sbml_file, directory):
         mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
-        # hardcoded timestep for the update of the bounds
-        mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True)
+        # hardcoded time step for the update of the bounds
+        mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
         mc.Parameter(sid='ub_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
         mc.Parameter(sid='Vmax_vGlcxt', value=15, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
         mc.Parameter(sid='Km_vGlcxt', value=0.015, unit="mmol_per_l", name="Km_vGlcxt", constant=True),
@@ -350,6 +350,7 @@ def create_bounds(sbml_file, directory):
     comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
 
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
@@ -357,7 +358,7 @@ def create_bounds(sbml_file, directory):
 ####################################################
 # ODE species update
 ####################################################
-def create_update(sbml_file, directory):
+def update_model(sbml_file, directory):
     """
         Submodel for dynamically updating the metabolite count/concentration.
         This updates the ode model based on the FBA fluxes.
@@ -431,12 +432,8 @@ def create_update(sbml_file, directory):
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
 
-####################################################
-# comp model
-####################################################
 
-
-def create_top_level_model(sbml_file, directory, emds):
+def top_model(sbml_file, directory, emds):
     """
     Create diauxic comp model.
     Test script for working with the comp extension in SBML.
@@ -526,6 +523,9 @@ def create_top_level_model(sbml_file, directory, emds):
 
     # Parameters
     mc.create_objects(model, [
+        # hardcoded time step for the update of the bounds
+        mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
+
         # bounds
         mc.Parameter(sid="ub_vGlcxt", name="ub vGlcxt", value=10.0, unit="mmol_per_hg", constant=False),
 
@@ -564,6 +564,8 @@ def create_top_level_model(sbml_file, directory, emds):
     ])
 
     # --- replacements ---
+    # dt
+    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
 
     # compartments
     comp.replace_elements(model, 'bioreactor', ref_type=comp.SBASE_REF_TYPE_PORT,
@@ -635,9 +637,9 @@ def create_models():
         os.mkdir(directory)
 
     # create sbml
-    create_fba(fba_file, directory)
-    create_bounds(bounds_file, directory)
-    create_update(update_file, directory)
+    fba_model(fba_file, directory)
+    bounds_model(bounds_file, directory)
+    update_model(update_file, directory)
 
     emds = {
         "diauxic_fba": fba_file,
@@ -645,14 +647,15 @@ def create_models():
         "diauxic_update": update_file,
     }
 
-    create_top_level_model(top_file, directory, emds)
+    top_model(top_file, directory, emds)
 
     # flatten top model
     comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_file),
                          output_path=os.path.join(directory, flattened_file))
 
     # create reports
-    for fname in [fba_file, bounds_file, update_file, top_file, flattened_file]:
+    # for fname in [fba_file, bounds_file, update_file, top_file, flattened_file]:
+    for fname in [fba_file, bounds_file, update_file, top_file]:
         sbmlreport.create_sbml_report(os.path.join(directory, fname), directory, validate=False)
 
 

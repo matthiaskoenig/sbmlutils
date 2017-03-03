@@ -52,6 +52,9 @@ def create_sbml_report(sbml, out_dir, template='report.html', promote=False, val
     :return:
     :rtype:
     """
+    # FIXME: the name of the original file is not maintained. This is problematic.
+    # use original filename instead of name based on modelId
+
     # check if sbml_file exists
     if not os.path.exists(sbml):
         warnings.warn('SBML file does not exist: {}'.format(sbml))
