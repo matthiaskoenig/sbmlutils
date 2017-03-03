@@ -8,6 +8,18 @@ from sbmlutils.dfba.simulator import Simulator
 import dgsettings
 import model_factory
 
+from matplotlib import pylab as plt
+
+plt.rcParams.update({
+    'axes.labelsize': 'large',
+    'axes.labelweight': 'bold',
+    'axes.titlesize': 'large',
+    'axes.titleweight': 'bold',
+    'legend.fontsize': 'small',
+    'xtick.labelsize': 'large',
+    'ytick.labelsize': 'large',
+})
+
 version = model_factory.version
 
 directory = os.path.join(dgsettings.out_dir, 'v{}'.format(version))
@@ -35,6 +47,7 @@ def simulate_diauxic_growth(sbml_top_path, tend, steps):
     sim.save_csv(os.path.join(directory, "simulation.csv"), df)
 
     print_species(os.path.join(directory, "species_growth.png"), df)
+    print_bounds(os.path.join(directory, "bounds_growth.png"), df)
     return df
 
 
@@ -44,18 +57,6 @@ def print_species(filepath, df):
     :param df:
     :return:
     """
-    from matplotlib import pylab as plt
-
-    plt.rcParams.update({
-        'axes.labelsize': 'large',
-        'axes.labelweight': 'bold',
-        'axes.titlesize': 'large',
-        'axes.titleweight': 'bold',
-        'legend.fontsize': 'small',
-        'xtick.labelsize': 'large',
-        'ytick.labelsize': 'large',
-    })
-
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
 
     for ax in (ax1, ax3):
@@ -84,7 +85,40 @@ def print_species(filepath, df):
         ax.set_xlabel('time [h]')
         ax.legend()
 
-    fig.savefig(filepath)
+    fig.savefig(filepath, bbox_inches='tight')
+
+
+def print_bounds(filepath, df):
+    """ Print exchange fluxes and respective bounds.
+
+    :param df:
+    :return:
+    """
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
+
+    mapping = {'Ac': ax1,
+               'Glcxt': ax2,
+               'O2': ax3,
+               'X': ax4}
+    colors = {'Ac': 'darkred',
+               'Glcxt': 'darkgreen',
+               'O2': 'darkblue',
+               'X': 'black'}
+
+    for key, ax in mapping.iteritems():
+
+        ax.plot(df.time, df['lb_v{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="lb_{}".format(key))
+        ax.plot(df.time, df['ub_v{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_{}".format(key))
+        ax.fill_between(df.time, df['lb_v{}'.format(key)], df['ub_v{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=True)
+
+        ax.plot(df.time, df['v{}'.format(key)], linestyle='-', marker='s', color=colors[key], label=key)
+
+        ax.set_ylabel('Concentration/Biomass [?]')
+        ax.set_title('{}: Flux and bounds'.format(key))
+        ax.set_xlabel('time [h]')
+        ax.legend()
+
+    fig.savefig(filepath, bbox_inches='tight')
 
 if __name__ == "__main__":
     print('Model:', sbml_top_path)
