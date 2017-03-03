@@ -371,11 +371,13 @@ class Species(ValueWithUnit):
                               boundaryCondition=self.boundaryCondition,
                               constant=self.constant,
                               hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
-                              conversionFactor=self.conversionFactor)
+                              conversionFactor=self.conversionFactor,
+                              sboTerm=self.sboTerm,
+                              metaId=self.metaId)
 
     @staticmethod
     def _create(model, sid, name, value, unit, compartment,
-                boundaryCondition, constant, hasOnlySubstanceUnits, conversionFactor):
+                boundaryCondition, constant, hasOnlySubstanceUnits, conversionFactor, sboTerm, metaId):
         """ Create libsbml Species.
 
         :param model:
@@ -394,6 +396,10 @@ class Species(ValueWithUnit):
         s.setId(sid)
         if name:
             s.setName(name)
+        if sboTerm is not None:
+            s.setSBOTerm(sboTerm)
+        if metaId is not None:
+            s.setMetaId(metaId)
         if unit:
             s.setUnits(Unit.get_unit_string(unit))
         s.setCompartment(compartment)

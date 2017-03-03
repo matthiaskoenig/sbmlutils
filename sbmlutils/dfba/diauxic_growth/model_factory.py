@@ -517,8 +517,8 @@ def top_model(sbml_file, directory, emds):
                    compartment="bioreactor"),
 
         # dummy species for dummy reactions
-        mc.Species(sid='S_dummy', name="S_dummy", value=0, unit='mmol_per_l', hasOnlySubstanceUnits=False,
-                   compartment="bioreactor"),
+        mc.Species(sid='dummy_S', name="dummy_S", value=0, unit='mmol_per_l', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor", sboTerm="SBO:0000291"),
     ])
 
     # Parameters
@@ -540,13 +540,13 @@ def top_model(sbml_file, directory, emds):
     # Reactions
     # dummy reaction in top model
     mc.create_reaction(model, rid="dummy_vGlcxt", name="vGlcxt dummy", reversible=False,
-                       reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
     mc.create_reaction(model, rid="dummy_vO2", name="vO2 dummy", reversible=False,
-                       reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
     mc.create_reaction(model, rid="dummy_vAc", name="vAc dummy", reversible=False,
-                       reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
     mc.create_reaction(model, rid="dummy_vX", name="vX dummy", reversible=False,
-                       reactants={}, products={"S_dummy": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
 
     # AssignmentRules
     # This are the important assignment rules which update the fluxes
