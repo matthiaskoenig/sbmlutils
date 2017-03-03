@@ -578,7 +578,7 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
     r.setId(rid)
     if name:
         r.setName(name)
-    if sboTerm:
+    if sboTerm is not None:
         r.setSBOTerm(sboTerm)
     r.setFast(fast)
     r.setReversible(reversible)

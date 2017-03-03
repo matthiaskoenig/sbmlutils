@@ -540,13 +540,13 @@ def top_model(sbml_file, directory, emds):
     # Reactions
     # dummy reaction in top model
     mc.create_reaction(model, rid="dummy_vGlcxt", name="vGlcxt dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
     mc.create_reaction(model, rid="dummy_vO2", name="vO2 dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
     mc.create_reaction(model, rid="dummy_vAc", name="vAc dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
     mc.create_reaction(model, rid="dummy_vX", name="vX dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor")
+                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
 
     # AssignmentRules
     # This are the important assignment rules which update the fluxes
@@ -600,7 +600,7 @@ def top_model(sbml_file, directory, emds):
     comp.replace_elements(model, 'vX', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'update': ['vX_port']})
 
-
+    '''
     # FBA: replace reaction by fba reaction
     comp.replaced_by(model, 'dummy_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                      submodel='fba', replaced_by="vGlcxt_port")
@@ -610,6 +610,7 @@ def top_model(sbml_file, directory, emds):
                      submodel='fba', replaced_by="vO2_port")
     comp.replaced_by(model, 'dummy_vX', ref_type=comp.SBASE_REF_TYPE_PORT,
                      submodel='fba', replaced_by="vX_port")
+    '''
 
     # replace units
     # TODO
