@@ -90,7 +90,7 @@ XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 2
+version = 3
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>
@@ -329,29 +329,82 @@ def bounds_model(sbml_file, directory):
     add_generic_info(model)
 
     objects = [
+
+        # definition of min and max
+        mc.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum of arguments'),
+        mc.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum of arguments'),
+
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
                        spatialDimension=3),
-        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mM', hasOnlySubstanceUnits=False,
+        # species
+        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit='mmol_per_l', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+        mc.Species(sid='Ac', name="acetate", value=0.4, unit='mmol_per_l', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+        mc.Species(sid='O2', name="oxygen", value=0.21, unit='mmol_per_l', hasOnlySubstanceUnits=False,
+                   compartment="bioreactor"),
+        mc.Species(sid='X', name="biomass", value=0.001, unit='mmol_per_l', hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
         # hardcoded time step for the update of the bounds
         mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
-        mc.Parameter(sid='ub_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
+
+
+        # parameteters for kinetic bounds
         mc.Parameter(sid='Vmax_vGlcxt', value=15, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
         mc.Parameter(sid='Km_vGlcxt', value=0.015, unit="mmol_per_l", name="Km_vGlcxt", constant=True),
 
-        mc.AssignmentRule(sid="ub_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
-        # # driving function to test the bound update
-        # mc.AssignmentRule(sid="Glcxt", value="5.0 mM + 5.0 mM * sin(time/1 h)")
+        # kinetic bounds
+        mc.Parameter(sid='ub_kin_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
+
+        # exchange fluxes bounds default
+        mc.Parameter(sid="lb_def_vAc", name="lb vAc", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vAc", name="ub vAc", value=1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_def_vGlcxt", name="lb vGlcxt", value=0.0, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_def_vO2", name="lb vAc", value=-1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_def_vX", name="lb vX", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_def_vX", name="ub vX", value=1000.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+
+
+        # Assignment Rules
+        # kinetic bounds
+        mc.AssignmentRule(sid="ub_kin_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
+
+        # species bounds
+        mc.AssignmentRule(sid="lb_vAc", value="max(lb_def_vAc, Ac*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_vGlcxt", value="max(lb_def_vGlcxt, Glcxt*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_vO2", value="max(lb_def_vO2, O2*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_vX", value="max(lb_def_vX, X*bioreactor/dt)"),
+
+        mc.AssignmentRule(sid="ub_vAc", value="min(ub_def_vAc, Ac*bioreactor/dt)"),
+        mc.AssignmentRule(sid="ub_vGlcxt", value="min(ub_kin_vGlcxt, Glcxt*bioreactor/dt)"),
+        mc.AssignmentRule(sid="ub_vO2", value="min(ub_def_vO2, O2*bioreactor/dt)"),
+        mc.AssignmentRule(sid="ub_vX", value="min(ub_def_vX, X*bioreactor/dt)"),
+
     ]
     mc.create_objects(model, objects)
 
     # ports
     comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
+    # species
     comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
+    # bounds
+    comp._create_port(model, pid="lb_vAc_port", idRef="lb_vAc", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_vAc_port", idRef="ub_vAc", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_vGlcxt_port", idRef="lb_vGlcxt", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
-
+    comp._create_port(model, pid="lb_vO2_port", idRef="lb_vO2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_vO2_port", idRef="ub_vO2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_vX_port", idRef="lb_vX", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_vX_port", idRef="ub_vX", portType=comp.PORT_TYPE_PORT)
 
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
@@ -572,20 +625,23 @@ def top_model(sbml_file, directory, emds):
                                              'update': ['bioreactor_port'],
                                              'bounds': ['bioreactor_port']})
 
-    # replace species
+    # species
     comp.replace_elements(model, 'Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'fba': ['Glcxt_port'],
                                              'update': ['Glcxt_port'],
                                              'bounds': ['Glcxt_port']})
     comp.replace_elements(model, 'O2', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'fba': ['O2_port'],
-                                             'update': ['O2_port']})
+                                             'update': ['O2_port'],
+                                             'bounds': ['O2_port']})
     comp.replace_elements(model, 'Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'fba': ['Ac_port'],
-                                             'update': ['Ac_port']})
+                                             'update': ['Ac_port'],
+                                             'bounds': ['Ac_port']})
     comp.replace_elements(model, 'X', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'fba': ['X_port'],
-                                             'update': ['X_port']})
+                                             'update': ['X_port'],
+                                             'bounds': ['X_port']})
     # bounds
     comp.replace_elements(model, 'ub_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'bounds': ['ub_vGlcxt_port'], 'fba': ['ub_vGlcxt_port']})
@@ -638,6 +694,7 @@ def create_models():
     # create sbml
     fba_model(fba_file, directory)
     bounds_model(bounds_file, directory)
+    # exit()
     update_model(update_file, directory)
 
     emds = {

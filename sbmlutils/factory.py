@@ -260,7 +260,7 @@ class Parameter(ValueWithUnit):
                                  metaId=self.metaId)
 
     @staticmethod
-    def _create(model, sid, unit, name, value, constant, sboTerm, metaId):
+    def _create(model, sid, unit, name, value, constant, sboTerm=None, metaId=None):
         """ Create libsbml Parameter.
 
         :param model:
