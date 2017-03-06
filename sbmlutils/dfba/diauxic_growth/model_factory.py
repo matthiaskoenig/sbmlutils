@@ -460,11 +460,11 @@ def update_model(sbml_file, directory):
         mc.Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
         mc.AssignmentRule('Y', '1 g_per_mmol * X'),
 
-        # fluxes from fba
-        mc.Parameter(sid="vAc", name="vAc (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
-        mc.Parameter(sid="vGlcxt", name="vGlcxt (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
-        mc.Parameter(sid="vO2", name="vO2 (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
-        mc.Parameter(sid="vX", name="vX (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        # exchange reaction fluxes
+        mc.Parameter(sid="EX_Ac", name="Ac exchange (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        mc.Parameter(sid="EX_Glcxt", name="Glcxt exchange (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        mc.Parameter(sid="EX_O2", name="O2 exchange (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
+        mc.Parameter(sid="EX_X", name="X exchange (FBA flux)", value=1.0, constant=True, unit="mmol_per_hg"),
 
         # Michaelis-Menten kinetics for flux updates
         mc.Parameter(sid="Km_vFBA", name="Km_vFBA", value=0.02, constant=True, unit="mmol_per_l"),
@@ -474,19 +474,19 @@ def update_model(sbml_file, directory):
 
     # Michaelis-Menten-Terms for restriction
     mc.create_reaction(model, rid="update_Glcxt", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, products={}, formula="(vGlcxt*Y*bioreactor) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
+                       reactants={"Glcxt": 1}, products={}, formula="(EX_Glcxt*Y*bioreactor) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_Ac", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, products={}, formula="(vAc*Y*bioreactor) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
+                       reactants={"Ac": 1}, products={}, formula="(EX_Ac*Y*bioreactor) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_O2", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, products={}, formula="(vO2*Y*bioreactor) * O2/(Km_vFBA + O2)", compartment="bioreactor")
+                       reactants={"O2": 1}, products={}, formula="(EX_O2*Y*bioreactor) * O2/(Km_vFBA + O2)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_X", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"X": 1}, products={}, formula="(vX*Y*bioreactor)", compartment="bioreactor")
+                       reactants={"X": 1}, products={}, formula="(EX_X*Y*bioreactor)", compartment="bioreactor")
 
     # ports
-    comp._create_port(model, pid="vGlcxt_port", idRef="vGlcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="vAc_port", idRef="vAc", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="vO2_port", idRef="vO2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="vX_port", idRef="vX", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="EX_Ac_port", idRef="EX_Ac", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="EX_O2_port", idRef="EX_O2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="EX_X_port", idRef="EX_X", portType=comp.PORT_TYPE_PORT)
 
     comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
@@ -593,13 +593,13 @@ def top_model(sbml_file, directory, emds):
         mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
 
         # fluxes from fba (rate of reaction)
-        mc.Parameter(sid="vGlcxt", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="vAc", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="vO2", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="vX", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="EX_Glcxt", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="EX_Ac", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="EX_O2", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="EX_X", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
     ]
     # flux bounds
-    for ex_rid in ['vAc', 'vGlcxt', 'vO2', 'vX']:
+    for ex_rid in ['EX_Ac', 'EX_Glcxt', 'EX_O2', 'EX_X']:
         for bound_type in ['lb', 'ub']:
             if bound_type == 'lb':
                 value = LOWER_BOUND_DEFAULT
@@ -613,23 +613,23 @@ def top_model(sbml_file, directory, emds):
 
     # Reactions
     # dummy reaction (pseudoreaction)
-    mc.create_reaction(model, rid="dummy_vGlcxt", name="vGlcxt dummy", reversible=False,
+    mc.create_reaction(model, rid="dummy_EX_Glcxt", name="EX_Glcxt dummy", reversible=False,
                        reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_vO2", name="vO2 dummy", reversible=False,
+    mc.create_reaction(model, rid="dummy_EX_O2", name="EX_O2 dummy", reversible=False,
                        reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_vAc", name="vAc dummy", reversible=False,
+    mc.create_reaction(model, rid="dummy_EX_Ac", name="EX_Ac dummy", reversible=False,
                        reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_vX", name="vX dummy", reversible=False,
+    mc.create_reaction(model, rid="dummy_EX_X", name="EX_X dummy", reversible=False,
                        reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
 
     # AssignmentRules
     # This are the important assignment rules which update the fluxes
     # must be of the form: pid = rid
     mc.create_objects(model, [
-        mc.AssignmentRule(sid="vGlcxt", value="dummy_vGlcxt"),
-        mc.AssignmentRule(sid="vAc", value="dummy_vAc"),
-        mc.AssignmentRule(sid="vO2", value="dummy_vO2"),
-        mc.AssignmentRule(sid="vX", value="dummy_vX"),
+        mc.AssignmentRule(sid="EX_Glcxt", value="dummy_EX_Glcxt"),
+        mc.AssignmentRule(sid="EX_Ac", value="dummy_EX_Ac"),
+        mc.AssignmentRule(sid="EX_O2", value="dummy_EX_O2"),
+        mc.AssignmentRule(sid="EX_X", value="dummy_EX_X"),
 
         # This breaks the simulator
         # mc.AssignmentRule(sid="vGlcxt", value="1 per_g * dummy_vGlcxt"),
@@ -667,33 +667,32 @@ def top_model(sbml_file, directory, emds):
                                              'bounds': ['X_port']})
     # bounds
     for bound_id in [
-        'lb_vAc', 'ub_vAc',
-        'lb_vGlcxt', 'ub_vGlcxt',
-        'lb_vO2', 'ub_vO2',
-        'lb_vX', 'ub_vX']:
-        print(bound_id)
+        'lb_EX_Ac', 'ub_EX_Ac',
+        'lb_EX_Glcxt', 'ub_EX_Glcxt',
+        'lb_EX_O2', 'ub_EX_O2',
+        'lb_EX_X', 'ub_EX_X']:
         comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'bounds': ['{}_port'.format(bound_id)], 'fba': ['{}_port'.format(bound_id)]})
 
     # fluxes
-    comp.replace_elements(model, 'vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['vGlcxt_port']})
-    comp.replace_elements(model, 'vAc', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['vAc_port']})
-    comp.replace_elements(model, 'vO2', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['vO2_port']})
-    comp.replace_elements(model, 'vX', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['vX_port']})
+    comp.replace_elements(model, 'EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_Glcxt_port']})
+    comp.replace_elements(model, 'EX_Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_Ac_port']})
+    comp.replace_elements(model, 'EX_O2', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_O2_port']})
+    comp.replace_elements(model, 'EX_X', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_X_port']})
 
     # FBA: replace reaction by fba reaction
-    comp.replaced_by(model, 'dummy_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="vGlcxt_port")
-    comp.replaced_by(model, 'dummy_vAc', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="vAc_port")
-    comp.replaced_by(model, 'dummy_vO2', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="vO2_port")
-    comp.replaced_by(model, 'dummy_vX', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="vX_port")
+    comp.replaced_by(model, 'dummy_EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_Glcxt_port")
+    comp.replaced_by(model, 'dummy_EX_Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_Ac_port")
+    comp.replaced_by(model, 'dummy_EX_O2', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_O2_port")
+    comp.replaced_by(model, 'dummy_EX_X', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_X_port")
 
     # replace units
     # TODO
@@ -723,8 +722,6 @@ def create_models():
     # create sbml
     fba_model(fba_file, directory)
     bounds_model(bounds_file, directory)
-    exit()
-    # exit()
     update_model(update_file, directory)
 
     emds = {

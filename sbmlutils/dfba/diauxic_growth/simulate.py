@@ -109,11 +109,11 @@ def print_fluxes(filepath, df):
 
     for key, ax in mapping.iteritems():
 
-        ax.plot(df.time, df['lb_v{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="lb_{}".format(key))
-        ax.plot(df.time, df['ub_v{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_{}".format(key))
-        ax.fill_between(df.time, df['lb_v{}'.format(key)], df['ub_v{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=True)
+        ax.plot(df.time, df['lb_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="lb_EX_{}".format(key))
+        ax.plot(df.time, df['ub_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_EX_{}".format(key))
+        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=True)
 
-        ax.plot(df.time, df['v{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="v_{}".format(key))
+        ax.plot(df.time, df['EX_{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="EX__{}".format(key))
 
         ax.set_ylabel('Flux [?]')
         ax.set_title('{}: Flux and bounds'.format(key))
