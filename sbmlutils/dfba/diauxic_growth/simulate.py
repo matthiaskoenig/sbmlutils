@@ -140,7 +140,7 @@ def print_fluxes(filepath, df):
 
 if __name__ == "__main__":
     print('Model:', sbml_top_path)
-    tend = 15
+    tend = 20
     steps = 10*tend
     import logging
     # logging.getLogger().setLevel(logging.INFO)

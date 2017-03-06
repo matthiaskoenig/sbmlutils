@@ -23,6 +23,7 @@ import pandas as pd
 from pandas import DataFrame
 import numpy
 import tempfile
+from matplotlib import pyplot as plt
 
 from collections import defaultdict
 
@@ -275,6 +276,13 @@ class Simulator(object):
             fba_rules[reaction.getId()] = parameter.getId()
         return fba_rules
 
+    def reset(self):
+        """ Reset the kinetic model.
+        Performs a roadrunner reset.
+        :return:
+        """
+
+
     def simulate(self, tstart=0.0, tend=10.0, steps=20, absTol=1E-6, relTol=1E-6):
         """
         Perform model simulation.
@@ -385,7 +393,10 @@ class Simulator(object):
 
         ax_s = df.plot(x='time', y=species_ids)
         fig = ax_s.get_figure()
-        fig.savefig(filepath)
+        if filepath:
+            fig.savefig(filepath)
+        else:
+            plt.show()
 
     def plot_reactions(self, filepath, df, rr_comp):
         """ Create reactions plots.
@@ -400,7 +411,10 @@ class Simulator(object):
 
         ax_r = df.plot(x='time', y=reaction_ids)
         fig = ax_r.get_figure()
-        fig.savefig(filepath)
+        if filepath:
+            fig.savefig(filepath)
+        else:
+            plt.show()
 
     def save_csv(self, filepath, df):
         """ Save results to csv. """
