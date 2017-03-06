@@ -474,13 +474,13 @@ def update_model(sbml_file, directory):
 
     # Michaelis-Menten-Terms for restriction
     mc.create_reaction(model, rid="update_Glcxt", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, products={}, formula="(EX_Glcxt*Y*bioreactor) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
+                       reactants={"Glcxt": 1}, products={}, formula="(-EX_Glcxt*Y*bioreactor) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_Ac", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, products={}, formula="(EX_Ac*Y*bioreactor) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
+                       reactants={"Ac": 1}, products={}, formula="(-EX_Ac*Y*bioreactor) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_O2", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, products={}, formula="(EX_O2*Y*bioreactor) * O2/(Km_vFBA + O2)", compartment="bioreactor")
+                       reactants={"O2": 1}, products={}, formula="(-EX_O2*Y*bioreactor) * O2/(Km_vFBA + O2)", compartment="bioreactor")
     mc.create_reaction(model, rid="update_X", reversible=False, sboTerm="SBO:0000631",
-                       reactants={"X": 1}, products={}, formula="(EX_X*Y*bioreactor)", compartment="bioreactor")
+                       reactants={"X": 1}, products={}, formula="(-EX_X*Y*bioreactor)", compartment="bioreactor")
 
     # ports
     comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)
