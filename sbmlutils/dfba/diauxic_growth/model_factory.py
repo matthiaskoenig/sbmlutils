@@ -230,6 +230,7 @@ def fba_model(sbml_file, directory):
     mc.create_objects(model, species)
 
     parameters = [
+        # default bounds
         mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
         mc.Parameter(sid="lb_default", name="default lower bound", value=-1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
         mc.Parameter(sid="ub_default", name="default upper bound", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
@@ -359,51 +360,42 @@ def bounds_model(sbml_file, directory):
         # hardcoded time step for the update of the bounds
         mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
 
-
-        # parameteters for kinetic bounds
-        mc.Parameter(sid='Vmax_vGlcxt', value=15, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
+        # parameters for kinetic bounds
+        mc.Parameter(sid='Vmax_vGlcxt', value=10, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
         mc.Parameter(sid='Km_vGlcxt', value=0.015, unit="mmol_per_l", name="Km_vGlcxt", constant=True),
+        mc.Parameter(sid="ub_vGlcxt", value=10.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
 
-        # kinetic bounds
-        mc.Parameter(sid='ub_kin_vGlcxt', value=15, unit=UNIT_FLUX, name='ub_vGlcxt', constant=False),
+        # default bounds
+        mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_default", name="default lower bound", value=-1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_default", name="default upper bound", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
 
-        # exchange fluxes default bounds
-        mc.Parameter(sid="lb_def_vAc", name="lb vAc", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vAc", name="ub vAc", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_def_vGlcxt", name="lb vGlcxt", value=0.0, unit=UNIT_FLUX, constant=True,
+        # values of all exchange flux bounds can be overwritten from the outside
+        mc.Parameter(sid="lb_EX_Ac", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_Ac", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
                      sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vGlcxt", name="ub vGlcxt", value=10.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_def_vO2", name="lb vAc", value=-1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vO2", name="ub vO2", value=15.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_def_vX", name="lb vX", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_def_vX", name="ub vX", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_Glcxt", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_O2", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_X", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_X", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
 
-        # exchange fluxes bounds
-        mc.Parameter(sid="lb_vAc", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_vAc", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_vGlcxt", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_vGlcxt", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_vO2", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_vO2", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_vX", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_vX", unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-
-        # Assignment Rules
         # kinetic bounds
-        mc.AssignmentRule(sid="ub_kin_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
+        mc.AssignmentRule(sid="ub_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
 
-        # species bounds
+        # exchange reaction bounds
         # FIXME: the units of the fluxes have to fit (normalization per g)
-        mc.AssignmentRule(sid="lb_vAc", value="max(lb_def_vAc, -Ac*bioreactor/(dt*1 g))"),
-        mc.AssignmentRule(sid="lb_vGlcxt", value="max(lb_def_vGlcxt, -Glcxt*bioreactor/(dt*1 g))"),
-        mc.AssignmentRule(sid="lb_vO2", value="max(lb_def_vO2, -O2*bioreactor/(dt*1 g))"),
-        mc.AssignmentRule(sid="lb_vX", value="max(lb_def_vX, -X*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_default, -Glcxt*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_default, -O2*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/(dt*1 g))"),
 
-        mc.AssignmentRule(sid="ub_vAc", value="min(ub_def_vAc, Ac*bioreactor/(dt*1 g))"),
-        mc.AssignmentRule(sid="ub_vGlcxt", value="min(ub_kin_vGlcxt, Glcxt*bioreactor/(dt*1 g))"),
-        mc.AssignmentRule(sid="ub_vO2", value="min(ub_def_vO2, O2*bioreactor/(dt*1 g))"),
-        mc.AssignmentRule(sid="ub_vX", value="min(ub_def_vX, X*bioreactor/(dt*1 g))"),
-
+        mc.AssignmentRule(sid="ub_EX_Ac", value="min(ub_default, Ac*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="ub_EX_Glcxt", value="min(ub_default, Glcxt*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="ub_EX_O2", value="min(ub_default, O2*bioreactor/(dt*1 g))"),
+        mc.AssignmentRule(sid="ub_EX_X", value="min(ub_default, X*bioreactor/(dt*1 g))"),
     ]
     mc.create_objects(model, objects)
 
@@ -415,15 +407,19 @@ def bounds_model(sbml_file, directory):
     comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
-    # bounds
-    comp._create_port(model, pid="lb_vAc_port", idRef="lb_vAc", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_vAc_port", idRef="ub_vAc", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_vGlcxt_port", idRef="lb_vGlcxt", portType=comp.PORT_TYPE_PORT)
+
+    # kinetic bounds
     comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_vO2_port", idRef="lb_vO2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_vO2_port", idRef="ub_vO2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_vX_port", idRef="lb_vX", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_vX_port", idRef="ub_vX", portType=comp.PORT_TYPE_PORT)
+
+    # exchange bounds
+    comp._create_port(model, pid="lb_EX_Ac_port", idRef="lb_EX_Ac", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_Ac_port", idRef="ub_EX_Ac", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_Glcxt_port", idRef="lb_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_Glcxt_port", idRef="ub_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_O2_port", idRef="lb_EX_O2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_O2_port", idRef="ub_EX_O2", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_X_port", idRef="lb_EX_X", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
 
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
 
@@ -726,8 +722,8 @@ def create_models():
 
     # create sbml
     fba_model(fba_file, directory)
-    exit()
     bounds_model(bounds_file, directory)
+    exit()
     # exit()
     update_model(update_file, directory)
 
