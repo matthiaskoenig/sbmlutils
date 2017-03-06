@@ -259,13 +259,13 @@ def fba_model(sbml_file, directory):
     r_vX = mc.create_reaction(model, rid="vX", name="biomass generation (vX)", reversible=False,
                             reactants={"X": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
     # reactions: internal reactions
-    r_v1 = mc.create_reaction(model, rid="v1", name="v1", reversible=False,
+    r_v1 = mc.create_reaction(model, rid="v1", name="v1 (39.43 Ac + 35 O2 -> X)", reversible=False,
                                reactants={"Ac": 39.43, "O2": 35}, products={"X": 1}, compartment='bioreactor')
-    r_v2 = mc.create_reaction(model, rid="v2", name="v2", reversible=False,
+    r_v2 = mc.create_reaction(model, rid="v2", name="v2 (9.46 Glcxt + 12.92 O2 -> X)", reversible=False,
                               reactants={"Glcxt": 9.46, "O2": 12.92}, products={"X": 1}, compartment='bioreactor')
-    r_v3 = mc.create_reaction(model, rid="v3", name="v3", reversible=False,
+    r_v3 = mc.create_reaction(model, rid="v3", name="v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)", reversible=False,
                               reactants={"Glcxt": 9.84, "O2": 12.73}, products={"Ac": 1.24, "X": 1}, compartment='bioreactor')
-    r_v4 = mc.create_reaction(model, rid="v4", name="v4", reversible=False,
+    r_v4 = mc.create_reaction(model, rid="v4", name="v4 (19.23 Glcxt -> 12.12 Ac + X)", reversible=False,
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
 
     # flux bounds: exchange fluxes

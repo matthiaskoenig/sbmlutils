@@ -47,7 +47,7 @@ def simulate_diauxic_growth(sbml_top_path, tend, steps):
     sim.save_csv(os.path.join(directory, "simulation.csv"), df)
 
     print_species(os.path.join(directory, "species_growth.png"), df)
-    print_bounds(os.path.join(directory, "bounds_growth.png"), df)
+    print_fluxes(os.path.join(directory, "fluxes_growth.png"), df)
     return df
 
 
@@ -88,14 +88,16 @@ def print_species(filepath, df):
     fig.savefig(filepath, bbox_inches='tight')
 
 
-def print_bounds(filepath, df):
-    """ Print exchange fluxes and respective bounds.
+def print_fluxes(filepath, df):
+    """ Print exchange & internal fluxes with respective bounds.
 
     :param df:
     :return:
     """
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
+    fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows=3, ncols=2, figsize=(10, 15))
+    fig.subplots_adjust(wspace=0.3)
 
+    # exchange fluxes
     mapping = {'Ac': ax1,
                'Glcxt': ax2,
                'O2': ax3,
@@ -111,12 +113,28 @@ def print_bounds(filepath, df):
         ax.plot(df.time, df['ub_v{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_{}".format(key))
         ax.fill_between(df.time, df['lb_v{}'.format(key)], df['ub_v{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=True)
 
-        ax.plot(df.time, df['v{}'.format(key)], linestyle='-', marker='s', color=colors[key], label=key)
+        ax.plot(df.time, df['v{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="v_{}".format(key))
 
-        ax.set_ylabel('Concentration/Biomass [?]')
+        ax.set_ylabel('Flux [?]')
         ax.set_title('{}: Flux and bounds'.format(key))
         ax.set_xlabel('time [h]')
         ax.legend()
+
+    # internal fluxes (v1, v2, v3, v4)
+    for fid in ['v1', 'v2', 'v3', 'v4']:
+        ax5.plot(df.time, df['fba__{}'.format(fid)], label=fid, linestyle='-', marker='s')
+    ax5.set_ylabel('Flux [?]')
+    ax5.set_xlabel('time [h]')
+    ax5.legend()
+
+    # concentrations
+    for key in ['Ac', 'Glcxt', 'O2']:
+        ax6.plot(df.time, df['[{}]'.format(key)],
+             linestyle='-', marker='s', color=colors[key], label=key)
+    ax6.set_ylabel('Concentration [?]')
+    ax6.set_xlabel('time [h]')
+    ax6.legend()
+
 
     fig.savefig(filepath, bbox_inches='tight')
 
