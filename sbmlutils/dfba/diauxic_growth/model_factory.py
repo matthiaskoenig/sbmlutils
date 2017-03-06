@@ -236,7 +236,7 @@ def fba_model(sbml_file, directory):
 
         # exchange flux bounds
         # values of all exchange flux bounds can be overwritten from the outside
-        mc.Parameter(sid="lb_EX_Ac", value=0.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_Ac", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
         mc.Parameter(sid="ub_EX_Ac", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
 
         mc.Parameter(sid="lb_EX_Glcxt", value=-10.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
@@ -250,10 +250,10 @@ def fba_model(sbml_file, directory):
     ]
     mc.create_objects(model, parameters)
 
-    # reactions: exchange reactions
+    # reactions: exchange reactions (this species can be changed by the FBA)
     r_EX_O2 = mc.create_reaction(model, rid="EX_O2", name="O2 exchange", reversible=False,
                             reactants={"O2": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-    r_EX_Glcxt = mc.create_reaction(model, rid="EX_vGlcxt", name="Glcxt exchange", reversible=False,
+    r_EX_Glcxt = mc.create_reaction(model, rid="EX_Glcxt", name="Glcxt exchange", reversible=False,
                             reactants={"Glcxt": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
     r_EX_Ac = mc.create_reaction(model, rid="EX_Ac", name="Ac exchange", reversible=True,
                             reactants={"Ac": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
@@ -301,7 +301,7 @@ def fba_model(sbml_file, directory):
     comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
 
-    # ports: bounds for exchange reactions
+    # ports: bounds for exchange reactions (set by species concentrations)
     comp._create_port(model, pid="lb_EX_Ac_port", idRef="lb_EX_Ac", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="lb_EX_Glcxt_port", idRef="lb_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="lb_EX_O2_port", idRef="lb_EX_O2", portType=comp.PORT_TYPE_PORT)
@@ -719,6 +719,7 @@ def create_models():
 
     # create sbml
     fba_model(fba_file, directory)
+    exit()
     bounds_model(bounds_file, directory)
     # exit()
     update_model(update_file, directory)
