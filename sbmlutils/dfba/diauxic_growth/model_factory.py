@@ -87,7 +87,7 @@ from sbmlutils.report import sbmlreport
 
 XMLOutputStream.setWriteTimestamp(False)
 
-from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, LOWER_BOUND_PREFIX, UPPER_BOUND_PREFIX
+from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 
 ########################################################################
 # General model information
@@ -138,30 +138,19 @@ main_units = {
 }
 units = [
     mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)]),
-
     mc.Unit('g', [(UNIT_KIND_GRAM, 1.0)]),
     mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
     mc.Unit('l', [(UNIT_KIND_LITRE, 1.0)]),
-
-    mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
+    mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                    (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
                         (UNIT_KIND_LITRE, -1.0)]),
-
-    mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
-    mc.Unit('per_g', [(UNIT_KIND_GRAM, -1.0)]),
     mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
-    mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                            (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
-    mc.Unit('mmol_per_lh', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                            (UNIT_KIND_LITRE, -1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('g_per_lh', [(UNIT_KIND_GRAM, 1.0),
-                         (UNIT_KIND_LITRE, -1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 ]
 
 UNIT_AMOUNT = 'mmol'
@@ -680,6 +669,10 @@ def top_model(sbml_file, directory, emds):
         comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'bounds': ['{}_port'.format(bound_id)], 'fba': ['{}_port'.format(bound_id)]})
 
+    # bounds
+    comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['dt_port']})
+
     # fluxes
     comp.replace_elements(model, 'EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'update': ['EX_Glcxt_port']})
@@ -701,10 +694,10 @@ def top_model(sbml_file, directory, emds):
                      submodel='fba', replaced_by="EX_X_port")
 
     # replace units
-    # TODO
-    # for uid in ['s', 'kg', 'm3', 'm2', 'mM', 'item_per_m3', 'm', 'per_s', 'item_per_s']:
-    #    comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
-    #                                      submodels=['bounds', 'fba', 'update', 'ode'])
+
+    for uid in ['h', 'g', 'm', 'm2', 'l', 'mmol', 'mmol_per_h', 'mmol_per_l', 'g_per_l', 'g_per_mmol']:
+        comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
+                                          submodels=['bounds', 'fba', 'update'])
 
     # write SBML file
     sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))

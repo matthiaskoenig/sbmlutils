@@ -569,6 +569,7 @@ class FBAModel(object):
         :rtype:
         """
         logging.debug('* FBA set bounds ')
+        counter = 0
         for pid in self.ub_replacements:
             for rid in self.ub_parameters.get(pid):
                 cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
@@ -577,6 +578,7 @@ class FBAModel(object):
                     ub = 0.0
                 cobra_reaction.upper_bound = ub
                 logging.debug('\tupper: {} = {} = {}'.format(pid, rid, ub))
+                counter += 1
 
         for pid in self.lb_replacements:
             for rid in self.lb_parameters.get(pid):
@@ -586,7 +588,10 @@ class FBAModel(object):
                     lb = 0.0
                 cobra_reaction.lower_bound = lb
                 logging.debug('\tlower: {} = {} = {}'.format(pid, rid, lb))
+                counter += 1
 
+        if counter == 0:
+            logging.debug('\tNo flux bounds set')
 
     def optimize(self):
         """ Optimize FBA model.
@@ -594,7 +599,7 @@ class FBAModel(object):
         logging.debug("* FBA optimize")
         self.cobra_model.optimize(objective_sense=self.objective_sense)
 
-        logging.debug('\tstatus: {}'.format(self.cobra_model.solution.status))
+        logging.debug('\tstatus: <{}>'.format(self.cobra_model.solution.status))
         for skey in sorted(self.cobra_model.solution.x_dict):
             flux = self.cobra_model.solution.x_dict[skey]
             logging.debug('\t{:<10}: {}'.format(skey, flux))
