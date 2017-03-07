@@ -251,8 +251,10 @@ def fba_model(sbml_file, directory):
     r_EX_X = mc.create_reaction(model, rid="EX_X", name="biomass exchange", reversible=False,
                             reactants={"X": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
     # flux bounds: exchange fluxes
-    for r in [r_EX_Ac, r_EX_Glcxt, r_EX_O2, r_EX_X]:
-        mc.set_flux_bounds(r, lb="lb_default", ub="ub_default")
+    mc.set_flux_bounds(r_EX_Ac, lb="lb_EX_Ac", ub="ub_EX_Ac")
+    mc.set_flux_bounds(r_EX_Glcxt, lb="lb_EX_Glcxt", ub="ub_EX_Glcxt")
+    mc.set_flux_bounds(r_EX_O2, lb="lb_EX_O2", ub="ub_EX_O2")
+    mc.set_flux_bounds(r_EX_X, lb="lb_EX_X", ub="ub_EX_X")
 
     # reactions: internal reactions (includes the transport fluxes)
     r_vO2 = mc.create_reaction(model, rid="vO2", name="O2 import (vO2)", reversible=False,
@@ -581,7 +583,6 @@ def top_model(sbml_file, directory, emds):
                    compartment="bioreactor", sboTerm="SBO:0000291"),
     ])
 
-
     # Parameters
     parameters = [
         # hardcoded time step for the update of the bounds
@@ -694,7 +695,6 @@ def top_model(sbml_file, directory, emds):
                      submodel='fba', replaced_by="EX_X_port")
 
     # replace units
-
     for uid in ['h', 'g', 'm', 'm2', 'l', 'mmol', 'mmol_per_h', 'mmol_per_l', 'g_per_l', 'g_per_mmol']:
         comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
                                           submodels=['bounds', 'fba', 'update'])

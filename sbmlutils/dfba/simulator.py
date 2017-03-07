@@ -250,8 +250,8 @@ class SimulatorDFBA(object):
 
             fba_model = FBAModel(submodel=submodel, source=source, flux_rules=self.flux_rules)
 
-            fba_model.process_replacements(self.model_top)
-            fba_model.process_flat_mapping(self.rr_comp)
+            # fba_model.process_replacements(self.model_top)
+            fba_model._process_flat_mapping(self.rr_comp)
 
             self.fba_models.append(fba_model)
 
@@ -432,18 +432,17 @@ class FBAModel(object):
         #       parameter_id -> [rid1, rid2, ...]
         self.ub_parameters = defaultdict(list)
         self.lb_parameters = defaultdict(list)
-        self.ub_replacements = []
-        self.lb_replacements = []
+        self.fba2top = None
         self.flat_mapping = {}
 
         # objective sense
-        self.process_objective_sense()
+        self._process_objective_sense()
 
         # bounds
-        self.process_bounds()
+        self._process_bounds()
 
         # parameters to replace in top model
-        self.replacement_rules = self.find_replacement_rules(flux_rules)
+        self.replacement_rules = self._process_replacement_rules(flux_rules)
 
     def __str__(self):
         """ Information string. """
@@ -454,14 +453,13 @@ class FBAModel(object):
         s += "\t{:<20}: {}\n".format('FBA rules', self.replacement_rules)
         s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
         s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
-        s += "\t{:<20}: {}\n".format('ub replacements', self.ub_replacements)
-        s += "\t{:<20}: {}\n".format('lb replacements', self.lb_replacements)
+        s += "\t{:<20}: {}\n".format('fba2top', self.fba2top)
         s += "\t{:<20}: {}\n".format('flat mapping', self.flat_mapping)
         # s += "{}\n".format('-' * 80)
 
         return s
 
-    def process_objective_sense(self):
+    def _process_objective_sense(self):
         """ Read the objective sense from the fba model objective.
 
         :return:
@@ -473,23 +471,24 @@ class FBAModel(object):
         self.objective_sense = objective.getType()
 
 
-    def process_bounds(self):
+    def _process_bounds(self):
         """  Determine which parameters are upper and lower bounds for reactions.
+
         The dictionaries allow simple lookup of the bound parameters for update.
 
         :return:
         :rtype:
         """
         for r in self.sbml_model.getListOfReactions():
-            mr = r.getPlugin("fbc")
+            fbc_r = r.getPlugin("fbc")
             rid = r.getId()
-            if mr.isSetUpperFluxBound():
-                self.ub_parameters[mr.getUpperFluxBound()].append(rid)
-            if mr.isSetLowerFluxBound():
-                self.lb_parameters[mr.getLowerFluxBound()].append(rid)
+            if fbc_r.isSetUpperFluxBound():
+                self.ub_parameters[fbc_r.getUpperFluxBound()].append(rid)
+            if fbc_r.isSetLowerFluxBound():
+                self.lb_parameters[fbc_r.getLowerFluxBound()].append(rid)
 
 
-    def find_replacement_rules(self, flux_rules):
+    def _process_replacement_rules(self, flux_rules):
         """ Finds subset of fba_rules relevant for the FBA model.
 
         Only fba rules are relevant if there is a reaction in the fba submodel
@@ -508,11 +507,21 @@ class FBAModel(object):
         return rules
 
 
-    def process_replacements(self, top_model):
-        """ Process the global replacements once.
+    def _process_bound_replacements(self, top_model):
+        """ Process the top bound replacements once.
 
-        Find which fluxes should be replaced.
+        This provides the parameters of the dynamic upper and lower flux bounds and how
+        they map the the bounds of the FBA model.
+
+        Creates dictionary of parameter
+        { p (fba) : pid (top) }
+        i.e. which ports in the fba are replaced with the parameters
+
+        fba parameter ids : top parameter ids
         """
+        fba2top = {}
+        comp_model = top_model.getPlugin('comp')
+
         for p in top_model.getListOfParameters():
             pid = p.getId()
             mp = p.getPlugin("comp")
@@ -522,17 +531,21 @@ class FBAModel(object):
                 warnings.warn("No ReplacedBy Elements in top model.")
             else:
                 for rep_element in rep_elements:
-                    # the submodel of the replacement belongs to the current model
+                    # the submodel of the replacement belongs to the current fba submodel
                     if rep_element.getSubmodelRef() == self.submodel.getId():
-                        # and parameter is part of the bounds
-                        if pid in self.ub_parameters:
-                            self.ub_replacements.append(pid)
-                        if pid in self.lb_parameters:
-                            self.lb_replacements.append(pid)
+                        portRef = rep_element.getPortRef()
+                        # get the port
+                        port = comp_model.getPort(portRef)
+                        port_id = port.getId()
+                        # get the id of object for port
+                        id_ref = port.getIdRef()
 
-    def process_flat_mapping(self, rr_comp):
+                        fba2top[id_ref] = pid
+        self.fba2top = fba2top
+
+    def _process_flat_mapping(self, rr_comp):
         """ Get the id mapping of the fluxes to the
-        flattend model.
+        flattened model.
 
         :param top_model:
         :type top_model:
@@ -569,29 +582,32 @@ class FBAModel(object):
         :rtype:
         """
         logging.debug('* FBA set bounds ')
+
         counter = 0
-        for pid in self.ub_replacements:
-            for rid in self.ub_parameters.get(pid):
+
+        for fba_pid, top_pid in self.fba2top.iteritems():
+
+            for rid in self.ub_parameters.get(fba_pid):
                 cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                ub = rr_comp[pid]
-                if abs(ub) <= absTol:
-                    ub = 0.0
+                ub = rr_comp[top_pid]
+                # if abs(ub) <= absTol:
+                #    ub = 0.0
                 cobra_reaction.upper_bound = ub
-                logging.debug('\tupper: {} = {} = {}'.format(pid, rid, ub))
+                logging.debug('\tupper: {} = {} = {}'.format(fba_pid, rid, ub))
                 counter += 1
 
-        for pid in self.lb_replacements:
-            for rid in self.lb_parameters.get(pid):
+            for rid in self.lb_parameters.get(fba_pid):
                 cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
                 lb = rr_comp[pid]
-                if abs(lb) <= absTol:
-                    lb = 0.0
+                # if abs(lb) <= absTol:
+                #    lb = 0.0
                 cobra_reaction.lower_bound = lb
-                logging.debug('\tlower: {} = {} = {}'.format(pid, rid, lb))
+                logging.debug('\tlower: {} = {} = {}'.format(fba_pid, rid, lb))
                 counter += 1
 
         if counter == 0:
             logging.debug('\tNo flux bounds set')
+
 
     def optimize(self):
         """ Optimize FBA model.
@@ -620,16 +636,6 @@ class FBAModel(object):
             logging.debug('\t{}: {} = {}'.format(rid, pid, flux))
         else:
             logging.debug('\tNo flux replacements')
-
-    def log_flux_bounds(self):
-        """ Prints flux bounds for all reactions. """
-        info = []
-        for r in self.cobra_model.reactions:
-            info.append([r.id, r.lower_bound, r.upper_bound])
-        df = pd.DataFrame(info, columns=['id', 'lb', 'ub'])
-        pd.set_option('display.max_rows', len(df))
-        logging.debug(df)
-        pd.reset_option('display.max_rows')
 
 
 ########################################################################################################################
