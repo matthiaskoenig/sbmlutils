@@ -183,6 +183,7 @@ class SimulatorDFBA(object):
             framework = SimulatorDFBA.get_framework(submodel)
             self.submodels[framework].append(submodel)
 
+
     def _process_models(self):
         """ Process and prepare models for simulation.
 
@@ -248,9 +249,10 @@ class SimulatorDFBA(object):
                 else:
                     source = s2
 
+            # Create FBA model and process
             fba_model = FBAModel(submodel=submodel, source=source, flux_rules=self.flux_rules)
 
-            # fba_model.process_replacements(self.model_top)
+            fba_model._process_bound_replacements(self.model_top)
             fba_model._process_flat_mapping(self.rr_comp)
 
             self.fba_models.append(fba_model)
@@ -260,7 +262,7 @@ class SimulatorDFBA(object):
 
         :return:
         """
-        logging.debug('* _process_top')
+        logging.debug('* _process_dt')
         par = self.model_top.getParameter(DT_ID)
         if par is None:
             warnings.warn("No parameter with id '{}' in top model.".format(DT_ID))
@@ -278,6 +280,7 @@ class SimulatorDFBA(object):
             pid = rid
         i.e. a reaction rate is assigned to a parameter.
         """
+        logging.debug('* _process_flux_rules')
         flux_rules = {}
 
         for rule in top_model.getListOfRules():
@@ -365,14 +368,17 @@ class SimulatorDFBA(object):
 
                 # store ode row
                 row = result[1, :]
+                logging.debug("\tsuccessful")
 
                 # store fba fluxes
                 logging.debug('* Copy fluxes in ODE solution')
+                # FIXME: better copy
                 for fba_model in self.fba_models:
                     for k, v in fba_model.flat_mapping.iteritems():
                         flux = fba_model.cobra_model.solution.x_dict[k]
                         vindex = df_results.columns.get_loc(v)
                         row[vindex] = flux
+                        logging.debug("\t{} = {}".format(k, flux))
                 all_results.append(row)
 
                 # store and update time
@@ -437,10 +443,8 @@ class FBAModel(object):
 
         # objective sense
         self._process_objective_sense()
-
         # bounds
         self._process_bounds()
-
         # parameters to replace in top model
         self.replacement_rules = self._process_replacement_rules(flux_rules)
 
@@ -464,6 +468,7 @@ class FBAModel(object):
 
         :return:
         """
+        logging.debug('* (fba) _process_flux_rules')
         fmodel = self.sbml_model.getPlugin("fbc")
         flist = fmodel.getListOfObjectives()
         active_oid = flist.getActiveObjective()
@@ -479,6 +484,7 @@ class FBAModel(object):
         :return:
         :rtype:
         """
+        logging.debug('* (fba) _process_bounds')
         for r in self.sbml_model.getListOfReactions():
             fbc_r = r.getPlugin("fbc")
             rid = r.getId()
@@ -499,11 +505,20 @@ class FBAModel(object):
         :return:
         :rtype:
         """
+        logging.debug('* (fba) _process_flux_rules')
+        print(flux_rules)
+
         rules = {}
         for rid, pid in flux_rules.iteritems():
+            # FIXME: via replacements instead of id naming
+
+
             # searches for reactions with suitable ids in the FBA model
             if self.sbml_model.getReaction(rid) is not None:
                 rules[rid] = pid
+
+
+
         return rules
 
 
@@ -514,16 +529,14 @@ class FBAModel(object):
         they map the the bounds of the FBA model.
 
         Creates dictionary of parameter
-        { p (fba) : pid (top) }
-        i.e. which ports in the fba are replaced with the parameters
-
+        { pid (fba) : pid (top) }
         fba parameter ids : top parameter ids
         """
         fba2top = {}
-        comp_model = top_model.getPlugin('comp')
+        comp_model = self.sbml_model.getPlugin('comp')
 
         for p in top_model.getListOfParameters():
-            pid = p.getId()
+            top_pid = p.getId()
             mp = p.getPlugin("comp")
 
             rep_elements = mp.getListOfReplacedElements()
@@ -536,11 +549,10 @@ class FBAModel(object):
                         portRef = rep_element.getPortRef()
                         # get the port
                         port = comp_model.getPort(portRef)
-                        port_id = port.getId()
                         # get the id of object for port
                         id_ref = port.getIdRef()
-
-                        fba2top[id_ref] = pid
+                        # store
+                        fba2top[id_ref] = top_pid
         self.fba2top = fba2top
 
     def _process_flat_mapping(self, rr_comp):
@@ -585,25 +597,28 @@ class FBAModel(object):
 
         counter = 0
 
-        for fba_pid, top_pid in self.fba2top.iteritems():
+        for fba_pid in sorted(self.fba2top):
+            top_pid = self.fba2top[fba_pid]
 
-            for rid in self.ub_parameters.get(fba_pid):
-                cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                ub = rr_comp[top_pid]
-                # if abs(ub) <= absTol:
-                #    ub = 0.0
-                cobra_reaction.upper_bound = ub
-                logging.debug('\tupper: {} = {} = {}'.format(fba_pid, rid, ub))
-                counter += 1
+            if fba_pid in self.ub_parameters:
 
-            for rid in self.lb_parameters.get(fba_pid):
-                cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
-                lb = rr_comp[pid]
-                # if abs(lb) <= absTol:
-                #    lb = 0.0
-                cobra_reaction.lower_bound = lb
-                logging.debug('\tlower: {} = {} = {}'.format(fba_pid, rid, lb))
-                counter += 1
+                for rid in self.ub_parameters.get(fba_pid):
+                    cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
+                    ub = rr_comp[top_pid]
+                    # if abs(ub) <= absTol:
+                    #    ub = 0.0
+                    cobra_reaction.upper_bound = ub
+                    logging.debug('\tupper: {:<10} = {}'.format(fba_pid, ub))
+                    counter += 1
+            if fba_pid in self.lb_parameters:
+                for rid in self.lb_parameters.get(fba_pid):
+                    cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
+                    lb = rr_comp[top_pid]
+                    # if abs(lb) <= absTol:
+                    #    lb = 0.0
+                    cobra_reaction.lower_bound = lb
+                    logging.debug('\tlower: {:<10} = {}'.format(fba_pid, lb))
+                    counter += 1
 
         if counter == 0:
             logging.debug('\tNo flux bounds set')

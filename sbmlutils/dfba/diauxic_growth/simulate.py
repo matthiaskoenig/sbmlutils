@@ -144,8 +144,8 @@ def print_fluxes(filepath, df):
 
 if __name__ == "__main__":
     print('Model:', sbml_top_path)
-    tend = 1
-    steps = 1  # 10*tend
+    tend = 10
+    steps = 10  # 10*tend
     import logging
     # logging.getLogger().setLevel(logging.INFO)
     df = simulate_diauxic_growth(sbml_top_path, tend, steps)
