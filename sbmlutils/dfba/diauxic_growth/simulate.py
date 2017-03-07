@@ -50,8 +50,8 @@ def simulate_diauxic_growth(sbml_top_path, tend, steps):
     analysis.save_csv(os.path.join(directory, "simulation.csv"))
 
     # custom model plots
-    print_species(os.path.join(directory, "species_growth.png"), df)
-    print_fluxes(os.path.join(directory, "fluxes_growth.png"), df)
+    print_species(os.path.join(directory, "growth_species.png"), df)
+    print_fluxes2(os.path.join(directory, "growth_fluxes.png"), df)
     return df
 
 
@@ -115,7 +115,7 @@ def print_fluxes(filepath, df):
 
         ax.plot(df.time, df['lb_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="lb_EX_{}".format(key))
         ax.plot(df.time, df['ub_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_EX_{}".format(key))
-        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=True)
+        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=False)
 
         ax.plot(df.time, df['EX_{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="EX__{}".format(key))
 
@@ -139,13 +139,61 @@ def print_fluxes(filepath, df):
     ax6.set_xlabel('time [h]')
     ax6.legend()
 
+    fig.savefig(filepath, bbox_inches='tight')
+
+
+def print_fluxes2(filepath, df):
+    """ Print exchange & internal fluxes with respective bounds.
+
+    :param df:
+    :return:
+    """
+    fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8), (ax9, ax10, ax11, ax12)) = plt.subplots(nrows=3, ncols=4, figsize=(15, 15))
+    fig.subplots_adjust(wspace=0.3)
+
+    # exchange fluxes
+    mapping = {'Ac': ax1, 'Glcxt': ax2, 'O2': ax3, 'X': ax4}
+    mapping2 = {'Ac': ax5, 'Glcxt': ax6, 'O2': ax7, 'X': ax8}
+    mapping3 = {'v1': ax9, 'v2': ax10, 'v3': ax11, 'v4': ax12}
+    colors = {'Ac': 'darkred',
+               'Glcxt': 'darkgreen',
+               'O2': 'darkblue',
+               'X': 'black'}
+
+    for key, ax in mapping.iteritems():
+        ax.plot(df.time, df['lb_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="lb_EX_{}".format(key))
+        ax.plot(df.time, df['ub_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_EX_{}".format(key))
+        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=False)
+
+        ax.plot(df.time, df['EX_{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="EX__{}".format(key))
+
+        ax.set_ylabel('Flux [?]')
+        ax.set_title('{}: Flux'.format(key))
+        ax.set_xlabel('time [h]')
+        ax.legend()
+
+    for key, ax in mapping2.iteritems():
+
+        ax.plot(df.time, df['[{}]'.format(key)], linestyle='-', marker='s', color=colors[key], label="EX__{}".format(key))
+        ax.set_ylabel('Concentration [?]')
+        ax.set_xlabel('time [h]')
+        ax.legend()
+
+    # internal fluxes (v1, v2, v3, v4)
+    for key, ax in mapping3.iteritems():
+        ax.plot(df.time, df['fba__{}'.format(key)], label=key, color='k', linestyle='-', marker='s')
+        ax.set_ylabel('Flux [?]')
+        ax.set_xlabel('time [h]')
+        ax.legend()
 
     fig.savefig(filepath, bbox_inches='tight')
+
+
 
 if __name__ == "__main__":
     import numpy as np
     print('Model:', sbml_top_path)
-    tend = 10
+    tend = 8
     dt = 0.1
     steps = np.round(tend/dt)  # 10*tend
     import logging
