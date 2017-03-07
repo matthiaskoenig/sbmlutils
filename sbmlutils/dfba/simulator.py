@@ -250,7 +250,11 @@ class SimulatorDFBA(object):
                     source = s2
 
             # Create FBA model and process
-            fba_model = FBAModel(submodel=submodel, source=source, model_top=self.model_top, rr_model=self.rr_comp)
+            fba_model = FBAModel(submodel=submodel,
+                                 source=source,
+                                 flux_rules=self.flux_rules,
+                                 model_top=self.model_top,
+                                 rr_model=self.rr_comp)
             self.fba_models.append(fba_model)
 
     def _process_dt(self):
@@ -325,6 +329,9 @@ class SimulatorDFBA(object):
             df_results = pd.DataFrame(index=all_time, columns=self.rr_comp.timeCourseSelections)
 
             step_size = (tend-tstart)/(points-1.0)
+            if abs(step_size-self.dt)>1E-6:
+                raise ValueError("Simulation timestep <{}> != dt <{}>".format(step_size, self.dt))
+
             result = None
             time = 0.0
 
@@ -412,7 +419,7 @@ class FBAModel(object):
     Handles setting of FBA bounds & optimization.
     """
 
-    def __init__(self, submodel, source, model_top=None, rr_model=None):
+    def __init__(self, submodel, source, flux_rules, model_top=None, rr_model=None):
         """ Creates the FBAModel.
         Processes the bounds for all reactions.
         Reads the sbml and cobra model.
@@ -438,6 +445,9 @@ class FBAModel(object):
         self.fba2top_reactions = None
         self.flat_mapping = {}
 
+        # flux rules
+        self.flux_rules = flux_rules
+
         # objective sense
         self._process_objective_sense()
         # bounds
@@ -446,6 +456,7 @@ class FBAModel(object):
             # process the ode <-> fba connection
             self._process_bound_replacements(model_top)
             self._process_reaction_replacements(model_top)
+
         # id mapping
         if rr_model is not None:
             self._process_flat_mapping(rr_model)
@@ -456,7 +467,7 @@ class FBAModel(object):
         s = "{} {}\n".format(self.submodel, self.source)
         # s += "{}\n".format('-' * 80)
         s += "\t{:<20}: {}\n".format('objective sense', self.objective_sense)
-        s += "\t{:<20}: {}\n".format('FBA rules', self.replacement_rules)
+        s += "\t{:<20}: {}\n".format('flux rules', self.flux_rules)
         s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
         s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
         s += "\t{:<20}: {}\n".format('fba2top bounds', self.fba2top_bounds)
@@ -516,9 +527,8 @@ class FBAModel(object):
             comp_p = p.getPlugin("comp")
 
             rep_elements = comp_p.getListOfReplacedElements()
-            if not rep_elements:
-                warnings.warn("No ReplacedBy Elements in top model.")
-            else:
+            # only process parameters with ReplacedBy elements
+            if rep_elements:
                 for rep_element in rep_elements:
                     # the submodel of the replacement belongs to the current fba submodel
                     if rep_element.getSubmodelRef() == self.submodel.getId():
@@ -633,6 +643,7 @@ class FBAModel(object):
         if counter == 0:
             logging.debug('\tNo flux bounds set')
 
+
     def set_fluxes(self, rr_comp):
         """ Set fluxes in ODE part.
 
@@ -647,20 +658,21 @@ class FBAModel(object):
 
         for fba_rid in sorted(self.fba2top_reactions):
             top_rid = self.fba2top_reactions[fba_rid]
-
             flux = self.cobra_model.solution.x_dict[fba_rid]
 
             # reaction rates cannot be set directly in roadrunner
             # necessary to get the parameter from the flux rules
             # rr_comp[top_rid] = flux
 
-            # rr_comp[pid] = flux
+            top_pid = self.flux_rules[top_rid]
+            rr_comp[top_pid] = flux
 
-            logging.debug('\t{}: {} = {}'.format(top_rid, fba_rid, flux))
+            logging.debug('\t{:<10}: {:<10} = {}'.format(top_rid, fba_rid, flux))
             counter += 1
 
         if counter == 0:
             logging.debug('\tNo flux replacements')
+
 
     def optimize(self):
         """ Optimize FBA model.

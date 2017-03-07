@@ -143,9 +143,11 @@ def print_fluxes(filepath, df):
     fig.savefig(filepath, bbox_inches='tight')
 
 if __name__ == "__main__":
+    import numpy as np
     print('Model:', sbml_top_path)
     tend = 10
-    steps = 10  # 10*tend
+    dt = 0.1
+    steps = np.round(tend/dt)  # 10*tend
     import logging
     # logging.getLogger().setLevel(logging.INFO)
     df = simulate_diauxic_growth(sbml_top_path, tend, steps)
