@@ -43,11 +43,11 @@ def cobra_reaction_info(cobra_model):
     """
     rids = [r.id for r in cobra_model.reactions]
     df = pd.DataFrame(data=None, index=rids,
-                      columns=['lb', 'ub', 'reversibility', 'objective'])
+                      columns=['lb', 'ub', 'reversibility', 'objective', 'boundary'])
 
     for rid in rids:
         r = cobra_model.reactions.get_by_id(rid)
-        df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, np.nan]
+        df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, np.nan, r.boundary]
     for r, obj in cobra_model.objective.iteritems():
         df.objective.loc[r.id] = obj
     return df

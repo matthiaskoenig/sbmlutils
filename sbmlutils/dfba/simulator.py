@@ -529,6 +529,7 @@ class FBAModel(object):
 
         fba_rids = set()
         for rid in rr_comp.model.getReactionIds():
+            # mapping relies on submodel prefix !
             if rid.startswith('{}__'.format(smid)):
                 fba_rids.add(rid)
 
