@@ -11,6 +11,7 @@ ODE models are simulated with roadrunner, FBA models using cobrapy.
 #       and when are the updates written (order and timing of updates)
 
 # TODO: handle submodels directly defined in model
+# TODO: support minimize
 
 from __future__ import print_function, division
 import os
@@ -333,7 +334,7 @@ class Simulator(object):
                 # --------------------------------------
                 for fba_model in self.fba_models:
                     # update fba bounds from ode
-                    fba_model.update_fba_bounds(self.rr_comp)
+                    fba_model.update_bounds(self.rr_comp)
                     # optimize fba
                     fba_model.optimize()
                     # set ode fluxes from fba
@@ -465,6 +466,9 @@ class FBAModel(object):
         self.lb_replacements = []
         self.flat_mapping = {}
 
+        # objective sense
+        self.process_objective_sense()
+
         # bounds
         self.process_bounds()
 
@@ -476,6 +480,7 @@ class FBAModel(object):
         # s = "{}\n".format('-' * 80)
         s = "{} {}\n".format(self.submodel, self.source)
         # s += "{}\n".format('-' * 80)
+        s += "\t{:<20}: {}\n".format('objective sense', self.objective_sense)
         s += "\t{:<20}: {}\n".format('FBA rules', self.replacement_rules)
         s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
         s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
@@ -485,6 +490,18 @@ class FBAModel(object):
         # s += "{}\n".format('-' * 80)
 
         return s
+
+    def process_objective_sense(self):
+        """ Read the objective sense from the fba model objective.
+
+        :return:
+        """
+        fmodel = self.fba_model.getPlugin("fbc")
+        flist = fmodel.getListOfObjectives()
+        active_oid = flist.getActiveObjective()
+        objective = fmodel.getObjective(active_oid)
+        self.objective_sense = objective.getType()
+
 
     def process_bounds(self):
         """  Determine which parameters are upper and lower bounds for reactions.
@@ -500,6 +517,8 @@ class FBAModel(object):
                 self.ub_parameters[mr.getUpperFluxBound()].append(rid)
             if mr.isSetLowerFluxBound():
                 self.lb_parameters[mr.getLowerFluxBound()].append(rid)
+
+
 
     def find_replacement_rules(self, fba_rules):
         """ Finds subset of fba_rules relevant for the FBA model.
@@ -569,10 +588,10 @@ class FBAModel(object):
 
         self.flat_mapping = map
 
-    def update_fba_bounds(self, rr_comp, absTol=1E-8):
+    def update_bounds(self, rr_comp, absTol=1E-8):
         """
-        Uses the global parameter replacements to replace the bounds
-        of reactions with the current values in the kinetic model.
+        Uses the global bound replacements to update the bounds of reactions.
+        The parameters are read from the kinetic model.
 
         :param model:
         :type model:
@@ -601,17 +620,14 @@ class FBAModel(object):
 
     def optimize(self):
         """ Optimize FBA model.
-
         """
-        # TODO: handle maximization & minimization, currently only maximization
         logging.debug("* FBA optimize")
-        self.cobra_model.optimize()
+        self.cobra_model.optimize(objective_sense=self.objective_sense)
 
         logging.debug('\tstatus: {}'.format(self.cobra_model.solution.status))
         for skey in sorted(self.cobra_model.solution.x_dict):
             flux = self.cobra_model.solution.x_dict[skey]
             logging.debug('\t{:<10}: {}'.format(skey, flux))
-            # logging.debug(''.format(self.cobra_model.solution.x_dict))
 
     def set_ode_fluxes(self, rr_comp):
         """ Set fluxes in ODE part.
