@@ -87,7 +87,7 @@ from sbmlutils.report import sbmlreport
 
 XMLOutputStream.setWriteTimestamp(False)
 
-from sbmlutils.dfba.simulator import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, LOWER_BOUND_PREFIX, UPPER_BOUND_PREFIX
+from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, LOWER_BOUND_PREFIX, UPPER_BOUND_PREFIX
 
 ########################################################################
 # General model information

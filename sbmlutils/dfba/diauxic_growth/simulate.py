@@ -3,7 +3,8 @@ from __future__ import print_function, division
 # directory to write files to
 import os
 import timeit
-from sbmlutils.dfba.simulator import Simulator
+from sbmlutils.dfba.simulator import SimulatorDFBA
+from sbmlutils.dfba.analysis import AnalysisDFBA
 
 import dgsettings
 import model_factory
@@ -33,7 +34,7 @@ def simulate_diauxic_growth(sbml_top_path, tend, steps):
     """
 
     # Load model in simulator
-    sim = Simulator(sbml_top_path=sbml_top_path)
+    sim = SimulatorDFBA(sbml_top_path=sbml_top_path)
 
     # Run simulation of hybrid model
     start_time = timeit.default_timer()
@@ -42,10 +43,13 @@ def simulate_diauxic_growth(sbml_top_path, tend, steps):
 
     print("\nSimulation time: {}\n".format(elapsed))
 
-    sim.plot_reactions(os.path.join(directory, "reactions.png"), df, rr_comp=sim.rr_comp)
-    sim.plot_species(os.path.join(directory, "species.png"), df, rr_comp=sim.rr_comp)
-    sim.save_csv(os.path.join(directory, "simulation.csv"), df)
+    # generic analysis
+    analysis = AnalysisDFBA(df=df, rr_comp=sim.rr_comp)
+    analysis.plot_reactions(os.path.join(directory, "reactions.png"))
+    analysis.plot_species(os.path.join(directory, "species.png"))
+    analysis.save_csv(os.path.join(directory, "simulation.csv"))
 
+    # custom model plots
     print_species(os.path.join(directory, "species_growth.png"), df)
     print_fluxes(os.path.join(directory, "fluxes_growth.png"), df)
     return df

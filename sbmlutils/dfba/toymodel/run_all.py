@@ -9,7 +9,7 @@ from toysettings import out_dir, fba_file, ode_bounds_file, ode_update_file, ode
 import model_factory
 import comp_factory
 
-from sbmlutils.dfba.simulator import Simulator
+from sbmlutils.dfba.simulator import SimulatorDFBA
 
 
 def create_toy_model(directory):
@@ -36,7 +36,7 @@ def simulate_model(directory, tend=50.0, steps=500):
     """
     # Run simulation of the hybrid model
     top_level_path = os.path.join(out_dir, top_level_file)
-    sim = Simulator(sbml_top_path=top_level_path)
+    sim = SimulatorDFBA(sbml_top_path=top_level_path)
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time
