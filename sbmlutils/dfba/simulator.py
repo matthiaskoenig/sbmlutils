@@ -340,10 +340,11 @@ class SimulatorDFBA(object):
             #     self.rr_comp.integrator.setValue('variable_step_size', True)
 
             kstep = 0
+
             while kstep < points:
                 logging.debug("-" * 80)
                 logging.debug("Time: {}".format(time))
-
+                logging.debug("* dt = {}".format(self.dt))
                 # --------------------------------------
                 # FBA
                 # --------------------------------------

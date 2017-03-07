@@ -378,11 +378,12 @@ def bounds_model(sbml_file, directory):
         mc.AssignmentRule(sid="ub_vGlcxt", value="Vmax_vGlcxt* Glcxt/(Km_vGlcxt + Glcxt)"),
 
         # exchange reaction bounds
+        # FIXME: only limit in one direction
         mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_default, -Glcxt*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_default, -O2*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
-
+        # only consumption limited
         mc.AssignmentRule(sid="ub_EX_Ac", value="min(ub_default, Ac*bioreactor/dt)"),
         mc.AssignmentRule(sid="ub_EX_Glcxt", value="min(ub_default, Glcxt*bioreactor/dt)"),
         mc.AssignmentRule(sid="ub_EX_O2", value="min(ub_default, O2*bioreactor/dt)"),
@@ -458,25 +459,14 @@ def update_model(sbml_file, directory):
     ]
     mc.create_objects(model, objects)
 
-
-    # Michaelis-Menten-Terms for restriction
-    # mc.create_reaction(model, rid="update_Glcxt", reversible=False, sboTerm="SBO:0000631",
-    #                    reactants={"Glcxt": 1}, products={}, formula="(-EX_Glcxt*Y*bioreactor) * Glcxt/(Km_vFBA + Glcxt)", compartment="bioreactor")
-    # mc.create_reaction(model, rid="update_Ac", reversible=False, sboTerm="SBO:0000631",
-    #                    reactants={"Ac": 1}, products={}, formula="(-EX_Ac*Y*bioreactor) * Ac/(Km_vFBA + Ac)", compartment="bioreactor")
-    # mc.create_reaction(model, rid="update_O2", reversible=False, sboTerm="SBO:0000631",
-    #                    reactants={"O2": 1}, products={}, formula="(-EX_O2*Y*bioreactor) * O2/(Km_vFBA + O2)", compartment="bioreactor")
-    # mc.create_reaction(model, rid="update_X", reversible=False, sboTerm="SBO:0000631",
-    #                    reactants={"X": 1}, products={}, formula="(-EX_X*Y*bioreactor)", compartment="bioreactor")
-
     mc.create_reaction(model, rid="update_Glcxt", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, products={}, formula="EX_Glcxt")
+                       reactants={"Glcxt": 1}, products={}, formula="-EX_Glcxt")
     mc.create_reaction(model, rid="update_Ac", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, products={}, formula="EX_Ac")
+                       reactants={"Ac": 1}, products={}, formula="-EX_Ac")
     mc.create_reaction(model, rid="update_O2", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, products={}, formula="EX_O2")
+                       reactants={"O2": 1}, products={}, formula="-EX_O2")
     mc.create_reaction(model, rid="update_X", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"X": 1}, products={}, formula="EX_X")
+                       reactants={"X": 1}, products={}, formula="-EX_X")
 
     # ports
     comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)
