@@ -252,7 +252,6 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     :param output_path:
     :return:
     """
-    print('-> flattenSBMLFile: ', sbml_path)
     # necessary to change the working directory to the sbml file directory
     # to resolve relative links to external model definitions.
     working_dir = os.getcwd()
@@ -278,8 +277,6 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
     :return:
     :rtype: SBMLDocument
     """
-    print('-> flattenSBMLDocument')
-
     Nerrors = doc.getNumErrors()
     if Nerrors > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
