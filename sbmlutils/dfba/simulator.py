@@ -250,11 +250,7 @@ class SimulatorDFBA(object):
                     source = s2
 
             # Create FBA model and process
-            fba_model = FBAModel(submodel=submodel, source=source, flux_rules=self.flux_rules)
-
-            fba_model._process_bound_replacements(self.model_top)
-            fba_model._process_flat_mapping(self.rr_comp)
-
+            fba_model = FBAModel(submodel=submodel, source=source, model_top=self.model_top, rr_model=self.rr_comp)
             self.fba_models.append(fba_model)
 
     def _process_dt(self):
@@ -350,7 +346,7 @@ class SimulatorDFBA(object):
                     # optimize fba
                     fba_model.optimize()
                     # set ode fluxes from fba
-                    fba_model.update_ode_fluxes(self.rr_comp)
+                    fba_model.set_fluxes(self.rr_comp)
 
                 # --------------------------------------
                 # ODE
@@ -416,7 +412,7 @@ class FBAModel(object):
     Handles setting of FBA bounds & optimization.
     """
 
-    def __init__(self, submodel, source, flux_rules):
+    def __init__(self, submodel, source, model_top=None, rr_model=None):
         """ Creates the FBAModel.
         Processes the bounds for all reactions.
         Reads the sbml and cobra model.
@@ -438,15 +434,21 @@ class FBAModel(object):
         #       parameter_id -> [rid1, rid2, ...]
         self.ub_parameters = defaultdict(list)
         self.lb_parameters = defaultdict(list)
-        self.fba2top = None
+        self.fba2top_bounds = None
+        self.fba2top_reactions = None
         self.flat_mapping = {}
 
         # objective sense
         self._process_objective_sense()
         # bounds
         self._process_bounds()
-        # parameters to replace in top model
-        self.replacement_rules = self._process_replacement_rules(flux_rules)
+        if model_top is not None:
+            # process the ode <-> fba connection
+            self._process_bound_replacements(model_top)
+            self._process_reaction_replacements(model_top)
+        # id mapping
+        if rr_model is not None:
+            self._process_flat_mapping(rr_model)
 
     def __str__(self):
         """ Information string. """
@@ -457,7 +459,8 @@ class FBAModel(object):
         s += "\t{:<20}: {}\n".format('FBA rules', self.replacement_rules)
         s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
         s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
-        s += "\t{:<20}: {}\n".format('fba2top', self.fba2top)
+        s += "\t{:<20}: {}\n".format('fba2top bounds', self.fba2top_bounds)
+        s += "\t{:<20}: {}\n".format('fba2top reactions', self.fba2top_reactions)
         s += "\t{:<20}: {}\n".format('flat mapping', self.flat_mapping)
         # s += "{}\n".format('-' * 80)
 
@@ -474,7 +477,6 @@ class FBAModel(object):
         active_oid = flist.getActiveObjective()
         objective = fmodel.getObjective(active_oid)
         self.objective_sense = objective.getType()
-
 
     def _process_bounds(self):
         """  Determine which parameters are upper and lower bounds for reactions.
@@ -493,35 +495,6 @@ class FBAModel(object):
             if fbc_r.isSetLowerFluxBound():
                 self.lb_parameters[fbc_r.getLowerFluxBound()].append(rid)
 
-
-    def _process_replacement_rules(self, flux_rules):
-        """ Finds subset of fba_rules relevant for the FBA model.
-
-        Only fba rules are relevant if there is a reaction in the fba submodel
-        which has the parameter id of one of the fba_rules.
-
-        :param flux_rules:
-        :type flux_rules:
-        :return:
-        :rtype:
-        """
-        logging.debug('* (fba) _process_flux_rules')
-        print(flux_rules)
-
-        rules = {}
-        for rid, pid in flux_rules.iteritems():
-            # FIXME: via replacements instead of id naming
-
-
-            # searches for reactions with suitable ids in the FBA model
-            if self.sbml_model.getReaction(rid) is not None:
-                rules[rid] = pid
-
-
-
-        return rules
-
-
     def _process_bound_replacements(self, top_model):
         """ Process the top bound replacements once.
 
@@ -531,15 +504,18 @@ class FBAModel(object):
         Creates dictionary of parameter
         { pid (fba) : pid (top) }
         fba parameter ids : top parameter ids
+
+        Necessary for the update of bounds from ode solution.
         """
+        logging.debug('* (fba) _process_bound_replacements')
         fba2top = {}
         comp_model = self.sbml_model.getPlugin('comp')
 
         for p in top_model.getListOfParameters():
             top_pid = p.getId()
-            mp = p.getPlugin("comp")
+            comp_p = p.getPlugin("comp")
 
-            rep_elements = mp.getListOfReplacedElements()
+            rep_elements = comp_p.getListOfReplacedElements()
             if not rep_elements:
                 warnings.warn("No ReplacedBy Elements in top model.")
             else:
@@ -553,7 +529,40 @@ class FBAModel(object):
                         id_ref = port.getIdRef()
                         # store
                         fba2top[id_ref] = top_pid
-        self.fba2top = fba2top
+        self.fba2top_bounds = fba2top
+
+    def _process_reaction_replacements(self, top_model):
+        """ Finds mapping between top reactions and fba reactions.
+
+        Necessary for update of top reactions from FBA solution.
+
+        :param flux_rules:
+        :type flux_rules:
+        :return:
+        :rtype:
+        """
+        logging.debug('* (fba) _process_reaction_replacements')
+        fba2top = {}
+        comp_model = self.sbml_model.getPlugin('comp')
+
+        for r in top_model.getListOfReactions():
+            top_rid = r.getId()
+            comp_r = r.getPlugin("comp")
+            rep_by = comp_r.getReplacedBy()
+
+            # only process reactions which are replaced with reactions from the
+            # fba model
+            if rep_by is not None:
+                if rep_by.getSubmodelRef() == self.submodel.getId():
+                    portRef = rep_by.getPortRef()
+                    # get the port
+                    port = comp_model.getPort(portRef)
+                    # get the id of object for port
+                    id_ref = port.getIdRef()
+                    # store
+                    fba2top[id_ref] = top_rid
+
+        self.fba2top_reactions = fba2top
 
     def _process_flat_mapping(self, rr_comp):
         """ Get the id mapping of the fluxes to the
@@ -594,14 +603,13 @@ class FBAModel(object):
         :rtype:
         """
         logging.debug('* FBA set bounds ')
-
         counter = 0
 
-        for fba_pid in sorted(self.fba2top):
-            top_pid = self.fba2top[fba_pid]
+        for fba_pid in sorted(self.fba2top_bounds):
+            top_pid = self.fba2top_bounds[fba_pid]
 
+            # upper bounds
             if fba_pid in self.ub_parameters:
-
                 for rid in self.ub_parameters.get(fba_pid):
                     cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
                     ub = rr_comp[top_pid]
@@ -610,6 +618,8 @@ class FBAModel(object):
                     cobra_reaction.upper_bound = ub
                     logging.debug('\tupper: {:<10} = {}'.format(fba_pid, ub))
                     counter += 1
+
+            # lower bounds
             if fba_pid in self.lb_parameters:
                 for rid in self.lb_parameters.get(fba_pid):
                     cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
@@ -623,6 +633,34 @@ class FBAModel(object):
         if counter == 0:
             logging.debug('\tNo flux bounds set')
 
+    def set_fluxes(self, rr_comp):
+        """ Set fluxes in ODE part.
+
+        Based on replacements the FBA fluxes are written in the kinetic flattended model.
+        :param rr_comp:
+        :type rr_comp:
+        :return:
+        :rtype:
+        """
+        logging.debug("* ODE set FBA fluxes")
+        counter = 0
+
+        for fba_rid in sorted(self.fba2top_reactions):
+            top_rid = self.fba2top_reactions[fba_rid]
+
+            flux = self.cobra_model.solution.x_dict[fba_rid]
+
+            # reaction rates cannot be set directly in roadrunner
+            # necessary to get the parameter from the flux rules
+            # rr_comp[top_rid] = flux
+
+            # rr_comp[pid] = flux
+
+            logging.debug('\t{}: {} = {}'.format(top_rid, fba_rid, flux))
+            counter += 1
+
+        if counter == 0:
+            logging.debug('\tNo flux replacements')
 
     def optimize(self):
         """ Optimize FBA model.
@@ -635,22 +673,7 @@ class FBAModel(object):
             flux = self.cobra_model.solution.x_dict[skey]
             logging.debug('\t{:<10}: {}'.format(skey, flux))
 
-    def update_ode_fluxes(self, rr_comp):
-        """ Set fluxes in ODE part.
 
-        Based on replacements the FBA fluxes are written in the kinetic flattended model.
-        :param rr_comp:
-        :type rr_comp:
-        :return:
-        :rtype:
-        """
-        logging.debug("* ODE set FBA fluxes")
-        for rid, pid in self.replacement_rules.iteritems():
-            flux = self.cobra_model.solution.x_dict[rid]
-            rr_comp[pid] = flux
-            logging.debug('\t{}: {} = {}'.format(rid, pid, flux))
-        else:
-            logging.debug('\tNo flux replacements')
 
 
 ########################################################################################################################
