@@ -87,6 +87,7 @@ class Simulator(object):
         self.submodels = defaultdict(list)
         self.rr_comp = None
         self.fba_models = []
+        self.flux_rules = []
 
         self._process_top()
         self._process_models()
@@ -133,9 +134,9 @@ class Simulator(object):
         for framework in MODEL_FRAMEWORKS:
             s += "{:<10} : {}\n".format(framework, self.submodels[framework])
         # FBA rules
-        s += "{:<10} :\n".format('fba rules', self.fba_rules)
-        for key in sorted(self.fba_rules):
-            value = self.fba_rules[key]
+        s += "{:<10} :\n".format('flux rules', self.flux_rules)
+        for key in sorted(self.flux_rules):
+            value = self.flux_rules[key]
             s += "{:<12} {} <-> {}\n".format('', key, value)
 
         # FBA model information
@@ -145,18 +146,19 @@ class Simulator(object):
 
         return s
 
-    def fba_rules_str(self):
+    def flux_rules_str(self):
         """ Information string of FBA rules.
 
         :return:
         """
-        lines = ['FBA rules:']
-        for key, value in self.fba_rules.iteritems():
+        lines = ['Flux rules:']
+        for key, value in self.flux_rules.iteritems():
             lines.append('\t{} : {}'.format(key, value))
         return "\n".join(lines)
 
     def _process_top(self):
         """ Process the top model.
+
         Reads top model and submodels.
 
         :return:
@@ -195,7 +197,7 @@ class Simulator(object):
         # FBA rules
         ###########################
         # process FBA assignment rules of the top model
-        self.fba_rules = Simulator.find_fba_rules(self.model_top)
+        self.flux_rules = Simulator.find_flux_rules(self.model_top)
 
         ###########################
         # ODE model
@@ -208,7 +210,7 @@ class Simulator(object):
 
         # remove FBA assignment rules from the model, so they can be set via the simulator
         # not allowed to set assignment rules directly in roadrunner
-        for variable in self.fba_rules.values():
+        for variable in self.flux_rules.values():
             self.model_top.removeRuleByVariable(variable)
 
         mixed_sbml_cleaned = tempfile.NamedTemporaryFile("w", suffix=".xml")
@@ -243,24 +245,24 @@ class Simulator(object):
                 else:
                     source = s2
 
-            fba_model = FBAModel(submodel=submodel, source=source, fba_rules=self.fba_rules)
+            fba_model = FBAModel(submodel=submodel, source=source, fba_rules=self.flux_rules)
             fba_model.process_replacements(self.model_top)
             fba_model.process_flat_mapping(self.rr_comp)
             self.fba_models.append(fba_model)
 
 
     @classmethod
-    def find_fba_rules(cls, top_model):
-        """ Find FBA rules in top model.
+    def find_flux_rules(cls, top_model):
+        """ Find Flux AssignmentRules in top model.
 
-        Find the assignment rules which assign a reaction rate to a parameter.
+        Find the flux assignment rules which assign a reaction rate to a parameter.
         This are the assignment rules synchronizing between FBA and ODE models.
 
         These are Assignment rules of the form
             pid = rid
         i.e. a reaction rate is assigned to a parameter.
         """
-        fba_rules = {}
+        flux_rules = {}
 
         for rule in top_model.getListOfRules():
             if not rule.isAssignment():
@@ -273,8 +275,17 @@ class Simulator(object):
             reaction = top_model.getReaction(formula)
             if not reaction:
                 continue
-            fba_rules[reaction.getId()] = parameter.getId()
-        return fba_rules
+            # check the SBOTerm
+            if not reaction.isSetSBOTerm():
+                flux_rules[reaction.getId()] = parameter.getId()
+            else:
+                # check for : 'pseudoreaction'
+                if reaction.getSBOTerm() == 631:
+                    flux_rules[reaction.getId()] = parameter.getId()
+                else:
+                    warnings.warn('Flux AssignmentRules should have SBOTerm: SBO:0000631')
+
+        return flux_rules
 
     def reset(self):
         """ Reset the kinetic model.
@@ -427,17 +438,24 @@ class FBAModel(object):
     This class provides functionality for the fba submodels.
     Handles setting of FBA bounds & optimization.
     """
+
     def __init__(self, submodel, source, fba_rules):
+        """ Creates the FBAModel.
+        Processes the bounds for all reactions.
+        Reads the sbml and cobra model.
+        Processes the bound replacements and updates.
+
+        :param submodel:
+        :param source:
+        :param fba_rules:
+        """
         self.source = source
         self.submodel = submodel
 
-        # read model
+        # read sbml and cobra model
         self.fba_doc = libsbml.readSBMLFromFile(source)
         self.fba_model = self.fba_doc.getModel()
         self.cobra_model = cobra.io.read_sbml_model(source)
-
-        # parameters to replace in top model
-        self.fba_rules = self.process_fba_rules(fba_rules)
 
         # bounds are mappings from parameters to reactions
         #       parameter_id -> [rid1, rid2, ...]
@@ -446,14 +464,19 @@ class FBAModel(object):
         self.ub_replacements = []
         self.lb_replacements = []
         self.flat_mapping = {}
+
+        # bounds
         self.process_bounds()
+
+        # parameters to replace in top model
+        self.replacement_rules = self.find_replacement_rules(fba_rules)
 
     def __str__(self):
         """ Information string. """
         # s = "{}\n".format('-' * 80)
         s = "{} {}\n".format(self.submodel, self.source)
         # s += "{}\n".format('-' * 80)
-        s += "\t{:<20}: {}\n".format('FBA rules', self.fba_rules)
+        s += "\t{:<20}: {}\n".format('FBA rules', self.replacement_rules)
         s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
         s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
         s += "\t{:<20}: {}\n".format('ub replacements', self.ub_replacements)
@@ -463,25 +486,10 @@ class FBAModel(object):
 
         return s
 
-    def process_fba_rules(self, fba_rules):
-        """ Returns subset of fba_rules relevant for the FBA model.
-
-        Only fba rules are relevant which if there is a reaction in the fba submodel
-        which has the parameter id.
-
-        :param fba_rules:
-        :type fba_rules:
-        :return:
-        :rtype:
-        """
-        rules = {}
-        for rid, pid in fba_rules.iteritems():
-            if self.fba_model.getReaction(rid) is not None:
-                rules[rid] = pid
-        return rules
-
     def process_bounds(self):
-        """  Determine which parameters are upper or lower bounds.
+        """  Determine which parameters are upper and lower bounds for reactions.
+        The dictionaries allow simple lookup of the bound parameters for update.
+
         :return:
         :rtype:
         """
@@ -492,6 +500,25 @@ class FBAModel(object):
                 self.ub_parameters[mr.getUpperFluxBound()].append(rid)
             if mr.isSetLowerFluxBound():
                 self.lb_parameters[mr.getLowerFluxBound()].append(rid)
+
+    def find_replacement_rules(self, fba_rules):
+        """ Finds subset of fba_rules relevant for the FBA model.
+
+        Only fba rules are relevant if there is a reaction in the fba submodel
+        which has the parameter id of one of the fba_rules.
+
+        :param fba_rules:
+        :type fba_rules:
+        :return:
+        :rtype:
+        """
+        rules = {}
+        for rid, pid in fba_rules.iteritems():
+            # searches for reactions with suitable ids in the FBA model
+            if self.fba_model.getReaction(rid) is not None:
+                rules[rid] = pid
+        return rules
+
 
     def process_replacements(self, top_model):
         """ Process the global replacements once.
@@ -596,7 +623,7 @@ class FBAModel(object):
         :rtype:
         """
         logging.debug("* ODE set FBA fluxes")
-        for rid, pid in self.fba_rules.iteritems():
+        for rid, pid in self.replacement_rules.iteritems():
             flux = self.cobra_model.solution.x_dict[rid]
             rr_comp[pid] = flux
             logging.debug('\t{}: {} = {}'.format(rid, pid, flux))
