@@ -624,8 +624,9 @@ class FBAModel(object):
                 for rid in self.ub_parameters.get(fba_pid):
                     cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
                     ub = rr_comp[top_pid]
-                    # if abs(ub) <= absTol:
-                    #    ub = 0.0
+                    if abs(ub) <= absTol:
+                        logging.info('\tupper: {:<10} = {} set to 0.0'.format(fba_pid, ub))
+                        ub = 0.0
                     cobra_reaction.upper_bound = ub
                     logging.debug('\tupper: {:<10} = {}'.format(fba_pid, ub))
                     counter += 1
@@ -635,8 +636,9 @@ class FBAModel(object):
                 for rid in self.lb_parameters.get(fba_pid):
                     cobra_reaction = self.cobra_model.reactions.get_by_id(rid)
                     lb = rr_comp[top_pid]
-                    # if abs(lb) <= absTol:
-                    #    lb = 0.0
+                    if abs(lb) <= absTol:
+                        logging.info('\tlower: {:<10} = {} set to 0.0'.format(fba_pid, lb))
+                        lb = 0.0
                     cobra_reaction.lower_bound = lb
                     logging.debug('\tlower: {:<10} = {}'.format(fba_pid, lb))
                     counter += 1

@@ -147,7 +147,7 @@ def print_fluxes(filepath, df):
         ax.legend()
 
     # transport reactions
-    # TODO: add bounds
+    '''
     ax13.plot(df.time, df['fba__vO2'.format(key)], label="v02", color='k', linestyle='-', marker='s')
     ax13.fill_between(df.time, df['fba__zero'], df['fba__ub_vO2'], facecolor='gray', alpha=0.3,
                     interpolate=False)
@@ -162,7 +162,7 @@ def print_fluxes(filepath, df):
     for ax in (ax13, ax14, ax15, ax16):
         ax.set_xlabel('time [h]')
         ax.legend()
-
+    '''
 
     fig.savefig(filepath, bbox_inches='tight')
 
@@ -174,6 +174,6 @@ if __name__ == "__main__":
 
     import logging
     # logging.getLogger().setLevel(logging.INFO)
-    df = simulate_diauxic_growth(sbml_top_path, tend=2)
+    df = simulate_diauxic_growth(sbml_top_path, tend=1)
 
 
