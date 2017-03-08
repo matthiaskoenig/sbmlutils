@@ -136,6 +136,7 @@ def print_fluxes(filepath, df):
 
         ax.set_ylabel('Flux [mmol/l/h]')
         ax.set_title('{}: Flux'.format(key))
+        ax.set_ylim(np.min(df['EX_{}'.format(key)]), np.max(df['EX_{}'.format(key)]))
         # ax.set_xlabel('time [h]')
         ax.legend()
 
@@ -174,6 +175,6 @@ if __name__ == "__main__":
 
     import logging
     # logging.getLogger().setLevel(logging.INFO)
-    df = simulate_diauxic_growth(sbml_top_path, tend=1)
+    df = simulate_diauxic_growth(sbml_top_path, tend=10)
 
 

@@ -359,20 +359,24 @@ def bounds_model(sbml_file, directory):
         mc.Parameter(sid="lb_EX_X", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
         mc.Parameter(sid="ub_EX_X", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
 
+        # kinetic lower bounds
+        mc.Parameter(sid="lb_kin_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_kin_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+
         # parameters for kinetic bounds
         mc.Parameter(sid='Vmax_EX_O2', value=15, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid='Vmax_EX_Glcxt', value=10, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid='Km_EX_Glcxt', value=0.015, unit=UNIT_CONCENTRATION, name="Km_vGlcxt", constant=True),
 
-        # kinetic bounds
-        mc.AssignmentRule(sid="ub_EX_Glcxt", value="Vmax_EX_Glcxt* Glcxt/(Km_EX_Glcxt + Glcxt)"),
-        mc.AssignmentRule(sid="ub_EX_O2", value="Vmax_EX_O2"),
+        # kinetic bounds (unintuitive direction due to the identical concentrations in bioreactor and model)
+        mc.AssignmentRule(sid="lb_kin_EX_Glcxt", value="-Vmax_EX_Glcxt* Glcxt/(Km_EX_Glcxt + Glcxt)"),
+        mc.AssignmentRule(sid="lb_kin_EX_O2", value="-Vmax_EX_O2"),
 
         # exchange reaction bounds
         # amount limitation in export (lower bound)
         mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_default, -Glcxt*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_default, -O2*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
 
     ]
