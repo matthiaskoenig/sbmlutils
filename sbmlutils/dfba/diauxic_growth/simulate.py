@@ -3,6 +3,8 @@ from __future__ import print_function, division
 # directory to write files to
 import os
 import timeit
+import numpy as np
+
 from sbmlutils.dfba.simulator import SimulatorDFBA
 from sbmlutils.dfba.analysis import AnalysisDFBA
 
@@ -101,7 +103,7 @@ def print_fluxes(filepath, df):
     :param df:
     :return:
     """
-    fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8), (ax9, ax10, ax11, ax12), (ax13, ax14, ax15, ax16)) = plt.subplots(nrows=4, ncols=4, figsize=(18, 18))
+    fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8), (ax9, ax10, ax11, ax12)) = plt.subplots(nrows=3, ncols=4, figsize=(18, 15))
     fig.subplots_adjust(wspace=0.4, hspace=0.3)
 
     # exchange fluxes
@@ -128,10 +130,8 @@ def print_fluxes(filepath, df):
 
     # exchange fluxes with bounds
     for key, ax in mapping2.iteritems():
-        ax.plot(df.time, df['lb_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="lb_EX_{}".format(key))
-        ax.plot(df.time, df['ub_EX_{}'.format(key)], linestyle='--', marker='None', color=colors[key], alpha=0.5, label="ub_EX_{}".format(key))
-        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.3, interpolate=False)
-
+        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3, interpolate=False, step='post')
+        ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2, interpolate=False, step='post')
         ax.plot(df.time, df['EX_{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="EX__{}".format(key))
 
         ax.set_ylabel('Flux [mmol/l/h]')
@@ -141,6 +141,7 @@ def print_fluxes(filepath, df):
 
     # concentrations
     for key, ax in mapping3.iteritems():
+        ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)
         ax.plot(df.time, df['[{}]'.format(key)], linestyle='-', marker='s', color=colors[key], label="{}".format(key))
         ax.set_ylabel('Concentration [mmol/l]')
         ax.set_title('{}: Concentration'.format(key))
@@ -167,9 +168,8 @@ def print_fluxes(filepath, df):
     fig.savefig(filepath, bbox_inches='tight')
 
 
-
 if __name__ == "__main__":
-    import numpy as np
+
     print('Model:', sbml_top_path)
 
     import logging
