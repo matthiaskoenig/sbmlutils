@@ -92,11 +92,13 @@ from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 ########################################################################
 # General model information
 ########################################################################
-version = 5
+version = 6
 DT_SIM = 0.1
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>
+    <p><strong>Model version: {}</strong></p>
+
     <h2>Description</h2>
     <p>Dynamic Flux Balance Analysis of Diauxic Growth in Escherichia coli</p>
 
@@ -124,7 +126,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""")
+""".format(version))
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
@@ -149,6 +151,8 @@ units = [
                             (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                    (UNIT_KIND_LITRE, -1.0)]),
+    mc.Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
+                           (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
     mc.Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
                         (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
@@ -193,7 +197,7 @@ def fba_model(sbml_file, directory):
     doc_fba.setPackageRequired("fbc", False)
     model = doc_fba.createModel()
     mplugin = model.getPlugin("fbc")
-    mplugin.setStrict(False)
+    mplugin.setStrict(True)
 
     # model
     model.setId('diauxic_fba')
@@ -228,14 +232,14 @@ def fba_model(sbml_file, directory):
         mc.Parameter(sid="ub_default", name="default upper bound", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
 
         # values of all exchange flux bounds can be overwritten from the outside
-        mc.Parameter(sid="lb_EX_Ac", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_Ac", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_Glcxt", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_O2", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_X", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_X", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_Ac", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_Ac", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_Glcxt", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_O2", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_X", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_EX_X", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
     ]
     mc.create_objects(model, parameters)
 
@@ -447,13 +451,17 @@ def update_model(sbml_file, directory):
 
     # FIXME: multiply by X (fluxes per g weight, actual fluxes consequence of biomass)
     mc.create_reaction(model, rid="update_Glcxt", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, products={}, formula="-EX_Glcxt")
+                       reactants={"Glcxt": 1}, products={}, modifiers=["X"],
+                       formula="-EX_Glcxt * X * 1 l_per_mmol")
     mc.create_reaction(model, rid="update_Ac", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, products={}, formula="-EX_Ac")
+                       reactants={"Ac": 1}, products={}, modifiers=["X"],
+                       formula="-EX_Ac * X * 1 l_per_mmol")
     mc.create_reaction(model, rid="update_O2", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, products={}, formula="-EX_O2")
+                       reactants={"O2": 1}, products={}, modifiers=["X"],
+                       formula="-EX_O2 * X * 1 l_per_mmol")
     mc.create_reaction(model, rid="update_X", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"X": 1}, products={}, formula="-EX_X")
+                       reactants={"X": 1}, products={}, modifiers=["X"],
+                       formula="-EX_X * X * 1 l_per_mmol")
 
     # ports
     comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)

@@ -146,6 +146,7 @@ def print_fluxes(filepath, df):
         ax.plot(df.time, df['[{}]'.format(key)], linestyle='-', marker='s', color=colors[key], label="{}".format(key))
         ax.set_ylabel('Concentration [mmol/l]')
         ax.set_title('{}: Concentration'.format(key))
+        ax.set_xlabel('time [h]')
         ax.legend()
 
     # transport reactions
@@ -175,6 +176,6 @@ if __name__ == "__main__":
 
     import logging
     # logging.getLogger().setLevel(logging.INFO)
-    df = simulate_diauxic_growth(sbml_top_path, tend=10)
+    df = simulate_diauxic_growth(sbml_top_path, tend=20)
 
 

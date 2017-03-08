@@ -659,6 +659,7 @@ class FBAModel(object):
         logging.debug("* ODE set FBA fluxes")
         counter = 0
 
+        # FIXME: The reaction rates from the FBA are used
         for fba_rid in sorted(self.fba2top_reactions):
             top_rid = self.fba2top_reactions[fba_rid]
             flux = self.cobra_model.solution.x_dict[fba_rid]
