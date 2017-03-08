@@ -92,7 +92,7 @@ from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 ########################################################################
 # General model information
 ########################################################################
-version = 3
+version = 4
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>

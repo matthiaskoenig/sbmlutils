@@ -45,13 +45,13 @@ def simulate_diauxic_growth(sbml_top_path, tend, steps):
 
     # generic analysis
     analysis = AnalysisDFBA(df=df, rr_comp=sim.rr_comp)
-    analysis.plot_reactions(os.path.join(directory, "reactions.png"))
-    analysis.plot_species(os.path.join(directory, "species.png"))
-    analysis.save_csv(os.path.join(directory, "simulation.csv"))
+    analysis.plot_reactions(os.path.join(directory, "dg_reactions_generic.png"))
+    analysis.plot_species(os.path.join(directory, "dg_species_generic.png"))
+    analysis.save_csv(os.path.join(directory, "dg_simulation_generic.csv"))
 
     # custom model plots
-    print_species(os.path.join(directory, "growth_species.png"), df)
-    print_fluxes2(os.path.join(directory, "growth_fluxes.png"), df)
+    print_species(os.path.join(directory, "dg_species.png"), df)
+    print_fluxes2(os.path.join(directory, "dg_fluxes.png"), df)
     return df
 
 
@@ -71,7 +71,7 @@ def print_species(filepath, df):
         ax.plot(df.time, df['[O2]'],
              linestyle='-', marker='s', color='darkgreen', label="O2")
     ax3.set_yscale('log')
-    ax3.set_ylim([10E-12, 15])
+    ax3.set_ylim([10E-5, 15])
 
     for ax in (ax2, ax4):
         ax.plot(df.time, df['[X]'],
@@ -193,7 +193,7 @@ def print_fluxes2(filepath, df):
 if __name__ == "__main__":
     import numpy as np
     print('Model:', sbml_top_path)
-    tend = 8
+    tend = 6
     dt = 0.1
     steps = np.round(tend/dt)  # 10*tend
     import logging
