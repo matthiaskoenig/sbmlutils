@@ -93,6 +93,7 @@ from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 # General model information
 ########################################################################
 version = 4
+DT_SIM = 0.01
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>
@@ -309,7 +310,7 @@ def fba_model(sbml_file, directory):
     comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
 
     # ports: kinetic bounds
-    comp._create_port(model, pid="ub_vGlcxt", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_vGlcxt_port", idRef="ub_vGlcxt", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
     sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
@@ -350,7 +351,7 @@ def bounds_model(sbml_file, directory):
                    compartment="bioreactor"),
 
         # hardcoded time step for the update of the bounds
-        mc.Parameter(sid='dt', value=0.1, unit=UNIT_TIME, name='fba timestep', constant=True, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, name='fba timestep', constant=True, sboTerm="SBO:0000346"),
 
         # parameters for kinetic bounds
         mc.Parameter(sid='Vmax_vGlcxt', value=10, unit=UNIT_FLUX, name="Vmax_vGlcxt", constant=True),
@@ -384,10 +385,10 @@ def bounds_model(sbml_file, directory):
         mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_default, -O2*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
         # only consumption limited
-        mc.AssignmentRule(sid="ub_EX_Ac", value="min(ub_default, Ac*bioreactor/dt)"),
-        mc.AssignmentRule(sid="ub_EX_Glcxt", value="min(ub_default, Glcxt*bioreactor/dt)"),
-        mc.AssignmentRule(sid="ub_EX_O2", value="min(ub_default, O2*bioreactor/dt)"),
-        mc.AssignmentRule(sid="ub_EX_X", value="min(ub_default, X*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="ub_EX_Ac", value="min(ub_default, Ac*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="ub_EX_Glcxt", value="min(ub_default, Glcxt*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="ub_EX_O2", value="min(ub_default, O2*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="ub_EX_X", value="min(ub_default, X*bioreactor/dt)"),
     ]
     mc.create_objects(model, objects)
 
@@ -576,7 +577,7 @@ def top_model(sbml_file, directory, emds):
     # Parameters
     parameters = [
         # hardcoded time step for the update of the bounds
-        mc.Parameter(sid='dt', value=0.1, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='dt', value=DT_SIM, unit='h', name='fba timestep', constant=True, sboTerm="SBO:0000346"),
 
         # biomass conversion factor
         mc.Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
@@ -586,8 +587,11 @@ def top_model(sbml_file, directory, emds):
         mc.Parameter(sid="EX_Ac", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
         mc.Parameter(sid="EX_O2", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
         mc.Parameter(sid="EX_X", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
+
+        # kinetic flux bounds
+        mc.Parameter(sid="ub_vGlcxt", value=1.0, constant=False, unit=UNIT_FLUX, sboTerm="SBO:0000625"),
     ]
-    # flux bounds
+    # exchange flux bounds
     for ex_rid in ['EX_Ac', 'EX_Glcxt', 'EX_O2', 'EX_X']:
         for bound_type in ['lb', 'ub']:
             if bound_type == 'lb':
@@ -651,7 +655,7 @@ def top_model(sbml_file, directory, emds):
                           replaced_elements={'fba': ['X_port'],
                                              'update': ['X_port'],
                                              'bounds': ['X_port']})
-    # bounds
+    # exchange bounds
     for bound_id in [
         'lb_EX_Ac', 'ub_EX_Ac',
         'lb_EX_Glcxt', 'ub_EX_Glcxt',
@@ -660,7 +664,12 @@ def top_model(sbml_file, directory, emds):
         comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'bounds': ['{}_port'.format(bound_id)], 'fba': ['{}_port'.format(bound_id)]})
 
-    # bounds
+    # kinetic bounds
+    comp.replace_elements(model, 'ub_vGlcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['ub_vGlcxt_port'],
+                                             'fba': ['ub_vGlcxt_port']})
+
+    # dt
     comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'bounds': ['dt_port']})
 
