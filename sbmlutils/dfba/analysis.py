@@ -50,3 +50,4 @@ class AnalysisDFBA(object):
         """ Save results to csv. """
         self.df.to_csv(filepath, sep="\t", index=False)
 
+

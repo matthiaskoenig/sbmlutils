@@ -4,6 +4,7 @@ from __future__ import print_function, division
 import os
 import timeit
 import numpy as np
+import pandas as pd
 
 from sbmlutils.dfba.simulator import SimulatorDFBA
 from sbmlutils.dfba.analysis import AnalysisDFBA
@@ -140,10 +141,6 @@ def print_fluxes(filepath, df):
         # ax.set_xlabel('time [h]')
         ax.legend()
 
-    # load data
-    Varma1994_Fig6 = pd.read_csv('../../data/Varma1994_Fig6.csv', sep='\t')
-
-
     # concentrations
     for key, ax in mapping3.iteritems():
         ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)
@@ -153,23 +150,19 @@ def print_fluxes(filepath, df):
         ax.set_xlabel('time [h]')
         ax.legend()
 
-    # transport reactions
-    '''
-    ax13.plot(df.time, df['fba__vO2'.format(key)], label="v02", color='k', linestyle='-', marker='s')
-    ax13.fill_between(df.time, df['fba__zero'], df['fba__ub_vO2'], facecolor='gray', alpha=0.3,
-                    interpolate=False)
-    ax13.set_title('vO2')
-    ax13.set_ylabel('Flux [mmol]')
+    # experimentell data
+    Varma1994_Fig7 = pd.read_csv('./data/Varma1994_Fig7.csv', sep='\t')
+    inds = Varma1994_Fig7.substance == 'cell_density'
+    ax12.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black')
+    ax12.set_ylabel('X [g/l]')
 
-    ax14.plot(df.time, df['fba__vGlcxt'.format(key)], label="vGlcxt", color='k', linestyle='-', marker='s')
-    ax14.fill_between(df.time, df['fba__zero'], df['ub_vGlcxt'], facecolor='gray', alpha=0.3, interpolate=False)
-    ax14.set_title('vGlcxt')
-    ax14.set_ylabel('Flux [mmol]')
+    inds = Varma1994_Fig7.substance == 'glucose'
+    ax10.set_title("Varma1994 Fig7")
+    ax10.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black')
 
-    for ax in (ax13, ax14, ax15, ax16):
-        ax.set_xlabel('time [h]')
-        ax.legend()
-    '''
+    inds = Varma1994_Fig7.substance == 'acetate'
+    ax9.set_title("Varma1994 Fig7")
+    ax9.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black')
 
     fig.savefig(filepath, bbox_inches='tight')
 
@@ -179,7 +172,7 @@ if __name__ == "__main__":
     print('Model:', sbml_top_path)
 
     import logging
-    # logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.INFO)
     df = simulate_diauxic_growth(sbml_top_path, tend=20)
 
 
