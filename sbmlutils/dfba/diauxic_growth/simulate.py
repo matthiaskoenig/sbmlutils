@@ -140,6 +140,10 @@ def print_fluxes(filepath, df):
         # ax.set_xlabel('time [h]')
         ax.legend()
 
+    # load data
+    Varma1994_Fig6 = pd.read_csv('../../data/Varma1994_Fig6.csv', sep='\t')
+
+
     # concentrations
     for key, ax in mapping3.iteritems():
         ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)

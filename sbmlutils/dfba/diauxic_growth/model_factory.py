@@ -280,19 +280,19 @@ def fba_model(sbml_file, directory):
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # ports: compartments
-    comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
+    # comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
+
+    # ports: species in exchange reactions
+    # comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
+    # comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
+    # comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
+    # comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
 
     # exchange reactions
     comp._create_port(model, pid="EX_Ac_port", idRef="EX_Ac", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="EX_O2_port", idRef="EX_O2", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="EX_X_port", idRef="EX_X", portType=comp.PORT_TYPE_PORT)
-
-    # ports: species in exchange reactions
-    comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
 
     # ports: bounds for exchange reactions (set by species concentrations)
     comp._create_port(model, pid="lb_EX_Ac_port", idRef="lb_EX_Ac", portType=comp.PORT_TYPE_PORT)
@@ -632,25 +632,25 @@ def top_model(sbml_file, directory, emds):
 
     # compartments
     comp.replace_elements(model, 'bioreactor', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['bioreactor_port'],
+                          replaced_elements={
                                              'update': ['bioreactor_port'],
                                              'bounds': ['bioreactor_port']})
 
     # species
     comp.replace_elements(model, 'Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['Glcxt_port'],
+                          replaced_elements={
                                              'update': ['Glcxt_port'],
                                              'bounds': ['Glcxt_port']})
     comp.replace_elements(model, 'O2', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['O2_port'],
+                          replaced_elements={
                                              'update': ['O2_port'],
                                              'bounds': ['O2_port']})
     comp.replace_elements(model, 'Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['Ac_port'],
+                          replaced_elements={
                                              'update': ['Ac_port'],
                                              'bounds': ['Ac_port']})
     comp.replace_elements(model, 'X', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['X_port'],
+                          replaced_elements={
                                              'update': ['X_port'],
                                              'bounds': ['X_port']})
     # exchange bounds
