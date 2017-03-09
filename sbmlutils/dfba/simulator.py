@@ -684,10 +684,12 @@ class FBAModel(object):
         logging.debug("* FBA optimize")
         self.cobra_model.optimize(objective_sense=self.objective_sense)
 
-        logging.debug('\tstatus: <{}>'.format(self.cobra_model.solution.status))
-        for skey in sorted(self.cobra_model.solution.x_dict):
-            flux = self.cobra_model.solution.x_dict[skey]
-            logging.debug('\t{:<10}: {}'.format(skey, flux))
+        # check for cobra version
+        if hasattr(self.cobra_model, 'solution'):
+            logging.debug('\tstatus: <{}>'.format(self.cobra_model.solution.status))
+            for skey in sorted(self.cobra_model.solution.x_dict):
+                flux = self.cobra_model.solution.x_dict[skey]
+                logging.debug('\t{:<10}: {}'.format(skey, flux))
 
 
 
