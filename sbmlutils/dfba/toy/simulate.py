@@ -5,7 +5,7 @@ from __future__ import print_function, division
 import timeit
 
 from toysettings import *
-from sbmlutils.dfba.simulator import SimulatorDFBA
+from sbmlutils.dfba.simulator import DFBASimulator
 
 
 def simulate_toymodel(directory, tend=50.0, steps=500):
@@ -17,7 +17,7 @@ def simulate_toymodel(directory, tend=50.0, steps=500):
     """
     # Run simulation of the hybrid model
     top_level_path = os.path.join(out_dir, top_file)
-    sim = SimulatorDFBA(sbml_top_path=top_level_path)
+    sim = DFBASimulator(sbml_top_path=top_level_path)
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time

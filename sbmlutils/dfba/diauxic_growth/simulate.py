@@ -6,7 +6,7 @@ import timeit
 import numpy as np
 import pandas as pd
 
-from sbmlutils.dfba.simulator import SimulatorDFBA
+from sbmlutils.dfba.simulator import DFBASimulator
 from sbmlutils.dfba.analysis import AnalysisDFBA
 
 import dgsettings
@@ -40,7 +40,7 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     steps = np.round(tend / DT_SIM)  # 10*tend
 
     # Load model in simulator
-    sim = SimulatorDFBA(sbml_top_path=sbml_top_path)
+    sim = DFBASimulator(sbml_top_path=sbml_top_path)
 
     # Run simulation of hybrid model
     start_time = timeit.default_timer()
