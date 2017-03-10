@@ -41,6 +41,11 @@ small_sbml = os.path.join(test_dir, 'models/small', '{}.xml'.format(small_id))
 vdp_id = "van_der_pol"
 vdp_sbml = os.path.join(test_dir, 'models/van_der_pol', '{}.xml'.format(vdp_id))
 
+################################################################
+# comp
+################################################################
+# ExternalModelDefinitions
+DFBA_EMD_SBML = os.path.join(test_dir, 'dfba/diauxic_top.xml')
 
 ################################################################
 # Data

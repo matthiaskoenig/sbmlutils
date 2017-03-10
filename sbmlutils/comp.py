@@ -308,3 +308,39 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
         print("Flattened model written to {}".format(output_path))
 
     return doc
+
+##########################################################################
+# ExternalModelDefinitions & Submodels
+##########################################################################
+
+def flattenExternalModelDefinitions(doc):
+    """ Converts all ExternalModelDefinitions to ModelDefinitions.
+
+    I.e. the definition of models in external files are read
+    and directly included in the top model. The resulting
+    comp model consists than only of a single file.
+
+    :param doc: SBMLDocument
+    :return:
+    """
+    # FIXME: handle multiple levels of hierarchies.
+
+    comp_doc = doc.getPlugin("comp")
+    emd_list = comp_doc.getListOfExternalModelDefinitions()
+    if (emd_list is None) or (len(emd_list) == 0):
+        # no ExternalModelDefinitions
+        return doc
+    else:
+        for emd in emd_list:
+            print(emd)
+            # remove the emd from the model
+            emd_id = emd.getId()
+            # get the model definition from the model
+
+            doc.removeExternalModelDefinition
+
+            # add model definition
+
+
+    return doc
+
