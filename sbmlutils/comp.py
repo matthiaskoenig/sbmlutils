@@ -334,9 +334,13 @@ def flattenExternalModelDefinitions(doc, validate=False):
     logging.debug('* flattenExternalModelDefinitions')
 
     comp_doc = doc.getPlugin("comp")
+    if comp_doc is None:
+        logging.warn("Model is not a comp model, no ExternalModelDefinitions")
+        return doc
     emd_list = comp_doc.getListOfExternalModelDefinitions()
     if (emd_list is None) or (len(emd_list) == 0):
         # no ExternalModelDefinitions
+        logging.warn("Model does not contain any ExternalModelDefinitions")
         return doc
     else:
         model = doc.getModel()

@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 import unittest
 import libsbml
-from sbmlutils.examples import testfiles
+from sbmlutils.tests import resources
 
 from sbmlutils.comp import flattenExternalModelDefinitions
 
@@ -10,11 +10,17 @@ class CompTestCase(unittest.TestCase):
     """ Implement tests for comp model building. """
 
     def test_flattenExternalModelDefinition(self):
-        sbml_path = testfiles.DFBA_EMD_SBML
+        sbml_path = resources.DFBA_EMD_SBML
+        print(sbml_path)
         doc = libsbml.readSBMLFromFile(sbml_path)
-        doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)
+
+        # test that resource could be read
+        self.assertIsNotNone(doc)
+        print(doc)
+        print(doc.getModel().getId())
 
         # check that model exists
+        doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)
         self.assertIsNotNone(doc_no_emd)
 
         # check that there are no external model definitions
