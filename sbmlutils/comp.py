@@ -2,14 +2,17 @@
 Utilities for the creation and work with comp models.
 Simplifies the port linking, submodel generation, ...
 
-Heavily used in the dynamic FBA simulator.
+Heavily used in the dynamic FBA simulator. Mainly in the model creation
+process. But the flattening parts also during the simulation
+of the dynamic FBA models.
 """
-# TODO: refactor and unify with fbc & factory
 
 from __future__ import print_function, division
 import os
+import logging
 import libsbml
 import sbmlutils.factory as factory
+import sbmlutils.validation as validation
 from sbmlutils.validation import check
 
 
@@ -313,17 +316,22 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
 # ExternalModelDefinitions & Submodels
 ##########################################################################
 
-def flattenExternalModelDefinitions(doc):
+def flattenExternalModelDefinitions(doc, validate=False):
     """ Converts all ExternalModelDefinitions to ModelDefinitions.
 
     I.e. the definition of models in external files are read
     and directly included in the top model. The resulting
     comp model consists than only of a single file.
 
+    The model refs in the submodel do not change in the process,
+    so no need to update the submodels.
+
     :param doc: SBMLDocument
-    :return:
+    :return: SBMLDocument with ExternalModelDefinitions replaced
     """
-    # FIXME: handle multiple levels of hierarchies.
+    # FIXME: handle multiple levels of hierarchies. This must be done
+    # recursively to handle the ExternalModelDefinitions of submodels
+    logging.debug('* flattenExternalModelDefinitions')
 
     comp_doc = doc.getPlugin("comp")
     emd_list = comp_doc.getListOfExternalModelDefinitions()
@@ -331,16 +339,30 @@ def flattenExternalModelDefinitions(doc):
         # no ExternalModelDefinitions
         return doc
     else:
+        model = doc.getModel()
+        comp_model = model.getPlugin("comp")
+        # md_list = comp_doc.getListOfModelDefinitions()
+        # print('md_list:', md_list)
+
+        emd_ids = []
         for emd in emd_list:
-            print(emd)
-            # remove the emd from the model
-            emd_id = emd.getId()
+            logging.debug(emd)
+            emd_ids.append(emd.getId())
+
             # get the model definition from the model
+            ref_model = emd.getReferencedModel()
 
-            doc.removeExternalModelDefinition
+            # add model definition for model
+            md = libsbml.ModelDefinition(ref_model)
+            comp_doc.addModelDefinition(md)
 
-            # add model definition
+        # remove the emds afterwards
+        for emd_id in emd_ids:
+            # remove the emd from the model
+            comp_doc.removeExternalModelDefinition(emd_id)
 
-
+    # validate
+    if validate:
+        validation.check_doc(doc)
     return doc
 

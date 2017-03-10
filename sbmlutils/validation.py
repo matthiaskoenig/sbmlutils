@@ -8,6 +8,7 @@ SBMLValidator based on the sbml.org validator example code.
 from __future__ import print_function, division
 
 import os.path
+import logging
 import sys
 import time
 import warnings
@@ -51,37 +52,49 @@ def validate_sbml(sbml_file, ucheck=True):
     return validator.validate(sbml_file)
 
 
-def check_sbml(sbml):
-    """
-    Checks the given SBML document and prints errors of the given severity.
+def check_sbml(sbml, name=None):
+    """ Checks the given SBML file path or String for validation errors.
 
-    Individual checks can be changed via the categories
-        doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, False)
-        doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, False)
-
-    :param sbml: SBML file or str
-    :type sbml: file | str
+    :param sbml:
     :return: number of errors
     """
+    # FIXME: check if this is also working for SBML strings
+    if name is None:
+        if len(sbml) < 100:
+            name = sbml
+        else:
+            name = sbml[0:99] + '...'
+
+    doc = libsbml.readSBML(sbml)
+    return check_doc(doc, name=name)
+
+
+def check_doc(doc, name=None):
+    """
+        Checks the given SBML document and prints errors of the given severity.
+
+        Individual checks can be changed via the categories
+            doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, False)
+            doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, False)
+
+        :param sbml: SBML file or str
+        :type sbml: file | str
+        :return: number of errors
+        """
+    if name is None:
+        name = str(doc)
 
     current = time.clock()
-    doc = libsbml.readSBML(sbml)
     doc.checkConsistency()
     Nerrors = doc.getNumErrors()
 
-    if len(sbml) < 100:
-        name = sbml
-    else:
-        name = sbml[0:99] + '...'
-
-    print('-'*80)
-    print(name)
-    print("read time (ms): " + str(time.clock() - current))
-    print("validation error(s): " + str(Nerrors))
-    print('-' * 80)
+    logging.info('-' * 80)
+    logging.info(name)
+    logging.info("read time (ms): " + str(time.clock() - current))
+    logging.info("validation error(s): " + str(Nerrors))
+    logging.info('-' * 80)
 
     print_errors(doc)
-
     return Nerrors
 
 

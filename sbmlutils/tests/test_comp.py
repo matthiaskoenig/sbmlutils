@@ -12,17 +12,17 @@ class CompTestCase(unittest.TestCase):
     def test_flattenExternalModelDefinition(self):
         sbml_path = testfiles.DFBA_EMD_SBML
         doc = libsbml.readSBMLFromFile(sbml_path)
-        doc_no_emd = flattenExternalModelDefinitions(doc)
+        doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)
 
         # check that model exists
         self.assertIsNotNone(doc_no_emd)
 
         # check that there are no external model definitions
         comp_doc_no_emd = doc_no_emd.getPlugin("comp")
-        self.assertEqual(0, doc.getNumExternalModelDefinitions())
+        self.assertEqual(0, comp_doc_no_emd.getNumExternalModelDefinitions())
 
         # check that all model definitions are still there
-        self.assertEqual(3, doc.getNumModelDefinitions())
+        self.assertEqual(3, comp_doc_no_emd.getNumModelDefinitions())
 
 
 if __name__ == '__main__':
