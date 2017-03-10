@@ -1,10 +1,11 @@
+"""
+Unit tests for the comp module.
+"""
+
 from __future__ import print_function, division
 import unittest
-import libsbml
 from sbmlutils import sbmlio
 from sbmlutils.tests import resources
-
-
 from sbmlutils.comp import flattenExternalModelDefinitions
 
 

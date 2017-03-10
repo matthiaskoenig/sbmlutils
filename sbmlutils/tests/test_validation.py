@@ -3,17 +3,18 @@ from __future__ import print_function, division
 import tempfile
 import unittest
 from sbmlutils.validation import check_sbml
-
-from sbmlutils.examples.testfiles import demo_sbml, galactose_singlecell_sbml, basic_sbml, vdp_sbml
+from sbmlutils.tests import resources
+sbml_path = resources.DFBA_EMD_SBML
 
 ##################################################################################
 # These files are validated. All of them are valid and have no warnings or errors.
 # dictionary of filenames, with setting for ucheck
 SBML_FILES = {
-    demo_sbml: True,
-    galactose_singlecell_sbml: True,
-    basic_sbml: True,
-    vdp_sbml: False
+    resources.DFBA_EMD_SBML: {'ucheck': True, 'N': 0},
+    resources.DEMO_SBML: {'ucheck': True, 'N': 0},
+    resources.GALACTOSE_SINGLECELL_SBML: {'ucheck': True, 'N': 0},
+    resources.BASIC_SBML: {'ucheck': True, 'N': 0},
+    resources.VDP_SBML: {'ucheck': False, 'N': 10},
 }
 ##################################################################################
 
@@ -50,11 +51,8 @@ class TestValidation(unittest.TestCase):
 
         self.validate_file(f.name, ucheck=False)
 
-    def test_check_vdp(self):
-        Nerrors = check_sbml(vdp_sbml)
-        self.assertEqual(Nerrors, 10)
 
-    def validate_file(self, sbmlpath, ucheck=True):
+    def validate_file(self, sbmlpath, ucheck=True, Nerrors=0):
         """ Validate given SBML file.
 
         Helper function called by the other tests.
@@ -72,8 +70,8 @@ class TestValidation(unittest.TestCase):
 
         :return:
         """
-        for sbmlpath, ucheck in SBML_FILES.iteritems():
-            self.validate_file(sbmlpath=sbmlpath, ucheck=ucheck)
+        for sbmlpath, datad in SBML_FILES.iteritems():
+            self.validate_file(sbmlpath=sbmlpath, ucheck=ucheck, Nerrors=)
 
 
 if __name__ == '__main__':
