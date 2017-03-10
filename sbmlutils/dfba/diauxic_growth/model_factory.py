@@ -83,6 +83,7 @@ from os.path import join as pjoin
 from libsbml import *
 # FIXME: remove the * import
 import libsbml
+from dgsettings import *
 
 XMLOutputStream.setWriteTimestamp(False)
 
@@ -706,8 +707,6 @@ def create_models():
 
     :return:
     """
-    from dgsettings import *
-
     directory = pjoin(out_dir, 'v{}'.format(version))
     if not os.path.exists(directory):
         print('Create directory: {}'.format(directory))

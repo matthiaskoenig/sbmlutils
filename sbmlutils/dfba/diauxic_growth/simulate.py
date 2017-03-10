@@ -1,3 +1,6 @@
+"""
+Simulate the diauxic growth model.
+"""
 from __future__ import print_function, division
 
 # directory to write files to
@@ -6,8 +9,9 @@ import timeit
 import numpy as np
 import pandas as pd
 
+from sbmlutils.dfba.model import DFBAModel
 from sbmlutils.dfba.simulator import DFBASimulator
-from sbmlutils.dfba.analysis import AnalysisDFBA
+from sbmlutils.dfba.analysis import DFBAAnalysis
 
 import dgsettings
 import model_factory
@@ -40,9 +44,11 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     steps = np.round(tend / DT_SIM)  # 10*tend
 
     # Load model in simulator
-    sim = DFBASimulator(sbml_top_path=sbml_top_path)
+    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
 
     # Run simulation of hybrid model
+    sim = DFBASimulator(dfba_model)
+
     start_time = timeit.default_timer()
     df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
     elapsed = timeit.default_timer() - start_time
@@ -50,7 +56,7 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     print("\nSimulation time: {}\n".format(elapsed))
 
     # generic analysis
-    analysis = AnalysisDFBA(df=df, rr_comp=sim.rr_comp)
+    analysis = DFBAAnalysis(df=sim.solution, rr_comp=sim.ode_model)
     analysis.plot_reactions(os.path.join(directory, "dg_reactions_generic.png"))
     analysis.plot_species(os.path.join(directory, "dg_species_generic.png"))
     analysis.save_csv(os.path.join(directory, "dg_simulation_generic.csv"))

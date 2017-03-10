@@ -45,7 +45,7 @@ class DFBASimulator(object):
 
     @property
     def objective_sense(self):
-        return self.dfba_model.objective_sense
+        return self.dfba_model.fba_model.objective_sense
 
     @property
     def ode_model(self):
@@ -53,7 +53,7 @@ class DFBASimulator(object):
 
     @property
     def fba_model(self):
-        return self.dfba_model.fba_models[0]
+        return self.dfba_model.fba_model
 
     @property
     def cobra_model(self):
@@ -192,7 +192,7 @@ class DFBASimulator(object):
         Uses the objective sense from the fba model.
         """
         logging.debug("* FBA optimize")
-        self.cobra_model.optimize_fba(objective_sense=self.objective_sense)
+        self.cobra_model.optimize(objective_sense=self.objective_sense)
 
         # log solution
         if hasattr(self.cobra_model, 'solution'):
@@ -241,9 +241,9 @@ class DFBASimulator(object):
 
         # constant step size
         if kstep == 0:
-            result = self.ode_comp.simulate(start=0, end=0, steps=1)
+            result = self.ode_model.simulate(start=0, end=0, steps=1)
         else:
-            result = self.ode_comp.simulate(start=0, end=step_size, steps=1)
+            result = self.ode_model.simulate(start=0, end=step_size, steps=1)
 
         # store ode row
         return result[1, :]

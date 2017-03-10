@@ -5,10 +5,12 @@ from __future__ import print_function, division
 import os
 import logging
 import warnings
+import tempfile
+from collections import defaultdict
+
 import libsbml
 import roadrunner
-
-default
+import cobra
 
 #################################################
 # Model constants
@@ -74,6 +76,13 @@ class DFBAModel(object):
 
         # change back the working dir
         os.chdir(working_dir)
+
+    @property
+    def fba_model(self):
+        if self.fba_models is not None and len(self.fba_models) > 0:
+            return self.fba_models[0]
+        else:
+            return None
 
     @staticmethod
     def get_framework(model):
@@ -162,7 +171,7 @@ class DFBAModel(object):
         top_plugin = self.model_top.getPlugin("comp")
         for submodel in top_plugin.getListOfSubmodels():
             # models are processed in the order they are listed in the listOfSubmodels
-            framework = DFBASimulator.get_framework(submodel)
+            framework = DFBAModel.get_framework(submodel)
             self.submodels[framework].append(submodel)
 
     def _process_models(self):
@@ -182,7 +191,7 @@ class DFBAModel(object):
         # FBA rules
         ###########################
         # process FBA assignment rules of the top model
-        self.flux_rules = DFBASimulator._process_flux_rules(self.model_top)
+        self.flux_rules = DFBAModel._process_flux_rules(self.model_top)
 
         ###########################
         # ODE model

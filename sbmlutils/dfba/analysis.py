@@ -4,7 +4,7 @@ Generic analysis and plots of DFBA simulations.
 from matplotlib import pyplot as plt
 
 
-class AnalysisDFBA(object):
+class DFBAAnalysis(object):
 
     def __init__(self, df, rr_comp):
         self.df = df
