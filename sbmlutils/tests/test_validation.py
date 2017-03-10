@@ -9,13 +9,13 @@ sbml_path = resources.DFBA_EMD_SBML
 ##################################################################################
 # These files are validated. All of them are valid and have no warnings or errors.
 # dictionary of filenames, with setting for ucheck
-SBML_FILES = {
-    resources.DFBA_EMD_SBML: {'ucheck': True, 'N': 0},
-    resources.DEMO_SBML: {'ucheck': True, 'N': 0},
-    resources.GALACTOSE_SINGLECELL_SBML: {'ucheck': True, 'N': 0},
-    resources.BASIC_SBML: {'ucheck': True, 'N': 0},
-    resources.VDP_SBML: {'ucheck': False, 'N': 10},
-}
+SBML_FILES = [
+    {'path': resources.DFBA_EMD_SBML, 'ucheck': True, 'N': 0},
+    {'path': resources.DEMO_SBML, 'ucheck': True, 'N': 0},
+    {'path': resources.GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
+    {'path': resources.BASIC_SBML, 'ucheck': True, 'N': 0},
+    {'path': resources.VDP_SBML, 'ucheck': False, 'N': 10},
+]
 ##################################################################################
 
 class TestValidation(unittest.TestCase):
@@ -62,7 +62,7 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         Nerrors = check_sbml(sbmlpath, ucheck=ucheck)
-        self.assertIsNone(Nerrors)
+        self.assertIsNotNone(Nerrors)
         self.assertEqual(0, Nerrors)
 
     def test_files(self):
@@ -70,8 +70,8 @@ class TestValidation(unittest.TestCase):
 
         :return:
         """
-        for sbmlpath, datad in SBML_FILES.iteritems():
-            self.validate_file(sbmlpath=sbmlpath, ucheck=ucheck, Nerrors=)
+        for d in SBML_FILES:
+            self.validate_file(sbmlpath=d['path'], ucheck=d['ucheck'], Nerrors=d['N'])
 
 
 if __name__ == '__main__':

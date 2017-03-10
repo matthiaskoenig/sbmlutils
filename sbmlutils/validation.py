@@ -83,8 +83,8 @@ def check_doc(doc, name=None, ucheck=True):
     current = time.clock()
     Nerrors = doc.checkConsistency()
 
+    valid_status = True
     if Nerrors > 0:
-        valid_status = True
         for i in range(Nerrors):
             severity = doc.getError(i).getSeverity()
             if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
@@ -96,10 +96,10 @@ def check_doc(doc, name=None, ucheck=True):
     lines = [
         '-' * 80,
         name,
-        "{>15:}: {}".format("check time (ms)", str(time.clock() - current)),
-        "{>15:}: {}".format("valid", valid_status),
-        "{>15:}: {}".format("validation error(s)", numCCErr),
-        "{>15:}: {}".format("validation warnings(s)", numCCWarn),
+        "{:<15}: {}".format("check time (ms)", str(time.clock() - current)),
+        "{:<15}: {}".format("valid", valid_status),
+        "{:<15}: {}".format("validation error(s)", numCCErr),
+        "{:<15}: {}".format("validation warnings(s)", numCCWarn),
         '-' * 80,
     ]
     info = "\n".join(lines)

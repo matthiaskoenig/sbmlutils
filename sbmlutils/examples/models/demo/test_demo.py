@@ -18,10 +18,9 @@ demo_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 class DemoTestCase(unittest.TestCase):
 
-    def test_validate_sbml(self):
-        vres = validation.validate_sbml(demo_sbml, ucheck=True)
-        self.assertEqual(vres["numCCErr"], 0)
-        self.assertEqual(vres["numCCWarn"], 0)
+    def test_check_sbml(self):
+        Nerrors = validation.check_sbml(demo_sbml, ucheck=True)
+        self.assertEqual(Nerrors, 0)
 
     def test_roadrunner_selections(self):
         rr = roadrunner.RoadRunner(demo_sbml)

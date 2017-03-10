@@ -5,7 +5,7 @@ import unittest
 import roadrunner
 from sbmlutils import validation
 
-from sbmlutils.examples.testfiles import galactose_singlecell_sbml
+from sbmlutils.tests.resources import GALACTOSE_SINGLECELL_SBML
 
 
 class GalactoseTestCase(unittest.TestCase):
@@ -14,17 +14,16 @@ class GalactoseTestCase(unittest.TestCase):
     """
 
     def test_validate_sbml(self):
-        vres = validation.validate_sbml(galactose_singlecell_sbml, ucheck=True)
-        self.assertEqual(vres["numCCErr"], 0)
-        self.assertEqual(vres["numCCWarn"], 0)
+        Nerrors = validation.check_sbml(GALACTOSE_SINGLECELL_SBML, ucheck=True)
+        self.assertEqual(Nerrors, 0)
 
     def test_roadrunner_selections(self):
-        rr = roadrunner.RoadRunner(galactose_singlecell_sbml)
+        rr = roadrunner.RoadRunner(GALACTOSE_SINGLECELL_SBML)
         print(rr.selections)
         self.assertTrue(len(rr.selections) > 1)
 
     def test_fixed_step_simulation(self):
-        rr = roadrunner.RoadRunner(galactose_singlecell_sbml)
+        rr = roadrunner.RoadRunner(GALACTOSE_SINGLECELL_SBML)
 
         tend = 10.0
         steps = 100

@@ -32,7 +32,7 @@ import libsbml
 from jinja2 import Environment, FileSystemLoader
 
 import sbmlfilters
-from sbmlutils.validation import validate_sbml
+from sbmlutils.validation import check_sbml
 
 
 # Change default encoding to UTF-8
@@ -109,7 +109,7 @@ def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False
 
     # check the sbml file
     if validate:
-        validate_sbml(sbml_path)
+        check_sbml(sbml_path)
 
     # read sbml
     doc = libsbml.readSBML(sbml_path)
