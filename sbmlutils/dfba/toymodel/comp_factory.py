@@ -135,7 +135,7 @@ def create_top_level_model(sbml_file, directory):
                                           submodels=['bounds', 'fba', 'update', 'model'])
 
     # write SBML file
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # flatten the combined model
     comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_level_file),

@@ -129,7 +129,7 @@ def create_ode_bounds(sbml_file, directory):
     # ports
     comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
 
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -213,7 +213,7 @@ def create_fba(sbml_file, directory):
     comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -261,7 +261,7 @@ def create_ode_update(sbml_file, directory):
     comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -307,7 +307,7 @@ def create_ode_model(sbml_file, directory):
     comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ########################################################################################################################
