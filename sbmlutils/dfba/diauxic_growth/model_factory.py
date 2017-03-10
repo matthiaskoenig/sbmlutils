@@ -76,17 +76,20 @@ steps = 10000
 
 -----------------------------------------------
 """
+import logging
+import warnings
 
 from libsbml import *
-
-import sbmlutils.sbmlio as sbml_io
-import sbmlutils.annotation as sbml_annotation
-from sbmlutils import comp
-from sbmlutils import factory as mc
-from sbmlutils.report import sbmlreport
+# FIXME: remove the * import
+import libsbml
 
 XMLOutputStream.setWriteTimestamp(False)
 
+import sbmlutils.sbmlio as sbml_io
+from sbmlutils import comp
+from sbmlutils import factory as mc
+import sbmlutils.annotation as sbml_annotation
+from sbmlutils.report import sbmlreport
 from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 
 ########################################################################
@@ -703,9 +706,10 @@ def create_models():
     :return:
     """
     from dgsettings import fba_file, bounds_file, update_file, top_file, flattened_file, out_dir
-    import os
+    from dgsettings import top_noemd_file, flattened_noemd_file
+    from os.path import join as pjoin
 
-    directory = os.path.join(out_dir, 'v{}'.format(version))
+    directory = pjoin(out_dir, 'v{}'.format(version))
     if not os.path.exists(directory):
         print('Create directory: {}'.format(directory))
         os.mkdir(directory)
@@ -722,16 +726,33 @@ def create_models():
         "diauxic_update": update_file,
     }
 
-    top_model(top_file, directory, emds)
-
     # flatten top model
-    comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_file),
-                         output_path=os.path.join(directory, flattened_file))
+    top_model(top_file, directory, emds)
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
+                         output_path=pjoin(directory, flattened_file))
+
+    # remove external model definitions
+    doc_top = libsbml.readSBMLFromFile(pjoin(directory, top_file))
+    if doc_top is None:
+        logging.error('SBML file could not be read:', top_file)
+
+    # valid during creation
+    doc_top_noemd = comp.flattenExternalModelDefinitions(doc_top, validate=True)
+    from sbmlutils import validation
+    validation.check_doc(doc_top_noemd)
+
+    # not valid during writing
+    sbml_io.write_and_check(doc_top_noemd, pjoin(directory, top_noemd_file))
+
+    exit()
+    # comp.flattenSBMLFile(sbml_path=pjoin(directory, top_noemd_file),
+    #                     output_path=pjoin(directory, flattened_noemd_file))
 
     # create reports
-    sbml_paths = [os.path.join(directory, fname) for fname in
+    sbml_paths = [pjoin(directory, fname) for fname in
                   # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+                  [fba_file, bounds_file, update_file, top_file, flattened_file,
+                   top_noemd_file, flattened_noemd_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
 

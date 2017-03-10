@@ -16,5 +16,8 @@ ode_file = 'diauxic_ode.xml'
 
 # top level
 top_file = 'diauxic_top.xml'
+top_noemd_file = 'diauxic_top_noemd.xml'
+
 # flattened top level
 flattened_file = 'diauxic_flattened.xml'
+flattened_noemd_file = 'diauxic_flattened_noemd.xml'

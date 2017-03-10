@@ -249,13 +249,3 @@ class SBMLValidator:
                  "skipCC": skipCC,
                  "timeCC": timeCC
                 }
-
-
-if __name__ == "__main__":
-    # TODO: fix
-    from sbmlutils.tests.testdata import test_sbml
-    check_sbml(test_sbml)
-
-    from sbmlutils.tests.testdata import vdp_sbml
-    check_sbml(vdp_sbml)
-
