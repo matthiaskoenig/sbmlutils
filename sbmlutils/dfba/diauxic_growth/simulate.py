@@ -148,21 +148,23 @@ def print_fluxes(filepath, df):
         ax.set_ylabel('Concentration [mmol/l]')
         ax.set_title('{}: Concentration'.format(key))
         ax.set_xlabel('time [h]')
-        ax.legend()
 
     # experimentell data
     Varma1994_Fig7 = pd.read_csv('./data/Varma1994_Fig7.csv', sep='\t')
     inds = Varma1994_Fig7.substance == 'cell_density'
-    ax12.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black')
+    ax12.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black', label='data')
     ax12.set_ylabel('X [g/l]')
 
     inds = Varma1994_Fig7.substance == 'glucose'
     ax10.set_title("Varma1994 Fig7")
-    ax10.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black')
+    ax10.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black', label='data')
 
     inds = Varma1994_Fig7.substance == 'acetate'
     ax9.set_title("Varma1994 Fig7")
-    ax9.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black')
+    ax9.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black', label='data')
+
+    for key, ax in mapping3.iteritems():
+        ax.legend()
 
     fig.savefig(filepath, bbox_inches='tight')
 
