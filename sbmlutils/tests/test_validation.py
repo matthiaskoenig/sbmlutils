@@ -2,12 +2,23 @@ from __future__ import print_function, division
 
 import tempfile
 import unittest
+from sbmlutils.validation import check_sbml
 
 from sbmlutils.examples.testfiles import demo_sbml, galactose_singlecell_sbml, basic_sbml, vdp_sbml
-from sbmlutils.validation import validate_sbml, check_sbml
 
+##################################################################################
+# These files are validated. All of them are valid and have no warnings or errors.
+# dictionary of filenames, with setting for ucheck
+SBML_FILES = {
+    demo_sbml: True,
+    galactose_singlecell_sbml: True,
+    basic_sbml: True,
+    vdp_sbml: False
+}
+##################################################################################
 
 class TestValidation(unittest.TestCase):
+    """ Unittests for the validation module."""
 
     def test_check_sbml(self):
         import tellurium as te
@@ -33,8 +44,6 @@ class TestValidation(unittest.TestCase):
         f.write(sbml_str)
         f.flush()
 
-        print(sbml_str)
-
         # validate_sbml(f.name, ucheck=False)
         Nerrors = check_sbml(f.name)
         self.assertEqual(Nerrors, 36)
@@ -45,23 +54,27 @@ class TestValidation(unittest.TestCase):
         Nerrors = check_sbml(vdp_sbml)
         self.assertEqual(Nerrors, 10)
 
-    def validate_file(self, sbml_file, ucheck=True):
-        results = validate_sbml(sbml_file, ucheck=ucheck)
-        self.assertEqual(0, results["numCCErr"])
-        self.assertEqual(0, results["numCCWarn"])
+    def validate_file(self, sbmlpath, ucheck=True):
+        """ Validate given SBML file.
 
-    def test_validate_demo(self):
-        self.validate_file(demo_sbml)
+        Helper function called by the other tests.
 
-    def test_validate_galactose(self):
-        self.validate_file(galactose_singlecell_sbml)
+        :param sbmlpath:
+        :param ucheck:
+        :return:
+        """
+        Nerrors = check_sbml(sbmlpath, ucheck=ucheck)
+        self.assertIsNone(Nerrors)
+        self.assertEqual(0, Nerrors)
 
-    def test_validate_basic(self):
-        self.validate_file(basic_sbml)
+    def test_files(self):
+        """ Test all files provided in SBML_FILES
 
-    def test_validate_vdp(self):
-        self.validate_file(vdp_sbml, ucheck=False)
+        :return:
+        """
+        for sbmlpath, ucheck in SBML_FILES.iteritems():
+            self.validate_file(sbmlpath=sbmlpath, ucheck=ucheck)
+
 
 if __name__ == '__main__':
-
     unittest.main()

@@ -4,6 +4,9 @@ Validation and checking functions.
 Helper functions for simple validation and display of problems.
 Helper functions if setting sbml information was successful.
 """
+# TODO: clean up
+# TODO: unittests for various files
+
 
 from __future__ import print_function, division
 
@@ -75,69 +78,40 @@ def check_doc(doc, name=None, ucheck=True):
     # set the unit checking, similar for the other settings
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, ucheck)
 
+    numCCErr = 0  # error count
+    numCCWarn = 0  # warning count
     current = time.clock()
     Nerrors = doc.checkConsistency()
 
     if Nerrors > 0:
-
-        isinvalid = False
-        for i in range(failures):
-            severity = sbmlDoc.getError(i).getSeverity()
+        valid_status = True
+        for i in range(Nerrors):
+            severity = doc.getError(i).getSeverity()
             if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
                 numCCErr += 1
-                isinvalid = True
+                valid_status = False
             else:
                 numCCWarn += 1
 
-        if isinvalid:
-            self.numinvalid += 1
-
-        errMsgCC = sbmlDoc.getErrorLog().toString()
-        #
-        # print results
-        #
-
-
-    lines = []
-    lines.append(" filename : %s" % (infile))
-    lines.append(" file size (byte) : %d" % (os.path.getsize(infile)))
-    lines.append(" read time (ms) : %f" % (timeRead))
-
-    if not skipCC:
-        lines.append(" c-check time (ms) : %f" % (timeCC))
+    lines = [
+        '-' * 80,
+        name,
+        "{>15:}: {}".format("check time (ms)", str(time.clock() - current)),
+        "{>15:}: {}".format("valid", valid_status),
+        "{>15:}: {}".format("validation error(s)", numCCErr),
+        "{>15:}: {}".format("validation warnings(s)", numCCWarn),
+        '-' * 80,
+    ]
+    info = "\n".join(lines)
+    if numCCWarn > 0:
+        if numCCErr > 0:
+            logging.error(info)
+        else:
+            logging.warn(info)
     else:
-        lines.append(" c-check time (ms) : skipped")
+        logging.debug(info)
 
-    lines.append(" validation error(s) : %d" % (numReadErr + numCCErr))
-    if not skipCC:
-        lines.append(" consistency error(s): %d" % (numCCErr))
-    else:
-        lines.append(" consistency error(s): skipped")
-
-    lines.append(" validation warning(s) : %d" % (numReadWarn + numCCWarn))
-    if not skipCC:
-        lines.append(" consistency warning(s): %d" % (numCCWarn))
-    else:
-        lines.append(" consistency warning(s): skipped")
-
-    if errMsgRead or errMsgCC:
-        lines.append('')
-        lines.append("===== validation error/warning messages =====\n")
-        if errMsgRead:
-            lines.append(errMsgRead)
-        if errMsgCC:
-            lines.append("*** consistency check ***\n")
-            lines.append(errMsgCC)
-    val_string = '\n'.join(lines)
-    print(val_string, '\n')
-
-
-    logging.info('-' * 80)
-    logging.info(name)
-    logging.info("read time (ms): " + str(time.clock() - current))
-    logging.info("validation error(s): " + str(Nerrors))
-    logging.info('-' * 80)
-
+    # FIXME: print to logging
     print_errors(doc)
     return Nerrors
 
