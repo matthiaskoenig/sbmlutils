@@ -78,6 +78,7 @@ steps = 10000
 """
 import logging
 import warnings
+from os.path import join as pjoin
 
 from libsbml import *
 # FIXME: remove the * import
@@ -308,7 +309,7 @@ def fba_model(sbml_file, directory):
     comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc_fba, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 def bounds_model(sbml_file, directory):
@@ -408,7 +409,7 @@ def bounds_model(sbml_file, directory):
     comp._create_port(model, pid="lb_EX_X_port", idRef="lb_EX_X", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
 
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -480,7 +481,7 @@ def update_model(sbml_file, directory):
     comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 
@@ -541,8 +542,8 @@ def top_model(sbml_file, directory, emds):
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
     # add submodel which references the external model definition
-    comp.add_submodel_from_emd(mplugin, submodel_id="bounds", emd=emd_bounds)
     comp.add_submodel_from_emd(mplugin, submodel_id="fba", emd=emd_fba)
+    comp.add_submodel_from_emd(mplugin, submodel_id="bounds", emd=emd_bounds)
     comp.add_submodel_from_emd(mplugin, submodel_id="update", emd=emd_update)
 
     # Compartments
@@ -695,7 +696,7 @@ def top_model(sbml_file, directory, emds):
                                           submodels=['bounds', 'fba', 'update'])
 
     # write SBML file
-    sbml_io.write_and_check(doc, os.path.join(directory, sbml_file))
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
     # change back into working dir
     os.chdir(working_dir)
 
@@ -705,9 +706,7 @@ def create_models():
 
     :return:
     """
-    from dgsettings import fba_file, bounds_file, update_file, top_file, flattened_file, out_dir
-    from dgsettings import top_noemd_file, flattened_noemd_file
-    from os.path import join as pjoin
+    from dgsettings import *
 
     directory = pjoin(out_dir, 'v{}'.format(version))
     if not os.path.exists(directory):
@@ -758,8 +757,5 @@ def create_models():
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
 
-
-
-########################################################################################################################
 if __name__ == "__main__":
     create_models()
