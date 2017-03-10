@@ -1,7 +1,6 @@
 import time
 import libsbml
 
-
 def check_doc(doc, name=None):
     """
         Checks the given SBML document and prints errors of the given severity.
