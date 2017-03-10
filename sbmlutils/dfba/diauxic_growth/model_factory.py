@@ -731,28 +731,30 @@ def create_models():
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
 
-    # remove external model definitions
-    doc_top = libsbml.readSBMLFromFile(pjoin(directory, top_file))
-    if doc_top is None:
-        logging.error('SBML file could not be read:', top_file)
+    # reported bug in writing comp model
+    # TODO: test this as soon as bug is fixed
+    if False:
+        # remove external model definitions
+        doc_top = libsbml.readSBMLFromFile(pjoin(directory, top_file))
+        if doc_top is None:
+            logging.error('SBML file could not be read:', top_file)
 
-    # valid during creation
-    doc_top_noemd = comp.flattenExternalModelDefinitions(doc_top, validate=True)
-    from sbmlutils import validation
-    validation.check_doc(doc_top_noemd)
+        # valid during creation
+        doc_top_noemd = comp.flattenExternalModelDefinitions(doc_top, validate=True)
+        from sbmlutils import validation
+        validation.check_doc(doc_top_noemd)
 
-    # not valid during writing
-    sbml_io.write_and_check(doc_top_noemd, pjoin(directory, top_noemd_file))
+        # not valid during writing
+        sbml_io.write_and_check(doc_top_noemd, pjoin(directory, top_noemd_file))
 
-    exit()
-    # comp.flattenSBMLFile(sbml_path=pjoin(directory, top_noemd_file),
-    #                     output_path=pjoin(directory, flattened_noemd_file))
+
+        # comp.flattenSBMLFile(sbml_path=pjoin(directory, top_noemd_file),
+        #                     output_path=pjoin(directory, flattened_noemd_file))
 
     # create reports
     sbml_paths = [pjoin(directory, fname) for fname in
                   # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file,
-                   top_noemd_file, flattened_noemd_file]]
+                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
 
