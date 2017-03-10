@@ -12,7 +12,9 @@ fba_file = 'toy_fba.xml'
 # ODE submodels
 ode_bounds_file = 'toy_ode_bounds.xml'
 ode_update_file = 'toy_ode_update.xml'
+
 ode_model_file = 'toy_ode_model.xml'
+
 # top level
 top_level_file = 'toy_top_level.xml'
 # flattened top level

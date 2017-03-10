@@ -10,16 +10,18 @@ The toy model consists hereby of
 The SBML comp extension is used for hierarchical model composition, i.e. to create
 the main model and the kinetic model parts.
 """
+from __future__ import print_function
 from libsbml import *
+# FIXME: no wildcard import
 
-import sbmlutils.sbmlio as sbml_io
 import sbmlutils.annotation as sbml_annotation
-import sbmlutils.comp as comp
+import model_factory
 from sbmlutils import factory as mc
+from sbmlutils import comp
+import sbmlutils.sbmlio as sbml_io
 
 XMLOutputStream.setWriteTimestamp(False)
 
-# TODO: add SBOterms for fluxBounds, species, ...
 
 ########################################################################
 # General model information
@@ -96,40 +98,6 @@ def add_generic_info(model):
     mc.create_objects(model, units)
     mc.set_main_units(model, main_units)
     model.setNotes(notes)
-
-
-####################################################
-# ODE flux bounds
-####################################################
-def create_ode_bounds(sbml_file, directory):
-    """"
-    Submodel for dynamically calculating the flux bounds.
-    The dynamically changing flux bounds are the input to the
-    FBA model.
-    """
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
-    doc.setPackageRequired("comp", True)
-    model = doc.createModel()
-    model.setId("toy_ode_bounds")
-    model.setName("ODE bound calculation submodel")
-    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model)
-
-    objects = [
-        # parameters
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, name='ub_r1', constant=False),
-        mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
-
-        # rate rules
-        mc.RateRule(sid="ub_R1", value="k1*ub_R1")
-    ]
-    mc.create_objects(model, objects)
-
-    # ports
-    comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
-
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -217,6 +185,122 @@ def create_fba(sbml_file, directory):
 
 
 ####################################################
+# ODE flux bounds
+####################################################
+def create_ode_bounds(sbml_file, directory):
+    """"
+    Submodel for dynamically calculating the flux bounds.
+    The dynamically changing flux bounds are the input to the
+    FBA model.
+    """
+    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
+    doc = SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+    model = doc.createModel()
+    model.setId("toy_ode_bounds")
+    model.setName("ODE bound calculation submodel")
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    add_generic_info(model)
+
+    objects = [
+        # parameters
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, name='ub_r1', constant=False),
+        mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
+
+        # rate rules
+        mc.RateRule(sid="ub_R1", value="k1*ub_R1")
+    ]
+    mc.create_objects(model, objects)
+
+    # ports
+    comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
+
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+
+
+########################################################################################################
+# FBA submodel
+####################################################
+def create_fba(sbml_file, directory):
+    """
+    Create the fba model.
+    FBA submodel in FBC v2 which uses parameters as flux bounds.
+    """
+    sbmlns = SBMLNamespaces(3, 1)
+    sbmlns.addPackageNamespace("fbc", 2)
+    sbmlns.addPackageNamespace("comp", 1)
+
+    doc_fba = SBMLDocument(sbmlns)
+    doc_fba.setPackageRequired("comp", True)
+    mdoc = doc_fba.getPlugin("comp")
+    doc_fba.setPackageRequired("fbc", False)
+    model = doc_fba.createModel()
+    mplugin = model.getPlugin("fbc")
+    mplugin.setStrict(False)
+
+    # model
+    model.setId('toy_fba')
+    model.setName('FBA submodel')
+    model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
+    add_generic_info(model)
+
+    # Compartments
+    compartments = [
+        mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment', spatialDimension=3),
+        mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimension=3),
+        mc.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimension=2),
+    ]
+    mc.create_objects(model, compartments)
+
+    # Species
+    species = [
+        # external
+        mc.Species(sid='A', name="A", value=10, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=True),
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern", boundaryCondition=True),
+        # internal
+        mc.Species(sid='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="cell"),
+        mc.Species(sid='B2', name="B2", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="cell"),
+    ]
+    mc.create_objects(model, species)
+
+    parameters = [
+        # bounds
+        mc.Parameter(sid="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=False),
+        mc.Parameter(sid="lb", name="lower bound", value=0.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub", name="upper bound", value=1000.0, unit=UNIT_FLUX, constant=True),
+    ]
+    mc.create_objects(model, parameters)
+
+    # reactions with constant flux
+    r1 = mc.create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
+                            reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
+    r2 = mc.create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
+                            reactants={"B1": 1}, products={"B2": 1}, compartment='cell')
+    r3 = mc.create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
+                            reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
+
+    # flux bounds
+    mc.set_flux_bounds(r1, lb="lb", ub="ub_R1")
+    mc.set_flux_bounds(r2, lb="lb", ub="ub")
+    mc.set_flux_bounds(r3, lb="lb", ub="ub")
+
+    # objective function
+    mc.create_objective(mplugin, oid="R3_maximize", otype="maximize", fluxObjectives={"R3": 1.0})
+
+    # create ports
+    comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="cell_port", idRef="cell", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
+
+    # write SBML file
+    sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
+
 # ODE species update
 ####################################################
 def create_ode_update(sbml_file, directory):
@@ -310,13 +394,151 @@ def create_ode_model(sbml_file, directory):
     sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
+def create_top_level_model(sbml_file, directory):
+    """
+    Creates the full comp model as combination of FBA and comp models.
+
+    Create a comp model.
+    Test script for working with the comp extension in SBML.
+
+    One model composition combines all the kinetic models,
+    in addition the higher level comp model is created which combines everything (i.e. the FBA & ODE models).
+    For the simulation of the full combined model the tools have to figure out the subparts which are
+    simulated with which simulation environment.
+    The submodels must already exist in the given directory
+
+    connections
+    ------------
+    [1] flux bounds
+    kinetic reaction bounds => replace the FBA bounds
+    comp_ode.submodel_bounds__ub_R1 => fba_R1.upper_bound
+
+    [2] reaction rates (fluxes)
+    FBA flux (all reactions) => replaces Reaction flux in kinetic model
+
+    ** FBA **
+    <listOfParameters>
+        <parameter id="ub_R1" name="ub R1" value="1" units="item_per_s" constant="false"/>
+        <parameter id="lb" name="lower bound" value="0" units="item_per_s" constant="true"/>
+        <parameter id="ub" name="upper bound" value="1000" units="item_per_s" constant="true"/>
+        <parameter id="v_R1" name="R1 flux" value="0" units="item_per_s" constant="false"/>
+        <parameter id="v_R2" name="R2 flux" value="0" units="item_per_s" constant="false"/>
+        <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
+    </listOfParameters>
+    """
+    working_dir = os.getcwd()
+    os.chdir(directory)
+    sbmlns = SBMLNamespaces(3, 1, "comp", 1)
+    doc = SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+    doc.setPackageRequired("fbc", False)
+
+    mdoc = doc.getPlugin("comp")
+
+    # create listOfExternalModelDefinitions
+    emd_bounds = comp.create_ExternalModelDefinition(mdoc, "toy_ode_bounds", source=ode_bounds_file)
+    emd_fba = comp.create_ExternalModelDefinition(mdoc, "toy_fba", source=fba_file)
+    emd_update = comp.create_ExternalModelDefinition(mdoc, "toy_ode_update", source=ode_update_file)
+    emd_model = comp.create_ExternalModelDefinition(mdoc, "toy_ode_model", source=ode_model_file)
+
+    # create models and submodels
+    model = doc.createModel()
+    model.setId("toy_top_level")
+    model.setName("Top level model")
+    model_factory.add_generic_info(model)
+    mplugin = model.getPlugin("comp")
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+
+    # add submodel which references the external model definition
+    comp.add_submodel_from_emd(mplugin, submodel_id="bounds", emd=emd_bounds)
+    comp.add_submodel_from_emd(mplugin, submodel_id="fba", emd=emd_fba)
+    comp.add_submodel_from_emd(mplugin, submodel_id="update", emd=emd_update)
+    comp.add_submodel_from_emd(mplugin, submodel_id="model", emd=emd_model)
+
+    # Compartments
+    mc.create_objects(model, [
+        mc.Compartment(sid="extern", name="external compartment", value=1.0, constant=True,
+                       spatialDimension=3, unit=model_factory.UNIT_VOLUME),
+        mc.Compartment(sid='cell', name='cell', value=1.0, constant=True,
+                       spatialDimension=3, unit=model_factory.UNIT_VOLUME),
+    ])
+
+    # Species
+    # replaced species
+    # (fba species are not replaced, because they need their boundaryConditions for the FBA,
+    #    and do not depend on the actual concentrations)
+    mc.create_objects(model, [
+        mc.Species(sid='C', name="C", value=0, unit=model_factory.UNIT_AMOUNT,
+                   hasOnlySubstanceUnits=True, compartment="extern"),
+    ])
+
+    # Parameters
+    mc.create_objects(model, [
+        # bounds
+        mc.Parameter(sid='ub_R1', value=1.0, unit=model_factory.UNIT_FLUX, name='ub_R1', constant=False),
+        mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, unit=model_factory.UNIT_FLUX, constant=False),
+    ])
+
+    # Reactions
+    # dummy reaction in top model
+    mc.create_reaction(model, rid="R3", name="R3 dummy", fast=False, reversible=True,
+                       reactants={}, products={"C": 1}, compartment="extern")
+
+    # AssignmentRules
+    mc.create_objects(model, [
+        mc.AssignmentRule(sid="vR3", value="R3"),
+    ])
+
+    # --- replacements ---
+    # replace compartments
+    comp.replace_elements(model, 'extern', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'fba': ['extern_port'], 'update': ['extern_port'],
+                                             'model': ['extern_port']})
+
+    comp.replace_elements(model, 'cell', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'fba': ['cell_port']})
+
+    # replace parameters
+    comp.replace_elements(model, 'ub_R1', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['ub_R1_port'], 'fba': ['ub_R1_port']})
+    comp.replace_elements(model, 'vR3', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['vR3_port']})
+
+    # replace species
+    comp.replace_elements(model, 'C', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'fba': ['C_port'], 'update': ['C_port'],
+                                             'model': ['C_port']})
+
+    # replace reaction by fba reaction
+    comp.replaced_by(model, 'R3', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="R3_port")
+
+    # replace units
+    for uid in ['s', 'kg', 'm3', 'm2', 'mM', 'item_per_m3', 'm', 'per_s', 'item_per_s']:
+        comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
+                                          submodels=['bounds', 'fba', 'update', 'model'])
+
+    # write SBML file
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+
+    # flatten the combined model
+    comp.flattenSBMLFile(sbml_path=os.path.join(directory, top_level_file),
+                         output_path=os.path.join(directory, flattened_file))
+
+    # change back the working dir
+    os.chdir(working_dir)
+
 ########################################################################################################################
 if __name__ == "__main__":
     from toysettings import *
     import os
 
     # write & check sbml
-    create_ode_bounds(ode_bounds_file, out_dir)
     create_fba(fba_file, out_dir)
+    create_ode_bounds(ode_bounds_file, out_dir)
+
     create_ode_update(ode_update_file, out_dir)
     create_ode_model(ode_model_file, out_dir)
+
+    # create top comp model
+    create_top_level_model(top_level_file, out_dir)

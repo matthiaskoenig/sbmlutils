@@ -5,10 +5,8 @@ from __future__ import print_function, division
 import timeit
 import os
 
-from toysettings import out_dir, fba_file, ode_bounds_file, ode_update_file, ode_model_file, top_level_file, flattened_file
+from toysettings import out_dir, fba_file, ode_bounds_file, ode_update_file, ode_model_file, top_level_file
 import model_factory
-import comp_factory
-
 from sbmlutils.dfba.simulator import SimulatorDFBA
 
 
@@ -27,7 +25,7 @@ def create_toy_model(directory):
     comp_factory.create_top_level_model(top_level_file, directory)
 
 
-def simulate_model(directory, tend=50.0, steps=500):
+def simulate_toymodel(directory, tend=50.0, steps=500):
     """ Simulate the model.
 
     :param tend:
@@ -53,4 +51,4 @@ if __name__ == "__main__":
 
     # TODO: create SED-ML and OMEX for toy model
     create_toy_model(out_dir)
-    simulate_model(out_dir, tend=50.0, steps=500)
+    simulate_toymodel(out_dir, tend=50.0, steps=500)
