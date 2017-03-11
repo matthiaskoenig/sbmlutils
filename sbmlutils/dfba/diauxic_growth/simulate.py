@@ -48,12 +48,10 @@ def simulate_diauxic_growth(sbml_top_path, tend):
 
     # Run simulation of hybrid model
     sim = DFBASimulator(dfba_model)
+    sim.simulate(tstart=0.0, tend=tend, steps=steps)
+    df = sim.solution
 
-    start_time = timeit.default_timer()
-    df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
-    elapsed = timeit.default_timer() - start_time
-
-    print("\nSimulation time: {}\n".format(elapsed))
+    print("\nSimulation time: {}\n".format(sim.time))
 
     # generic analysis
     analysis = DFBAAnalysis(df=sim.solution, rr_comp=sim.ode_model)
@@ -62,10 +60,32 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     analysis.save_csv(os.path.join(directory, "dg_simulation_generic.csv"))
 
     # custom model plots
-    print_species(os.path.join(directory, "dg_species.png"), df)
-    print_fluxes(os.path.join(directory, "dg_fluxes.png"), df)
+    print_species(os.path.join(directory, "dg_species.png"), sim.solution)
+    print_fluxes(os.path.join(directory, "dg_fluxes.png"), sim.solution)
     return df
 
+def benchmark(sbml_top_path, tend, Nrepeat=10):
+    """ Benchmark the simulation.
+
+    :param sbml_top_path:
+    :param tend:
+    :return:
+    """
+    steps = np.round(tend / DT_SIM)  # 10*tend
+
+    # Load model in simulator
+    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+
+    # Run simulation of hybrid model
+    sim = DFBASimulator(dfba_model)
+
+    timings = np.zeros(shape=(10,1))
+    for k in range(Nrepeat):
+        sim.simulate(tstart=0.0, tend=tend, steps=steps)
+        print(sim.time)
+        timings[k] = sim.time
+    print('-'*20)
+    print('{:.3f} +- {:.3f}'.format(np.mean(timings), np.std(timings)))
 
 def print_species(filepath, df):
     """ Print diauxic species.
@@ -180,7 +200,8 @@ if __name__ == "__main__":
     print('Model:', sbml_top_path)
 
     import logging
-    logging.getLogger().setLevel(logging.INFO)
-    df = simulate_diauxic_growth(sbml_top_path, tend=20)
+    logging.getLogger().setLevel(logging.ERROR)
+    # simulate_diauxic_growth(sbml_top_path, tend=20)
+    benchmark(sbml_top_path, tend=20)
 
 

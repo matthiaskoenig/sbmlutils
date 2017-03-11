@@ -10,11 +10,14 @@ The ode integration is performed with roadrunner, the FBA optimization via cobra
 # TODO: store directly in numpy arrays for speed improvements
 # TODO: set tolerances for the ode integration
 # FIXME: easy handling of different stepsizes
+# FIXME: timing of simulation (benchmark)
+
 
 from __future__ import print_function, division
 import logging
 import numpy as np
 import pandas as pd
+import timeit
 
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
@@ -34,6 +37,7 @@ class DFBASimulator(object):
         self.abs_tol = abs_tol
         self.rel_tol = rel_tol
         self.solution = None
+        self.time = None
 
     @property
     def dt(self):
@@ -72,6 +76,7 @@ class DFBASimulator(object):
             logging.debug('###########################')
             logging.debug('# Start Simulation')
             logging.debug('###########################')
+            start_time = timeit.default_timer()
 
             points = steps + 1
             all_time = np.linspace(start=tstart, stop=tend, num=points)
@@ -127,6 +132,7 @@ class DFBASimulator(object):
                                       data=all_results)
             df_results.time = all_time
 
+            self.time = timeit.default_timer() - start_time
             logging.debug('###########################')
             logging.debug('# Stop Simulation')
             logging.debug('###########################')
@@ -215,6 +221,7 @@ class DFBASimulator(object):
 
         for fba_rid in sorted(self.fba_model.fba2top_reactions):
             top_rid = self.fba_model.fba2top_reactions[fba_rid]
+            
             flux = self.cobra_model.solution.x_dict[fba_rid]
 
             # reaction rates cannot be set directly in roadrunner

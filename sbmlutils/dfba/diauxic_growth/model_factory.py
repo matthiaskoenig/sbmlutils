@@ -97,7 +97,7 @@ from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 ########################################################################
 # General model information
 ########################################################################
-version = 6
+version = 7
 DT_SIM = 0.1
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -583,6 +583,7 @@ def top_model(sbml_file, directory, emds):
 
         mc.Parameter(sid="O2_ref", name="O2 reference", value=0.21, unit=UNIT_CONCENTRATION),
         mc.Parameter(sid="kLa", name="O2 mass transfer", value=7.5, unit='per_h'),
+
         # fluxes from fba (rate of reaction)
         mc.Parameter(sid="EX_Glcxt", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
         mc.Parameter(sid="EX_Ac", value=1.0, constant=True, unit=UNIT_FLUX, sboTerm="SBO:0000612"),
