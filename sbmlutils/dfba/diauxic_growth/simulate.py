@@ -82,10 +82,11 @@ def benchmark(sbml_top_path, tend, Nrepeat=10):
     timings = np.zeros(shape=(10,1))
     for k in range(Nrepeat):
         sim.simulate(tstart=0.0, tend=tend, steps=steps)
-        print(sim.time)
+        # print(sim.time)
         timings[k] = sim.time
     print('-'*20)
-    print('{:.3f} +- {:.3f}'.format(np.mean(timings), np.std(timings)))
+    print('{:.3f} +- {:.3f} ({} steps)'.format(np.mean(timings), np.std(timings), steps))
+    print('{:.5f} +- {:.5f} (per step)'.format(np.mean(timings)/steps, np.std(timings)/steps))
 
 def print_species(filepath, df):
     """ Print diauxic species.
@@ -202,6 +203,9 @@ if __name__ == "__main__":
     import logging
     logging.getLogger().setLevel(logging.ERROR)
     # simulate_diauxic_growth(sbml_top_path, tend=20)
+
+    benchmark(sbml_top_path, tend=10)
     benchmark(sbml_top_path, tend=20)
+    benchmark(sbml_top_path, tend=40)
 
 
