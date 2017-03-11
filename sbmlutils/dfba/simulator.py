@@ -37,6 +37,7 @@ class DFBASimulator(object):
         self.abs_tol = abs_tol
         self.rel_tol = rel_tol
         self.solution = None
+        self.fba_solution = None  # last LP solution
         self.time = None
 
     @property
@@ -112,12 +113,11 @@ class DFBASimulator(object):
 
                 # store fba fluxes
                 logging.debug('* Store fluxes in ODE solution')
-                # FIXME: better copy, this takes a lot of time and can be done much better
-                for k, v in self.fba_model.flat_mapping.iteritems():
-                    flux = self.fba_model.cobra_model.solution.x_dict[k]
-                    vindex = df_results.columns.get_loc(v)
+                for fba_rid, flat_rid in self.fba_model.flat_mapping.iteritems():
+                    flux = self.fba_solution.fluxes[fba_rid]
+                    vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
-                    logging.debug("\t{} = {}".format(k, flux))
+                    logging.debug("\t{} = {}".format(fba_rid, flux))
 
                 all_results.append(row)
 
@@ -198,14 +198,8 @@ class DFBASimulator(object):
         Uses the objective sense from the fba model.
         """
         logging.debug("* FBA optimize")
-        self.cobra_model.optimize(objective_sense=self.objective_sense)
-
-        # log solution
-        if hasattr(self.cobra_model, 'solution'):
-            logging.debug('\tstatus: <{}>'.format(self.cobra_model.solution.status))
-            for skey in sorted(self.cobra_model.solution.x_dict):
-                flux = self.cobra_model.solution.x_dict[skey]
-                logging.debug('\t{:<10}: {}'.format(skey, flux))
+        self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+        logging.debug(self.fba_solution.fluxes)
 
     def set_fluxes(self):
         """ Set fluxes in ODE part.
@@ -221,8 +215,7 @@ class DFBASimulator(object):
 
         for fba_rid in sorted(self.fba_model.fba2top_reactions):
             top_rid = self.fba_model.fba2top_reactions[fba_rid]
-            
-            flux = self.cobra_model.solution.x_dict[fba_rid]
+            flux = self.fba_solution.fluxes[fba_rid]
 
             # reaction rates cannot be set directly in roadrunner
             # necessary to get the parameter from the flux rules
