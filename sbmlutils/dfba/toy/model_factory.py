@@ -25,6 +25,11 @@ from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 
 XMLOutputStream.setWriteTimestamp(False)
 
+# FIXME: write down the information on how to generate DFBA models from
+#   given FBA models
+#   - add dynamic species (which are the dynamic species? This should be
+#     the external one which are changed via the exchange reactions.
+#     This are NOT the same species like the internal species in the FBA
 
 ########################################################################
 # General model information
@@ -204,7 +209,9 @@ def fba_model(sbml_file, directory):
     # write SBML file
     sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
 
-
+####################################################
+# BOUNDS submodel
+####################################################
 def bounds_model(sbml_file, directory):
     """"
     Submodel for dynamically calculating the flux bounds.
@@ -214,9 +221,11 @@ def bounds_model(sbml_file, directory):
     sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
+
     model = doc.createModel()
-    model.setId("toy_ode_bounds")
-    model.setName("ODE bound calculation submodel")
+    model.setId("toy_bounds")
+    model.setName("toy (BOUNDS calculation submodel)")
+
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model)
 
@@ -225,7 +234,6 @@ def bounds_model(sbml_file, directory):
         mc.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum of arguments'),
         mc.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum of arguments'),
 
-        # FIXME: guidelines list species and compartments for species
         mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
                        spatialDimension=3),
 
@@ -279,7 +287,9 @@ def bounds_model(sbml_file, directory):
 
     sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
-
+####################################################
+# UPDATE submodel
+####################################################
 def update_model(sbml_file, directory):
     """
         Submodel for dynamically updating the metabolite count.
@@ -289,73 +299,53 @@ def update_model(sbml_file, directory):
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
-    # model
     model = doc.createModel()
-    model.setId("toy_ode_update")
-    model.setName("ODE metabolite update submodel")
+    model.setId("toy_update")
+    model.setName("toy (metabolite UPDATE submodel)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model)
 
-    compartments = [
+    objects = [
+        # FIXME: guidelines add compartments for species
         mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment', spatialDimension=3),
-    ]
-    mc.create_objects(model, compartments)
 
-    # only update the boundarySpecies in the reactions
-    species = [
-        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                   compartment="extern", boundaryCondition=False),
-    ]
-    mc.create_objects(model, species)
+        mc.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
 
-    parameters = [
+        # FIXME: guidelines add SBOTerm & add info for parameters
         mc.Parameter(sid="EX_A", value=1.0, constant=False, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_C", value=1.0, constant=False, unit=UNIT_FLUX),
     ]
-    mc.create_objects(model, parameters)
+    mc.create_objects(model, objects)
 
-    # kinetic reaction (MMK)
-    mc.create_reaction(model, rid="R3", name="-> C", fast=False, reversible=False,
-                       reactants={}, products={"C": 1}, formula="vR3", compartment="extern")
+    # exchange reactions
+    r_EX_A = mc.create_reaction(model, rid="update_A", reversible=True,
+                                reactants={"A": 1}, products={},
+                                formula="-EX_A", sboTerm="SBO:0000631")
+    r_EX_C = mc.create_reaction(model, rid="update_C", reversible=True,
+                                reactants={"C": 1}, products={},
+                                formula="-EX_C", sboTerm="SBO:0000631")
 
-    comp._create_port(model, pid="vR3_port", idRef="vR3", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
+    # FIXME: guidelines describe ports
     comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="A_port", idRef="A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
+
+    # FIXME: describe how the EX_* parameters get their values
+    comp._create_port(model, pid="EX_A_port", idRef="EX_A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="EX_C_port", idRef="EX_C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
     sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
-
+####################################################
+# TOP submodel
+####################################################
 def top_model(sbml_file, directory, emds):
-    """
-    Creates the full comp model as combination of FBA and comp models.
+    """ Create top comp model.
 
-    Create a comp model.
-    Test script for working with the comp extension in SBML.
-
-    One model composition combines all the kinetic models,
-    in addition the higher level comp model is created which combines everything (i.e. the FBA & ODE models).
-    For the simulation of the full combined model the tools have to figure out the subparts which are
-    simulated with which simulation environment.
-    The submodels must already exist in the given directory
-
-    connections
-    ------------
-    [1] flux bounds
-    kinetic reaction bounds => replace the FBA bounds
-    comp_ode.submodel_bounds__ub_R1 => fba_R1.upper_bound
-
-    [2] reaction rates (fluxes)
-    FBA flux (all reactions) => replaces Reaction flux in kinetic model
-
-    ** FBA **
-    <listOfParameters>
-        <parameter id="ub_R1" name="ub R1" value="1" units="item_per_s" constant="false"/>
-        <parameter id="lb" name="lower bound" value="0" units="item_per_s" constant="true"/>
-        <parameter id="ub" name="upper bound" value="1000" units="item_per_s" constant="true"/>
-        <parameter id="v_R1" name="R1 flux" value="0" units="item_per_s" constant="false"/>
-        <parameter id="v_R2" name="R2 flux" value="0" units="item_per_s" constant="false"/>
-        <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
-    </listOfParameters>
+    Creates full comp model by combining fba, update and bounds
+    model with additional kinetics in the top model.
     """
     working_dir = os.getcwd()
     os.chdir(directory)
@@ -373,8 +363,8 @@ def top_model(sbml_file, directory, emds):
 
     # create models and submodels
     model = doc.createModel()
-    model.setId("toy_top_level")
-    model.setName("Top level model")
+    model.setId("toy_top")
+    model.setName("toy (TOP model)")
     model_factory.add_generic_info(model)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
@@ -395,7 +385,7 @@ def top_model(sbml_file, directory, emds):
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # bounds
-        mc.Parameter(sid='ub_R1', value=1.0, unit=model_factory.UNIT_FLUX, name='ub_R1', constant=False),
+
         mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, unit=model_factory.UNIT_FLUX, constant=False),
 
         # kinetic
@@ -414,6 +404,8 @@ def top_model(sbml_file, directory, emds):
     mc.create_objects(model, [
         mc.AssignmentRule(sid="vR3", value="R3"),
     ])
+
+
 
     # --- replacements ---
     # replace compartments
@@ -445,8 +437,7 @@ def top_model(sbml_file, directory, emds):
                                           submodels=['bounds', 'fba', 'update', 'model'])
 
     # write SBML file
-    sbml_io.write_and_check(doc, filepath=os.path.join(directory, sbml_file), validate=True)
-
+    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back the working dir
     os.chdir(working_dir)
