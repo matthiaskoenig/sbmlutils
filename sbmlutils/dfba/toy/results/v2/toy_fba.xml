@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
-  <model metaid="meta_12f8747528e746c1928ea8946ce2d737" sboTerm="SBO:0000624" id="toy_fba" name="toy (FBA submodel)" substanceUnits="item" timeUnits="s" volumeUnits="m3" areaUnits="m2" lengthUnits="m" extentUnits="item" fbc:strict="false">
+  <model metaid="meta_9f1fe5f0e4b2452b8379709644b8d6cb" sboTerm="SBO:0000624" id="toy_fba" name="toy (FBA submodel)" substanceUnits="item" timeUnits="s" volumeUnits="m3" areaUnits="m2" lengthUnits="m" extentUnits="item" fbc:strict="true">
     <notes>
       <body xmlns="http://www.w3.org/1999/xhtml">
         <h1>Wholecell Toy Model</h1>
@@ -27,7 +27,7 @@
   </body>
 </notes><annotation>
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-    <rdf:Description rdf:about="#meta_12f8747528e746c1928ea8946ce2d737">
+    <rdf:Description rdf:about="#meta_9f1fe5f0e4b2452b8379709644b8d6cb">
       <dcterms:creator>
         <rdf:Bag>
           <rdf:li rdf:parseType="Resource">
@@ -43,10 +43,10 @@
         </rdf:Bag>
       </dcterms:creator>
       <dcterms:created rdf:parseType="Resource">
-        <dcterms:W3CDTF>2017-03-10T22:56:56Z</dcterms:W3CDTF>
+        <dcterms:W3CDTF>2017-03-12T17:50:21Z</dcterms:W3CDTF>
       </dcterms:created>
       <dcterms:modified rdf:parseType="Resource">
-        <dcterms:W3CDTF>2017-03-10T22:56:56Z</dcterms:W3CDTF>
+        <dcterms:W3CDTF>2017-03-12T17:50:21Z</dcterms:W3CDTF>
       </dcterms:modified>
     </rdf:Description>
   </rdf:RDF>
@@ -104,14 +104,18 @@
   <compartment id="cell" name="cell" spatialDimensions="3" size="1" units="m3" constant="true"/>
   <compartment id="membrane" name="membrane" spatialDimensions="2" size="1" units="m2" constant="true"/>
 </listOfCompartments><listOfSpecies>
-  <species id="A" name="A" compartment="extern" initialAmount="10" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="true" constant="false"/>
-  <species id="C" name="C" compartment="extern" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="true" constant="false"/>
+  <species id="A" name="A" compartment="extern" initialAmount="10" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+  <species id="C" name="C" compartment="extern" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
   <species id="B1" name="B1" compartment="cell" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
   <species id="B2" name="B2" compartment="cell" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
 </listOfSpecies><listOfParameters>
-  <parameter id="ub_R1" name="ub R1" value="1" units="item_per_s" constant="false"/>
+  <parameter id="ub_R1" name="ub R1" value="1" units="item_per_s" constant="true"/>
   <parameter id="lb" name="lower bound" value="0" units="item_per_s" constant="true"/>
   <parameter id="ub" name="upper bound" value="1000" units="item_per_s" constant="true"/>
+  <parameter id="ub_EX_A" value="1000" units="item_per_s" constant="true"/>
+  <parameter id="lb_EX_A" value="-1000" units="item_per_s" constant="true"/>
+  <parameter id="ub_EX_C" value="1000" units="item_per_s" constant="true"/>
+  <parameter id="lb_EX_C" value="-1000" units="item_per_s" constant="true"/>
 </listOfParameters><listOfReactions>
   <reaction id="R1" name="A import (R1)" reversible="true" fast="false" compartment="membrane" fbc:lowerFluxBound="lb" fbc:upperFluxBound="ub_R1">
     <listOfReactants>
@@ -137,6 +141,16 @@
       <speciesReference species="C" stoichiometry="1" constant="true"/>
     </listOfProducts>
   </reaction>
+  <reaction id="EX_A" reversible="true" fast="false" compartment="membrane" fbc:lowerFluxBound="lb_EX_A" fbc:upperFluxBound="ub_EX_A">
+    <listOfReactants>
+      <speciesReference species="A" stoichiometry="1" constant="true"/>
+    </listOfReactants>
+  </reaction>
+  <reaction id="EX_C" reversible="true" fast="false" compartment="membrane" fbc:lowerFluxBound="lb_EX_C" fbc:upperFluxBound="ub_EX_C">
+    <listOfReactants>
+      <speciesReference species="C" stoichiometry="1" constant="true"/>
+    </listOfReactants>
+  </reaction>
 </listOfReactions><fbc:listOfObjectives fbc:activeObjective="R3_maximize">
   <fbc:objective fbc:id="R3_maximize" fbc:type="maximize">
     <fbc:listOfFluxObjectives>
@@ -144,11 +158,11 @@
     </fbc:listOfFluxObjectives>
   </fbc:objective>
 </fbc:listOfObjectives><comp:listOfPorts>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="R3" comp:id="R3_port"/>
   <comp:port sboTerm="SBO:0000599" comp:idRef="ub_R1" comp:id="ub_R1_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="cell" comp:id="cell_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="extern" comp:id="extern_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="C" comp:id="C_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_A" comp:id="lb_EX_A_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_A" comp:id="ub_EX_A_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_C" comp:id="lb_EX_C_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_C" comp:id="ub_EX_C_port"/>
 </comp:listOfPorts>
 </model>
 </sbml>

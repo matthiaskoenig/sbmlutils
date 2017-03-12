@@ -21,6 +21,7 @@ from sbmlutils import factory as mc
 from sbmlutils import comp
 import sbmlutils.sbmlio as sbml_io
 from sbmlutils.report import sbmlreport
+from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 
 XMLOutputStream.setWriteTimestamp(False)
 
@@ -84,6 +85,7 @@ units = [
                             (UNIT_KIND_METRE, -3.0)]),
 ]
 
+UNIT_TIME = 's'
 UNIT_AMOUNT = UNIT_KIND_ITEM
 UNIT_AREA = 'm2'
 UNIT_VOLUME = 'm3'
@@ -121,7 +123,7 @@ def fba_model(sbml_file, directory):
     doc_fba.setPackageRequired("fbc", False)
     model = doc_fba.createModel()
     mplugin = model.getPlugin("fbc")
-    mplugin.setStrict(False)
+    mplugin.setStrict(True)
 
     # model
     model.setId('toy_fba')
@@ -141,9 +143,9 @@ def fba_model(sbml_file, directory):
     species = [
         # external
         mc.Species(sid='A', name="A", value=10, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                   compartment="extern", boundaryCondition=True),
+                   compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                   compartment="extern", boundaryCondition=True),
+                   compartment="extern"),
         # internal
         mc.Species(sid='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
@@ -154,9 +156,14 @@ def fba_model(sbml_file, directory):
 
     parameters = [
         # bounds
-        mc.Parameter(sid="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=False),
+        mc.Parameter(sid="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid="lb", name="lower bound", value=0.0, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid="ub", name="upper bound", value=1000.0, unit=UNIT_FLUX, constant=True),
+        # exchange bounds
+        mc.Parameter(sid="ub_EX_A", value=1000.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_EX_A", value=-1000.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_EX_C", value=1000.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_EX_C", value=-1000.0, unit=UNIT_FLUX, constant=True),
     ]
     mc.create_objects(model, parameters)
 
@@ -168,20 +175,31 @@ def fba_model(sbml_file, directory):
     r3 = mc.create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
                             reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
+    # exchange reactions
+    r_EX_A = mc.create_reaction(model, rid="EX_A", reversible=True,
+                            reactants={"A": 1}, products={}, compartment='membrane')
+    r_EX_C = mc.create_reaction(model, rid="EX_C", reversible=True,
+                                reactants={"C": 1}, products={}, compartment='membrane')
+
     # flux bounds
     mc.set_flux_bounds(r1, lb="lb", ub="ub_R1")
     mc.set_flux_bounds(r2, lb="lb", ub="ub")
     mc.set_flux_bounds(r3, lb="lb", ub="ub")
+    # exchange bounds
+    mc.set_flux_bounds(r_EX_A, lb="lb_EX_A", ub="ub_EX_A")
+    mc.set_flux_bounds(r_EX_C, lb="lb_EX_C", ub="ub_EX_C")
 
     # objective function
-    mc.create_objective(mplugin, oid="R3_maximize", otype="maximize", fluxObjectives={"R3": 1.0})
+    mc.create_objective(mplugin, oid="R3_maximize", otype="maximize",
+                        fluxObjectives={"R3": 1.0}, active=True)
 
     # create ports
-    comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
+    # comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="cell_port", idRef="cell", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_A_port", idRef="lb_EX_A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_A_port", idRef="ub_EX_A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_C_port", idRef="lb_EX_C", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
     sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
@@ -203,17 +221,61 @@ def bounds_model(sbml_file, directory):
     add_generic_info(model)
 
     objects = [
-        # parameters
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, name='ub_r1', constant=False),
+        # definition of min and max
+        mc.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum of arguments'),
+        mc.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum of arguments'),
+
+        # FIXME: guidelines list species and compartments for species
+        mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
+                       spatialDimension=3),
+
+        # species
+        mc.Species(sid='A', name="A", value=10, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern"),
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+                   compartment="extern"),
+
+        # dt parameter
+        mc.Parameter(sid='dt', value=0.1, unit=UNIT_TIME, constant=True),
+        # exchange bounds
+        mc.Parameter(sid="lb_default", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_EX_A", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_EX_A", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_EX_C", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_EX_C", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+
+        # kinetic bound parameter
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
         mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
 
+        # FIXME: guidelines list RateRules, AssignmentRules
+
         # rate rules
-        mc.RateRule(sid="ub_R1", value="k1*ub_R1")
+        mc.RateRule(sid="ub_R1", value="k1*ub_R1"),
+
+        # bounds assignment rules
+        # FIXME: guidelines bound depending if species is in amount or concentration
+
+        mc.AssignmentRule(sid="lb_EX_A", value='max(lb_default, -A/dt)'),
+        mc.AssignmentRule(sid="lb_EX_C", value='max(lb_default, -C/dt)'),
     ]
     mc.create_objects(model, objects)
 
+    # FIXME: guidelines list ports for bounds model (dt, species, compartments, bounds)
+    # FIXME: guidelines move ReplacedElements to TOP model definition
     # ports
+    # dt, species and compartments
+    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="A_port", idRef="A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
+
+    # bounds
     comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_A_port", idRef="lb_EX_A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_A_port", idRef="ub_EX_A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="lb_EX_C_port", idRef="lb_EX_C", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
 
     sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
@@ -247,7 +309,7 @@ def update_model(sbml_file, directory):
     mc.create_objects(model, species)
 
     parameters = [
-        mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, constant=True, unit="item_per_s"),
+        mc.Parameter(sid="EX_A", value=1.0, constant=False, unit=UNIT_FLUX),
     ]
     mc.create_objects(model, parameters)
 
