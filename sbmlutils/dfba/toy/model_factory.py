@@ -256,7 +256,6 @@ def bounds_model(sbml_file, directory):
         mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
         mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
 
-        # FIXME: guidelines list RateRules, AssignmentRules
 
         # rate rules
         mc.RateRule(sid="ub_R1", value="k1*ub_R1"),
