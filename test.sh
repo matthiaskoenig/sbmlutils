@@ -9,6 +9,8 @@
 
 # only run tests
 nosetests
+# to run the tests in the virtual environment use
+#  /home/mkoenig/.virtualenvs/sbmlutils/bin/nosetests
 
 # coverage report
 # issue with import directories
