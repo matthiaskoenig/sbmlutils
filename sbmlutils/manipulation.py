@@ -41,7 +41,8 @@ def create_merged_doc(model_paths):
     
     return doc
 
-def merge_models(model_paths, validate=False):
+
+def merge_models(model_paths, validate=True):
     """ Merge models in model path.
 
     :param model_paths:
@@ -70,24 +71,3 @@ def merge_models(model_paths, validate=False):
         validation.check_sbml(path, name=path)
 
     return merged_doc
-
-
-
-################################################################
-if __name__ == "__main__":
-    # dictionary of ids & paths of models which should be combined
-    # here we just bring together the first Biomodels
-    model_ids = ["BIOMD000000000{}".format(k) for k in range(1,5)]
-    model_paths = dict(zip(model_ids, ["{}.xml".format(mid) for mid in model_ids]))
-    pprint(model_paths)
-
-    doc = merge_models(model_paths)
-
-    # write comp model
-    libsbml.writeSBMLToFile(doc, 'combined_model.xml')
-    # flatten the model
-    doc_flat = comp.flattenSBMLDocument(doc)
-    libsbml.writeSBMLToFile(doc_flat, 'combined_model_flat.xml')
-
-
-

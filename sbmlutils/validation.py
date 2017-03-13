@@ -4,16 +4,11 @@ Validation and checking functions.
 Helper functions for simple validation and display of problems.
 Helper functions if setting sbml information was successful.
 """
-# TODO: clean up
-# TODO: unittests for various files
-
 
 from __future__ import print_function, division
 
-import os.path
 import logging
 import time
-import warnings
 import libsbml
 
 
@@ -70,7 +65,7 @@ def check_doc(doc, name=None, ucheck=True):
 
         :param sbml: SBML file or str
         :type sbml: file | str
-        :return: number of errors
+        :return: list of number of messages, number of errors, number of warnings
         """
     if name is None:
         name = str(doc)
@@ -78,33 +73,33 @@ def check_doc(doc, name=None, ucheck=True):
     # set the unit checking, similar for the other settings
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, ucheck)
 
-    numCCErr = 0  # error count
-    numCCWarn = 0  # warning count
+    Nerr = 0  # error count
+    Nwarn = 0  # warning count
     current = time.clock()
-    Nerrors = doc.checkConsistency()
+    Nall = doc.checkConsistency()
 
     valid_status = True
-    if Nerrors > 0:
-        for i in range(Nerrors):
+    if Nall > 0:
+        for i in range(Nall):
             severity = doc.getError(i).getSeverity()
             if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
-                numCCErr += 1
+                Nerr += 1
                 valid_status = False
             else:
-                numCCWarn += 1
+                Nwarn += 1
 
     lines = [
         '-' * 80,
         name,
         "{:<15}: {}".format("check time (ms)", str(time.clock() - current)),
         "{:<15}: {}".format("valid", valid_status),
-        "{:<15}: {}".format("validation error(s)", numCCErr),
-        "{:<15}: {}".format("validation warnings(s)", numCCWarn),
+        "{:<15}: {}".format("validation error(s)", Nerr),
+        "{:<15}: {}".format("validation warnings(s)", Nwarn),
         '-' * 80,
     ]
     info = "\n".join(lines)
-    if numCCWarn > 0:
-        if numCCErr > 0:
+    if Nwarn > 0:
+        if Nerr > 0:
             logging.error(info)
         else:
             logging.warn(info)
@@ -113,7 +108,7 @@ def check_doc(doc, name=None, ucheck=True):
 
     # FIXME: print to logging
     print_errors(doc)
-    return Nerrors
+    return Nall, Nerr, Nwarn
 
 
 def print_errors(doc):
