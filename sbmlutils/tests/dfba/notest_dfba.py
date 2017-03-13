@@ -14,6 +14,7 @@ from sbmlutils.dfba.diauxic_growth import dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
 from sbmlutils.dfba.diauxic_growth import simulate as dgsimulate
 
+
 class DFBATestCase(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -36,7 +37,7 @@ class DFBATestCase(unittest.TestCase):
 
         :return:
         """
-        toyfactory.create_model(directory=self.test_dir)
+        toyfactory.create_model(out_dir=self.test_dir)
         print(os.listdir(self.test_dir))
 
         self.file_exists(toysettings.fba_file)

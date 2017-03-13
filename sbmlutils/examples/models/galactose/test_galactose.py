@@ -14,8 +14,8 @@ class GalactoseTestCase(unittest.TestCase):
     """
 
     def test_validate_sbml(self):
-        Nerrors = validation.check_sbml(GALACTOSE_SINGLECELL_SBML, ucheck=True)
-        self.assertEqual(Nerrors, 0)
+        Nall, Nerr, Nwarn = validation.check_sbml(GALACTOSE_SINGLECELL_SBML, ucheck=True)
+        self.assertEqual(Nerr, 0)
 
     def test_roadrunner_selections(self):
         rr = roadrunner.RoadRunner(GALACTOSE_SINGLECELL_SBML)

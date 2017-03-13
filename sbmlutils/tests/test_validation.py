@@ -46,13 +46,13 @@ class TestValidation(unittest.TestCase):
         f.flush()
 
         # validate_sbml(f.name, ucheck=False)
-        Nerrors = check_sbml(f.name)
-        self.assertEqual(Nerrors, 36)
+        Nall, Nerr, Nwarn = check_sbml(f.name)
+        self.assertEqual(Nall, 36)
 
         self.validate_file(f.name, ucheck=False)
 
 
-    def validate_file(self, sbmlpath, ucheck=True, Nerrors=0):
+    def validate_file(self, sbmlpath, ucheck=True, Nall=0):
         """ Validate given SBML file.
 
         Helper function called by the other tests.
@@ -61,9 +61,9 @@ class TestValidation(unittest.TestCase):
         :param ucheck:
         :return:
         """
-        Nerrors = check_sbml(sbmlpath, ucheck=ucheck)
-        self.assertIsNotNone(Nerrors)
-        self.assertEqual(0, Nerrors)
+        Nall, Nerr, Nwarn = check_sbml(sbmlpath, ucheck=ucheck)
+        self.assertIsNotNone(Nall)
+        self.assertEqual(0, Nall)
 
     def test_files(self):
         """ Test all files provided in SBML_FILES
@@ -71,7 +71,7 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         for d in SBML_FILES:
-            self.validate_file(sbmlpath=d['path'], ucheck=d['ucheck'], Nerrors=d['N'])
+            self.validate_file(sbmlpath=d['path'], ucheck=d['ucheck'], Nall=d['N'])
 
 
 if __name__ == '__main__':
