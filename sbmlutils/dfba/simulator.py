@@ -17,6 +17,7 @@ from __future__ import print_function, division
 import logging
 import numpy as np
 import pandas as pd
+import cobra
 import timeit
 
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
@@ -25,13 +26,15 @@ logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
 
-    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6):
+    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=False):
         """ Create the simulator with the processed dfba model.
 
 
         :param dfba_model: DFBAModel
         :param abs_tol: absolute tolerance of integration
         :param rel_tol: relative tolerance of integration
+        :param lp_solver: solver to use for the lp problem (glpk, cplex, gurobi)
+        :param pfba: perform minimal flux simulation
         """
         self.dfba_model = dfba_model
         self.abs_tol = abs_tol
@@ -39,6 +42,9 @@ class DFBASimulator(object):
         self.solution = None
         self.fba_solution = None  # last LP solution
         self.time = None
+        # set solver
+        self.cobra_model.solver = lp_solver
+        self.pfba = pfba
 
     @property
     def dt(self):
@@ -100,16 +106,16 @@ class DFBASimulator(object):
                 # FBA
                 # --------------------------------------
                 # update fba bounds from ode
-                self.set_fba_bounds()
+                self._set_fba_bounds()
                 # optimize fba
-                self.optimize_fba()
+                self._optimize_fba()
                 # set ode fluxes from fba
-                self.set_fluxes()
+                self._set_fluxes()
 
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
-                row = self.ode_simulation(kstep, step_size=step_size)
+                row = self._ode_simulation(kstep, step_size=step_size)
 
                 # store fba fluxes
                 logging.debug('* Store fluxes in ODE solution')
@@ -148,7 +154,30 @@ class DFBASimulator(object):
         self.solution = df_results
         return self.solution
 
-    def set_fba_bounds(self):
+    def benchmark(self, Nrepeat=10, **kwargs):
+        """ Benchmark the simulate function with given settings.
+
+        :param self:
+        :param tstart:
+        :param tend:
+        :param steps:
+        :param absTol:
+        :return:
+        """
+        steps = kwargs['steps']
+        timings = np.zeros(shape=(10, 1))
+        for k in range(Nrepeat):
+            self.simulate(**kwargs)
+            # how long did the simulation take
+            print('\t[{}/{}] {:.5f}'.format(k, Nrepeat, self.time))
+            timings[k] = self.time
+        print('-' * 40)
+        print('N={}, mean +- SD'.format(Nrepeat))
+        print('{:.3f} +- {:.3f} ({} steps)'.format(np.mean(timings), np.std(timings), steps))
+        print('{:.5f} +- {:.5f} (per step)'.format(np.mean(timings) / steps, np.std(timings) / steps))
+        print('-' * 40)
+
+    def _set_fba_bounds(self):
         """ Set FBA bounds from kinetic model.
 
         Uses the global bound replacements to update the bounds of the FBA reactions.
@@ -192,16 +221,22 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux bounds set')
 
-    def optimize_fba(self):
+    def _optimize_fba(self):
         """ Optimize FBA model.
 
         Uses the objective sense from the fba model.
         """
         logging.debug("* FBA optimize")
-        self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+        if self.pfba:
+            # run parsimonious FBA (flux minimization)
+            # how to set the objective sense?
+            self.fba_solution = cobra.flux_analysis.optimize_minimal_flux(self.cobra_model)
+        else:
+            self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+
         logging.debug(self.fba_solution.fluxes)
 
-    def set_fluxes(self):
+    def _set_fluxes(self):
         """ Set fluxes in ODE part.
 
         Based on replacements the FBA fluxes are written in the kinetic flattended model.
@@ -230,7 +265,7 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux replacements')
 
-    def ode_simulation(self, kstep, step_size):
+    def _ode_simulation(self, kstep, step_size):
         """ ODE integration for a single timestep.
 
         :param kstep:

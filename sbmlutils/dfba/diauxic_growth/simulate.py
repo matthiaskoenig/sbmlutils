@@ -64,7 +64,8 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     print_fluxes(os.path.join(directory, "dg_fluxes.png"), sim.solution)
     return df
 
-def benchmark(sbml_top_path, tend, Nrepeat=10):
+
+def benchmark(simulator, tend, Nrepeat=10):
     """ Benchmark the simulation.
 
     :param sbml_top_path:
@@ -72,21 +73,8 @@ def benchmark(sbml_top_path, tend, Nrepeat=10):
     :return:
     """
     steps = np.round(tend / DT_SIM)  # 10*tend
+    dfba_sim.benchmark(Nrepeat=Nrepeat, tstart=0, tend=tend, steps=steps)
 
-    # Load model in simulator
-    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
-
-    # Run simulation of hybrid model
-    sim = DFBASimulator(dfba_model)
-
-    timings = np.zeros(shape=(10,1))
-    for k in range(Nrepeat):
-        sim.simulate(tstart=0.0, tend=tend, steps=steps)
-        # print(sim.time)
-        timings[k] = sim.time
-    print('-'*20)
-    print('{:.3f} +- {:.3f} ({} steps)'.format(np.mean(timings), np.std(timings), steps))
-    print('{:.5f} +- {:.5f} (per step)'.format(np.mean(timings)/steps, np.std(timings)/steps))
 
 def print_species(filepath, df):
     """ Print diauxic species.
@@ -204,8 +192,19 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.ERROR)
     # simulate_diauxic_growth(sbml_top_path, tend=20)
 
-    benchmark(sbml_top_path, tend=10)
-    benchmark(sbml_top_path, tend=20)
-    benchmark(sbml_top_path, tend=40)
+    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+    dfba_sim = DFBASimulator(dfba_model, lp_solver='glpk')
+    print(dfba_sim.cobra_model.solver.interface)
+    benchmark(dfba_sim, tend=10)
+    benchmark(dfba_sim, tend=20)
 
+    dfba_sim = DFBASimulator(dfba_model, lp_solver='cplex')
+    print(dfba_sim.cobra_model.solver.interface)
+    benchmark(dfba_sim, tend=10)
+    benchmark(dfba_sim, tend=20)
+
+    # dfba_sim = DFBASimulator(dfba_model, lp_solver='gurobi')
+    # print(dfba_sim.cobra_model.solver.interface)
+    # benchmark(dfba_sim, tend=10)
+    # benchmark(dfba_sim, tend=20)
 
