@@ -5,7 +5,7 @@ Unit tests for the comp module.
 from __future__ import print_function, division
 import unittest
 from sbmlutils import sbmlio
-from sbmlutils.tests import resources
+from sbmlutils.test import data
 from sbmlutils.comp import flattenExternalModelDefinitions
 
 
@@ -13,7 +13,7 @@ class CompTestCase(unittest.TestCase):
     """ Implement tests for comp model building. """
 
     def test_flattenExternalModelDefinition(self):
-        sbml_path = resources.DFBA_EMD_SBML
+        sbml_path = data.DFBA_EMD_SBML
         print(sbml_path)
         doc = sbmlio.read_sbml(sbml_path)
 

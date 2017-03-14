@@ -62,8 +62,9 @@ To work in develop use
 ```
 python setup.py develop
 ```
-### Requirements
-See `requirements.txt` and `setup.py`.
+
+## Development
+
 
 ----
 &copy; 2017 Matthias König.

@@ -2,17 +2,17 @@ from __future__ import print_function, division
 
 import unittest
 from sbmlutils.validation import check_sbml
-from sbmlutils.tests import resources
+from sbmlutils.test import data
 
 ##################################################################################
 # These files are validated. All of them are valid and have no warnings or errors.
 # dictionary of filenames, with setting for ucheck
 SBML_FILES = [
-    {'path': resources.DFBA_EMD_SBML, 'ucheck': True, 'N': 0},
-    {'path': resources.DEMO_SBML, 'ucheck': True, 'N': 0},
-    {'path': resources.GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
-    {'path': resources.BASIC_SBML, 'ucheck': True, 'N': 0},
-    {'path': resources.VDP_SBML, 'ucheck': False, 'N': 10},
+    {'path': data.DFBA_EMD_SBML, 'ucheck': True, 'N': 0},
+    {'path': data.DEMO_SBML, 'ucheck': True, 'N': 0},
+    {'path': data.GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
+    {'path': data.BASIC_SBML, 'ucheck': True, 'N': 0},
+    {'path': data.VDP_SBML, 'ucheck': False, 'N': 10},
 ]
 ##################################################################################
 

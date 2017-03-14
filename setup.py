@@ -15,15 +15,29 @@ import os
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-# get the version
-import re
-VERSIONFILE = "sbmlutils/_version.py"
-verstrline = codecs.open(VERSIONFILE, "rt").read()
-mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
-if mo:
-    verstr = mo.group(1)
-else:
-    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+setup_kwargs = {}
+
+# version string
+try:
+    import re
+    VERSIONFILE = "sbmlutils/_version.py"
+    verstrline = codecs.open(VERSIONFILE, "rt").read()
+    mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
+    if mo:
+        verstr = mo.group(1)
+        setup_kwargs['version'] = verstr
+    else:
+        raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+except Exception as e:
+    print('Could not read version: {}'.format(e))
+
+# description
+try:
+    with open('README.md') as handle:
+        readme = handle.read()
+    setup_kwargs["long_description"] = readme
+except:
+    setup_kwargs["long_description"] = ''
 
 setup(
     name='sbmlutils',
@@ -31,58 +45,39 @@ setup(
     description='SBML python utilities',
     long_description='SBML python utilities',
     url='https://github.com/matthiaskoenig/sbmlutils',
-
-    # Author details
     author='Matthias Koenig',
     author_email='konigmatt@googlemail.com',
-
-    # Choose your license
-    license='MIT',
-
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    license='LGPLv3',
     classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
         'Development Status :: 4 - Beta',
-
-        # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
-
-        # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: MIT License',
-
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
+        'License :: OSI Approved :: GNU Lesser General Public License v3'
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Cython',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
-
-    # What does your project relate to?
-    keywords='SBML',
-
-    # You can just specify the packages manually here if your project is
-    # simple. Or you can use find_packages().
-    # exclude=['contrib', 'docs', 'examples*']
-    packages=['sbmlutils'],
+    keywords='SBML, dynamic FBA, DFBA, model merging',
+    packages=find_packages(),  # ['sbmlutils'],
+    package_data={'': ['test/data/*']},
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        # "python-libsbml",
-        # "libroadrunner",
-        # "Cython",
-        # "pandas",
-        # "tabulate",
-        # "cobra",
-        # "Jinja2",
-        # "pyexcel",
-        # "pyexcel-xlsx",
-        # "nose",
+        "python-libsbml",
+        "libroadrunner",
+        "cobra",
+        "pandas",
+        "tabulate",
+        "Jinja2",
+        "pyexcel",
+        "pyexcel-xlsx",
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -101,7 +96,7 @@ setup(
     #    'sample': ['package_data.dat'],
     # },
     
-    # include the package distribution_data (SBGN, XSD)
+    # include the package distribution_data
     include_package_data=True,
 
     # Prevent the package manager to install a python egg, 

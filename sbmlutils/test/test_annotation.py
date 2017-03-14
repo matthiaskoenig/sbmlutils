@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from sbmlutils.annotation import *
-from sbmlutils.tests import resources
+from sbmlutils.test import data
 from sbmlutils.factory import Creator
 
 
@@ -62,7 +62,7 @@ class TestAnnotation(unittest.TestCase):
         """ Annotate the demo network. """
 
         f_tmp = tempfile.NamedTemporaryFile()
-        annotate_sbml_file(resources.DEMO_SBML_NO_ANNOTATIONS, resources.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
+        annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
         f_tmp.flush()
 
         import re
@@ -146,7 +146,7 @@ class TestAnnotation(unittest.TestCase):
     def test_galactose_annotation(self):
         """ Annotate the galactose network. """
         f_tmp = tempfile.NamedTemporaryFile()
-        annotate_sbml_file(resources.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS, resources.GALACTOSE_ANNOTATIONS,
+        annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS, data.GALACTOSE_ANNOTATIONS,
                            f_sbml_annotated=f_tmp.name)
         f_tmp.flush()
 

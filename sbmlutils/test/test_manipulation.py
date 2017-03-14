@@ -1,19 +1,18 @@
+from __future__ import print_function
 import unittest
-
-import libsbml
 import os
+from os.path import join as pjoin
 from sbmlutils import comp
 from sbmlutils import manipulation
 from sbmlutils import validation
-
+from sbmlutils.test.data import data_dir
 
 class MyTestCase(unittest.TestCase):
 
     def test_biomodel_merge(self):
-        from os.path import join as pjoin
-        from sbmlutils.tests.resources import resources_dir
 
-        manipulation_dir = pjoin(resources_dir, 'manipulation')
+
+        manipulation_dir = pjoin(data_dir, 'manipulation')
         cur_dir = os.getcwd()
         os.chdir(manipulation_dir)
 

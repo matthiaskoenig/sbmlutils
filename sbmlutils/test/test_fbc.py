@@ -7,13 +7,13 @@ import unittest
 import libsbml
 import cobra
 import sbmlutils.fbc as fbc
-from sbmlutils.tests import resources
+import sbmlutils.test as test
 
 
 class FBCTestCase(unittest.TestCase):
     def test_mass_balance(self):
 
-        doc = libsbml.readSBMLFromFile(resources.DEMO_SBML)
+        doc = libsbml.readSBMLFromFile(test.data.DEMO_SBML)
 
         # add defaults
         fbc.add_default_flux_bounds(doc)
