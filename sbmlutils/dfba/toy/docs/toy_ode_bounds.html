@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!--<meta http-equiv="refresh" content="5" />-->
+    <link rel="icon" href="http://localhost:8001/static/simapp/images/sbml.ico">
+    <title>toy_ode_bounds</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="toy_ode_bounds_files/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="toy_ode_bounds_files/dataTables.css">
+    <link rel="stylesheet" type="text/css" href="toy_ode_bounds_files/dashboard.css">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" type="text/css" href="toy_ode_bounds_files/report.css">
+
+
+    <!-- JAVASCRIPT -->
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+  <script type="text/javascript" language="javascript" src="toy_ode_bounds_files/jquery-1.js"></script>
+      <script type="text/javascript" language="javascript" src="toy_ode_bounds_files/bootstrap.js"></script>
+    <script type="text/javascript" language="javascript" src="toy_ode_bounds_files/jquery_002.js"></script>
+    <script type="text/javascript" language="javascript" src="toy_ode_bounds_files/dataTables.js"></script>
+
+
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body xmlns="http://www.w3.org/1999/xhtml">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#top">toy_ode_bounds</a>
+        </div>
+
+          <form class="navbar-form navbar-left">
+            <input id="searchField" class="form-control" placeholder="Search..." type="text">
+          </form>
+          <!--
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/simapp/models/">Models</a></li>
+             <li><a href="/simapp/about/">About</a></li>
+              <li class="active"><a href="/admin/">Admin</a></li>
+          </ul>
+        </div>
+        -->
+      </div>
+    </nav>
+
+
+<div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+          <li><a href="#top">Model</a></li>
+             
+                    <li><a href="#UnitDefinitions">UnitDefinitions</a></li>
+                
+                
+                
+                
+                
+                    <li><a href="#Parameters">Parameters</a></li>
+                
+                
+                    <li><a href="#Rules">Rules</a></li>
+                
+                
+                
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+    <!-- CONTENT -->
+    <div class="content">
+        <!-- <input type="text" id="searchField"> -->
+        
+    <!--------------------------------------------------->
+    <!-- Model -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="Model"></a>
+        
+        
+        
+
+        
+        
+            <notes>
+  
+    <h1>Wholecell Toy Model</h1>
+    <h2>Description</h2>
+    <p>This is a toy model for coupling models with different modeling frameworks via comp.</p>
+    <div class="dc:publisher">This file has been produced by
+      <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
+      </div>
+  <h2>Terms of use</h2>
+  <div class="dc:rightsHolder">Copyright © 2015 Wholecell Consortium.</div>
+  <div class="dc:license">
+    <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        </p><ol>
+      <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+      <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+    </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.<p></p>
+</div>
+
+</notes>
+            <hr>
+        
+        
+
+    <h1>Model : toy_ode_bounds</h1>
+    <b>Creator</b><br>Matthias, Koenig, Charite Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br><b>Created:</b> 2015-12-06 23:18<br><b>Modified:</b> 2015-12-06 23:18<br><br>
+    <table id="table_model_annotation" class="table table-condensed table-nonfluid">
+        <tbody><tr>
+
+        <td>
+        -
+        <br>
+        
+
+
+        </td>
+        <td>
+            <table id="table_model" class="table table-condensed table-nonfluid">
+            <tbody>
+            <tr>
+	
+	</tr><tr><td class="active">id</td><td>toy_ode_bounds</td></tr>
+	<tr><td class="active">name</td><td>ODE bound calculation submodel</td></tr>
+	<tr><td class="active">version</td><td>L3V1</td></tr>
+	<tr><td class="active">time</td><td>s</td></tr>
+	<tr><td class="active">substance</td><td>item</td></tr>
+	<tr><td class="active">extent</td><td>item</td></tr>
+	<tr><td class="active">volume</td><td>m3</td></tr>
+	<tr><td class="active">area</td><td>m2</td></tr>
+	<tr><td class="active">length</td><td>m</td></tr>
+	
+
+            </tbody>
+            </table>
+        </td>
+        </tr>
+    </tbody></table>
+
+
+
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+    
+        <a class="anchor" id="UnitDefinitions"></a>
+        <div class="dataTables_wrapper form-inline dt-bootstrap no-footer" id="table_units_wrapper"><div class="top"></div><table role="grid" id="table_units" class="table table-condensed table-nonfluid dataTable no-footer">
+            <thead>
+            <tr role="row"><th aria-label="type: activate to sort column descending" aria-sort="ascending" style="width: 0px;" colspan="1" rowspan="1" aria-controls="table_units" tabindex="0" scope="col" class="hidden sorting_asc">type</th><th aria-label="UnitDefinitions [9]: activate to sort column ascending" style="width: 359px;" colspan="1" rowspan="1" aria-controls="table_units" tabindex="0" scope="col" class="warning sorting">UnitDefinitions [9]</th><th aria-label="name: activate to sort column ascending" style="width: 134px;" colspan="1" rowspan="1" aria-controls="table_units" tabindex="0" class="sorting" scope="col">name</th><th aria-label="units: activate to sort column ascending" style="width: 195px;" colspan="1" rowspan="1" aria-controls="table_units" tabindex="0" class="sorting" scope="col">units</th><th aria-label="sbo: activate to sort column ascending" style="width: 105px;" colspan="1" rowspan="1" aria-controls="table_units" tabindex="0" class="sorting" scope="col">sbo</th><th aria-label="cvterm: activate to sort column ascending" style="width: 157px;" colspan="1" rowspan="1" aria-controls="table_units" tabindex="0" class="sorting" scope="col">cvterm</th></tr>
+            </thead>
+            <tbody>
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+            <tr class="odd" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">item_per_s</td>
+	<td></td>
+	<td>item * s^-1</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="even" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">s</td>
+	<td></td>
+	<td>s</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="odd" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">kg</td>
+	<td></td>
+	<td>kg</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="even" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">m3</td>
+	<td></td>
+	<td>m^3</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="odd" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">m2</td>
+	<td></td>
+	<td>m^2</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="even" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">mM</td>
+	<td></td>
+	<td>m^-3 * mole</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="odd" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">item_per_m3</td>
+	<td></td>
+	<td>item * m^-3</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="even" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">m</td>
+	<td></td>
+	<td>m</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="odd" role="row">
+    <td class="hidden sorting_1">UnitDefinition</td>
+	<td class="active">per_s</td>
+	<td></td>
+	<td>s^-1</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr></tbody>
+        </table><div class="bottom"></div><div class="clear"></div></div>
+        <hr>
+    
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    
+        <a class="anchor" id="Parameters"></a>
+        <div class="dataTables_wrapper form-inline dt-bootstrap no-footer" id="table_parameters_wrapper"><div class="top"></div><table role="grid" id="table_parameters" class="table table-condensed table-nonfluid dataTable no-footer">
+            <thead>
+            <tr role="row"><th aria-label="type: activate to sort column descending" aria-sort="ascending" style="width: 0px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" scope="col" class="hidden sorting_asc">type</th><th aria-label="Parameters [2]: activate to sort column ascending" style="width: 180px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" scope="col" class="warning sorting">Parameters [2]</th><th aria-label="name: activate to sort column ascending" style="width: 79px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">name</th><th aria-label="value: activate to sort column ascending" style="width: 79px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">value</th><th aria-label="unit: activate to sort column ascending" style="width: 110px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">unit</th><th aria-label="derived unit: activate to sort column ascending" style="width: 154px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">derived unit</th><th aria-label="constant: activate to sort column ascending" style="width: 119px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">constant</th><th aria-label="sbo: activate to sort column ascending" style="width: 60px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">sbo</th><th aria-label="cvterm: activate to sort column ascending" style="width: 94px;" colspan="1" rowspan="1" aria-controls="table_parameters" tabindex="0" class="sorting" scope="col">cvterm</th></tr>
+            </thead>
+            <tbody>
+            
+                
+            
+                
+            
+            <tr class="odd" role="row">
+    <td class="hidden sorting_1">Parameter</td>
+	<td class="active">ub_R1</td>
+	<td>ub_r1</td>
+	<td>1.0</td>
+	
+	<td>item_per_s</td>
+	<td>item * s^-1</td>
+	<td class=" danger ">False</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr><tr class="even" role="row">
+    <td class="hidden sorting_1">Parameter</td>
+	<td class="active">k1</td>
+	<td>k1</td>
+	<td>-0.2</td>
+	
+	<td>per_s</td>
+	<td>s^-1</td>
+	<td class=" danger ">False</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr></tbody>
+        </table><div class="bottom"></div><div class="clear"></div></div>
+        <hr>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+        <a class="anchor" id="Rules"></a>
+        <div class="dataTables_wrapper form-inline dt-bootstrap no-footer" id="table_rules_wrapper"><div class="top"></div><table role="grid" id="table_rules" class="table table-condensed table-nonfluid dataTable no-footer">
+            <thead>
+            <tr role="row"><th aria-label="type: activate to sort column descending" aria-sort="ascending" style="width: 0px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" scope="col" class="hidden sorting_asc">type</th><th aria-label="Rules [1]: activate to sort column ascending" style="width: 177px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" scope="col" class="warning sorting">Rules [1]</th><th aria-label="&amp;nbsp;: activate to sort column ascending" style="width: 43px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" class="sorting" scope="col">&nbsp;</th><th aria-label="assignment: activate to sort column ascending" style="width: 222px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" class="sorting" scope="col">assignment</th><th aria-label="derived units: activate to sort column ascending" style="width: 245px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" class="sorting" scope="col">derived units</th><th aria-label="sbo: activate to sort column ascending" style="width: 95px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" class="sorting" scope="col">sbo</th><th aria-label="cvterm: activate to sort column ascending" style="width: 142px;" colspan="1" rowspan="1" aria-controls="table_rules" tabindex="0" class="sorting" scope="col">cvterm</th></tr>
+            </thead>
+            <tbody>
+            
+                
+            
+            <tr class="odd" role="row">
+    <td class="hidden sorting_1">Rule</td>
+	<td class="active">ub_R1</td>
+	<td>=</td>
+	<td>k1 * ub_R1</td>
+	<td>item * s^-2</td>
+	<td>
+    -
+</td>
+	<td>-</td>
+</tr></tbody>
+        </table><div class="bottom"></div><div class="clear"></div></div>
+        <hr>
+    
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+    
+
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <hr>
+        <p>© 2015 Matthias Koenig.
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="toy_ode_bounds_files/80x15.png"></a><br>This
+            work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com/" property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                Attribution-ShareAlike 4.0 International License</a>.
+            <br>
+            Powered by <a href="https://www.djangoproject.com/" target="_blank"><img src="toy_ode_bounds_files/django.png" alt="django" height="15"></a> and
+            bootstrap <a href="http://getbootstrap.com/" target="_blank"><img src="toy_ode_bounds_files/bootstrap.png" alt="bootstrap" height="15"></a>.
+            Source available on <a href="https://github.com/matthiaskoenig/multiscale-galactose/" target="_blank"><img src="toy_ode_bounds_files/github.png" alt="GitHub" height="20"></a>.
+        </p>
+    </div>
+
+        </div>
+
+</div>
+<!-- /container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<link rel="stylesheet" href="toy_ode_bounds_files/print.css" type="text/css" media="print">
+<link rel="stylesheet" href="toy_ode_bounds_files/toolbar.css" type="text/css">
+
+<!-- Prevent our copy of jQuery from registering as an AMD module on sites that use RequireJS. -->
+<script src="toy_ode_bounds_files/jquery_pre.js"></script>
+<script src="toy_ode_bounds_files/jquery.js"></script>
+<script src="toy_ode_bounds_files/jquery_post.js"></script>
+
+<script src="toy_ode_bounds_files/toolbar.js"></script>
+<div style="display: block;" id="djDebug" dir="ltr" data-store-id="e4f74ae7b95145c38ea7b41c63b21d71" data-render-panel-url="/__debug__/render_panel/" hidden="hidden">
+	<div style="" id="djDebugToolbar" hidden="hidden">
+		<ul id="djDebugPanelList">
+			
+			<li><a id="djHideToolBarButton" href="#" title="Hide toolbar">Hide »</a></li>
+			
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtVersionsPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Versions" class="VersionsPanel">
+					
+					Versions
+					
+					
+						<br><small>Django 1.8.7</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtTimerPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Time" class="TimerPanel">
+					
+					Time
+					
+					
+						<br><small>CPU: 68.48ms (79.27ms)</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtSettingsPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Settings from &lt;code&gt;multiscalesite.settings&lt;/code&gt;" class="SettingsPanel">
+					
+					Settings
+					
+					
+						
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtHeadersPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Headers" class="HeadersPanel">
+					
+					Headers
+					
+					
+						
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtRequestPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Request" class="RequestPanel">
+					
+					Request
+					
+					
+						<br><small>report</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtSQLPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="SQL queries from 1 connection" class="SQLPanel">
+					
+					SQL
+					
+					
+						<br><small>3 queries in 2.38ms</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtStaticFilesPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Static files (238 found, 12 used)" class="StaticFilesPanel">
+					
+					Static files
+					
+					
+						<br><small>12 files used</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtTemplatesPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Templates (2 rendered)" class="TemplatesPanel">
+					
+					Templates
+					
+					
+						<br><small>report/report.html</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtCachePanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Cache calls from 1 backend" class="CachePanel">
+					
+					Cache
+					
+					
+						<br><small>0 calls in 0.00ms</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtSignalsPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Signals" class="SignalsPanel">
+					
+					Signals
+					
+					
+						<br><small>22 receivers of 12 signals</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtLoggingPanel" checked="checked" title="Disable for next and successive requests" type="checkbox">
+					
+						<a href="#" title="Log messages" class="LoggingPanel">
+					
+					Logging
+					
+					
+						<br><small>0 messages</small>
+					
+					
+					
+						</a>
+					
+				</li>
+			
+				<li class="djDebugPanelButton">
+					<input data-cookie="djdtRedirectsPanel" title="Enable for next and successive requests" type="checkbox">
+					
+						<div class="djdt-contentless djdt-disabled">
+					
+					Intercept redirects
+					
+					
+						</div>
+					
+				</li>
+			
+		</ul>
+	</div>
+	<div style="display: block;" id="djDebugToolbarHandle" hidden="hidden">
+		<span title="Show toolbar" id="djShowToolBarButton">«</span>
+	</div>
+	
+		
+			<div style="display: none;" id="VersionsPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Versions</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="TimerPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Time</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="SettingsPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Settings from <code>multiscalesite.settings</code></h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="HeadersPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Headers</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="RequestPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Request</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="SQLPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>SQL queries from 1 connection</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="StaticFilesPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Static files (238 found, 12 used)</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="TemplatesPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Templates (2 rendered)</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="CachePanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Cache calls from 1 backend</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="SignalsPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Signals</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+			<div style="display: none;" id="LoggingPanel" class="djdt-panelContent">
+				<div class="djDebugPanelTitle">
+					<a href="" class="djDebugClose"></a>
+					<h3>Log messages</h3>
+				</div>
+				<div class="djDebugPanelContent">
+					
+					<img src="toy_ode_bounds_files/ajax-loader.gif" alt="loading" class="djdt-loader">
+					<div class="djdt-scroll"></div>
+					
+				</div>
+			</div>
+		
+	
+		
+	
+	<div style="display: none;" id="djDebugWindow" class="djdt-panelContent"></div>
+</div>
+
+
+
+</div></body></html>

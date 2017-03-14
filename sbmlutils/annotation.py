@@ -10,23 +10,24 @@ Annotation is performed via searching for ontology terms which describe the mode
 model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
-
 """
-# TODO: general logging for the whole system
+
 # TODO: check annotations against the MIRIAM info (load miriam info)
+# analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
 
 from __future__ import print_function
 import logging
 import warnings
+import libsbml
 
 import csv
 import re
 import uuid
 import datetime
 
-from validation import check
-import libsbml
+from sbmlutils.validation import check
+
 
 
 # create logger
@@ -261,23 +262,30 @@ class ModelAnnotator(object):
         return id_dict
 
     def annotate_model(self):
-        """ Annotates the model with the given annotations. """
+        """
+        Annotates the model with the given annotations.
+        """
         for a in self.annotations:
             pattern = a.pattern
             if a.sbml_type == "document":
                 elements = [self.doc]
             else:
                 # lookup of allowed ids for given sbmlutils type
-                ids = self.id_dict[a.sbml_type]
-                # find the subset of ids matching the pattern
-                pattern_ids = self.__class__.get_matching_ids(ids, pattern)
-                elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
+                ids = self.id_dict.get(a.sbml_type, None)
+                elements = []
+                if ids:
+                    # find the subset of ids matching the pattern
+                    pattern_ids = self.__class__.get_matching_ids(ids, pattern)
+                    elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
+
             self.annotate_components(elements, a)
 
 
     @staticmethod
     def get_matching_ids(ids, pattern):
-        """ Finds the model ids based on the regular expression pattern. """
+        """
+        Finds the model ids based on the regular expression pattern.
+        """
         match_ids = []
         for string in ids:
             match = re.match(pattern, string)
@@ -288,6 +296,14 @@ class ModelAnnotator(object):
 
     @staticmethod
     def elements_from_ids(model, sbml_ids, sbml_type=None):
+        """
+        Get list of SBML elements from given ids.
+
+        :param model:
+        :param sbml_ids:
+        :param sbml_type:
+        :return:
+        """
         elements = []
         for sid in sbml_ids:
             if sbml_type == 'rule':
@@ -379,11 +395,11 @@ class ModelAnnotator(object):
     def annotations_from_csv(csvfile, delimiter='\t'):
         """ Read annotations from csv in annotation data structure. """
         res = []
-        f = open(csvfile, 'rb')
+        f = open(csvfile, 'rt')
         reader = csv.reader(f, delimiter=delimiter, quoting=csv.QUOTE_NONE)
 
         # first line is headers line
-        headers = reader.next()
+        headers = next(reader)
         logger.info('Headers: {}'.format(headers))
 
         # read entries
@@ -408,7 +424,6 @@ class ModelAnnotator(object):
         xlsx is converted to csv file and than parsed with csv reader.
         """
         import pyexcel as pe
-        import pyexcel.ext.xlsx
 
         csvfile = "{}.csv".format(xslxfile)
         pe.save_as(file_name=xslxfile, dest_file_name=csvfile, dest_delimiter=delimiter)

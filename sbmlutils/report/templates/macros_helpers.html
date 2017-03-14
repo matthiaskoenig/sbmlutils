@@ -4,7 +4,7 @@
 
 {% macro notes(item) %}
     {% if item.isSetNotes() %}
-        {{ item.notes_string.decode('utf-8') }}
+        {{ item.getNotesString }}
     {% endif %}
 {% endmacro %}
 
@@ -38,7 +38,9 @@
 
 
 {% macro math(item) %}
+    {% if item %}
     {{ item.getMath()|SBML_astnodeToMathML }}
+    {% endif %}
 {% endmacro %}
 
 
@@ -65,8 +67,7 @@
 
 
 {% macro derived_units(item) %}
-    {#
-        {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString1 }}
-     #}
-    {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString|SBML_stringToMathML }}
+    {% if item %}
+        {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString|SBML_stringToMathML }}
+    {%  endif %}
 {% endmacro %}
