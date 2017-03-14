@@ -14,6 +14,7 @@ from __future__ import print_function, division
 import os
 import shutil
 import copy
+import logging
 import warnings
 
 from libsbml import SBMLDocument, SBMLNamespaces
@@ -175,7 +176,7 @@ class Preprocess(object):
                 d[key] = info
             else:
                 # key does not exist in module
-                warnings.warn(" ".join(['missing:', key]))
+                logging.warn(" ".join(['missing:', key]))
         return d
 
 
@@ -315,7 +316,7 @@ class CoreModel(object):
                 if (objects):
                     factory.create_objects(self.model, objects)
                 else:
-                    warnings.warn("Attribute <{}> missing from model.".format(attr))
+                    logging.warn("Attribute <{}> missing from model.".format(attr))
 
     def write_sbml(self, filepath):
         """ Write sbml to file.

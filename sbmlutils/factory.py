@@ -16,6 +16,7 @@ All model objects are created with the given SBML_LEVEL and SBML_VERSION.
 """
 from __future__ import print_function, division
 
+import logging
 import warnings
 import libsbml
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
@@ -79,7 +80,7 @@ def set_main_units(model, main_units):
     """
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
         if not key in main_units:
-            warnings.warn('The following key is missing in main_units: {}'.format(key))
+            logging.warn('The following key is missing in main_units: {}'.format(key))
             continue
         unit = main_units[key]
         unit = Unit.get_unit_string(unit)

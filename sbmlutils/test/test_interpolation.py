@@ -3,20 +3,11 @@ Test interpolation
 """
 from __future__ import print_function, division
 import unittest
-import tempfile
-import shutil
-import os.path
+import os
+import roadrunner
+import pandas as pd
 
-from pandas import DataFrame
 from sbmlutils.interpolation import *
-
-try:
-    import tellurium as te
-    # this is the libsedml reload bug
-    reload(libsbml)
-except ImportError:
-    warnings.warn("Tellurium could not be imported")
-    te = None
 
 
 class InterpolationTestCase(unittest.TestCase):
@@ -26,7 +17,7 @@ class InterpolationTestCase(unittest.TestCase):
         x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
         y = [0.0, 2.0, 1.0, 1.5, 2.5, 3.5]
         z = [10.0, 5.0, 2.5, 1.25, 0.6, 0.3]
-        self.data1 = DataFrame({'x': x, 'y': y, 'z': z})
+        self.data1 = pd.DataFrame({'x': x, 'y': y, 'z': z})
 
     def interpolation(self, method):
         """ Helper function to test the various interpolations. """
@@ -38,14 +29,13 @@ class InterpolationTestCase(unittest.TestCase):
             ip.write_sbml_to_file(tmp_f)
             self.assertTrue(os.path.isfile(tmp_f))
 
-            if te is not None:
-                r = te.loads(tmp_f)
-                r.timeCourseSelections = ['time', 'y', 'z']
-                s = r.simulate(0, 5, steps=5)
-                for k in range(len(self.data1)):
-                    # all interpolations must go through the datapoints
-                    self.assertAlmostEqual(s['y'][k], self.data1['y'][k])
-                    self.assertAlmostEqual(s['z'][k], self.data1['z'][k])
+            r = roadrunner.RoadRunner(tmp_f)
+            r.timeCourseSelections = ['time', 'y', 'z']
+            s = r.simulate(0, 5, steps=5)
+            for k in range(len(self.data1)):
+                # all interpolations must go through the datapoints
+                self.assertAlmostEqual(s['y'][k], self.data1['y'][k])
+                self.assertAlmostEqual(s['z'][k], self.data1['z'][k])
 
         finally:
             shutil.rmtree(temp_dir)
