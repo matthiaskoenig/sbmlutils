@@ -52,7 +52,7 @@ Either install directly from the git repository
 ```
 pip install git+https://github.com/matthiaskoenig/sbmlutils.git
 ```
-clone the repository locally
+Or clone the repository locally
 ```
 git clone https://github.com/matthiaskoenig/sbmlutils.git
 cd sbmlutils
@@ -60,31 +60,8 @@ python setup.py install
 ```
 To work in develop use
 ```
-python setup.py develop
-```
-
-## Development
-`TODO:` contribute info
-
-Setup and install in virtual environment
-```
-source /usr/local/bin/virtualenvwrapper.sh
-cd ~/git/sbmlutils
-mkvirtualenv sbmlutils
-# Unset pythonpath (libsbml and others)
-unset PYTHONPATH
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt --upgrade
 pip install -e .
 ```
-
-Run the tests via
-```
-tox -e py27
-tox -e py35
-tox -e py36
-```
-
 
 ----
 &copy; 2017 Matthias König.
