@@ -65,20 +65,5 @@ python setup.py develop
 ### Requirements
 See `requirements.txt` and `setup.py`.
 
-## Changelog
-**v0.1.3** [2016-09-07]
-* fixed unittests and bug fixes
-
-**v0.1.2** [2016-09-07]
-* fixed unittests and bug fixes
-
-**v0.1.1** [2016-05-12]
-* bug fixes, refactoring, unit tests
-* model creator examples
-
-**v0.1.0** [2015-05-01]
-* first release
-
-
 ----
-&copy; 2016 Matthias König.
+&copy; 2017 Matthias König.
