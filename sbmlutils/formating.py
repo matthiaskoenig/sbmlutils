@@ -3,7 +3,7 @@ Helper functions for formating SBML elements.
 """
 
 import libsbml
-import annotation
+import sbmlutils.annotation as annotation
 
 
 class AnnotationHTML():
@@ -176,6 +176,9 @@ def unitDefinitionToString(udef):
         (m * 10^s *k)^e
 
     """
+    if udef == None:
+        return 'None'
+
     libsbml.UnitDefinition_reorder(udef)
     # collect formated nominators and denominators
     nom = []

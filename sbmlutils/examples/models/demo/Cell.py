@@ -6,12 +6,13 @@ from __future__ import print_function, division
 import libsbml
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from sbmlutils.modelcreator import templates
+import sbmlutils.factory as mc
 
 from Reactions import *
 
 ##############################################################
 mid = 'Koenig_demo'
-version = 10
+version = 12
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Koenig Demo Metabolism</h1>
@@ -32,111 +33,82 @@ main_units = {
     'area': 'm2',
     'volume': 'm3',
 }
-units = dict()
-compartments = dict()
-species = dict()
-parameters = dict()
-names = dict()
-assignments = dict()
-rules = dict()
-reactions = []
+units = list()
+compartments = list()
+species = list()
+parameters = list()
+assignments = list()
+rules = list()
+reactions = list()
 events = None
 
 ##############################################################
 # Units
 ##############################################################
 # units (kind, exponent, scale=0, multiplier=1.0)
-units.update({
-    's': [(UNIT_KIND_SECOND, 1.0)],
-    'kg': [(UNIT_KIND_KILOGRAM, 1.0)],
-    'm': [(UNIT_KIND_METRE, 1.0)],
-    'm2': [(UNIT_KIND_METRE, 2.0)],
-    'm3': [(UNIT_KIND_METRE, 3.0)],
-    'mM': [(UNIT_KIND_MOLE, 1.0, 0),
-           (UNIT_KIND_METRE, -3.0)],
-    'mole_per_s': [(UNIT_KIND_MOLE, 1.0),
-                   (UNIT_KIND_SECOND, -1.0)],
-})
+units.extend([
+    mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)]),
+    mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)]),
+    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
+    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
+    mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)]),
+    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)] ),
+    mc.Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
+])
 ##############################################################
 # Compartments
 ##############################################################
-compartments.update({
-    # id : ('spatialDimension', 'unit', 'constant', 'assignment')
-    'e': (3, 'm3', False, 1e-06),
-    'c': (3, 'm3', False, 1e-06),
-    'm': (2, 'm2', False, 1),
-})
-names.update({
-    'e': 'external compartment',
-    'c': 'cell compartment',
-    'm': 'plasma membrane'
-})
+compartments.extend([
+    mc.Compartment(sid='e', value=1e-06, unit='m3', constant=False, name='external compartment'),
+    mc.Compartment(sid='c', value=1e-06, unit='m3', constant=False, name='cell compartment'),
+    mc.Compartment(sid='m', value=1, unit='m2', constant=False, spatialDimension=2, name='plasma membrane'),
+])
+
 
 ##############################################################
 # Species
 ##############################################################
-species.update({
-    # id : ('compartment', 'value', 'unit', 'boundaryCondition')
-    'c__A': ('c', 0, 'mM', False),
-    'c__B': ('c', 0.0, 'mM', False),
-    'c__C': ('c', 0.0, 'mM', False),
-    'e__A': ('e', 10.0, 'mM', False),
-    'e__B': ('e', 0.0, 'mM', False),
-    'e__C': ('e', 0.0, 'mM', False),
-})
-names.update({
-    'A': 'A',
-    'B': 'B',
-    'C': 'C',
-})
+species.extend([
+    mc.Species(sid='c__A', compartment='c', value=0, unit='mM', boundaryCondition=False, name='A'),
+    mc.Species(sid='c__B', compartment='c', value=0.0, unit='mM', boundaryCondition=False, name='B'),
+    mc.Species(sid='c__C', compartment='c', value=0.0, unit='mM', boundaryCondition=False, name='C'),
+    mc.Species(sid='e__A', compartment='e', value=10.0, unit='mM', boundaryCondition=False, name='A'),
+    mc.Species(sid='e__B', compartment='e', value=0.0, unit='mM', boundaryCondition=False, name='B'),
+    mc.Species(sid='e__C', compartment='e', value=0.0, unit='mM', boundaryCondition=False, name='C'),
+])
 
 ##############################################################
 # Parameters
 ##############################################################
-parameters.update({
-    # id: ('value', 'unit', 'constant')
-    'scale_f':      (1E-6, '-', True),
-    'Vmax_bA':      (5.0, 'mole_per_s', True),
-    'Km_A':         (1.0, 'mM', True),
-    'Vmax_bB':      (2.0, 'mole_per_s', True),
-    'Km_B':         (0.5, 'mM', True),
-    'Vmax_bC':      (2.0, 'mole_per_s', True),
-    'Km_C':         (3.0, 'mM', True),
-    'Vmax_v1':      (1.0, 'mole_per_s', True),
-    'Keq_v1':       (10.0, '-', True),
-    'Vmax_v2':      (0.5, 'mole_per_s', True),
-    'Vmax_v3':      (0.5, 'mole_per_s', True),
-    'Vmax_v4':      (0.5, 'mole_per_s', True),
-    'Keq_v4':       (2.0, '-', True),
-})
-names.update({
-    'scale_f': 'metabolic scaling factor',
-    'REF_P': 'reference protein amount',
-    'deficiency': 'type of galactosemia',
-    'y_cell': 'width hepatocyte',
-    'x_cell': 'length hepatocyte',
-    'f_tissue': 'parenchymal fraction of liver',
-    'f_cyto': 'cytosolic fraction of hepatocyte'
-})
+parameters.extend([
+    mc.Parameter('scale_f', value=1E-6, unit='-', constant=True, name='metabolic scaling factor'),
+    mc.Parameter('Vmax_bA', 5.0, 'mole_per_s', True),
+    mc.Parameter('Km_A', 1.0, 'mM', True),
+    mc.Parameter('Vmax_bB', 2.0, 'mole_per_s', True),
+    mc.Parameter('Km_B', 0.5, 'mM', True),
+    mc.Parameter('Vmax_bC', 2.0, 'mole_per_s', True),
+    mc.Parameter('Km_C', 3.0, 'mM', True),
+    mc.Parameter('Vmax_v1', 1.0, 'mole_per_s', True),
+    mc.Parameter('Keq_v1', 10.0, '-', True),
+    mc.Parameter('Vmax_v2', 0.5, 'mole_per_s', True),
+    mc.Parameter('Vmax_v3', 0.5, 'mole_per_s', True),
+    mc.Parameter('Vmax_v4', 0.5, 'mole_per_s', True),
+    mc.Parameter('Keq_v4', 2.0, '-', True)
+])
 
 ##############################################################
 # Assignments
 ##############################################################
-assignments.update({
-    # id: ('assignment', 'unit')
-})
+assignments.extend([])
 
 ##############################################################
 # Rules
 ##############################################################
-rules.update({
-    # id: ('rule', 'unit')
-})
+rules.extend([])
 
 ##############################################################
 # Reactions
 ##############################################################
-
 reactions.extend([
     bA, bB, bC, v1, v2, v3, v4
 ])

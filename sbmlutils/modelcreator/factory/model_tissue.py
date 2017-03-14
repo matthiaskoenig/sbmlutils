@@ -8,7 +8,7 @@ from libsbml import SBMLDocument, SBMLWriter
 from multiscale.sbmlutils import SBMLValidator
 from multiscale.sbmlutils import check
 from sbmlutils.modelcreator.processes import *
-from sbmlutils.modelcreator.processes import ReactionTemplate
+from sbmlutils.modelcreator.processes import reaction
 
 
 class TissueModelException(Exception):
@@ -388,7 +388,7 @@ class TissueModel(object):
             list of compartments for the given geometry.
         """
         # set the model for the template
-        ReactionTemplate.model = self.model
+        reaction.model = self.model
         
         rep_dicts = self.createCellReplacementDicts()
         for r in self.cellModel.reactions:

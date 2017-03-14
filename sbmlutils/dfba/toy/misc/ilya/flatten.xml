@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" level="3" version="1" fbc:required="false">
+  <model id="Top_level" name="Top level" fbc:strict="false">
+    <listOfCompartments>
+      <compartment id="default" name="Top_level" spatialDimensions="3" size="1" constant="false"/>
+      <compartment id="fba__Cell" name="Cell" spatialDimensions="3" size="1" constant="true"/>
+      <compartment id="fba_update__default" name="fba_update" spatialDimensions="3" size="1" constant="false"/>
+      <compartment id="kinetik__default" name="kinetik" spatialDimensions="3" size="1" constant="false"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="C" compartment="default" initialAmount="100" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="Dummy" compartment="default" initialAmount="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="fba__A" compartment="fba__Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="true" constant="false"/>
+      <species id="fba__B1" compartment="fba__Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="fba__B2" compartment="fba__Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="fba__C" compartment="fba__Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="true" constant="false"/>
+      <species id="kinetik__D" compartment="kinetik__default" initialAmount="0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="boundary" value="0" constant="false"/>
+      <parameter id="k" value="0" constant="false"/>
+      <parameter id="k_R4" value="0" constant="false"/>
+      <parameter id="kf" value="0" constant="false"/>
+      <parameter id="p" value="0" constant="false"/>
+      <parameter id="unknown" value="0" constant="false"/>
+      <parameter id="fba__lb" value="0" constant="false"/>
+      <parameter id="fba__ub" value="1000" constant="false"/>
+      <parameter id="fba__unknown" value="0" constant="false"/>
+      <parameter id="kinetik__k_R4" value="1" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="equation_1" variable="p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> R000008 </ci>
+        </math>
+      </assignmentRule>
+      <rateRule metaid="equation_2" variable="boundary">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <sin/>
+            <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+          </apply>
+        </math>
+      </rateRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="fba__R1" reversible="false" fast="false" fbc:lowerFluxBound="fba__lb" fbc:upperFluxBound="boundary">
+        <listOfReactants>
+          <speciesReference species="fba__A" stoichiometry="1" constant="false"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="fba__B1" stoichiometry="1" constant="false"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn> 0 </cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="fba__R2" reversible="false" fast="false" fbc:lowerFluxBound="fba__lb" fbc:upperFluxBound="fba__ub">
+        <listOfReactants>
+          <speciesReference species="fba__B1" stoichiometry="1" constant="false"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="fba__B2" stoichiometry="1" constant="false"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn> 0 </cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="R000008" reversible="false" fast="false" fbc:lowerFluxBound="fba__lb" fbc:upperFluxBound="fba__ub">
+        <listOfReactants>
+          <speciesReference species="fba__B2" stoichiometry="1" constant="false"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="fba__C" stoichiometry="1" constant="false"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn> 0 </cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="fba_update__R000002" name="-&gt; C" reversible="false" fast="false">
+        <listOfProducts>
+          <speciesReference species="C" stoichiometry="1" constant="false"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <ci> p </ci>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="kinetik__R000005" name="C -&gt; D" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="C" stoichiometry="1" constant="false"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="kinetik__D" stoichiometry="1" constant="false"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kinetik__k_R4 </ci>
+              <ci> C </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <fbc:listOfObjectives fbc:activeObjective="fba__maxR3">
+      <fbc:objective fbc:id="fba__maxR3" fbc:type="maximize">
+        <fbc:listOfFluxObjectives>
+          <fbc:fluxObjective fbc:reaction="R000008" fbc:coefficient="1"/>
+        </fbc:listOfFluxObjectives>
+      </fbc:objective>
+    </fbc:listOfObjectives>
+  </model>
+</sbml>
