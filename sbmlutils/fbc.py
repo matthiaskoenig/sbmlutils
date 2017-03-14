@@ -3,9 +3,10 @@ Working with fbc models.
 """
 from __future__ import print_function, division
 import cobra
+import numpy as np
+import pandas as pd
 import libsbml
 from warnings import warn
-
 from sbmlutils import factory
 
 
@@ -34,8 +35,27 @@ def load_cobra_model(sbml_path):
     return model
 
 
+def cobra_reaction_info(cobra_model):
+    """ Creates data frame with bound and objective information.
+
+    :param cobra_model:
+    :return: pandas DataFrame
+    """
+    rids = [r.id for r in cobra_model.reactions]
+    df = pd.DataFrame(data=None, index=rids,
+                      columns=['lb', 'ub', 'reversibility', 'objective', 'boundary'])
+
+    for rid in rids:
+        r = cobra_model.reactions.get_by_id(rid)
+        df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, np.nan, r.boundary]
+    for r, obj in cobra_model.objective.iteritems():
+        df.objective.loc[r.id] = obj
+    return df
+
+
 def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
     """ Adds default flux bounds to SBMLDocument.
+
     :param doc:
     :type doc:
     :param lower:
@@ -43,7 +63,7 @@ def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
     :param upper:
     :type upper:
     """
-    # FIXME: overwrites lower/upper parameter (check if exisiting)
+    # FIXME: overwrites lower/upper parameter (check if existing)
     # TODO: the units are very specific (more generic)
     warn('Adding default flux bounds', UserWarning)
     model = doc.getModel()
@@ -60,8 +80,46 @@ def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
             rfbc.setUpperFluxBound('upper')
 
 
+def add_default_flux_bounds(doc, lower=-100.0, upper=100.0):
+    """ Adds default flux bounds to SBMLDocument.
+
+    :param doc: SBMLDocument
+    :param lower: lower flux bound
+    :param upper: upper flux bound
+    :return:
+    """
+    model = doc.getModel()
+
+    def create_bound(sid, value):
+        """ Create flux bound parameter with given value.
+
+        :param sid: id of paramter
+        :param value: flux bound
+        :return:
+        """
+        p = model.createParameter()
+        p.setId(sid)
+        p.setValue(value)
+        p.setName('{} flux bound'.format(sid))
+        p.setSBOTerm('SBO:0000626')  # default flux bound
+        p.setConstant(True)
+        return p
+
+    # FIXME: overwrites lower/upper parameter (you should check if existing in model)
+    create_bound(sid='lower', value=lower)
+    create_bound(sid='upper', value=upper)
+
+    for r in model.reactions:
+        rfbc = r.getPlugin("fbc")
+        if not rfbc.isSetLowerFluxBound():
+            rfbc.setLowerFluxBound('lower')
+        if not rfbc.isSetUpperFluxBound():
+            rfbc.setUpperFluxBound('upper')
+
+
 def no_boundary_conditions(doc):
-    """ Sets all boundaryCondition=False in model.
+    """ Sets all boundaryCondition to False in the model.
+
     :param doc:
     :type doc:
     :return:
@@ -91,6 +149,12 @@ def check_balance(sbml_path):
 
 
 if __name__ == "__main__":
+    """
+    Example for creation of fbc model.
+
+    Extension package information is set via getting the
+    respective plugins from the core model.
+    """
     from libsbml import *
 
     sbmlns = SBMLNamespaces(3, 1, "fbc", 2)

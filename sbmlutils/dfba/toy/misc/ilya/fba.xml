@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" comp:required="true" fbc:required="false" level="3" version="1">
+  <model fbc:strict="false" id="fba" name="fba">
+    <listOfCompartments>
+      <compartment constant="true" id="Cell" name="Cell" size="1.0" spatialDimensions="3"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="true" compartment="Cell" constant="false" fbc:charge="" fbc:chemicalFormula="" hasOnlySubstanceUnits="true" id="A" initialAmount="0.0"/>
+      <species boundaryCondition="false" compartment="Cell" constant="false" fbc:charge="" fbc:chemicalFormula="" hasOnlySubstanceUnits="true" id="B1" initialAmount="0.0"/>
+      <species boundaryCondition="false" compartment="Cell" constant="false" fbc:charge="" fbc:chemicalFormula="" hasOnlySubstanceUnits="true" id="B2" initialAmount="0.0"/>
+      <species boundaryCondition="true" compartment="Cell" constant="false" fbc:charge="" fbc:chemicalFormula="" hasOnlySubstanceUnits="true" id="C" initialAmount="0.0"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="lb" value="0.0"/>
+      <parameter constant="false" id="r1" value="0.0"/>
+      <parameter constant="false" id="ub" value="1000.0"/>
+      <parameter constant="false" id="unknown" value="0.0"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction fast="false" fbc:lowerFluxBound="lb" fbc:upperFluxBound="r1" id="R1" name="" reversible="false">
+        <listOfReactants>
+          <speciesReference constant="false" species="A" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="B1" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" fbc:lowerFluxBound="lb" fbc:upperFluxBound="ub" id="R2" name="" reversible="false">
+        <listOfReactants>
+          <speciesReference constant="false" species="B1" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="B2" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction fast="false" fbc:lowerFluxBound="lb" fbc:upperFluxBound="ub" id="R3" name="" reversible="false">
+        <listOfReactants>
+          <speciesReference constant="false" species="B2" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference constant="false" species="C" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn>0.0</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <comp:listOfPorts>
+      <comp:port comp:id="R3_port" comp:idRef="R3" sboTerm="SBO:0000599"/>
+      <comp:port comp:id="r1_port_1" comp:idRef="r1" sboTerm="SBO:0000599"/>
+    </comp:listOfPorts>
+    <fbc:listOfObjectives fbc:activeObjective="maxR3">
+      <fbc:objective fbc:id="maxR3" fbc:type="maximize">
+        <fbc:listOfFluxObjectives>
+          <fbc:fluxObjective fbc:coefficient="1.0" fbc:reaction="R3"/>
+        </fbc:listOfFluxObjectives>
+      </fbc:objective>
+    </fbc:listOfObjectives>
+  </model>
+</sbml>

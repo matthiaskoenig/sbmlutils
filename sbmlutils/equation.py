@@ -1,10 +1,10 @@
 """
 Parse equation strings into a standard format.
+
+Simplifies the creation of SBML models from given strings.
 """
 from __future__ import print_function, division
 import re
-import warnings
-
 from collections import namedtuple
 
 Part = namedtuple('Part', 'stoichiometry sid')
@@ -14,6 +14,7 @@ IRREV_PATTERN = '[-=]>'
 MOD_PATTERN = '\[.*\]'
 REV_SEP = '<=>'
 IRREV_SEP = '=>'
+
 
 class Equation(object):
     """ Representation of stoichiometric equations with modifiers. """

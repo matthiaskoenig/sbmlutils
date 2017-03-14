@@ -1,15 +1,24 @@
 """
 Check the charge and formula balance of the model.
-
-Run some simple FBA simulations.
 """
-
 from __future__ import print_function, division
 from sbmlutils import fbc
-from sbmlutils.examples import testfiles
+
+import os
+import Cell
+glucose_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'results',
+                         '{}_{}.xml'.format(Cell.mid, Cell.version))
 
 if __name__ == "__main__":
-    path = testfiles.glucose_sbml
-    print(path)
-    fbc.check_balance(path)
-    model = fbc.load_cobra_model(path)
+    fbc.check_balance(glucose_sbml)
+    model = fbc.load_cobra_model(glucose_sbml)
+
+
+
+
+
+
+
+
+

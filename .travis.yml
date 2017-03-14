@@ -1,0 +1,38 @@
+language: python
+cache: pip
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+sudo: required
+
+branches:
+  only:
+    - master
+    - devel
+
+install:
+  pip install -r requirements.txt
+
+script:
+  pytest
+
+#before_install:
+#  - if [[ -n "${MB_PYTHON_VERSION}" ]]; then
+#      (travis_retry git clone https://github.com/matthew-brett/multibuild.git && cd multibuild && git checkout e6ebbfa);
+#      TEST_DEPENDS="swiglpk optlang sympy decorator cython codecov coverage numpy scipy jsonschema six pytest pytest-cov pytest-benchmark tabulate";
+#      BUILD_DEPENDS="swiglpk optlang sympy cython numpy scipy";
+#      source multibuild/common_utils.sh;
+#      source multibuild/travis_steps.sh;
+#      before_install;
+#    fi
+#  - pip install -U pip setuptools wheel tox
+#
+#before_cache:
+#  - set +e
+#
+#install:
+#  - if [[ -n "${MB_PYTHON_VERSION}" ]]; then travis_retry build_wheel . $PLAT; fi
+#
+#after_success:
+#  - if [[ $TRAVIS_OS_NAME == "linux" ]]; then pip install codecov; codecov; fi

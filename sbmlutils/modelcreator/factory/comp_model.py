@@ -2,6 +2,7 @@
 Handling the creation of on comp model from
 multiple model files.
 """
+from __future__ import print_function
 
 class CompModel(object):
 

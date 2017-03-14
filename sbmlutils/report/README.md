@@ -1,13 +1,6 @@
-# SBML Report
-Model report generation from given SBML file.
-
-Creates different output formats via rendering templates.
-- HTML
-- PDF
-- Latex
-
-Report is created by rendering a given template.
-Using Jinja 2
+# report
+Creates HTML report for SBML files.
+Report is created by rendering a given template using Jinja 2
 
 ## Installation
 ```

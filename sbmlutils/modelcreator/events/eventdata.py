@@ -9,7 +9,7 @@ even when using variable step sizes.
 Here only the triggers are defined. Part of the events are encoded directly in the model.
 
 """
-
+from __future__ import print_function
 
 class EventData(object):
     def __init__(self, eid, name, trigger, assignments):
@@ -19,11 +19,12 @@ class EventData(object):
         self.assignments = assignments
 
     def info(self):
-        print '-' * 20
-        print self.eid
-        print self.key
-        print self.trigger
-        print self.assignments
+        info_str = "'-' * 20\n" \
+              "{}\n" \
+              "{}\n" \
+              "{}\n" \
+              "{}\n".format(self.eid, self.key, self.trigger, self.assignments)
+        print(info_str)
 
     @staticmethod
     def _trigger_from_time(t):

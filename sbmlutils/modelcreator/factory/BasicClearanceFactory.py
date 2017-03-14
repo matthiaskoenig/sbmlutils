@@ -2,6 +2,7 @@
 Model factory for the BasicClearance example model.
 """
 
+from __future__ import print_function
 from ModelFactory import ModelFactory
 from multiscale.modelcreator.events.eventdata import EventData
 from sbmlutils.modelcreator.factory import CellModel
