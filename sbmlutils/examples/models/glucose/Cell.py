@@ -6,10 +6,13 @@ Definition of units is done by defining the main_units of the model in
 addition with the definition of the individual units of the model.
 
 """
+from __future__ import print_function, division, absolute_import
 from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
 from libsbml import XMLNode
+
 from sbmlutils.modelcreator import templates
 from sbmlutils import factory as mc
+from . import Reactions
 
 ##############################################################
 creators = templates.creators
@@ -277,8 +280,6 @@ rules.extend([
 ##############################################################
 # Reactions
 ##############################################################
-import Reactions
-
 reactions.extend([
     Reactions.GLUT2,
     Reactions.GK,

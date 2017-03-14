@@ -3,12 +3,12 @@
 Test model to check the update of global depending parameters in Roadrunner.
 Mainly volumes which are calculated based on other parameters.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator import creator as mc
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
-from Reactions import *
+from .Reactions import *
 
 ##############################################################
 creators = templates.creators

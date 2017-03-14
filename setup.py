@@ -78,6 +78,8 @@ setup(
         "Jinja2",
         "pyexcel",
         "pyexcel-xlsx",
+        "six",
+        "pytest"
     ],
 
     # List additional groups of dependencies here (e.g. development

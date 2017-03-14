@@ -16,6 +16,7 @@ import shutil
 import copy
 import logging
 import warnings
+from six import iteritems
 
 from libsbml import SBMLDocument, SBMLNamespaces
 
@@ -128,7 +129,7 @@ class Preprocess(object):
             # single module dict
             mdict = Preprocess._createDict(module)
             # add to overall dict
-            for key, value in mdict.iteritems():
+            for key, value in iteritems(mdict):
 
                 # lists of higher modules are extended
                 if type(value) in [list, tuple]:
@@ -146,7 +147,7 @@ class Preprocess(object):
                     # now add the elements by copy
                     d = cdict[key]
                     print(d)
-                    for k, v in value.iteritems():
+                    for k, v in iteritems(value):
                         d[k] = copy.deepcopy(v)
 
                 # !everything else is overwritten
@@ -208,7 +209,7 @@ class CoreModel(object):
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
-        for key, value in CoreModel._keys.iteritems():
+        for key, value in iteritems(CoreModel._keys):
             # necessary to init the lists for every instance,
             # to not share them between instances
             if value is not None:
@@ -242,7 +243,7 @@ class CoreModel(object):
         """
         m = CoreModel()
         # add info from model_dict to instance
-        for key, value in model_dict.iteritems():
+        for key, value in iteritems(model_dict):
             if key in CoreModel._keys:
                 setattr(m, key, value)
             else:

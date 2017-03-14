@@ -2,13 +2,13 @@
 """
 Demo kinetic network.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import libsbml
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from sbmlutils.modelcreator import templates
 import sbmlutils.factory as mc
 
-from Reactions import *
+from .Reactions import *
 
 ##############################################################
 mid = 'Koenig_demo'
