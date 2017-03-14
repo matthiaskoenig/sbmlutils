@@ -31,7 +31,7 @@ import sys
 import libsbml
 from jinja2 import Environment, FileSystemLoader
 
-import sbmlfilters
+from sbmlutils.report import sbmlfilters
 from sbmlutils.validation import check_sbml
 
 

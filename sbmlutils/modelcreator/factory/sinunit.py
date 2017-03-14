@@ -6,6 +6,7 @@ of the structure (number of cells/compartments) and the properties of the
 transported substances.
 """
 
+from __future__ import print_function
 from sbmlutils.modelcreator.processes.reactiontemplate import createFlowReactionTemplate, createDiffusionReactionTemplate
 from sbmlutils.modelcreator.processes import reaction
 from sbmlutils.modelcreator.creator import CoreModel

@@ -1,6 +1,7 @@
 """
 Factory methods to create flow and diffusion reactions.
 """
+from __future__ import print_function
 from reaction import ReactionTemplate
 import sbmlutils.modelcreator.factory.sinnaming as naming
 

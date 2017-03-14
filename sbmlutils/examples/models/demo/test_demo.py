@@ -10,7 +10,7 @@ import roadrunner
 from sbmlutils import validation
 
 
-from Cell import mid, version
+from .Cell import mid, version
 demo_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'results',
                          '{}_{}.xml'.format(mid, version))
