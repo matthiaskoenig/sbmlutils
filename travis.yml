@@ -1,0 +1,68 @@
+language: python
+python: 3.5
+sudo: required
+dist: trusty
+cache:
+  directories:
+    - $HOME/.cache/pip
+git:
+  depth: 1
+
+branches:
+ only:
+ - master
+ - devel
+
+ matrix:
+  fast_finish: true
+  exclude:
+    - python: 3.5
+  include:
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.7
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.4
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.5
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.6
+    - os: osx
+      language: objective-c
+      env:
+        - MB_PYTHON_VERSION=2.7
+    - os: osx
+      language: objective-c
+      env:
+        - MB_PYTHON_VERSION=3.4
+    - os: osx
+      language: objective-c
+      env:
+        - MB_PYTHON_VERSION=3.5
+    - os: osx
+      language: objective-c
+      env:
+        - MB_PYTHON_VERSION=3.6
+
+before_install:
+  - if [[ -n "${MB_PYTHON_VERSION}" ]]; then
+      (travis_retry git clone https://github.com/matthew-brett/multibuild.git && cd multibuild && git checkout e6ebbfa);
+      TEST_DEPENDS="swiglpk optlang sympy decorator cython codecov coverage numpy scipy jsonschema six pytest pytest-cov pytest-benchmark tabulate";
+      BUILD_DEPENDS="swiglpk optlang sympy cython numpy scipy";
+      source multibuild/common_utils.sh;
+      source multibuild/travis_steps.sh;
+      before_install;
+    fi
+  - pip install -U pip setuptools wheel tox
+
+before_cache:
+  - set +e
+
+install:
+  - if [[ -n "${MB_PYTHON_VERSION}" ]]; then travis_retry build_wheel . $PLAT; fi
+
+after_success:
+  - if [[ $TRAVIS_OS_NAME == "linux" ]]; then pip install codecov; codecov; fi
