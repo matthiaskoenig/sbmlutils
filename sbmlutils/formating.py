@@ -3,7 +3,7 @@ Helper functions for formating SBML elements.
 """
 
 import libsbml
-import annotation
+import sbmlutils.annotation as annotation
 
 
 class AnnotationHTML():

@@ -18,7 +18,7 @@ The basic steps of template creation are
 # TODO: rate rules are not displayed correctly (they need dy/dt on the left side, compared to AssignmentRules)
 
 
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import warnings
 import codecs
 import os

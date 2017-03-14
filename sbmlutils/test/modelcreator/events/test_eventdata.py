@@ -1,7 +1,7 @@
 """
 Test eventdata.
 """
-
+from __future__ import print_function
 import unittest
 from sbmlutils.modelcreator.events.eventdata import EventData
 
@@ -22,25 +22,25 @@ class TestEventData(unittest.TestCase):
 
     def test_rect_dilution_peak(self):
         ed_list = EventData.rect_dilution_peak()
-        print '\n* Rectangular peak *'
+        print('\n* Rectangular peak *')
         for edata in ed_list:
             edata.info()
 
     def test_gauss_dilution_peak(self):
         ed_list = EventData.gauss_dilution_peak()
-        print '\n* Gauss peak *'
+        print('\n* Gauss peak *')
         for edata in ed_list:
             edata.info()
 
     def test_galactose_challenge(self):
         ed_list = EventData.galactose_challenge(tc_start=10, base_value=0.0)
-        print '\n* Galactose Challenge *'
+        print('\n* Galactose Challenge *')
         for edata in ed_list:
             edata.info()
 
     def test_galactose_step_increase(self):
         ed_list = EventData.galactose_step_increase()
-        print '\n* Galactose Step *'
+        print('\n* Galactose Step *')
         for edata in ed_list:
             edata.info()
 

@@ -26,7 +26,7 @@ import re
 import uuid
 import datetime
 
-from validation import check
+from sbmlutils.validation import check
 
 
 
