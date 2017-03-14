@@ -395,11 +395,11 @@ class ModelAnnotator(object):
     def annotations_from_csv(csvfile, delimiter='\t'):
         """ Read annotations from csv in annotation data structure. """
         res = []
-        f = open(csvfile, 'rb')
+        f = open(csvfile, 'rt')
         reader = csv.reader(f, delimiter=delimiter, quoting=csv.QUOTE_NONE)
 
         # first line is headers line
-        headers = reader.next()
+        headers = next(reader)
         logger.info('Headers: {}'.format(headers))
 
         # read entries

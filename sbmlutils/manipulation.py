@@ -4,6 +4,7 @@ Like model merging.
 
 """
 from __future__ import print_function, division
+from six import iteritems
 import os
 import logging
 import warnings
@@ -32,7 +33,7 @@ def create_merged_doc(model_paths):
     comp_doc = doc.getPlugin("comp")
     comp_model = model.getPlugin("comp")
 
-    for emd_id, path in model_paths.iteritems():        
+    for emd_id, path in iteritems(model_paths):
         # create ExternalModelDefinitions
         emd = comp.create_ExternalModelDefinition(comp_doc, emd_id, source=path)
         # add submodel which references the external model definitions
@@ -50,7 +51,7 @@ def merge_models(model_paths, validate=True):
     """
     # necessary to convert models to SBML L3V1, unfortunately many biomodels/models
     # only L2V?, so additional step necessary
-    for mid, path in model_paths.iteritems():
+    for mid, path in iteritems(model_paths):
         if not os.path.exists(path):
             logging.error('Path for SBML file does not exist: {}'.format(path))
 

@@ -114,7 +114,7 @@ features or changes that you can implement yourself.
     (sbmlutils)$ pip install -e .
 
 9. When you are done making changes, check that your changes pass pep8
-    and the tests with tox for your local Python version::
+   and the tests with tox for your local Python version::
 
      (sbmlutils)$ tox -e pep8
 

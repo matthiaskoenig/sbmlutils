@@ -16,7 +16,7 @@ class AnnotationHTML():
         :param item: SBO item
         """
         items = []
-        for kcv in xrange(item.getNumCVTerms()):
+        for kcv in range(item.getNumCVTerms()):
             cv = item.getCVTerm(kcv)
             q_type = cv.getQualifierType()
             if q_type == 0:
@@ -25,7 +25,7 @@ class AnnotationHTML():
                 qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
             items.append(''.join(['<b>', qualifier, '</b>']))
 
-            for k in xrange(cv.getNumResources()):
+            for k in range(cv.getNumResources()):
                 uri = cv.getResourceURI(k)
                 tokens = uri.split('/')
                 resource_id = tokens[-1]
@@ -86,7 +86,7 @@ def modelHistoryToString(mhistory):
         return ""
     items = []
     items.append('<b>Creator</b>')
-    for kc in xrange(mhistory.getNumCreators()):
+    for kc in range(mhistory.getNumCreators()):
         cdata = []
         c = mhistory.getCreator(kc)
         if c.isSetGivenName():
@@ -100,7 +100,7 @@ def modelHistoryToString(mhistory):
         items.append(", ".join(cdata))
     if mhistory.isSetCreatedDate():
         items.append('<b>Created:</b> ' + dateToString(mhistory.getCreatedDate()))
-    for km in xrange(mhistory.getNumModifiedDates()):
+    for km in range(mhistory.getNumModifiedDates()):
         items.append('<b>Modified:</b> ' + dateToString(mhistory.getModifiedDate(km)))
     items.append('<br />')
     return "<br />".join(items)
