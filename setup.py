@@ -32,7 +32,7 @@ def read(*names, **kwargs):
 
 setup_kwargs = {}
 try:
-    verstrline = read('src/sbmlutils/_version.py')
+    verstrline = read('sbmlutils/_version.py')
     mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
     if mo:
         verstr = mo.group(1)

@@ -7,7 +7,7 @@ import tempfile
 
 from sbmlutils.factory import Creator
 from sbmlutils.annotation import *
-from tests import data
+from sbmlutils.tests import data
 
 
 class AnnotationTest(object):

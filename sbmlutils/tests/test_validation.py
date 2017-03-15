@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import unittest
 
 from sbmlutils.validation import check_sbml
-from tests import data
+from sbmlutils.tests import data
 
 ##################################################################################
 # These files are validated. All of them are valid and have no warnings or errors.

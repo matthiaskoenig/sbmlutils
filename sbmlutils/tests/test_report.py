@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from sbmlutils.report import sbmlreport
-from tests import data
+from sbmlutils.tests import data
 
 
 class MyTestCase(unittest.TestCase):

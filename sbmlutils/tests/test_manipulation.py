@@ -7,7 +7,7 @@ from sbmlutils import comp
 from sbmlutils import validation
 
 from sbmlutils import manipulation
-from tests.data import data_dir
+from sbmlutils.tests.data import data_dir
 
 
 class MyTestCase(unittest.TestCase):

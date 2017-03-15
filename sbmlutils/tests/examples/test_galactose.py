@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import roadrunner
 from sbmlutils import validation
-from tests import data
+from sbmlutils.tests import data
 
 
 def test_validate_sbml():

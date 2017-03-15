@@ -8,7 +8,7 @@ import unittest
 
 from sbmlutils.comp import flattenExternalModelDefinitions
 from sbmlutils import sbmlio
-from tests import data
+from sbmlutils.tests import data
 
 
 class CompTestCase(unittest.TestCase):

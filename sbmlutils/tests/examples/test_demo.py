@@ -6,7 +6,7 @@ from __future__ import print_function, absolute_import
 
 import roadrunner
 from sbmlutils import validation
-import tests.data as data
+import sbmlutils.tests.data as data
 
 
 def test_check_sbml():

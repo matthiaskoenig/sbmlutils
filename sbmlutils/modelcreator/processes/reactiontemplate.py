@@ -4,7 +4,7 @@ Factory methods to create flow and diffusion reactions.
 from __future__ import print_function
 
 import sbmlutils.modelcreator.factory.sinnaming as naming
-from reaction import ReactionTemplate
+from .reaction import ReactionTemplate
 
 
 def createFlowReactionTemplate(sid, c_from, c_to, flow, unit='mole_per_s'):
