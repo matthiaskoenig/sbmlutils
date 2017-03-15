@@ -1,19 +1,19 @@
+from __future__ import print_function, absolute_import
+
+import unittest
 import os
 import shutil
 import tempfile
-import unittest
-
 import matplotlib
+
+from sbmlutils.dfba.toy import toysettings
+from sbmlutils.dfba.toy import model_factory as toyfactory
+from sbmlutils.dfba.toy import simulate as toysimulate
+from sbmlutils.dfba.diauxic_growth import dgsettings
+from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
 
 # no backend for testing, must be imported before pyplot
 matplotlib.use('Agg')
-
-from src.sbmlutils.dfba.toy import toysettings
-from src.sbmlutils.dfba.toy import model_factory as toyfactory
-from src.sbmlutils.dfba.toy import simulate as toysimulate
-
-from src.sbmlutils.dfba.diauxic_growth import dgsettings
-from src.sbmlutils.dfba import model_factory as dgfactory
 
 
 class DFBATestCase(unittest.TestCase):
