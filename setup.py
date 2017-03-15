@@ -65,12 +65,12 @@ setup(
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
     keywords='SBML, dynamic FBA, DFBA, model merging',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
+    packages=find_packages(),
+    # package_dir={'': ''},
     package_data={
-      '': ['sbmlutils/examples/models/**/*.xml'],
+      '': ['tests/data'],
     },
-    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    # py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
     include_package_data=True,
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
