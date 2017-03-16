@@ -19,4 +19,6 @@ else:
 def _warn_format(message, category, filename, lineno, file=None, line=None):
     shortname = filename.replace(_cobra_path, "cobra", 1)
     return _warning_base % (shortname, lineno, category.__name__, message)
+
+
 _warnings.formatwarning = _warn_format

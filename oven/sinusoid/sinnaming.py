@@ -24,35 +24,58 @@ in the geometry.
 from __future__ import print_function
 import re
 
+
 # -------------------------------------------------------------------------------------
 # Compartments
 # -------------------------------------------------------------------------------------
 
 def getPPId():
     return 'PP'
+
+
 def getPVId():
     return 'PV'
+
+
 def getSinusoidId(k):
     return 'S{:0>2d}'.format(k)
+
+
 def getDisseId(k):
     return 'D{:0>2d}'.format(k)
+
+
 def getHepatocyteId(k):
     return 'H{:0>2d}'.format(k)
+
+
 def getCytosolId(k):
     return 'C{:0>2d}'.format(k)
 
+
 def getPPName():
     return '[{}] periportal'.format(getPPId())
+
+
 def getPVName():
     return '[{}] perivenious'.format(getPVId())
+
+
 def getSinusoidName(k):
     return '[{}] sinusoid'.format(getSinusoidId(k))
+
+
 def getDisseName(k):
     return '[{}] disse'.format(getDisseId(k))
+
+
 def getHepatocyteName(k):
     return '[{}] hepatocyte'.format(getHepatocyteId(k))
+
+
 def getCytosolName(k):
     return '[{}] cytosol'.format(getCytosolId(k))
+
 
 # -------------------------------------------------------------------------------------
 # Species
@@ -60,9 +83,11 @@ def getCytosolName(k):
 SEPARATOR = "__"
 NONE_ID = 'NONE'
 
+
 def createLocalizedId(cid, sid):
     """ Create a compartmentalized id by concatenation. """
     return SEPARATOR.join([cid, sid])
+
 
 def isLocalizedId(c_pattern, test_id):
     """ Test if test_id starts with the given compartment pattern followed by
@@ -74,53 +99,83 @@ def isLocalizedId(c_pattern, test_id):
     match = re.match('^{}{}'.format(c_pattern, SEPARATOR), test_id)
     return match is not None
 
+
 def getSpeciesFromLocalizedId(loc_id):
     tokens = loc_id.split(SEPARATOR)
     return tokens[1]
 
+
 def isPPSpeciesId(test_id):
     return isLocalizedId(getPPId(), test_id)
+
+
 def getPPSpeciesId(sid):
     return createLocalizedId(getPPId(), sid)
 
+
 def isPVSpeciesId(test_id):
     return isLocalizedId(getPVId(), test_id)
+
+
 def getPVSpeciesId(sid):
     return createLocalizedId(getPVId(), sid)
 
+
 def isSinusoidSpeciesId(test_id):
     return isLocalizedId('S(\d){2}', test_id)
+
+
 def getSinusoidSpeciesId(sid, k):
     return createLocalizedId(getSinusoidId(k), sid)
 
+
 def isDisseSpeciesId(test_id):
     return isLocalizedId('D(\d){2}', test_id)
+
+
 def getDisseSpeciesId(sid, k):
     return createLocalizedId(getDisseId(k), sid)
 
+
 def isHepatocyteSpeciesId(test_id):
     return isLocalizedId('H(\d){2}', test_id)
+
+
 def getHepatocyteSpeciesId(sid, k):
     return createLocalizedId(getHepatocyteId(k), sid)
 
+
 def isCytosolSpeciesId(test_id):
     return isLocalizedId('C(\d){2}', test_id)
+
+
 def getCytosolSpeciesId(sid, k):
     return createLocalizedId(getCytosolId(k), sid)
 
 
 def getPPSpeciesName(name):
     return '[{}] {}'.format(getPPId(), name)
+
+
 def getPVSpeciesName(name):
     return '[{}] {}'.format(getPVId(), name)
+
+
 def getSinusoidSpeciesName(name, k):
     return '[{}] {}'.format(getSinusoidId(k), name)
+
+
 def getDisseSpeciesName(name, k):
     return '[{}] {}'.format(getDisseId(k), name)
+
+
 def getHepatocyteSpeciesName(name, k):
     return '[{}] {}'.format(getHepatocyteId(k), name)
+
+
 def getCytosolSpeciesName(name, k):
     return '[{}] {}'.format(getHepatocyteId(k), name)
+
 
 # -------------------------------------------------------------------------------------
 # Reaction helpers
@@ -133,15 +188,19 @@ def getTemplateId(pid, sid1, sid2):
         # returns the between position id for two volumes
         return '{}{}_{}'.format(sid1, sid2, pid)
 
+
 # Parameters (position, pressure, flow)
 def getPositionId(sid1, sid2=None):
     return getTemplateId('x', sid1, sid2)
 
+
 def getPressureId(sid1, sid2=None):
     return getTemplateId('P', sid1, sid2)
 
+
 def getqFlowId(sid1, sid2=None):
     return getTemplateId('q', sid1, sid2)
+
 
 def getQFlowId(sid1, sid2=None):
     return getTemplateId('Q', sid1, sid2)
@@ -151,13 +210,16 @@ def getQFlowId(sid1, sid2=None):
 def createFlowId(c_from, c_to, sid):
     return 'F_{}{}_{}'.format(c_from, c_to, sid)
 
+
 def createFlowName(c_from, c_to, sid):
     if c_to == NONE_ID:
         c_to = ''
     return '[{} -> {}] convection {}'.format(c_from, c_to, sid)
 
+
 def createDiffusionId(c_from, c_to, sid):
     return 'D_{}{}_{}'.format(c_from, c_to, sid)
+
 
 def createDiffusionName(c_from, c_to, sid):
     if c_to == NONE_ID:

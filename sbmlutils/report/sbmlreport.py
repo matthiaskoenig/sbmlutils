@@ -67,12 +67,11 @@ def _create_index_html(sbml_paths, html_template='index.html'):
 
     # template environment
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
-                         extensions=['jinja2.ext.autoescape'],
-                         trim_blocks=True,
-                         lstrip_blocks=True)
+                      extensions=['jinja2.ext.autoescape'],
+                      trim_blocks=True,
+                      lstrip_blocks=True)
 
     template = env.get_template(html_template)
-
 
     sbml_basenames = [ntpath.basename(path) for path in sbml_paths]
     sbml_links = []

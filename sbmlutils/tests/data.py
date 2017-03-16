@@ -1,6 +1,6 @@
 """
 Definition of data and files for the tests.
-The files are located in the resources directory.
+The files are located in the data directory.
 """
 import os
 from os.path import join as pjoin

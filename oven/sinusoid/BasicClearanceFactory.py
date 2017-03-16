@@ -7,7 +7,8 @@ from __future__ import print_function
 from ModelFactory import ModelFactory
 from multiscale.examples.models import TissueModel
 from multiscale.modelcreator.events.eventdata import EventData
-from sbmlutils.modelcreator.factory import CellModel
+
+from oven import CellModel
 
 
 class BasicClearanceFactory(ModelFactory):
@@ -43,11 +44,9 @@ class BasicClearanceFactory(ModelFactory):
         return tissue_model
 
 
-
 if __name__ == "__main__":
-
     Nc = 20  # number of cells
-    Nf = 1   # compartments per cell
+    Nf = 1  # compartments per cell
     version = 5  # model version
 
     # [1] core model
@@ -57,5 +56,3 @@ if __name__ == "__main__":
     # [2] multiple dilution indicator
     dilution_model = BasicClearanceFactory.dilution_indicator_model(Nc, Nf, version)
     BasicClearanceFactory.store_model_in_db(dilution_model)
-
-

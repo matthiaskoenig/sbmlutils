@@ -3,6 +3,7 @@ Export RMSD matrix with cluster size
 """
 
 import numpy as np
+
 np.random.seed(12345)
 N = 4  # number of clusters
 
@@ -18,8 +19,7 @@ with open("cluster-graph.csv", "w") as f:
     f.write("source,target,interaction,directed,RMSD\n")
     for k in xrange(N):
         for i in xrange(N):
-            f.write("{},{},pp,TRUE,{}\n".format(cluster_id[k], cluster_id[i], RMSD[k,i]))
-
+            f.write("{},{},pp,TRUE,{}\n".format(cluster_id[k], cluster_id[i], RMSD[k, i]))
 
 # write node attribute size
 with open("cluster-size.csv", "w") as f:

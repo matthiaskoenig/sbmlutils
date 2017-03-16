@@ -68,9 +68,9 @@ def _halfEquation(speciesList):
     for sr in speciesList:
         stoichiometry = sr.getStoichiometry()
         species = sr.getSpecies()
-        if abs(stoichiometry-1.0)<1E-8:
+        if abs(stoichiometry - 1.0) < 1E-8:
             sd = '{}'.format(species)
-        elif abs(stoichiometry+1.0)<1E-8:
+        elif abs(stoichiometry + 1.0) < 1E-8:
             sd = '-{}'.format(species)
         elif stoichiometry > 0:
             sd = '{} {}'.format(stoichiometry, species)
@@ -109,13 +109,12 @@ def modelHistoryToString(mhistory):
 def dateToString(d):
     """ Creates string representation of date. """
     return "{}-{:0>2d}-{:0>2d} {:0>2d}:{:0>2d}".format(d.getYear(), d.getMonth(), d.getDay(),
-        d.getHour(), d.getMinute())
-
+                                                       d.getHour(), d.getMinute())
 
 
 def _isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     """ Calculate the two floats are identical. """
-    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
 def ruleVariableToString(rule):
@@ -228,4 +227,3 @@ def unitDefinitionToString(udef):
     if (len(nom_str) == 0) and (len(denom_str) > 0):
         return '1/({})'.format(denom_str)
     return ''
-

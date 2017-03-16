@@ -24,6 +24,7 @@ from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 SBML_LEVEL = 3
 SBML_VERSION = 1
 
+
 # TODO: allow setting of sboTerms & metaIds, currently not taken into account
 
 
@@ -217,9 +218,9 @@ class Function(Value):
         :return:
         """
         return Function._create(model,
-                               sid=self.sid,
-                               formula=self.value,
-                               name=self.name)
+                                sid=self.sid,
+                                formula=self.value,
+                                name=self.name)
 
     @staticmethod
     def _create(model, sid, formula, name):
@@ -245,6 +246,7 @@ class Function(Value):
 ##########################################################################
 class Parameter(ValueWithUnit):
     """ Parameter. """
+
     def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
         super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
@@ -293,6 +295,7 @@ class Parameter(ValueWithUnit):
 ##########################################################################
 class Compartment(ValueWithUnit):
     """ Compartment. """
+
     def __init__(self, sid, value, unit, constant, spatialDimension=3, name=None, sboTerm=None, metaId=None):
         super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
@@ -305,12 +308,12 @@ class Compartment(ValueWithUnit):
         :return: SBMLCompartment
         """
         return Compartment._create(model,
-                                  sid=self.sid,
-                                  name=self.name,
-                                  dims=self.spatialDimension,
-                                  unit=self.unit,
-                                  constant=self.constant,
-                                  value=self.value)
+                                   sid=self.sid,
+                                   name=self.name,
+                                   dims=self.spatialDimension,
+                                   unit=self.unit,
+                                   constant=self.constant,
+                                   value=self.value)
 
     @staticmethod
     def _create(model, sid, name, dims, unit, constant, value):
@@ -348,6 +351,7 @@ class Compartment(ValueWithUnit):
 ##########################################################################
 class Species(ValueWithUnit):
     """ Species. """
+
     def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None):
         super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
@@ -364,17 +368,17 @@ class Species(ValueWithUnit):
         :return: SBMLSpecies
         """
         return Species._create(model,
-                              sid=self.sid,
-                              name=self.name,
-                              value=self.value,
-                              unit=self.unit,
-                              compartment=self.compartment,
-                              boundaryCondition=self.boundaryCondition,
-                              constant=self.constant,
-                              hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
-                              conversionFactor=self.conversionFactor,
-                              sboTerm=self.sboTerm,
-                              metaId=self.metaId)
+                               sid=self.sid,
+                               name=self.name,
+                               value=self.value,
+                               unit=self.unit,
+                               compartment=self.compartment,
+                               boundaryCondition=self.boundaryCondition,
+                               constant=self.constant,
+                               hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
+                               conversionFactor=self.conversionFactor,
+                               sboTerm=self.sboTerm,
+                               metaId=self.metaId)
 
     @staticmethod
     def _create(model, sid, name, value, unit, compartment,
@@ -470,7 +474,6 @@ class InitialAssignment(ValueWithUnit):
 # Rules
 ##########################################################################
 class Rule(ValueWithUnit):
-
     @staticmethod
     def _rule_factory(model, rule, rule_type):
         """ Creates libsbml rule of given rule_type.
@@ -694,4 +697,3 @@ def create_objective(mplugin, oid, otype, fluxObjectives, active=True):
         fluxObjective.setReaction(rid)
         fluxObjective.setCoefficient(coefficient)
     return objective
-

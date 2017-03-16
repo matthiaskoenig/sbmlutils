@@ -138,6 +138,7 @@ def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, 
 
     return p
 
+
 ##########################################################################
 # Replacement helpers
 ##########################################################################
@@ -313,6 +314,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
 
     return doc
 
+
 ##########################################################################
 # ExternalModelDefinitions & Submodels
 ##########################################################################
@@ -370,4 +372,3 @@ def flattenExternalModelDefinitions(doc, validate=False):
     if validate:
         validation.check_doc(doc)
     return doc
-

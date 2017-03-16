@@ -14,6 +14,7 @@ import libsbml
 from sbmlutils import comp
 from sbmlutils import validation
 
+
 def create_merged_doc(model_paths):
     """
     Create a comp model from the given model paths.
@@ -24,11 +25,11 @@ def create_merged_doc(model_paths):
     sbmlns.addPackageNamespace("comp", 1)
     doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
-    
+
     # model
     model = doc.createModel()
     model.setId('combined_model')
-    
+
     # comp plugin
     comp_doc = doc.getPlugin("comp")
     comp_model = model.getPlugin("comp")
@@ -37,9 +38,9 @@ def create_merged_doc(model_paths):
         # create ExternalModelDefinitions
         emd = comp.create_ExternalModelDefinition(comp_doc, emd_id, source=path)
         # add submodel which references the external model definitions
-        
+
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)
-    
+
     return doc
 
 

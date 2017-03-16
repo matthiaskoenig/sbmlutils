@@ -4,14 +4,13 @@ multiple model files.
 """
 from __future__ import print_function
 
-class CompModel(object):
 
+class CompModel(object):
     def __init__(self, models):
         pass
 
         def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
                      hasOnlySubstanceUnits=False, name=None, sboTerm=None, metaId=None):
-
             super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
             self.compartment = compartment
             self.constant = constant

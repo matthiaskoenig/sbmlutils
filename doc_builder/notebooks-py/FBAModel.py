@@ -1,4 +1,3 @@
-
 # coding: utf-8
 
 # # FBA Model
@@ -6,7 +5,8 @@
 
 # In[1]:
 
-#!!! DO NOT CHANGE !!! THIS FILE WAS CREATED AUTOMATICALLY FROM NOTEBOOKS !!! CHANGES WILL BE OVERWRITTEN !!! CHANGE CORRESPONDING NOTEBOOK FILE !!!
+# !!! DO NOT CHANGE !!! THIS FILE WAS CREATED AUTOMATICALLY FROM NOTEBOOKS !!!
+# CHANGES WILL BE OVERWRITTEN !!! CHANGE CORRESPONDING NOTEBOOK FILE !!!
 from __future__ import print_function
 
 from sbmlutils import comp
@@ -49,7 +49,6 @@ UNIT_AREA = 'm2'
 UNIT_VOLUME = 'm3'
 UNIT_CONCENTRATION = 'item_per_m3'
 UNIT_FLUX = 'item_per_s'
-
 
 # ## Model building
 # Creation of FBA model using multiple packages (`comp`, `fbc`).
@@ -111,11 +110,11 @@ create_parameters(model, parameters)
 
 # reactions
 r1 = create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
-                       reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
+                     reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
 r2 = create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
-                       reactants={"B1": 1}, products={"B2": 1}, compartment='cell')
+                     reactants={"B1": 1}, products={"B2": 1}, compartment='cell')
 r3 = create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
-                       reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
+                     reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
 # flux bounds
 set_flux_bounds(r1, lb="lb", ub="ub_R1")
@@ -138,6 +137,3 @@ sbmlio.write_and_check(doc_fba, sbml_file)
 
 
 # In[4]:
-
-
-

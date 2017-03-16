@@ -10,7 +10,6 @@ make {} around all formula parts
 
 """
 
-
 import sympy
 from sympy import latex
 
@@ -21,6 +20,7 @@ def astnode_to_latex(astnode):
 
 def string_to_latex(string, symbols):
     pass
+
 
 if __name__ == "__main__":
     # TODO: keep order
@@ -38,12 +38,12 @@ if __name__ == "__main__":
     c__A = Symbol("c__A")
 
     from sympy.core.sympify import kernS
+
     s = 'scale_f * (Vmax_bA / Km_A) * ((e__A - c__A) / (1 + e__A / Km_A + c__A / Km_A))'
     expr = sympify(s)
     print(expr)
     expr = kernS(s)
     print(expr)
-
 
     expr = sympify("(e__A - c__A)")
     latex_str = latex(expr, order=None, mode='equation', itex=True,
@@ -57,7 +57,6 @@ if __name__ == "__main__":
     # Equation solution, necessary to make replacements
     import Equation
     from Equation import Expression
+
     fn = Expression(s, ["scale_f", "Vmax_bA", "Km_A", 'e__A', 'c__a'])
     print(fn)
-
-

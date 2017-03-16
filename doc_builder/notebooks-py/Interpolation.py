@@ -2,14 +2,16 @@
 # coding: utf-8
 
 # # Interpolation
-# `sbmlutils` provides functionality for creating interpolated functions in SBML models. This allows to drive the model with experimental data sets. 
+# `sbmlutils` provides functionality for creating interpolated functions in SBML models.
+# This allows to drive the model with experimental data sets.
 # 
 # ## Dataset
 # In a first step an experimental data set is loaded as a `pandas` DataFrame.
 
 # In[1]:
 
-#!!! DO NOT CHANGE !!! THIS FILE WAS CREATED AUTOMATICALLY FROM NOTEBOOKS !!! CHANGES WILL BE OVERWRITTEN !!! CHANGE CORRESPONDING NOTEBOOK FILE !!!
+#!!! DO NOT CHANGE !!! THIS FILE WAS CREATED AUTOMATICALLY FROM NOTEBOOKS !!!
+# CHANGES WILL BE OVERWRITTEN !!! CHANGE CORRESPONDING NOTEBOOK FILE !!!
 from __future__ import print_function, division
 
 import pandas as pd

@@ -71,7 +71,6 @@ class DFBASimulator(object):
         """ Cobra model for the FBA model. """
         return self.fba_model.cobra_model
 
-
     def simulate(self, tstart=0.0, tend=10.0, steps=20, absTol=1E-6, relTol=1E-6):
         """ Perform model simulation.
 
@@ -91,8 +90,8 @@ class DFBASimulator(object):
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections)
 
             # check step size
-            step_size = (tend-tstart)/(points-1.0)
-            if abs(step_size-self.dt) > absTol:
+            step_size = (tend - tstart) / (points - 1.0)
+            if abs(step_size - self.dt) > absTol:
                 raise ValueError("Simulation timestep <{}> != dt <{}>".format(step_size, self.dt))
 
             time = 0.0

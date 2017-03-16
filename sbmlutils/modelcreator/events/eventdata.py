@@ -21,10 +21,10 @@ class EventData(object):
 
     def info(self):
         info_str = "'-' * 20\n" \
-              "{}\n" \
-              "{}\n" \
-              "{}\n" \
-              "{}\n".format(self.eid, self.key, self.trigger, self.assignments)
+                   "{}\n" \
+                   "{}\n" \
+                   "{}\n" \
+                   "{}\n".format(self.eid, self.key, self.trigger, self.assignments)
         print(info_str)
 
     @staticmethod
@@ -90,8 +90,8 @@ class EventData(object):
         event_data = []
         duration = 1000.0
         for k in range(0, 21):
-            time = 0.0 + k*duration;
-            gal = 0.0 + k*0.5
+            time = 0.0 + k * duration;
+            gal = 0.0 + k * 0.5
             ed = EventData('ESTEP_{}'.format(k), "galactose step",
                            cls._trigger_from_time(time),
                            {'PP__gal': '{} mM'.format(gal)})

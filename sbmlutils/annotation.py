@@ -28,8 +28,6 @@ import datetime
 
 from sbmlutils.validation import check
 
-
-
 # create logger
 logger = logging.getLogger('annotation')
 logger.setLevel(logging.WARNING)
@@ -43,7 +41,6 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-
 ########################################################################
 # Qualifier
 ########################################################################
@@ -52,9 +49,9 @@ logger.addHandler(ch)
 
 
 QualifierType = {
-  0: "MODEL_QUALIFIER",
-  1: "BIOLOGICAL_QUALIFIER",
-  2: "UNKNOWN_QUALIFIER"
+    0: "MODEL_QUALIFIER",
+    1: "BIOLOGICAL_QUALIFIER",
+    2: "UNKNOWN_QUALIFIER"
 }
 
 ModelQualifierType = {
@@ -67,20 +64,20 @@ ModelQualifierType = {
 }
 
 BiologicalQualifierType = {
-   0: "BQB_IS",
-   1: "BQB_HAS_PART",
-   2: "BQB_IS_PART_OF",
-   3: "BQB_IS_VERSION_OF",
-   4: "BQB_HAS_VERSION",
-   5: "BQB_IS_HOMOLOG_TO",
-   6: "BQB_IS_DESCRIBED_BY",
-   7: "BQB_IS_ENCODED_BY",
-   8: "BQB_ENCODES",
-   9: "BQB_OCCURS_IN",
-   10: "BQB_HAS_PROPERTY",
-   11: "BQB_IS_PROPERTY_OF",
-   12: "BQB_HAS_TAXON",
-   13: "BQB_UNKNOWN",
+    0: "BQB_IS",
+    1: "BQB_HAS_PART",
+    2: "BQB_IS_PART_OF",
+    3: "BQB_IS_VERSION_OF",
+    4: "BQB_HAS_VERSION",
+    5: "BQB_IS_HOMOLOG_TO",
+    6: "BQB_IS_DESCRIBED_BY",
+    7: "BQB_IS_ENCODED_BY",
+    8: "BQB_ENCODES",
+    9: "BQB_OCCURS_IN",
+    10: "BQB_HAS_PROPERTY",
+    11: "BQB_IS_PROPERTY_OF",
+    12: "BQB_HAS_TAXON",
+    13: "BQB_UNKNOWN",
 }
 
 
@@ -99,7 +96,7 @@ def set_model_history(model, creators):
     if not model.isSetMetaId():
         model.setMetaId(create_meta_id())
 
-    if creators is None or len(creators)is 0:
+    if creators is None or len(creators) is 0:
         # at least on
         return
     else:
@@ -189,7 +186,9 @@ class ModelAnnotation(object):
         ["taxonomy", "Taxonomy", "^\d+$"],
         ["tcdb", "Transport Classification Database", "^\d+\.[A-Z]\.\d+\.\d+\.\d+$"],
         ["uberon", "UBERON", "^UBERON\:\d+$"],
-        ["uniprot", "UniProt Knowledgebase", "^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9][A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
+        ["uniprot", "UniProt Knowledgebase",
+         "^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9]"
+         "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
     ]
 
     def __init__(self, d):
@@ -212,7 +211,7 @@ class ModelAnnotation(object):
         if self.sbml_type not in self._sbml_types:
             warnings.warn("sbml_type not supported: {}, {}".format(self.sbml_type, self.d))
 
-        # TODO: check against MIRIAM dictionary and patterns
+            # TODO: check against MIRIAM dictionary and patterns
 
     def __str__(self):
         return str(self.d)
@@ -221,6 +220,7 @@ class ModelAnnotation(object):
 
 class ModelAnnotator(object):
     """ Helper class for annotating SBML models."""
+
     def __init__(self, doc, annotations):
         self.doc = doc
         self.model = doc.getModel()
@@ -238,15 +238,15 @@ class ModelAnnotator(object):
         lof = self.model.getListOfCompartments()
         if lof:
             id_dict['compartment'] = [item.getId() for item in lof]
-    
+
         lof = self.model.getListOfSpecies()
         if lof:
             id_dict['species'] = [item.getId() for item in lof]
-            
+
         lof = self.model.getListOfParameters()
         if lof:
             id_dict['parameter'] = [item.getId() for item in lof]
-            
+
         lof = self.model.getListOfReactions()
         if lof:
             id_dict['reaction'] = [item.getId() for item in lof]
@@ -258,7 +258,7 @@ class ModelAnnotator(object):
         lof = self.model.getListOfEvents()
         if lof:
             id_dict['event'] = [item.getId() for item in lof]
-            
+
         return id_dict
 
     def annotate_model(self):
@@ -279,7 +279,6 @@ class ModelAnnotator(object):
                     elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
 
             self.annotate_components(elements, a)
-
 
     @staticmethod
     def get_matching_ids(ids, pattern):
@@ -375,7 +374,6 @@ class ModelAnnotator(object):
             print(libsbml.OperationReturnValue_toString(success))
             print(element, qualifier, collection, entity)
 
-
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
         """ Lookup of SBMLQualifier for given qualifier string. """
@@ -389,7 +387,6 @@ class ModelAnnotator(object):
             return ModelAnnotator.annotations_from_xlsx(file_path, delimiter=delimiter)
         else:
             return ModelAnnotator.annotations_from_csv(file_path, delimiter=delimiter)
-
 
     @staticmethod
     def annotations_from_csv(csvfile, delimiter='\t'):

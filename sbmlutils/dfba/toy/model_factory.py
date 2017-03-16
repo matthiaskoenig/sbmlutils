@@ -139,7 +139,8 @@ def fba_model(sbml_file, directory):
 
     # Compartments
     compartments = [
-        mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment', spatialDimension=3),
+        mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
+                       spatialDimension=3),
         mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimension=3),
         mc.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimension=2),
     ]
@@ -183,7 +184,7 @@ def fba_model(sbml_file, directory):
 
     # exchange reactions
     r_EX_A = mc.create_reaction(model, rid="EX_A", reversible=True,
-                            reactants={"A": 1}, products={}, compartment='membrane')
+                                reactants={"A": 1}, products={}, compartment='membrane')
     r_EX_C = mc.create_reaction(model, rid="EX_C", reversible=True,
                                 reactants={"C": 1}, products={}, compartment='membrane')
 
@@ -209,6 +210,7 @@ def fba_model(sbml_file, directory):
 
     # write SBML file
     sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
+
 
 ####################################################
 # BOUNDS submodel
@@ -257,7 +259,6 @@ def bounds_model(sbml_file, directory):
         mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
         mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
 
-
         # rate rules
         mc.RateRule(sid="ub_R1", value="k1*ub_R1"),
 
@@ -287,6 +288,7 @@ def bounds_model(sbml_file, directory):
 
     sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
+
 ####################################################
 # UPDATE submodel
 ####################################################
@@ -307,7 +309,7 @@ def update_model(sbml_file, directory):
 
     objects = [
         # FIXME: guidelines add compartments for species
-        mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment', spatialDimension=3),
+        mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
 
         mc.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
@@ -337,6 +339,7 @@ def update_model(sbml_file, directory):
 
     # write SBML file
     sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+
 
 ####################################################
 # TOP submodel
@@ -404,8 +407,6 @@ def top_model(sbml_file, directory, emds):
     mc.create_objects(model, [
         mc.AssignmentRule(sid="vR3", value="R3"),
     ])
-
-
 
     # --- replacements ---
     # replace compartments
@@ -480,6 +481,7 @@ def create_model(out_dir):
                    toysettings.top_file,
                    toysettings.flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
 
 ########################################################################################################################
 if __name__ == "__main__":

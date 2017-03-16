@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 
 
 class DFBAAnalysis(object):
-
     def __init__(self, df, rr_comp):
         self.df = df
         self.rr_comp = rr_comp
@@ -19,7 +18,7 @@ class DFBAAnalysis(object):
         :rtype:
         """
         species_ids = ["[{}]".format(s) for s in self.rr_comp.model.getFloatingSpeciesIds()] \
-                    + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
+                      + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
 
         ax_s = self.df.plot(x='time', y=species_ids)
         fig = ax_s.get_figure()
@@ -49,5 +48,3 @@ class DFBAAnalysis(object):
     def save_csv(self, filepath):
         """ Save results to csv. """
         self.df.to_csv(filepath, sep="\t", index=False)
-
-

@@ -28,6 +28,8 @@ MODEL_FRAMEWORKS = [
     # MODEL_FRAMEWORK_STOCHASTIC,
     # MODEL_FRAMEWORK_LOGICAL,
 ]
+
+
 #################################################
 
 class DFBAModel(object):
@@ -294,6 +296,7 @@ class DFBAModel(object):
                     warnings.warn('Flux AssignmentRules should have SBOTerm: SBO:0000631')
 
         return flux_rules
+
 
 class FBAModel(object):
     """ FBA model.

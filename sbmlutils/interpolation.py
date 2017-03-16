@@ -50,7 +50,6 @@ notes = libsbml.XMLNode.convertStringToXMLNode("""
     </body>
 """)
 
-
 # available interpolation methods
 INTERPOLATION_CONSTANT = "constant"
 INTERPOLATION_LINEAR = "linear"
@@ -111,9 +110,9 @@ class Interpolator(object):
 
         # create piecewise terms
         items = []
-        for k in range(len(x)-1):
+        for k in range(len(x) - 1):
             x1 = x.ix[k]
-            x2 = x.ix[k+1]
+            x2 = x.ix[k + 1]
             (a, b, c, d) = coeffs[k]
             formula = '{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}'.format(a=a, b=b, c=c, d=d, x1=x1)
             condition = 'time >= {x1} && time <= {x2}'.format(x1=x1, x2=x2)
@@ -149,10 +148,10 @@ class Interpolator(object):
         a = Y[:]
         b = [0.0] * n
         d = [0.0] * n
-        h = [X[i+1] - X[i] for i in range(n)]
+        h = [X[i + 1] - X[i] for i in range(n)]
         alpha = [0.0] * n
         for i in range(1, n):
-            alpha[i] = 3 / h[i] * (a[i+1] - a[i]) - 3 / h[i - 1] * (a[i] - a[i-1])
+            alpha[i] = 3 / h[i] * (a[i + 1] - a[i]) - 3 / h[i - 1] * (a[i] - a[i - 1])
         c = [0.0] * np1
         L = [0.0] * np1
         u = [0.0] * np1
@@ -160,21 +159,20 @@ class Interpolator(object):
         L[0] = 1.0
         u[0] = z[0] = 0.0
         for i in range(1, n):
-            L[i] = 2 * (X[i+1] - X[i-1]) - h[i-1] * u[i-1]
+            L[i] = 2 * (X[i + 1] - X[i - 1]) - h[i - 1] * u[i - 1]
             u[i] = h[i] / L[i]
-            z[i] = (alpha[i] - h[i-1] * z[i-1]) / L[i]
+            z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / L[i]
         L[n] = 1.0
         z[n] = c[n] = 0.0
-        for j in range(n-1, -1, -1):
+        for j in range(n - 1, -1, -1):
             c[j] = z[j] - u[j] * c[j + 1]
-            b[j] = (a[j+1] - a[j]) / h[j] - (h[j] * (c[j+1] + 2 * c[j])) / 3
-            d[j] = (c[j+1] - c[j]) / (3 * h[j])
+            b[j] = (a[j + 1] - a[j]) / h[j] - (h[j] * (c[j + 1] + 2 * c[j])) / 3
+            d[j] = (c[j + 1] - c[j]) / (3 * h[j])
         # store coefficients
         coeffs = []
         for i in range(n):
             coeffs.append((a[i], b[i], c[i], d[i]))
         return coeffs
-
 
     @staticmethod
     def formula_linear(col1, col2):
@@ -186,10 +184,10 @@ class Interpolator(object):
         items = []
         for k in range(len(col1) - 1):
             x1 = col1.ix[k]
-            x2 = col1.ix[k+1]
+            x2 = col1.ix[k + 1]
             y1 = col2.ix[k]
-            y2 = col2.ix[k+1]
-            m = (y2-y1)/(x2-x1)
+            y2 = col2.ix[k + 1]
+            m = (y2 - y1) / (x2 - x1)
             formula = '{} + {}*(time-{})'.format(y1, m, x1)
             condition = 'time >= {} && time < {}'.format(x1, x2)
             s = '{}, {}'.format(formula, condition)
@@ -216,13 +214,13 @@ class Interpolator(object):
 
         # intermediate vales
         for k in range(len(col1) - 1):
-            condition = 'time >= {} && time < {}'.format(col1.ix[k], col1.ix[k+1])
+            condition = 'time >= {} && time < {}'.format(col1.ix[k], col1.ix[k + 1])
             formula = '{}'.format(col2.ix[k])
             s = '{}, {}'.format(formula, condition)
             items.append(s)
 
         # last value after last time
-        s = '{}, time >= {}'.format(col2.ix[len(col1)-1], col1.ix[len(col1)-1])
+        s = '{}, time >= {}'.format(col2.ix[len(col1) - 1], col1.ix[len(col1) - 1])
         items.append(s)
 
         # otherwise
@@ -415,4 +413,4 @@ class Interpolation(object):
         else:
             rule.setMath(ast_node)
 
-        # TODO: add ports for connection with other model
+            # TODO: add ports for connection with other model

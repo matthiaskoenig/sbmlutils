@@ -11,10 +11,7 @@ from sbmlutils.tests.data import data_dir
 
 
 class MyTestCase(unittest.TestCase):
-
     def test_biomodel_merge(self):
-
-
         manipulation_dir = pjoin(data_dir, 'manipulation')
         cur_dir = os.getcwd()
         os.chdir(manipulation_dir)

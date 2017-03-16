@@ -1,6 +1,7 @@
 import time
 import libsbml
 
+
 def check_doc(doc, name=None):
     """
         Checks the given SBML document and prints errors of the given severity.
@@ -70,9 +71,10 @@ def flattenExternalModelDefinitions(doc):
 
     return doc
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     from os.path import join as pjoin
+
     directory = './emd_files/'
 
     top_file = pjoin(directory, 'diauxic_top.xml')
@@ -92,4 +94,3 @@ if __name__ == "__main__":
     libsbml.writeSBMLToFile(doc_top_noemd, top_noemd_file)
     doc_top_noemd_read = libsbml.readSBMLFromFile(top_noemd_file)
     check_doc(doc_top_noemd_read, name="doc_top_noemd_read")
-

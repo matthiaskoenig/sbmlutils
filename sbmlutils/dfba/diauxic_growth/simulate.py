@@ -1,18 +1,19 @@
 """
 Simulate the diauxic growth model.
 """
-from __future__ import print_function, division
-
+from __future__ import print_function, division, absolute_import
+from six import iteritems
 import os
 
-import dgsettings
-import model_factory
+from . import dgsettings
+from . import model_factory
 import numpy as np
 import pandas as pd
 from matplotlib import pylab as plt
 from sbmlutils.dfba.model import DFBAModel
 from sbmlutils.dfba.simulator import DFBASimulator
 from sbmlutils.dfba.analysis import DFBAAnalysis
+from .model_factory import DT_SIM
 
 plt.rcParams.update({
     'axes.labelsize': 'large',
@@ -28,8 +29,6 @@ version = model_factory.version
 
 directory = os.path.join(dgsettings.out_dir, 'v{}'.format(version))
 sbml_top_path = os.path.join(directory, dgsettings.top_file)
-
-from model_factory import DT_SIM
 
 
 def simulate_diauxic_growth(sbml_top_path, tend):
@@ -64,17 +63,19 @@ def simulate_diauxic_growth(sbml_top_path, tend):
 def benchmark(simulator, tend, Nrepeat=10):
     """ Benchmark the simulation.
 
-    :param sbml_top_path:
+    :param simulator
     :param tend:
+    :param Nrepeat
     :return:
     """
     steps = np.round(tend / DT_SIM)  # 10*tend
-    dfba_sim.benchmark(Nrepeat=Nrepeat, tstart=0, tend=tend, steps=steps)
+    simulator.benchmark(Nrepeat=Nrepeat, tstart=0, tend=tend, steps=steps)
 
 
 def print_species(filepath, df):
     """ Print diauxic species.
 
+    :param filepath:
     :param df:
     :return:
     """
@@ -82,17 +83,17 @@ def print_species(filepath, df):
 
     for ax in (ax1, ax3):
         ax.plot(df.time, df['[Ac]'],
-                 linestyle='-', marker='s', color='darkred', label="Ac")
+                linestyle='-', marker='s', color='darkred', label="Ac")
         ax.plot(df.time, df['[Glcxt]'],
-             linestyle='-', marker='s', color='darkblue', label="Glcxt")
+                linestyle='-', marker='s', color='darkblue', label="Glcxt")
         ax.plot(df.time, df['[O2]'],
-             linestyle='-', marker='s', color='darkgreen', label="O2")
+                linestyle='-', marker='s', color='darkgreen', label="O2")
     ax3.set_yscale('log')
     ax3.set_ylim([10E-5, 15])
 
     for ax in (ax2, ax4):
         ax.plot(df.time, df['[X]'],
-             linestyle='-', marker='s', color='black', label="X biomass")
+                linestyle='-', marker='s', color='black', label="X biomass")
     ax4.set_yscale('log')
 
     for ax in (ax1, ax3):
@@ -112,39 +113,44 @@ def print_species(filepath, df):
 def print_fluxes(filepath, df):
     """ Print exchange & internal fluxes with respective bounds.
 
+    :param filepath:
     :param df:
     :return:
     """
-    fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8), (ax9, ax10, ax11, ax12)) = plt.subplots(nrows=3, ncols=4, figsize=(18, 15))
+    fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8), (ax9, ax10, ax11, ax12)) = plt.subplots(nrows=3, ncols=4,
+                                                                                              figsize=(18, 15))
     fig.subplots_adjust(wspace=0.4, hspace=0.3)
 
     # exchange fluxes
     mapping1 = {'v1': ax1, 'v2': ax2, 'v3': ax3, 'v4': ax4}
     labels1 = {'v1': "v1 (39.43 Ac + 35 O2 -> X)",
-                'v2': "v2 (9.46 Glcxt + 12.92 O2 -> X)",
-                'v3': "v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)",
-                'v4': "v4 (19.23 Glcxt -> 12.12 Ac + X)"}
+               'v2': "v2 (9.46 Glcxt + 12.92 O2 -> X)",
+               'v3': "v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)",
+               'v4': "v4 (19.23 Glcxt -> 12.12 Ac + X)"}
 
     mapping2 = {'Ac': ax5, 'Glcxt': ax6, 'O2': ax7, 'X': ax8}
     mapping3 = {'Ac': ax9, 'Glcxt': ax10, 'O2': ax11, 'X': ax12}
 
     colors = {'Ac': 'darkred',
-               'Glcxt': 'darkgreen',
-               'O2': 'darkblue',
-               'X': 'black'}
+              'Glcxt': 'darkgreen',
+              'O2': 'darkblue',
+              'X': 'black'}
 
     # internal fluxes (v1, v2, v3, v4)
-    for key, ax in mapping1.iteritems():
+    for key, ax in iteritems(mapping1):
         ax.plot(df.time, df['fba__{}'.format(key)], label=labels1[key], color='k', linestyle='-', marker='s')
         ax.set_ylabel('Flux [mmol]')
         ax.set_title("{}: Flux".format(key))
         ax.legend()
 
     # exchange fluxes with bounds
-    for key, ax in mapping2.iteritems():
-        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3, interpolate=False, step='post')
-        ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2, interpolate=False, step='post')
-        ax.plot(df.time, df['EX_{}'.format(key)], linestyle='-', marker='s', color=colors[key], label="EX__{}".format(key))
+    for key, ax in iteritems(mapping2):
+        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3,
+                        interpolate=False, step='post')
+        ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2,
+                        interpolate=False, step='post')
+        ax.plot(df.time, df['EX_{}'.format(key)], linestyle='-', marker='s', color=colors[key],
+                label="EX__{}".format(key))
 
         ax.set_ylabel('Flux [mmol/l/h]')
         ax.set_title('{}: Flux'.format(key))
@@ -153,7 +159,7 @@ def print_fluxes(filepath, df):
         ax.legend()
 
     # concentrations
-    for key, ax in mapping3.iteritems():
+    for key, ax in iteritems(mapping3):
         ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)
         ax.plot(df.time, df['[{}]'.format(key)], linestyle='-', marker='s', color=colors[key], label="{}".format(key))
         ax.set_ylabel('Concentration [mmol/l]')
@@ -181,10 +187,10 @@ def print_fluxes(filepath, df):
 
 
 if __name__ == "__main__":
-
     print('Model:', sbml_top_path)
 
     import logging
+
     logging.getLogger().setLevel(logging.ERROR)
     # simulate_diauxic_growth(sbml_top_path, tend=20)
 
@@ -203,4 +209,3 @@ if __name__ == "__main__":
     # print(dfba_sim.cobra_model.solver.interface)
     # benchmark(dfba_sim, tend=10)
     # benchmark(dfba_sim, tend=20)
-

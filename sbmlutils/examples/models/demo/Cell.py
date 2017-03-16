@@ -53,7 +53,7 @@ units.extend([
     mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
     mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)]),
-    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)] ),
+    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)]),
     mc.Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
 ])
 ##############################################################
@@ -64,7 +64,6 @@ compartments.extend([
     mc.Compartment(sid='c', value=1e-06, unit='m3', constant=False, name='cell compartment'),
     mc.Compartment(sid='m', value=1, unit='m2', constant=False, spatialDimension=2, name='plasma membrane'),
 ])
-
 
 ##############################################################
 # Species

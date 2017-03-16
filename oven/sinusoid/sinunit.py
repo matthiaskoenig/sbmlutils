@@ -57,7 +57,6 @@ class SinusoidalUnitFactory(object):
     TYPE_PRESSURE = 'sinusoid_pressure'
     TYPE_FLOW = 'sinusoid_flow'
 
-
     def __init__(self, Nc, sin_species, core_model, model_type):
 
         self.Nc = Nc
