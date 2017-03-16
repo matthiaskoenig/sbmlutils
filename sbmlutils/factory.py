@@ -80,7 +80,7 @@ def set_main_units(model, main_units):
     :return:
     """
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
-        if not key in main_units:
+        if key not in main_units:
             logging.warn('The following key is missing in main_units: {}'.format(key))
             continue
         unit = main_units[key]

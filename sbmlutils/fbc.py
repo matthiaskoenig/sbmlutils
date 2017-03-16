@@ -129,7 +129,7 @@ def no_boundary_conditions(doc):
     """
     model = doc.getModel()
     for s in model.species:
-        if s.boundary_condition == True:
+        if s.boundary_condition:
             warn('boundaryCondition changed {}'.format(s), UserWarning)
             s.setBoundaryCondition(False)
 

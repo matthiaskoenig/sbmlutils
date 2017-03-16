@@ -175,7 +175,7 @@ def unitDefinitionToString(udef):
         (m * 10^s *k)^e
 
     """
-    if udef == None:
+    if udef is None:
         return 'None'
 
     libsbml.UnitDefinition_reorder(udef)

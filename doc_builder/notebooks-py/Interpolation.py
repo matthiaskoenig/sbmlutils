@@ -4,7 +4,7 @@
 # # Interpolation
 # `sbmlutils` provides functionality for creating interpolated functions in SBML models.
 # This allows to drive the model with experimental data sets.
-# 
+#
 # ## Dataset
 # In a first step an experimental data set is loaded as a `pandas` DataFrame.
 
@@ -71,7 +71,7 @@ for name in ['constant', 'linear', 'cubic']:
 
     # Simulate the interpolation
     r.timeCourseSelections = ['time', 'y', 'z']
-    s = r.simulate(0,10,steps=100)
+    s = r.simulate(0, 10, steps=100)
 
     plot_data(s, name=name)
     plt.show()
@@ -123,6 +123,3 @@ r2.plot(s)
 
 
 # In[6]:
-
-
-

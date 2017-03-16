@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # # Result selections
-# The `timecourseSelections` on the roadrunner object define what is part of the simulation.  
+# The `timecourseSelections` on the roadrunner object define what is part of the simulation.
 # By default only `time` and `concentrations` are part of the timecourseSelections.
 # To add additional selections just add the required sbml ids to the selection.
 # An example is given below.
@@ -47,6 +47,3 @@ print(s2)
 
 
 # In[ ]:
-
-
-

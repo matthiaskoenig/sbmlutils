@@ -58,6 +58,3 @@ if __name__ == "__main__":
     parser.add_argument('--f_out', help="SBML output file with names as ids")
     args = parser.parse_args()
     set_names_as_ids(args.f_in, args.f_out)
-
-
-

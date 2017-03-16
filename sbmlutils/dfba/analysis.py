@@ -18,7 +18,7 @@ class DFBAAnalysis(object):
         :rtype:
         """
         species_ids = ["[{}]".format(s) for s in self.rr_comp.model.getFloatingSpeciesIds()] \
-                      + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
+            + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
 
         ax_s = self.df.plot(x='time', y=species_ids)
         fig = ax_s.get_figure()

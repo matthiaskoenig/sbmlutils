@@ -277,7 +277,6 @@ class SinusoidalUnitFactory(object):
         """
         return []
 
-
     def _createFlowRulesPressure(self):
         """ The rules in the capillary pressure model.
 
@@ -340,7 +339,6 @@ class SinusoidalUnitFactory(object):
             # create the rule
             rules.append(mc.Rule(q_str, q_formula.format(x_str, x_str), 'm2_per_s'))
 
-
         return rules
 
     def createFlowReactions(self):
@@ -364,7 +362,7 @@ class SinusoidalUnitFactory(object):
             reactions.append(
                 createFlowReactionTemplate(sid, c_from=getPPId(), c_to=getSinusoidId(1), flow=Q_str)  # [m3/s] local volume flow
             )
-            # flow S[k] -> S[k+1] 
+            # flow S[k] -> S[k+1]
             for k in range(1, self.Nc):
                 if self.model_type == SinusoidalUnitFactory.TYPE_PRESSURE:
                     Q_str = getQFlowId(getSinusoidId(k), getSinusoidId(k+1))
@@ -411,4 +409,3 @@ class SinusoidalUnitFactory(object):
                     )
 
         return reactions
-

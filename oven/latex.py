@@ -27,7 +27,6 @@ if __name__ == "__main__":
     # TODO: keep brackets
     # TODO: make species bold
 
-
     # sympy solution (autosimplification alters the order and the brackets)
     from sympy import Symbol, sympify
 

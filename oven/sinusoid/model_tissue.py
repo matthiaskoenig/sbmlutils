@@ -170,7 +170,7 @@ class TissueModel(object):
         return comps
 
     ##########################################################################
-    # Cell compartments 
+    # Cell compartments
     ##########################################################################
     def createCellCompartmentsDict(self):
         comps = dict()
@@ -426,7 +426,7 @@ class TissueModel(object):
             r = (getPositionId(getSinusoidId(k), getSinusoidId(k + 1)), '{} dimensionless*x_sin'.format(k), 'm')
             rules.append(r)
 
-        # pressures 
+        # pressures
         P_formula = '(-(Pb-P0) + (Pa-P0)*exp(-L/lambda))/(exp(-L/lambda)-exp(L/lambda))*exp( {}/lambda)\
                  + ( (Pb-P0) - (Pa-P0)*exp( L/lambda))/(exp(-L/lambda)-exp(L/lambda))*exp(-{}/lambda) + P0'
         # PP, PV
@@ -440,7 +440,7 @@ class TissueModel(object):
             P_str = getPressureId(getSinusoidId(k))
             rules.append((P_str, P_formula.format(x_str, x_str), 'Pa'))
 
-        # capillary flow 
+        # capillary flow
         Q_formula = '-1 dimensionless/sqrt(W*w) * ( (-(Pb-P0) + (Pa-P0)*exp(-L/lambda))/(exp(-L/lambda)-exp(L/lambda))*exp( {}/lambda)\
         - ( (Pb-P0) - (Pa-P0)*exp( L/lambda))/(exp(-L/lambda)-exp(L/lambda))*exp(-{}/lambda) )'
         # PP, PV
@@ -454,7 +454,7 @@ class TissueModel(object):
             Q_str = '{}{}_Q'.format(getSinusoidId(k), getSinusoidId(k + 1))
             rules.append((Q_str, Q_formula.format(x_str, x_str), 'm3_per_s'))
 
-        # pore flow (only along sinusoid, not in PP and PV) 
+        # pore flow (only along sinusoid, not in PP and PV)
         q_formula = '1 dimensionless/w  * ( (-(Pb-P0) + (Pa-P0)*exp(-L/lambda))/(exp(-L/lambda)-exp(L/lambda))*exp( {}/lambda) \
         + ( (Pb-P0) - (Pa-P0)*exp( L/lambda))/(exp(-L/lambda)-exp(L/lambda))*exp(-{}/lambda) )'
 
@@ -478,7 +478,7 @@ class TissueModel(object):
             Q_str = getQFlowId(getPPId())  # [m3/s] local volume flow
             createFlowReaction(self.model, sid, c_from=getPPId(), c_to=getSinusoidId(1),
                                flow=Q_str)  # [m3/s] local volume flow
-            # flow S[k] -> S[k+1] 
+            # flow S[k] -> S[k+1]
             for k in range(1, self.Nc * self.Nf):
                 Q_str = getQFlowId(getSinusoidId(k), getSinusoidId(k + 1))
                 createFlowReaction(self.model, sid, c_from=getSinusoidId(k), c_to=getSinusoidId(k + 1), flow=Q_str)
@@ -495,7 +495,7 @@ class TissueModel(object):
             if sid in ["rbcM"]:
                 continue  # only create for substances fitting through pores
 
-            # flow S[k] -> D[k] 
+            # flow S[k] -> D[k]
             for k in self.comp_range():
                 Q_str = getqFlowId(getSinusoidId(k)) + ' * {}'.format('x_sin')  # [m2/s] * [m] (area flow)
                 createFlowReaction(self.model, sid, c_from=getSinusoidId(k), c_to=getDisseId(k), flow=Q_str)

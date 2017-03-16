@@ -31,8 +31,8 @@ def check(value, message):
             return
         else:
             print('Error encountered trying to <' + message + '>.')
-            print('LibSBML returned error code ' + str(value) + ': "'
-                  + libsbml.OperationReturnValue_toString(value).strip() + '"')
+            print('LibSBML returned error code {}: {}'.format(str(value),
+                                                              libsbml.OperationReturnValue_toString(value).strip()))
     else:
         return
 
@@ -137,8 +137,8 @@ def error_string(error, k=None):
                 '{}\n' \
                 '[{}] {}\n' \
                 '{}\n'.format(
-        k, error.getCategoryAsString(), package, error.getLine(), 'code',
-        '-' * 60,
-        error.getSeverityAsString(), error.getShortMessage(),
-        error.getMessage())
+                    k, error.getCategoryAsString(), package, error.getLine(), 'code',
+                    '-' * 60,
+                    error.getSeverityAsString(), error.getShortMessage(),
+                    error.getMessage())
     return error_str

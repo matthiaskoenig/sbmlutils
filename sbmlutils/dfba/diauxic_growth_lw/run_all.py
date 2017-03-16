@@ -1,11 +1,11 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 import os
 import timeit
+from sbmlutils.dfba.simulator import DFBASimulator
 
 out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
-from sbmlutils.dfba.simulator import DFBASimulator
 
 if __name__ == "__main__":
     top_level_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model_ibiosim/growth_top.xml')

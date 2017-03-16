@@ -17,7 +17,7 @@ def modelHeaders(top_model):
     print(r.selections)
     r.selections = ['time'] + sorted(["[{}]".format(sid) for sid in r.getFloatingSpeciesIds()] +
                                      ["[{}]".format(sid) for sid in r.getBoundarySpeciesIds()]) + \
-                   sorted(r.getReactionIds()) + sorted(r.getGlobalParameterIds())
+        sorted(r.getReactionIds()) + sorted(r.getGlobalParameterIds())
     print(r.selections)
 
 

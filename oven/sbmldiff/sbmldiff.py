@@ -28,4 +28,3 @@ doc = libsbml.readSBMLFromString(c14n_xml)
 
 # read with roadrunner
 te.loadSBMLModel(c14n_xml)
-
