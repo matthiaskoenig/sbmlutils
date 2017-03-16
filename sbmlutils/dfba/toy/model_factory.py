@@ -10,19 +10,19 @@ The toy model consists hereby of
 The SBML comp extension is used for hierarchical model composition, i.e. to create
 the main model and the kinetic model parts.
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from os.path import join as pjoin
-from sbmlutils import comp
-from sbmlutils import factory as mc
-
-import model_factory
-import sbmlutils.annotation as sbml_annotation
-import sbmlutils.sbmlio as sbml_io
-import toysettings
 from libsbml import *
-from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
+
+from sbmlutils import comp
+from sbmlutils import sbmlio
+from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
+
+from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
+from sbmlutils.dfba.utils import versioned_directory, add_generic_info
+from sbmlutils.dfba.toy import toysettings
 
 XMLOutputStream.setWriteTimestamp(False)
 
@@ -99,18 +99,6 @@ UNIT_CONCENTRATION = 'item_per_m3'
 UNIT_FLUX = 'item_per_s'
 
 
-def add_generic_info(model):
-    """ Adds the shared information to the models.
-
-    :param model: SBMLModel instance
-    :return:
-    """
-    sbml_annotation.set_model_history(model, creators)
-    mc.create_objects(model, units)
-    mc.set_main_units(model, main_units)
-    model.setNotes(notes)
-
-
 ####################################################
 # FBA submodel
 ####################################################
@@ -135,7 +123,7 @@ def fba_model(sbml_file, directory):
     model.setId('toy_fba')
     model.setName('toy (FBA submodel)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
-    add_generic_info(model)
+    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
     # Compartments
     compartments = [
@@ -209,7 +197,7 @@ def fba_model(sbml_file, directory):
     comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -230,7 +218,7 @@ def bounds_model(sbml_file, directory):
     model.setName("toy (BOUNDS calculation submodel)")
 
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model)
+    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         # definition of min and max
@@ -286,7 +274,7 @@ def bounds_model(sbml_file, directory):
     comp._create_port(model, pid="lb_EX_C_port", idRef="lb_EX_C", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
 
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -305,7 +293,7 @@ def update_model(sbml_file, directory):
     model.setId("toy_update")
     model.setName("toy (metabolite UPDATE submodel)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model)
+    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         # FIXME: guidelines add compartments for species
@@ -338,7 +326,7 @@ def update_model(sbml_file, directory):
     comp._create_port(model, pid="EX_C_port", idRef="EX_C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -368,7 +356,7 @@ def top_model(sbml_file, directory, emds):
     model = doc.createModel()
     model.setId("toy_top")
     model.setName("toy (TOP model)")
-    model_factory.add_generic_info(model)
+    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
@@ -380,16 +368,18 @@ def top_model(sbml_file, directory, emds):
     # Compartments
     mc.create_objects(model, [
         mc.Compartment(sid="extern", name="external compartment", value=1.0, constant=True,
-                       spatialDimension=3, unit=model_factory.UNIT_VOLUME),
+                       spatialDimension=3, unit=UNIT_VOLUME),
         mc.Compartment(sid='cell', name='cell', value=1.0, constant=True,
-                       spatialDimension=3, unit=model_factory.UNIT_VOLUME),
+                       spatialDimension=3, unit=UNIT_VOLUME),
 
-        mc.Species(sid='C', name="C", value=0, unit=model_factory.UNIT_AMOUNT,
+        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT,
+                   hasOnlySubstanceUnits=True, compartment="extern"),
+        mc.Species(sid='D', name="D", value=0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # bounds
-
-        mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, unit=model_factory.UNIT_FLUX, constant=False),
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
+        mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, unit=UNIT_FLUX, constant=False),
 
         # kinetic
         mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
@@ -438,24 +428,20 @@ def top_model(sbml_file, directory, emds):
                                           submodels=['bounds', 'fba', 'update', 'model'])
 
     # write SBML file
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back the working dir
     os.chdir(working_dir)
 
 
-def create_model(out_dir):
+def create_model(output_dir):
     """ Create all submodels and comp model.
 
-    :return:
+    :param output_dir: results directory
+    :rtype:
+    :return directory in which model files exist.
     """
-    if out_dir is None:
-        out_dir = toysettings.out_dir
-
-    directory = pjoin(out_dir, 'v{}'.format(version))
-    if not os.path.exists(directory):
-        print('Create directory: {}'.format(directory))
-        os.mkdir(directory)
+    directory = versioned_directory(output_dir, version=version)
 
     # create sbml
     fba_model(toysettings.fba_file, directory)
@@ -481,8 +467,10 @@ def create_model(out_dir):
                    toysettings.top_file,
                    toysettings.flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+    return directory
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    create_model()
+    directory = create_model(output_dir=toysettings.out_dir)
+    print(directory)

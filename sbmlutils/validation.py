@@ -90,8 +90,13 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
         '-' * 80,
         name,
         "{:<25}: <{}>".format("valid", str(valid_status).upper()),
-        "{:<25}: {}".format("validation error(s)", Nerr),
-        "{:<25}: {}".format("validation warnings(s)", Nwarn),
+    ]
+    if Nall > 0:
+        lines += [
+            "{:<25}: {}".format("validation error(s)", Nerr),
+            "{:<25}: {}".format("validation warnings(s)", Nwarn),
+        ]
+    lines += [
         "{:<25}: {}".format("check time (ms)", str(time.clock() - current)),
         '-' * 80,
     ]
@@ -128,6 +133,7 @@ def _check_consistency(doc, internalConsistency=False):
         print_errors(doc)
 
     return Nall, Nerr, Nwarn
+
 
 def print_errors(doc):
     """ Prints errors of SBMLDocument.
