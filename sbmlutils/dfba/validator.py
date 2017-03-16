@@ -22,4 +22,3 @@ class DFBAValidator(object):
         """ Create validator with the top level SBML file. """
         dfba_model = DFBAModel(sbml_top_path)
         return DFBAValidator(dfba_model)
-

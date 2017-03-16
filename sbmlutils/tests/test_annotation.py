@@ -22,7 +22,7 @@ class AnnotationTest(object):
              'qualifier': 'test_qualifier',
              'collection': 'test_collection',
              'name': 'test_name'}
-        
+
         ma = ModelAnnotation(d)
         assert 'test_pattern' == ma.pattern
         assert 'reaction' == ma.sbml_type
@@ -31,7 +31,7 @@ class AnnotationTest(object):
         assert 'test_qualifier' == ma.qualifier
         assert 'test_collection' == ma.collection
         assert 'test_name' == ma.name
-    
+
     def test_model_annotator(self):
         doc = libsbml.SBMLDocument(3, 1)
         model = doc.createModel()
@@ -40,7 +40,7 @@ class AnnotationTest(object):
         assert model == annotator.model
         assert annotations == annotator.annotations
         annotator.annotate_model()
-    
+
     def test_set_model_history(self):
         creators = [Creator(familyName='Koenig', givenName="Matthias",
                             email="konigmatt@googlemail.com", organization="Test organisation")]
@@ -56,16 +56,16 @@ class AnnotationTest(object):
         self.assertEqual('Matthias', c.getGivenName())
         self.assertEqual('konigmatt@googlemail.com', c.getEmail())
         self.assertEqual('Test organisation', c.getOrganization())
-    
+
     def test_demo_annotation(self):
         """ Annotate the demo network. """
-    
+
         f_tmp = tempfile.NamedTemporaryFile()
         annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
         f_tmp.flush()
-    
+
         import re
-    
+
         # document
         doc = libsbml.readSBMLFromFile(f_tmp.name)
         self.assertEqual(doc.getSBOTerm(), 293)
@@ -74,12 +74,12 @@ class AnnotationTest(object):
         # check: is one cv term with 3 resources in bag
         self.assertEqual(len(cvterms), 1)
         self.assertEqual(cvterms[0].getNumResources(), 1)
-    
+
         # model
         model = doc.getModel()
         cvterms = model.getCVTerms()
         self.assertEqual(len(cvterms), 0)
-    
+
         # compartments
         ce = model.getCompartment('e')
         self.assertEqual(ce.getSBOTerm(), 290)
@@ -88,21 +88,21 @@ class AnnotationTest(object):
         # check: is one cv term with 3 resources in bag
         self.assertEqual(len(cvterms), 1)
         self.assertEqual(cvterms[0].getNumResources(), 3)
-    
+
         cm = model.getCompartment('m')
         self.assertEqual(cm.getSBOTerm(), 290)
         self.assertEqual(cm.getSBOTermID(), "SBO:0000290")
         cvterms = cm.getCVTerms()
         self.assertEqual(len(cvterms), 1)
         self.assertEqual(cvterms[0].getNumResources(), 3)
-    
+
         cc = model.getCompartment('c')
         self.assertEqual(cc.getSBOTerm(), 290)
         self.assertEqual(cc.getSBOTermID(), "SBO:0000290")
         cvterms = cm.getCVTerms()
         self.assertEqual(len(cvterms), 1)
         self.assertEqual(cvterms[0].getNumResources(), 3)
-    
+
         # parameters
         for p in model.parameters:
             cvterms = p.getCVTerms()
@@ -110,17 +110,17 @@ class AnnotationTest(object):
                 self.assertEqual(p.getSBOTerm(), 27)
                 self.assertEqual(p.getSBOTermID(), "SBO:0000027")
                 self.assertEqual(len(cvterms), 1)
-    
+
             if re.match("^Keq_\w+$", p.id):
                 self.assertEqual(p.getSBOTerm(), 281)
                 self.assertEqual(p.getSBOTermID(), "SBO:0000281")
                 self.assertEqual(len(cvterms), 1)
-    
+
             if re.match("^Vmax_\w+$", p.id):
                 self.assertEqual(p.getSBOTerm(), 186)
                 self.assertEqual(p.getSBOTermID(), "SBO:0000186")
                 self.assertEqual(len(cvterms), 1)
-    
+
         # species
         for s in model.species:
             cvterms = s.getCVTerms()
@@ -128,7 +128,7 @@ class AnnotationTest(object):
                 self.assertEqual(s.getSBOTerm(), 247)
                 self.assertEqual(s.getSBOTermID(), "SBO:0000247")
                 self.assertEqual(len(cvterms), 1)
-    
+
         # reactions
         for r in model.reactions:
             cvterms = r.getCVTerms()
@@ -136,12 +136,12 @@ class AnnotationTest(object):
                 self.assertEqual(r.getSBOTerm(), 185)
                 self.assertEqual(r.getSBOTermID(), "SBO:0000185")
                 self.assertEqual(len(cvterms), 1)
-    
+
             if re.match("^v\w{1}$", r.id):
                 self.assertEqual(r.getSBOTerm(), 176)
                 self.assertEqual(r.getSBOTermID(), "SBO:0000176")
                 self.assertEqual(len(cvterms), 1)
-    
+
     def test_galactose_annotation(self):
         """ Annotate the galactose network. """
         f_tmp = tempfile.NamedTemporaryFile()

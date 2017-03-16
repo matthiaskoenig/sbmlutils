@@ -23,4 +23,3 @@ GLUT2_GAL = ReactionTemplate(
     formula=('GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/'
              '(1 dimensionless + c__gal/GLUT2_k_gal + e__gal/GLUT2_k_gal) ', 'mole_per_s')
 )
-

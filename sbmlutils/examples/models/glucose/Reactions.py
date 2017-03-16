@@ -476,7 +476,7 @@ PK = ReactionTemplate(
        mc.Parameter('PKp_k_pep', 1.10, 'mM'),
        mc.Parameter('PKn_ba', 0.08, 'dimensionless'),
        mc.Parameter('PKp_ba', 0.04, 'dimensionless'),
-        
+
        mc.Parameter('PK_ae', 1.0, 'dimensionless'),
        mc.Parameter('PKn_k_pep_end', 0.08, 'mM'),
        mc.Parameter('PK_k_adp', 2.3, 'mM'),

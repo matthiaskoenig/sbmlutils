@@ -6,4 +6,3 @@ if __name__ == "__main__":
 
     from multiscale.sbmlutils import comp
     comp.flattenSBMLFile("Top_level.xml", output_file="flatten.xml")
-
