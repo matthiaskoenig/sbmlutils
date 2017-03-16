@@ -55,7 +55,7 @@ def check_sbml(filepath, name=None, ucheck=True):
     return check_doc(doc, name=name, ucheck=ucheck)
 
 
-def check_doc(doc, name=None, ucheck=True):
+def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
     """
         Checks the given SBML document and prints errors of the given severity.
 
@@ -73,32 +73,31 @@ def check_doc(doc, name=None, ucheck=True):
     # set the unit checking, similar for the other settings
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, ucheck)
 
-    Nerr = 0  # error count
-    Nwarn = 0  # warning count
+    # time
     current = time.clock()
-    Nall = doc.checkConsistency()
 
-    valid_status = True
-    if Nall > 0:
-        for i in range(Nall):
-            severity = doc.getError(i).getSeverity()
-            if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
-                Nerr += 1
-                valid_status = False
-            else:
-                Nwarn += 1
+    # all, error, warn
+    Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internalConsistency=True)
+    Nall_noin, Nerr_noin, Nwarn_noin = _check_consistency(doc, internalConsistency=False)
+
+    # sum up
+    Nall = Nall_in + Nall_noin
+    Nerr = Nerr_in + Nerr_noin
+    Nwarn = Nwarn_in + Nwarn_noin
+    valid_status = (Nerr is 0)
 
     lines = [
         '-' * 80,
         name,
-        "{:<15}: {}".format("check time (ms)", str(time.clock() - current)),
-        "{:<15}: {}".format("valid", valid_status),
-        "{:<15}: {}".format("validation error(s)", Nerr),
-        "{:<15}: {}".format("validation warnings(s)", Nwarn),
+        "{:<25}: <{}>".format("valid", str(valid_status).upper()),
+        "{:<25}: {}".format("validation error(s)", Nerr),
+        "{:<25}: {}".format("validation warnings(s)", Nwarn),
+        "{:<25}: {}".format("check time (ms)", str(time.clock() - current)),
         '-' * 80,
     ]
     info = "\n".join(lines)
-    if Nwarn > 0:
+
+    if Nall > 0:
         if Nerr > 0:
             logging.error(info)
         else:
@@ -106,10 +105,29 @@ def check_doc(doc, name=None, ucheck=True):
     else:
         logging.debug(info)
 
-    # FIXME: print to logging
-    print_errors(doc)
     return Nall, Nerr, Nwarn
 
+
+def _check_consistency(doc, internalConsistency=False):
+    Nerr = 0  # error count
+    Nwarn = 0  # warning count
+    if internalConsistency:
+        Nall = doc.checkInternalConsistency()
+    else:
+        Nall = doc.checkConsistency()
+
+    if Nall > 0:
+        for i in range(Nall):
+            severity = doc.getError(i).getSeverity()
+            if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+                Nerr += 1
+            else:
+                Nwarn += 1
+
+        # FIXME: print to logging
+        print_errors(doc)
+
+    return Nall, Nerr, Nwarn
 
 def print_errors(doc):
     """ Prints errors of SBMLDocument.

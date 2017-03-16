@@ -348,8 +348,6 @@ def flattenExternalModelDefinitions(doc, validate=False):
     else:
         model = doc.getModel()
         comp_model = model.getPlugin("comp")
-        # md_list = comp_doc.getListOfModelDefinitions()
-        # print('md_list:', md_list)
 
         emd_ids = []
         for emd in emd_list:
@@ -358,6 +356,18 @@ def flattenExternalModelDefinitions(doc, validate=False):
 
             # get the model definition from the model
             ref_model = emd.getReferencedModel()
+
+            ref_doc = ref_model.getSBMLDocument()
+            print(ref_model)
+            for k in range(ref_doc.getNumPlugins()):
+                plugin = doc.getPlugin(k)
+                print(k, plugin)
+
+                uri = plugin.getURI()
+                prefix = plugin.getPrefix()
+                doc.enablePackage(uri, prefix, True)
+
+            print("\n")
 
             # add model definition for model
             md = libsbml.ModelDefinition(ref_model)
@@ -372,3 +382,11 @@ def flattenExternalModelDefinitions(doc, validate=False):
     if validate:
         validation.check_doc(doc)
     return doc
+
+
+if __name__ == "__main__":
+    from sbmlutils.tests import data
+    from sbmlutils import sbmlio
+
+    doc = sbmlio.read_sbml(data.DFBA_EMD_SBML)
+    doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)

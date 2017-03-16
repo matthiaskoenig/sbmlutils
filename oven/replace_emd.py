@@ -1,34 +1,5 @@
-import time
+from __future__ import print_function
 import libsbml
-
-
-def check_doc(doc, name=None):
-    """
-        Checks the given SBML document and prints errors of the given severity.
-
-        Individual checks can be changed via the categories
-            doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, False)
-            doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, False)
-
-        :param sbml: SBML file or str
-        :type sbml: file | str
-        :return: number of errors
-        """
-    if name is None:
-        name = str(doc)
-
-    current = time.clock()
-    doc.checkConsistency()
-    Nerrors = doc.getNumErrors()
-
-    print('-' * 80)
-    print(name)
-    print("read time (ms): " + str(time.clock() - current))
-    print("validation error(s): " + str(Nerrors))
-    print('-' * 80)
-
-    doc.printErrors()
-    return Nerrors
 
 
 def flattenExternalModelDefinitions(doc):
@@ -60,6 +31,20 @@ def flattenExternalModelDefinitions(doc):
             # get the model definition from the model
             ref_model = emd.getReferencedModel()
 
+            # --------------------------------------
+            ref_doc = ref_model.getSBMLDocument()
+            print(ref_model)
+            for k in range(ref_doc.getNumPlugins()):
+                plugin = doc.getPlugin(k)
+                print(k, plugin)
+
+                uri = plugin.getURI()
+                prefix = plugin.getPrefix()
+                doc.enablePackage(uri, prefix, True)
+
+            print("\n")
+            # --------------------------------------
+
             # add model definition for model
             md = libsbml.ModelDefinition(ref_model)
             comp_doc.addModelDefinition(md)
@@ -69,6 +54,9 @@ def flattenExternalModelDefinitions(doc):
             # remove the emd from the model
             comp_doc.removeExternalModelDefinition(emd_id)
 
+    doc.checkInternalConsistency()
+    doc.printErrors()
+
     return doc
 
 
@@ -76,21 +64,9 @@ if __name__ == "__main__":
     from os.path import join as pjoin
 
     directory = './emd_files/'
-
     top_file = pjoin(directory, 'diauxic_top.xml')
-    top_noemd_file = pjoin(directory, 'diauxic_top_noemd.xml')
-
-    # file is valid with emds
-    doc_top = libsbml.readSBMLFromFile(top_file)
-    check_doc(doc_top, name="doc_top")
 
     # replace the ExternalModelDefinitions with ModelDefinitions
-    doc_top_noemd = flattenExternalModelDefinitions(doc_top)
-    # still valid
-    check_doc(doc_top_noemd, name="doc_top_noemd")
+    doc_top = libsbml.readSBMLFromFile(top_file)
+    flattenExternalModelDefinitions(doc_top)
 
-    # write the file & read the file, not valid
-    # probably package information not written
-    libsbml.writeSBMLToFile(doc_top_noemd, top_noemd_file)
-    doc_top_noemd_read = libsbml.readSBMLFromFile(top_noemd_file)
-    check_doc(doc_top_noemd_read, name="doc_top_noemd_read")
