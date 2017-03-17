@@ -2,34 +2,64 @@
 Create all files and run the simulations.
 """
 from __future__ import print_function, division
-
 import timeit
+import os
+import numpy as np
+from matplotlib import pylab as plt
 
+from sbmlutils.dfba.model import DFBAModel
 from sbmlutils.dfba.simulator import DFBASimulator
-from toysettings import *
+from sbmlutils.dfba.analysis import DFBAAnalysis
+from sbmlutils.dfba.toy import toysettings
+from sbmlutils.dfba.toy import model_factory
+
+plt.rcParams.update({
+    'axes.labelsize': 'large',
+    'axes.labelweight': 'bold',
+    'axes.titlesize': 'large',
+    'axes.titleweight': 'bold',
+    'legend.fontsize': 'small',
+    'xtick.labelsize': 'large',
+    'ytick.labelsize': 'large',
+})
+
+version = model_factory.version
+
+directory = os.path.join(toysettings.out_dir, 'v{}'.format(version))
+sbml_top_path = os.path.join(directory, toysettings.top_file)
+print(sbml_top_path)
 
 
-def simulate_toymodel(directory, tend=50.0, steps=500):
-    """ Simulate the model.
+def simulate_toy(sbml_top_path, tend):
+    """ Simulate the diauxic growth model.
 
-    :param tend:
-    :param steps:
-    :return:
+    :return: solution data frame
     """
-    # Run simulation of the hybrid model
-    top_level_path = os.path.join(out_dir, top_file)
-    sim = DFBASimulator(sbml_top_path=top_level_path)
-    start_time = timeit.default_timer()
-    df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
-    elapsed = timeit.default_timer() - start_time
-    print("Simulation time: {}".format(elapsed))
+    steps = np.round(tend / model_factory.DT_SIM)  # 10*tend
 
-    # Create outputs
-    sim.plot_reactions(os.path.join(directory, "reactions.png"), df, rr_comp=sim.rr_comp)
-    sim.plot_species(os.path.join(directory, "species.png"), df, rr_comp=sim.rr_comp)
-    sim.save_csv(os.path.join(directory, "simulation.csv"), df)
+    # Load model in simulator
+    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+
+    # Run simulation of hybrid model
+    sim = DFBASimulator(dfba_model)
+    sim.simulate(tstart=0.0, tend=tend, steps=steps)
+    df = sim.solution
+
+    print("\nSimulation time: {}\n".format(sim.time))
+
+    # generic analysis
+    analysis = DFBAAnalysis(df=sim.solution, rr_comp=sim.ode_model)
+    analysis.plot_reactions(os.path.join(directory, "dg_reactions_generic.png"))
+    analysis.plot_species(os.path.join(directory, "dg_species_generic.png"))
+    analysis.save_csv(os.path.join(directory, "dg_simulation_generic.csv"))
+
+    # custom model plots
+    # print_species(os.path.join(directory, "dg_species.png"), sim.solution)
+    # print_fluxes(os.path.join(directory, "dg_fluxes.png"), sim.solution)
+    return df
+
 
 if __name__ == "__main__":
 
     # TODO: create SED-ML and OMEX for toy model
-    simulate_toymodel(out_dir, tend=50.0, steps=500)
+    simulate_toy(sbml_top_path, tend=50.0)

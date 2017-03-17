@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
-  <model metaid="meta_37430a5b4c654694bb328f31206c2f19" sboTerm="SBO:0000293" id="toy_bounds" name="toy (BOUNDS submodel)" substanceUnits="item" timeUnits="s" volumeUnits="m3" areaUnits="m2" lengthUnits="m" extentUnits="item">
+  <model metaid="meta_afdb030e962e418c89efd32444878049" sboTerm="SBO:0000293" id="toy_update" name="toy (UPDATE submodel)" substanceUnits="item" timeUnits="s" volumeUnits="m3" areaUnits="m2" lengthUnits="m" extentUnits="item">
     <notes>
       <body xmlns="http://www.w3.org/1999/xhtml">
         <h1>Wholecell Toy Model</h1>
@@ -27,7 +27,7 @@
   </body>
 </notes><annotation>
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-    <rdf:Description rdf:about="#meta_37430a5b4c654694bb328f31206c2f19">
+    <rdf:Description rdf:about="#meta_afdb030e962e418c89efd32444878049">
       <dcterms:creator>
         <rdf:Bag>
           <rdf:li rdf:parseType="Resource">
@@ -43,65 +43,14 @@
         </rdf:Bag>
       </dcterms:creator>
       <dcterms:created rdf:parseType="Resource">
-        <dcterms:W3CDTF>2017-03-17T16:49:27Z</dcterms:W3CDTF>
+        <dcterms:W3CDTF>2017-03-17T16:50:44Z</dcterms:W3CDTF>
       </dcterms:created>
       <dcterms:modified rdf:parseType="Resource">
-        <dcterms:W3CDTF>2017-03-17T16:49:27Z</dcterms:W3CDTF>
+        <dcterms:W3CDTF>2017-03-17T16:50:44Z</dcterms:W3CDTF>
       </dcterms:modified>
     </rdf:Description>
   </rdf:RDF>
-</annotation><listOfFunctionDefinitions>
-  <functionDefinition id="max" name="minimum of arguments">
-    <math xmlns="http://www.w3.org/1998/Math/MathML">
-      <lambda>
-        <bvar>
-          <ci> x </ci>
-        </bvar>
-        <bvar>
-          <ci> y </ci>
-        </bvar>
-        <piecewise>
-          <piece>
-            <ci> x </ci>
-            <apply>
-              <gt/>
-              <ci> x </ci>
-              <ci> y </ci>
-            </apply>
-          </piece>
-          <otherwise>
-            <ci> y </ci>
-          </otherwise>
-        </piecewise>
-      </lambda>
-    </math>
-  </functionDefinition>
-  <functionDefinition id="min" name="maximum of arguments">
-    <math xmlns="http://www.w3.org/1998/Math/MathML">
-      <lambda>
-        <bvar>
-          <ci> x </ci>
-        </bvar>
-        <bvar>
-          <ci> y </ci>
-        </bvar>
-        <piecewise>
-          <piece>
-            <ci> x </ci>
-            <apply>
-              <lt/>
-              <ci> x </ci>
-              <ci> y </ci>
-            </apply>
-          </piece>
-          <otherwise>
-            <ci> y </ci>
-          </otherwise>
-        </piecewise>
-      </lambda>
-    </math>
-  </functionDefinition>
-</listOfFunctionDefinitions><listOfUnitDefinitions>
+</annotation><listOfUnitDefinitions>
   <unitDefinition id="s">
     <listOfUnits>
       <unit kind="second" exponent="1" scale="0" multiplier="1"/>
@@ -153,69 +102,44 @@
 </listOfUnitDefinitions><listOfCompartments>
   <compartment id="extern" name="external compartment" spatialDimensions="3" size="1" units="m3" constant="true"/>
 </listOfCompartments><listOfSpecies>
-  <species id="A" name="A" compartment="extern" initialAmount="10" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+  <species id="A" name="A" compartment="extern" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
   <species id="C" name="C" compartment="extern" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
 </listOfSpecies><listOfParameters>
-  <parameter id="dt" value="0.1" units="s" constant="true"/>
-  <parameter id="lb_default" value="-1000" units="item_per_s" constant="true"/>
-  <parameter id="ub_EX_A" value="1000" units="item_per_s" constant="true"/>
-  <parameter id="lb_EX_A" value="-1000" units="item_per_s" constant="false"/>
-  <parameter id="ub_EX_C" value="1000" units="item_per_s" constant="true"/>
-  <parameter id="lb_EX_C" value="-1000" units="item_per_s" constant="false"/>
-  <parameter sboTerm="SBO:0000346" id="ub_R1" value="1" units="item_per_s" constant="false"/>
-  <parameter id="k1" name="k1" value="-0.2" units="per_s" constant="false"/>
-</listOfParameters><listOfRules>
-  <rateRule variable="ub_R1">
-    <math xmlns="http://www.w3.org/1998/Math/MathML">
-      <apply>
-        <times/>
-        <ci> k1 </ci>
-        <ci> ub_R1 </ci>
-      </apply>
-    </math>
-  </rateRule>
-  <assignmentRule variable="lb_EX_A">
-    <math xmlns="http://www.w3.org/1998/Math/MathML">
-      <apply>
-        <ci> max </ci>
-        <ci> lb_default </ci>
+  <parameter id="EX_A" value="1" units="item_per_s" constant="false"/>
+  <parameter id="EX_C" value="1" units="item_per_s" constant="false"/>
+</listOfParameters><listOfReactions>
+  <reaction sboTerm="SBO:0000631" id="update_A" reversible="true" fast="false">
+    <listOfReactants>
+      <speciesReference species="A" stoichiometry="1" constant="true"/>
+    </listOfReactants>
+    <kineticLaw>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
         <apply>
-          <divide/>
-          <apply>
-            <minus/>
-            <ci> A </ci>
-          </apply>
-          <ci> dt </ci>
+          <minus/>
+          <ci> EX_A </ci>
         </apply>
-      </apply>
-    </math>
-  </assignmentRule>
-  <assignmentRule variable="lb_EX_C">
-    <math xmlns="http://www.w3.org/1998/Math/MathML">
-      <apply>
-        <ci> max </ci>
-        <ci> lb_default </ci>
+      </math>
+    </kineticLaw>
+  </reaction>
+  <reaction sboTerm="SBO:0000631" id="update_C" reversible="true" fast="false">
+    <listOfReactants>
+      <speciesReference species="C" stoichiometry="1" constant="true"/>
+    </listOfReactants>
+    <kineticLaw>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
         <apply>
-          <divide/>
-          <apply>
-            <minus/>
-            <ci> C </ci>
-          </apply>
-          <ci> dt </ci>
+          <minus/>
+          <ci> EX_C </ci>
         </apply>
-      </apply>
-    </math>
-  </assignmentRule>
-</listOfRules><comp:listOfPorts>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="dt" comp:id="dt_port"/>
+      </math>
+    </kineticLaw>
+  </reaction>
+</listOfReactions><comp:listOfPorts>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="extern" comp:id="extern_port"/>
   <comp:port sboTerm="SBO:0000599" comp:idRef="A" comp:id="A_port"/>
   <comp:port sboTerm="SBO:0000599" comp:idRef="C" comp:id="C_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="extern" comp:id="extern_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_R1" comp:id="ub_R1_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_A" comp:id="lb_EX_A_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_A" comp:id="ub_EX_A_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_C" comp:id="lb_EX_C_port"/>
-  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_C" comp:id="ub_EX_C_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="EX_A" comp:id="EX_A_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="EX_C" comp:id="EX_C_port"/>
 </comp:listOfPorts>
 </model>
 </sbml>
