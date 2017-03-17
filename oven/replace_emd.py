@@ -15,7 +15,7 @@ def flattenExternalModelDefinitions(doc):
     :param doc: SBMLDocument
     :return: SBMLDocument with ExternalModelDefinitions replaced
     """
-    # FIXME: handle multiple levels of hierarchies. This must be done
+    # FIXME: handle /multiple levels of hierarchies. This must be done
     # recursively to handle the ExternalModelDefinitions of submodels
 
     comp_doc = doc.getPlugin("comp")
