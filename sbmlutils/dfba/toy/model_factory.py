@@ -138,7 +138,7 @@ def fba_model(sbml_file, directory):
     # Species
     species = [
         # external
-        mc.Species(sid='A', name="A", value=10, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
@@ -173,9 +173,9 @@ def fba_model(sbml_file, directory):
 
     # exchange reactions
     r_EX_A = mc.create_reaction(model, rid="EX_A", reversible=True,
-                                reactants={"A": 1}, products={}, compartment='membrane')
+                                reactants={"A": 1}, products={}, sboTerm="SBO:0000627")
     r_EX_C = mc.create_reaction(model, rid="EX_C", reversible=True,
-                                reactants={"C": 1}, products={}, compartment='membrane')
+                                reactants={"C": 1}, products={}, sboTerm="SBO:0000627")
 
     # flux bounds
     mc.set_flux_bounds(r1, lb="lb", ub="ub_R1")
@@ -190,7 +190,6 @@ def fba_model(sbml_file, directory):
                         fluxObjectives={"R3": 1.0}, active=True)
 
     # create ports
-    # comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
 
     comp._create_port(model, pid="lb_EX_A_port", idRef="lb_EX_A", portType=comp.PORT_TYPE_PORT)
@@ -304,7 +303,7 @@ def update_model(sbml_file, directory):
         # FIXME: guidelines add compartments for species
         mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
 
-        mc.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
+        mc.Species(sid='A', name="A", value=10.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
 
         # FIXME: guidelines add SBOTerm & add info for parameters
@@ -374,12 +373,10 @@ def top_model(sbml_file, directory, emds):
     mc.create_objects(model, [
         mc.Compartment(sid="extern", name="external compartment", value=1.0, constant=True,
                        spatialDimension=3, unit=UNIT_VOLUME),
-        mc.Compartment(sid='cell', name='cell', value=1.0, constant=True,
-                       spatialDimension=3, unit=UNIT_VOLUME),
 
         mc.Species(sid='dummy_S', value=0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern", sboTerm="SBO:0000291"),
-        mc.Species(sid='A', value=0, unit=UNIT_AMOUNT,
+        mc.Species(sid='A', value=10.0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
         mc.Species(sid='C', value=0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
@@ -401,7 +398,7 @@ def top_model(sbml_file, directory, emds):
         mc.AssignmentRule("EX_C", value="dummy_EX_C"),
 
         # bounds parameter
-        # mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
 
     ])
 
@@ -409,13 +406,16 @@ def top_model(sbml_file, directory, emds):
     mc.create_objects(model,
                       exchange_flux_bound_parameters(exchange_rids=['EX_A', 'EX_C'],
                                                      unit=UNIT_FLUX))
-
+    # kinetic flux bounds
+    comp.replace_elements(model, 'ub_R1', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['ub_R1_port'],
+                                             'fba': ['ub_R1_port']})
     # Reactions
-    # dummy reaction in top model
+    # exchange reaction in top model
     mc.create_reaction(model, rid="dummy_EX_A", reversible=True,
-                       reactants={}, products={"dummy_S": 1}, compartment="extern", sboTerm="SBO:0000631")
+                       reactants={}, products={"dummy_S": 1}, sboTerm="SBO:0000631")
     mc.create_reaction(model, rid="dummy_EX_C", reversible=True,
-                       reactants={}, products={"dummy_S": 1}, compartment="extern", sboTerm="SBO:0000631")
+                       reactants={}, products={"dummy_S": 1}, sboTerm="SBO:0000631")
 
     # kinetic reaction (MMK)
     mc.create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
@@ -450,6 +450,7 @@ def top_model(sbml_file, directory, emds):
     comp.replace_elements(model, 'C', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={'update': ['C_port'],
                                              'bounds': ['C_port']})
+
     # exchange bounds
     for bound_id in [
         'lb_EX_A', 'ub_EX_A',

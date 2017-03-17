@@ -215,6 +215,14 @@ def replaced_by(model, sid, ref_type, submodel, replaced_by):
     _set_ref(object=rby, ref_id=replaced_by, ref_type=ref_type)
 
 
+def comp_delete(model):
+    """ Delete elements from top model.
+
+    :param model:
+    :return:
+    """
+    pass
+
 def _get_eplugin_by_sid(model, sid):
     """ Gets the comp plugin by sid.
 
@@ -249,12 +257,13 @@ def _set_ref(object, ref_id, ref_type):
 ##########################################################################
 # flatten model
 ##########################################################################
-def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
+def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten given SBML file.
 
     :param sbml_path:
     :param leave_ports:
     :param output_path:
+    :param suffix to add to model id
     :return:
     """
     # necessary to change the working directory to the sbml file directory
@@ -266,7 +275,7 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     reader = libsbml.SBMLReader()
     check(reader, 'create an SBMLReader object.')
     doc = reader.readSBML(sbml_path)
-    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=output_path)
+    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=output_path, suffix=suffix)
 
     # change back the working dir
     os.chdir(working_dir)
@@ -274,7 +283,7 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     return flat_doc
 
 
-def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
+def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten the given SBMLDocument.
 
     :param doc: SBMLDocument to flatten.
@@ -303,7 +312,15 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
     result = doc.convert(props)
     if result != libsbml.LIBSBML_OPERATION_SUCCESS:
         doc.printErrors()
+        logging.error("model could not be flattended due to errors.")
         return
+
+    if suffix is not None:
+        model = doc.getModel()
+        if model is not None:
+            model.setId(model.getId() + suffix)
+            if model.isSetName():
+                model.setName(model.getName() + suffix)
 
     if output_path is not None:
         # Write the results to the output file.

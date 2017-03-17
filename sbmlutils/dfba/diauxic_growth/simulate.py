@@ -5,15 +5,14 @@ from __future__ import print_function, division, absolute_import
 from six import iteritems
 import os
 
-from . import dgsettings
-from . import model_factory
+from sbmlutils.dfba.diauxic_growth import dgsettings
+from sbmlutils.dfba.diauxic_growth import model_factory
 import numpy as np
 import pandas as pd
 from matplotlib import pylab as plt
 from sbmlutils.dfba.model import DFBAModel
 from sbmlutils.dfba.simulator import DFBASimulator
 from sbmlutils.dfba.analysis import DFBAAnalysis
-from .model_factory import DT_SIM
 
 plt.rcParams.update({
     'axes.labelsize': 'large',
@@ -36,7 +35,7 @@ def simulate_diauxic_growth(sbml_top_path, tend):
 
     :return: solution data frame
     """
-    steps = np.round(tend / DT_SIM)  # 10*tend
+    steps = np.round(tend / model_factory.DT_SIM)  # 10*tend
 
     # Load model in simulator
     dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
@@ -192,20 +191,21 @@ if __name__ == "__main__":
     import logging
 
     logging.getLogger().setLevel(logging.ERROR)
-    # simulate_diauxic_growth(sbml_top_path, tend=20)
+    simulate_diauxic_growth(sbml_top_path, tend=20)
 
-    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
-    dfba_sim = DFBASimulator(dfba_model, lp_solver='glpk')
-    print(dfba_sim.cobra_model.solver.interface)
-    benchmark(dfba_sim, tend=10)
-    benchmark(dfba_sim, tend=20)
+    if False:
+        dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+        dfba_sim = DFBASimulator(dfba_model, lp_solver='glpk')
+        print(dfba_sim.cobra_model.solver.interface)
+        benchmark(dfba_sim, tend=10)
+        benchmark(dfba_sim, tend=20)
 
-    dfba_sim = DFBASimulator(dfba_model, lp_solver='cplex')
-    print(dfba_sim.cobra_model.solver.interface)
-    benchmark(dfba_sim, tend=10)
-    benchmark(dfba_sim, tend=20)
+        dfba_sim = DFBASimulator(dfba_model, lp_solver='cplex')
+        print(dfba_sim.cobra_model.solver.interface)
+        benchmark(dfba_sim, tend=10)
+        benchmark(dfba_sim, tend=20)
 
-    # dfba_sim = DFBASimulator(dfba_model, lp_solver='gurobi')
-    # print(dfba_sim.cobra_model.solver.interface)
-    # benchmark(dfba_sim, tend=10)
-    # benchmark(dfba_sim, tend=20)
+        # dfba_sim = DFBASimulator(dfba_model, lp_solver='gurobi')
+        # print(dfba_sim.cobra_model.solver.interface)
+        # benchmark(dfba_sim, tend=10)
+        # benchmark(dfba_sim, tend=20)

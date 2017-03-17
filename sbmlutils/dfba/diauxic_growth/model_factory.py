@@ -98,7 +98,7 @@ XMLOutputStream.setWriteTimestamp(False)
 # General model information
 ########################################################################
 version = 7
-DT_SIM = 0.1
+DT_SIM = 0.01
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>
@@ -242,15 +242,14 @@ def fba_model(sbml_file, directory):
     mc.create_objects(model, parameters)
 
     # reactions: exchange reactions (this species can be changed by the FBA)
-    r_EX_O2 = mc.create_reaction(model, rid="EX_O2", name="O2 exchange", reversible=False,
-                                 reactants={"O2": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-    r_EX_Glcxt = mc.create_reaction(model, rid="EX_Glcxt", name="Glcxt exchange", reversible=False,
-                                    reactants={"Glcxt": 1}, products={}, compartment='bioreactor',
-                                    sboTerm="SBO:0000627")
-    r_EX_Ac = mc.create_reaction(model, rid="EX_Ac", name="Ac exchange", reversible=True,
-                                 reactants={"Ac": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-    r_EX_X = mc.create_reaction(model, rid="EX_X", name="biomass exchange", reversible=False,
-                                reactants={"X": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
+    r_EX_O2 = mc.create_reaction(model, rid="EX_O2", reversible=False,
+                                 reactants={"O2": 1}, sboTerm="SBO:0000627")
+    r_EX_Glcxt = mc.create_reaction(model, rid="EX_Glcxt", reversible=False,
+                                    reactants={"Glcxt": 1}, sboTerm="SBO:0000627")
+    r_EX_Ac = mc.create_reaction(model, rid="EX_Ac", reversible=True,
+                                 reactants={"Ac": 1}, sboTerm="SBO:0000627")
+    r_EX_X = mc.create_reaction(model, rid="EX_X", reversible=False,
+                                reactants={"X": 1}, sboTerm="SBO:0000627")
 
     # flux bounds: exchange fluxes
     mc.set_flux_bounds(r_EX_Ac, lb="lb_EX_Ac", ub="ub_EX_Ac")
@@ -407,6 +406,9 @@ def bounds_model(sbml_file, directory):
     comp._create_port(model, pid="ub_EX_O2_port", idRef="ub_EX_O2", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="lb_EX_X_port", idRef="lb_EX_X", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
+
+
+    # TODO: kinetic bounds missing
 
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
