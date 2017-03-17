@@ -22,6 +22,7 @@ from sbmlutils.report import sbmlreport
 
 from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
 from sbmlutils.dfba.utils import versioned_directory, add_generic_info
+from sbmlutils.dfba.utils import exchange_flux_bound_parameters
 from sbmlutils.dfba.toy import toysettings
 
 XMLOutputStream.setWriteTimestamp(False)
@@ -191,10 +192,14 @@ def fba_model(sbml_file, directory):
     # create ports
     # comp._create_port(model, pid="R3_port", idRef="R3", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
+
     comp._create_port(model, pid="lb_EX_A_port", idRef="lb_EX_A", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_EX_A_port", idRef="ub_EX_A", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="lb_EX_C_port", idRef="lb_EX_C", portType=comp.PORT_TYPE_PORT)
     comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
+
+    comp._create_port(model, pid="EX_A_port", idRef="EX_A", portType=comp.PORT_TYPE_PORT)
+    comp._create_port(model, pid="EX_C_port", idRef="EX_C", portType=comp.PORT_TYPE_PORT)
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
@@ -215,7 +220,7 @@ def bounds_model(sbml_file, directory):
 
     model = doc.createModel()
     model.setId("toy_bounds")
-    model.setName("toy (BOUNDS calculation submodel)")
+    model.setName("toy (BOUNDS submodel)")
 
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
@@ -291,7 +296,7 @@ def update_model(sbml_file, directory):
 
     model = doc.createModel()
     model.setId("toy_update")
-    model.setName("toy (metabolite UPDATE submodel)")
+    model.setName("toy (UPDATE submodel)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
@@ -372,60 +377,92 @@ def top_model(sbml_file, directory, emds):
         mc.Compartment(sid='cell', name='cell', value=1.0, constant=True,
                        spatialDimension=3, unit=UNIT_VOLUME),
 
-        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT,
+        mc.Species(sid='dummy_S', value=0, unit=UNIT_AMOUNT,
+                   hasOnlySubstanceUnits=True, compartment="extern", sboTerm="SBO:0000291"),
+        mc.Species(sid='A', value=0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
-        mc.Species(sid='D', name="D", value=0, unit=UNIT_AMOUNT,
+        mc.Species(sid='C', value=0, unit=UNIT_AMOUNT,
+                   hasOnlySubstanceUnits=True, compartment="extern"),
+        mc.Species(sid='D', value=0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
-        # bounds
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
-        mc.Parameter(sid="vR3", name="vR3 (FBA flux)", value=0.1, unit=UNIT_FLUX, constant=False),
+        # dt
+        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, constant=False, sboTerm="SBO:0000346"),
+
+        # flux parameters
+        mc.Parameter(sid='EX_A', value=1.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid='EX_C', value=1.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
 
         # kinetic
         mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
+
+        # flux assignment rules
+        mc.AssignmentRule("EX_A", value="dummy_EX_A"),
+        mc.AssignmentRule("EX_C", value="dummy_EX_C"),
+
+        # bounds parameter
+        # mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
+
     ])
+
+    # creates the exchange bound parameters
+    mc.create_objects(model,
+                      exchange_flux_bound_parameters(exchange_rids=['EX_A', 'EX_C'],
+                                                     unit=UNIT_FLUX))
 
     # Reactions
     # dummy reaction in top model
-    mc.create_reaction(model, rid="R3", name="R3 dummy", fast=False, reversible=True,
-                       reactants={}, products={"C": 1}, compartment="extern")
+    mc.create_reaction(model, rid="dummy_EX_A", reversible=True,
+                       reactants={}, products={"dummy_S": 1}, compartment="extern", sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_C", reversible=True,
+                       reactants={}, products={"dummy_S": 1}, compartment="extern", sboTerm="SBO:0000631")
+
     # kinetic reaction (MMK)
     mc.create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
                        reactants={"C": 1}, products={"D": 1}, formula="k_R4*C", compartment="extern")
 
-    # AssignmentRules
-    mc.create_objects(model, [
-        mc.AssignmentRule(sid="vR3", value="R3"),
-    ])
 
-    # --- replacements ---
+    # fluxes
+    comp.replace_elements(model, 'EX_A', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_A_port']})
+    comp.replace_elements(model, 'EX_C', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_C_port']})
+
+    # ReplacedBy: replace dummy reaction by fba exchage reactions
+    comp.replaced_by(model, 'dummy_EX_A', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_A_port")
+    comp.replaced_by(model, 'dummy_EX_C', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_C_port")
+
+    # dt
+    comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['dt_port']})
+
     # replace compartments
     comp.replace_elements(model, 'extern', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['extern_port'], 'update': ['extern_port'],
-                                             'model': ['extern_port']})
-
-    comp.replace_elements(model, 'cell', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['cell_port']})
-
-    # replace parameters
-    comp.replace_elements(model, 'ub_R1', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'bounds': ['ub_R1_port'], 'fba': ['ub_R1_port']})
-    comp.replace_elements(model, 'vR3', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['vR3_port']})
+                          replaced_elements={'update': ['extern_port'],
+                                             'bounds': ['extern_port']})
 
     # replace species
+    comp.replace_elements(model, 'A', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['A_port'],
+                                             'bounds': ['A_port']})
     comp.replace_elements(model, 'C', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'fba': ['C_port'], 'update': ['C_port'],
-                                             'model': ['C_port']})
-
-    # replace reaction by fba reaction
-    comp.replaced_by(model, 'R3', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="R3_port")
+                          replaced_elements={'update': ['C_port'],
+                                             'bounds': ['C_port']})
+    # exchange bounds
+    for bound_id in [
+        'lb_EX_A', 'ub_EX_A',
+        'lb_EX_C', 'ub_EX_C'
+    ]:
+        comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
+                              replaced_elements={'bounds': ['{}_port'.format(bound_id)],
+                                                 'fba': ['{}_port'.format(bound_id)]})
 
     # replace units
     for uid in ['s', 'kg', 'm3', 'm2', 'mM', 'item_per_m3', 'm', 'per_s', 'item_per_s']:
         comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
-                                          submodels=['bounds', 'fba', 'update', 'model'])
+                                          submodels=['bounds', 'fba', 'update'])
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
