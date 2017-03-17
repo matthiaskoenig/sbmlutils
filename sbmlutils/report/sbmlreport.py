@@ -52,6 +52,7 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
     """
     # individual reports
     for sbml_path in sbml_paths:
+        print(sbml_path)
         create_sbml_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
 
     # write index html (unicode)
@@ -153,9 +154,6 @@ def _create_html(doc, basename, html_template='report.html'):
     :return:
     :rtype:
     """
-    model = doc.getModel()
-    values = _create_value_dictionary(model)
-
     # template environment
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
                       extensions=['jinja2.ext.autoescape'],
@@ -165,25 +163,36 @@ def _create_html(doc, basename, html_template='report.html'):
     for key in sbmlfilters.filters:
         env.filters[key] = getattr(sbmlfilters, key)
 
-    template = env.get_template(html_template)
+    model = doc.getModel()
+    if model is not None:
+        template = env.get_template(html_template)
+        values = _create_value_dictionary(model)
 
-    # Context
-    c = {
-        'basename': basename,
-        'doc': doc,
-        'model': model,
-        'values': values,
-        'units': model.getListOfUnitDefinitions(),
-        'compartments': model.getListOfCompartments(),
-        'functions': model.getListOfFunctionDefinitions(),
-        'parameters': model.getListOfParameters(),
-        'rules': model.getListOfRules(),
-        'assignments': model.getListOfInitialAssignments(),
-        'species': model.getListOfSpecies(),
-        'reactions': model.getListOfReactions(),
-        'constraints': model.getListOfConstraints(),
-        'events': model.getListOfEvents(),
-    }
+        # Context
+        c = {
+            'basename': basename,
+            'doc': doc,
+            'model': model,
+            'values': values,
+            'units': model.getListOfUnitDefinitions(),
+            'compartments': model.getListOfCompartments(),
+            'functions': model.getListOfFunctionDefinitions(),
+            'parameters': model.getListOfParameters(),
+            'rules': model.getListOfRules(),
+            'assignments': model.getListOfInitialAssignments(),
+            'species': model.getListOfSpecies(),
+            'reactions': model.getListOfReactions(),
+            'constraints': model.getListOfConstraints(),
+            'events': model.getListOfEvents(),
+        }
+    else:
+        # no model exists
+        warnings.warn("No model in SBML file when creating model report: {}".format(doc))
+        template = env.get_template("report_no_model.html")
+        c = {
+            'basename': basename,
+            'doc': doc,
+        }
     return template.render(c)
 
 
