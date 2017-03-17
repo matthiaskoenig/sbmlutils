@@ -384,7 +384,7 @@ def top_model(sbml_file, directory, emds):
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # dt
-        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, constant=False, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, constant=True, sboTerm="SBO:0000346"),
 
         # flux parameters
         mc.Parameter(sid='EX_A', value=1.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),

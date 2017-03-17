@@ -97,7 +97,7 @@ XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 7
+version = 8
 DT_SIM = 0.01
 notes = XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -194,7 +194,7 @@ def fba_model(sbml_file, directory):
 
     # model
     model.setId('diauxic_fba')
-    model.setName('FBA submodel (diauxic_fba)')
+    model.setName('diauxic (FBA)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
     add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
@@ -222,8 +222,8 @@ def fba_model(sbml_file, directory):
     parameters = [
         # default bounds
         mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_default", name="default lower bound", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX,
-                     constant=True, sboTerm="SBO:0000612"),
+        # mc.Parameter(sid="lb_default", name="default lower bound", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX,
+        #              constant=True, sboTerm="SBO:0000612"),
         mc.Parameter(sid="ub_default", name="default upper bound", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX,
                      constant=True, sboTerm="SBO:0000612"),
 
@@ -319,7 +319,7 @@ def bounds_model(sbml_file, directory):
     doc.setPackageRequired("comp", True)
     model = doc.createModel()
     model.setId("diauxic_bounds")
-    model.setName("ODE bounds submodel")
+    model.setName("diauxic (BOUNDS)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
@@ -428,7 +428,7 @@ def update_model(sbml_file, directory):
     # model
     model = doc.createModel()
     model.setId("diauxic_update")
-    model.setName("ODE metabolite update")
+    model.setName("diauxic (UPDATE)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
     add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
 
@@ -446,26 +446,26 @@ def update_model(sbml_file, directory):
                    compartment="bioreactor"),
 
         # exchange reaction fluxes
-        mc.Parameter(sid="EX_Ac", name="Ac exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_Glcxt", name="Glcxt exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_O2", name="O2 exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_X", name="X exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_Ac", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_Glcxt", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_O2", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_X", value=1.0, constant=True, unit=UNIT_FLUX),
 
     ]
     mc.create_objects(model, objects)
 
     # FIXME: multiply by X (fluxes per g weight, actual fluxes consequence of biomass)
-    mc.create_reaction(model, rid="update_Glcxt", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, products={}, modifiers=["X"],
+    mc.create_reaction(model, rid="update_Glcxt", sboTerm="SBO:0000631",
+                       reactants={"Glcxt": 1}, modifiers=["X"],
                        formula="-EX_Glcxt * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_Ac", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, products={}, modifiers=["X"],
+    mc.create_reaction(model, rid="update_Ac", sboTerm="SBO:0000631",
+                       reactants={"Ac": 1}, modifiers=["X"],
                        formula="-EX_Ac * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_O2", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, products={}, modifiers=["X"],
+    mc.create_reaction(model, rid="update_O2", sboTerm="SBO:0000631",
+                       reactants={"O2": 1}, modifiers=["X"],
                        formula="-EX_O2 * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_X", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"X": 1}, products={}, modifiers=["X"],
+    mc.create_reaction(model, rid="update_X", sboTerm="SBO:0000631",
+                       reactants={"X": 1}, modifiers=["X"],
                        formula="-EX_X * X * 1 l_per_mmol")
 
     # ports
@@ -536,7 +536,7 @@ def top_model(sbml_file, directory, emds):
     # create models and submodels
     model = doc.createModel()
     model.setId("diauxic_top")
-    model.setName("Top level model")
+    model.setName("diauxic (TOP)")
     add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
@@ -605,14 +605,14 @@ def top_model(sbml_file, directory, emds):
 
     # Reactions
     # dummy reaction (pseudoreaction)
-    mc.create_reaction(model, rid="dummy_EX_Glcxt", name="EX_Glcxt dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_EX_O2", name="EX_O2 dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_EX_Ac", name="EX_Ac dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_EX_X", name="EX_X dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_Glcxt", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_O2", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_Ac", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_X", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
 
     # oxygen transfer reaction
     mc.create_reaction(model, rid="vO2_transfer", name="oxygen transfer", reversible=True,
@@ -633,9 +633,6 @@ def top_model(sbml_file, directory, emds):
     ])
 
     # --- replacements ---
-    # dt
-    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
-
     # compartments
     comp.replace_elements(model, 'bioreactor', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={
