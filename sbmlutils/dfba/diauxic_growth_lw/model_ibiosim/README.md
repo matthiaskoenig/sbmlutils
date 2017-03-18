@@ -1,1 +1,0 @@
-# iBioSim diauxic growth model

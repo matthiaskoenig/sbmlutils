@@ -109,6 +109,13 @@ class DFBAModel(object):
             #     framework = MODEL_FRAMEWORK_LOGICAL
             else:
                 warnings.warn("Modelling Framework not supported: {}".format(sbo))
+        else:
+            warnings.warn("SBOTerm for modelling framework not set")
+            # try to find the FBA network nonetheless
+            if model.getPlugin('fbc') is not None:
+                warnings.warn("FBA model via fbc package")
+                framework = MODEL_FRAMEWORK_FBA
+
         return framework
 
     def __str__(self):
