@@ -222,7 +222,7 @@ def bounds_model(sbml_file, directory):
                    compartment="extern"),
 
         # dt parameter
-        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, constant=True),
+        builder.create_dt(step_size=DT_SIM, unit=UNIT_TIME),
 
         # exchange bounds
         mc.Parameter(sid="lb_default", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
@@ -360,7 +360,7 @@ def top_model(sbml_file, directory, emds):
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # dt
-        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, constant=True, sboTerm="SBO:0000346"),
+        builder.create_dt(step_size=DT_SIM, unit=UNIT_TIME),
 
         # flux parameters
         mc.Parameter(sid='EX_A', value=1.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),

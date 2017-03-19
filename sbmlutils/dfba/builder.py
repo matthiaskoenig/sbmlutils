@@ -19,15 +19,30 @@ logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 #################################################
 # Builder constants
 #################################################
-
+DT_SIM = 0.1
 LOWER_BOUND_DEFAULT = -1000
 UPPER_BOUND_DEFAULT = 1000
+
 LOWER_BOUND_PREFIX = 'lb_'
 UPPER_BOUND_PREFIX = 'ub_'
 EXCHANGE_REACTION_PREFIX = 'EX_'
 
 SBO_FLUX_BOUND = "SBO:0000625"
 SBO_EXCHANGE_REACTION = "SBO:0000627"
+SBO_DT = "SBO:0000346"
+
+
+def create_dt(step_size=DT_SIM, unit=None):
+    """ Creates the dt parameter in the model.
+
+    :param step_size:
+    :type step_size:
+    :param unit:
+    :type unit:
+    :return:
+    :rtype:
+    """
+    return fac.Parameter(sid='dt', value=step_size, unit=unit, constant=True, sboTerm=SBO_DT)
 
 
 def create_exchange_reaction(model, species_id, reversible=True, flux_unit=None):

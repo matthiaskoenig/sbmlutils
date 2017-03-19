@@ -56,3 +56,16 @@ def test_create_exchange_reaction():
     fbc_ex_B = ex_B.getPlugin("fbc")
     assert fbc_ex_B
 
+
+def test_create_dt():
+    doc = create_fba_doc()
+    model = doc.getModel()
+
+    fac.create_objects(model,
+                       [builder.create_dt(step_size=0.1)])
+    dt = model.getParameter('dt')
+    assert dt
+    assert dt.getConstant()
+    assert dt.getSBOTermID() == builder.SBO_DT
+
+
