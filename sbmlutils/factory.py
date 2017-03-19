@@ -296,7 +296,7 @@ class Parameter(ValueWithUnit):
 class Compartment(ValueWithUnit):
     """ Compartment. """
 
-    def __init__(self, sid, value, unit, constant, spatialDimension=3, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, value, unit=None, constant=True, spatialDimension=3, name=None, sboTerm=None, metaId=None):
         super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
         self.spatialDimension = spatialDimension

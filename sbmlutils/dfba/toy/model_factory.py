@@ -20,9 +20,9 @@ from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 
-from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
+from sbmlutils.dfba import builder
+from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, exchange_flux_bound_parameters
 from sbmlutils.dfba.utils import versioned_directory, add_generic_info
-from sbmlutils.dfba.utils import exchange_flux_bound_parameters
 from sbmlutils.dfba.toy import toysettings
 
 XMLOutputStream.setWriteTimestamp(False)
@@ -125,44 +125,34 @@ def fba_model(sbml_file, directory):
                      creators=creators,
                      units=units, main_units=main_units)
 
-    # Compartments
-    compartments = [
+    objects = [
+        # compartments
         mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
                        spatialDimension=3),
         mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimension=3),
         mc.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimension=2),
-    ]
-    mc.create_objects(model, compartments)
 
-    # Species
-    species = [
-        # external
+        # exchange species
         mc.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
-        # internal
+
+        # internal species
         mc.Species(sid='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
         mc.Species(sid='B2', name="B2", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
-    ]
-    mc.create_objects(model, species)
 
-    parameters = [
         # bounds
-        mc.Parameter(sid="ub_R1", name="ub R1", value=1.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="lb", name="lower bound", value=0.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="ub", name="upper bound", value=1000.0, unit=UNIT_FLUX, constant=True),
-        # exchange bounds
-        mc.Parameter(sid="ub_EX_A", value=1000.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="lb_EX_A", value=-1000.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="ub_EX_C", value=1000.0, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="lb_EX_C", value=-1000.0, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_R1", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.SBO_FLUX_BOUND),
+        mc.Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.SBO_FLUX_BOUND),
+        mc.Parameter(sid="ub_default", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True,
+                     sboTerm=builder.SBO_FLUX_BOUND),
     ]
-    mc.create_objects(model, parameters)
+    mc.create_objects(model, objects)
 
-    # reactions with constant flux
+    # reactions
     r1 = mc.create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
                             reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
     r2 = mc.create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
@@ -170,31 +160,22 @@ def fba_model(sbml_file, directory):
     r3 = mc.create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
                             reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
-    # exchange reactions
-    r_EX_A = mc.create_reaction(model, rid="EX_A", reversible=True,
-                                reactants={"A": 1}, products={}, sboTerm="SBO:0000627")
-    r_EX_C = mc.create_reaction(model, rid="EX_C", reversible=True,
-                                reactants={"C": 1}, products={}, sboTerm="SBO:0000627")
-
     # flux bounds
-    mc.set_flux_bounds(r1, lb="lb", ub="ub_R1")
-    mc.set_flux_bounds(r2, lb="lb", ub="ub")
-    mc.set_flux_bounds(r3, lb="lb", ub="ub")
-    # exchange bounds
-    mc.set_flux_bounds(r_EX_A, lb="lb_EX_A", ub="ub_EX_A")
-    mc.set_flux_bounds(r_EX_C, lb="lb_EX_C", ub="ub_EX_C")
+    mc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
+    mc.set_flux_bounds(r2, lb="zero", ub="ub_default")
+    mc.set_flux_bounds(r3, lb="zero", ub="ub_default")
+
+    # exchange reactions
+    builder.create_exchange_reaction(model, species_id="A", flux_unit=UNIT_FLUX)
+    builder.create_exchange_reaction(model, species_id="C", flux_unit=UNIT_FLUX)
 
     # objective function
     mc.create_objective(mplugin, oid="R3_maximize", otype="maximize",
                         fluxObjectives={"R3": 1.0}, active=True)
 
-    # create ports
+    # create ports for kinetic bounds
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=["ub_R1",
-                              "lb_EX_A", "lb_EX_C",
-                              "ub_EX_A", "ub_EX_C",
-                              "EX_A", "EX_C",
-                              ])
+                      idRefs=["ub_R1"])
 
     # write SBML
     sbmlio.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
