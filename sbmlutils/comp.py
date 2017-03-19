@@ -7,7 +7,9 @@ process. But the flattening parts also during the simulation
 of the dynamic FBA models.
 """
 
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
+from six import iteritems
+
 
 import logging
 import os
@@ -96,6 +98,53 @@ def get_submodel_frameworks(doc):
 PORT_TYPE_PORT = "port"
 PORT_TYPE_INPUT = "input port"
 PORT_TYPE_OUTPUT = "output port"
+
+
+def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=None,
+                 portType=PORT_TYPE_PORT, suffix="_port"):
+    """ Create ports given model.
+    Helper function to create port creation.
+
+    :param model: SBML model
+    :param portRefs: dict of the form {pid:portRef}
+    :param idRefs: dict of the form {pid:idRef}
+    :param unitRefs: dict of the form {pid:unitRef}
+    :param metaIdRes: dict of the form {pid:metaIdRef}
+    :return:
+    :rtype: ports
+    """
+    ports = []
+    if portRefs is not None:
+        ptype = "portRef"
+        data = portRefs
+    elif idRefs is not None:
+        ptype = "idRef"
+        data = idRefs
+    elif unitRefs is not None:
+        ptype = "unitRef"
+        data = unitRefs
+    elif metaIdRefs is not None:
+        ptype = "metaIdRef"
+        data = metaIdRefs
+
+    # dictionary, port ids are provided
+    if type(data) == dict:
+        for pid, ref in iteritems(data):
+            kwargs = {'pid': pid, ptype: ref}
+            ports.append(
+                _create_port(model, portType=portType, **kwargs)
+            )
+
+    # only a list of references, port ids created via suffix appending
+    elif type(data) in [list, tuple]:
+        for ref in data:
+            pid = ref + suffix
+            kwargs = {'pid': pid, ptype: ref}
+            ports.append(
+                _create_port(model, portType=portType, **kwargs)
+            )
+
+    return ports
 
 
 def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None,

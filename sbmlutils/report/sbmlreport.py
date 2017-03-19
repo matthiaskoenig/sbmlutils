@@ -19,7 +19,7 @@ The basic steps of template creation are
 
 
 from __future__ import print_function, division, absolute_import
-
+import sys
 import codecs
 import ntpath
 import os
@@ -33,8 +33,8 @@ from sbmlutils.report import sbmlfilters
 
 # Change default encoding to UTF-8
 # We need to reload sys module first, because setdefaultencoding is available only at startup time
-# reload(sys)
-# sys.setdefaultencoding('utf-8')
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')

@@ -27,20 +27,15 @@ from sbmlutils.dfba.toy import toysettings
 
 XMLOutputStream.setWriteTimestamp(False)
 
-# FIXME: write down the information on how to generate DFBA models from
-#   given FBA models
-#   - add dynamic species (which are the dynamic species? This should be
-#     the external one which are changed via the exchange reactions.
-#     This are NOT the same species like the internal species in the FBA
-
 ########################################################################
 # General model information
 ########################################################################
 version = 3
 DT_SIM = 0.1
-notes = XMLNode.convertStringToXMLNode("""
+notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Wholecell Toy Model</h1>
+    {}
     <h2>Description</h2>
     <p>This is a toy model for coupling models with different modeling frameworks via comp.</p>
 
@@ -64,7 +59,7 @@ notes = XMLNode.convertStringToXMLNode("""
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""")
+"""
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
@@ -104,17 +99,18 @@ UNIT_FLUX = 'item_per_s'
 # FBA submodel
 ####################################################
 def fba_model(sbml_file, directory):
-    """
-    Create the fba model.
-    FBA submodel in FBC v2 which uses parameters as flux bounds.
-    """
+    """FBA model."""
+    fba_notes = notes.format("""
+    <h2>FBA submodel</h2>
+    <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
+    """)
+
     sbmlns = SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("fbc", 2)
     sbmlns.addPackageNamespace("comp", 1)
 
     doc_fba = SBMLDocument(sbmlns)
     doc_fba.setPackageRequired("comp", True)
-    mdoc = doc_fba.getPlugin("comp")
     doc_fba.setPackageRequired("fbc", False)
     model = doc_fba.createModel()
     mplugin = model.getPlugin("fbc")
@@ -124,7 +120,10 @@ def fba_model(sbml_file, directory):
     model.setId('toy_fba')
     model.setName('toy (FBA submodel)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
-    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
+    add_generic_info(model,
+                     notes=fba_notes,
+                     creators=creators,
+                     units=units, main_units=main_units)
 
     # Compartments
     compartments = [
@@ -190,17 +189,14 @@ def fba_model(sbml_file, directory):
                         fluxObjectives={"R3": 1.0}, active=True)
 
     # create ports
-    comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=["ub_R1",
+                              "lb_EX_A", "lb_EX_C",
+                              "ub_EX_A", "ub_EX_C",
+                              "EX_A", "EX_C",
+                              ])
 
-    comp._create_port(model, pid="lb_EX_A_port", idRef="lb_EX_A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_A_port", idRef="ub_EX_A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_C_port", idRef="lb_EX_C", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
-
-    comp._create_port(model, pid="EX_A_port", idRef="EX_A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_C_port", idRef="EX_C", portType=comp.PORT_TYPE_PORT)
-
-    # write SBML file
+    # write SBML
     sbmlio.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
@@ -209,26 +205,32 @@ def fba_model(sbml_file, directory):
 ####################################################
 def bounds_model(sbml_file, directory):
     """"
-    Submodel for dynamically calculating the flux bounds.
-    The dynamically changing flux bounds are the input to the
-    FBA model.
+    Bounds model.
     """
+    bounds_notes = notes.format("""
+    <h2>BOUNDS submodel</h2>
+    <p>Submodel for dynamically calculating the flux bounds.
+    The dynamically changing flux bounds are the input to the
+    FBA model.</p>
+    """)
     sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
-
     model = doc.createModel()
     model.setId("toy_bounds")
     model.setName("toy (BOUNDS submodel)")
-
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
+    add_generic_info(model,
+                     notes=bounds_notes,
+                     creators=creators,
+                     units=units, main_units=main_units)
 
     objects = [
-        # definition of min and max
+        # min and max
         mc.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum of arguments'),
         mc.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum of arguments'),
 
+        # compartments
         mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
                        spatialDimension=3),
 
@@ -239,7 +241,8 @@ def bounds_model(sbml_file, directory):
                    compartment="extern"),
 
         # dt parameter
-        mc.Parameter(sid='dt', value=0.1, unit=UNIT_TIME, constant=True),
+        mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, constant=True),
+
         # exchange bounds
         mc.Parameter(sid="lb_default", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid="ub_EX_A", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
@@ -247,36 +250,25 @@ def bounds_model(sbml_file, directory):
         mc.Parameter(sid="ub_EX_C", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid="lb_EX_C", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
 
-        # kinetic bound parameter
+        # kinetic bound parameter & calculation
         mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
         mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
-
-        # rate rules
         mc.RateRule(sid="ub_R1", value="k1*ub_R1"),
 
-        # bounds assignment rules
-        # FIXME: guidelines bound depending if species is in amount or concentration
-
+        # bound assignment rules
         mc.AssignmentRule(sid="lb_EX_A", value='max(lb_default, -A/dt)'),
         mc.AssignmentRule(sid="lb_EX_C", value='max(lb_default, -C/dt)'),
     ]
     mc.create_objects(model, objects)
 
-    # FIXME: guidelines list ports for bounds model (dt, species, compartments, bounds)
-    # FIXME: guidelines move ReplacedElements to TOP model definition
     # ports
-    # dt, species and compartments
-    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="A_port", idRef="A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
-
-    # bounds
-    comp._create_port(model, pid="ub_R1_port", idRef="ub_R1", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_A_port", idRef="lb_EX_A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_A_port", idRef="ub_EX_A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_C_port", idRef="lb_EX_C", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_C_port", idRef="ub_EX_C", portType=comp.PORT_TYPE_PORT)
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=["dt",
+                              "extern",
+                              "A", "C",
+                              "lb_EX_A", "lb_EX_C",
+                              "ub_EX_A", "ub_EX_C",
+                              "ub_R1"])
 
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
@@ -285,49 +277,46 @@ def bounds_model(sbml_file, directory):
 # UPDATE submodel
 ####################################################
 def update_model(sbml_file, directory):
+    """ Update model.
     """
-        Submodel for dynamically updating the metabolite count.
-        This updates the ode model based on the FBA fluxes.
-    """
+    update_notes = notes.format("""
+        <h2>UPDATE submodel</h2>
+        <p>Submodel for dynamically updating the metabolite count.
+        This updates the ode model based on the FBA fluxes.</p>
+        """)
     sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
-
     model = doc.createModel()
     model.setId("toy_update")
     model.setName("toy (UPDATE submodel)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
+    add_generic_info(model,
+                     notes=update_notes,
+                     creators=creators,
+                     units=units, main_units=main_units)
 
     objects = [
-        # FIXME: guidelines add compartments for species
         mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
-
         mc.Species(sid='A', name="A", value=10.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
-
-        # FIXME: guidelines add SBOTerm & add info for parameters
-        mc.Parameter(sid="EX_A", value=1.0, constant=False, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_C", value=1.0, constant=False, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_A", value=1.0, constant=False, unit=UNIT_FLUX, sboTerm="SBO:0000613"),
+        mc.Parameter(sid="EX_C", value=1.0, constant=False, unit=UNIT_FLUX, sboTerm="SBO:0000613"),
     ]
     mc.create_objects(model, objects)
 
-    # exchange reactions
-    r_EX_A = mc.create_reaction(model, rid="update_A", reversible=True,
+    # update reactions
+    mc.create_reaction(model, rid="update_A", reversible=True,
                                 reactants={"A": 1}, products={},
                                 formula="-EX_A", sboTerm="SBO:0000631")
-    r_EX_C = mc.create_reaction(model, rid="update_C", reversible=True,
+    mc.create_reaction(model, rid="update_C", reversible=True,
                                 reactants={"C": 1}, products={},
                                 formula="-EX_C", sboTerm="SBO:0000631")
-
-    # FIXME: guidelines describe ports
-    comp._create_port(model, pid="extern_port", idRef="extern", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="A_port", idRef="A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="C_port", idRef="C", portType=comp.PORT_TYPE_PORT)
-
-    # FIXME: describe how the EX_* parameters get their values
-    comp._create_port(model, pid="EX_A_port", idRef="EX_A", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_C_port", idRef="EX_C", portType=comp.PORT_TYPE_PORT)
+    # ports
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=["extern",
+                              "A", "C",
+                              "EX_A", "EX_C"])
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
@@ -342,13 +331,17 @@ def top_model(sbml_file, directory, emds):
     Creates full comp model by combining fba, update and bounds
     model with additional kinetics in the top model.
     """
+    top_notes = notes.format("""
+        <h2>TOP model</h2>
+        <p>Main comp DFBA model by combining fba, update and bounds
+            model with additional kinetics in the top model.</p>
+        """)
     working_dir = os.getcwd()
     os.chdir(directory)
     sbmlns = SBMLNamespaces(3, 1, "comp", 1)
     doc = SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     doc.setPackageRequired("fbc", False)
-
     mdoc = doc.getPlugin("comp")
 
     # create listOfExternalModelDefinitions
@@ -360,7 +353,9 @@ def top_model(sbml_file, directory, emds):
     model = doc.createModel()
     model.setId("toy_top")
     model.setName("toy (TOP model)")
-    add_generic_info(model, notes=notes, creators=creators, units=units, main_units=main_units)
+    add_generic_info(model,
+                     notes=top_notes,
+                     creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 

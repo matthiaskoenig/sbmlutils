@@ -1,3 +1,4 @@
+# -*- coding=utf-8 -*-
 """
 Template filters for rendering SBML.
 
@@ -13,6 +14,7 @@ filters = [
     'SBML_astnodeToMathML',
     'SBML_stringToMathML',
     'SBML_annotationToString',
+    'SBML_notesToString',
     'SBML_unitDefinitionToString1',
     'SBML_unitDefinitionToString',
     'SBML_modelHistoryToString',
@@ -40,6 +42,11 @@ def SBML_stringToMathML(string):
 
 def SBML_annotationToString(annotation):
     return AnnotationHTML.annotation_to_html(annotation)
+
+
+def SBML_notesToString(sbase):
+    notes = sbase.getNotesString()
+    return notes
 
 
 def SBML_modelHistoryToString(mhistory):

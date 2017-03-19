@@ -47,4 +47,11 @@ if __name__ == "__main__":
     sbml_top_path = os.path.join(model_dir, 'growth_top.xml')
     print('sbml_top_path:', sbml_top_path)
 
+
+    # Model validation
+    # TODO: validation of top model and all external model definitions
+
+    # Model reports
+
+    # Simulation
     simulate_toy(sbml_top_path, out_dir, dt=0.01, tend=10.0)

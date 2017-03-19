@@ -8,6 +8,8 @@ from sbmlutils import annotation
 from sbmlutils import factory
 from .builder import UPPER_BOUND_DEFAULT, LOWER_BOUND_DEFAULT
 
+from libsbml import XMLNode
+
 
 def versioned_directory(output_dir, version):
     """ Creates a versioned directory.
@@ -33,16 +35,18 @@ def add_generic_info(model, notes, creators, units, main_units):
     :param model: SBMLModel instance
     :return:
     """
+
     annotation.set_model_history(model, creators)
     factory.create_objects(model, units)
     factory.set_main_units(model, main_units)
-    model.setNotes(notes)
+    xml_notes = XMLNode.convertStringToXMLNode(notes)
+    model.setNotes(xml_notes)
 
 
 def exchange_flux_bound_parameters(exchange_rids, unit):
     # exchange flux bounds
     parameters = []
-    for ex_rid in ['EX_A', 'EX_C']:
+    for ex_rid in exchange_rids:
         for bound_type in ['lb', 'ub']:
             if bound_type == 'lb':
                 value = LOWER_BOUND_DEFAULT
