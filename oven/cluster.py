@@ -17,12 +17,12 @@ RMSD = np.random.rand(N, N)
 # write network file with edge attribute
 with open("cluster-graph.csv", "w") as f:
     f.write("source,target,interaction,directed,RMSD\n")
-    for k in xrange(N):
-        for i in xrange(N):
+    for k in range(N):
+        for i in range(N):
             f.write("{},{},pp,TRUE,{}\n".format(cluster_id[k], cluster_id[i], RMSD[k, i]))
 
 # write node attribute size
 with open("cluster-size.csv", "w") as f:
     f.write("cluster,size\n")
-    for k in xrange(N):
+    for k in range(N):
         f.write("{},{}\n".format(cluster_id[k], cluster_size[k]))

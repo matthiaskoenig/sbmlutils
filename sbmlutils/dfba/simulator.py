@@ -14,6 +14,7 @@ The ode integration is performed with roadrunner, the FBA optimization via cobra
 
 
 from __future__ import print_function, division
+from six import iteritems
 import logging
 import numpy as np
 import pandas as pd
@@ -130,7 +131,7 @@ class DFBASimulator(object):
 
                 # store fba fluxes
                 logging.debug('* Store fluxes in ODE solution')
-                for fba_rid, flat_rid in self.fba_model.flat_mapping.iteritems():
+                for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
                     flux = self.fba_solution.fluxes[fba_rid]
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux

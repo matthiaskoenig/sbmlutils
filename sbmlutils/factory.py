@@ -15,6 +15,7 @@ which takes care of the order of object creation.
 All model objects are created with the given SBML_LEVEL and SBML_VERSION.
 """
 from __future__ import print_function, division
+from six import iteritems
 
 import logging
 import warnings
@@ -587,13 +588,13 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
     r.setFast(fast)
     r.setReversible(reversible)
 
-    for sid, stoichiometry in reactants.iteritems():
+    for sid, stoichiometry in iteritems(reactants):
         rt = r.createReactant()
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
         rt.setConstant(True)
 
-    for sid, stoichiometry in products.iteritems():
+    for sid, stoichiometry in iteritems(products):
         rt = r.createProduct()
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
@@ -658,7 +659,7 @@ def createEventFromEventData(model, edata):
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
     # assignments
-    for key, value in edata.assignments.iteritems():
+    for key, value in iteritems(edata.assignments):
         astnode = libsbml.parseL3FormulaWithModel(value, model)
         ea = e.createEventAssignment()
         ea.setVariable(key)
@@ -692,7 +693,7 @@ def create_objective(mplugin, oid, otype, fluxObjectives, active=True):
     objective.setType(otype)
     if active:
         mplugin.setActiveObjectiveId(oid)
-    for rid, coefficient in fluxObjectives.iteritems():
+    for rid, coefficient in iteritems(fluxObjectives):
         fluxObjective = objective.createFluxObjective()
         fluxObjective.setReaction(rid)
         fluxObjective.setCoefficient(coefficient)

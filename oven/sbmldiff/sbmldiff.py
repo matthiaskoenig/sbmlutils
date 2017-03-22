@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import libsbml
 import tellurium as te
 import lxml.etree as ET
-import StringIO
+from io import StringIO
 import tempfile
 
 

@@ -23,14 +23,17 @@ def test_reaction_info():
     assert df is not None
     print(df)
 
-    assert df.objective.loc('v4') == 1
-    assert df.objective.loc('v1') == 1
-
-
+    assert df.get_value('v1', 'objective_coefficient') == 1
+    assert df.get_value('v2', 'objective_coefficient') == 1
+    assert df.get_value('v3', 'objective_coefficient') == 1
+    assert df.get_value('v4', 'objective_coefficient') == 1
+    assert df.get_value('EX_Ac', 'objective_coefficient') == 0
+    assert df.get_value('EX_Glcxt', 'objective_coefficient') == 0
+    assert df.get_value('EX_O2', 'objective_coefficient') == 0
+    assert df.get_value('EX_X', 'objective_coefficient') == 0
 
 
 def test_mass_balance():
-
     doc = libsbml.readSBMLFromFile(data.DEMO_SBML)
 
     # add defaults

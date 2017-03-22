@@ -206,7 +206,7 @@ def replace_elements(model, sid, ref_type, replaced_elements):
     :param replaced_elements:
     :return:
     """
-    for submodel, rep_ids in replaced_elements.iteritems():
+    for submodel, rep_ids in iteritems(replaced_elements):
         for rep_id in rep_ids:
             _create_replaced_element(model, sid, submodel, rep_id, ref_type=ref_type)
 

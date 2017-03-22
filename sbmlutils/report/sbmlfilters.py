@@ -44,9 +44,14 @@ def SBML_annotationToString(annotation):
     return AnnotationHTML.annotation_to_html(annotation)
 
 
+# noinspection PyCompatibility
 def SBML_notesToString(sbase):
     notes = sbase.getNotesString()
-    return notes
+    if type(notes) == unicode:
+        return notes
+    else:
+        # unicode conversion for jinja2 and others
+        return unicode(notes, "utf-8")
 
 
 def SBML_modelHistoryToString(mhistory):

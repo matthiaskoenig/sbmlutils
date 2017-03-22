@@ -16,7 +16,8 @@ ontology lookup service.
 # analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import itervalues
 import logging
 import warnings
 import libsbml
@@ -114,7 +115,7 @@ def _create_history(creators):
     h = libsbml.ModelHistory()
 
     if isinstance(creators, dict):
-        values = creators.itervalues()
+        values = itervalues(creators)
     else:
         values = creators
 

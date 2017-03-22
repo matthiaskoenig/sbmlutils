@@ -29,8 +29,14 @@ UPPER_BOUND_PREFIX = 'ub_'
 EXCHANGE_REACTION_PREFIX = 'EX_'
 
 SBO_FLUX_BOUND = "SBO:0000625"
-SBO_EXCHANGE_REACTION = "SBO:0000627"
+
 SBO_DT = "SBO:0000346"
+
+# TODO: exchange bounds
+EXCHANGE = 'exchange'
+EXCHANGE_IMPORT = 'import'
+EXCHANGE_EXPORT = 'export'
+SBO_EXCHANGE_REACTION = "SBO:0000627"
 
 
 def create_dt(step_size=DT_SIM, unit=None):
@@ -46,8 +52,9 @@ def create_dt(step_size=DT_SIM, unit=None):
     return fac.Parameter(sid='dt', value=step_size, unit=unit, constant=True, sboTerm=SBO_DT)
 
 
-def create_exchange_reaction(model, species_id, reversible=True, flux_unit=None):
-    """ Factory method to create exchange reaction for species.
+def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_unit=None):
+    """ Factory method to create exchange reactions for species in the FBA model.
+
     Creates the exchange reaction, the upper and lower bounds,
     and the ports.
 
@@ -58,13 +65,20 @@ def create_exchange_reaction(model, species_id, reversible=True, flux_unit=None)
     :return:
     :rtype:
     """
+    if exchange_type not in [EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT]:
+        raise ValueError("Wrong exchange_type: {}".format(exchange_type))
+
     # id (e.g. EX_A)
     ex_rid = EXCHANGE_REACTION_PREFIX + species_id
-    ub_id = UPPER_BOUND_PREFIX + ex_rid
     lb_id = LOWER_BOUND_PREFIX + ex_rid
+    ub_id = UPPER_BOUND_PREFIX + ex_rid
 
     lb_value = LOWER_BOUND_DEFAULT
-    if not reversible:
+    ub_value = UPPER_BOUND_DEFAULT
+    if exchange_type == EXCHANGE_IMPORT:
+        # negative flux through exchange reaction
+        ub_value = ZERO_BOUND
+    if exchange_type == EXCHANGE_EXPORT:
         lb_value = ZERO_BOUND
 
     parameters = [
@@ -72,13 +86,13 @@ def create_exchange_reaction(model, species_id, reversible=True, flux_unit=None)
                       value=lb_value,
                       unit=flux_unit, constant=True, sboTerm=SBO_FLUX_BOUND),
         fac.Parameter(sid=ub_id,
-                      value=UPPER_BOUND_DEFAULT,
+                      value=ub_value,
                       unit=flux_unit, constant=True, sboTerm=SBO_FLUX_BOUND),
     ]
     fac.create_objects(model, parameters)
 
-    # exchange reactions
-    ex_r = fac.create_reaction(model, rid=ex_rid, reversible=reversible,
+    # exchange reactions are all reversible (it depends on the bounds in which direction they operate)
+    ex_r = fac.create_reaction(model, rid=ex_rid, reversible=True,
                                reactants={species_id: 1}, sboTerm=SBO_EXCHANGE_REACTION)
 
     # exchange bounds

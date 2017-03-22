@@ -7,7 +7,7 @@ from os.path import join as pjoin
 from sbmlutils import annotation
 from sbmlutils import factory
 from libsbml import XMLNode
-
+from sbmlutils.validation import check
 
 def versioned_directory(output_dir, version):
     """ Creates a versioned directory.
@@ -37,7 +37,21 @@ def add_generic_info(model, notes, creators, units, main_units):
     annotation.set_model_history(model, creators)
     factory.create_objects(model, units)
     factory.set_main_units(model, main_units)
-    xml_notes = XMLNode.convertStringToXMLNode(notes)
-    model.setNotes(xml_notes)
+
+    xml_node = XMLNode.convertStringToXMLNode(notes)
+    if xml_node is None:
+        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+    check(model.setNotes(xml_node),
+          message="Setting notes on model")
 
 
+if __name__ == "__main__":
+    # &copy;
+    notes = """
+    <body xmlns='http://www.w3.org/1999/xhtml'>
+    Test &#169;
+    </body>
+    """
+    xml_node = XMLNode.convertStringToXMLNode(notes)
+    if xml_node is None:
+        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))

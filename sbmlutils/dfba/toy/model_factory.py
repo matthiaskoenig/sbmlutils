@@ -10,6 +10,7 @@ The toy model consists hereby of
 The SBML comp extension is used for hierarchical model composition, i.e. to create
 the main model and the kinetic model parts.
 """
+
 from __future__ import print_function, absolute_import
 
 from os.path import join as pjoin
@@ -30,12 +31,15 @@ XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 3
+version = 4
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Wholecell Toy Model</h1>
+    <p><strong>Model version: {}</strong></p>
+
     {}
+
     <h2>Description</h2>
     <p>This is a toy model for coupling models with different modeling frameworks via comp.</p>
 
@@ -59,7 +63,7 @@ notes = """
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-"""
+""".format(version, '{}')
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')

@@ -97,8 +97,8 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 8
-DT_SIM = 0.01
+version = 9
+DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>
@@ -133,7 +133,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-"""
+""".format(version, '{}')
 
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
@@ -182,7 +182,7 @@ def fba_model(sbml_file, directory):
 
     FBA submodel in sbml:fbc-version 2.
     """
-    fba_notes = notes.format(version, """
+    fba_notes = notes.format("""
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
@@ -244,10 +244,16 @@ def fba_model(sbml_file, directory):
     mc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
 
     # reactions: exchange reactions (this species can be changed by the FBA)
-    builder.create_exchange_reaction(model, species_id="O2", flux_unit=UNIT_FLUX, reversible=False)
-    builder.create_exchange_reaction(model, species_id="Glcxt", flux_unit=UNIT_FLUX, reversible=False)
-    builder.create_exchange_reaction(model, species_id="Ac", flux_unit=UNIT_FLUX, reversible=True)
-    builder.create_exchange_reaction(model, species_id="X", flux_unit=UNIT_FLUX, reversible=False)
+
+    builder.create_exchange_reaction(model, species_id="Ac", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE)
+    builder.create_exchange_reaction(model, species_id="Glcxt", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE_IMPORT)
+    builder.create_exchange_reaction(model, species_id="O2", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE_IMPORT)
+    builder.create_exchange_reaction(model, species_id="X", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE_IMPORT)
+
 
     # objective function
     mc.create_objective(mplugin, oid="biomass_max", otype="maximize",
@@ -269,7 +275,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     # TODO: the bounds model should be created based on the FBA model (i.e. use the exchange reactions
     # to create the bounds info.
 
-    bounds_notes = notes.format(version, """
+    bounds_notes = notes.format("""
     <h2>BOUNDS submodel</h2>
     <p>Submodel for dynamically calculating the flux bounds.
     The dynamically changing flux bounds are the input to the
@@ -371,7 +377,7 @@ def update_model(sbml_file, directory):
         Submodel for dynamically updating the metabolite count/concentration.
         This updates the ode model based on the FBA fluxes.
     """
-    update_notes = notes.format(version, """
+    update_notes = notes.format("""
         <h2>UPDATE submodel</h2>
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
@@ -464,7 +470,7 @@ def top_model(sbml_file, directory, emds):
         <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
     </listOfParameters>
     """
-    top_notes = notes.format(version, """
+    top_notes = notes.format("""
     <h2>TOP model</h2>
     <p>Main comp DFBA model by combining fba, update and bounds
         model with additional kinetics in the top model.</p>
