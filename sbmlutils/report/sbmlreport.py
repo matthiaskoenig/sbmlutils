@@ -33,8 +33,10 @@ from sbmlutils.report import sbmlfilters
 
 # Change default encoding to UTF-8
 # We need to reload sys module first, because setdefaultencoding is available only at startup time
-reload(sys)
-sys.setdefaultencoding('utf-8')
+
+# FIXME: this breaks the jupyter notebook output !, but is required for correct rendering of the templates
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')

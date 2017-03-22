@@ -20,7 +20,7 @@ import pandas as pd
 import cobra
 import timeit
 
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+# logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 
 class DFBASimulator(object):

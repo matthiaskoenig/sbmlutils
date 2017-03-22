@@ -77,12 +77,11 @@ steps = 10000
 -----------------------------------------------
 """
 from __future__ import print_function, absolute_import
-import logging
+import os
 from os.path import join as pjoin
 
 import libsbml
-# FIXME: no wildcard import
-from libsbml import *
+from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
@@ -93,7 +92,7 @@ from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
 from sbmlutils.dfba.diauxic_growth.dgsettings import fba_file, bounds_file, update_file, top_file, flattened_file
 
-XMLOutputStream.setWriteTimestamp(False)
+libsbml.XMLOutputStream.setWriteTimestamp(False)
 
 ########################################################################
 # General model information
@@ -187,11 +186,11 @@ def fba_model(sbml_file, directory):
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-    sbmlns = SBMLNamespaces(3, 1)
+    sbmlns = libsbml.SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("fbc", 2)
     sbmlns.addPackageNamespace("comp", 1)
 
-    doc_fba = SBMLDocument(sbmlns)
+    doc_fba = libsbml.SBMLDocument(sbmlns)
     doc_fba.setPackageRequired("comp", True)
     doc_fba.getPlugin("comp")
     doc_fba.setPackageRequired("fbc", False)
@@ -255,7 +254,7 @@ def fba_model(sbml_file, directory):
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # write SBML file
-    sbmlio.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
 
     return doc_fba
 
@@ -276,8 +275,8 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     model = doc.createModel()
     model.setId("diauxic_bounds")
@@ -361,7 +360,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # TODO: kinetic bounds missing
 
-    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -377,8 +376,8 @@ def update_model(sbml_file, directory):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
     # model
@@ -430,7 +429,7 @@ def update_model(sbml_file, directory):
                               "EX_Ac", "EX_Glcxt", "EX_O2", "EX_X"])
 
     # write SBML file
-    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def top_model(sbml_file, directory, emds):
@@ -474,8 +473,8 @@ def top_model(sbml_file, directory, emds):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    sbmlns = SBMLNamespaces(3, 1, "comp", 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, "comp", 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     doc.setPackageRequired("fbc", False)
 
