@@ -1,10 +1,12 @@
 """
-Working with fbc models.
+Helper functions for working with FBC and cobrapy models.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
+from six import iteritems
 
-from warnings import warn
-
+import warnings
+import logging
+import tempfile
 import cobra
 import libsbml
 import numpy as np
@@ -24,17 +26,18 @@ def load_cobra_model(sbml_path):
     doc = libsbml.readSBMLFromFile(sbml_path)
 
     # add defaults
-    add_default_flux_bounds(doc)
+    # add_default_flux_bounds(doc)
 
     # boundarySpecies
-    no_boundary_conditions(doc)
+    # no_boundary_conditions(doc)
 
-    import tempfile
-    f = tempfile.NamedTemporaryFile('w', suffix='xml')
-    libsbml.writeSBMLToFile(doc, f.name)
-    f.flush()
-    model = cobra.io.read_sbml_model(f.name)
-    return model
+    # f = tempfile.NamedTemporaryFile('w', suffix='xml')
+    # libsbml.writeSBMLToFile(doc, f.name)
+    # f.flush()
+    # cobra_model = cobra.io.read_sbml_model(f.name)
+    cobra_model = cobra.io.read_sbml_model(sbml_path)
+
+    return cobra_model
 
 
 def cobra_reaction_info(cobra_model):
@@ -46,12 +49,10 @@ def cobra_reaction_info(cobra_model):
     rids = [r.id for r in cobra_model.reactions]
     df = pd.DataFrame(data=None, index=rids,
                       columns=['lb', 'ub', 'reversibility', 'objective', 'boundary'])
-
+    # FIXME: better filling of DataFrame
     for rid in rids:
         r = cobra_model.reactions.get_by_id(rid)
-        df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, np.nan, r.boundary]
-    for r, obj in cobra_model.objective.iteritems():
-        df.objective.loc[r.id] = obj
+        df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, r.objective_coefficient, r.boundary]
     return df
 
 
@@ -67,7 +68,7 @@ def add_default_flux_bounds(doc, lower=0.0, upper=100.0, unit='mole_per_s'):
     """
     # FIXME: overwrites lower/upper parameter (check if existing)
     # TODO: the units are very specific (more generic)
-    warn('Adding default flux bounds', UserWarning)
+    warnings.warn('Adding default flux bounds', UserWarning)
     model = doc.getModel()
     parameters = [
         factory.Parameter(sid='upper', value=upper, unit=unit),
@@ -130,7 +131,7 @@ def no_boundary_conditions(doc):
     model = doc.getModel()
     for s in model.species:
         if s.boundary_condition:
-            warn('boundaryCondition changed {}'.format(s), UserWarning)
+            warnings.warn('boundaryCondition changed {}'.format(s), UserWarning)
             s.setBoundaryCondition(False)
 
 
@@ -148,28 +149,3 @@ def check_balance(sbml_path):
         mb = r.check_mass_balance()
         if len(mb) > 0:
             print(r.id, mb, r.reaction)
-
-
-if __name__ == "__main__":
-    """
-    Example for creation of fbc model.
-
-    Extension package information is set via getting the
-    respective plugins from the core model.
-    """
-    from libsbml import *
-
-    sbmlns = SBMLNamespaces(3, 1, "fbc", 2)
-    doc = SBMLDocument(sbmlns)
-    doc.setPackageRequired("fbc", False)
-    model = doc.createModel()
-    mplugin = model.getPlugin("fbc")
-    mplugin.setStrict(False)
-
-    s = model.createSpecies()
-    s.setId('S1')
-    sfbc = s.getPlugin('fbc')
-    sfbc.setChemicalFormula('H2O')
-
-    sbml_str = writeSBMLToString(doc)
-    print(sbml_str)

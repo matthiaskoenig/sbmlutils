@@ -1,50 +1,87 @@
 """
 Generic analysis and plots of DFBA simulations.
 """
+from __future__ import print_function, absolute_import
+import logging
+import warnings
 from matplotlib import pyplot as plt
+
+# TODO: update plots
+def set_matplotlib_parameters():
+    """ Sets default plot parameters.
+
+    :return:
+    """
+    plt.rcParams.update({
+        'axes.labelsize': 'large',
+        'axes.labelweight': 'bold',
+        'axes.titlesize': 'large',
+        'axes.titleweight': 'bold',
+        'legend.fontsize': 'small',
+        'xtick.labelsize': 'large',
+        'ytick.labelsize': 'large',
+    })
 
 
 class DFBAAnalysis(object):
+    """ Plot and analysis functions for given results. """
+
     def __init__(self, df, rr_comp):
         self.df = df
         self.rr_comp = rr_comp
 
-    def plot_species(self, filepath):
+    def save_csv(self, filepath):
+        """ Save results to csv. """
+        self.df.to_csv(filepath, sep="\t", index=False)
+
+    def plot_species(self, filepath, **kwargs):
         """ Plot species.
 
-        :param df:
-        :type df:
+        :param filepath: filepath to save figure, if None plot is shown
         :return:
         :rtype:
         """
         species_ids = ["[{}]".format(s) for s in self.rr_comp.model.getFloatingSpeciesIds()] \
             + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
+        self.plot_ids(ids=species_ids, ylabel="species", title="DFBA species timecourse",
+                      filepath=filepath, **kwargs)
 
-        ax_s = self.df.plot(x='time', y=species_ids)
-        fig = ax_s.get_figure()
-        if filepath:
-            fig.savefig(filepath)
-        else:
-            plt.show()
+    def plot_reactions(self, filepath, **kwargs):
+        """ Plot species.
 
-    def plot_reactions(self, filepath):
-        """ Create reactions plots.
-
-        :param df: solution pandas DataFrame
-        :type df:
-        :param filename
+        :param filepath: filepath to save figure, if None plot is shown
         :return:
         :rtype:
         """
         reaction_ids = self.rr_comp.model.getReactionIds()
+        self.plot_ids(ids=reaction_ids, ylabel="reactions", title="DFBA reaction timecourse",
+                      filepath=filepath, **kwargs)
 
-        ax_r = self.df.plot(x='time', y=reaction_ids)
-        fig = ax_r.get_figure()
+    def plot_ids(self, ids, filepath=None, ylabel=None, title=None, **kwargs):
+        """ Plot given ids against time
+
+        :param filepath:
+        :param ids: subset of ids to plot
+        :param title:
+        :param ylabel:
+        :return:
+        """
+        fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(10, 10))
+        x_time = self.df['time']
+        for oid in ids:
+            ax1.plot(x_time, self.df[oid], label=oid, **kwargs)
+
+        ax1.set_xlabel('time')
+        if ylabel:
+            ax1.set_ylabel(ylabel)
+        if title:
+            ax1.set_title(title)
+        ax1.legend()
+
         if filepath:
-            fig.savefig(filepath)
+            fig.savefig(filepath, bbox_inches='tight')
+            logging.info("plot_ids:", filepath)
         else:
             plt.show()
 
-    def save_csv(self, filepath):
-        """ Save results to csv. """
-        self.df.to_csv(filepath, sep="\t", index=False)
+

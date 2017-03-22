@@ -262,10 +262,23 @@ class DFBAModel(object):
         :return:
         """
         logging.debug('* _process_dt')
-        par = self.model_top.getParameter(DT_ID)
-        if par is None:
+        p = self.model_top.getParameter(DT_ID)
+        if p is None:
             warnings.warn("No parameter with id '{}' in top model.".format(DT_ID))
-        self.dt = par.getValue()
+        self.dt = p.getValue()
+
+    def set_dt(self, value):
+        """ Sets the dt parameter in the DFBA model.
+        Necessary when the model should be simulated with different dt values.
+        """
+        p = self.model_top.getParameter(DT_ID)
+        if p is None:
+            warnings.warn("No parameter with id '{}' in top model.".format(DT_ID))
+        old_value = p.getValue()
+        p.setValue(value)
+        logging.info("dt set from old value <{}> to new value: dt={}".format(old_value, value))
+        # update value in DFBA model
+        self._process_dt()
 
     @classmethod
     def _process_flux_rules(cls, top_model):

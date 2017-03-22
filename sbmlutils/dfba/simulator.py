@@ -71,13 +71,29 @@ class DFBASimulator(object):
         """ Cobra model for the FBA model. """
         return self.fba_model.cobra_model
 
-    def simulate(self, tstart=0.0, tend=10.0, steps=20, absTol=1E-6, relTol=1E-6):
+    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6):
         """ Perform model simulation.
 
         The simulator figures out based on the SBO terms in the list of submodels, which
         simulation/modelling framework to use.
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
         """
+
+        # get the steps and check that correct
+        steps = np.round(1.0 * tend / dt)
+        if np.abs(steps * dt - tend) > absTol:
+            raise ValueError("Stepsize dt={} not compatible to simulation time tend={}".format(dt, tend))
+
+        # set the dt value
+        self.dfba_model.set_dt(dt)
+
+        # Check that the FBA model simulates with given FBA model bounds
+        from sbmlutils import fbc
+        df_fbc = fbc.cobra_reaction_info(self.cobra_model)
+        logging.info(df_fbc)
+        self.cobra_model.optimize(objective_sense=self.objective_sense)
+        self.cobra_model.summary()
+
         try:
             logging.debug('###########################')
             logging.debug('# Start Simulation')
@@ -89,10 +105,6 @@ class DFBASimulator(object):
             all_results = []
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections)
 
-            # check step size
-            step_size = (tend - tstart) / (points - 1.0)
-            if abs(step_size - self.dt) > absTol:
-                raise ValueError("Simulation timestep <{}> != dt <{}>".format(step_size, self.dt))
 
             time = 0.0
             kstep = 0
@@ -163,7 +175,9 @@ class DFBASimulator(object):
         :param absTol:
         :return:
         """
-        steps = kwargs['steps']
+        dt = kwargs['dt']
+        tend = kwargs['tend']
+        steps = np.round(1.0*tend/dt)
         timings = np.zeros(shape=(10, 1))
         for k in range(Nrepeat):
             self.simulate(**kwargs)
@@ -225,6 +239,7 @@ class DFBASimulator(object):
 
         Uses the objective sense from the fba model.
         """
+        # TODO: fix the pfba
         logging.debug("* FBA optimize")
         if self.pfba:
             # run parsimonious FBA (flux minimization)
