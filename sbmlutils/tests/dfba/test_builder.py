@@ -56,6 +56,43 @@ def test_create_exchange_reaction():
     fbc_ex_B = ex_B.getPlugin("fbc")
     assert fbc_ex_B
 
+def test_create_irreversible_exchange_reaction():
+    doc = create_fba_doc()
+    model = doc.getModel()
+
+    builder.create_exchange_reaction(model, species_id="A", reversible=False)
+    builder.create_exchange_reaction(model, species_id="B", reversible=True)
+
+    assert model.getNumReactions() == 2
+
+    # irreversible
+    ex_A = model.getReaction(builder.EXCHANGE_REACTION_PREFIX + "A")
+    assert ex_A
+    fbc_ex_A = ex_A.getPlugin("fbc")
+    assert fbc_ex_A
+    pid_ub = fbc_ex_A.getUpperFluxBound()
+    p_ub = model.getParameter(pid_ub)
+    assert p_ub
+    assert p_ub.value == builder.UPPER_BOUND_DEFAULT
+    pid_lb = fbc_ex_A.getLowerFluxBound()
+    p_lb = model.getParameter(pid_lb)
+    assert p_lb
+    assert p_lb.value == builder.ZERO_BOUND
+
+    # reversible
+    ex_B = model.getReaction(builder.EXCHANGE_REACTION_PREFIX + "B")
+    assert ex_B
+    fbc_ex_B = ex_B.getPlugin("fbc")
+    assert fbc_ex_B
+    pid_ub = fbc_ex_B.getUpperFluxBound()
+    p_ub = model.getParameter(pid_ub)
+    assert p_ub
+    assert p_ub.value == builder.UPPER_BOUND_DEFAULT
+    pid_lb = fbc_ex_B.getLowerFluxBound()
+    p_lb = model.getParameter(pid_lb)
+    assert p_lb
+    assert p_lb.value == builder.LOWER_BOUND_DEFAULT
+
 
 def test_create_dt():
     doc = create_fba_doc()

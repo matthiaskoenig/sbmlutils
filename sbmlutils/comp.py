@@ -10,7 +10,7 @@ of the dynamic FBA models.
 from __future__ import print_function, division, absolute_import
 from six import iteritems
 
-
+import warnings
 import logging
 import os
 
@@ -398,9 +398,11 @@ def flattenExternalModelDefinitions(doc, validate=False):
     :param doc: SBMLDocument
     :return: SBMLDocument with ExternalModelDefinitions replaced
     """
-    # FIXME: handle multiple levels of hierarchies. This must be done
-    # recursively to handle the ExternalModelDefinitions of submodels
     logging.debug('* flattenExternalModelDefinitions')
+
+    # FIXME: handle multiple levels of hierarchies. Recursively to handle the ExternalModelDefinitions of submodels
+    warnings.warn("flattenExternalModelDefinitions does not work recursively!")
+    warnings.warn("flattenExternalModelDefinitions: THIS DOES NOT WORK - ONLY USE IF YOU KNOW WHAT YOU ARE DOING")
 
     comp_doc = doc.getPlugin("comp")
     if comp_doc is None:
@@ -424,16 +426,21 @@ def flattenExternalModelDefinitions(doc, validate=False):
             ref_model = emd.getReferencedModel()
 
             ref_doc = ref_model.getSBMLDocument()
-            print(ref_model)
+            # print(ref_model)
             for k in range(ref_doc.getNumPlugins()):
-                plugin = doc.getPlugin(k)
-                print(k, plugin)
+                plugin = ref_doc.getPlugin(k)
+                #print(k, plugin)
 
+                # enable the package on the main SBMLDocument
                 uri = plugin.getURI()
                 prefix = plugin.getPrefix()
+                name = plugin.getPackageName()
                 doc.enablePackage(uri, prefix, True)
 
-            print("\n")
+                # print(k, plugin)
+                # print(uri, prefix)
+
+            # print("\n")
 
             # add model definition for model
             md = libsbml.ModelDefinition(ref_model)

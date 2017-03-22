@@ -22,6 +22,7 @@ logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 DT_SIM = 0.1
 LOWER_BOUND_DEFAULT = -1000
 UPPER_BOUND_DEFAULT = 1000
+ZERO_BOUND = 0
 
 LOWER_BOUND_PREFIX = 'lb_'
 UPPER_BOUND_PREFIX = 'ub_'
@@ -64,7 +65,7 @@ def create_exchange_reaction(model, species_id, reversible=True, flux_unit=None)
 
     lb_value = LOWER_BOUND_DEFAULT
     if not reversible:
-        lb_value = 0
+        lb_value = ZERO_BOUND
 
     parameters = [
         fac.Parameter(sid=lb_id,

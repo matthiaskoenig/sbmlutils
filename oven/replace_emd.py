@@ -37,7 +37,7 @@ def flattenExternalModelDefinitions(doc):
 
             # --------------------------------------
             ref_doc = ref_model.getSBMLDocument()
-            print(ref_model)
+            # print(ref_model)
             for k in range(ref_doc.getNumPlugins()):
                 plugin = ref_doc.getPlugin(k)
 
@@ -47,58 +47,27 @@ def flattenExternalModelDefinitions(doc):
                 name = plugin.getPackageName()
                 doc.enablePackage(uri, prefix, True)
 
-                print(k, plugin)
-                print(uri, prefix)
-
-                '''
                 # set the respective required tag (check if already required=True,
                 # to avoid True -> False by later submodels)
                 ref_required = None
                 if ref_doc.isSetPackageRequired(name):
                     ref_required = ref_doc.getPackageRequired(name)
-                    print('required: ', name, ref_required)
+                    # print('required: ', name, ref_required)
 
-                # there is info about requirement
+                # set required attribute on top model
                 if ref_required is not None:
                     if doc.isSetPackageRequired(name):
                         required = doc.getPackageRequired(name)
-                        print('doc', name, required)
+                        # print('doc', name, required)
                         # is not required yet, just set the value
                         if not required:
                             doc.setPackageRequired(name, ref_required)
-                            print('set required: ', name, ref_required)
+                            # print('set required: ', name, ref_required)
                     else:
                         # nothing set yet, just set the value
                         doc.setPackageRequired(name, ref_required)
-                        print('set required: ', name, ref_required)
-                '''
-
-                # set required attributes for models, i.e. strict for fbc
-                if name == "fbc":
-                    print("find fbc strict")
-                    fbc_ref_model = ref_model.getPlugin(name)
-                    ref_strict = fbc_ref_model.getStrict()
-                    fbc_model = model.getPlugin(name)
-                    print(model)
-                    print(fbc_model)
-
-                    fbc_model.setStrict(False)
-
-                    """
-                    if fbc_model.isSetStrict():
-                        if not fbc_model.getStrict():
-                            # only set if strict=False, to avoid True -> False by later submodels
-                            fbc_model.setStrict(ref_strict)
-                            print('set strict: ', name, ref_strict)
-                    else:
-                        fbc_model.setStrict(ref_strict)
-                        print('set strict: ', name, ref_strict)
-                    """
-                else:
-                    print("no fbc model", name)
-
-
-            print("\n")
+                        # print('set required: ', name, ref_required)
+            # print("\n")
             # --------------------------------------
 
             # add model definition for model
@@ -109,6 +78,32 @@ def flattenExternalModelDefinitions(doc):
         for emd_id in emd_ids:
             # remove the emd from the model
             comp_doc.removeExternalModelDefinition(emd_id)
+
+        # the replacement is done, but now we have to go through all ModelDefinitions
+        # and add package requirements in model definition :/
+        for k in range(doc.getNumPlugins()):
+            plugin = doc.getPlugin(k)
+            name = plugin.getPackageName()
+            print(name, '\n')
+            md_list = comp_doc.getListOfModelDefinitions()
+            for md_model in md_list:
+
+                # if a package needs something on
+                # a model we have to write it on all ModelDefinitions
+                # this will break on a package per package basis ! We know about fbc it needs
+                # a strict tag so writing this here
+                if name == "fbc":
+                    fbc_model = md_model.getPlugin(name)
+                    print('Model:', md_model)
+                    print('FBCModelPlugin:', fbc_model, type(fbc_model))
+
+                    # here an additional cast would be required, because wrong type returned: SBasePlugin parent class instead of FBCModelPlugin
+                    # but casting not really possible in python
+
+                    # setting because it is required (if unlucky additional info required)
+                    # but we can't set it because we can't access the FBCModelPlugins of the ModelDefinitions
+                    if not fbc_model.isSetStrict():
+                        fbc_model.setStrict(False)
 
     doc.checkInternalConsistency()
     doc.printErrors()
