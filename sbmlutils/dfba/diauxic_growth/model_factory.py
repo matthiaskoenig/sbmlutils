@@ -252,7 +252,7 @@ def fba_model(sbml_file, directory):
     builder.create_exchange_reaction(model, species_id="O2", flux_unit=UNIT_FLUX,
                                      exchange_type=builder.EXCHANGE_IMPORT)
     builder.create_exchange_reaction(model, species_id="X", flux_unit=UNIT_FLUX,
-                                     exchange_type=builder.EXCHANGE_IMPORT)
+                                     exchange_type=builder.EXCHANGE_EXPORT)
 
 
     # objective function
@@ -415,18 +415,10 @@ def update_model(sbml_file, directory):
     mc.create_objects(model, objects)
 
     # FIXME: multiply by X (fluxes per g weight, actual fluxes consequence of biomass)
-    mc.create_reaction(model, rid="update_Glcxt", sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, modifiers=["X"],
-                       formula="-EX_Glcxt * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_Ac", sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, modifiers=["X"],
-                       formula="-EX_Ac * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_O2", sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, modifiers=["X"],
-                       formula="-EX_O2 * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_X", sboTerm="SBO:0000631",
-                       reactants={"X": 1}, modifiers=["X"],
-                       formula="-EX_X * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="Ac", modifiers=["X"], formula="-EX_Ac * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="Glcxt", modifiers=["X"], formula="-EX_Glcxt * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="O2", modifiers=["X"], formula="-EX_O2 * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="X", modifiers=["X"], formula="-EX_X * X * 1 l_per_mmol")
 
     # ports
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,

@@ -27,7 +27,7 @@ import timeit
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
 
-    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=False):
+    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk'):
         """ Create the simulator with the processed dfba model.
 
 
@@ -45,7 +45,6 @@ class DFBASimulator(object):
         self.time = None
         # set solver
         self.cobra_model.solver = lp_solver
-        self.pfba = pfba
 
     @property
     def dt(self):
@@ -127,7 +126,7 @@ class DFBASimulator(object):
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
-                row = self._ode_simulation(kstep, step_size=step_size)
+                row = self._ode_simulation(kstep, step_size=self.dt)
 
                 # store fba fluxes
                 logging.debug('* Store fluxes in ODE solution')
@@ -141,7 +140,7 @@ class DFBASimulator(object):
 
                 # store and update time
                 kstep += 1
-                time += step_size
+                time += self.dt
 
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
 
@@ -235,19 +234,19 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux bounds set')
 
-    def _optimize_fba(self):
+    def _optimize_fba(self, pfba=True):
         """ Optimize FBA model.
 
         Uses the objective sense from the fba model.
+        Runs parsimonious FBA (often written pFBA) which finds a flux distribution
+        which gives the optimal growth rate, but minimizes the total sum of flux.
         """
-        # TODO: fix the pfba
+
         logging.debug("* FBA optimize")
-        if self.pfba:
-            # run parsimonious FBA (flux minimization)
-            # how to set the objective sense?
-            self.fba_solution = cobra.flux_analysis.optimize_minimal_flux(self.cobra_model)
-        else:
-            self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+        self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+        if pfba:
+            logging.debug("running parsimonious FBA")
+            self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
 
         logging.debug(self.fba_solution.fluxes)
 

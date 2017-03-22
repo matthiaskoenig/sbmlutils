@@ -26,17 +26,20 @@ ZERO_BOUND = 0
 
 LOWER_BOUND_PREFIX = 'lb_'
 UPPER_BOUND_PREFIX = 'ub_'
+
 EXCHANGE_REACTION_PREFIX = 'EX_'
+UPDATE_REACTION_PREFIX = "update_"
 
 SBO_FLUX_BOUND = "SBO:0000625"
-
+SBO_EXCHANGE_REACTION = "SBO:0000627"
+SBO_UPDATE_REACTION = "SBO:0000631"
+SBO_UPDATE_PARAMETER = "SBO:0000613"
 SBO_DT = "SBO:0000346"
 
 # TODO: exchange bounds
 EXCHANGE = 'exchange'
 EXCHANGE_IMPORT = 'import'
 EXCHANGE_EXPORT = 'export'
-SBO_EXCHANGE_REACTION = "SBO:0000627"
 
 
 def create_dt(step_size=DT_SIM, unit=None):
@@ -103,6 +106,46 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
                       idRefs=[ex_rid, lb_id, ub_id])
 
     return ex_r
+
+
+def create_update_parameter(model, sid, unit):
+    """ Creates the update parameter.
+
+    :param model:
+    :type model:
+    :param sid:
+    :type sid:
+    :param unit:
+    :type unit:
+    :return:
+    :rtype:
+    """
+    pid = EXCHANGE_REACTION_PREFIX + sid
+    parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit, sboTerm=SBO_UPDATE_PARAMETER)
+    fac.create_objects(model, [parameter])
+    # create port
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=[pid])
+
+
+def create_update_reaction(model, sid, modifiers=[], formula=None):
+    """ Creates the update reaction for a given species.
+
+    :param model:
+    :param sid:
+    :param modifiers:
+    :param formula:
+    :return:
+    :rtype:
+    """
+    rid = UPDATE_REACTION_PREFIX + sid
+
+    if formula is None:
+        formula = "-{}{}".format(EXCHANGE_REACTION_PREFIX, sid)
+
+    fac.create_reaction(model, rid=rid, sboTerm=UPDATE_REACTION_PREFIX,
+                       reactants={sid: 1}, modifiers=modifiers,
+                       formula=formula)
 
 
 def exchange_flux_bound_parameters(exchange_rids, unit):

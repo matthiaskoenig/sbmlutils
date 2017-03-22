@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 set_matplotlib_parameters()
 
 
-def print_species(filepath, df, **kwargs):
+def print_species(filepath, dfs, **kwargs):
     """ Print diauxic species.
 
     :param filepath:
@@ -25,21 +25,22 @@ def print_species(filepath, df, **kwargs):
     if 'linestyle' not in kwargs:
         kwargs['linestyle'] = '-'
 
-
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
-    for ax in (ax1, ax3):
-        ax.plot(df.time, df['[Ac]'],
-                color='darkred', label="Ac", **kwargs)
-        ax.plot(df.time, df['[Glcxt]'],
-                color='darkblue', label="Glcxt", **kwargs)
-        ax.plot(df.time, df['[O2]'],
-                color='darkgreen', label="O2", **kwargs)
+    for df in dfs:
+        for ax in (ax1, ax3):
+            ax.plot(df.time, df['[Ac]'],
+                    color='darkred', label="Ac", **kwargs)
+            ax.plot(df.time, df['[Glcxt]'],
+                    color='darkblue', label="Glcxt", **kwargs)
+            ax.plot(df.time, df['[O2]'],
+                    color='darkgreen', label="O2", **kwargs)
+
+        for ax in (ax2, ax4):
+            ax.plot(df.time, df['[X]'],
+                    color='black', label="X biomass", **kwargs)
+
     ax3.set_yscale('log')
     ax3.set_ylim([10E-5, 15])
-
-    for ax in (ax2, ax4):
-        ax.plot(df.time, df['[X]'],
-                color='black', label="X biomass", **kwargs)
     ax4.set_yscale('log')
 
     for ax in (ax1, ax3):
@@ -54,10 +55,10 @@ def print_species(filepath, df, **kwargs):
         ax.legend()
 
     fig.savefig(filepath, bbox_inches='tight')
-    logging.info("print_species:", filepath)
+    logging.info("print_species: {}".format(filepath))
 
 
-def print_fluxes(filepath, df, **kwargs):
+def print_fluxes(filepath, dfs, **kwargs):
     """ Print exchange & internal fluxes with respective bounds.
 
     :param filepath:
@@ -87,35 +88,35 @@ def print_fluxes(filepath, df, **kwargs):
               'Glcxt': 'darkgreen',
               'O2': 'darkblue',
               'X': 'black'}
+    for df in dfs:
+        # internal fluxes (v1, v2, v3, v4)
+        for key, ax in iteritems(mapping1):
+            ax.plot(df.time, df['fba__{}'.format(key)], label=labels1[key], color='k', **kwargs)
+            ax.set_ylabel('Flux [mmol]')
+            ax.set_title("{}: Flux".format(key))
+            ax.legend()
 
-    # internal fluxes (v1, v2, v3, v4)
-    for key, ax in iteritems(mapping1):
-        ax.plot(df.time, df['fba__{}'.format(key)], label=labels1[key], color='k', **kwargs)
-        ax.set_ylabel('Flux [mmol]')
-        ax.set_title("{}: Flux".format(key))
-        ax.legend()
+        # exchange fluxes with bounds
+        for key, ax in iteritems(mapping2):
+            ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3,
+                            interpolate=False, step='post')
+            ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2,
+                            interpolate=False, step='post')
+            ax.plot(df.time, df['EX_{}'.format(key)], color=colors[key], label="EX__{}".format(key), **kwargs)
 
-    # exchange fluxes with bounds
-    for key, ax in iteritems(mapping2):
-        ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3,
-                        interpolate=False, step='post')
-        ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2,
-                        interpolate=False, step='post')
-        ax.plot(df.time, df['EX_{}'.format(key)], color=colors[key], label="EX__{}".format(key), **kwargs)
+            ax.set_ylabel('Flux [mmol/l/h]')
+            ax.set_title('{}: Flux'.format(key))
+            ax.set_ylim(np.min(df['EX_{}'.format(key)]), np.max(df['EX_{}'.format(key)]))
+            # ax.set_xlabel('time [h]')
+            ax.legend()
 
-        ax.set_ylabel('Flux [mmol/l/h]')
-        ax.set_title('{}: Flux'.format(key))
-        ax.set_ylim(np.min(df['EX_{}'.format(key)]), np.max(df['EX_{}'.format(key)]))
-        # ax.set_xlabel('time [h]')
-        ax.legend()
-
-    # concentrations
-    for key, ax in iteritems(mapping3):
-        ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)
-        ax.plot(df.time, df['[{}]'.format(key)], color=colors[key], label="{}".format(key), **kwargs)
-        ax.set_ylabel('Concentration [mmol/l]')
-        ax.set_title('{}: Concentration'.format(key))
-        ax.set_xlabel('time [h]')
+        # concentrations
+        for key, ax in iteritems(mapping3):
+            ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)
+            ax.plot(df.time, df['[{}]'.format(key)], color=colors[key], label="{}".format(key), **kwargs)
+            ax.set_ylabel('Concentration [mmol/l]')
+            ax.set_title('{}: Concentration'.format(key))
+            ax.set_xlabel('time [h]')
 
     # experimentell data
     Varma1994_Fig7 = pd.read_csv('./data/Varma1994_Fig7.csv', sep='\t')
@@ -136,4 +137,4 @@ def print_fluxes(filepath, df, **kwargs):
 
     fig.savefig(filepath, bbox_inches='tight')
 
-    logging.info("print_fluxes:", filepath)
+    logging.info("print_fluxes: {}".format(filepath))

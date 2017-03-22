@@ -80,7 +80,7 @@ class DFBAAnalysis(object):
 
         if filepath:
             fig.savefig(filepath, bbox_inches='tight')
-            logging.info("plot_ids:", filepath)
+            logging.info("plot_ids: {}".format(filepath))
         else:
             plt.show()
 

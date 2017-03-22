@@ -283,25 +283,22 @@ def update_model(sbml_file, directory):
 
     objects = [
         mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
-        mc.Species(sid='A', name="A", value=10.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
-        mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
-        mc.Parameter(sid="EX_A", value=1.0, constant=False, unit=UNIT_FLUX, sboTerm="SBO:0000613"),
-        mc.Parameter(sid="EX_C", value=1.0, constant=False, unit=UNIT_FLUX, sboTerm="SBO:0000613"),
+        mc.Species(sid='A', value=1.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
+        mc.Species(sid='C', value=1.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
     ]
     mc.create_objects(model, objects)
 
     # update reactions
-    mc.create_reaction(model, rid="update_A", reversible=True,
-                                reactants={"A": 1}, products={},
-                                formula="-EX_A", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="update_C", reversible=True,
-                                reactants={"C": 1}, products={},
-                                formula="-EX_C", sboTerm="SBO:0000631")
+    builder.create_update_parameter(model, sid="A", unit=UNIT_FLUX)
+    builder.create_update_reaction(model, sid="A")
+    builder.create_update_parameter(model, sid="C", unit=UNIT_FLUX)
+    builder.create_update_reaction(model, sid="C")
+
     # ports
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
                       idRefs=["extern",
-                              "A", "C",
-                              "EX_A", "EX_C"])
+                              "A",
+                              "C"])
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
