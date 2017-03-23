@@ -117,12 +117,17 @@ def print_fluxes(filepath, dfs, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0]):
+def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
     """
     tend = 50
+    plot_kwargs = {
+        'markersize': 4,
+        'marker': 's',
+        'alpha': 0.5
+    }
     dfs = []
     for dt in dts:
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
@@ -130,26 +135,18 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0]):
 
         # generic analysis
         analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
-        plot_kwargs = {
-            'markersize': 4,
-            'marker': 's',
-            'alpha': 0.5
-        }
 
-        analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),
-                                **plot_kwargs)
-        analysis.plot_species(os.path.join(out_dir, "fig_species_generic_dt{}.png".format(dt)),
-                              **plot_kwargs)
-        analysis.save_csv(os.path.join(out_dir, "data_simulation_generic_dt{}.csv".format(dt)))
+        if figures:
+            analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),
+                                    **plot_kwargs)
+            analysis.plot_species(os.path.join(out_dir, "fig_species_generic_dt{}.png".format(dt)),
+                                  **plot_kwargs)
+            analysis.save_csv(os.path.join(out_dir, "data_simulation_generic_dt{}.csv".format(dt)))
 
     # custom model plots
-    plot_kwargs = {
-        'markersize': 4,
-        'marker': 's',
-        'alpha': 0.5
-    }
-    print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
-    print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
+    if figures:
+        print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
+        print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
     return dfs
 
 

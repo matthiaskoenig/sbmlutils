@@ -4,7 +4,7 @@ import unittest
 import os
 import shutil
 import tempfile
-import matplotlib
+
 
 from sbmlutils.dfba.utils import versioned_directory
 
@@ -18,6 +18,7 @@ from sbmlutils.dfba.diauxic_growth import simulate as dgsimulate
 
 
 # no backend for testing, must be imported before pyplot
+import matplotlib
 matplotlib.use('Agg')
 
 
@@ -66,7 +67,7 @@ class DFBATestCase(unittest.TestCase):
         sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.version),
                                  toysettings.top_file)
         print(sbml_path)
-        toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0])
+        toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0], figures=False)
 
         # self.file_exists("reactions.png")
         # self.file_exists("species.png")
@@ -78,7 +79,7 @@ class DFBATestCase(unittest.TestCase):
         sbml_path = os.path.join(versioned_directory(self.test_dir, dgfactory.version),
                                  dgsettings.top_file)
         print(sbml_path)
-        dgsimulate.simulate_diauxic_growth(sbml_path, self.test_dir, dts=[0.1], figures=False)
+        dgsimulate.simulate_diauxic_growth(sbml_path, self.test_dir, dts=[0.01], figures=False)
 
         # self.file_exists("reactions.png")
         # self.file_exists("species.png")

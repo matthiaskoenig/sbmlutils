@@ -4,6 +4,9 @@ import libsbml
 from sbmlutils import factory as fac
 from sbmlutils.dfba import builder
 
+import matplotlib
+matplotlib.use('Agg')
+
 
 def create_fba_doc():
     sbmlns = libsbml.SBMLNamespaces(3, 1)
@@ -55,6 +58,7 @@ def test_create_exchange_reaction():
     assert fbc_ex_A
     fbc_ex_B = ex_B.getPlugin("fbc")
     assert fbc_ex_B
+
 
 def test_create_directed_exchange_reaction():
     doc = create_fba_doc()
