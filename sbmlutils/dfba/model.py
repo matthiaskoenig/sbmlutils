@@ -205,18 +205,7 @@ class DFBAModel(object):
 
         mixed_sbml_cleaned = tempfile.NamedTemporaryFile("w", suffix=".xml")
         libsbml.writeSBMLToFile(self.doc_top, mixed_sbml_cleaned.name)
-
-        rr_comp = roadrunner.RoadRunner(mixed_sbml_cleaned.name)
-
-        sel = ['time'] \
-            + sorted(["".join(["[", item, "]"]) for item in rr_comp.model.getFloatingSpeciesIds()]) \
-            + sorted(["".join(["[", item, "]"]) for item in rr_comp.model.getBoundarySpeciesIds()]) \
-            + sorted(rr_comp.model.getReactionIds()) \
-            + sorted(rr_comp.model.getGlobalParameterIds())
-        # + self.fba_rules.values()
-        rr_comp.timeCourseSelections = sel
-        rr_comp.reset()
-        self.rr_comp = rr_comp
+        self.rr_comp = roadrunner.RoadRunner(mixed_sbml_cleaned.name)
 
         ###########################
         # prepare FBA models

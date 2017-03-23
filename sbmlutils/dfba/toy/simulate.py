@@ -136,6 +136,7 @@ def simulate_toy(sbml_path, out_dir):
             'marker': 's',
             'alpha': 0.5
         }
+
         analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),
                                 **plot_kwargs)
         analysis.plot_species(os.path.join(out_dir, "fig_species_generic_dt{}.png".format(dt)),

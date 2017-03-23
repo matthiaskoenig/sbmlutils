@@ -94,15 +94,21 @@ class DFBASimulator(object):
         """ Cobra model for the FBA model. """
         return self.fba_model.cobra_model
 
-    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6):
+    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True):
         """ Perform model simulation.
 
         The simulator figures out based on the SBO terms in the list of submodels, which
         simulation/modelling framework to use.
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
         """
+        # set the columns in output
+        self._set_timecourse_selections()
 
-        # get the steps and check that correct
+        # reset model to initial state
+        if reset:
+            self.ode_model.reset()
+
+        # number of steps
         steps = np.round(1.0 * tend / dt)
         if np.abs(steps * dt - tend) > absTol:
             raise ValueError("Stepsize dt={} not compatible to simulation time tend={}".format(dt, tend))
@@ -147,21 +153,30 @@ class DFBASimulator(object):
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
-                row = self._ode_simulation()
+                if kstep == 0:
+                    # initial values
+                    row = self._ode_simulation(tstart=0.0, tend=0.0)
+                else:
+                    row = self._ode_simulation(tstart=time, tend=time+self.dt)
 
-                # store fba fluxes
+                    # set fba fluxes in results
+
                 logging.debug('* Store fluxes in ODE solution')
+                from pprint import pprint
+                pprint(self.fba_model.flat_mapping)
                 for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
                     flux = self.fba_solution.fluxes[fba_rid]
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
                     logging.debug("\t{} = {}".format(fba_rid, flux))
+                # FIXME: what about dummy_EX_A ? values
+
 
                 all_results.append(row)
 
-                # store and update time
-                kstep += 1
+                # update time & step counter
                 time += self.dt
+                kstep += 1
 
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
 
@@ -300,7 +315,7 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux replacements')
 
-    def _ode_simulation(self):
+    def _ode_simulation(self, tstart, tend):
         """ ODE integration for a single timestep.
 
         :param kstep:
@@ -308,14 +323,19 @@ class DFBASimulator(object):
         :return:
         """
         logging.debug('* ODE integration')
+        result = self.ode_model.simulate(start=tstart, end=tend, steps=1)
 
-        # constant step size
-        #if kstep == 0:
-        #    result = self.ode_model.simulate(start=0, end=0, steps=1)
-        #else:
-
-        # FIXME: correct times
-        result = self.ode_model.simulate(start=0, end=self.dt, steps=1)
-
-        # store ode row
+        # store ode row, i.e. the end of the simulation
         return result[1, :]
+
+    def _set_timecourse_selections(self):
+        """ Timecourse selections for the ode model."""
+
+        rr = self.ode_model.getModel()
+        sel = ['time'] \
+            + sorted(["".join(["[", item, "]"]) for item in rr.getFloatingSpeciesIds()]) \
+            + sorted(["".join(["[", item, "]"]) for item in rr.getBoundarySpeciesIds()]) \
+            + sorted(rr.getReactionIds()) \
+            + sorted(rr.getGlobalParameterIds())
+
+        self.ode_model.timeCourseSelections = sel
