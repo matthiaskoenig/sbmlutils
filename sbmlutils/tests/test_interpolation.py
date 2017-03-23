@@ -1,13 +1,16 @@
 """
 Test interpolation
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 import os
+import shutil
 import unittest
-
+import tempfile
+import pandas as pd
 import roadrunner
-from sbmlutils.interpolation import *
+
+from sbmlutils import interpolation as ip
 
 
 class InterpolationTestCase(unittest.TestCase):
@@ -25,8 +28,8 @@ class InterpolationTestCase(unittest.TestCase):
         try:
             tmp_f = os.path.join(temp_dir, 'test.xml')
 
-            ip = Interpolation(data=self.data1, method=method)
-            ip.write_sbml_to_file(tmp_f)
+            interpolation = ip.Interpolation(data=self.data1, method=method)
+            interpolation.write_sbml_to_file(tmp_f)
             self.assertTrue(os.path.isfile(tmp_f))
 
             r = roadrunner.RoadRunner(tmp_f)
@@ -42,15 +45,15 @@ class InterpolationTestCase(unittest.TestCase):
 
     def test_constant_interpolation(self):
         """ Constant interpolation of data points. """
-        self.interpolation(method=INTERPOLATION_CONSTANT)
+        self.interpolation(method=ip.INTERPOLATION_CONSTANT)
 
     def test_linear_interpolation(self):
         """ Linear interpolation of data points. """
-        self.interpolation(method=INTERPOLATION_LINEAR)
+        self.interpolation(method=ip.INTERPOLATION_LINEAR)
 
     def test_cubic_interpolation(self):
         """ Natural cubic spline interpolation of data points. """
-        self.interpolation(method=INTERPOLATION_CUBIC_SPLINE)
+        self.interpolation(method=ip.INTERPOLATION_CUBIC_SPLINE)
 
 
 if __name__ == '__main__':

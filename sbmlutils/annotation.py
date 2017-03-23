@@ -12,8 +12,7 @@ A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
 
-# TODO: check annotations against the MIRIAM info (load miriam info)
-# analoque to the java version
+# TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
 
 from __future__ import print_function, absolute_import
@@ -21,7 +20,7 @@ from six import itervalues
 import logging
 import warnings
 import libsbml
-
+import pyexcel
 import csv
 import re
 import uuid
@@ -29,18 +28,6 @@ import datetime
 
 from sbmlutils.validation import check
 
-# create logger
-logger = logging.getLogger('annotation')
-logger.setLevel(logging.WARNING)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.WARNING)
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# add formatter to ch
-ch.setFormatter(formatter)
-# add ch to logger
-logger.addHandler(ch)
 
 ########################################################################
 # Qualifier
@@ -398,7 +385,7 @@ class ModelAnnotator(object):
 
         # first line is headers line
         headers = next(reader)
-        logger.info('Headers: {}'.format(headers))
+        logging.info('Headers: {}'.format(headers))
 
         # read entries
         for row in reader:
@@ -412,7 +399,7 @@ class ModelAnnotator(object):
             entry = dict(zip(headers, [item.strip() for item in row]))
             a = ModelAnnotation(entry)
             res.append(a)
-            logger.info(str(a))
+            logging.info(str(a))
 
         return res
 
@@ -421,10 +408,8 @@ class ModelAnnotator(object):
         """Read annotations from xlsx file.
         xlsx is converted to csv file and than parsed with csv reader.
         """
-        import pyexcel as pe
-
         csvfile = "{}.csv".format(xslxfile)
-        pe.save_as(file_name=xslxfile, dest_file_name=csvfile, dest_delimiter=delimiter)
+        pyexcel.save_as(file_name=xslxfile, dest_file_name=csvfile, dest_delimiter=delimiter)
         res = ModelAnnotator.annotations_from_csv(csvfile, delimiter=delimiter)
 
         if rm_csv:

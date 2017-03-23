@@ -13,8 +13,11 @@ the main model and the kinetic model parts.
 
 from __future__ import print_function, absolute_import
 
+import os
 from os.path import join as pjoin
-from libsbml import *
+import libsbml
+from libsbml import UNIT_KIND_SECOND, UNIT_KIND_METRE
+from libsbml import UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE
 
 from sbmlutils import comp
 from sbmlutils import sbmlio
@@ -26,7 +29,7 @@ from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, exc
 from sbmlutils.dfba.utils import versioned_directory, add_generic_info
 from sbmlutils.dfba.toy import toysettings
 
-XMLOutputStream.setWriteTimestamp(False)
+libsbml.XMLOutputStream.setWriteTimestamp(False)
 
 ########################################################################
 # General model information
@@ -109,11 +112,11 @@ def fba_model(sbml_file, directory):
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
 
-    sbmlns = SBMLNamespaces(3, 1)
+    sbmlns = libsbml.SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("fbc", 2)
     sbmlns.addPackageNamespace("comp", 1)
 
-    doc_fba = SBMLDocument(sbmlns)
+    doc_fba = libsbml.SBMLDocument(sbmlns)
     doc_fba.setPackageRequired("comp", True)
     doc_fba.setPackageRequired("fbc", False)
     model = doc_fba.createModel()
@@ -198,8 +201,8 @@ def bounds_model(sbml_file, directory):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     model = doc.createModel()
     model.setId("toy_bounds")
@@ -269,8 +272,8 @@ def update_model(sbml_file, directory):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     model = doc.createModel()
     model.setId("toy_update")
@@ -320,8 +323,8 @@ def top_model(sbml_file, directory, emds):
         """)
     working_dir = os.getcwd()
     os.chdir(directory)
-    sbmlns = SBMLNamespaces(3, 1, "comp", 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, "comp", 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     doc.setPackageRequired("fbc", False)
     mdoc = doc.getPlugin("comp")

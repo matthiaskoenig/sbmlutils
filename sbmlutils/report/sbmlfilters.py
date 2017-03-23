@@ -5,9 +5,11 @@ Template filters for rendering SBML.
 Additional functionality for templates like displaying
 annotations or rendering of units.
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+import libsbml
 
-from sbmlutils.formating import *
+from sbmlutils import formating
+
 
 filters = [
     'SBML_astnodeToString',
@@ -41,7 +43,7 @@ def SBML_stringToMathML(string):
 
 
 def SBML_annotationToString(annotation):
-    return AnnotationHTML.annotation_to_html(annotation)
+    return formating.AnnotationHTML.annotation_to_html(annotation)
 
 
 # noinspection PyCompatibility
@@ -55,15 +57,15 @@ def SBML_notesToString(sbase):
 
 
 def SBML_modelHistoryToString(mhistory):
-    return modelHistoryToString(mhistory)
+    return formating.modelHistoryToString(mhistory)
 
 
 def SBML_reactionToString(reaction):
-    return equationStringFromReaction(reaction)
+    return formating.equationStringFromReaction(reaction)
 
 
 def SBML_formulaChargeString(species):
-    return formulaChargeStringFromSpecies(species)
+    return formating.formulaChargeStringFromSpecies(species)
 
 
 def SBML_unitDefinitionToString1(ud):
@@ -71,8 +73,8 @@ def SBML_unitDefinitionToString1(ud):
 
 
 def SBML_unitDefinitionToString(udef):
-    return unitDefinitionToString(udef)
+    return formating.unitDefinitionToString(udef)
 
 
 def SBML_ruleVariableToString(udef):
-    return ruleVariableToString(udef)
+    return formating.ruleVariableToString(udef)
