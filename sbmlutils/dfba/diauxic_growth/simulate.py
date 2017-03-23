@@ -31,7 +31,7 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     for dt in [0.1]:  # [0.1, 1.0]:
         print("*** {} ***".format(dt))
         # Load model in simulator
-        dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+        dfba_model = DFBAModel(sbml_path=sbml_top_path)
         # Run simulation of hybrid model
         sim = DFBASimulator(dfba_model)
         sim.simulate(tstart=0.0, tend=tend, dt=dt)
@@ -49,8 +49,11 @@ def simulate_diauxic_growth(sbml_top_path, tend):
     dfba_analysis.save_csv(os.path.join(directory, "dg_simulation_generic.csv"))
     '''
     # custom model plots & analysis
-    plot_kwargs = {'markersize': 5,
-                   'alpha': 0.6}
+    plot_kwargs = {
+        'markersize': 5,
+        'marker': 'square',
+        'alpha': 0.6
+    }
     analyse.print_species(os.path.join(directory, "dg_species.png"), dfs, **plot_kwargs)
     analyse.print_fluxes(os.path.join(directory, "dg_fluxes.png"), dfs, **plot_kwargs)
     return dfs
@@ -75,7 +78,7 @@ if __name__ == "__main__":
 
     # benchmarking
     if False:
-        dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+        dfba_model = DFBAModel(sbml_path=sbml_top_path)
         dfba_sim = DFBASimulator(dfba_model, lp_solver='glpk')
         print(dfba_sim.cobra_model.solver.interface)
         benchmark(dfba_sim, tend=10)

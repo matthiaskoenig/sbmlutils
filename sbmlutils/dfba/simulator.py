@@ -1,17 +1,21 @@
 """
 Simulator for dynamic flux balance (DFBA) models in SBML.
 
-The ode integration is performed with roadrunner, the FBA optimization via cobrapy.
-"""
+ODE integration is performed with roadrunner,
+FBA optimization via cobrapy.
 
+Usage:
+    from sbmlutils.dfba import simulate_dfba
+    df, model, simulator = simulate_dfba(sbml_path, tend, dt)
+"""
 # FIXME: handle submodels directly defined in model
 # FIXME: reset of kinetic model
 # TODO: FVA, i.e. flux variability analysis with cobrapy
 # TODO: store directly in numpy arrays for speed improvements
 # TODO: set tolerances for the ode integration
 # FIXME: easy handling of different stepsizes
-# FIXME: timing of simulation (benchmark)
 
+# logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 from __future__ import print_function, division
 from six import iteritems
@@ -21,7 +25,26 @@ import pandas as pd
 import cobra
 import timeit
 
-# logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+from sbmlutils.dfba.model import DFBAModel
+from sbmlutils import fbc
+
+
+def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, **kwargs):
+    """ Simulates given model with DFBA.
+
+
+    :return: list of result dataframe, DFBAModel, DFBASimulator
+    """
+    # Load model
+    dfba_model = DFBAModel(sbml_path=sbml_path)
+
+    # simulation
+    dfba_simulator = DFBASimulator(dfba_model)
+    dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
+    df = dfba_simulator.solution
+
+    logging.info("\nSimulation time: {}\n".format(dfba_simulator.time))
+    return df, dfba_model, dfba_simulator
 
 
 class DFBASimulator(object):
@@ -88,11 +111,10 @@ class DFBASimulator(object):
         self.dfba_model.set_dt(dt)
 
         # Check that the FBA model simulates with given FBA model bounds
-        from sbmlutils import fbc
         df_fbc = fbc.cobra_reaction_info(self.cobra_model)
         logging.info(df_fbc)
         self.cobra_model.optimize(objective_sense=self.objective_sense)
-        self.cobra_model.summary()
+        # self.cobra_model.summary()
 
         try:
             logging.debug('###########################')
@@ -104,7 +126,6 @@ class DFBASimulator(object):
             all_time = np.linspace(start=tstart, stop=tend, num=points)
             all_results = []
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections)
-
 
             time = 0.0
             kstep = 0

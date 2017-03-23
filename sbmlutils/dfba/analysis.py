@@ -32,6 +32,9 @@ class DFBAAnalysis(object):
 
     def save_csv(self, filepath):
         """ Save results to csv. """
+        if filepath is None:
+            raise ValueError("filepath required")
+
         self.df.to_csv(filepath, sep="\t", index=False)
 
     def plot_species(self, filepath, **kwargs):

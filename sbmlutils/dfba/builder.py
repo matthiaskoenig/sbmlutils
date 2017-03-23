@@ -1,46 +1,52 @@
 """
-Building DFBA models by providing.
-
-FBA SBML models in combination with the variable species.
-
-
+Helper functions and information for building DFBA models.
 """
-from __future__ import print_function, division
-import logging
-import warnings
+
+from __future__ import print_function, absolute_import, division
 from sbmlutils import factory as fac
 from sbmlutils import comp
 
-#################################################
-# Logging
-#################################################
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 #################################################
 # Builder constants
 #################################################
+MODEL_FRAMEWORK_FBA = 'fba'
+MODEL_FRAMEWORK_ODE = 'ode'
+# MODEL_FRAMEWORK_STOCHASTIC = 'stochastic'
+# MODEL_FRAMEWORK_LOGICAL = 'logical'
+
+MODEL_FRAMEWORKS = [
+    MODEL_FRAMEWORK_FBA,
+    MODEL_FRAMEWORK_ODE,
+    # MODEL_FRAMEWORK_STOCHASTIC,
+    # MODEL_FRAMEWORK_LOGICAL,
+]
+
+# dt parameter
+DT_ID = 'dt'
 DT_SIM = 0.1
+DT_SBO = "SBO:0000346"
+
+# flux bounds
 LOWER_BOUND_DEFAULT = -1000
 UPPER_BOUND_DEFAULT = 1000
 ZERO_BOUND = 0
-
 LOWER_BOUND_PREFIX = 'lb_'
 UPPER_BOUND_PREFIX = 'ub_'
+FLUX_BOUND_SBO = "SBO:0000625"
 
-EXCHANGE_REACTION_PREFIX = 'EX_'
+# update reactions
 UPDATE_REACTION_PREFIX = "update_"
+UPDATE_REACTION_SBO = "SBO:0000631"
+UPDATE_PARAMETER_SBO = "SBO:0000613"
 
-SBO_FLUX_BOUND = "SBO:0000625"
-SBO_EXCHANGE_REACTION = "SBO:0000627"
-SBO_UPDATE_REACTION = "SBO:0000631"
-SBO_UPDATE_PARAMETER = "SBO:0000613"
-SBO_DT = "SBO:0000346"
-
-# TODO: exchange bounds
+# exchange reactions
+EXCHANGE_REACTION_PREFIX = 'EX_'
+EXCHANGE_REACTION_SBO = "SBO:0000627"
 EXCHANGE = 'exchange'
 EXCHANGE_IMPORT = 'import'
 EXCHANGE_EXPORT = 'export'
-
+#################################################
 
 def create_dt(step_size=DT_SIM, unit=None):
     """ Creates the dt parameter in the model.
@@ -52,7 +58,7 @@ def create_dt(step_size=DT_SIM, unit=None):
     :return:
     :rtype:
     """
-    return fac.Parameter(sid='dt', value=step_size, unit=unit, constant=True, sboTerm=SBO_DT)
+    return fac.Parameter(sid='dt', value=step_size, unit=unit, constant=True, sboTerm=DT_SBO)
 
 
 def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_unit=None):
@@ -87,16 +93,16 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
     parameters = [
         fac.Parameter(sid=lb_id,
                       value=lb_value,
-                      unit=flux_unit, constant=True, sboTerm=SBO_FLUX_BOUND),
+                      unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
         fac.Parameter(sid=ub_id,
                       value=ub_value,
-                      unit=flux_unit, constant=True, sboTerm=SBO_FLUX_BOUND),
+                      unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
     ]
     fac.create_objects(model, parameters)
 
     # exchange reactions are all reversible (it depends on the bounds in which direction they operate)
     ex_r = fac.create_reaction(model, rid=ex_rid, reversible=True,
-                               reactants={species_id: 1}, sboTerm=SBO_EXCHANGE_REACTION)
+                               reactants={species_id: 1}, sboTerm=EXCHANGE_REACTION_SBO)
 
     # exchange bounds
     fac.set_flux_bounds(ex_r, lb=lb_id, ub=ub_id)
@@ -121,7 +127,7 @@ def create_update_parameter(model, sid, unit):
     :rtype:
     """
     pid = EXCHANGE_REACTION_PREFIX + sid
-    parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit, sboTerm=SBO_UPDATE_PARAMETER)
+    parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit, sboTerm=UPDATE_PARAMETER_SBO)
     fac.create_objects(model, [parameter])
     # create port
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
@@ -159,6 +165,6 @@ def exchange_flux_bound_parameters(exchange_rids, unit):
                 value = UPPER_BOUND_DEFAULT
             parameters.append(
                 fac.Parameter(sid="{}_{}".format(bound_type, ex_rid), value=value, unit=unit, constant=False,
-                                  sboTerm=SBO_FLUX_BOUND)
+                              sboTerm=FLUX_BOUND_SBO)
             )
     return parameters

@@ -8,9 +8,11 @@ import matplotlib
 
 from sbmlutils.dfba.toy import toysettings
 from sbmlutils.dfba.toy import model_factory as toyfactory
-from sbmlutils.dfba.utils import versioned_directory
+from sbmlutils.dfba.toy import simulate as toysimulate
+
 from sbmlutils.dfba.diauxic_growth import dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
+
 
 # no backend for testing, must be imported before pyplot
 matplotlib.use('Agg')
@@ -55,7 +57,6 @@ class DFBATestCase(unittest.TestCase):
         self.file_exists(directory, dgsettings.top_file)
         self.file_exists(directory, dgsettings.flattened_file)
 
-    '''
     def test_toy_simulation(self):
         toyfactory.create_model(self.test_dir)
         toysimulate.simulate_model(self.test_dir, tend=50.0, steps=20)
@@ -63,7 +64,7 @@ class DFBATestCase(unittest.TestCase):
         self.file_exists("reactions.png")
         self.file_exists("species.png")
         self.file_exists("simulation.csv")
-    '''
+
 
 if __name__ == '__main__':
     unittest.main()

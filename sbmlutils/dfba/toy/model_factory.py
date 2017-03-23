@@ -152,10 +152,10 @@ def fba_model(sbml_file, directory):
                    compartment="cell"),
 
         # bounds
-        mc.Parameter(sid="ub_R1", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.SBO_FLUX_BOUND),
-        mc.Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.SBO_FLUX_BOUND),
+        mc.Parameter(sid="ub_R1", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
+        mc.Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="ub_default", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True,
-                     sboTerm=builder.SBO_FLUX_BOUND),
+                     sboTerm=builder.FLUX_BOUND_SBO),
     ]
     mc.create_objects(model, objects)
 

@@ -16,7 +16,7 @@ def simulate_toy(sbml_top_path, out_dir, dt, tend):
     steps = np.round(1.0 * tend / dt)  # 10*tend
 
     # Load model in simulator
-    dfba_model = DFBAModel(sbml_top_path=sbml_top_path)
+    dfba_model = DFBAModel(sbml_path=sbml_top_path)
 
     # Run simulation of hybrid model
     sim = DFBASimulator(dfba_model)

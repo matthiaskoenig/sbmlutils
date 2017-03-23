@@ -103,6 +103,6 @@ def test_create_dt():
     dt = model.getParameter('dt')
     assert dt
     assert dt.getConstant()
-    assert dt.getSBOTermID() == builder.SBO_DT
+    assert dt.getSBOTermID() == builder.DT_SBO
 
 
