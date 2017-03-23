@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Create Report from given SBML file.
+Create an SBML Report from given SBML file or set of SBML files (for instance for comp models).
 
 The model report is implemented based on a standard template language,
 which uses the SBML information to render the final document.
 
-Currently the following templates are available:
-<HTML>
-- in addition to the created HTML, the necessary CSS and JS files are copied.
-
 The basic steps of template creation are
-- configure an Engine (jinja2)
+- configure the engine (jinja2)
 - compile template
 - render with SBML context
+
+The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
-# TODO: implement offline version of the report
-# TODO: rate rules are not displayed correctly (they need dy/dt on the left side, compared to AssignmentRules)
-
-
 from __future__ import print_function, division, absolute_import
-import sys
 import codecs
 import ntpath
 import os
@@ -30,13 +23,6 @@ import libsbml
 from jinja2 import Environment, FileSystemLoader
 from sbmlutils.validation import check_sbml
 from sbmlutils.report import sbmlfilters
-
-# Change default encoding to UTF-8
-# We need to reload sys module first, because setdefaultencoding is available only at startup time
-
-# FIXME: this breaks the jupyter notebook output !, but is required for correct rendering of the templates
-# reload(sys)
-# sys.setdefaultencoding('utf-8')
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
