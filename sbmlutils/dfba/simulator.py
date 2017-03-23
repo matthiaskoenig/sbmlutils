@@ -147,7 +147,7 @@ class DFBASimulator(object):
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
-                row = self._ode_simulation(kstep, step_size=self.dt)
+                row = self._ode_simulation()
 
                 # store fba fluxes
                 logging.debug('* Store fluxes in ODE solution')
@@ -300,7 +300,7 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux replacements')
 
-    def _ode_simulation(self, kstep, step_size):
+    def _ode_simulation(self):
         """ ODE integration for a single timestep.
 
         :param kstep:
@@ -310,10 +310,12 @@ class DFBASimulator(object):
         logging.debug('* ODE integration')
 
         # constant step size
-        if kstep == 0:
-            result = self.ode_model.simulate(start=0, end=0, steps=1)
-        else:
-            result = self.ode_model.simulate(start=0, end=step_size, steps=1)
+        #if kstep == 0:
+        #    result = self.ode_model.simulate(start=0, end=0, steps=1)
+        #else:
+
+        # FIXME: correct times
+        result = self.ode_model.simulate(start=0, end=self.dt, steps=1)
 
         # store ode row
         return result[1, :]
