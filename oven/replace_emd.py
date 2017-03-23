@@ -48,6 +48,8 @@ def flattenExternalModelDefinitions(doc):
                 name = plugin.getPackageName()
                 doc.enablePackage(uri, prefix, True)
                 print(name, plugin)
+                print('uri:', uri)
+                print('prefix:', prefix)
 
                 # set the respective required tag (check if already required=True,
                 # to avoid True -> False by later submodels)

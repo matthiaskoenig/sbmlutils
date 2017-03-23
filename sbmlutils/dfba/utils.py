@@ -3,6 +3,7 @@ DFBA utility and helper functions.
 """
 from __future__ import print_function, absolute_import
 import os
+import logging
 from os.path import join as pjoin
 from sbmlutils import annotation
 from sbmlutils import factory
@@ -19,6 +20,9 @@ def versioned_directory(output_dir, version):
     """
     if output_dir is None:
         raise ValueError("directory must exist")
+    if not os.path.exists(output_dir):
+        logging.info('Create directory: {}'.format(output_dir))
+        os.mkdir(output_dir)
 
     directory = pjoin(output_dir, 'v{}'.format(version))
     if not os.path.exists(directory):
@@ -34,7 +38,8 @@ def add_generic_info(model, notes, creators, units, main_units):
     :return:
     """
 
-    annotation.set_model_history(model, creators)
+    if creators:
+        annotation.set_model_history(model, creators)
     factory.create_objects(model, units)
     factory.set_main_units(model, main_units)
 
