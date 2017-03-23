@@ -29,7 +29,7 @@ from sbmlutils.dfba.model import DFBAModel
 from sbmlutils import fbc
 
 
-def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, **kwargs):
+def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True, **kwargs):
     """ Simulates given model with DFBA.
 
 
@@ -39,18 +39,18 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, **kwargs):
     dfba_model = DFBAModel(sbml_path=sbml_path)
 
     # simulation
-    dfba_simulator = DFBASimulator(dfba_model)
+    dfba_simulator = DFBASimulator(dfba_model, pfba=pfba)
     dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
     df = dfba_simulator.solution
 
-    logging.info("\nSimulation time: {}\n".format(dfba_simulator.time))
+    print("\nSimulation time: {}\n".format(dfba_simulator.time))
     return df, dfba_model, dfba_simulator
 
 
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
 
-    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk'):
+    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True):
         """ Create the simulator with the processed dfba model.
 
 
@@ -68,6 +68,7 @@ class DFBASimulator(object):
         self.time = None
         # set solver
         self.cobra_model.solver = lp_solver
+        self.pfba = pfba
 
     @property
     def dt(self):
@@ -146,7 +147,7 @@ class DFBASimulator(object):
                 # update fba bounds from ode
                 self._set_fba_bounds()
                 # optimize fba
-                self._optimize_fba()
+                self._optimize_fba(pfba=self.pfba)
                 # set ode fluxes from fba
                 self._set_fluxes()
 
@@ -162,8 +163,8 @@ class DFBASimulator(object):
                     # set fba fluxes in results
 
                 logging.debug('* Store fluxes in ODE solution')
-                from pprint import pprint
-                pprint(self.fba_model.flat_mapping)
+                # from pprint import pprint
+                # pprint(self.fba_model.flat_mapping)
                 for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
                     flux = self.fba_solution.fluxes[fba_rid]
                     vindex = df_results.columns.get_loc(flat_rid)

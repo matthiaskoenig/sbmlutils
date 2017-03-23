@@ -465,6 +465,9 @@ class FBAModel(object):
         smid = self.submodel.getId()
         mapping = {}
 
+        # FIXME: use the replacements, replacedBy & ports for the mapping detection with the top_model
+        # get all the FBA reaction ids
+
         fba_rids = set()
         for rid in rr_comp.model.getReactionIds():
             # mapping relies on submodel prefix !
@@ -476,6 +479,8 @@ class FBAModel(object):
             if '{}__{}'.format(smid, rid) in fba_rids:
                 mapping[rid] = '{}__{}'.format(smid, rid)
             else:
-                mapping[rid] = rid
+                # FIXME: the mapping of the dummy reactions is missing
+                # This is a bad hack which relies of the naming of the dummy reactions
+                mapping[rid] = 'dummy_{}'.format(rid)
 
         self.flat_mapping = mapping

@@ -347,11 +347,16 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         mc.AssignmentRule(sid="lb_kin_EX_O2", value="-Vmax_EX_O2"),
 
         # exchange reaction bounds
-        # amount limitation in export (lower bound)
-        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
+        # uptake bounds (lower bound)
+        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac/X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X/X*bioreactor/dt)"),
+
+        # mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
     ]
     mc.create_objects(model, objects)
 

@@ -6,12 +6,15 @@ import shutil
 import tempfile
 import matplotlib
 
+from sbmlutils.dfba.utils import versioned_directory
+
 from sbmlutils.dfba.toy import toysettings
 from sbmlutils.dfba.toy import model_factory as toyfactory
 from sbmlutils.dfba.toy import simulate as toysimulate
 
 from sbmlutils.dfba.diauxic_growth import dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
+from sbmlutils.dfba.diauxic_growth import simulate as dgsimulate
 
 
 # no backend for testing, must be imported before pyplot
@@ -58,13 +61,28 @@ class DFBATestCase(unittest.TestCase):
         self.file_exists(directory, dgsettings.flattened_file)
 
     def test_toy_simulation(self):
+
         toyfactory.create_model(self.test_dir)
-        toysimulate.simulate_model(self.test_dir, tend=50.0, steps=20)
+        sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.version),
+                                 toysettings.top_file)
+        print(sbml_path)
+        toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0])
 
-        self.file_exists("reactions.png")
-        self.file_exists("species.png")
-        self.file_exists("simulation.csv")
+        # self.file_exists("reactions.png")
+        # self.file_exists("species.png")
+        # self.file_exists("simulation.csv")
 
+    def test_diauxic_simulation(self):
+
+        dgfactory.create_model(self.test_dir)
+        sbml_path = os.path.join(versioned_directory(self.test_dir, dgfactory.version),
+                                 dgsettings.top_file)
+        print(sbml_path)
+        dgsimulate.simulate_diauxic_growth(sbml_path, self.test_dir, dts=[0.1], figures=False)
+
+        # self.file_exists("reactions.png")
+        # self.file_exists("species.png")
+        # self.file_exists("simulation.csv")
 
 if __name__ == '__main__':
     unittest.main()

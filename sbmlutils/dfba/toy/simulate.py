@@ -12,7 +12,7 @@ from sbmlutils.dfba.toy import toysettings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba
 from sbmlutils.dfba.analysis import DFBAAnalysis
 
-
+from sbmlutils.dfba.utils import versioned_directory
 from sbmlutils.dfba.analysis import set_matplotlib_parameters
 from matplotlib import pyplot as plt
 set_matplotlib_parameters()
@@ -117,13 +117,12 @@ def print_fluxes(filepath, dfs, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy(sbml_path, out_dir):
+def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0]):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
     """
     tend = 50
-    dts = [0.1, 1.0, 5.0]
     dfs = []
     for dt in dts:
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
@@ -150,11 +149,11 @@ def simulate_toy(sbml_path, out_dir):
         'alpha': 0.5
     }
     print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
-    print_fluxes(os.path.join(directory, "fig_fluxes.png"), dfs, **plot_kwargs)
+    print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
     return dfs
 
 
 if __name__ == "__main__":
-    directory = os.path.join(toysettings.out_dir, 'v{}'.format(model_factory.version))
-    sbml_top_path = os.path.join(directory, toysettings.top_file)
-    simulate_toy(sbml_top_path, out_dir=directory)
+    directory = versioned_directory(toysettings.out_dir, model_factory.version)
+    sbml_path = os.path.join(directory, toysettings.top_file)
+    simulate_toy(sbml_path, out_dir=directory)

@@ -102,12 +102,17 @@ def print_fluxes(filepath, dfs, **kwargs):
                             interpolate=False, step='post')
             ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2,
                             interpolate=False, step='post')
-            ax.plot(df.time, df['EX_{}'.format(key)], color=colors[key], label="EX__{}".format(key), **kwargs)
+            ax.plot(df.time, df['EX_{}'.format(key)], color=colors[key], label="EX_{}".format(key), **kwargs)
+            # ax.plot(df.time, df['dummy_EX_{}'.format(key)], color=colors[key], label="dummy_EX_{}".format(key), **kwargs)
+            ax.plot(df.time, df['update__update_{}'.format(key)], color="black",
+                    label="update_{}".format(key), **kwargs)
 
             ax.set_ylabel('Flux [mmol/l/h]')
             ax.set_title('{}: Flux'.format(key))
-            ax.set_ylim(np.min(df['EX_{}'.format(key)]), np.max(df['EX_{}'.format(key)]))
-            # ax.set_xlabel('time [h]')
+            #ax.set_ylim(np.min(np.min(df['EX_{}'.format(key)]), np.min(df['update__update_{}'.format(key)])),
+            #            np.max(np.max(df['EX_{}'.format(key)]), np.max(df['update__update_{}'.format(key)])) )
+                        # ax.set_xlabel('time [h]')
+            ax.set_ylim(-8, 8)
             ax.legend()
 
         # concentrations
