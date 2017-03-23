@@ -78,9 +78,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "python_libsbml",
-        "libroadrunner",
-        "cobra",
+        "python-libsbml>=5.13.0",
+        "libroadrunner>=1.4.15",
+        "cobra>=0.6.0a4",
         "pandas",
         "tabulate",
         "Jinja2",

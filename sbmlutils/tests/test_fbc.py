@@ -2,9 +2,9 @@
 Unit tests for fbc.
 """
 from __future__ import print_function, absolute_import
+import os
 import cobra
 import libsbml
-import os
 
 import sbmlutils.fbc as fbc
 from sbmlutils.tests import data

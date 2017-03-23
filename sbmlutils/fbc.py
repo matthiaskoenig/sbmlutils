@@ -7,8 +7,9 @@ from six import iteritems
 import warnings
 import logging
 import tempfile
-import cobra
 import libsbml
+import cobra
+
 import numpy as np
 import pandas as pd
 from sbmlutils import factory
@@ -53,6 +54,14 @@ def cobra_reaction_info(cobra_model):
     # FIXME: better filling of DataFrame
     for rid in rids:
         r = cobra_model.reactions.get_by_id(rid)
+
+        # print('#'*80)
+        # print('COBRA REACTION', r, type(r), cobra.__version__)
+        # print('#' * 80)
+        # import inspect
+        # from pprint import pprint
+        # pprint(inspect.getmembers(type(r)))
+
         df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, r.boundary, r.objective_coefficient,
                        r.forward_variable, r.reverse_variable]
     return df
