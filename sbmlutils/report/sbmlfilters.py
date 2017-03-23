@@ -49,7 +49,7 @@ def SBML_annotationToString(annotation):
 # noinspection PyCompatibility
 def SBML_notesToString(sbase):
     notes = sbase.getNotesString()
-    if type(notes) in [str, basestring]:
+    if type(notes) == str:
         # unicode conversion for jinja2 necessary in python 2
         return unicode(notes, "utf-8")
     else:
