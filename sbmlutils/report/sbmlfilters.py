@@ -5,7 +5,11 @@ Template filters for rendering SBML.
 Additional functionality for templates like displaying
 annotations or rendering of units.
 """
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
+from __future__ import unicode_literals
+# from future import standard_library
+# standard_library.install_aliases()
+# from builtins import str
 import libsbml
 
 from sbmlutils import formating
@@ -49,11 +53,12 @@ def SBML_annotationToString(annotation):
 # noinspection PyCompatibility
 def SBML_notesToString(sbase):
     notes = sbase.getNotesString()
-    if type(notes) == str:
-        # unicode conversion for jinja2 necessary in python 2
-        return unicode(notes, "utf-8")
-    else:
-        return notes
+
+    # only decode in python 2, already utf8 str in python 3
+    if hasattr(notes, "decode"):
+        notes = notes.decode('utf-8')
+
+    return notes
 
 
 def SBML_modelHistoryToString(mhistory):
