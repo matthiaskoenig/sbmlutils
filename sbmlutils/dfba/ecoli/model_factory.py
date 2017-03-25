@@ -131,6 +131,10 @@ def fba_model(sbml_file, directory):
     utils.add_generic_info(model, notes=fba_notes,
                            creators=None, units=units, main_units=main_units)
 
+
+    # clip R_ reaction and M_ metabolite prefixes
+    utils.clip_prefixes_in_model(model)
+
     # set id & framework
 
     model.setId('ecoli_fba'.format(model_id))
@@ -145,33 +149,15 @@ def fba_model(sbml_file, directory):
     for compartment in model.getListOfCompartments():
         compartment.setUnits(UNIT_VOLUME)
 
+    # find exchange reactions (these species can be changed by the FBA)
+    ex_rids = utils.find_exchange_reactions(model)
+    from pprint import pprint
+    pprint(ex_rids)
 
-    # find exchange reactions (this species can be changed by the FBA)
-    # for reactions in
-
-
-    # TODO: ports for exchange reactions
-    # TODO: unique upper and lower bounds for exchange reactions
-    # TODO: ports for the respective bounds
-    '''
-    builder.create_exchange_reaction(model, species_id="Ac", flux_unit=UNIT_FLUX,
-                                     exchange_type=builder.EXCHANGE)
-    builder.create_exchange_reaction(model, species_id="Glcxt", flux_unit=UNIT_FLUX,
-                                     exchange_type=builder.EXCHANGE_IMPORT)
-    builder.create_exchange_reaction(model, species_id="O2", flux_unit=UNIT_FLUX,
-                                     exchange_type=builder.EXCHANGE_IMPORT)
-    builder.create_exchange_reaction(model, species_id="X", flux_unit=UNIT_FLUX,
-                                     exchange_type=builder.EXCHANGE_EXPORT)
-
-
-
-    # objective function
-    mc.create_objective(mplugin, oid="biomass_max", otype="maximize",
-                        fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
-    '''
+    for ex_rid in ex_rids:
+        builder.update_exchange_reaction(model, reaction_rid=ex_rid)
 
     # write SBML file
-    # TODO: save
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
 
     return doc_fba
