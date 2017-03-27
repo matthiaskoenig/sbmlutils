@@ -16,15 +16,29 @@ import sys
 import os
 
 import sphinx_rtd_theme
-from mock import Mock as MagicMock
 
+sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('.'))
 
-# Mock things for readthedoc build
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
+# In order to build documentation that requires libraries to import
+class Mock(object):
+    def __init__(self, *args, **kwargs):
+        return
+
+    def __call__(self, *args, **kwargs):
         return Mock()
 
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        else:
+            return Mock()
+
+
+MOCK_MODULES = ['libsbml', 'cobrapy', 'roadrunner']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
 
 MOCK_MODULES = []
 
@@ -67,8 +81,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'sbmlutils'
-copyright = u'2016, matthiaskoenig'
-author = u'Matthias Koenig'
+copyright = u'2017, Matthias König'
+author = u'Matthias König'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
