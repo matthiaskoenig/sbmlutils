@@ -8,7 +8,7 @@
  This utilities are implemented on top of the libsbml python bindings. This package works with the latest
  develop version of libsbml.
 
-    @MISC{libsbgnpy,
+    @MISC{sbmlutils,
       author        = {Matthias Koenig},
       title         = {sbmlutils: python utilities for SBML},
       month         = {Sep.},

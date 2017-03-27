@@ -1,17 +1,17 @@
 Introduction
 ============
-Python utilities for working with `SBML <http://www.sbml.org>`_.
+`sbmlutils` are Python utilities for working with `SBML <http://www.sbml.org>`_.
 
 To cite libsbgnpy use the following BibTex or equivalent::
 
-    @MISC{libsbgnpy,
-      author        = {Matthias König},
-      title         = {libsbgnpy: Python library for SBGN},
-      month         = {Mar.},
-      year          = {2017},
-      doi           = "{10.5281/zenodo.192356}",
-      url           = "{http://dx.doi.org/10.5281/zenodo.438137}",
-      howpublished  = {https://github.com/matthiaskoenig/libsbgn-python/blob/master/README.md}
+    @MISC{sbmlutils,
+      author        = {Matthias Koenig},
+      title         = {sbmlutils: python utilities for SBML},
+      month         = {Sep.},
+      year          = {2016},
+      doi           = "{10.5281/zenodo.61737}",
+      url           = "{http://dx.doi.org/10.5281/zenodo.61737}",
+      howpublished  = {https://github.com/matthiaskoenig/sbmlutils/blob/master/README.md}
     }
 
 Source code is available from
