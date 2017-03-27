@@ -22,47 +22,39 @@
 * Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
 * Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
-## Features
-### modelcreator
-The modelcreator provides utilities to create SBML models.
-Model information is managed in python data structures which are used
-to create the models.
-
-The model definition consists of
-* `Cell.py`: basic model information
-* `Reactions.py`: reaction information
-
-Models can extend other models and reuse information from 
-defined models.
-
-### dfba
-Simulator for simulation of multi-framework SBML models.
-Currently, supports dynamic FBA by coupling ODE and FBA models.
-
-### annotator
-The annotator provides simple means for the annotation of models.
-Annotations are hereby defined in separate annotation files with 
-annotations being matched to ids based on regular expression matching.
-
-### report
-HTML report of SBML models. This provides simple overview of the 
-information defined in the model
-
 ## Installation
-Either install directly from the git repository
+The latest stable version can be installed via 
 ```
-pip install git+https://github.com/matthiaskoenig/sbmlutils.git
+pip install sbmlutils
 ```
-Or clone the repository locally
+
+The latest develop version is available via
 ```
-git clone https://github.com/matthiaskoenig/sbmlutils.git
-cd sbmlutils
-python setup.py install
+pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop
 ```
-To work in develop use
+
+Or via cloning the repository and installing via
 ```
 pip install -e .
 ```
+
+## Release notes
+
+### 0.1.3
+* python 3 support
+* clean travis build with pip
+* DFBA implementation
+* bugfixes & improvements
+
+### 0.1.2
+* fixed unittests and bug fixes
+
+### 0.1.1
+* bug fixes, refactoring, unit tests
+* model creator examples
+
+### 0.1.0
+* initial release
 
 ----
 &copy; 2017 Matthias König.

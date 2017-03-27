@@ -15,5 +15,5 @@ and start jupyter in the notebooks folder
     jupyter notebook index.ipynb
 
 
-.. include:: _notebooks/docs/FBAModel.rst
-.. include:: _notebooks/docs/Interpolation.rst
+.. include:: notebooks/FBAModel.rst
+.. include:: notebooks/Interpolation.rst

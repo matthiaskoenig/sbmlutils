@@ -1,6 +1,5 @@
-Welcome to sbmlutils's documentation!
-=====================================
-Python utilities for working with sbml on top of libsbml
+Welcome to sbmlutils documentation!
+===================================
 
 Contents:
 
@@ -8,7 +7,6 @@ Contents:
    :maxdepth: 2
 
    introduction.rst
-   installation.rst
    Examples <notebooks.rst>
 
 
