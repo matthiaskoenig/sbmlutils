@@ -20,19 +20,22 @@ def find_exchange_reactions(model):
     prefix EX_.
     
     :param model: SBML model
-    :return: list of exchange reaction ids
+    :returns dictonary of ex_rids: sids
     """
-    ex_rids = []
+    ex_rids = {}
     for reactions in model.getListOfReactions():
         rid = reactions.getId()
-        # exchange reaction by id
-        if rid.startswith("EX_"):
-            ex_rids.append(rid)
 
-        # exchange reaction by SBOTerm
         # TODO: implement via exchange, source, sink SBOTerm (and number of reactants/products)
 
-    return sorted(ex_rids)
+        # exchange reaction by id
+        if rid.startswith("EX_"):
+            r = model.getReaction(rid)
+            sid = r.getReactant(0).getSpecies()
+
+            ex_rids[rid] = sid
+
+    return ex_rids
 
 
 def clip_prefixes_in_model(model, prefix_species="M_", prefix_reaction="R_", prefix_gene="G_"):

@@ -7,7 +7,9 @@ import warnings
 
 from sbmlutils import factory as fac
 from sbmlutils import comp
+from sbmlutils.dfba import utils
 
+import libsbml
 from collections import defaultdict
 
 
@@ -52,17 +54,116 @@ EXCHANGE_IMPORT = 'import'
 EXCHANGE_EXPORT = 'export'
 #################################################
 
-def create_dt(step_size=DT_SIM, unit=None):
+
+def template_doc_bounds(model_id):
+    """ Create template bounds model.
+    
+    :param model_id: model identifier
+    :return: SBMLDocument
+    """
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+    model = doc.createModel()
+    model.setId("{}_bounds".format(model_id))
+    model.setName("{} (BOUNDS)".format(model_id))
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+
+    objects = [
+        # definition of min and max
+        fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
+        fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
+    ]
+    fac.create_objects(model, objects)
+
+    return doc
+
+
+def template_doc_update(model_id):
+    """ Create template update model.
+    
+    :param model_id: model identifier
+    :return: SBMLDocument
+    """
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+
+    # model
+    model = doc.createModel()
+    model.setId("{}_update".format(model_id))
+    model.setName("{} (UPDATE)".format(model_id))
+    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    return doc
+
+
+def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port=True):
+    """ Creates the main compartment for the dynamic species.
+    
+    :param model: 
+    :param compartment_id: id
+    :param unit_volume: unit
+    :param create_port: flag to create port
+    :return: created libsbml.Compartment
+    """
+    objects = [
+        fac.Compartment(sid=compartment_id, value=1.0, unit=unit_volume, constant=True, name=compartment_id,
+                        spatialDimension=3),
+    ]
+    c = fac.create_objects(model, objects)
+    if create_port:
+        comp.create_ports(model, idRefs=[compartment_id])
+    return c
+
+
+def create_dfba_species(model, model_fba, compartment_id, unit_concentration=None, create_port=True):
+    """ Add DFBA species and compartments from fba model to model. 
+    Creates the dynamic species and respetive compartments with
+    the necessary ports.
+    This is used in the bounds submodel, update submodel and the
+    and top model.
+    
+    :param model: 
+    :param model_fba: 
+    :return: 
+    """
+    objects = []
+    port_sids = []
+    ex_rids = utils.find_exchange_reactions(model_fba)
+    for ex_rid in ex_rids:
+        r = model_fba.getReaction(ex_rid)
+        sid = r.getReactant(0).getSpecies()
+        s = model_fba.getSpecies(sid)
+
+        # exchange species to create
+        objects.append(
+            fac.Species(sid=sid, name=s.getName(), value=1.0, unit=unit_concentration,
+                       hasOnlySubstanceUnits=False, compartment=compartment_id)
+        )
+        # port of exchange species
+        port_sids.append(sid)
+
+    fac.create_objects(model, objects)
+    if create_port:
+        comp.create_ports(model, idRefs=port_sids)
+
+
+def create_dfba_dt(model, step_size=DT_SIM, time_unit=None, create_port=None):
     """ Creates the dt parameter in the model.
 
     :param step_size:
     :type step_size:
-    :param unit:
-    :type unit:
+    :param time_unit:
+    :type time_unit:
     :return:
     :rtype:
     """
-    return fac.Parameter(sid='dt', value=step_size, unit=unit, constant=True, sboTerm=DT_SBO)
+    objects = [
+        fac.Parameter(sid=DT_ID, value=step_size, unit=time_unit, constant=True, sboTerm=DT_SBO)
+    ]
+    fac.create_objects(model, objects)
+    if create_port:
+        comp.create_ports(model, idRefs=[DT_ID])
 
 
 def check_exchange_reaction(model, reaction_id):

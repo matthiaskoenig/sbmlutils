@@ -103,7 +103,7 @@ def test_create_dt():
     model = doc.getModel()
 
     fac.create_objects(model,
-                       [builder.create_dt(step_size=0.1)])
+                       [builder.create_dfba_dt(step_size=0.1)])
     dt = model.getParameter('dt')
     assert dt
     assert dt.getConstant()
