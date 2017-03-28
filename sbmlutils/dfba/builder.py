@@ -102,7 +102,7 @@ def check_exchange_reaction(model, reaction_id):
         if r.getSBOTermID() != EXCHANGE_REACTION_SBO:
             warnings.warn("exchange reaction id {} != {}:".format(r.getSBOTermId(), EXCHANGE_REACTION_SBO))
     if not r.getReversible():
-        warnings.warn("exhchange reaction is not reversible: {}".format(r))
+        warnings.warn("exchange reaction is not reversible: {}".format(r))
     return valid
 
 
