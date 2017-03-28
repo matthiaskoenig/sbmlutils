@@ -5,11 +5,12 @@ from __future__ import print_function, absolute_import
 import os
 import logging
 from os.path import join as pjoin
+from six import iteritems
+
+from libsbml import XMLNode
 from sbmlutils import annotation
 from sbmlutils import factory
-from libsbml import XMLNode
 from sbmlutils.validation import check
-
 
 def find_exchange_reactions(model):
     """ Finds the exchange reaction in given FBA model.
@@ -33,7 +34,7 @@ def find_exchange_reactions(model):
     return sorted(ex_rids)
 
 
-def clip_prefixes_in_model(model):
+def clip_prefixes_in_model(model, prefix_species="M_", prefix_reaction="R_", prefix_gene="G_"):
     """ Removes the unnecessary Bigg prefixes.
     R_ for reactions, M_ for metabolites and G_ for genes.
     
@@ -42,55 +43,34 @@ def clip_prefixes_in_model(model):
     :return: 
     :rtype: 
     """
+    replace = {}
 
     # clip reactions
-    rdict = {}
-    for r in model.getListOfReactions():
-        rid = r.getId()
-        rid_clipped = clip(rid, "R_")
-        if rid != rid_clipped:
-            rdict[rid] = rid_clipped
-            r.setId(rid_clipped)
+    if prefix_reaction is not None:
+        for r in model.getListOfReactions():
+            rid = r.getId()
+            rid_clipped = clip(rid, prefix_reaction)
+            if rid != rid_clipped:
+                replace[rid] = rid_clipped
+                r.setId(rid_clipped)
 
-    # clip metabolites
-    sdict = {}
-    for s in model.getListOfSpecies():
-        sid = s.getId()
-        sid_clipped = clip(sid, "M_")
-        if sid != sid_clipped:
-            sdict[sid] = sid_clipped
-            s.setId(sid_clipped)
+    # clip species
+    if prefix_species is not None:
+        for s in model.getListOfSpecies():
+            sid = s.getId()
+            sid_clipped = clip(sid, prefix_species)
+            if sid != sid_clipped:
+                replace[sid] = sid_clipped
+                s.setId(sid_clipped)
 
-    def replace_sref(sref_list):
-        for s_ref in sref_list:
-            # print(s_ref, type(s_ref))
-            sref_id = s_ref.getSpecies()
-            if sref_id in sdict:
-                s_ref.setSpecies(sdict[sref_id])
+    # TODO: clip genes
 
-    # clip reactants, products and modifiers of reactions
-    for r in model.getListOfReactions():
-        replace_sref(r.getListOfReactants())
-        replace_sref(r.getListOfProducts())
-        replace_sref(r.getListOfModifiers())
+    # update all references to elements
+    elements = model.getListOfAllElements()
+    for e in elements:
+        for id_old, id_new in iteritems(replace):
+            e.renameSIdRefs(id_old, id_new)
 
-    # fbc reactions
-    fbc_model = model.getPlugin("fbc")
-    for obj in fbc_model.getListOfObjectives():
-        for flux_obj in obj.getListOfFluxObjectives():
-            fo_rid = flux_obj.getReaction()
-            if fo_rid in rdict:
-                flux_obj.setReaction(rdict[fo_rid])
-
-    # group member ids
-    groups_model = model.getPlugin("groups")
-    for group in groups_model.getListOfGroups():
-        for member in group.getListOfMembers():
-            id_ref = member.getIdRef()
-            if id_ref in rdict:
-                member.setIdRef(rdict[id_ref])
-            if id_ref in sdict:
-                member.setIdRef(sdict[id_ref])
 
 
 def clip(string, prefix):

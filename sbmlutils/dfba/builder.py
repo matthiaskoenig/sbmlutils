@@ -63,6 +63,47 @@ def create_dt(step_size=DT_SIM, unit=None):
     return fac.Parameter(sid='dt', value=step_size, unit=unit, constant=True, sboTerm=DT_SBO)
 
 
+def check_exchange_reaction(model, reaction_id):
+    """ Checks that the exchange reactions fullfills the necessary specification.
+
+    :param model: SBML model
+    :param reaction_id: id of exchange reaction
+    :return: boolean true or false 
+    """
+    valid = True
+    sid = None
+    r = model.getReaction(reaction_id)
+    if len(r.getListOfModifiers()) > 0:
+        warnings.warn("modfiers set on exchange reaction:".format(r))
+        valid = False
+    if len(r.getListOfProducts()) > 0:
+        warnings.warn("products set on exchange reaction:".format(r))
+        valid = False
+    if len(r.getListOfReactants()) == 0:
+        warnings.warn("no reactant set on exchange reaction:".format(r))
+        valid = False
+    elif len(r.getListOfReactants()) > 1:
+        warnings.warn("more than one reactant set on exchange reaction:".format(r))
+        valid = False
+    else:
+        sref = r.getReactant(0)
+        if abs(sref.getStoichiometry() - 1.0) > 1E-6:
+            warnings.warn("stoichiometry of reactant not 1.0 on exchange reaction:".format(r))
+            valid = False
+        sid = sref.getSpecies()
+    if sid is not None:
+        if reaction_id != EXCHANGE_REACTION_PREFIX + sid:
+            warnings.warn("exchange reaction id does not follow EX_sid:", reaction_id)
+    if not r.isSetSBOTerm():
+        warnings.warn("no SBOTerm set on exchange reaction".format(r))
+    else:
+        if r.getSBOTermID() != EXCHANGE_REACTION_SBO:
+            warnings.warn("exchange reaction id {} != {}:".format(r.getSBOTermId(), EXCHANGE_REACTION_SBO))
+    if not r.getReversible():
+        warnings.warn("exhchange reaction is not reversible: {}".format(r))
+    return valid
+
+
 def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_unit=None):
     """ Factory method to create exchange reactions for species in the FBA model.
 
@@ -116,64 +157,43 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
     return ex_r
 
 
-def check_exchange_reaction(model, reaction_id):
-    """ Checks that the exchange reactions fullfills the necessary specification.
-    
-    :param model: SBML model
-    :param reaction_id: id of exchange reaction
-    :return: boolean true or false 
-    """
-    valid = True
-    sid = None
-    r = model.getReaction(reaction_id)
-    if len(r.getListOfModifiers())>0:
-        warnings.warn("modfiers set on exchange reaction:".format(r))
-        valid = False
-    if len(r.getListOfProducts()) > 0:
-        warnings.warn("products set on exchange reaction:".format(r))
-        valid = False
-    if len(r.getListOfReactants()) == 0:
-        warnings.warn("no reactant set on exchange reaction:".format(r))
-        valid = False
-    elif len(r.getListOfReactants()) > 1:
-        warnings.warn("more than one reactant set on exchange reaction:".format(r))
-        valid = False
-    else:
-        sref = r.getReactant(0)
-        if abs(sref.getStoichiometry()-1.0) > 1E-6:
-            warnings.warn("stoichiometry of reactant not 1.0 on exchange reaction:".format(r))
-            valid = False
-        sid = sref.getSpecies()
-    if sid is not None:
-        if reaction_id != EXCHANGE_REACTION_PREFIX + sid:
-            warnings.warn("exchange reaction id does not follow EX_sid:", reaction_id)
-    if not r.isSetSBOTerm():
-        warnings.warn("no SBOTerm set on exchange reaction".format(r))
-    else:
-        if r.getSBOTermID() != EXCHANGE_REACTION_SBO:
-            warnings.warn("exchange reaction id {} != {}:".format(r.getSBOTermId(), EXCHANGE_REACTION_SBO))
-    if not r.getReversible():
-        warnings.warn("exhchange reaction is not reversible: {}".format(r))
-    return valid
-
-
-def update_exchange_reaction(model, reaction_id):
+def update_exchange_reaction(model, ex_rid):
     """ Updates existing exchange reaction in FBA model.
     
     Sets all the necessary information and checks that correct.
     
     :param model: SBML model
-    :param reaction_id: id of exchange reaction
+    :param ex_rid: id of exchange reaction
     :return: exchange reaction
     """
-    ex_r = model.getReaction(reaction_id)
-    check_exchange_reaction(model, reaction_id)
+    ex_r = model.getReaction(ex_rid)
+    check_exchange_reaction(model, ex_rid)
 
-    # TODO: ports for exchange reactions
+    # ports for exchange reacton
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=[ex_rid])
+
+    # TODO: unique upper and lower bounds for exchange reactions & unify names
 
 
-    # TODO: unique upper and lower bounds for exchange reactions
     # TODO: ports for the respective bounds
+    # create ports for upper and lower bounds
+    # comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+    #                  idRefs=[lb_id, ub_id])
+
+
+def create_unique_exchange_bounds(model, ex_rids):
+    """ Creates unique
+    
+    :param model: 
+    :param ex_rids: 
+    :return: 
+    """
+    for ex_rid in ex_rids:
+        ex_rid = model.getReaction(ex_rid)
+        # necessary to get the references
+
+
 
 
 def create_update_parameter(model, sid, unit):

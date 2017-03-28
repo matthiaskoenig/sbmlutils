@@ -131,12 +131,10 @@ def fba_model(sbml_file, directory):
     utils.add_generic_info(model, notes=fba_notes,
                            creators=None, units=units, main_units=main_units)
 
-
     # clip R_ reaction and M_ metabolite prefixes
     utils.clip_prefixes_in_model(model)
 
     # set id & framework
-
     model.setId('ecoli_fba'.format(model_id))
     model.setName('ecoli (FBA)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
@@ -154,8 +152,12 @@ def fba_model(sbml_file, directory):
     from pprint import pprint
     pprint(ex_rids)
 
+    # make unique upper and lower bounds for exchange reaction
+    builder.create_unique_exchange_bounds(model, ex_rids)
+
+
     for ex_rid in ex_rids:
-        builder.update_exchange_reaction(model, reaction_id=ex_rid)
+        builder.update_exchange_reaction(model, ex_rid=ex_rid)
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
