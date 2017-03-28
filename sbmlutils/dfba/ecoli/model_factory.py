@@ -203,13 +203,11 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
                    spatialDimension=3),
     ]
-    mc.create_objects(model, objects)
+    port_sids = ['dt', 'bioreactor']
 
-    # ports
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT, idRefs=["dt"])
 
-    species_objects = []
-
+    # dynamic species
+    fba_prefix = "fba"
     model_fba = doc_fba.getModel()
     ex_rids = utils.find_exchange_reactions(model_fba)
     for ex_rid in ex_rids:
@@ -217,51 +215,45 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         sid = r.getReactant(0).getSpecies()
         s = model_fba.getSpecies(sid)
 
-        species_objects.append(
-            # create exchange species
-            mc.Species(sid=s.getId(), name=s.getName(), value=1.0, unit=UNIT_CONCENTRATION,
-                   hasOnlySubstanceUnits=False, compartment="bioreactor")
+        # exchange species to create
+        objects.append(
+            mc.Species(sid=sid, name=s.getName(), value=1.0, unit=UNIT_CONCENTRATION,
+                       hasOnlySubstanceUnits=False, compartment="bioreactor")
         )
-    mc.create_objects(model, species_objects)
+        # port of exchange species
+        port_sids.append(sid)
 
-    '''
-    # values of all exchange flux bounds can be overwritten from the outside
+        # lower & upper bound parameters
+        r_fbc = r.getPlugin("fbc")
+        lb_id = r_fbc.getLowerFluxBound()
+        fba_lb_id = fba_prefix + lb_id
+        lb_value = model_fba.getParameter(lb_id).getValue()
+        ub_id = r_fbc.getUpperFluxBound()
+        fba_ub_id = fba_prefix + ub_id
+        ub_value = model_fba.getParameter(ub_id).getValue()
 
-    mc.Parameter(sid="lb_EX_Ac", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-    mc.Parameter(sid="ub_EX_Ac", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-    mc.Parameter(sid="lb_EX_Glcxt", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
-                 sboTerm="SBO:0000625"),
-    mc.Parameter(sid="ub_EX_Glcxt", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
-                 sboTerm="SBO:0000625"),
-    # FIXME: handle the reversibility of exchange reactions (i.e. ZERO_BOUNDS)
-    mc.Parameter(sid="lb_EX_O2", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-    mc.Parameter(sid="ub_EX_O2", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-    mc.Parameter(sid="lb_EX_X", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-    mc.Parameter(sid="ub_EX_X", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+        objects.extend([
+            # for assignments
+            mc.Parameter(sid=lb_id, value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+            mc.Parameter(sid=ub_id, value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+            # default bounds from fba
+            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False,
+                         sboTerm="SBO:0000625"),
+            mc.Parameter(sid=fba_ub_id, value=ub_value, unit=UNIT_FLUX, constant=False,
+                         sboTerm="SBO:0000625")
+        ])
+        port_sids.extend([lb_id, ub_id])
 
+        objects.extend([
+            # uptake bounds (lower bound)
+            mc.AssignmentRule(sid=lb_id, value="max({}, -{}*bioreactor/dt)".format(fba_lb_id, sid)),
+            mc.AssignmentRule(sid=ub_id, value="{}".format(fba_ub_id)),
+        ])
 
-    # exchange reaction bounds
-    # uptake bounds (lower bound)
-    mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac/X*bioreactor/dt)"),
-    mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X*bioreactor/dt)"),
-    mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X*bioreactor/dt)"),
-    mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X/X*bioreactor/dt)"),
-    
-    # ports
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=["dt",
-                              "bioreactor",
-                              "Ac", "Glcxt", "O2", "X",
-                              "lb_EX_Ac", "lb_EX_Glcxt", "lb_EX_O2", "lb_EX_X",
-                              "ub_EX_Ac", "ub_EX_Glcxt", "ub_EX_O2", "ub_EX_X",
-                              ])
-    '''
-
+    mc.create_objects(model, objects)
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT, idRefs=port_sids)
 
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
-
-
-
 
 def create_model(output_dir):
     """ Create all models.
