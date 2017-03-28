@@ -23,7 +23,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 1
+version = 2
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -155,7 +155,7 @@ def fba_model(sbml_file, directory):
     pprint(ex_rids)
 
     for ex_rid in ex_rids:
-        builder.update_exchange_reaction(model, reaction_rid=ex_rid)
+        builder.update_exchange_reaction(model, reaction_id=ex_rid)
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
