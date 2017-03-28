@@ -12,6 +12,7 @@ from sbmlutils import annotation
 from sbmlutils import factory
 from sbmlutils.validation import check
 
+
 def find_exchange_reactions(model):
     """ Finds the exchange reaction in given FBA model.
 
@@ -35,7 +36,8 @@ def find_exchange_reactions(model):
 
 
 def clip_prefixes_in_model(model, prefix_species="M_", prefix_reaction="R_", prefix_gene="G_"):
-    """ Removes the unnecessary Bigg prefixes.
+    """ Removes the unnecessary BiGG prefixes.
+    
     R_ for reactions, M_ for metabolites and G_ for genes.
     
     :param model: 
@@ -43,34 +45,37 @@ def clip_prefixes_in_model(model, prefix_species="M_", prefix_reaction="R_", pre
     :return: 
     :rtype: 
     """
-    replace = {}
+    rename_dict = {}
 
-    # clip reactions
-    if prefix_reaction is not None:
-        for r in model.getListOfReactions():
-            rid = r.getId()
-            rid_clipped = clip(rid, prefix_reaction)
-            if rid != rid_clipped:
-                replace[rid] = rid_clipped
-                r.setId(rid_clipped)
+    def find_replace_ids(parent_object, f_list, prefix):
+        """ Adds ids: clipped_ids to the replace dictionary. """
+        for obj in getattr(parent_object, f_list).__call__():
+            oid = obj.getId()
+            oid_clipped = clip(oid, prefix)
+            if oid != oid_clipped:
+                rename_dict[oid] = oid_clipped
+                obj.setId(oid_clipped)
 
-    # clip species
-    if prefix_species is not None:
-        for s in model.getListOfSpecies():
-            sid = s.getId()
-            sid_clipped = clip(sid, prefix_species)
-            if sid != sid_clipped:
-                replace[sid] = sid_clipped
-                s.setId(sid_clipped)
+    if model:
+        find_replace_ids(model, "getListOfSpecies", prefix=prefix_species)
+        find_replace_ids(model, "getListOfReactions", prefix=prefix_reaction)
 
-    # TODO: clip genes
+    fbc_model = model.getPlugin("fbc")
+    if fbc_model:
+        find_replace_ids(fbc_model, "getListOfGeneProducts", prefix=prefix_gene)
 
     # update all references to elements
     elements = model.getListOfAllElements()
-    for e in elements:
-        for id_old, id_new in iteritems(replace):
-            e.renameSIdRefs(id_old, id_new)
+    rename_elements(elements, rename_dict)
+    elements_plugins = model.getListOfAllElementsFromPlugins()
+    rename_elements(elements_plugins, rename_dict)
 
+
+def rename_elements(elements, rename_dict):
+    """ Rename elements. """
+    for e in elements:
+        for id_old, id_new in iteritems(rename_dict):
+            e.renameSIdRefs(id_old, id_new)
 
 
 def clip(string, prefix):
@@ -117,15 +122,3 @@ def add_generic_info(model, notes, creators, units, main_units):
         raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
     check(model.setNotes(xml_node),
           message="Setting notes on model")
-
-
-if __name__ == "__main__":
-    # &copy;
-    notes = """
-    <body xmlns='http://www.w3.org/1999/xhtml'>
-    Test &#169;
-    </body>
-    """
-    xml_node = XMLNode.convertStringToXMLNode(notes)
-    if xml_node is None:
-        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))

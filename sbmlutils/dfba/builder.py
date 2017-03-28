@@ -8,6 +8,8 @@ import warnings
 from sbmlutils import factory as fac
 from sbmlutils import comp
 
+from collections import defaultdict
+
 
 #################################################
 # Builder constants
@@ -157,42 +159,58 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
     return ex_r
 
 
-def update_exchange_reaction(model, ex_rid):
+def update_exchange_reactions(model, ex_rids, flux_unit):
     """ Updates existing exchange reaction in FBA model.
     
     Sets all the necessary information and checks that correct.
-    
-    :param model: SBML model
-    :param ex_rid: id of exchange reaction
-    :return: exchange reaction
-    """
-    ex_r = model.getReaction(ex_rid)
-    check_exchange_reaction(model, ex_rid)
-
-    # ports for exchange reacton
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=[ex_rid])
-
-    # TODO: unique upper and lower bounds for exchange reactions & unify names
-
-
-    # TODO: ports for the respective bounds
-    # create ports for upper and lower bounds
-    # comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-    #                  idRefs=[lb_id, ub_id])
-
-
-def create_unique_exchange_bounds(model, ex_rids):
-    """ Creates unique
     
     :param model: 
     :param ex_rids: 
     :return: 
     """
-    for ex_rid in ex_rids:
-        ex_rid = model.getReaction(ex_rid)
-        # necessary to get the references
+    # mapping of bounds to reactions
+    bounds_dict = dict()
 
+    for ex_rid in ex_rids:
+        r = model.getReaction(ex_rid)
+        fbc_r = r.getPlugin("fbc")
+        check_exchange_reaction(model, ex_rid)
+
+        # store bounds in dictionary for value lookup
+        for f_bound in ["getLowerFluxBound", "getUpperFluxBound"]:
+            bound_id = getattr(fbc_r, f_bound).__call__()
+            bound = model.getParameter(bound_id)
+            bounds_dict[bound_id] = bound.getValue()
+
+    # create unique bounds for exchange reactions
+    for ex_rid in ex_rids:
+        r = model.getReaction(ex_rid)
+        fbc_r = r.getPlugin("fbc")
+        lb_value = model.getParameter(fbc_r.getLowerFluxBound()).getValue()
+        ub_value = model.getParameter(fbc_r.getUpperFluxBound()).getValue()
+
+        lb_id = LOWER_BOUND_PREFIX + ex_rid
+        ub_id = UPPER_BOUND_PREFIX + ex_rid
+
+        parameters = [
+            fac.Parameter(sid=lb_id,
+                          value=lb_value,
+                          unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
+            fac.Parameter(sid=ub_id,
+                          value=ub_value,
+                          unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
+        ]
+        fac.create_objects(model, parameters)
+
+        # set bounds
+        fac.set_flux_bounds(r, lb=lb_id, ub=ub_id)
+
+        # create ports for bounds and reaction
+        comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=[ex_rid, lb_id, ub_id])
+
+    # FIXME: remove unused bounds
+    # There could be unused bounds in the model which can be removed
 
 
 

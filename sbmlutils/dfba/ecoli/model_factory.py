@@ -153,11 +153,8 @@ def fba_model(sbml_file, directory):
     pprint(ex_rids)
 
     # make unique upper and lower bounds for exchange reaction
-    builder.create_unique_exchange_bounds(model, ex_rids)
+    builder.update_exchange_reactions(model, ex_rids, flux_unit=UNIT_FLUX)
 
-
-    for ex_rid in ex_rids:
-        builder.update_exchange_reaction(model, ex_rid=ex_rid)
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
