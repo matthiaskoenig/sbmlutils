@@ -1,5 +1,5 @@
 
-<img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" width="250" />
+<img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" />
  
 [![Build Status](https://travis-ci.org/matthiaskoenig/sbmlutils.svg?branch=develop)](https://travis-ci.org/matthiaskoenig/sbmlutils)
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/?badge=latest)
@@ -28,7 +28,7 @@
 ## Documentation
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/?badge=latest)  
 Documentation with examples is available at 
-<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" /></a>
+<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/read.png" height="40" /></a>
 
 ## Installation
 The latest stable version can be installed via 
