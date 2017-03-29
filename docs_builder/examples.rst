@@ -17,3 +17,5 @@ and start jupyter in the notebooks folder
 
 .. include:: notebooks/FBAModel.rst
 .. include:: notebooks/Interpolation.rst
+
+We are working on updating the examples. A more complete documentation will be available with the next release.
