@@ -34,7 +34,8 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 4
+version = 5
+model_id = "toy"
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -106,27 +107,18 @@ UNIT_FLUX = 'item_per_s'
 # FBA submodel
 ####################################################
 def fba_model(sbml_file, directory):
-    """FBA model."""
+    """ FBA model
+    
+    :param sbml_file: output file name 
+    :param directory: output directory
+    :return: SBMLDocument
+    """
     fba_notes = notes.format("""
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-
-    sbmlns = libsbml.SBMLNamespaces(3, 1)
-    sbmlns.addPackageNamespace("fbc", 2)
-    sbmlns.addPackageNamespace("comp", 1)
-
-    doc_fba = libsbml.SBMLDocument(sbmlns)
-    doc_fba.setPackageRequired("comp", True)
-    doc_fba.setPackageRequired("fbc", False)
-    model = doc_fba.createModel()
-    mplugin = model.getPlugin("fbc")
-    mplugin.setStrict(True)
-
-    # model
-    model.setId('toy_fba')
-    model.setName('toy (FBA submodel)')
-    model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
+    doc = builder.template_doc_fba("toy")
+    model = doc.getModel()
     add_generic_info(model,
                      notes=fba_notes,
                      creators=creators,
@@ -177,7 +169,8 @@ def fba_model(sbml_file, directory):
     builder.create_exchange_reaction(model, species_id="C", flux_unit=UNIT_FLUX)
 
     # objective function
-    mc.create_objective(mplugin, oid="R3_maximize", otype="maximize",
+    model_fbc = model.getPlugin("fbc")
+    mc.create_objective(model_fbc, oid="R3_maximize", otype="maximize",
                         fluxObjectives={"R3": 1.0}, active=True)
 
     # create ports for kinetic bounds
@@ -185,7 +178,8 @@ def fba_model(sbml_file, directory):
                       idRefs=["ub_R1"])
 
     # write SBML
-    sbmlio.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    return doc
 
 
 ####################################################
@@ -201,23 +195,18 @@ def bounds_model(sbml_file, directory):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
-    doc = libsbml.SBMLDocument(sbmlns)
-    doc.setPackageRequired("comp", True)
-    model = doc.createModel()
-    model.setId("toy_bounds")
-    model.setName("toy (BOUNDS submodel)")
-    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    doc = builder.template_doc_bounds("toy")
+    model = doc.getModel()
     add_generic_info(model,
                      notes=bounds_notes,
                      creators=creators,
                      units=units, main_units=main_units)
 
-    objects = [
-        # min and max
-        mc.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum of arguments'),
-        mc.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum of arguments'),
+    # dt parameter
+    builder.create_dfba_dt(model, step_size=DT_SIM, time_unit=UNIT_TIME),
 
+    # TODO: update bounds model with builder functions
+    objects = [
         # compartments
         mc.Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
                        spatialDimension=3),
@@ -227,9 +216,6 @@ def bounds_model(sbml_file, directory):
                    compartment="extern"),
         mc.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
-
-        # dt parameter
-        builder.create_dfba_dt(step_size=DT_SIM, time_unit=UNIT_TIME),
 
         # exchange bounds
         mc.Parameter(sid="lb_default", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
@@ -272,18 +258,14 @@ def update_model(sbml_file, directory):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
-    doc = libsbml.SBMLDocument(sbmlns)
-    doc.setPackageRequired("comp", True)
-    model = doc.createModel()
-    model.setId("toy_update")
-    model.setName("toy (UPDATE submodel)")
-    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    doc = builder.template_doc_update("toy")
+    model = doc.getModel()
     add_generic_info(model,
                      notes=update_notes,
                      creators=creators,
                      units=units, main_units=main_units)
 
+    # TODO: update with builder functions
     objects = [
         mc.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
         mc.Species(sid='A', value=1.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True, compartment="extern"),
@@ -349,6 +331,9 @@ def top_model(sbml_file, directory, emds):
     comp.add_submodel_from_emd(mplugin, submodel_id="fba", emd=emd_fba)
     comp.add_submodel_from_emd(mplugin, submodel_id="update", emd=emd_update)
 
+    # dt
+    builder.create_dfba_dt(model, step_size=DT_SIM, time_unit=UNIT_TIME, create_port=False)
+
     # Compartments
     mc.create_objects(model, [
         mc.Compartment(sid="extern", name="external compartment", value=1.0, constant=True,
@@ -363,8 +348,6 @@ def top_model(sbml_file, directory, emds):
         mc.Species(sid='D', value=0, unit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
-        # dt
-        builder.create_dfba_dt(step_size=DT_SIM, time_unit=UNIT_TIME),
 
         # flux parameters
         mc.Parameter(sid='EX_A', value=1.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),

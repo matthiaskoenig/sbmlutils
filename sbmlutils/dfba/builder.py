@@ -52,16 +52,47 @@ EXCHANGE_REACTION_SBO = "SBO:0000627"
 EXCHANGE = 'exchange'
 EXCHANGE_IMPORT = 'import'
 EXCHANGE_EXPORT = 'export'
+
+SBML_LEVEL = 3
+SBML_VERSION = 1
+SBML_FBC_VERSION = 2
+SBML_COMP_VERSION = 1
 #################################################
 
 
-def template_doc_bounds(model_id):
-    """ Create template bounds model.
+def template_doc_fba(model_id):
+    """ create template for fba model.
     
     :param model_id: model identifier
     :return: SBMLDocument
     """
-    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    sbmlns = libsbml.SBMLNamespaces(SBML_LEVEL, SBML_VERSION)
+    sbmlns.addPackageNamespace("fbc", SBML_FBC_VERSION)
+    sbmlns.addPackageNamespace("comp", SBML_COMP_VERSION)
+
+    doc = libsbml.SBMLDocument(sbmlns)
+    doc.setPackageRequired("comp", True)
+    doc.setPackageRequired("fbc", False)
+    model = doc.createModel()
+    mplugin = model.getPlugin("fbc")
+    mplugin.setStrict(True)
+
+    # model
+    model.setId('{}_fba'.format(model_id))
+    model.setName('{} (FBA)'.format(model_id))
+    model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
+    return doc
+
+
+def template_doc_bounds(model_id, create_min_max=True):
+    """ Create template bounds model.
+    
+    Adds min and max functions 
+    
+    :param model_id: model identifier
+    :return: SBMLDocument
+    """
+    sbmlns = libsbml.SBMLNamespaces(SBML_LEVEL, SBML_VERSION, 'comp', SBML_COMP_VERSION)
     doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     model = doc.createModel()
@@ -69,12 +100,13 @@ def template_doc_bounds(model_id):
     model.setName("{} (BOUNDS)".format(model_id))
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
-    objects = [
-        # definition of min and max
-        fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
-        fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
-    ]
-    fac.create_objects(model, objects)
+    if create_min_max:
+        objects = [
+            # definition of min and max
+            fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
+            fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
+        ]
+        fac.create_objects(model, objects)
 
     return doc
 
@@ -85,7 +117,7 @@ def template_doc_update(model_id):
     :param model_id: model identifier
     :return: SBMLDocument
     """
-    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    sbmlns = libsbml.SBMLNamespaces(SBML_LEVEL, SBML_VERSION, 'comp', SBML_COMP_VERSION)
     doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
