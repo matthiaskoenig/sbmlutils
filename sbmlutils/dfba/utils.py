@@ -13,6 +13,64 @@ from sbmlutils import factory
 from sbmlutils.validation import check
 
 
+def set_model_info(model, notes=None, creators=None, units=None, main_units=None):
+    """ Adds the shared information to the models.
+
+    :param model: SBMLModel instance
+    :return:
+    """
+    if creators:
+        set_creators(model, creators=creators)
+    if units:
+        set_units(model, units=units)
+    if main_units:
+        set_main_units(model, main_units=main_units)
+    if notes:
+        set_notes(model, notes=notes)
+
+
+def set_notes(model, notes):
+    """ Set notes information on model.
+
+    :param model: Model
+    :param notes: notes information (xml string)
+    :return: 
+    """
+    xml_node = XMLNode.convertStringToXMLNode(notes)
+    if xml_node is None:
+        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+    check(model.setNotes(xml_node),
+          message="Setting notes on model")
+
+
+def set_creators(model, creators):
+    """ Set creator information on model.
+
+    :param model: Model
+    :param creators: creator info
+    :return: 
+    """
+    annotation.set_model_history(model, creators)
+
+
+def set_units(model, units):
+    """ Set units information on model.
+
+    :param model: Model
+    :param units: units info
+    """
+    factory.create_objects(model, units)
+
+
+def set_main_units(model, main_units):
+    """ Set main units information on model.
+
+    :param model: Model
+    :param main_units: units info
+    """
+    factory.set_main_units(model, main_units)
+
+
 def find_exchange_reactions(model):
     """ Finds the exchange reaction in given FBA model.
 
@@ -108,20 +166,3 @@ def versioned_directory(output_dir, version):
     return directory
 
 
-def add_generic_info(model, notes, creators, units, main_units):
-    """ Adds the shared information to the models.
-
-    :param model: SBMLModel instance
-    :return:
-    """
-
-    if creators:
-        annotation.set_model_history(model, creators)
-    factory.create_objects(model, units)
-    factory.set_main_units(model, main_units)
-
-    xml_node = XMLNode.convertStringToXMLNode(notes)
-    if xml_node is None:
-        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
-    check(model.setNotes(xml_node),
-          message="Setting notes on model")

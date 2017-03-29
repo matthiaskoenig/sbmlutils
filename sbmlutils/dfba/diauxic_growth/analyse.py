@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import
 from six import iteritems
 import logging
 import warnings
+import os
 import numpy as np
 import pandas as pd
 
@@ -13,7 +14,7 @@ from matplotlib import pyplot as plt
 set_matplotlib_parameters()
 
 
-def print_species(filepath, dfs, **kwargs):
+def print_species(dfs, filepath=None, **kwargs):
     """ Print diauxic species.
 
     :param filepath:
@@ -54,11 +55,14 @@ def print_species(filepath, dfs, **kwargs):
         ax.set_xlabel('time [h]')
         ax.legend()
 
-    fig.savefig(filepath, bbox_inches='tight')
+    if filepath is not None:
+        fig.savefig(filepath, bbox_inches='tight')
+    else:
+        plt.show()
     logging.info("print_species: {}".format(filepath))
 
 
-def print_fluxes(filepath, dfs, **kwargs):
+def print_fluxes(dfs, filepath=None, **kwargs):
     """ Print exchange & internal fluxes with respective bounds.
 
     :param filepath:
@@ -124,7 +128,8 @@ def print_fluxes(filepath, dfs, **kwargs):
             ax.set_xlabel('time [h]')
 
     # experimentell data
-    Varma1994_Fig7 = pd.read_csv('./data/Varma1994_Fig7.csv', sep='\t')
+    cur_dir = os.path.dirname(os.path.abspath(__file__))  # directory of test files
+    Varma1994_Fig7 = pd.read_csv(os.path.join(cur_dir, 'data/Varma1994_Fig7.csv'), sep='\t')
     inds = Varma1994_Fig7.substance == 'cell_density'
     ax12.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black', label='data')
     ax12.set_ylabel('X [g/l]')
@@ -140,6 +145,9 @@ def print_fluxes(filepath, dfs, **kwargs):
     for key, ax in iteritems(mapping3):
         ax.legend()
 
-    fig.savefig(filepath, bbox_inches='tight')
+    if filepath is not None:
+        fig.savefig(filepath, bbox_inches='tight')
+    else:
+        plt.show()
 
     logging.info("print_fluxes: {}".format(filepath))

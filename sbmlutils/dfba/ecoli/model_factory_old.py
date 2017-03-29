@@ -135,7 +135,7 @@ def fba_model(sbml_file, directory):
     model.setId('diauxic_fba')
     model.setName('diauxic (FBA)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
-    utils.add_generic_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         # compartments
@@ -221,7 +221,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     model.setId("diauxic_bounds")
     model.setName("diauxic (BOUNDS)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    utils.add_generic_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
 
@@ -329,7 +329,7 @@ def update_model(sbml_file, directory):
     model.setId("diauxic_update")
     model.setName("diauxic (UPDATE)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    utils.add_generic_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
@@ -425,8 +425,8 @@ def top_model(sbml_file, directory, emds):
     model = doc.createModel()
     model.setId("diauxic_top")
     model.setName("diauxic (TOP)")
-    utils.add_generic_info(model, notes=top_notes,
-                           creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=top_notes,
+                         creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 

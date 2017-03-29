@@ -16,8 +16,8 @@ from __future__ import print_function, absolute_import
 import os
 from os.path import join as pjoin
 import libsbml
-from libsbml import UNIT_KIND_SECOND, UNIT_KIND_METRE
-from libsbml import UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import comp
 from sbmlutils import sbmlio
@@ -25,8 +25,7 @@ from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 
 from sbmlutils.dfba import builder
-from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT, exchange_flux_bound_parameters
-from sbmlutils.dfba.utils import versioned_directory, add_generic_info
+from sbmlutils.dfba import utils
 from sbmlutils.dfba.toy import toysettings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
@@ -119,10 +118,10 @@ def fba_model(sbml_file, directory):
     """)
     doc = builder.template_doc_fba("toy")
     model = doc.getModel()
-    add_generic_info(model,
-                     notes=fba_notes,
-                     creators=creators,
-                     units=units, main_units=main_units)
+    utils.set_model_info(model,
+                         notes=fba_notes,
+                         creators=creators,
+                         units=units, main_units=main_units)
 
     objects = [
         # compartments
@@ -197,10 +196,10 @@ def bounds_model(sbml_file, directory):
     """)
     doc = builder.template_doc_bounds("toy")
     model = doc.getModel()
-    add_generic_info(model,
-                     notes=bounds_notes,
-                     creators=creators,
-                     units=units, main_units=main_units)
+    utils.set_model_info(model,
+                         notes=bounds_notes,
+                         creators=creators,
+                         units=units, main_units=main_units)
 
     # dt parameter
     builder.create_dfba_dt(model, step_size=DT_SIM, time_unit=UNIT_TIME),
@@ -218,11 +217,11 @@ def bounds_model(sbml_file, directory):
                    compartment="extern"),
 
         # exchange bounds
-        mc.Parameter(sid="lb_default", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="ub_EX_A", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="lb_EX_A", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="ub_EX_C", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid="lb_EX_C", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_default", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_EX_A", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_EX_A", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="ub_EX_C", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="lb_EX_C", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
 
         # kinetic bound parameter & calculation
         mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
@@ -260,10 +259,10 @@ def update_model(sbml_file, directory):
         """)
     doc = builder.template_doc_update("toy")
     model = doc.getModel()
-    add_generic_info(model,
-                     notes=update_notes,
-                     creators=creators,
-                     units=units, main_units=main_units)
+    utils.set_model_info(model,
+                         notes=update_notes,
+                         creators=creators,
+                         units=units, main_units=main_units)
 
     # TODO: update with builder functions
     objects = [
@@ -320,9 +319,9 @@ def top_model(sbml_file, directory, emds):
     model = doc.createModel()
     model.setId("toy_top")
     model.setName("toy (TOP model)")
-    add_generic_info(model,
-                     notes=top_notes,
-                     creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model,
+                         notes=top_notes,
+                         creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
@@ -367,7 +366,7 @@ def top_model(sbml_file, directory, emds):
 
     # creates the exchange bound parameters
     mc.create_objects(model,
-                      exchange_flux_bound_parameters(exchange_rids=['EX_A', 'EX_C'],
+                      builder.exchange_flux_bound_parameters(exchange_rids=['EX_A', 'EX_C'],
                                                      unit=UNIT_FLUX))
     # kinetic flux bounds
     comp.replace_elements(model, 'ub_R1', ref_type=comp.SBASE_REF_TYPE_PORT,
@@ -442,7 +441,7 @@ def create_model(output_dir):
     :rtype:
     :return directory in which model files exist.
     """
-    directory = versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
     fba_model(toysettings.fba_file, directory)

@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 set_matplotlib_parameters()
 
 
-def print_species(filepath, dfs, **kwargs):
+def print_species(dfs, filepath=None, **kwargs):
     """ Print toy species.
 
     :param filepath:
@@ -57,12 +57,14 @@ def print_species(filepath, dfs, **kwargs):
         ax.set_title('Toy model')
         ax.set_xlabel('time [h]')
         ax.legend()
-
-    fig.savefig(filepath, bbox_inches='tight')
+    if filepath is not None:
+        fig.savefig(filepath, bbox_inches='tight')
+    else:
+        plt.show()
     logging.info("print_species: {}".format(filepath))
 
 
-def print_fluxes(filepath, dfs, **kwargs):
+def print_fluxes(dfs, filepath=None, **kwargs):
     """ Print exchange & internal fluxes with respective bounds.
 
     :param filepath:
@@ -112,7 +114,10 @@ def print_fluxes(filepath, dfs, **kwargs):
         ax.set_xlabel('time')
         ax.legend()
 
-    fig.savefig(filepath, bbox_inches='tight')
+    if filepath is not None:
+        fig.savefig(filepath, bbox_inches='tight')
+    else:
+        plt.show()
 
     logging.info("print_fluxes: {}".format(filepath))
 

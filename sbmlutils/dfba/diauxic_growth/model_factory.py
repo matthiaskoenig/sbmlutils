@@ -202,7 +202,7 @@ def fba_model(sbml_file, directory):
     model.setId('diauxic_fba')
     model.setName('diauxic (FBA)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
-    utils.add_generic_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         # compartments
@@ -288,7 +288,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     model.setId("diauxic_bounds")
     model.setName("diauxic (BOUNDS)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    utils.add_generic_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
 
@@ -348,6 +348,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
         # exchange reaction bounds
         # uptake bounds (lower bound)
+        # TODO: FIXME the X hack
         mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac/X*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X*bioreactor/dt)"),
         mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X*bioreactor/dt)"),
@@ -368,8 +369,6 @@ def bounds_model(sbml_file, directory, doc_fba=None):
                               "lb_EX_Ac", "lb_EX_Glcxt", "lb_EX_O2", "lb_EX_X",
                               "ub_EX_Ac", "ub_EX_Glcxt", "ub_EX_O2", "ub_EX_X",
                               ])
-
-    # TODO: kinetic bounds missing
 
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
@@ -396,7 +395,7 @@ def update_model(sbml_file, directory):
     model.setId("diauxic_update")
     model.setName("diauxic (UPDATE)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    utils.add_generic_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
@@ -492,8 +491,8 @@ def top_model(sbml_file, directory, emds):
     model = doc.createModel()
     model.setId("diauxic_top")
     model.setName("diauxic (TOP)")
-    utils.add_generic_info(model, notes=top_notes,
-                           creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=top_notes,
+                         creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 

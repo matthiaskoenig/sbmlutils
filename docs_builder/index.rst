@@ -12,7 +12,10 @@ Contents:
    :maxdepth: 2
 
    introduction.rst
-   Examples <examples.rst>
+   notebooks/dfba
+   notebooks/modelcreator
+   notebooks/interpolation
+
 
 
 Indices and tables

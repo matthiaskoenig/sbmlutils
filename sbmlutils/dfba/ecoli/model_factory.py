@@ -126,8 +126,8 @@ def fba_model(sbml_file, directory):
     # add notes
     model = doc_fba.getModel()
     fba_notes = notes.format("""DFBA FBA submodel.""")
-    utils.add_generic_info(model, notes=fba_notes,
-                           creators=None, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=fba_notes,
+                         creators=None, units=units, main_units=main_units)
 
     # clip R_ reaction and M_ metabolite prefixes
     utils.clip_prefixes_in_model(model)
@@ -177,7 +177,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    utils.add_generic_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
 
     # dt
     compartment_id = "bioreactor"
@@ -246,7 +246,7 @@ def update_model(sbml_file, directory, doc_fba=None):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    utils.add_generic_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
+    utils.set_model_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
 
     # bioreactor
     compartment_id = "bioreactor"

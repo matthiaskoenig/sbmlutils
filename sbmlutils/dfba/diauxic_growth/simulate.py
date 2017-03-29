@@ -37,11 +37,11 @@ def simulate_diauxic_growth(sbml_path, out_dir, dts=[0.01, 0.1], figures=True):
         # custom model plots
         plot_kwargs = {
             'markersize': 4,
-            'marker': 's',
+            'marker': 'None',
             'alpha': 0.5
         }
-        analyse.print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
-        analyse.print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
+        analyse.print_species(filepath=os.path.join(out_dir, "fig_species.png"), dfs=dfs, **plot_kwargs)
+        analyse.print_fluxes(filepath=os.path.join(out_dir, "fig_fluxes.png"), dfs=dfs, **plot_kwargs)
     return dfs
 
 
