@@ -1,5 +1,6 @@
 
-![sbmlutils logo](docs_builder/images/sbmlutils-logo-small.png)  
+<img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" width="250" />
+ 
 [![Build Status](https://travis-ci.org/matthiaskoenig/sbmlutils.svg?branch=develop)](https://travis-ci.org/matthiaskoenig/sbmlutils)
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg)](https://codecov.io/gh/matthiaskoenig/sbmlutils)
@@ -26,7 +27,8 @@
 
 ## Documentation
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/?badge=latest)  
-Documentation with examples is available at [![libsbgn-python logo](docs_builder/images/readthedocs-logo.png)](https://sbmlutils.readthedocs.io/en/stable/)  
+Documentation with examples is available at 
+<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" /></a>
 
 ## Installation
 The latest stable version can be installed via 

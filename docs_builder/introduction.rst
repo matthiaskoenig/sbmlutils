@@ -9,8 +9,8 @@ To cite libsbgnpy use the following BibTex or equivalent::
     @MISC{sbmlutils,
       author        = {Matthias König},
       title         = {sbmlutils: python utilities for SBML},
-      month         = {Sep.},
-      year          = {2016},
+      month         = {Feb.},
+      year          = {2017},
       doi           = "{10.5281/zenodo.399008}",
       url           = "{http://dx.doi.org/10.5281/zenodo.399008}"
     }
