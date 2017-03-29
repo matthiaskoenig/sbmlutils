@@ -1,7 +1,7 @@
 ===================
 Examples
 ===================
-All tellurium examples are available as interactive `jupyter notebooks <http://jupyter.readthedocs.org/en/latest/install.html>`_.
+All examples are available as interactive `jupyter notebooks <http://jupyter.readthedocs.org/en/latest/install.html>`_.
 
 To run the examples clone the git repository
 ::
@@ -11,7 +11,7 @@ To run the examples clone the git repository
 and start jupyter in the notebooks folder
 ::
 
-    cd sbmlutils/sbmlutils/examples/notebooks
+    cd sbmlutils/docs_builder/notebooks
     jupyter notebook index.ipynb
 
 
