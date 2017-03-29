@@ -35,7 +35,7 @@ For a more detailed description and examples see the documentation.
 ## Documentation
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/?badge=latest)  
 Documentation with examples is available at 
-<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="40" /></a>
+<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
 
 ## Installation
 The latest stable version can be installed via 
