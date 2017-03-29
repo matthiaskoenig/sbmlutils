@@ -54,5 +54,3 @@ def test_biomodel_merge(tmpdir):
     assert Nwarn in [0, 74]
     assert Nall in [0, 74]
 
-    assert 0
-
