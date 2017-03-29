@@ -11,22 +11,21 @@ Uses the importlib to import the information.
 """
 
 from __future__ import print_function, division
-import os
-import shutil
+
 import copy
 import logging
+import os
+import shutil
+import tempfile
 import warnings
 from six import iteritems
 
-from libsbml import SBMLDocument, SBMLNamespaces
-
-import tempfile
 import sbmlutils.annotation as annotation
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
-from sbmlutils.report import sbmlreport
-
+from libsbml import SBMLDocument, SBMLNamespaces
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
+from sbmlutils.report import sbmlreport
 
 
 class Factory(object):
@@ -328,4 +327,4 @@ class CoreModel(object):
         :rtype:
         """
         sbmlio.write_sbml(self.doc, filepath, validate=True,
-                   program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)
+                          program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)

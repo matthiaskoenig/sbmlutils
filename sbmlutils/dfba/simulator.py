@@ -1,32 +1,56 @@
 """
 Simulator for dynamic flux balance (DFBA) models in SBML.
 
-The ode integration is performed with roadrunner, the FBA optimization via cobrapy.
-"""
+ODE integration is performed with roadrunner,
+FBA optimization via cobrapy.
 
+Usage:
+    from sbmlutils.dfba import simulate_dfba
+    df, model, simulator = simulate_dfba(sbml_path, tend, dt)
+"""
 # FIXME: handle submodels directly defined in model
 # FIXME: reset of kinetic model
 # TODO: FVA, i.e. flux variability analysis with cobrapy
 # TODO: store directly in numpy arrays for speed improvements
 # TODO: set tolerances for the ode integration
 # FIXME: easy handling of different stepsizes
-# FIXME: timing of simulation (benchmark)
 
+# logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 from __future__ import print_function, division
+from six import iteritems
 import logging
 import numpy as np
 import pandas as pd
 import cobra
 import timeit
 
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+from sbmlutils.dfba.model import DFBAModel
+from sbmlutils import fbc
+
+
+def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True, **kwargs):
+    """ Simulates given model with DFBA.
+
+
+    :return: list of result dataframe, DFBAModel, DFBASimulator
+    """
+    # Load model
+    dfba_model = DFBAModel(sbml_path=sbml_path)
+
+    # simulation
+    dfba_simulator = DFBASimulator(dfba_model, pfba=pfba)
+    dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
+    df = dfba_simulator.solution
+
+    print("\nSimulation time: {}\n".format(dfba_simulator.time))
+    return df, dfba_model, dfba_simulator
 
 
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
 
-    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=False):
+    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True):
         """ Create the simulator with the processed dfba model.
 
 
@@ -71,14 +95,34 @@ class DFBASimulator(object):
         """ Cobra model for the FBA model. """
         return self.fba_model.cobra_model
 
-
-    def simulate(self, tstart=0.0, tend=10.0, steps=20, absTol=1E-6, relTol=1E-6):
+    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True):
         """ Perform model simulation.
 
         The simulator figures out based on the SBO terms in the list of submodels, which
         simulation/modelling framework to use.
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
         """
+        # set the columns in output
+        self._set_timecourse_selections()
+
+        # reset model to initial state
+        if reset:
+            self.ode_model.reset()
+
+        # number of steps
+        steps = np.round(1.0 * tend / dt)
+        if np.abs(steps * dt - tend) > absTol:
+            raise ValueError("Stepsize dt={} not compatible to simulation time tend={}".format(dt, tend))
+
+        # set the dt value
+        self.dfba_model.set_dt(dt)
+
+        # Check that the FBA model simulates with given FBA model bounds
+        df_fbc = fbc.cobra_reaction_info(self.cobra_model)
+        logging.info(df_fbc)
+        self.cobra_model.optimize(objective_sense=self.objective_sense)
+        # self.cobra_model.summary()
+
         try:
             logging.debug('###########################')
             logging.debug('# Start Simulation')
@@ -89,11 +133,6 @@ class DFBASimulator(object):
             all_time = np.linspace(start=tstart, stop=tend, num=points)
             all_results = []
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections)
-
-            # check step size
-            step_size = (tend-tstart)/(points-1.0)
-            if abs(step_size-self.dt) > absTol:
-                raise ValueError("Simulation timestep <{}> != dt <{}>".format(step_size, self.dt))
 
             time = 0.0
             kstep = 0
@@ -108,28 +147,37 @@ class DFBASimulator(object):
                 # update fba bounds from ode
                 self._set_fba_bounds()
                 # optimize fba
-                self._optimize_fba()
+                self._optimize_fba(pfba=self.pfba)
                 # set ode fluxes from fba
                 self._set_fluxes()
 
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
-                row = self._ode_simulation(kstep, step_size=step_size)
+                if kstep == 0:
+                    # initial values
+                    row = self._ode_simulation(tstart=0.0, tend=0.0)
+                else:
+                    row = self._ode_simulation(tstart=time, tend=time+self.dt)
 
-                # store fba fluxes
+                    # set fba fluxes in results
+
                 logging.debug('* Store fluxes in ODE solution')
-                for fba_rid, flat_rid in self.fba_model.flat_mapping.iteritems():
+                # from pprint import pprint
+                # pprint(self.fba_model.flat_mapping)
+                for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
                     flux = self.fba_solution.fluxes[fba_rid]
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
                     logging.debug("\t{} = {}".format(fba_rid, flux))
+                # FIXME: what about dummy_EX_A ? values
+
 
                 all_results.append(row)
 
-                # store and update time
+                # update time & step counter
+                time += self.dt
                 kstep += 1
-                time += step_size
 
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
 
@@ -164,7 +212,9 @@ class DFBASimulator(object):
         :param absTol:
         :return:
         """
-        steps = kwargs['steps']
+        dt = kwargs['dt']
+        tend = kwargs['tend']
+        steps = np.round(1.0*tend/dt)
         timings = np.zeros(shape=(10, 1))
         for k in range(Nrepeat):
             self.simulate(**kwargs)
@@ -221,18 +271,19 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux bounds set')
 
-    def _optimize_fba(self):
+    def _optimize_fba(self, pfba=True):
         """ Optimize FBA model.
 
         Uses the objective sense from the fba model.
+        Runs parsimonious FBA (often written pFBA) which finds a flux distribution
+        which gives the optimal growth rate, but minimizes the total sum of flux.
         """
+
         logging.debug("* FBA optimize")
-        if self.pfba:
-            # run parsimonious FBA (flux minimization)
-            # how to set the objective sense?
-            self.fba_solution = cobra.flux_analysis.optimize_minimal_flux(self.cobra_model)
-        else:
-            self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+        self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
+        if pfba:
+            logging.debug("running parsimonious FBA")
+            self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
 
         logging.debug(self.fba_solution.fluxes)
 
@@ -265,7 +316,7 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux replacements')
 
-    def _ode_simulation(self, kstep, step_size):
+    def _ode_simulation(self, tstart, tend):
         """ ODE integration for a single timestep.
 
         :param kstep:
@@ -273,12 +324,19 @@ class DFBASimulator(object):
         :return:
         """
         logging.debug('* ODE integration')
+        result = self.ode_model.simulate(start=tstart, end=tend, steps=1)
 
-        # constant step size
-        if kstep == 0:
-            result = self.ode_model.simulate(start=0, end=0, steps=1)
-        else:
-            result = self.ode_model.simulate(start=0, end=step_size, steps=1)
-
-        # store ode row
+        # store ode row, i.e. the end of the simulation
         return result[1, :]
+
+    def _set_timecourse_selections(self):
+        """ Timecourse selections for the ode model."""
+
+        rr = self.ode_model.getModel()
+        sel = ['time'] \
+            + sorted(["".join(["[", item, "]"]) for item in rr.getFloatingSpeciesIds()]) \
+            + sorted(["".join(["[", item, "]"]) for item in rr.getBoundarySpeciesIds()]) \
+            + sorted(rr.getReactionIds()) \
+            + sorted(rr.getGlobalParameterIds())
+
+        self.ode_model.timeCourseSelections = sel

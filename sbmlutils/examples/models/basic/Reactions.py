@@ -1,8 +1,9 @@
 """
 Reactions and transporters of test model.
 """
-from sbmlutils.modelcreator.processes.reaction import ReactionTemplate
 from sbmlutils import factory as mc
+
+from sbmlutils.modelcreator.processes import ReactionTemplate
 
 #############################################################################################
 #    REACTIONS
@@ -19,6 +20,6 @@ GLUT2_GAL = ReactionTemplate(
             mc.Parameter('GLUT2_k_gal', 1.0, 'mM'),
             mc.Parameter('GLUT2_keq', 1.0, '-'),
     ],
-    formula=('GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/(1 dimensionless + c__gal/GLUT2_k_gal + e__gal/GLUT2_k_gal) ', 'mole_per_s')
+    formula=('GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/'
+             '(1 dimensionless + c__gal/GLUT2_k_gal + e__gal/GLUT2_k_gal) ', 'mole_per_s')
 )
-

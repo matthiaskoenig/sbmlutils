@@ -5,11 +5,12 @@ DallaMan2006
 # TODO: encode units for model
 # TODO: T2DM simulations (in current version not working)
 
-from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
+from sbmlutils import factory as mc
+
 from libsbml import UNIT_KIND_GRAM
+from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
-from sbmlutils import factory as mc
 
 ##############################################################
 creators = templates.creators
@@ -20,11 +21,13 @@ notes = XMLNode.convertStringToXMLNode("""
     <h1>DallaMan2006 - Glucose Insulin System</h1>
     <h2>Description</h2>
     <p>
-        This is a A simulation model of the glucose-insulin system in the postprandial state in <a href="http://sbml.org">SBML</a> format.
+        This is a A simulation model of the glucose-insulin system in the postprandial state in
+        <a href="http://sbml.org">SBML</a> format.
     </p>
     <p>This model is described in the article:</p>
     <div class="bibo:title">
-        <a href="http://identifiers.org/pubmed/17926672" title="Access to this publication">Meal simulation model of the glucose-insulin system.</a>
+        <a href="http://identifiers.org/pubmed/17926672" title="Access to this publication">Meal simulation model of
+        the glucose-insulin system.</a>
     </div>
     <div class="bibo:authorList">Dalla Man C, Rizza RA, Cobelli C.</div>
     <div class="bibo:Journal">IEEE Trans Biomed Eng. 2007 Oct;54(10):1740-9.</div>

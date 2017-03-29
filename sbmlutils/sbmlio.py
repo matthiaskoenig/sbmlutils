@@ -2,9 +2,11 @@
 Utility functions for reading and writing SBML files and models.
 Helper functions for path and filename manipulation.
 """
+from __future__ import print_function, absolute_import
 
-import os
 import logging
+import os
+
 import libsbml
 from sbmlutils import validation
 

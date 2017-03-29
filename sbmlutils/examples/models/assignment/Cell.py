@@ -2,10 +2,10 @@
 """
 PKPD example model
 """
+import sbmlutils.factory as mc
 from libsbml import UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
 from libsbml import XMLNode
 from sbmlutils.modelcreator import templates
-import sbmlutils.factory as mc
 
 ##############################################################
 creators = templates.creators
@@ -46,31 +46,31 @@ units.extend([
 
     mc.Unit('mg', [(UNIT_KIND_GRAM, 1.0, -3, 1.0)]),
     mc.Unit('mg_per_litre', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
-                   (UNIT_KIND_LITRE, -1.0, 0, 1.0)]),
+                             (UNIT_KIND_LITRE, -1.0, 0, 1.0)]),
     mc.Unit('mg_per_g', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
-                     (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
+                         (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
     mc.Unit('mg_per_h', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
-                 (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+                         (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 
     mc.Unit('litre_per_h', [(UNIT_KIND_LITRE, 1.0, 0, 1.0),
-                     (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('litre_per_kg', [(UNIT_KIND_LITRE, 1.0, 0, 1.0),
-                     (UNIT_KIND_GRAM, -1.0, 3, 1.0)]),
+                             (UNIT_KIND_GRAM, -1.0, 3, 1.0)]),
     mc.Unit('mulitre_per_min_mg', [(UNIT_KIND_LITRE, 1.0, -6, 1.0),
-                           (UNIT_KIND_SECOND, -1.0, 0, 60), (UNIT_KIND_GRAM, -1.0, -3, 1.0)]),
+                                   (UNIT_KIND_SECOND, -1.0, 0, 60), (UNIT_KIND_GRAM, -1.0, -3, 1.0)]),
     mc.Unit('ml_per_s', [(UNIT_KIND_LITRE, 1.0, -3, 1.0),
-                 (UNIT_KIND_SECOND, -1.0, 0, 1)]),
+                         (UNIT_KIND_SECOND, -1.0, 0, 1)]),
 
     # conversion factors
     mc.Unit('s_per_h', [(UNIT_KIND_SECOND, 1.0, 0, 1.0),
-                (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+                        (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('min_per_h', [(UNIT_KIND_SECOND, 1.0, 0, 60),
-                  (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+                          (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 
     mc.Unit('ml_per_litre', [(UNIT_KIND_LITRE, 1.0, -3, 1.0),
-                     (UNIT_KIND_LITRE, -1.0, 0, 1)]),
+                             (UNIT_KIND_LITRE, -1.0, 0, 1)]),
     mc.Unit('mulitre_per_g', [(UNIT_KIND_LITRE, 1.0, -6, 1.0),
-                      (UNIT_KIND_GRAM, -1.0, 0, 1)]),
+                              (UNIT_KIND_GRAM, -1.0, 0, 1)]),
 ])
 
 ##############################################################

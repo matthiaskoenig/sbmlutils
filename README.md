@@ -1,67 +1,80 @@
-# sbmlutils
+
+<img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" />
+ 
 [![Build Status](https://travis-ci.org/matthiaskoenig/sbmlutils.svg?branch=develop)](https://travis-ci.org/matthiaskoenig/sbmlutils)
+[![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)
+[![codecov](https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg)](https://codecov.io/gh/matthiaskoenig/sbmlutils)
 [![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.61737.svg)](http://dx.doi.org/10.5281/zenodo.61737)
+[![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
 
-**sbmlutils** are a collection of python utilities for working with [SBML](http://www.sbml.org) models.
- This utilities are implemented on top of the libsbml python bindings. This package works with the latest
- develop version of libsbml.
+# sbmlutils: Python utilities for SBML
+The `sbmlutils` package provides a collection of python utilities for working with [SBML](http://www.sbml.org).
+`sbmlutils` are implemented on top of the [`libSBML`](http://sbml.org/Software/libSBML) python bindings.
 
-    @MISC{libsbgnpy,
-      author        = {Matthias Koenig},
+Features are among others
+* HTML reports of SBML models
+* helper functions for model creation and manipulation
+* interpolation functions to add experimental data to models
+* implementation of dynamic flux balance analysis (DFBA).
+
+For a more detailed description and examples see the documentation.
+
+    @MISC{sbmlutils,
+      author        = {Matthias König},
       title         = {sbmlutils: python utilities for SBML},
-      month         = {Sep.},
-      year          = {2016},
-      doi           = "{10.5281/zenodo.61737}",
-      url           = "{http://dx.doi.org/10.5281/zenodo.61737}",
-      howpublished  = {https://github.com/matthiaskoenig/sbmlutils/blob/master/README.md}
+      month         = {Feb.},
+      year          = {2017},
+      doi           = "{10.5281/zenodo.399008}",
+      url           = "{http://dx.doi.org/10.5281/zenodo.399008}"
     }
 
 ## License
 * Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
 * Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
-## Features
-### modelcreator
-The modelcreator provides utilities to create SBML models.
-Model information is managed in python data structures which are used
-to create the models.
-
-The model definition consists of
-* `Cell.py`: basic model information
-* `Reactions.py`: reaction information
-
-Models can extend other models and reuse information from 
-defined models.
-
-### dfba
-Simulator for simulation of multi-framework SBML models.
-Currently, supports dynamic FBA by coupling ODE and FBA models.
-
-### annotator
-The annotator provides simple means for the annotation of models.
-Annotations are hereby defined in separate annotation files with 
-annotations being matched to ids based on regular expression matching.
-
-### report
-HTML report of SBML models. This provides simple overview of the 
-information defined in the model
+## Documentation
+[![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)  
+Documentation with examples is available at 
+<a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
 
 ## Installation
-Either install directly from the git repository
+The latest stable version can be installed via 
 ```
-pip install git+https://github.com/matthiaskoenig/sbmlutils.git
+pip install sbmlutils
 ```
-Or clone the repository locally
+### Develop version
+The latest develop version is available via
 ```
-git clone https://github.com/matthiaskoenig/sbmlutils.git
-cd sbmlutils
-python setup.py install
+pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop
 ```
-To work in develop use
+
+Or via cloning the repository and installing via
 ```
 pip install -e .
 ```
+
+## Release notes
+### 0.1.4
+* documentation update
+* DFBA update & bug fixes
+* DFBA examples (toy and diauxic growth)
+* bug fixes
+
+### 0.1.3
+* python 3 support
+* clean travis build with pip
+* DFBA implementation
+* bugfixes & improvements
+
+### 0.1.2
+* fixed unittests and bug fixes
+
+### 0.1.1
+* bug fixes, refactoring, unit tests
+* model creator examples
+
+### 0.1.0
+* initial release
 
 ----
 &copy; 2017 Matthias König.

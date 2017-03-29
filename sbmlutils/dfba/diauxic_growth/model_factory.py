@@ -76,33 +76,35 @@ steps = 10000
 
 -----------------------------------------------
 """
-import logging
-import warnings
+from __future__ import print_function, absolute_import
+import os
 from os.path import join as pjoin
 
-from libsbml import *
-# FIXME: remove the * import
 import libsbml
-from dgsettings import *
+from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
-XMLOutputStream.setWriteTimestamp(False)
-
-import sbmlutils.sbmlio as sbml_io
+from sbmlutils import sbmlio
 from sbmlutils import comp
 from sbmlutils import factory as mc
-import sbmlutils.annotation as sbml_annotation
 from sbmlutils.report import sbmlreport
-from sbmlutils.dfba.builder import LOWER_BOUND_DEFAULT, UPPER_BOUND_DEFAULT
+
+from sbmlutils.dfba import builder
+from sbmlutils.dfba import utils
+from sbmlutils.dfba.diauxic_growth.dgsettings import fba_file, bounds_file, update_file, top_file, flattened_file
+
+libsbml.XMLOutputStream.setWriteTimestamp(False)
 
 ########################################################################
 # General model information
 ########################################################################
-version = 7
+version = 9
 DT_SIM = 0.1
-notes = XMLNode.convertStringToXMLNode("""
+notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Diauxic Growth Model</h1>
     <p><strong>Model version: {}</strong></p>
+
+    {}
 
     <h2>Description</h2>
     <p>Dynamic Flux Balance Analysis of Diauxic Growth in Escherichia coli</p>
@@ -131,11 +133,13 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""".format(version))
+""".format(version, '{}')
+
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
 ]
+
 main_units = {
     'time': 'h',
     'extent': 'mmol',
@@ -153,9 +157,9 @@ units = [
     mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
     mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+                           (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                   (UNIT_KIND_LITRE, -1.0)]),
+                           (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
     mc.Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
@@ -172,31 +176,21 @@ UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
 
 
-def add_generic_info(model):
-    """ Adds the shared information to the models.
-
-    :param model: SBMLModel instance
-    :return:
-    """
-    sbml_annotation.set_model_history(model, creators)
-    mc.create_objects(model, units)
-    mc.set_main_units(model, main_units)
-    # TODO: model specific notes, to clarify which models are which
-    model.setNotes(notes)
-
-########################################################################################################################
-
-
+########################################################################################################
 def fba_model(sbml_file, directory):
     """ Create FBA submodel.
 
     FBA submodel in sbml:fbc-version 2.
     """
-    sbmlns = SBMLNamespaces(3, 1)
+    fba_notes = notes.format("""
+    <h2>FBA submodel</h2>
+    <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
+    """)
+    sbmlns = libsbml.SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("fbc", 2)
     sbmlns.addPackageNamespace("comp", 1)
 
-    doc_fba = SBMLDocument(sbmlns)
+    doc_fba = libsbml.SBMLDocument(sbmlns)
     doc_fba.setPackageRequired("comp", True)
     doc_fba.getPlugin("comp")
     doc_fba.setPackageRequired("fbc", False)
@@ -206,19 +200,16 @@ def fba_model(sbml_file, directory):
 
     # model
     model.setId('diauxic_fba')
-    model.setName('FBA submodel (diauxic_fba)')
+    model.setName('diauxic (FBA)')
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
-    add_generic_info(model)
+    utils.set_model_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
 
-    # Compartments
-    compartments = [
-        mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor', spatialDimension=3),
-    ]
-    mc.create_objects(model, compartments)
+    objects = [
+        # compartments
+        mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
+                       spatialDimension=3),
 
-    # Species
-    species = [
-        # internal
+        # species
         mc.Species(sid='Glcxt', name="glucose", value=10.8, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
         mc.Species(sid='Ac', name="acetate", value=0.4, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
@@ -227,50 +218,22 @@ def fba_model(sbml_file, directory):
                    compartment="bioreactor"),
         mc.Species(sid='X', name="biomass", value=0.001, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-    ]
-    mc.create_objects(model, species)
 
-    parameters = [
-        # default bounds
+        # bounds
         mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_default", name="default lower bound", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_default", name="default upper bound", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-
-        # values of all exchange flux bounds can be overwritten from the outside
-        mc.Parameter(sid="lb_EX_Ac", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_Ac", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_Glcxt", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_O2", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_X", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_X", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_default", name="default upper bound", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX,
+                     constant=True, sboTerm="SBO:0000612"),
     ]
-    mc.create_objects(model, parameters)
+    mc.create_objects(model, objects)
 
-    # reactions: exchange reactions (this species can be changed by the FBA)
-    r_EX_O2 = mc.create_reaction(model, rid="EX_O2", name="O2 exchange", reversible=False,
-                            reactants={"O2": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-    r_EX_Glcxt = mc.create_reaction(model, rid="EX_Glcxt", name="Glcxt exchange", reversible=False,
-                            reactants={"Glcxt": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-    r_EX_Ac = mc.create_reaction(model, rid="EX_Ac", name="Ac exchange", reversible=True,
-                            reactants={"Ac": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-    r_EX_X = mc.create_reaction(model, rid="EX_X", name="biomass exchange", reversible=False,
-                            reactants={"X": 1}, products={}, compartment='bioreactor', sboTerm="SBO:0000627")
-
-    # flux bounds: exchange fluxes
-    mc.set_flux_bounds(r_EX_Ac, lb="lb_EX_Ac", ub="ub_EX_Ac")
-    mc.set_flux_bounds(r_EX_Glcxt, lb="lb_EX_Glcxt", ub="ub_EX_Glcxt")
-    mc.set_flux_bounds(r_EX_O2, lb="lb_EX_O2", ub="ub_EX_O2")
-    mc.set_flux_bounds(r_EX_X, lb="lb_EX_X", ub="ub_EX_X")
-
-    # reactions: internal reactions
+    # reactions
     r_v1 = mc.create_reaction(model, rid="v1", name="v1 (39.43 Ac + 35 O2 -> X)", reversible=False,
-                               reactants={"Ac": 39.43, "O2": 35}, products={"X": 1}, compartment='bioreactor')
+                              reactants={"Ac": 39.43, "O2": 35}, products={"X": 1}, compartment='bioreactor')
     r_v2 = mc.create_reaction(model, rid="v2", name="v2 (9.46 Glcxt + 12.92 O2 -> X)", reversible=False,
                               reactants={"Glcxt": 9.46, "O2": 12.92}, products={"X": 1}, compartment='bioreactor')
     r_v3 = mc.create_reaction(model, rid="v3", name="v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)", reversible=False,
-                              reactants={"Glcxt": 9.84, "O2": 12.73}, products={"Ac": 1.24, "X": 1}, compartment='bioreactor')
+                              reactants={"Glcxt": 9.84, "O2": 12.73}, products={"Ac": 1.24, "X": 1},
+                              compartment='bioreactor')
     r_v4 = mc.create_reaction(model, rid="v4", name="v4 (19.23 Glcxt -> 12.12 Ac + X)", reversible=False,
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
 
@@ -280,54 +243,52 @@ def fba_model(sbml_file, directory):
     mc.set_flux_bounds(r_v3, lb="zero", ub="ub_default")
     mc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
 
+    # reactions: exchange reactions (this species can be changed by the FBA)
+
+    builder.create_exchange_reaction(model, species_id="Ac", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE)
+    builder.create_exchange_reaction(model, species_id="Glcxt", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE_IMPORT)
+    builder.create_exchange_reaction(model, species_id="O2", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE_IMPORT)
+    builder.create_exchange_reaction(model, species_id="X", flux_unit=UNIT_FLUX,
+                                     exchange_type=builder.EXCHANGE_EXPORT)
+
+
     # objective function
     mc.create_objective(mplugin, oid="biomass_max", otype="maximize",
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
-    # ports: compartments
-    # comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
-
-    # ports: species in exchange reactions
-    # comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
-    # comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
-    # comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
-    # comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
-
-    # exchange reactions
-    comp._create_port(model, pid="EX_Ac_port", idRef="EX_Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_O2_port", idRef="EX_O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_X_port", idRef="EX_X", portType=comp.PORT_TYPE_PORT)
-
-    # ports: bounds for exchange reactions (set by species concentrations)
-    comp._create_port(model, pid="lb_EX_Ac_port", idRef="lb_EX_Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_Glcxt_port", idRef="lb_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_O2_port", idRef="lb_EX_O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_X_port", idRef="lb_EX_X", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_Ac_port", idRef="ub_EX_Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_Glcxt_port", idRef="ub_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_O2_port", idRef="ub_EX_O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
-
     # write SBML file
-    sbml_io.write_sbml(doc_fba, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
+
+    return doc_fba
 
 
-def bounds_model(sbml_file, directory):
+def bounds_model(sbml_file, directory, doc_fba=None):
     """"
     Submodel for dynamically calculating the flux bounds.
 
     The dynamically changing flux bounds are the input to the
     FBA model.
     """
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
+    # TODO: the bounds model should be created based on the FBA model (i.e. use the exchange reactions
+    # to create the bounds info.
+
+    bounds_notes = notes.format("""
+    <h2>BOUNDS submodel</h2>
+    <p>Submodel for dynamically calculating the flux bounds.
+    The dynamically changing flux bounds are the input to the
+    FBA model.</p>
+    """)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     model = doc.createModel()
     model.setId("diauxic_bounds")
-    model.setName("ODE bounds submodel")
+    model.setName("diauxic (BOUNDS)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model)
+    utils.set_model_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
 
@@ -350,27 +311,31 @@ def bounds_model(sbml_file, directory):
         # hardcoded time step for the update of the bounds
         mc.Parameter(sid='dt', value=DT_SIM, unit=UNIT_TIME, name='fba timestep', constant=True, sboTerm="SBO:0000346"),
 
-
         # default bounds
         mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_default", name="default lower bound", value=-1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_default", name="default upper bound", value=1000.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_default", name="default lower bound", value=-1000.0, unit=UNIT_FLUX, constant=True,
+                     sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_default", name="default upper bound", value=1000.0, unit=UNIT_FLUX, constant=True,
+                     sboTerm="SBO:0000612"),
 
         # values of all exchange flux bounds can be overwritten from the outside
-        mc.Parameter(sid="lb_EX_Ac", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_Ac", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
-                     sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_Glcxt", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
-                     sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_O2", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_EX_X", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_EX_X", value=UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_EX_Ac", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+        mc.Parameter(sid="ub_EX_Ac", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+        mc.Parameter(sid="lb_EX_Glcxt", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000625"),
+        mc.Parameter(sid="ub_EX_Glcxt", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000625"),
+        # FIXME: handle the reversibility of exchange reactions (i.e. ZERO_BOUNDS)
+        mc.Parameter(sid="lb_EX_O2", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+        mc.Parameter(sid="ub_EX_O2", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+        mc.Parameter(sid="lb_EX_X", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+        mc.Parameter(sid="ub_EX_X", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
 
         # kinetic lower bounds
-        mc.Parameter(sid="lb_kin_EX_Glcxt", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_kin_EX_O2", value=LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_kin_EX_Glcxt", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000612"),
+        mc.Parameter(sid="lb_kin_EX_O2", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+                     sboTerm="SBO:0000612"),
 
         # parameters for kinetic bounds
         mc.Parameter(sid='Vmax_EX_O2', value=15, unit=UNIT_FLUX, constant=True),
@@ -382,35 +347,30 @@ def bounds_model(sbml_file, directory):
         mc.AssignmentRule(sid="lb_kin_EX_O2", value="-Vmax_EX_O2"),
 
         # exchange reaction bounds
-        # amount limitation in export (lower bound)
-        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
+        # uptake bounds (lower bound)
+        # TODO: FIXME the X hack
+        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac/X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X/X*bioreactor/dt)"),
 
+        # mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_default, -Ac*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2*bioreactor/dt)"),
+        # mc.AssignmentRule(sid="lb_EX_X", value="max(lb_default, -X*bioreactor/dt)"),
     ]
     mc.create_objects(model, objects)
 
     # ports
-    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
-    # species
-    comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=["dt",
+                              "bioreactor",
+                              "Ac", "Glcxt", "O2", "X",
+                              "lb_EX_Ac", "lb_EX_Glcxt", "lb_EX_O2", "lb_EX_X",
+                              "ub_EX_Ac", "ub_EX_Glcxt", "ub_EX_O2", "ub_EX_X",
+                              ])
 
-    # exchange bounds
-    comp._create_port(model, pid="lb_EX_Ac_port", idRef="lb_EX_Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_Ac_port", idRef="ub_EX_Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_Glcxt_port", idRef="lb_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_Glcxt_port", idRef="ub_EX_Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_O2_port", idRef="lb_EX_O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_O2_port", idRef="ub_EX_O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="lb_EX_X_port", idRef="lb_EX_X", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="ub_EX_X_port", idRef="ub_EX_X", portType=comp.PORT_TYPE_PORT)
-
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -421,16 +381,21 @@ def update_model(sbml_file, directory):
         Submodel for dynamically updating the metabolite count/concentration.
         This updates the ode model based on the FBA fluxes.
     """
-    sbmlns = SBMLNamespaces(3, 1, 'comp', 1)
-    doc = SBMLDocument(sbmlns)
+    update_notes = notes.format("""
+        <h2>UPDATE submodel</h2>
+        <p>Submodel for dynamically updating the metabolite count.
+        This updates the ode model based on the FBA fluxes.</p>
+        """)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
     # model
     model = doc.createModel()
     model.setId("diauxic_update")
-    model.setName("ODE metabolite update")
+    model.setName("diauxic (UPDATE)")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    add_generic_info(model)
+    utils.set_model_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
@@ -446,44 +411,27 @@ def update_model(sbml_file, directory):
                    compartment="bioreactor"),
 
         # exchange reaction fluxes
-        mc.Parameter(sid="EX_Ac", name="Ac exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_Glcxt", name="Glcxt exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_O2", name="O2 exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-        mc.Parameter(sid="EX_X", name="X exchange (FBA flux)", value=1.0, constant=True, unit=UNIT_FLUX),
-
+        mc.Parameter(sid="EX_Ac", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_Glcxt", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_O2", value=1.0, constant=True, unit=UNIT_FLUX),
+        mc.Parameter(sid="EX_X", value=1.0, constant=True, unit=UNIT_FLUX),
     ]
     mc.create_objects(model, objects)
 
     # FIXME: multiply by X (fluxes per g weight, actual fluxes consequence of biomass)
-    mc.create_reaction(model, rid="update_Glcxt", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Glcxt": 1}, products={}, modifiers=["X"],
-                       formula="-EX_Glcxt * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_Ac", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"Ac": 1}, products={}, modifiers=["X"],
-                       formula="-EX_Ac * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_O2", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"O2": 1}, products={}, modifiers=["X"],
-                       formula="-EX_O2 * X * 1 l_per_mmol")
-    mc.create_reaction(model, rid="update_X", compartment="bioreactor", sboTerm="SBO:0000631",
-                       reactants={"X": 1}, products={}, modifiers=["X"],
-                       formula="-EX_X * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="Ac", modifiers=["X"], formula="-EX_Ac * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="Glcxt", modifiers=["X"], formula="-EX_Glcxt * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="O2", modifiers=["X"], formula="-EX_O2 * X * 1 l_per_mmol")
+    builder.create_update_reaction(model, sid="X", modifiers=["X"], formula="-EX_X * X * 1 l_per_mmol")
 
     # ports
-    comp._create_port(model, pid="EX_Glcxt_port", idRef="EX_Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_Ac_port", idRef="EX_Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_O2_port", idRef="EX_O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="EX_X_port", idRef="EX_X", portType=comp.PORT_TYPE_PORT)
-
-    comp._create_port(model, pid="Glcxt_port", idRef="Glcxt", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="Ac_port", idRef="Ac", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="O2_port", idRef="O2", portType=comp.PORT_TYPE_PORT)
-    comp._create_port(model, pid="X_port", idRef="X", portType=comp.PORT_TYPE_PORT)
-
-    comp._create_port(model, pid="bioreactor_port", idRef="bioreactor", portType=comp.PORT_TYPE_PORT)
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=["bioreactor",
+                              "Ac", "Glcxt", "O2", "X",
+                              "EX_Ac", "EX_Glcxt", "EX_O2", "EX_X"])
 
     # write SBML file
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
-
+    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def top_model(sbml_file, directory, emds):
@@ -518,12 +466,17 @@ def top_model(sbml_file, directory, emds):
         <parameter id="v_R3" name="R3 flux" value="0" units="item_per_s" constant="false"/>
     </listOfParameters>
     """
+    top_notes = notes.format("""
+    <h2>TOP model</h2>
+    <p>Main comp DFBA model by combining fba, update and bounds
+        model with additional kinetics in the top model.</p>
+    """)
     # Necessary to change into directory with submodel files
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    sbmlns = SBMLNamespaces(3, 1, "comp", 1)
-    doc = SBMLDocument(sbmlns)
+    sbmlns = libsbml.SBMLNamespaces(3, 1, "comp", 1)
+    doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
     doc.setPackageRequired("fbc", False)
 
@@ -537,8 +490,9 @@ def top_model(sbml_file, directory, emds):
     # create models and submodels
     model = doc.createModel()
     model.setId("diauxic_top")
-    model.setName("Top level model")
-    add_generic_info(model)
+    model.setName("diauxic (TOP)")
+    utils.set_model_info(model, notes=top_notes,
+                         creators=creators, units=units, main_units=main_units)
     mplugin = model.getPlugin("comp")
     model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
 
@@ -594,30 +548,31 @@ def top_model(sbml_file, directory, emds):
     for ex_rid in ['EX_Ac', 'EX_Glcxt', 'EX_O2', 'EX_X']:
         for bound_type in ['lb', 'ub']:
             if bound_type == 'lb':
-                value = LOWER_BOUND_DEFAULT
+                value = builder.LOWER_BOUND_DEFAULT
             elif bound_type == 'ub':
-                value = UPPER_BOUND_DEFAULT
+                value = builder.UPPER_BOUND_DEFAULT
             parameters.append(
                 # lb_vGlcxt
-                mc.Parameter(sid="{}_{}".format(bound_type, ex_rid), value=value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625")
+                mc.Parameter(sid="{}_{}".format(bound_type, ex_rid), value=value, unit=UNIT_FLUX, constant=False,
+                             sboTerm="SBO:0000625")
             )
     mc.create_objects(model, parameters)
 
     # Reactions
     # dummy reaction (pseudoreaction)
-    mc.create_reaction(model, rid="dummy_EX_Glcxt", name="EX_Glcxt dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_EX_O2", name="EX_O2 dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_EX_Ac", name="EX_Ac dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
-    mc.create_reaction(model, rid="dummy_EX_X", name="EX_X dummy", reversible=False,
-                       reactants={}, products={"dummy_S": 1}, compartment="bioreactor", sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_Glcxt", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_O2", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_Ac", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
+    mc.create_reaction(model, rid="dummy_EX_X", reversible=False,
+                       products={"dummy_S": 1}, sboTerm="SBO:0000631")
 
     # oxygen transfer reaction
     mc.create_reaction(model, rid="vO2_transfer", name="oxygen transfer", reversible=True,
-                       reactants={}, products={"O2": 1}, formula="kLa * (O2_ref-O2) * bioreactor", compartment="bioreactor")
-
+                       reactants={}, products={"O2": 1}, formula="kLa * (O2_ref-O2) * bioreactor",
+                       compartment="bioreactor")
 
     # AssignmentRules
     # This are the important assignment rules which update the fluxes
@@ -633,40 +588,38 @@ def top_model(sbml_file, directory, emds):
     ])
 
     # --- replacements ---
-    # dt
-    comp._create_port(model, pid="dt_port", idRef="dt", portType=comp.PORT_TYPE_PORT)
-
     # compartments
     comp.replace_elements(model, 'bioreactor', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={
-                                             'update': ['bioreactor_port'],
-                                             'bounds': ['bioreactor_port']})
-
+                              'update': ['bioreactor_port'],
+                              'bounds': ['bioreactor_port']})
     # species
     comp.replace_elements(model, 'Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={
-                                             'update': ['Glcxt_port'],
-                                             'bounds': ['Glcxt_port']})
+                              'update': ['Glcxt_port'],
+                              'bounds': ['Glcxt_port']})
     comp.replace_elements(model, 'O2', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={
-                                             'update': ['O2_port'],
-                                             'bounds': ['O2_port']})
+                              'update': ['O2_port'],
+                              'bounds': ['O2_port']})
     comp.replace_elements(model, 'Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={
-                                             'update': ['Ac_port'],
-                                             'bounds': ['Ac_port']})
+                              'update': ['Ac_port'],
+                              'bounds': ['Ac_port']})
     comp.replace_elements(model, 'X', ref_type=comp.SBASE_REF_TYPE_PORT,
                           replaced_elements={
-                                             'update': ['X_port'],
-                                             'bounds': ['X_port']})
+                              'update': ['X_port'],
+                              'bounds': ['X_port']})
     # exchange bounds
     for bound_id in [
         'lb_EX_Ac', 'ub_EX_Ac',
         'lb_EX_Glcxt', 'ub_EX_Glcxt',
         'lb_EX_O2', 'ub_EX_O2',
-        'lb_EX_X', 'ub_EX_X']:
+        'lb_EX_X', 'ub_EX_X'
+    ]:
         comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'bounds': ['{}_port'.format(bound_id)], 'fba': ['{}_port'.format(bound_id)]})
+                              replaced_elements={'bounds': ['{}_port'.format(bound_id)],
+                                                 'fba': ['{}_port'.format(bound_id)]})
 
     # dt
     comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
@@ -698,26 +651,22 @@ def top_model(sbml_file, directory, emds):
                                           submodels=['bounds', 'fba', 'update'])
 
     # write SBML file
-    sbml_io.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
     # change back into working dir
     os.chdir(working_dir)
 
 
-def create_models():
+def create_model(output_dir):
     """ Create all models.
 
     :return:
     """
-    directory = pjoin(out_dir, 'v{}'.format(version))
-    if not os.path.exists(directory):
-        print('Create directory: {}'.format(directory))
-        os.mkdir(directory)
+    directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
     fba_model(fba_file, directory)
     bounds_model(bounds_file, directory)
     update_model(update_file, directory)
-
 
     emds = {
         "diauxic_fba": fba_file,
@@ -730,32 +679,15 @@ def create_models():
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
 
-    # reported bug in writing comp model
-    # TODO: test this as soon as bug is fixed
-    if False:
-        # remove external model definitions
-        doc_top = libsbml.readSBMLFromFile(pjoin(directory, top_file))
-        if doc_top is None:
-            logging.error('SBML file could not be read:', top_file)
-
-        # valid during creation
-        doc_top_noemd = comp.flattenExternalModelDefinitions(doc_top, validate=True)
-        from sbmlutils import validation
-        validation.check_doc(doc_top_noemd)
-
-        # not valid during writing
-        sbml_io.write_and_check(doc_top_noemd, pjoin(directory, top_noemd_file))
-
-
-        # comp.flattenSBMLFile(sbml_path=pjoin(directory, top_noemd_file),
-        #                     output_path=pjoin(directory, flattened_noemd_file))
-
     # create reports
     sbml_paths = [pjoin(directory, fname) for fname in
                   # [fba_file, bounds_file, update_file, top_file, flattened_file]]
                   [fba_file, bounds_file, update_file, top_file, flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
+    return directory
+
 
 if __name__ == "__main__":
-    create_models()
+    from sbmlutils.dfba.diauxic_growth.dgsettings import out_dir
+    directory = create_model(output_dir=out_dir)

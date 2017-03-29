@@ -1,44 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Create Report from given SBML file.
+Create an SBML Report from given SBML file or set of SBML files (for instance for comp models).
 
 The model report is implemented based on a standard template language,
 which uses the SBML information to render the final document.
 
-Currently the following templates are available:
-<HTML>
-- in addition to the created HTML, the necessary CSS and JS files are copied.
-
 The basic steps of template creation are
-- configure an Engine (jinja2)
+- configure the engine (jinja2)
 - compile template
 - render with SBML context
+
+The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
-# TODO: implement offline version of the report
-# TODO: rate rules are not displayed correctly (they need dy/dt on the left side, compared to AssignmentRules)
-
-
 from __future__ import print_function, division, absolute_import
-import warnings
 import codecs
-import os
 import ntpath
-
-import distutils
+import os
+import warnings
 from distutils import dir_util
-import sys
 
 import libsbml
 from jinja2 import Environment, FileSystemLoader
-
-from sbmlutils.report import sbmlfilters
 from sbmlutils.validation import check_sbml
-
-
-# Change default encoding to UTF-8
-# We need to reload sys module first, because setdefaultencoding is available only at startup time
-# reload(sys)
-# sys.setdefaultencoding('utf-8')
+from sbmlutils.report import sbmlfilters
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -56,6 +40,7 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
     """
     # individual reports
     for sbml_path in sbml_paths:
+        print(sbml_path)
         create_sbml_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
 
     # write index html (unicode)
@@ -71,12 +56,11 @@ def _create_index_html(sbml_paths, html_template='index.html'):
 
     # template environment
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
-                         extensions=['jinja2.ext.autoescape'],
-                         trim_blocks=True,
-                         lstrip_blocks=True)
+                      extensions=['jinja2.ext.autoescape'],
+                      trim_blocks=True,
+                      lstrip_blocks=True)
 
     template = env.get_template(html_template)
-
 
     sbml_basenames = [ntpath.basename(path) for path in sbml_paths]
     sbml_links = []
@@ -96,10 +80,12 @@ def _create_index_html(sbml_paths, html_template='index.html'):
 def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False, validate=True):
     """ Creates the SBML report in the out_dir
 
+    :param validate:
+    :param promote:
+    :param template:
+    :param sbml_path:
     :param doc:
-    :type doc:
     :param out_dir:
-    :type out_dir:
     :return:
     :rtype:
     """
@@ -156,37 +142,45 @@ def _create_html(doc, basename, html_template='report.html'):
     :return:
     :rtype:
     """
-    model = doc.getModel()
-    values = _create_value_dictionary(model)
-
     # template environment
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
-                         extensions=['jinja2.ext.autoescape'],
-                         trim_blocks=True,
-                         lstrip_blocks=True)
+                      extensions=['jinja2.ext.autoescape'],
+                      trim_blocks=True,
+                      lstrip_blocks=True)
     # additional SBML filters
     for key in sbmlfilters.filters:
         env.filters[key] = getattr(sbmlfilters, key)
 
-    template = env.get_template(html_template)
+    model = doc.getModel()
+    if model is not None:
+        template = env.get_template(html_template)
+        values = _create_value_dictionary(model)
 
-    # Context
-    c = {
-        'basename': basename,
-        'doc': doc,
-        'model': model,
-        'values': values,
-        'units': model.getListOfUnitDefinitions(),
-        'compartments': model.getListOfCompartments(),
-        'functions': model.getListOfFunctionDefinitions(),
-        'parameters': model.getListOfParameters(),
-        'rules': model.getListOfRules(),
-        'assignments': model.getListOfInitialAssignments(),
-        'species': model.getListOfSpecies(),
-        'reactions': model.getListOfReactions(),
-        'constraints': model.getListOfConstraints(),
-        'events': model.getListOfEvents(),
-    }
+        # Context
+        c = {
+            'basename': basename,
+            'doc': doc,
+            'model': model,
+            'values': values,
+            'units': model.getListOfUnitDefinitions(),
+            'compartments': model.getListOfCompartments(),
+            'functions': model.getListOfFunctionDefinitions(),
+            'parameters': model.getListOfParameters(),
+            'rules': model.getListOfRules(),
+            'assignments': model.getListOfInitialAssignments(),
+            'species': model.getListOfSpecies(),
+            'reactions': model.getListOfReactions(),
+            'constraints': model.getListOfConstraints(),
+            'events': model.getListOfEvents(),
+        }
+    else:
+        # no model exists
+        warnings.warn("No model in SBML file when creating model report: {}".format(doc))
+        template = env.get_template("report_no_model.html")
+        c = {
+            'basename': basename,
+            'doc': doc,
+        }
     return template.render(c)
 
 
@@ -218,14 +212,3 @@ def _copy_directory(src, dest):
 
     # copy
     dir_util.copy_tree(src, dest)
-
-#################################################################################################
-# Create report
-#################################################################################################
-
-if __name__ == '__main__':
-    import os
-    from sbmlutils.examples import testfiles
-    os.chdir(os.path.join(testfiles.test_dir, 'report'))
-    create_sbml_report(sbml_path='galactose_30_annotated.xml', out_dir='.')
-

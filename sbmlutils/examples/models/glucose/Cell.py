@@ -7,11 +7,13 @@ addition with the definition of the individual units of the model.
 
 """
 from __future__ import print_function, division, absolute_import
+
+from sbmlutils import factory as mc
+
 from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
 from libsbml import XMLNode
-
 from sbmlutils.modelcreator import templates
-from sbmlutils import factory as mc
+
 from . import Reactions
 
 ##############################################################
@@ -27,7 +29,9 @@ notes = XMLNode.convertStringToXMLNode("""
     </p>
     <p>This model is described in the article:</p>
     <div class="bibo:title">
-        <a href="http://identifiers.org/pubmed/22761565" title="Access to this publication">Quantifying the contribution of the liver to glucose homeostasis: a detailed kinetic model of human hepatic glucose metabolism.</a>
+        <a href="http://identifiers.org/pubmed/22761565" title="Access to this publication">Quantifying the
+        contribution of the liver to glucose homeostasis: a detailed kinetic model of human hepatic glucose metabolism.
+        </a>
     </div>
     <div class="bibo:authorList">König M., Bulik S., Holzhütter HG.</div>
     <div class="bibo:Journal">PLoS Comput Biol. 2012;8(6)</div>
@@ -37,9 +41,9 @@ notes = XMLNode.convertStringToXMLNode("""
          hepatic glucose metabolism is lacking so far. Here we present a detailed kinetic model of glycolysis,
          gluconeogenesis and glycogen metabolism in human hepatocytes integrated with the hormonal control of
          these pathways by insulin, glucagon and epinephrine. Model simulations are in good agreement with experimental
-         data on (i) the quantitative contributions of glycolysis, gluconeogenesis, and glycogen metabolism to hepatic glucose
-         production and hepatic glucose utilization under varying physiological states. (ii) the time courses of
-         postprandial glycogen storage as well as glycogen depletion in overnight fasting and short term fasting
+         data on (i) the quantitative contributions of glycolysis, gluconeogenesis, and glycogen metabolism to hepatic
+         glucose production and hepatic glucose utilization under varying physiological states. (ii) the time courses
+         of postprandial glycogen storage as well as glycogen depletion in overnight fasting and short term fasting
          (iii) the switch from net hepatic glucose production under hypoglycemia to net hepatic glucose utilization
          under hyperglycemia essential for glucose homeostasis (iv) hormone perturbations of hepatic glucose
          metabolism. Response analysis reveals an extra high capacity of the liver to counteract changes of
@@ -256,9 +260,9 @@ rules.extend([
     mc.AssignmentRule('K_glu', '(x_glu1-x_glu2) * K_val', 'pM'),
     mc.AssignmentRule('K_epi', '(x_epi1-x_epi2) * K_val', 'pM'),
     mc.AssignmentRule('gamma',
-                      '0.5 dimensionless * (1 dimensionless - ins_norm/(ins_norm+K_ins) + max(glu_norm/(glu_norm+K_glu), epi_f*epi_norm/(epi_norm+K_epi)))',
-                      'dimensionless',
-                      name='phosphorylation state'),
+                      '0.5 dimensionless * (1 dimensionless -ins_norm/(ins_norm+K_ins) + '
+                      'max(glu_norm/(glu_norm+K_glu), epi_f*epi_norm/(epi_norm+K_epi)))',
+                      'dimensionless', name='phosphorylation state'),
 
     # balance equations
     mc.AssignmentRule('nadh_tot', 'nadh + nad', 'mM', name='NADH balance'),

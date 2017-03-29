@@ -47,7 +47,7 @@ Submit Feedback
 ~~~~~~~~~~~~~~~
 
 The best way to send feedback is to file an
-`issue <https://github.com/sbmlutils/sbmlutils/issues>`__.
+`issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__.
 
 If you are proposing a feature:
 
@@ -107,10 +107,6 @@ features or changes that you can implement yourself.
 
 8. Setup sbmlutils for development::
 
-    (sbmlutils)$ python setup.py develop
-
-   or::
-
     (sbmlutils)$ pip install -e .
 
 9. When you are done making changes, check that your changes pass pep8
@@ -167,33 +163,9 @@ Unit tests and benchmarks
 
 sbmlutils uses `pytest <http://docs.pytest.org/en/latest/>`_ for its
 unit-tests and new features should in general always come with new
-tests that make sure that the code runs as intended. We use `pytest-benchmark
-<https://pytest-benchmark.readthedocs.io/en/latest/>`_ to compare
-different implementations to make sure that new code do not come with
-unacceptable increased computation time. If you add benchmarked tests,
-make sure to also include a test with and without the benchmark as we
-do not want to slow down continuous integration by running benchmarks.
-Benchmarks can be skipped via::
+tests that make sure that the code runs as intended::
 
-    (sbmlutils)$ pytest --benchmark-skip
-
-When the test function itself is small and can safely be assumed to
-not take many resources, we can directly profile the test as in
-``test_subtract_metabolite_benchmark`` which calls
-``benchmark(self.test_subtract_metabolite, model)``.
-
-To run all tests and benchmarks do::
-
-    (sbmmlutils)$ pytest
-
-and to compare two implementations you may keep them in two branches
-e.g. ``old`` and ``new`` and then do::
-
-    (sbmlutils)$ git checkout old
-    (sbmlutils)$ pytest --benchmark-save
-    (sbmlutils)$ git checkout new
-    (sbmlutils)$ pytest --benchmark-compare
-
+    (sbmlutils)$ pytest
 
 Branching model
 ---------------

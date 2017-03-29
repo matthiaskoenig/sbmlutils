@@ -1,33 +1,21 @@
 """
 DFBA model structure.
 """
-from __future__ import print_function, division
+from __future__ import print_function, absolute_import, division
 import os
 import logging
 import warnings
 import tempfile
 from collections import defaultdict
+from six import iteritems
 
 import libsbml
 import roadrunner
 import cobra
 
-#################################################
-# Model constants
-#################################################
-DT_ID = 'dt'
+from sbmlutils.dfba import builder
 
-MODEL_FRAMEWORK_FBA = 'fba'
-MODEL_FRAMEWORK_ODE = 'ode'
-# MODEL_FRAMEWORK_STOCHASTIC = 'stochastic'
-# MODEL_FRAMEWORK_LOGICAL = 'logical'
 
-MODEL_FRAMEWORKS = [
-    MODEL_FRAMEWORK_FBA,
-    MODEL_FRAMEWORK_ODE,
-    # MODEL_FRAMEWORK_STOCHASTIC,
-    # MODEL_FRAMEWORK_LOGICAL,
-]
 #################################################
 
 class DFBAModel(object):
@@ -36,24 +24,23 @@ class DFBAModel(object):
      The representation is used in the validation and also for simulation.
      """
 
-    def __init__(self, sbml_top_path):
+    def __init__(self, sbml_path):
         """ Create the simulator with the top level SBML file.
 
         The models are resolved to their respective simulation framework.
         The top level network must be an ode network.
 
-        :param top_level_path: absolute path of top level SBML file
-        :param output_directory: directory where output files are written
+        :param sbml_path: absolute path of top level SBML file
         """
 
         # necessary to change the working directory to the sbml file directory
         # to resolve relative links to external model definitions.
         working_dir = os.getcwd()
-        sbml_dir = os.path.dirname(sbml_top_path)
+        sbml_dir = os.path.dirname(sbml_path)
         os.chdir(sbml_dir)
 
-        self.sbml_top = sbml_top_path
-        self.sbml_dir = os.path.dirname(sbml_top_path)
+        self.sbml_top = sbml_path
+        self.sbml_dir = os.path.dirname(sbml_path)
 
         # read top level model
         self.doc_top = None
@@ -96,17 +83,26 @@ class DFBAModel(object):
         """
         framework = None
         if model.isSetSBOTerm():
+
+            # FIXME: better check for model framework
             sbo = model.getSBOTerm()
             if sbo == 624:
-                framework = MODEL_FRAMEWORK_FBA
+                framework = builder.MODEL_FRAMEWORK_FBA
             elif sbo in [293]:
-                framework = MODEL_FRAMEWORK_ODE
+                framework = builder.MODEL_FRAMEWORK_ODE
             # elif sbo == 63:
             #    framework = MODEL_FRAMEWORK_STOCHASTIC
             # elif sbo in [234, 547]:
             #     framework = MODEL_FRAMEWORK_LOGICAL
             else:
                 warnings.warn("Modelling Framework not supported: {}".format(sbo))
+        else:
+            warnings.warn("SBOTerm for modelling framework not set")
+            # try to find the FBA network nonetheless
+            if model.getPlugin('fbc') is not None:
+                warnings.warn("FBA model via fbc package")
+                framework = builder.MODEL_FRAMEWORK_FBA
+
         return framework
 
     def __str__(self):
@@ -120,11 +116,11 @@ class DFBAModel(object):
         s += "{}\n".format('-' * 80)
 
         # sub models
-        for framework in MODEL_FRAMEWORKS:
+        for framework in builder.MODEL_FRAMEWORKS:
             s += "{:<10} : {}\n".format(framework, self.submodels[framework])
 
         # dt
-        s += "{:<10} : {}\n".format(DT_ID, self.dt)
+        s += "{:<10} : {}\n".format(builder.DT_ID, self.dt)
         # dummy reactions
 
         # flux rules
@@ -146,7 +142,7 @@ class DFBAModel(object):
         :return:
         """
         lines = ['Flux rules:']
-        for key, value in self.flux_rules.iteritems():
+        for key, value in iteritems(self.flux_rules):
             lines.append('\t{} : {}'.format(key, value))
         return "\n".join(lines)
 
@@ -164,7 +160,7 @@ class DFBAModel(object):
             warnings.warn("No top level model found.")
 
         self.framework_top = self.get_framework(self.model_top)
-        if self.framework_top is not MODEL_FRAMEWORK_ODE:
+        if self.framework_top is not builder.MODEL_FRAMEWORK_ODE:
             warnings.warn("The top level model framework is not ode: {}".format(self.framework_top))
 
         # get submodels with frameworks
@@ -209,25 +205,14 @@ class DFBAModel(object):
 
         mixed_sbml_cleaned = tempfile.NamedTemporaryFile("w", suffix=".xml")
         libsbml.writeSBMLToFile(self.doc_top, mixed_sbml_cleaned.name)
-
-        rr_comp = roadrunner.RoadRunner(mixed_sbml_cleaned.name)
-
-        sel = ['time'] \
-              + sorted(["".join(["[", item, "]"]) for item in rr_comp.model.getFloatingSpeciesIds()]) \
-              + sorted(["".join(["[", item, "]"]) for item in rr_comp.model.getBoundarySpeciesIds()]) \
-              + sorted(rr_comp.model.getReactionIds()) \
-              + sorted(rr_comp.model.getGlobalParameterIds())
-        # + self.fba_rules.values()
-        rr_comp.timeCourseSelections = sel
-        rr_comp.reset()
-        self.rr_comp = rr_comp
+        self.rr_comp = roadrunner.RoadRunner(mixed_sbml_cleaned.name)
 
         ###########################
         # prepare FBA models
         ###########################
         # FBA models are found based on the FBA modeling framework
         mdoc = self.doc_top.getPlugin("comp")
-        for submodel in self.submodels[MODEL_FRAMEWORK_FBA]:
+        for submodel in self.submodels[builder.MODEL_FRAMEWORK_FBA]:
             mref = submodel.getModelRef()
             emd = mdoc.getExternalModelDefinition(mref)
             source = emd.getSource()
@@ -253,10 +238,23 @@ class DFBAModel(object):
         :return:
         """
         logging.debug('* _process_dt')
-        par = self.model_top.getParameter(DT_ID)
-        if par is None:
-            warnings.warn("No parameter with id '{}' in top model.".format(DT_ID))
-        self.dt = par.getValue()
+        p = self.model_top.getParameter(builder.DT_ID)
+        if p is None:
+            warnings.warn("No parameter with id '{}' in top model.".format(builder.DT_ID))
+        self.dt = p.getValue()
+
+    def set_dt(self, value):
+        """ Sets the dt parameter in the DFBA model.
+        Necessary when the model should be simulated with different dt values.
+        """
+        p = self.model_top.getParameter(builder.DT_ID)
+        if p is None:
+            warnings.warn("No parameter with id '{}' in top model.".format(builder.DT_ID))
+        old_value = p.getValue()
+        p.setValue(value)
+        logging.info("dt set from old value <{}> to new value: dt={}".format(old_value, value))
+        # update value in DFBA model
+        self._process_dt()
 
     @classmethod
     def _process_flux_rules(cls, top_model):
@@ -294,6 +292,7 @@ class DFBAModel(object):
                     warnings.warn('Flux AssignmentRules should have SBOTerm: SBO:0000631')
 
         return flux_rules
+
 
 class FBAModel(object):
     """ FBA model.
@@ -458,16 +457,16 @@ class FBAModel(object):
         self.fba2top_reactions = fba2top
 
     def _process_flat_mapping(self, rr_comp):
-        """ Get the id mapping of the fluxes to the
-        flattened model.
+        """ Get the id mapping of the fluxes to the flattened model.
 
-        :param top_model:
-        :type top_model:
+        :param rr_comp
         :return:
-        :rtype:
         """
         smid = self.submodel.getId()
-        map = {}
+        mapping = {}
+
+        # FIXME: use the replacements, replacedBy & ports for the mapping detection with the top_model
+        # get all the FBA reaction ids
 
         fba_rids = set()
         for rid in rr_comp.model.getReactionIds():
@@ -478,8 +477,10 @@ class FBAModel(object):
         for r in self.sbml_model.getListOfReactions():
             rid = r.getId()
             if '{}__{}'.format(smid, rid) in fba_rids:
-                map[rid] = '{}__{}'.format(smid, rid)
+                mapping[rid] = '{}__{}'.format(smid, rid)
             else:
-                map[rid] = rid
+                # FIXME: the mapping of the dummy reactions is missing
+                # This is a bad hack which relies of the naming of the dummy reactions
+                mapping[rid] = 'dummy_{}'.format(rid)
 
-        self.flat_mapping = map
+        self.flat_mapping = mapping

@@ -1,34 +1,161 @@
 """
-Create all files and run the simulations.
+Run toy model simulations.
 """
 from __future__ import print_function, division
-import timeit
+import os
+import logging
+from six import iteritems
+import numpy as np
+import pandas as pd
 
-from toysettings import *
-from sbmlutils.dfba.simulator import DFBASimulator
+from sbmlutils.dfba.toy import toysettings, model_factory
+from sbmlutils.dfba.simulator import simulate_dfba
+from sbmlutils.dfba.analysis import DFBAAnalysis
+
+from sbmlutils.dfba.utils import versioned_directory
+from sbmlutils.dfba.analysis import set_matplotlib_parameters
+from matplotlib import pyplot as plt
+set_matplotlib_parameters()
 
 
-def simulate_toymodel(directory, tend=50.0, steps=500):
-    """ Simulate the model.
+def print_species(dfs, filepath=None, **kwargs):
+    """ Print toy species.
 
-    :param tend:
-    :param steps:
+    :param filepath:
+    :param df:
     :return:
     """
-    # Run simulation of the hybrid model
-    top_level_path = os.path.join(out_dir, top_file)
-    sim = DFBASimulator(sbml_top_path=top_level_path)
-    start_time = timeit.default_timer()
-    df = sim.simulate(tstart=0.0, tend=tend, steps=steps)
-    elapsed = timeit.default_timer() - start_time
-    print("Simulation time: {}".format(elapsed))
+    if 'marker' not in kwargs:
+        kwargs['marker'] = 's'
+    if 'linestyle' not in kwargs:
+        kwargs['linestyle'] = '-'
 
-    # Create outputs
-    sim.plot_reactions(os.path.join(directory, "reactions.png"), df, rr_comp=sim.rr_comp)
-    sim.plot_species(os.path.join(directory, "species.png"), df, rr_comp=sim.rr_comp)
-    sim.save_csv(os.path.join(directory, "simulation.csv"), df)
+    # check if single DataFrame
+    if type(dfs) == pd.DataFrame:
+        dfs = [dfs]
+
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+    for k, df in enumerate(dfs):
+        for ax in (ax1, ax2):
+            if k == 0:
+                ax.plot(df.time, df['[A]'], color='darkred', label="[A]", **kwargs)
+                ax.plot(df.time, df['[C]'], color='darkblue', label="[C]", **kwargs)
+                ax.plot(df.time, df['[D]'], color='darkgreen', label="[D]", **kwargs)
+                ax.plot(df.time, df['[A]']+df['[C]']+df['[D]'], color='black', label="[A]+[C]+[D]", **kwargs)
+            else:
+                ax.plot(df.time, df['[A]'], color='darkred', label='_nolegend_', **kwargs)
+                ax.plot(df.time, df['[C]'], color='darkblue', label='_nolegend_', **kwargs)
+                ax.plot(df.time, df['[D]'], color='darkgreen', label='_nolegend_', **kwargs)
+                ax.plot(df.time, df['[A]'] + df['[C]'] + df['[D]'], color='black', label='_nolegend_', **kwargs)
+
+    ax2.set_yscale('log')
+
+    for ax in (ax1, ax2):
+        ax.set_ylabel('Concentration [?]')
+
+    for ax in (ax1, ax2):
+        ax.set_title('Toy model')
+        ax.set_xlabel('time [h]')
+        ax.legend()
+    if filepath is not None:
+        fig.savefig(filepath, bbox_inches='tight')
+    else:
+        plt.show()
+    logging.info("print_species: {}".format(filepath))
+
+
+def print_fluxes(dfs, filepath=None, **kwargs):
+    """ Print exchange & internal fluxes with respective bounds.
+
+    :param filepath:
+    :param df:
+    :return:
+    """
+    if 'marker' not in kwargs:
+        kwargs['marker'] = 's'
+    if 'linestyle' not in kwargs:
+        kwargs['linestyle'] = '-'
+
+    fig, ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8)) = plt.subplots(nrows=2, ncols=4,
+                                                                    figsize=(18, 9))
+    fig.subplots_adjust(wspace=0.4, hspace=0.3)
+
+    mapping = {
+        'fba__R1': ax1,
+        'fba__R2': ax2,
+        'fba__R3': ax3,
+        'R4': ax4,
+        'dummy_EX_A': ax5,
+        'dummy_EX_C': ax6,
+        'update__update_A': ax7,
+        'update__update_C': ax8,
+    }
+    colors = {
+        'fba__R1': 'darkgreen',
+        'fba__R2': 'darkred',
+        'fba__R3': 'orange',
+        'R4': 'darkblue',
+        'dummy_EX_A': 'magenta',
+        'dummy_EX_C': 'black',
+        'update__update_A': 'lightblue',
+        'update__update_C': 'lightgreen',
+    }
+
+    for k, df in enumerate(dfs):
+        for key, ax in iteritems(mapping):
+            if k == 0:
+                ax.plot(df.time, df[key], label=key, color=colors[key], **kwargs)
+            else:
+                ax.plot(df.time, df[key], label='_nolegend_', color=colors[key], **kwargs)
+            ax.set_ylabel('Flux [?]')
+            ax.legend()
+
+    for key, ax in iteritems(mapping):
+        ax.set_xlabel('time')
+        ax.legend()
+
+    if filepath is not None:
+        fig.savefig(filepath, bbox_inches='tight')
+    else:
+        plt.show()
+
+    logging.info("print_fluxes: {}".format(filepath))
+
+
+def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
+    """ Simulate the diauxic growth model.
+
+    :return: solution data frame
+    """
+    tend = 50
+    plot_kwargs = {
+        'markersize': 4,
+        'marker': 's',
+        'alpha': 0.5
+    }
+    dfs = []
+    for dt in dts:
+        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
+        dfs.append(df)
+
+        # generic analysis
+        analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
+
+        if figures:
+            analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),
+                                    **plot_kwargs)
+            analysis.plot_species(os.path.join(out_dir, "fig_species_generic_dt{}.png".format(dt)),
+                                  **plot_kwargs)
+            analysis.save_csv(os.path.join(out_dir, "data_simulation_generic_dt{}.csv".format(dt)))
+
+    # custom model plots
+    if figures:
+        print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
+        print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
+    return dfs
+
 
 if __name__ == "__main__":
-
-    # TODO: create SED-ML and OMEX for toy model
-    simulate_toymodel(out_dir, tend=50.0, steps=500)
+    directory = versioned_directory(toysettings.out_dir, model_factory.version)
+    sbml_path = os.path.join(directory, toysettings.top_file)
+    simulate_toy(sbml_path, out_dir=directory)

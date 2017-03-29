@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+
 import os
 from sbmlutils.modelcreator.creator import Factory
 
@@ -19,6 +20,3 @@ def create(tmp=False):
         target_dir=os.path.join(models_dir, 'results'),
         annotations=os.path.join(models_dir, 'glucose_annotations.xlsx'))
     factory.create(tmp)
-
-if __name__ == "__main__":
-    create(tmp)

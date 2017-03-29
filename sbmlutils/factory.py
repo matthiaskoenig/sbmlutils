@@ -15,6 +15,7 @@ which takes care of the order of object creation.
 All model objects are created with the given SBML_LEVEL and SBML_VERSION.
 """
 from __future__ import print_function, division
+from six import iteritems
 
 import logging
 import warnings
@@ -23,6 +24,7 @@ from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 
 SBML_LEVEL = 3
 SBML_VERSION = 1
+
 
 # TODO: allow setting of sboTerms & metaIds, currently not taken into account
 
@@ -79,7 +81,7 @@ def set_main_units(model, main_units):
     :return:
     """
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
-        if not key in main_units:
+        if key not in main_units:
             logging.warn('The following key is missing in main_units: {}'.format(key))
             continue
         unit = main_units[key]
@@ -217,9 +219,9 @@ class Function(Value):
         :return:
         """
         return Function._create(model,
-                               sid=self.sid,
-                               formula=self.value,
-                               name=self.name)
+                                sid=self.sid,
+                                formula=self.value,
+                                name=self.name)
 
     @staticmethod
     def _create(model, sid, formula, name):
@@ -245,6 +247,7 @@ class Function(Value):
 ##########################################################################
 class Parameter(ValueWithUnit):
     """ Parameter. """
+
     def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
         super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
@@ -293,7 +296,8 @@ class Parameter(ValueWithUnit):
 ##########################################################################
 class Compartment(ValueWithUnit):
     """ Compartment. """
-    def __init__(self, sid, value, unit, constant, spatialDimension=3, name=None, sboTerm=None, metaId=None):
+
+    def __init__(self, sid, value, unit=None, constant=True, spatialDimension=3, name=None, sboTerm=None, metaId=None):
         super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
         self.spatialDimension = spatialDimension
@@ -305,12 +309,12 @@ class Compartment(ValueWithUnit):
         :return: SBMLCompartment
         """
         return Compartment._create(model,
-                                  sid=self.sid,
-                                  name=self.name,
-                                  dims=self.spatialDimension,
-                                  unit=self.unit,
-                                  constant=self.constant,
-                                  value=self.value)
+                                   sid=self.sid,
+                                   name=self.name,
+                                   dims=self.spatialDimension,
+                                   unit=self.unit,
+                                   constant=self.constant,
+                                   value=self.value)
 
     @staticmethod
     def _create(model, sid, name, dims, unit, constant, value):
@@ -348,6 +352,7 @@ class Compartment(ValueWithUnit):
 ##########################################################################
 class Species(ValueWithUnit):
     """ Species. """
+
     def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None):
         super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
@@ -364,17 +369,17 @@ class Species(ValueWithUnit):
         :return: SBMLSpecies
         """
         return Species._create(model,
-                              sid=self.sid,
-                              name=self.name,
-                              value=self.value,
-                              unit=self.unit,
-                              compartment=self.compartment,
-                              boundaryCondition=self.boundaryCondition,
-                              constant=self.constant,
-                              hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
-                              conversionFactor=self.conversionFactor,
-                              sboTerm=self.sboTerm,
-                              metaId=self.metaId)
+                               sid=self.sid,
+                               name=self.name,
+                               value=self.value,
+                               unit=self.unit,
+                               compartment=self.compartment,
+                               boundaryCondition=self.boundaryCondition,
+                               constant=self.constant,
+                               hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
+                               conversionFactor=self.conversionFactor,
+                               sboTerm=self.sboTerm,
+                               metaId=self.metaId)
 
     @staticmethod
     def _create(model, sid, name, value, unit, compartment,
@@ -470,7 +475,6 @@ class InitialAssignment(ValueWithUnit):
 # Rules
 ##########################################################################
 class Rule(ValueWithUnit):
-
     @staticmethod
     def _rule_factory(model, rule, rule_type):
         """ Creates libsbml rule of given rule_type.
@@ -584,13 +588,13 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
     r.setFast(fast)
     r.setReversible(reversible)
 
-    for sid, stoichiometry in reactants.iteritems():
+    for sid, stoichiometry in iteritems(reactants):
         rt = r.createReactant()
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
         rt.setConstant(True)
 
-    for sid, stoichiometry in products.iteritems():
+    for sid, stoichiometry in iteritems(products):
         rt = r.createProduct()
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
@@ -655,7 +659,7 @@ def createEventFromEventData(model, edata):
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
     # assignments
-    for key, value in edata.assignments.iteritems():
+    for key, value in iteritems(edata.assignments):
         astnode = libsbml.parseL3FormulaWithModel(value, model)
         ea = e.createEventAssignment()
         ea.setVariable(key)
@@ -689,9 +693,8 @@ def create_objective(mplugin, oid, otype, fluxObjectives, active=True):
     objective.setType(otype)
     if active:
         mplugin.setActiveObjectiveId(oid)
-    for rid, coefficient in fluxObjectives.iteritems():
+    for rid, coefficient in iteritems(fluxObjectives):
         fluxObjective = objective.createFluxObjective()
         fluxObjective.setReaction(rid)
         fluxObjective.setCoefficient(coefficient)
     return objective
-

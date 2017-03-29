@@ -7,14 +7,17 @@ process. But the flattening parts also during the simulation
 of the dynamic FBA models.
 """
 
-from __future__ import print_function, division
-import os
+from __future__ import print_function, division, absolute_import
+from six import iteritems
+
+import warnings
 import logging
+import os
+
 import libsbml
 import sbmlutils.factory as factory
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
-
 
 # Modeling frameworks
 SBO_CONTINOUS_FRAMEWORK = 'SBO:0000293'
@@ -97,6 +100,53 @@ PORT_TYPE_INPUT = "input port"
 PORT_TYPE_OUTPUT = "output port"
 
 
+def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=None,
+                 portType=PORT_TYPE_PORT, suffix="_port"):
+    """ Create ports given model.
+    Helper function to create port creation.
+
+    :param model: SBML model
+    :param portRefs: dict of the form {pid:portRef}
+    :param idRefs: dict of the form {pid:idRef}
+    :param unitRefs: dict of the form {pid:unitRef}
+    :param metaIdRes: dict of the form {pid:metaIdRef}
+    :return:
+    :rtype: ports
+    """
+    ports = []
+    if portRefs is not None:
+        ptype = "portRef"
+        data = portRefs
+    elif idRefs is not None:
+        ptype = "idRef"
+        data = idRefs
+    elif unitRefs is not None:
+        ptype = "unitRef"
+        data = unitRefs
+    elif metaIdRefs is not None:
+        ptype = "metaIdRef"
+        data = metaIdRefs
+
+    # dictionary, port ids are provided
+    if type(data) == dict:
+        for pid, ref in iteritems(data):
+            kwargs = {'pid': pid, ptype: ref}
+            ports.append(
+                _create_port(model, portType=portType, **kwargs)
+            )
+
+    # only a list of references, port ids created via suffix appending
+    elif type(data) in [list, tuple]:
+        for ref in data:
+            pid = ref + suffix
+            kwargs = {'pid': pid, ptype: ref}
+            ports.append(
+                _create_port(model, portType=portType, **kwargs)
+            )
+
+    return ports
+
+
 def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None,
                  portType=PORT_TYPE_PORT):
     """ Create port in given model.
@@ -137,6 +187,7 @@ def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, 
 
     return p
 
+
 ##########################################################################
 # Replacement helpers
 ##########################################################################
@@ -155,7 +206,7 @@ def replace_elements(model, sid, ref_type, replaced_elements):
     :param replaced_elements:
     :return:
     """
-    for submodel, rep_ids in replaced_elements.iteritems():
+    for submodel, rep_ids in iteritems(replaced_elements):
         for rep_id in rep_ids:
             _create_replaced_element(model, sid, submodel, rep_id, ref_type=ref_type)
 
@@ -213,6 +264,14 @@ def replaced_by(model, sid, ref_type, submodel, replaced_by):
     _set_ref(object=rby, ref_id=replaced_by, ref_type=ref_type)
 
 
+def comp_delete(model):
+    """ Delete elements from top model.
+
+    :param model:
+    :return:
+    """
+    pass
+
 def _get_eplugin_by_sid(model, sid):
     """ Gets the comp plugin by sid.
 
@@ -247,12 +306,13 @@ def _set_ref(object, ref_id, ref_type):
 ##########################################################################
 # flatten model
 ##########################################################################
-def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
+def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten given SBML file.
 
     :param sbml_path:
     :param leave_ports:
     :param output_path:
+    :param suffix to add to model id
     :return:
     """
     # necessary to change the working directory to the sbml file directory
@@ -264,7 +324,7 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     reader = libsbml.SBMLReader()
     check(reader, 'create an SBMLReader object.')
     doc = reader.readSBML(sbml_path)
-    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=output_path)
+    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=output_path, suffix=suffix)
 
     # change back the working dir
     os.chdir(working_dir)
@@ -272,7 +332,7 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None):
     return flat_doc
 
 
-def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
+def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten the given SBMLDocument.
 
     :param doc: SBMLDocument to flatten.
@@ -301,7 +361,15 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
     result = doc.convert(props)
     if result != libsbml.LIBSBML_OPERATION_SUCCESS:
         doc.printErrors()
+        logging.error("model could not be flattended due to errors.")
         return
+
+    if suffix is not None:
+        model = doc.getModel()
+        if model is not None:
+            model.setId(model.getId() + suffix)
+            if model.isSetName():
+                model.setName(model.getName() + suffix)
 
     if output_path is not None:
         # Write the results to the output file.
@@ -311,6 +379,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None):
         print("Flattened model written to {}".format(output_path))
 
     return doc
+
 
 ##########################################################################
 # ExternalModelDefinitions & Submodels
@@ -329,9 +398,11 @@ def flattenExternalModelDefinitions(doc, validate=False):
     :param doc: SBMLDocument
     :return: SBMLDocument with ExternalModelDefinitions replaced
     """
-    # FIXME: handle multiple levels of hierarchies. This must be done
-    # recursively to handle the ExternalModelDefinitions of submodels
     logging.debug('* flattenExternalModelDefinitions')
+
+    # FIXME: handle multiple levels of hierarchies. Recursively to handle the ExternalModelDefinitions of submodels
+    warnings.warn("flattenExternalModelDefinitions does not work recursively!")
+    warnings.warn("flattenExternalModelDefinitions: THIS DOES NOT WORK - ONLY USE IF YOU KNOW WHAT YOU ARE DOING")
 
     comp_doc = doc.getPlugin("comp")
     if comp_doc is None:
@@ -345,8 +416,6 @@ def flattenExternalModelDefinitions(doc, validate=False):
     else:
         model = doc.getModel()
         comp_model = model.getPlugin("comp")
-        # md_list = comp_doc.getListOfModelDefinitions()
-        # print('md_list:', md_list)
 
         emd_ids = []
         for emd in emd_list:
@@ -355,6 +424,23 @@ def flattenExternalModelDefinitions(doc, validate=False):
 
             # get the model definition from the model
             ref_model = emd.getReferencedModel()
+
+            ref_doc = ref_model.getSBMLDocument()
+            # print(ref_model)
+            for k in range(ref_doc.getNumPlugins()):
+                plugin = ref_doc.getPlugin(k)
+                #print(k, plugin)
+
+                # enable the package on the main SBMLDocument
+                uri = plugin.getURI()
+                prefix = plugin.getPrefix()
+                name = plugin.getPackageName()
+                doc.enablePackage(uri, prefix, True)
+
+                # print(k, plugin)
+                # print(uri, prefix)
+
+            # print("\n")
 
             # add model definition for model
             md = libsbml.ModelDefinition(ref_model)
@@ -370,3 +456,10 @@ def flattenExternalModelDefinitions(doc, validate=False):
         validation.check_doc(doc)
     return doc
 
+
+if __name__ == "__main__":
+    from sbmlutils.tests import data
+    from sbmlutils import sbmlio
+
+    doc = sbmlio.read_sbml(data.DFBA_EMD_SBML)
+    doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)

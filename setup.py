@@ -1,51 +1,54 @@
-"""Setup module for odesim.
-
-See:
-https://packaging.python.org/en/latest/distributing.html
-https://github.com/pypa/sampleproject
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+"""
+see
+    https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 
 source distribution generation via
 python setup.py sdist
 """
 
-# Always prefer setuptools over distutils
-from setuptools import setup, find_packages
-import codecs  # To use a consistent encoding
-import os
+from __future__ import absolute_import, print_function
 
-here = os.path.abspath(os.path.dirname(__file__))
+import io
+import re
+from glob import glob
+from os.path import basename
+from os.path import dirname
+from os.path import join
+from os.path import splitext
+
+from setuptools import find_packages
+from setuptools import setup
+
+
+def read(*names, **kwargs):
+    """ Read file info in correct encoding. """
+    return io.open(
+        join(dirname(__file__), *names),
+        encoding=kwargs.get('encoding', 'utf8')
+    ).read()
+
 
 setup_kwargs = {}
-
-# version string
 try:
-    import re
-    VERSIONFILE = "sbmlutils/_version.py"
-    verstrline = codecs.open(VERSIONFILE, "rt").read()
+    verstrline = read('sbmlutils/_version.py')
     mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
     if mo:
         verstr = mo.group(1)
         setup_kwargs['version'] = verstr
     else:
-        raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+        raise RuntimeError("Unable to find version string")
 except Exception as e:
     print('Could not read version: {}'.format(e))
 
-# description
-try:
-    with open('README.md') as handle:
-        readme = handle.read()
-    setup_kwargs["long_description"] = readme
-except:
-    setup_kwargs["long_description"] = ''
 
 setup(
     name='sbmlutils',
-    version=verstr,
     description='SBML python utilities',
     long_description='SBML python utilities',
     url='https://github.com/matthiaskoenig/sbmlutils',
-    author='Matthias Koenig',
+    author='Matthias König',
     author_email='konigmatt@googlemail.com',
     license='LGPLv3',
     classifiers=[
@@ -62,47 +65,29 @@ setup(
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
     keywords='SBML, dynamic FBA, DFBA, model merging',
-    packages=find_packages(),  # ['sbmlutils'],
-    package_data={'': ['test/data/*']},
-
+    packages=find_packages(),
+    # package_dir={'': ''},
+    package_data={
+      '': ['tests/data'],
+    },
+    # py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    include_package_data=True,
+    zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "python-libsbml",
-        "libroadrunner",
-        "cobra",
+        "python-libsbml>=5.13.0",
+        "libroadrunner>=1.4.15",
+        "cobra>=0.6.0a4",
+        # "antimony>2.9.0",
         "pandas",
         "tabulate",
         "Jinja2",
         "pyexcel",
         "pyexcel-xlsx",
         "six",
-        "pytest"
     ],
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). You can install these using the following syntax,
-    # for example:
-    # $ pip install -e .[dev,test]
-    # extras_require={
-    #     'dev': ['check-manifest'],
-    #    'test': ['coverage'],
-    # },
-
-    # If there are distribution_data files included in your packages that need to be
-    # installed, specify them here.  If using Python 2.6 or less, then these
-    # have to be included in MANIFEST.in as well.
-    # package_data={
-    #    'sample': ['package_data.dat'],
-    # },
-    
-    # include the package distribution_data
-    include_package_data=True,
-
-    # Prevent the package manager to install a python egg, 
-    # instead you'll get a real directory with files in it.
-    zip_safe=False,
-
-)
+    extras_require={},
+    **setup_kwargs)

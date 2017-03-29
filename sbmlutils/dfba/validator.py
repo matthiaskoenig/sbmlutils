@@ -2,8 +2,6 @@
 Validating DFBA files against the guidelines & rules.
 """
 from __future__ import print_function, division
-import os
-import logging
 
 from sbmlutils.dfba.model import DFBAModel
 
@@ -24,4 +22,3 @@ class DFBAValidator(object):
         """ Create validator with the top level SBML file. """
         dfba_model = DFBAModel(sbml_top_path)
         return DFBAValidator(dfba_model)
-

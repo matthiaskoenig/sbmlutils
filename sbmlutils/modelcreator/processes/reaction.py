@@ -2,14 +2,13 @@
 ReactionTemplate.
 """
 from __future__ import print_function
-from collections import namedtuple
+
 import warnings
+from collections import namedtuple
+
 import libsbml
-
-
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
-
 
 Formula = namedtuple('Formula', 'value unit')
 
