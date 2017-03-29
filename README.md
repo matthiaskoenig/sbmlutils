@@ -38,7 +38,7 @@ Documentation with examples is available at
 <a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
 
 ## Installation
-`sbmlutils` is available from [pypi](https://github.com/matthiaskoenig/sbmlutils) and the stable version can be installed via 
+`sbmlutils` is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and the stable version can be installed via 
 ```
 pip install sbmlutils
 ```

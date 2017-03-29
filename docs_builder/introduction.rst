@@ -4,15 +4,15 @@ Introduction
 This provides handy features like HTML reports of SBML models, helper functions for model creation and manipulation,
 interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA).
 
-To cite libsbgnpy use the following BibTex or equivalent::
+To cite sbmlutils use the following BibTex or equivalent::
 
     @MISC{sbmlutils,
       author        = {Matthias König},
       title         = {sbmlutils: python utilities for SBML},
-      month         = {Feb.},
+      month         = {Mar.},
       year          = {2017},
-      doi           = "{10.5281/zenodo.399008}",
-      url           = "{http://dx.doi.org/10.5281/zenodo.399008}"
+      doi           = "{10.5281/zenodo.439006}",
+      url           = "{http://dx.doi.org/10.5281/zenodo.439006}"
     }
 
 Source code is available from
@@ -26,7 +26,7 @@ To report bugs, request features or asking questions please file an
 Installation
 ------------
 The libsbgn-python package is available from `pypi
-<https://github.com/matthiaskoenig/sbmlutils>`_ and can be installed via::
+<https://pypi.python.org/pypi/sbmlutils>`_ and can be installed via::
 
     pip install sbmlutils
 
@@ -38,7 +38,7 @@ The following lists the main features. For examples see the examples section.
 DFBA
 ~~~~
 Simulator for dynamic flux balance analysis (DFBA) of SBML model.
-For more information see also `<http://github.com/matthiaskoenig/dfba>`_.
+For more information see also `<https://github.com/matthiaskoenig/dfba>`_.
 
 SBML report
 ~~~~~~~~~~~
