@@ -1,8 +1,8 @@
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import os
-import unittest
-from os.path import join as pjoin
+import libsbml
+
 from sbmlutils import comp
 from sbmlutils import validation
 
@@ -10,19 +10,32 @@ from sbmlutils import manipulation
 from sbmlutils.tests.data import data_dir
 
 
-def test_biomodel_merge():
-    manipulation_dir = pjoin(data_dir, 'manipulation')
-    cur_dir = os.getcwd()
-    os.chdir(manipulation_dir)
+
+def test_biomodel_merge(tmpdir):
+    """ Test model merging.
+    
+    Using the pytest tmpdir fixture
+    :param tmpdir: 
+    :return: 
+    """
+    manipulation_dir = os.path.join(data_dir, 'manipulation')
+
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels
     model_ids = ["BIOMD000000000{}".format(k) for k in range(1, 5)]
-    model_paths = dict(zip(model_ids, ["{}.xml".format(mid) for mid in model_ids]))
+    model_paths = dict(zip(model_ids,
+                           [os.path.join(manipulation_dir, "{}.xml".format(mid)) for mid in model_ids])
+                       )
     print(model_paths)
 
     # merge model
-    doc = manipulation.merge_models(model_paths, validate=False)
+    out_dir = os.path.join(manipulation_dir, 'output')
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    print('out_dir:', out_dir)
+
+    doc = manipulation.merge_models(model_paths, out_dir=out_dir,  validate=False)
     assert doc is not None
 
     Nall, Nerr, Nwarn = validation.check_doc(doc, ucheck=False)
@@ -33,6 +46,7 @@ def test_biomodel_merge():
     # flatten the model
     doc_flat = comp.flattenSBMLDocument(doc)
     assert doc_flat is not None
+    libsbml.writeSBMLToFile(doc_flat, os.path.join(out_dir, "merged_flat.xml"))
 
     Nall, Nerr, Nwarn = validation.check_doc(doc_flat, ucheck=False)
     assert Nerr == 0
@@ -40,8 +54,5 @@ def test_biomodel_merge():
     assert Nwarn in [0, 74]
     assert Nall in [0, 74]
 
-    os.chdir(cur_dir)
+    assert 0
 
-
-if __name__ == '__main__':
-    unittest.main()
