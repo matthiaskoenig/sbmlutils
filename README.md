@@ -9,11 +9,15 @@
 
 # sbmlutils: Python utilities for SBML
 The `sbmlutils` package provides a collection of python utilities for working with [SBML](http://www.sbml.org).
-The package contains handy features like HTML reports of SBML models, helper functions for model creation and manipulation,
-interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA).
-For a description and examples see the documentation.
-
 `sbmlutils` are implemented on top of the [`libSBML`](http://sbml.org/Software/libSBML) python bindings.
+
+Features are among others
+* HTML reports of SBML models
+* helper functions for model creation and manipulation
+* interpolation functions to add experimental data to models
+* implementation of dynamic flux balance analysis (DFBA).
+
+For a more detailed description and examples see the documentation.
 
     @MISC{sbmlutils,
       author        = {Matthias König},
@@ -31,7 +35,7 @@ For a description and examples see the documentation.
 ## Documentation
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/?badge=latest)  
 Documentation with examples is available at 
-<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/read.png" height="40" /></a>
+<a href="https://sbmlutils.readthedocs.io/en/stable/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="40" /></a>
 
 ## Installation
 The latest stable version can be installed via 
@@ -50,6 +54,11 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.1.4a1
+* documentation update
+* DFBA update & bug fixes
+* DFBA examples (toy and diauxic growth)
+* bug fixes
 
 ### 0.1.3
 * python 3 support
