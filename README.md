@@ -7,10 +7,13 @@
 [![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
 
-# sbmlutils: Python utilities for SBML models
-**sbmlutils** are a collection of python utilities for working with [SBML](http://www.sbml.org) models.
- This utilities are implemented on top of the libsbml python bindings. This package works with the latest
- develop version of libsbml.
+# sbmlutils: Python utilities for SBML
+The `sbmlutils` package provides a collection of python utilities for working with [SBML](http://www.sbml.org).
+The package contains handy features like HTML reports of SBML models, helper functions for model creation and manipulation,
+interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA).
+For a description and examples see the documentation.
+
+`sbmlutils` are implemented on top of the [`libSBML`](http://sbml.org/Software/libSBML) python bindings.
 
     @MISC{sbmlutils,
       author        = {Matthias König},
@@ -35,7 +38,7 @@ The latest stable version can be installed via
 ```
 pip install sbmlutils
 ```
-
+### Develop version
 The latest develop version is available via
 ```
 pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop

@@ -1,7 +1,7 @@
 Introduction
 ============
 **sbmlutils** are python utilities for working with `SBML <http://www.sbml.org>`_.
-This provides handy things like HTML reports of SBML models, helper functions for model creation and manipulation,
+This provides handy features like HTML reports of SBML models, helper functions for model creation and manipulation,
 interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA).
 
 To cite libsbgnpy use the following BibTex or equivalent::
