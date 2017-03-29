@@ -81,7 +81,7 @@ setup(
         "python-libsbml>=5.13.0",
         "libroadrunner>=1.4.15",
         "cobra>=0.6.0a4",
-        "antimony>2.9.0",
+        # "antimony>2.9.0",
         "pandas",
         "tabulate",
         "Jinja2",
