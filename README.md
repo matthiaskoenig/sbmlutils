@@ -22,10 +22,10 @@ For a more detailed description and examples see the documentation.
     @MISC{sbmlutils,
       author        = {Matthias König},
       title         = {sbmlutils: python utilities for SBML},
-      month         = {Feb.},
+      month         = {Mar.},
       year          = {2017},
-      doi           = "{10.5281/zenodo.399008}",
-      url           = "{http://dx.doi.org/10.5281/zenodo.399008}"
+      doi           = "{10.5281/zenodo.439006}",
+      url           = "{http://dx.doi.org/10.5281/zenodo.439006}"
     }
 
 ## License
@@ -38,7 +38,7 @@ Documentation with examples is available at
 <a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
 
 ## Installation
-The latest stable version can be installed via 
+`sbmlutils` is available from [pypi](https://github.com/matthiaskoenig/sbmlutils) and the stable version can be installed via 
 ```
 pip install sbmlutils
 ```
