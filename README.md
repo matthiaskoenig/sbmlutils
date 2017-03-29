@@ -54,7 +54,7 @@ pip install -e .
 ```
 
 ## Release notes
-### 0.1.4a1
+### 0.1.4
 * documentation update
 * DFBA update & bug fixes
 * DFBA examples (toy and diauxic growth)
