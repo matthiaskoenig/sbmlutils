@@ -514,3 +514,66 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
             fac.AssignmentRule(pid_flux, value=rid_flux),
         )
     fac.create_objects(model, objects)
+
+
+def create_top_replacedBy(model, model_fba):
+    """ Creates the replacedBy Elements in the top model.
+    
+    :param model: 
+    :param model_fba: 
+    :return: 
+    """
+
+    ex_rids = utils.find_exchange_reactions(model_fba)
+    for ex_rid, sid in iteritems(ex_rids):
+        comp.replaced_by(model, DUMMY_REACTION_PREFIX + sid, ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="{}_port".format(EXCHANGE_REACTION_PREFIX + sid))
+
+
+def create_top_replacements(model, model_fba, compartment_id):
+    """ Create all the replacements in the top model.
+    
+    :param model: 
+    :param model_fba: 
+    :return: 
+    """
+
+    # compartment
+    comp.replace_elements(model, compartment_id, ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'update': ['{}_port'.format(compartment_id)],
+                              'bounds': ['{}_port'.format(compartment_id)]})
+
+    # dt
+    comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['dt_port']})
+
+    # species dependent replacements
+    ex_rids = utils.find_exchange_reactions(model_fba)
+    for ex_rid, sid in iteritems(ex_rids):
+
+        # flux
+        comp.replace_elements(model, ex_rid, ref_type=comp.SBASE_REF_TYPE_PORT,
+                              replaced_elements={'update': ['{}_port'.format(ex_rid)]})
+
+        # species
+        comp.replace_elements(model, sid, ref_type=comp.SBASE_REF_TYPE_PORT,
+                              replaced_elements={
+                                  'bounds': ['{}_port'.format(sid)],
+                                  'update': ['{}_port'.format(sid)]})
+
+        # replace bounds in update and bounds
+        for replace_id in [
+                           UPPER_BOUND_PREFIX + EXCHANGE_REACTION_PREFIX + sid,
+                           LOWER_BOUND_PREFIX + EXCHANGE_REACTION_PREFIX + sid]:
+
+            comp.replace_elements(model, replace_id, ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'bounds': ['{}_port'.format(replace_id)],
+                              'fba': ['{}_port'.format(replace_id)]})
+
+    # replace units
+    for unit in model.getListOfUnitDefinitions():
+        uid = unit.getId()
+        comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
+                                          submodels=['bounds', 'fba', 'update'])

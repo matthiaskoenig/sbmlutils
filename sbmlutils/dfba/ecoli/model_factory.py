@@ -303,7 +303,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 
     # create the dynamic species
     # TODO: set initial concentrations ! currently all set to 1.0 (also for biomass)
-    model_fba = doc.getModel()
+    model_fba = doc_fba.getModel()
     builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION,
                                 create_port=False)
 
@@ -316,71 +316,12 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
     # dummy reactions & flux assignments
     builder.create_dummy_reactions(model, model_fba=model_fba, unit_flux=UNIT_FLUX)
 
-    '''
-    # --- replacements ---
-    # compartments
-    comp.replace_elements(model, 'bioreactor', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={
-                              'update': ['bioreactor_port'],
-                              'bounds': ['bioreactor_port']})
-    # species
-    comp.replace_elements(model, 'Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={
-                              'update': ['Glcxt_port'],
-                              'bounds': ['Glcxt_port']})
-    comp.replace_elements(model, 'O2', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={
-                              'update': ['O2_port'],
-                              'bounds': ['O2_port']})
-    comp.replace_elements(model, 'Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={
-                              'update': ['Ac_port'],
-                              'bounds': ['Ac_port']})
-    comp.replace_elements(model, 'X', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={
-                              'update': ['X_port'],
-                              'bounds': ['X_port']})
-    # exchange bounds
-    for bound_id in [
-        'lb_EX_Ac', 'ub_EX_Ac',
-        'lb_EX_Glcxt', 'ub_EX_Glcxt',
-        'lb_EX_O2', 'ub_EX_O2',
-        'lb_EX_X', 'ub_EX_X'
-    ]:
-        comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
-                              replaced_elements={'bounds': ['{}_port'.format(bound_id)],
-                                                 'fba': ['{}_port'.format(bound_id)]})
+    # replacedBy (fba reactions)
+    builder.create_top_replacedBy(model, model_fba=model_fba)
 
-    # dt
-    comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'bounds': ['dt_port']})
+    # replaced
+    builder.create_top_replacements(model, model_fba, compartment_id=compartment_id)
 
-    # fluxes
-    comp.replace_elements(model, 'EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['EX_Glcxt_port']})
-    comp.replace_elements(model, 'EX_Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['EX_Ac_port']})
-    comp.replace_elements(model, 'EX_O2', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['EX_O2_port']})
-    comp.replace_elements(model, 'EX_X', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'update': ['EX_X_port']})
-
-    # FBA: replace reaction by fba reaction
-    comp.replaced_by(model, 'dummy_EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="EX_Glcxt_port")
-    comp.replaced_by(model, 'dummy_EX_Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="EX_Ac_port")
-    comp.replaced_by(model, 'dummy_EX_O2', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="EX_O2_port")
-    comp.replaced_by(model, 'dummy_EX_X', ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="EX_X_port")
-
-    # replace units
-    for uid in ['h', 'g', 'm', 'm2', 'l', 'mmol', 'mmol_per_h', 'mmol_per_l', 'g_per_l', 'g_per_mmol']:
-        comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
-                                          submodels=['bounds', 'fba', 'update'])
-
-    '''
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
     # change back into working dir
@@ -407,7 +348,7 @@ def create_model(output_dir):
     }
 
     # flatten top model
-    top_model(top_file, directory, emds)
+    top_model(top_file, directory, emds, doc_fba=doc_fba)
     '''
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
