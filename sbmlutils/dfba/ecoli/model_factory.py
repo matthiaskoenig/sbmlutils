@@ -26,7 +26,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 3
+version = 4
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -181,7 +181,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dt
     compartment_id = "bioreactor"
-    builder.create_dfba_dt(model, time_unit=UNIT_TIME)
+    builder.create_dfba_dt(model, time_unit=UNIT_TIME, create_port=True)
 
     # bioreactor
     builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=True)
@@ -211,14 +211,12 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         ub_value = model_fba.getParameter(ub_id).getValue()
 
         objects.extend([
-            # for assignments
-            mc.Parameter(sid=lb_id, value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-            mc.Parameter(sid=ub_id, value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+            # default values from fba
+            mc.Parameter(sid=lb_id, value=lb_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+            mc.Parameter(sid=ub_id, value=ub_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
             # default bounds from fba
-            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False,
-                         sboTerm="SBO:0000625"),
-            mc.Parameter(sid=fba_ub_id, value=ub_value, unit=UNIT_FLUX, constant=False,
-                         sboTerm="SBO:0000625")
+            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
+            mc.Parameter(sid=fba_ub_id, value=ub_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625")
         ])
         port_sids.extend([lb_id, ub_id])
 
@@ -280,6 +278,115 @@ def update_model(sbml_file, directory, doc_fba=None):
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
+def top_model(sbml_file, directory, emds, doc_fba=None):
+    """ Create the top model. """
+    top_notes = notes.format("""
+    <h2>TOP model</h2>
+    <p>Main comp DFBA model by combining fba, update and bounds
+        model with additional kinetics in the top model.</p>
+    """)
+    # Necessary to change into directory with submodel files
+    working_dir = os.getcwd()
+    os.chdir(directory)
+
+    model_id = "ecoli"
+    doc = builder.template_doc_top(model_id, emds)
+    model = doc.getModel()
+    utils.set_model_info(model, notes=top_notes,
+                         creators=creators, units=units, main_units=main_units)
+    # dt
+    compartment_id = "bioreactor"
+    builder.create_dfba_dt(model, time_unit=UNIT_TIME, create_port=False)
+
+    # bioreactor
+    builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=False)
+
+    # create the dynamic species
+    # TODO: set initial concentrations ! currently all set to 1.0 (also for biomass)
+    model_fba = doc.getModel()
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION,
+                                create_port=False)
+
+    # dummy species
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION)
+
+    # exchange flux bounds
+    builder.create_exchange_flux_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
+
+    # dummy reactions & flux assignments
+    builder.create_dummy_reactions(model, model_fba=model_fba, unit_flux=UNIT_FLUX)
+
+    '''
+    # --- replacements ---
+    # compartments
+    comp.replace_elements(model, 'bioreactor', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'update': ['bioreactor_port'],
+                              'bounds': ['bioreactor_port']})
+    # species
+    comp.replace_elements(model, 'Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'update': ['Glcxt_port'],
+                              'bounds': ['Glcxt_port']})
+    comp.replace_elements(model, 'O2', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'update': ['O2_port'],
+                              'bounds': ['O2_port']})
+    comp.replace_elements(model, 'Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'update': ['Ac_port'],
+                              'bounds': ['Ac_port']})
+    comp.replace_elements(model, 'X', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={
+                              'update': ['X_port'],
+                              'bounds': ['X_port']})
+    # exchange bounds
+    for bound_id in [
+        'lb_EX_Ac', 'ub_EX_Ac',
+        'lb_EX_Glcxt', 'ub_EX_Glcxt',
+        'lb_EX_O2', 'ub_EX_O2',
+        'lb_EX_X', 'ub_EX_X'
+    ]:
+        comp.replace_elements(model, bound_id, ref_type=comp.SBASE_REF_TYPE_PORT,
+                              replaced_elements={'bounds': ['{}_port'.format(bound_id)],
+                                                 'fba': ['{}_port'.format(bound_id)]})
+
+    # dt
+    comp.replace_elements(model, 'dt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'bounds': ['dt_port']})
+
+    # fluxes
+    comp.replace_elements(model, 'EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_Glcxt_port']})
+    comp.replace_elements(model, 'EX_Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_Ac_port']})
+    comp.replace_elements(model, 'EX_O2', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_O2_port']})
+    comp.replace_elements(model, 'EX_X', ref_type=comp.SBASE_REF_TYPE_PORT,
+                          replaced_elements={'update': ['EX_X_port']})
+
+    # FBA: replace reaction by fba reaction
+    comp.replaced_by(model, 'dummy_EX_Glcxt', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_Glcxt_port")
+    comp.replaced_by(model, 'dummy_EX_Ac', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_Ac_port")
+    comp.replaced_by(model, 'dummy_EX_O2', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_O2_port")
+    comp.replaced_by(model, 'dummy_EX_X', ref_type=comp.SBASE_REF_TYPE_PORT,
+                     submodel='fba', replaced_by="EX_X_port")
+
+    # replace units
+    for uid in ['h', 'g', 'm', 'm2', 'l', 'mmol', 'mmol_per_h', 'mmol_per_l', 'g_per_l', 'g_per_mmol']:
+        comp.replace_element_in_submodels(model, uid, ref_type=comp.SBASE_REF_TYPE_UNIT,
+                                          submodels=['bounds', 'fba', 'update'])
+
+    '''
+    # write SBML file
+    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    # change back into working dir
+    os.chdir(working_dir)
+
+
 def create_model(output_dir):
     """ Create all models.
 
@@ -293,7 +400,6 @@ def create_model(output_dir):
     bounds_model(bounds_file, directory, doc_fba=doc_fba)
     update_model(update_file, directory, doc_fba=doc_fba)
 
-    '''
     emds = {
         "ecoli_fba": fba_file,
         "ecoli_bounds": bounds_file,
@@ -302,6 +408,7 @@ def create_model(output_dir):
 
     # flatten top model
     top_model(top_file, directory, emds)
+    '''
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
 

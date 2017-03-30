@@ -27,15 +27,15 @@ SBO_FLUX_BALANCE_FRAMEWORK = 'SBO:0000624'
 ##########################################################################
 # ModelDefinitions
 ##########################################################################
-def create_ExternalModelDefinition(comp_doc, emd_id, source):
+def create_ExternalModelDefinition(doc_comp, emd_id, source):
     """ Create comp ExternalModelDefinition.
 
-    :param comp_doc: comp plugin
+    :param doc_comp: SBMLDocument comp plugin
     :param emd_id: id of external model definition
     :param source: source
     :return:
     """
-    extdef = comp_doc.createExternalModelDefinition()
+    extdef = doc_comp.createExternalModelDefinition()
     extdef.setId(emd_id)
     extdef.setName(emd_id)
     extdef.setModelRef(emd_id)
@@ -43,21 +43,21 @@ def create_ExternalModelDefinition(comp_doc, emd_id, source):
     return extdef
 
 
-def add_submodel_from_emd(comp_model, submodel_id, emd):
+def add_submodel_from_emd(model_comp, submodel_id, emd):
     """ Adds submodel to the model from given ExternalModelDefinition.
 
-    :param comp_model:
+    :param model_comp: Model comp plugin
     :param submodel_id:
     :param emd:
     :return:
     """
     model_ref = emd.getModelRef()
-    submodel = comp_model.createSubmodel()
+    submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
     submodel.setModelRef(model_ref)
-    comp_model = emd.getReferencedModel()
-    if comp_model.isSetSBOTerm():
-        submodel.setSBOTerm(comp_model.getSBOTerm())
+    model_comp = emd.getReferencedModel()
+    if model_comp.isSetSBOTerm():
+        submodel.setSBOTerm(model_comp.getSBOTerm())
     return submodel
 
 
