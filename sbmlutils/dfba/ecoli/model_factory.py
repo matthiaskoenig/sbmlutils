@@ -306,6 +306,9 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
     model_fba = doc_fba.getModel()
     builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION,
                                 create_port=False)
+    glc = model.getSpecies("glc__D_e")
+    print(glc)
+    glc.setInitialConcentration(20.0)
 
     # dummy species
     builder.create_dummy_species(model, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION)
