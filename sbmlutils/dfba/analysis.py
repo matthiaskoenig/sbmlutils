@@ -26,9 +26,14 @@ def set_matplotlib_parameters():
 class DFBAAnalysis(object):
     """ Plot and analysis functions for given results. """
 
-    def __init__(self, df, rr_comp):
+    def __init__(self, df, ode_model):
+        """ 
+        
+        :param df: Solution DataFrame 
+        :param ode_model: flattened roadrunner ode model
+        """
         self.df = df
-        self.rr_comp = rr_comp
+        self.rr_comp = ode_model
 
     def save_csv(self, filepath):
         """ Save results to csv. """

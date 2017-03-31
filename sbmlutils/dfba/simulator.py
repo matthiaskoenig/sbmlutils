@@ -50,6 +50,8 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True, **kwargs)
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
 
+    # TODO: reset methods & setting of parameters and values.
+
     def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True):
         """ Create the simulator with the processed dfba model.
 

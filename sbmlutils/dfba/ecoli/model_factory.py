@@ -31,7 +31,6 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 # TODO: fix units & make comparable
 
 
-
 ########################################################################
 # General model information
 ########################################################################
@@ -160,6 +159,15 @@ def fba_model(sbml_file, directory):
     pprint(ex_rids)
 
     # TODO: add exchange reaction for biomass (X)
+
+    # The ATPM (atp maintainance reactions creates many problems in the DFBA)
+    # mainly resulting in infeasible solutions when some metabolites run out.
+    # ATP -> ADP is part of the biomass, so we set the lower bound to zero
+    r_ATPM = model.getReaction('ATPM')
+    r_ATPM_fbc = r_ATPM.getPlugin(builder.SBML_FBC_NAME)
+    print(r_ATPM_fbc)
+    lb_id = r_ATPM_fbc.getLowerFluxBound()
+    lb_p = model.getParameter(lb_id).setValue(0.0)  # 8.39 before
 
     # make unique upper and lower bounds for exchange reaction
     builder.update_exchange_reactions(model, ex_rids, flux_unit=UNIT_FLUX)
@@ -340,7 +348,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 def create_model(output_dir):
     """ Create all models.
 
-    :return:
+    :return: directory where SBML files are located
     """
     directory = utils.versioned_directory(output_dir, version=version)
 
@@ -363,21 +371,21 @@ def create_model(output_dir):
 
     # flatten top model
     top_model(top_file, directory, emds, doc_fba=doc_fba)
-    print('top: {}'.format((time.time() - t_start)))
 
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
-    print('flatten: {}'.format((time.time() - t_start)))
 
     # create reports
     sbml_paths = [pjoin(directory, fname) for fname in
                   # [fba_file, bounds_file, update_file, top_file, flattened_file]]
                   [fba_file, bounds_file, update_file, top_file, flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
-
     return directory
 
 
 if __name__ == "__main__":
+
     from sbmlutils.dfba.ecoli.settings import out_dir
-    directory = create_model(output_dir=out_dir)
+    create_model(output_dir=out_dir)
+
+

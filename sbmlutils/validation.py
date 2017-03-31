@@ -130,6 +130,7 @@ def _check_consistency(doc, internalConsistency=False):
                 Nwarn += 1
 
         # FIXME: print to logging
+        print(doc)
         print_errors(doc)
 
     return Nall, Nerr, Nwarn

@@ -26,7 +26,7 @@ def simulate_toy(sbml_top_path, out_dir, dt, tend):
     print("\nSimulation time: {}\n".format(sim.time))
 
     # generic analysis
-    analysis = DFBAAnalysis(df=sim.solution, rr_comp=sim.ode_model)
+    analysis = DFBAAnalysis(df=sim.solution, ode_model=sim.ode_model)
     analysis.plot_reactions(os.path.join(out_dir, "reactions_generic.png"))
     analysis.plot_species(os.path.join(out_dir, "species_generic.png"))
     analysis.save_csv(os.path.join(out_dir, "simulation_generic.csv"))

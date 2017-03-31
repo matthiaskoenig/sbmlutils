@@ -139,7 +139,7 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
         dfs.append(df)
 
         # generic analysis
-        analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
+        analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 
         if figures:
             analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),

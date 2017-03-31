@@ -141,7 +141,7 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
         dfs.append(df)
 
         # generic analysis
-        analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
+        analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 
         if figures:
             analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),
@@ -158,11 +158,73 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
     '''
     return dfs
 
+def simulate_carbon_sources(sbml_path, out_dir):
+    """ Simulate growth under different carbon sources.
+    
+    :return: 
+    """
+    tstart = 0.0
+    tend = 4.0
+    dt = 0.01
+    kwargs = {}
+    # minimal medium with single carbon source
+    initial_c = {
+        'ac_e': 5.0,
+        'acald_e': 5.0,
+        'akg_e': 5.0,
+        'co2_e': 0.04,
+        'etoh_e': 5.0,
+        'for_e': 5.0,
+        'fru_e': 5.0,
+        'fum_e': 5.0,
+        'glc__D_e': 20.0,
+        'gln__L_e': 5.0,
+        'glu__L_e': 5.0,
+        'h2o_e': 5.0,
+        'h_e': 5.0,
+        'lac__D_e': 5.0,
+        'mal__L_e': 5.0,
+        'nh4_e': 5.0,
+        'o2_e': 5,
+        'pi_e': 5,
+        'pyr_e': 5.0
+    }
+
+    from sbmlutils.dfba import model, simulator
+
+    # Load model
+    dfba_model = model.DFBAModel(sbml_path=sbml_path)
+
+    # simulation
+    dfba_simulator = simulator.DFBASimulator(dfba_model, pfba=True)
+
+    # set initial values
+    for key, value in iteritems(initial_c):
+        dfba_simulator.ode_model.setValue('init([{}])'.format(key), value)
+
+    dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
+    df = dfba_simulator.solution
+
+    analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
+    plot_kwargs = {
+        'markersize': 4,
+        'marker': 's',
+        'alpha': 0.5
+    }
+
+    analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}_glcmix.png".format(dt)),
+                            **plot_kwargs)
+    analysis.plot_species(os.path.join(out_dir, "fig_species_generic_dt{}_glcmix.png".format(dt)),
+                          **plot_kwargs)
+    analysis.save_csv(os.path.join(out_dir, "data_simulation_generic_dt{}_glcmix.csv".format(dt)))
+
 
 if __name__ == "__main__":
     import logging
-    # logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
 
     directory = utils.versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
-    simulate_ecoli(sbml_path, out_dir=directory)
+    top_sbml_path = os.path.join(directory, settings.top_file)
+    print(top_sbml_path)
+    # simulate_ecoli(top_sbml_path, out_dir=directory)
+    simulate_carbon_sources(top_sbml_path, out_dir=directory)

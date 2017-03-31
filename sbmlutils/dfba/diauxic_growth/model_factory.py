@@ -186,22 +186,8 @@ def fba_model(sbml_file, directory):
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-    sbmlns = libsbml.SBMLNamespaces(3, 1)
-    sbmlns.addPackageNamespace("fbc", 2)
-    sbmlns.addPackageNamespace("comp", 1)
-
-    doc_fba = libsbml.SBMLDocument(sbmlns)
-    doc_fba.setPackageRequired("comp", True)
-    doc_fba.getPlugin("comp")
-    doc_fba.setPackageRequired("fbc", False)
-    model = doc_fba.createModel()
-    mplugin = model.getPlugin("fbc")
-    mplugin.setStrict(True)
-
-    # model
-    model.setId('diauxic_fba')
-    model.setName('diauxic (FBA)')
-    model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
+    doc = builder.template_doc_fba("diauxic")
+    model = doc.getModel()
     utils.set_model_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
@@ -254,15 +240,14 @@ def fba_model(sbml_file, directory):
     builder.create_exchange_reaction(model, species_id="X", flux_unit=UNIT_FLUX,
                                      exchange_type=builder.EXCHANGE_EXPORT)
 
-
     # objective function
     mc.create_objective(mplugin, oid="biomass_max", otype="maximize",
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # write SBML file
-    sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
+    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
-    return doc_fba
+    return doc
 
 
 def bounds_model(sbml_file, directory, doc_fba=None):
@@ -281,13 +266,8 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    sbmlns = libsbml.SBMLNamespaces(3, 1, 'comp', 1)
-    doc = libsbml.SBMLDocument(sbmlns)
-    doc.setPackageRequired("comp", True)
-    model = doc.createModel()
-    model.setId("diauxic_bounds")
-    model.setName("diauxic (BOUNDS)")
-    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    doc = builder.template_doc_bounds("diauxic")
+    model = doc.getModel()
     utils.set_model_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
 
     objects = [
@@ -664,9 +644,9 @@ def create_model(output_dir):
     directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
-    fba_model(fba_file, directory)
-    bounds_model(bounds_file, directory)
-    update_model(update_file, directory)
+    docs_fba = fba_model(fba_file, directory)
+    bounds_model(bounds_file, directory, docs_fba=docs_fba)
+    update_model(update_file, directory, docs_fba=docs_fba)
 
     emds = {
         "diauxic_fba": fba_file,
