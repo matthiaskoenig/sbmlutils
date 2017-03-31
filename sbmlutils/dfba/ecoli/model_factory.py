@@ -1,6 +1,10 @@
 # -*- coding=utf-8 -*-
 """
 Creating E.coli core model.
+The core E. coli metabolic model is a subset of the genome-scale metabolic reconstruction iAF1260. 
+
+It is described in EcoSal Chapter 10.2.1 - Reconstruction and Use of Microbial Metabolic Networks: 
+the Core Escherichia coli Metabolic Model as an Educational Guide by Orth, Fleming, and Palsson (2010) link
 """
 from __future__ import print_function, absolute_import
 from six import iteritems
@@ -22,6 +26,11 @@ from sbmlutils.dfba import utils
 from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, update_file, top_file, flattened_file
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
+
+# TODO: add biomass
+# TODO: fix units & make comparable
+
+
 
 ########################################################################
 # General model information
@@ -183,51 +192,38 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     compartment_id = "bioreactor"
     builder.create_dfba_dt(model, time_unit=UNIT_TIME, create_port=True)
 
-    # bioreactor
+    # compartment
     builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=True)
 
-    # create the dynamic species
+    # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
                                 create_port=True)
 
     # bounds
-    fba_prefix = "fba"
-    objects = []
-    port_sids = []
+    builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
 
+    # bounds
+    fba_prefix = "fba"
     model_fba = doc_fba.getModel()
+    objects = []
     ex_rids = utils.find_exchange_reactions(model_fba)
     for ex_rid, sid in iteritems(ex_rids):
         r = model_fba.getReaction(ex_rid)
 
         # lower & upper bound parameters
-        r_fbc = r.getPlugin("fbc")
+        r_fbc = r.getPlugin(builder.SBML_FBC_NAME)
         lb_id = r_fbc.getLowerFluxBound()
         fba_lb_id = fba_prefix + lb_id
         lb_value = model_fba.getParameter(lb_id).getValue()
-        ub_id = r_fbc.getUpperFluxBound()
-        fba_ub_id = fba_prefix + ub_id
-        ub_value = model_fba.getParameter(ub_id).getValue()
 
         objects.extend([
-            # default values from fba
-            mc.Parameter(sid=lb_id, value=lb_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-            mc.Parameter(sid=ub_id, value=ub_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
             # default bounds from fba
-            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
-            mc.Parameter(sid=fba_ub_id, value=ub_value, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625")
-        ])
-        port_sids.extend([lb_id, ub_id])
-
-        objects.extend([
+            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
             # uptake bounds (lower bound)
             mc.AssignmentRule(sid=lb_id, value="max({}, -{}*bioreactor/dt)".format(fba_lb_id, sid)),
-            mc.AssignmentRule(sid=ub_id, value="{}".format(fba_ub_id)),
         ])
-
     mc.create_objects(model, objects)
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT, idRefs=port_sids)
 
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
@@ -246,33 +242,19 @@ def update_model(sbml_file, directory, doc_fba=None):
         """)
     utils.set_model_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
 
-    # bioreactor
+    # compartment
     compartment_id = "bioreactor"
     builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=True)
 
-    # create the dynamic species
+    # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
                                 create_port=True)
 
-    # exchange fluxes and update reactions
-    objects = []
-    port_ids = []
-    ex_rids = utils.find_exchange_reactions(model_fba)
-
-    for ex_rid, sid in iteritems(ex_rids):
-        objects.append(
-            # exchange reaction fluxes
-            mc.Parameter(sid=ex_rid, value=1.0, constant=True, unit=UNIT_FLUX),
-        )
-        port_ids.append(ex_rid)
-
-        # update reactions, using the exchange reaction fluxes
-        # TODO: handle the case of biomass weighting, i.e. multiplying by X
-        builder.create_update_reaction(model, sid=sid, formula="-{}".format(ex_rid))
-
-    mc.create_objects(model, objects)
-    comp.create_ports(model, idRefs=port_ids)
+    # update reactions
+    # FIXME: weight with X (biomass)
+    builder.create_update_reactions(model, model_fba=model_fba, formula="-{}", unit_flux=UNIT_FLUX,
+                                    modifiers=[])
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
@@ -294,27 +276,50 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
     model = doc.getModel()
     utils.set_model_info(model, notes=top_notes,
                          creators=creators, units=units, main_units=main_units)
+
     # dt
-    compartment_id = "bioreactor"
     builder.create_dfba_dt(model, time_unit=UNIT_TIME, create_port=False)
 
-    # bioreactor
+    # compartment
+    compartment_id = "bioreactor"
     builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=False)
 
-    # create the dynamic species
-    # TODO: set initial concentrations ! currently all set to 1.0 (also for biomass)
+    # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
                                 create_port=False)
-    glc = model.getSpecies("glc__D_e")
-    print(glc)
-    glc.setInitialConcentration(20.0)
+
+    # minimal medium with single carbon source
+    initial_c = {
+        'ac_e': 0.0,
+        'acald_e': 0.0,
+        'akg_e': 0.0,
+        'co2_e': 0.04,
+        'etoh_e': 0.0,
+        'for_e': 0.0,
+        'fru_e': 0.0,
+        'fum_e': 0.0,
+        'glc__D_e': 20.0,
+        'gln__L_e': 0.0,
+        'glu__L_e': 0.0,
+        'h2o_e': 0.0,
+        'h_e': 0.0,
+        'lac__D_e': 0.0,
+        'mal__L_e': 0.0,
+        'nh4_e': 0.0,
+        'o2_e': 0.21,
+        'pi_e': 0.0,
+        'pyr_e': 0.0
+    }
+    for sid, value in iteritems(initial_c):
+        species = model.getSpecies(sid)
+        species.setInitialConcentration(value)
 
     # dummy species
     builder.create_dummy_species(model, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION)
 
     # exchange flux bounds
-    builder.create_exchange_flux_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
+    builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
 
     # dummy reactions & flux assignments
     builder.create_dummy_reactions(model, model_fba=model_fba, unit_flux=UNIT_FLUX)
@@ -327,6 +332,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+
     # change back into working dir
     os.chdir(working_dir)
 
@@ -339,10 +345,15 @@ def create_model(output_dir):
     directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
+    import time
+
+    t_start = time.time()
     doc_fba = fba_model(fba_file, directory)
 
     bounds_model(bounds_file, directory, doc_fba=doc_fba)
+
     update_model(update_file, directory, doc_fba=doc_fba)
+    print('update: {}'.format((time.time() - t_start)))
 
     emds = {
         "ecoli_fba": fba_file,
@@ -352,9 +363,11 @@ def create_model(output_dir):
 
     # flatten top model
     top_model(top_file, directory, emds, doc_fba=doc_fba)
-    '''
+    print('top: {}'.format((time.time() - t_start)))
+
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
+    print('flatten: {}'.format((time.time() - t_start)))
 
     # create reports
     sbml_paths = [pjoin(directory, fname) for fname in
@@ -362,7 +375,6 @@ def create_model(output_dir):
                   [fba_file, bounds_file, update_file, top_file, flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
-    '''
     return directory
 
 

@@ -197,7 +197,7 @@ def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port
     return c
 
 
-def create_dfba_species(model, model_fba, compartment_id, unit_concentration=None, create_port=True):
+def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit=None, create_port=True):
     """ Add DFBA species and compartments from fba model to model. 
     Creates the dynamic species and respetive compartments with
     the necessary ports.
@@ -218,8 +218,8 @@ def create_dfba_species(model, model_fba, compartment_id, unit_concentration=Non
 
         # exchange species to create
         objects.append(
-            fac.Species(sid=sid, name=s.getName(), value=1.0, unit=unit_concentration,
-                       hasOnlySubstanceUnits=False, compartment=compartment_id)
+            fac.Species(sid=sid, name=s.getName(), value=1.0, unit=unit,
+                        hasOnlySubstanceUnits=hasOnlySubstanceUnits, compartment=compartment_id)
         )
         # port of exchange species
         port_sids.append(sid)
@@ -395,28 +395,26 @@ def update_exchange_reactions(model, ex_rids, flux_unit):
     # There could be unused bounds in the model which can be removed
 
 
-def create_update_parameter(model, sid, unit):
-    """ Creates the update parameter.
-
-    :param model:
-    :type model:
-    :param sid:
-    :type sid:
-    :param unit:
-    :type unit:
-    :return:
-    :rtype:
+def create_update_reactions(model, model_fba, formula="-{}", unit_flux=None, modifiers=[]):
+    """ Creates all update reactions with the given formula.
+    
+    :param model: 
+    :param model_fba: 
+    :param formula: 
+    :param unit_flux: 
+    :param modifiers: 
+    :return: 
     """
-    pid = EXCHANGE_REACTION_PREFIX + sid
-    parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit, sboTerm=UPDATE_PARAMETER_SBO)
-    fac.create_objects(model, [parameter])
-    # create port
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=[pid])
+    ex_rids = utils.find_exchange_reactions(model_fba)
+    for ex_rid, sid in iteritems(ex_rids):
+        create_update_parameter(model=model, sid=sid, unit_flux=unit_flux)
+        create_update_reaction(model=model, sid=sid, modifiers=modifiers, formula=formula)
 
 
-def create_update_reaction(model, sid, modifiers=[], formula=None):
+
+def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
     """ Creates the update reaction for a given species.
+    Creates the update parameter in the process.
 
     :param model:
     :param sid:
@@ -425,17 +423,36 @@ def create_update_reaction(model, sid, modifiers=[], formula=None):
     :return:
     :rtype:
     """
-    rid = UPDATE_REACTION_PREFIX + sid
+    rid_update = UPDATE_REACTION_PREFIX + sid
+    rid_ex = EXCHANGE_REACTION_PREFIX + sid
 
-    if formula is None:
-        formula = "-{}{}".format(EXCHANGE_REACTION_PREFIX, sid)
-
-    fac.create_reaction(model, rid=rid, sboTerm=UPDATE_REACTION_PREFIX,
+    # format the formula
+    formula = formula.format(rid_ex)
+    fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_PREFIX,
                        reactants={sid: 1}, modifiers=modifiers,
                        formula=formula)
 
+def create_update_parameter(model, sid, unit_flux):
+    """ Creates the update parameter.
 
-def create_exchange_flux_bounds(model, model_fba, unit_flux=None, create_ports=True):
+    :param model:
+    :type model:
+    :param sid:
+    :type sid:
+    :param unit_flux:
+    :type unit_flux:
+    :return:
+    :rtype:
+    """
+    pid = EXCHANGE_REACTION_PREFIX + sid
+    parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit_flux, sboTerm=UPDATE_PARAMETER_SBO)
+    fac.create_objects(model, [parameter])
+    # create port
+    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
+                      idRefs=[pid])
+    return pid
+
+def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
     """ Creates the exchange reaction flux bounds.
     
     :param model: 

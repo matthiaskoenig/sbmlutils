@@ -124,7 +124,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_ecoli(sbml_path, out_dir, dts=[0.1], figures=True):
+def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
