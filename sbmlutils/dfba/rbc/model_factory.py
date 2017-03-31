@@ -323,7 +323,7 @@ def create_model(output_dir):
     }
 
     print("TOP")
-    top_model(top_file, directory, emds, doc_fba=doc_fba, validate=True)
+    top_model(top_file, directory, emds, doc_fba=doc_fba, validate=False)
 
     # flatten top model
     print("FLATTENING")
