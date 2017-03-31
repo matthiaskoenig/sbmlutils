@@ -4,15 +4,16 @@ Helper functions and information for building DFBA models.
 
 from __future__ import print_function, absolute_import, division
 import warnings
+import logging
 
 from sbmlutils import factory as fac
 from sbmlutils import comp
 from sbmlutils.dfba import utils
 
 from six import iteritems
+import inspect
 
 import libsbml
-from collections import defaultdict
 
 
 #################################################
@@ -277,7 +278,8 @@ def check_exchange_reaction(model, reaction_id):
         sid = sref.getSpecies()
     if sid is not None:
         if reaction_id != EXCHANGE_REACTION_PREFIX + sid:
-            warnings.warn("exchange reaction id does not follow EX_sid:", reaction_id)
+            warnings.warn("exchange reaction id does not follow EX_sid: {} != {}".format(reaction_id,
+                                                                                         EXCHANGE_REACTION_PREFIX + sid))
     if not r.isSetSBOTerm():
         warnings.warn("no SBOTerm set on exchange reaction".format(r))
     else:
@@ -341,23 +343,42 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
     return ex_r
 
 
-def update_exchange_reactions(model, ex_rids, flux_unit):
+def update_exchange_reactions(model, flux_unit):
     """ Updates existing exchange reaction in FBA model.
     
     Sets all the necessary information and checks that correct.
+    This is mainly used to prepare the exchange reactions of metabolites.
     
     :param model: 
     :param ex_rids: 
     :return: 
     """
+
     # mapping of bounds to reactions
     bounds_dict = dict()
 
+    ex_rids = utils.find_exchange_reactions(model)
+    for ex_rid in ex_rids:
+        r = model.getReaction(ex_rid)
+
+        # make reversible
+        if not r.getReversible():
+            r.setReversible(True)
+            logging.warn("Exchange reaction set reversible: {}".format(r.getId()))
+
+        # fix ids for exchange reactions
+        sref = r.getReactant(0)
+        sid = sref.getSpecies()
+        rid = r.getId()
+        if rid != EXCHANGE_REACTION_PREFIX + sid:
+            r.setId(EXCHANGE_REACTION_PREFIX + sid)
+            logging.warn("Exchange reaction fixd id: {} -> {}".format(rid, EXCHANGE_REACTION_PREFIX + sid))
+
+    # new lookup necessary, due to possible changed ids
+    ex_rids = utils.find_exchange_reactions(model)
     for ex_rid in ex_rids:
         r = model.getReaction(ex_rid)
         fbc_r = r.getPlugin(SBML_FBC_NAME)
-        check_exchange_reaction(model, ex_rid)
-
         # store bounds in dictionary for value lookup
         for f_bound in ["getLowerFluxBound", "getUpperFluxBound"]:
             bound_id = getattr(fbc_r, f_bound).__call__()
@@ -390,6 +411,10 @@ def update_exchange_reactions(model, ex_rids, flux_unit):
         # create ports for bounds and reaction
         comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
                       idRefs=[ex_rid, lb_id, ub_id])
+
+    # check all the exchange reactions
+    for ex_rid in ex_rids:
+        check_exchange_reaction(model, ex_rid)
 
     # FIXME: remove unused bounds
     # There could be unused bounds in the model which can be removed
