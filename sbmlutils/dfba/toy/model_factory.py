@@ -27,7 +27,7 @@ from sbmlutils.report import sbmlreport
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.toy import toysettings
+from sbmlutils.dfba.toy import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
@@ -35,7 +35,6 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 # General model information
 ########################################################################
 version = 6
-model_id = "toy"
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -373,33 +372,33 @@ def create_model(output_dir):
     directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
-    doc_fba = fba_model(toysettings.fba_file, directory)
-    bounds_model(toysettings.bounds_file, directory, doc_fba=doc_fba)
-    update_model(toysettings.update_file, directory, doc_fba=doc_fba)
+    doc_fba = fba_model(settings.fba_file, directory)
+    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba)
+    update_model(settings.update_file, directory, doc_fba=doc_fba)
 
     emds = {
-        "toy_fba": toysettings.fba_file,
-        "toy_bounds": toysettings.bounds_file,
-        "toy_update": toysettings.update_file,
+        "toy_fba": settings.fba_file,
+        "toy_bounds": settings.bounds_file,
+        "toy_update": settings.update_file,
     }
 
     # flatten top model
-    top_model(toysettings.top_file, directory, emds, doc_fba)
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, toysettings.top_file),
-                         output_path=pjoin(directory, toysettings.flattened_file))
+    top_model(settings.top_file, directory, emds, doc_fba)
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
+                         output_path=pjoin(directory, settings.flattened_file))
     # create reports
     sbml_paths = [pjoin(directory, fname) for fname in
                   # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [toysettings.fba_file,
-                   toysettings.bounds_file,
-                   toysettings.update_file,
-                   toysettings.top_file,
-                   toysettings.flattened_file]]
+                  [settings.fba_file,
+                   settings.bounds_file,
+                   settings.update_file,
+                   settings.top_file,
+                   settings.flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    directory = create_model(output_dir=toysettings.out_dir)
+    directory = create_model(output_dir=settings.out_dir)
     print(directory)

@@ -8,7 +8,7 @@ import tempfile
 
 from sbmlutils.dfba.utils import versioned_directory
 
-from sbmlutils.dfba.toy import toysettings
+from sbmlutils.dfba.toy import settings
 from sbmlutils.dfba.toy import model_factory as toyfactory
 from sbmlutils.dfba.toy import simulate as toysimulate
 
@@ -44,11 +44,11 @@ class DFBATestCase(unittest.TestCase):
         directory = toyfactory.create_model(output_dir=self.test_dir)
         print(os.listdir(self.test_dir))
 
-        self.file_exists(directory, toysettings.fba_file)
-        self.file_exists(directory, toysettings.bounds_file)
-        self.file_exists(directory, toysettings.update_file)
-        self.file_exists(directory, toysettings.top_file)
-        self.file_exists(directory, toysettings.flattened_file)
+        self.file_exists(directory, settings.fba_file)
+        self.file_exists(directory, settings.bounds_file)
+        self.file_exists(directory, settings.update_file)
+        self.file_exists(directory, settings.top_file)
+        self.file_exists(directory, settings.flattened_file)
 
     def test_diauxic_creation(self):
         directory = dgfactory.create_model(output_dir=self.test_dir)
@@ -65,7 +65,7 @@ class DFBATestCase(unittest.TestCase):
 
         toyfactory.create_model(self.test_dir)
         sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.version),
-                                 toysettings.top_file)
+                                 settings.top_file)
         print(sbml_path)
         toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0], figures=False)
 

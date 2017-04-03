@@ -20,7 +20,6 @@ from sbmlutils import sbmlio
 from sbmlutils import comp
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
-from sbmlutils.validation import check
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -30,7 +29,6 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 
 # TODO: add biomass
 # TODO: biomass weighting of fluxes
-
 
 ########################################################################
 # General model information

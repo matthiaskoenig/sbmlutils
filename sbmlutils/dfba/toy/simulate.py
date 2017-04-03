@@ -8,7 +8,7 @@ from six import iteritems
 import numpy as np
 import pandas as pd
 
-from sbmlutils.dfba.toy import toysettings, model_factory
+from sbmlutils.dfba.toy import settings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba
 from sbmlutils.dfba.analysis import DFBAAnalysis
 
@@ -156,6 +156,6 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
 
 
 if __name__ == "__main__":
-    directory = versioned_directory(toysettings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, toysettings.top_file)
+    directory = versioned_directory(settings.out_dir, model_factory.version)
+    sbml_path = os.path.join(directory, settings.top_file)
     simulate_toy(sbml_path, out_dir=directory)
