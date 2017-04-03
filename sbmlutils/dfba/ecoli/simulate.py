@@ -158,6 +158,7 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
     '''
     return dfs
 
+
 def simulate_carbon_sources(sbml_path, out_dir):
     """ Simulate growth under different carbon sources.
     
@@ -221,10 +222,11 @@ def simulate_carbon_sources(sbml_path, out_dir):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
 
     directory = utils.versioned_directory(settings.out_dir, model_factory.version)
     top_sbml_path = os.path.join(directory, settings.top_file)
+
     print(top_sbml_path)
-    # simulate_ecoli(top_sbml_path, out_dir=directory)
-    simulate_carbon_sources(top_sbml_path, out_dir=directory)
+    simulate_ecoli(top_sbml_path, out_dir=directory)
+    # simulate_carbon_sources(top_sbml_path, out_dir=directory)

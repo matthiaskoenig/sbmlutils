@@ -73,35 +73,28 @@ class DFBAModel(object):
 
     @staticmethod
     def get_framework(model):
-        """ Get the framework for the given model/submodel object.
-        Terms from the SBO modelling framework.
-
-        This is the sbo which is set on the respective model/submodel element
+        """ Get the framework for the given model object.
+        
+        This is the sbo which is set on the respective model/modelDefinition element.
 
         :param model:
-        :return:
+        :return: framework key or None if no framework information could be found.
         """
+
+        if type(model) not in [libsbml.Model, libsbml.ModelDefinition]:
+            raise ValueError("Framework must be defined on either Model/ModelDefinition, but given: {}".format(model))
+
         framework = None
         if model.isSetSBOTerm():
 
-            # FIXME: better check for model framework
-            sbo = model.getSBOTerm()
-            if sbo == 624:
-                framework = builder.MODEL_FRAMEWORK_FBA
-            elif sbo in [293]:
-                framework = builder.MODEL_FRAMEWORK_ODE
-            # elif sbo == 63:
-            #    framework = MODEL_FRAMEWORK_STOCHASTIC
-            # elif sbo in [234, 547]:
-            #     framework = MODEL_FRAMEWORK_LOGICAL
-            else:
-                warnings.warn("Modelling Framework not supported: {}".format(sbo))
+            sbo = model.getSBOTermID()
+            for fw, sbos in iteritems(builder.MODEL_FRAMEWORKS):
+                if sbo in sbos:
+                    framework = fw
         else:
             warnings.warn("SBOTerm for modelling framework not set")
-            # try to find the FBA network nonetheless
-            if model.getPlugin('fbc') is not None:
-                warnings.warn("FBA model via fbc package")
-                framework = builder.MODEL_FRAMEWORK_FBA
+        if framework is None:
+            warnings.warn("No framework set for: {}".format(model))
 
         return framework
 
@@ -167,6 +160,9 @@ class DFBAModel(object):
         top_plugin = self.model_top.getPlugin("comp")
         for submodel in top_plugin.getListOfSubmodels():
             # models are processed in the order they are listed in the listOfSubmodels
+
+            # get the model/modeldefinition for the submodel
+
             framework = DFBAModel.get_framework(submodel)
             self.submodels[framework].append(submodel)
 

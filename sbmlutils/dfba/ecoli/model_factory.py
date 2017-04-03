@@ -170,7 +170,7 @@ def fba_model(sbml_file, directory):
     lb_p = model.getParameter(lb_id).setValue(0.0)  # 8.39 before
 
     # make unique upper and lower bounds for exchange reaction
-    builder.update_exchange_reactions(model, ex_rids, flux_unit=UNIT_FLUX)
+    builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX)
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
@@ -387,5 +387,3 @@ if __name__ == "__main__":
 
     from sbmlutils.dfba.ecoli.settings import out_dir
     create_model(output_dir=out_dir)
-
-

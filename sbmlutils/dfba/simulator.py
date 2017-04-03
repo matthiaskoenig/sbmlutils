@@ -35,6 +35,7 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True, **kwargs)
 
     :return: list of result dataframe, DFBAModel, DFBASimulator
     """
+    start_time = timeit.default_timer()
     # Load model
     dfba_model = DFBAModel(sbml_path=sbml_path)
 
@@ -43,7 +44,12 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True, **kwargs)
     dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
     df = dfba_simulator.solution
 
-    print("\nSimulation time: {}\n".format(dfba_simulator.time))
+    sim_time = dfba_simulator.time
+    tot_time = timeit.default_timer()-start_time
+    overhead_time = tot_time - sim_time
+    print("\n{:<20}: {:4.3f} [s]".format('Simulation time', sim_time))
+    print("{:<20}: {:4.3f} [s]".format('Total time', tot_time))
+    print("{:<20}: {:4.3f} [s] ({:2.1f} %)\n".format('Overhead time', overhead_time, overhead_time/tot_time*100))
     return df, dfba_model, dfba_simulator
 
 
