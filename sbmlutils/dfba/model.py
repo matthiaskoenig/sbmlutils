@@ -185,6 +185,7 @@ class DFBAModel(object):
         for variable in self.flux_rules.values():
             self.model_top.removeRuleByVariable(variable)
 
+
         mixed_sbml_cleaned = tempfile.NamedTemporaryFile("w", suffix=".xml")
         libsbml.writeSBMLToFile(self.doc_top, mixed_sbml_cleaned.name)
         self.rr_comp = roadrunner.RoadRunner(mixed_sbml_cleaned.name)

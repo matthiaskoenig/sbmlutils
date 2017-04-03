@@ -58,8 +58,8 @@ EXCHANGE_IMPORT = 'import'
 EXCHANGE_EXPORT = 'export'
 
 # top
-FLUX_PARAMETER_PREFIX = EXCHANGE_REACTION_PREFIX
-DUMMY_REACTION_PREFIX = "dummy_" + EXCHANGE_REACTION_PREFIX
+FLUX_PARAMETER_PREFIX = 'p' + EXCHANGE_REACTION_PREFIX
+DUMMY_REACTION_PREFIX = EXCHANGE_REACTION_PREFIX
 DUMMY_SPECIES_ID = "dummy_S"
 DUMMY_SPECIES_SBO = "SBO:0000291"
 DUMMY_REACTION_SBO = "SBO:0000631"
@@ -464,7 +464,6 @@ def create_update_reactions(model, model_fba, formula="-{}", unit_flux=None, mod
         create_update_reaction(model=model, sid=sid, modifiers=modifiers, formula=formula)
 
 
-
 def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
     """ Creates the update reaction for a given species.
     Creates the update parameter in the process.
@@ -485,6 +484,7 @@ def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
                        reactants={sid: 1}, modifiers=modifiers,
                        formula=formula)
 
+
 def create_update_parameter(model, sid, unit_flux):
     """ Creates the update parameter.
 
@@ -504,6 +504,7 @@ def create_update_parameter(model, sid, unit_flux):
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
                       idRefs=[pid])
     return pid
+
 
 def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
     """ Creates the exchange reaction flux bounds.
