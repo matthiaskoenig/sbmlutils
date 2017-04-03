@@ -71,33 +71,6 @@ class DFBAModel(object):
         else:
             return None
 
-    @staticmethod
-    def get_framework(model):
-        """ Get the framework for the given model object.
-        
-        This is the sbo which is set on the respective model/modelDefinition element.
-
-        :param model:
-        :return: framework key or None if no framework information could be found.
-        """
-
-        if type(model) not in [libsbml.Model, libsbml.ModelDefinition]:
-            raise ValueError("Framework must be defined on either Model/ModelDefinition, but given: {}".format(model))
-
-        framework = None
-        if model.isSetSBOTerm():
-
-            sbo = model.getSBOTermID()
-            for fw, sbos in iteritems(builder.MODEL_FRAMEWORKS):
-                if sbo in sbos:
-                    framework = fw
-        else:
-            warnings.warn("SBOTerm for modelling framework not set")
-        if framework is None:
-            warnings.warn("No framework set for: {}".format(model))
-
-        return framework
-
     def __str__(self):
         """ Information string.
 
@@ -152,18 +125,31 @@ class DFBAModel(object):
         if self.model_top is None:
             warnings.warn("No top level model found.")
 
-        self.framework_top = self.get_framework(self.model_top)
+        self.framework_top = builder.get_framework(self.model_top)
         if self.framework_top is not builder.MODEL_FRAMEWORK_ODE:
             warnings.warn("The top level model framework is not ode: {}".format(self.framework_top))
 
-        # get submodels with frameworks
-        top_plugin = self.model_top.getPlugin("comp")
-        for submodel in top_plugin.getListOfSubmodels():
-            # models are processed in the order they are listed in the listOfSubmodels
+        # get frameworks for submodels
+        doc_comp = self.doc_top.getPlugin(builder.SBML_COMP_NAME)
+        model_comp = self.model_top.getPlugin(builder.SBML_COMP_NAME)
 
-            # get the model/modeldefinition for the submodel
+        # models are processed in the order they are listed in the listOfSubmodels
+        for submodel in model_comp.getListOfSubmodels():
+            modelRef = submodel.getModelRef()
 
-            framework = DFBAModel.get_framework(submodel)
+            # check if ExternalModelDefinition
+            emd = doc_comp.getExternalModelDefinition(modelRef)
+            if emd:
+                framework = builder.get_framework(emd.getReferencedModel())
+            else:
+                # Lookfor ModelDefinition
+                md = doc_comp.getModelDefinition(modelRef)
+                if md:
+                    framework = builder.get_framework(md)
+                else:
+                    raise ValueError("No (External)ModelDefinition for modelRef: {}".format(modelRef))
+
+            # store the submodel under the given framework
             self.submodels[framework].append(submodel)
 
     def _process_models(self):

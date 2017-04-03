@@ -78,6 +78,33 @@ libsbml.CompExtension_getPackageName()
 #################################################
 
 
+def get_framework(model):
+    """ Get the framework for the given model object.
+
+    This is the sbo which is set on the respective model/modelDefinition element.
+
+    :param model:
+    :return: framework key or None if no framework information could be found.
+    """
+
+    if type(model) not in [libsbml.Model, libsbml.ModelDefinition]:
+        raise ValueError("Framework must be defined on either Model/ModelDefinition, but given: {}".format(model))
+
+    framework = None
+    if model.isSetSBOTerm():
+
+        sbo = model.getSBOTermID()
+        for fw, sbos in iteritems(MODEL_FRAMEWORKS):
+            if sbo in sbos:
+                framework = fw
+    else:
+        warnings.warn("SBOTerm for modelling framework not set")
+    if framework is None:
+        warnings.warn("No framework set for: {}".format(model))
+
+    return framework
+
+
 def template_doc_fba(model_id):
     """ create template for fba model.
     
