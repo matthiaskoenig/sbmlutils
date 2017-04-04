@@ -34,7 +34,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 5
+version = 6
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -101,6 +101,8 @@ units = [
     mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    mc.Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                            (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
     mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
@@ -117,6 +119,7 @@ UNIT_VOLUME = 'l'
 UNIT_TIME = 'h'
 UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
+UNIT_FLUX_PER_G = 'mmol_per_hg'
 
 
 ########################################################################################################
@@ -152,25 +155,35 @@ def fba_model(sbml_file, directory):
         species.setUnits(UNIT_AMOUNT)
     for compartment in model.getListOfCompartments():
         compartment.setUnits(UNIT_VOLUME)
-
-    # find exchange reactions (these species can be changed by the FBA)
-    ex_rids = utils.find_exchange_reactions(model)
-    from pprint import pprint
-    pprint(ex_rids)
-
-    # TODO: add exchange reaction for biomass (X)
+    for reaction in model.getListOfReactions():
+        # set formula in reaction
+        ast_node = mc.ast_node_from_formula(model=model, formula='0 {}'.format(UNIT_FLUX))
+        law = reaction.createKineticLaw()
+        law.setMath(ast_node)
 
     # The ATPM (atp maintainance reactions creates many problems in the DFBA)
     # mainly resulting in infeasible solutions when some metabolites run out.
     # ATP -> ADP is part of the biomass, so we set the lower bound to zero
     r_ATPM = model.getReaction('ATPM')
     r_ATPM_fbc = r_ATPM.getPlugin(builder.SBML_FBC_NAME)
-    print(r_ATPM_fbc)
     lb_id = r_ATPM_fbc.getLowerFluxBound()
-    lb_p = model.getParameter(lb_id).setValue(0.0)  # 8.39 before
+    model.getParameter(lb_id).setValue(0.0)  # 8.39 before
 
     # make unique upper and lower bounds for exchange reaction
     builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX)
+
+    # add exchange reaction for biomass (X)
+    # we are adding the biomass component to the biomass function and create an
+    # exchange reaction for it
+    r_biomass = model.getReaction('BIOMASS_Ecoli_core_w_GAM')
+    mc.create_objects(model, [
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True)
+    ])
+    pr_biomass = r_biomass.createProduct()
+    pr_biomass.setSpecies('X')
+    pr_biomass.setStoichiometry(1.0)
+    pr_biomass.setConstant(True)
+    builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX, exchange_type=builder.EXCHANGE_EXPORT)
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)

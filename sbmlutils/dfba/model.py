@@ -14,6 +14,7 @@ import roadrunner
 import cobra
 
 from sbmlutils.dfba import builder
+from sbmlutils import comp
 
 
 #################################################
@@ -184,7 +185,6 @@ class DFBAModel(object):
         # not allowed to set assignment rules directly in roadrunner
         for variable in self.flux_rules.values():
             self.model_top.removeRuleByVariable(variable)
-
 
         mixed_sbml_cleaned = tempfile.NamedTemporaryFile("w", suffix=".xml")
         libsbml.writeSBMLToFile(self.doc_top, mixed_sbml_cleaned.name)

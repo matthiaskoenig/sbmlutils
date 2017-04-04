@@ -578,7 +578,8 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
 
         # dummy reaction (pseudoreaction)
         fac.create_reaction(model, rid=rid_flux, reversible=False,
-                            products={DUMMY_SPECIES_ID: 1}, sboTerm=DUMMY_REACTION_SBO)
+                            products={DUMMY_SPECIES_ID: 1}, sboTerm=DUMMY_REACTION_SBO,
+                            formula='0 {}'.format(unit_flux))
 
         # flux assignment rule
         objects.append(

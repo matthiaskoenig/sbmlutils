@@ -376,7 +376,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat')
 
     if output_path is not None:
         # Write the results to the output file.
-        libsbml.writeSBMLToFile(doc, filename=output_path)
+        libsbml.writeSBMLToFile(doc, output_path)
         print("Flattened model written to {}".format(output_path))
 
     return doc
