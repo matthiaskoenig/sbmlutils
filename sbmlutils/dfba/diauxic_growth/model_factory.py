@@ -99,7 +99,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 10
+version = 11
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -160,8 +160,14 @@ units = [
     mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    mc.Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                            (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
+
     mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_LITRE, -1.0)]),
+    mc.Unit('mmol_per_lg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                           (UNIT_KIND_LITRE, -1.0), (UNIT_KIND_GRAM, -1.0)]),
+
     mc.Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
     mc.Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
@@ -176,6 +182,9 @@ UNIT_VOLUME = 'l'
 UNIT_TIME = 'h'
 UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
+
+# UNIT_CONCENTRATION_PER_G = 'mmol_per_lg'
+UNIT_FLUX_PER_G = 'mmol_per_h'  # !!! FIXME
 
 
 ########################################################################################################
@@ -198,18 +207,18 @@ def fba_model(sbml_file, directory):
                        spatialDimension=3),
 
         # species
-        mc.Species(sid='Glcxt', name="glucose", value=10.8, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", value=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", value=0.4, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", value=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='O2', name="oxygen", value=0.21, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", value=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", value=0.001, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
         # bounds
-        mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_default", name="default upper bound", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX,
+        mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX_PER_G, constant=True, sboTerm="SBO:0000612"),
+        mc.Parameter(sid="ub_default", name="default upper bound", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX_PER_G,
                      constant=True, sboTerm="SBO:0000612"),
     ]
     mc.create_objects(model, objects)
@@ -233,13 +242,13 @@ def fba_model(sbml_file, directory):
 
     # reactions: exchange reactions (this species can be changed by the FBA)
     for sid in ['Ac', 'Glcxt', 'O2', 'X']:
-        builder.create_exchange_reaction(model, species_id=sid, flux_unit=UNIT_FLUX,
+        builder.create_exchange_reaction(model, species_id=sid, flux_unit=UNIT_FLUX_PER_G,
                                          exchange_type=builder.EXCHANGE)
     # set bounds for the exchange reactions
     p_lb_O2 = model.getParameter("lb_EX_O2")
-    p_lb_O2.setValue(-15.0)
+    p_lb_O2.setValue(-15.0)  # FIXME: this is in mmol/gdw/h
     p_lb_Glcxt = model.getParameter("lb_EX_Glcxt")
-    p_lb_Glcxt.setValue(-10.0)
+    p_lb_Glcxt.setValue(-10.0)  # FIXME: this is in mmol/gdw/h
 
     # objective function
     model_fba = model.getPlugin(builder.SBML_FBC_NAME)
@@ -320,16 +329,17 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         mc.Parameter(sid='Km_EX_Glcxt', value=0.015, unit=UNIT_CONCENTRATION, name="Km_vGlcxt", constant=True),
 
         # kinetic bounds (unintuitive direction due to the identical concentrations in bioreactor and model)
-        mc.AssignmentRule(sid="lb_kin_EX_Glcxt", value="-Vmax_EX_Glcxt* Glcxt/(Km_EX_Glcxt + Glcxt)"),
+        mc.AssignmentRule(sid="lb_kin_EX_Glcxt", value="-Vmax_EX_Glcxt * Glcxt/(Km_EX_Glcxt + Glcxt)"),
         mc.AssignmentRule(sid="lb_kin_EX_O2", value="-Vmax_EX_O2"),
 
         # exchange reaction bounds
         # uptake bounds (lower bound)
         # TODO: FIXME the X hack
-        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_fba_EX_Ac, -Ac/X*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_fba_EX_X, -X/X*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X*bioreactor/dt)"),
+        # the bounds for the fba model have to be in mmol/h/gdw
+        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_fba_EX_Ac, -Ac/X/1 l_per_mmol*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_fba_EX_X, -X/X/1 l_per_mmol*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X/1 l_per_mmol*bioreactor/dt)"),
+        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X/1 l_per_mmol*bioreactor/dt)"),
     ]
     mc.create_objects(model, objects)
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
@@ -437,7 +447,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 
     objects = [
         # biomass conversion factor
-        mc.Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
+        # mc.Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
         # oxygen exchange parameters
         mc.Parameter(sid="O2_ref", name="O2 reference", value=0.21, unit=UNIT_CONCENTRATION),
         mc.Parameter(sid="kLa", name="O2 mass transfer", value=7.5, unit='per_h'),
@@ -465,7 +475,9 @@ def create_model(output_dir):
 
     # create sbml
     doc_fba = fba_model(fba_file, directory)
+
     bounds_model(bounds_file, directory, doc_fba=doc_fba)
+
     update_model(update_file, directory, doc_fba=doc_fba)
     emds = {
         "diauxic_fba": fba_file,

@@ -235,5 +235,5 @@ if __name__ == "__main__":
     top_sbml_path = os.path.join(directory, settings.top_file)
 
     print(top_sbml_path)
-    simulate_ecoli(top_sbml_path, dts=[0.1], out_dir=directory)
+    simulate_ecoli(top_sbml_path, dts=[0.05], out_dir=directory)
     # simulate_carbon_sources(top_sbml_path, out_dir=directory)
