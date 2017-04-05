@@ -545,7 +545,7 @@ def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
 
 def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits=False):
     """ Creates the dummy species in the top model.
-    Depending on
+    Adds a deletion in the top model which removes the object again.
 
     :param model: SBML model
     :param compartment_id: compartment
@@ -559,6 +559,7 @@ def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits
                                     hasOnlySubstanceUnits=hasOnlySubstanceUnits,
                                     compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
                         ])
+
 
 
 def create_dummy_reactions(model, model_fba, unit_flux=None):

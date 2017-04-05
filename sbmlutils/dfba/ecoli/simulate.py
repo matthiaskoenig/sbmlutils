@@ -36,27 +36,34 @@ def print_species(dfs, filepath=None, **kwargs):
     if type(dfs) == pd.DataFrame:
         dfs = [dfs]
 
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(14, 14))
     for k, df in enumerate(dfs):
-        for ax in (ax1, ax2):
-            if k == 0:
-                ax.plot(df.time, df['[A]'], color='darkred', label="[A]", **kwargs)
-                ax.plot(df.time, df['[C]'], color='darkblue', label="[C]", **kwargs)
-                ax.plot(df.time, df['[D]'], color='darkgreen', label="[D]", **kwargs)
-                ax.plot(df.time, df['[A]']+df['[C]']+df['[D]'], color='black', label="[A]+[C]+[D]", **kwargs)
-            else:
-                ax.plot(df.time, df['[A]'], color='darkred', label='_nolegend_', **kwargs)
-                ax.plot(df.time, df['[C]'], color='darkblue', label='_nolegend_', **kwargs)
-                ax.plot(df.time, df['[D]'], color='darkgreen', label='_nolegend_', **kwargs)
-                ax.plot(df.time, df['[A]'] + df['[C]'] + df['[D]'], color='black', label='_nolegend_', **kwargs)
+
+        sids_main = ['for_e', 'lac__D_e', 'pyr_e', 'etoh_e', 'gln__L_e', 'akg_e', 'acald_e', 'glu__L_e', 'mal__L_e', 'X',
+                     'fum_e', 'fru_e', 'succ_e', 'ac_e', 'glc__D_e']
+        sids_cofactor = ['pi_e', 'h_e', 'o2_e', 'co2_e', 'h2o_e', 'nh4_e']
+
+        for sid in sids_main:
+            for ax in (ax1, ax2):
+                if k == 0:
+                    ax.plot(df.time, df['[{}]'.format(sid)], label="[{}]".format(sid), **kwargs)
+                else:
+                    ax.plot(df.time, df['[{}]'.format(sid)], label='_nolegend_', **kwargs)
+
+        for sid in sids_cofactor:
+            for ax in (ax3, ax4):
+                if k == 0:
+                    ax.plot(df.time, df['[{}]'.format(sid)], label="[{}]".format(sid), **kwargs)
+                else:
+                    ax.plot(df.time, df['[{}]'.format(sid)], label='_nolegend_', **kwargs)
+
 
     ax2.set_yscale('log')
+    ax4.set_yscale('log')
 
-    for ax in (ax1, ax2):
+    for ax in (ax1, ax2, ax3, ax4):
+        ax.set_title('Ecoli')
         ax.set_ylabel('Concentration [?]')
-
-    for ax in (ax1, ax2):
-        ax.set_title('Toy model')
         ax.set_xlabel('time [h]')
         ax.legend()
     if filepath is not None:
@@ -151,11 +158,11 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
             analysis.save_csv(os.path.join(out_dir, "data_simulation_generic_dt{}.csv".format(dt)))
 
     # custom model plots
-    '''
+
     if figures:
-        print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
-        print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
-    '''
+        print_species(dfs=dfs, filepath=os.path.join(out_dir, "fig_species.png"), **plot_kwargs)
+        # print_fluxes(dfs=dfs, filepath=os.path.join(out_dir, "fig_fluxes.png"), **plot_kwargs)
+
     return dfs
 
 
@@ -228,5 +235,5 @@ if __name__ == "__main__":
     top_sbml_path = os.path.join(directory, settings.top_file)
 
     print(top_sbml_path)
-    simulate_ecoli(top_sbml_path, out_dir=directory)
+    simulate_ecoli(top_sbml_path, dts=[0.1], out_dir=directory)
     # simulate_carbon_sources(top_sbml_path, out_dir=directory)

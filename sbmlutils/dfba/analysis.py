@@ -51,7 +51,16 @@ class DFBAAnalysis(object):
         """
         species_ids = ["[{}]".format(s) for s in self.rr_comp.model.getFloatingSpeciesIds()] \
             + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
-        self.plot_ids(ids=species_ids, ylabel="species", title="DFBA species timecourse",
+
+        # filter out the fba and update species
+        filtered_sids = []
+        for sid in species_ids:
+            if sid.startswith("[fba__") or sid.startswith("[update__"):
+                continue
+            else:
+                filtered_sids.append(sid)
+
+        self.plot_ids(ids=filtered_sids, ylabel="species", title="DFBA species timecourse",
                       filepath=filepath, **kwargs)
 
     def plot_reactions(self, filepath, filter=None, **kwargs):
