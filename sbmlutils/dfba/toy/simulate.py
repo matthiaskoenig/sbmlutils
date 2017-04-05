@@ -85,8 +85,8 @@ def print_fluxes(dfs, filepath=None, **kwargs):
         'fba__R2': ax2,
         'fba__R3': ax3,
         'R4': ax4,
-        'dummy_EX_A': ax5,
-        'dummy_EX_C': ax6,
+        'EX_A': ax5,
+        'EX_C': ax6,
         'update__update_A': ax7,
         'update__update_C': ax8,
     }
@@ -95,8 +95,8 @@ def print_fluxes(dfs, filepath=None, **kwargs):
         'fba__R2': 'darkred',
         'fba__R3': 'orange',
         'R4': 'darkblue',
-        'dummy_EX_A': 'magenta',
-        'dummy_EX_C': 'black',
+        'EX_A': 'magenta',
+        'EX_C': 'black',
         'update__update_A': 'lightblue',
         'update__update_C': 'lightgreen',
     }
@@ -150,12 +150,16 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
 
     # custom model plots
     if figures:
-        print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
-        print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
+        print_species(dfs=dfs, filepath=os.path.join(out_dir, "fig_species.png"), **plot_kwargs)
+        print_fluxes(dfs=dfs, filepath=os.path.join(out_dir, "fig_fluxes.png"), **plot_kwargs)
     return dfs
 
 
 if __name__ == "__main__":
     directory = versioned_directory(settings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, settings.top_file)
+
+    from sbmlutils.dfba.model import DFBAModel
+    dfba_model = DFBAModel(sbml_path=sbml_path)
+
     simulate_toy(sbml_path, out_dir=directory)

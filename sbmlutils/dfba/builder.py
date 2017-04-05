@@ -476,10 +476,9 @@ def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
     :rtype:
     """
     rid_update = UPDATE_REACTION_PREFIX + sid
-    rid_ex = EXCHANGE_REACTION_PREFIX + sid
 
     # format the formula
-    formula = formula.format(rid_ex)
+    formula = formula.format(FLUX_PARAMETER_PREFIX + sid)
     fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_PREFIX,
                        reactants={sid: 1}, modifiers=modifiers,
                        formula=formula)
@@ -487,6 +486,8 @@ def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
 
 def create_update_parameter(model, sid, unit_flux):
     """ Creates the update parameter.
+    The update parameter correspond to the flux parameters
+    in the top model.
 
     :param model:
     :type model:
@@ -497,7 +498,7 @@ def create_update_parameter(model, sid, unit_flux):
     :return:
     :rtype:
     """
-    pid = EXCHANGE_REACTION_PREFIX + sid
+    pid = FLUX_PARAMETER_PREFIX + sid
     parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit_flux, sboTerm=UPDATE_PARAMETER_SBO)
     fac.create_objects(model, [parameter])
     # create port
@@ -542,16 +543,20 @@ def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
         comp.create_ports(model, idRefs=port_sids)
 
 
-def create_dummy_species(model, compartment_id, unit_concentration=None):
+def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits=False):
     """ Creates the dummy species in the top model.
+    Depending on
 
-    :param model: 
+    :param model: SBML model
+    :param compartment_id: compartment
+    :param unit: unit
+    :param hasOnlySubstanceUnits: switch if amount or concentration
     :return: 
     """
     # dummy species for dummy reactions (empty set)
     fac.create_objects(model,
-                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, value=0, unit=unit_concentration,
-                                    hasOnlySubstanceUnits=False,
+                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, value=0, unit=unit,
+                                    hasOnlySubstanceUnits=hasOnlySubstanceUnits,
                                     compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
                         ])
 
@@ -624,17 +629,17 @@ def create_top_replacements(model, model_fba, compartment_id):
     ex_rids = utils.find_exchange_reactions(model_fba)
     for ex_rid, sid in iteritems(ex_rids):
 
-        # flux
-        comp.replace_elements(model, ex_rid, ref_type=comp.SBASE_REF_TYPE_PORT,
-                              replaced_elements={'update': ['{}_port'.format(ex_rid)]})
+        # flux parameters
+        comp.replace_elements(model, FLUX_PARAMETER_PREFIX + sid, ref_type=comp.SBASE_REF_TYPE_PORT,
+                              replaced_elements={'update': ['{}_port'.format(FLUX_PARAMETER_PREFIX + sid)]})
 
-        # species
+        # dynamic species
         comp.replace_elements(model, sid, ref_type=comp.SBASE_REF_TYPE_PORT,
                               replaced_elements={
                                   'bounds': ['{}_port'.format(sid)],
                                   'update': ['{}_port'.format(sid)]})
 
-        # replace bounds in update and bounds
+        # bounds of exchange reactions
         for replace_id in [
                            UPPER_BOUND_PREFIX + EXCHANGE_REACTION_PREFIX + sid,
                            LOWER_BOUND_PREFIX + EXCHANGE_REACTION_PREFIX + sid]:

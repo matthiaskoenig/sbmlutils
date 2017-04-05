@@ -27,7 +27,7 @@ from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, updat
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
-# TODO: add biomass
+# TODO: units
 # TODO: biomass weighting of fluxes
 
 
@@ -339,7 +339,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
         species.setInitialConcentration(value)
 
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)

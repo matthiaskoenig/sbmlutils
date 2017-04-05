@@ -34,7 +34,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 7
+version = 9
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -263,8 +263,8 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT,
+                                hasOnlySubstanceUnits=True, create_port=True)
 
     # update reactions
     builder.create_update_reactions(model, model_fba=model_fba, formula="-{}", unit_flux=UNIT_FLUX,
@@ -308,10 +308,11 @@ def top_model(sbml_file, directory, emds, doc_fba):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=False)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, hasOnlySubstanceUnits=True,
+                                unit=UNIT_AMOUNT, create_port=False)
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, hasOnlySubstanceUnits=True,
+                                 unit=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)

@@ -172,6 +172,9 @@ class DFBASimulator(object):
 
                 logging.debug('* Store fluxes in ODE solution')
                 # from pprint import pprint
+
+                # TODO: assign only once at the end
+
                 # pprint(self.fba_model.flat_mapping)
                 for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
                     flux = self.fba_solution.fluxes[fba_rid]

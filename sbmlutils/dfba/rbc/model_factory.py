@@ -279,7 +279,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
     builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
                                 create_port=False)
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit_concentration=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)

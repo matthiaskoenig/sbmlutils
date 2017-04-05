@@ -56,8 +56,6 @@ class DFBAModel(object):
         self._process_top()
         self._process_models()
         self._process_dt()
-        # TODO: dummy species, dummy reactions
-        # TODO: update and bounds
 
         # log model information
         logging.info(self)
@@ -212,7 +210,7 @@ class DFBAModel(object):
                                  source=source,
                                  flux_rules=self.flux_rules,
                                  model_top=self.model_top,
-                                 rr_model=self.rr_comp)
+                                 model_rr=self.rr_comp)
             self.fba_models.append(fba_model)
 
     def _process_dt(self):
@@ -284,7 +282,7 @@ class FBAModel(object):
     Handles setting of FBA bounds & optimization.
     """
 
-    def __init__(self, submodel, source, flux_rules, model_top=None, rr_model=None):
+    def __init__(self, submodel, source, flux_rules, model_top=None, model_rr=None):
         """ Creates the FBAModel.
         Processes the bounds for all reactions.
         Reads the sbml and cobra model.
@@ -298,8 +296,8 @@ class FBAModel(object):
         self.submodel = submodel
 
         # read sbml and cobra model
-        self.sbml_doc = libsbml.readSBMLFromFile(source)
-        self.sbml_model = self.sbml_doc.getModel()
+        self.doc = libsbml.readSBMLFromFile(source)
+        self.model = self.doc.getModel()
         self.cobra_model = cobra.io.read_sbml_model(source)
 
         # bounds are mappings from parameters to reactions
@@ -323,8 +321,8 @@ class FBAModel(object):
             self._process_reaction_replacements(model_top)
 
         # id mapping
-        if rr_model is not None:
-            self._process_flat_mapping(rr_model)
+        if model_top and model_rr:
+            self._process_flat_mapping(model_top, model_rr)
 
     def __str__(self):
         """ Information string. """
@@ -348,7 +346,7 @@ class FBAModel(object):
         :return:
         """
         logging.debug('* (fba) _process_flux_rules')
-        fmodel = self.sbml_model.getPlugin("fbc")
+        fmodel = self.model.getPlugin("fbc")
         flist = fmodel.getListOfObjectives()
         active_oid = flist.getActiveObjective()
         objective = fmodel.getObjective(active_oid)
@@ -363,7 +361,7 @@ class FBAModel(object):
         :rtype:
         """
         logging.debug('* (fba) _process_bounds')
-        for r in self.sbml_model.getListOfReactions():
+        for r in self.model.getListOfReactions():
             fbc_r = r.getPlugin("fbc")
             rid = r.getId()
             if fbc_r.isSetUpperFluxBound():
@@ -385,7 +383,7 @@ class FBAModel(object):
         """
         logging.debug('* (fba) _process_bound_replacements')
         fba2top = {}
-        comp_model = self.sbml_model.getPlugin('comp')
+        comp_model = self.model.getPlugin('comp')
 
         for p in top_model.getListOfParameters():
             top_pid = p.getId()
@@ -418,7 +416,7 @@ class FBAModel(object):
         """
         logging.debug('* (fba) _process_reaction_replacements')
         fba2top = {}
-        comp_model = self.sbml_model.getPlugin('comp')
+        comp_model = self.model.getPlugin('comp')
 
         for r in top_model.getListOfReactions():
             top_rid = r.getId()
@@ -439,31 +437,46 @@ class FBAModel(object):
 
         self.fba2top_reactions = fba2top
 
-    def _process_flat_mapping(self, rr_comp):
+    def _process_flat_mapping(self, model_top, model_rr):
         """ Get the id mapping of the fluxes to the flattened model.
 
-        :param rr_comp
+        :param model_top: top SBML model
+        :param model_rr: roadrunner model (flat)
         :return:
         """
-        smid = self.submodel.getId()
+        submodel_id = self.submodel.getId()
+
+        # find all elements which are replaced (only reactions of interest)
+        replaced_in_fba = {}
+        for reaction in model_top.getListOfReactions():
+            rid_top = reaction.getId()
+            r_comp = reaction.getPlugin("comp")
+
+            # check replaced elements
+            if r_comp.getNumReplacedElements() > 0:
+                for rep_el in r_comp.getListOfReplacedElements():
+                    # replaceElement for this submodel
+                    if rep_el.getSubmodelRef() == submodel_id:
+                        element = rep_el.getReferencedElementFrom(self.model)
+                        replaced_in_fba[element.getId()] = rid_top
+
+            # check replacedBy
+            if r_comp.isSetReplacedBy():
+                rep_by = r_comp.getReplacedBy()
+                if rep_by.getSubmodelRef() == submodel_id:
+                    element = rep_by.getReferencedElementFrom(self.model)
+                    replaced_in_fba[element.getId()] = rid_top
+
+        logging.debug('replaced_in_fba:', replaced_in_fba)
+
+        # create the mapping
         mapping = {}
-
-        # FIXME: use the replacements, replacedBy & ports for the mapping detection with the top_model
-        # get all the FBA reaction ids
-
-        fba_rids = set()
-        for rid in rr_comp.model.getReactionIds():
-            # mapping relies on submodel prefix !
-            if rid.startswith('{}__'.format(smid)):
-                fba_rids.add(rid)
-
-        for r in self.sbml_model.getListOfReactions():
+        for r in self.model.getListOfReactions():
             rid = r.getId()
-            if '{}__{}'.format(smid, rid) in fba_rids:
-                mapping[rid] = '{}__{}'.format(smid, rid)
+            if rid in replaced_in_fba:
+                mapping[rid] = replaced_in_fba[rid]
             else:
-                # FIXME: the mapping of the dummy reactions is missing
-                # This is a bad hack which relies of the naming of the dummy reactions
-                mapping[rid] = 'dummy_{}'.format(rid)
+                mapping[rid] = '{}__{}'.format(submodel_id, rid)
 
+        logging.debug('mapping:', mapping)
         self.flat_mapping = mapping
