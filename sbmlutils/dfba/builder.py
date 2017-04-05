@@ -392,7 +392,7 @@ def update_exchange_reactions(model, flux_unit):
         # make reversible
         if not r.getReversible():
             r.setReversible(True)
-            logging.warn("Exchange reaction set reversible: {}".format(r.getId()))
+            logging.info("Exchange reaction set reversible: {}".format(r.getId()))
 
         # fix ids for exchange reactions
         sref = r.getReactant(0)

@@ -155,11 +155,7 @@ def fba_model(sbml_file, directory):
         species.setUnits(UNIT_AMOUNT)
     for compartment in model.getListOfCompartments():
         compartment.setUnits(UNIT_VOLUME)
-    for reaction in model.getListOfReactions():
-        # set formula in reaction
-        ast_node = mc.ast_node_from_formula(model=model, formula='0 {}'.format(UNIT_FLUX))
-        law = reaction.createKineticLaw()
-        law.setMath(ast_node)
+
 
     # The ATPM (atp maintainance reactions creates many problems in the DFBA)
     # mainly resulting in infeasible solutions when some metabolites run out.
@@ -187,6 +183,12 @@ def fba_model(sbml_file, directory):
 
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
+
+    # Set kinetic laws to zero for kinetic simulation
+    for reaction in model.getListOfReactions():
+        ast_node = mc.ast_node_from_formula(model=model, formula='0 {}'.format(UNIT_FLUX))
+        law = reaction.createKineticLaw()
+        law.setMath(ast_node)
 
     return doc_fba
 
@@ -367,14 +369,19 @@ def create_model(output_dir):
 
     # create sbml
     import time
-
     t_start = time.time()
+
     doc_fba = fba_model(fba_file, directory)
+    t_fba = time.time()
+    print('{:<10}: {:3.2f}'.format('fba', t_fba-t_start))
 
     bounds_model(bounds_file, directory, doc_fba=doc_fba)
+    t_bounds = time.time()
+    print('{:<10}: {:3.2f}'.format('bounds', t_bounds-t_fba))
 
     update_model(update_file, directory, doc_fba=doc_fba)
-    print('update: {}'.format((time.time() - t_start)))
+    t_update = time.time()
+    print('{:<10}: {:3.2f}'.format('update', t_update-t_bounds))
 
     emds = {
         "ecoli_fba": fba_file,
@@ -384,9 +391,13 @@ def create_model(output_dir):
 
     # flatten top model
     top_model(top_file, directory, emds, doc_fba=doc_fba)
+    t_top = time.time()
+    print('{:<10}: {:3.2f}'.format('top', t_top-t_update))
 
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
                          output_path=pjoin(directory, flattened_file))
+    t_flat = time.time()
+    print('{:<10}: {:3.2f}'.format('flat', t_flat-t_top))
 
     # create reports
     sbml_paths = [pjoin(directory, fname) for fname in
