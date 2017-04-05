@@ -57,7 +57,6 @@ def print_species(dfs, filepath=None, **kwargs):
                 else:
                     ax.plot(df.time, df['[{}]'.format(sid)], label='_nolegend_', **kwargs)
 
-
     ax2.set_yscale('log')
     ax4.set_yscale('log')
 
@@ -144,7 +143,7 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
     }
     dfs = []
     for dt in dts:
-        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
+        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=True, lp_solver="cplex")
         dfs.append(df)
 
         # generic analysis

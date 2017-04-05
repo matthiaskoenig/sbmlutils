@@ -13,11 +13,10 @@ Usage:
 # TODO: FVA, i.e. flux variability analysis with cobrapy
 # TODO: store directly in numpy arrays for speed improvements
 # TODO: set tolerances for the ode integration
-# FIXME: easy handling of different stepsizes
 
 # logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 from six import iteritems
 import logging
 import numpy as np
@@ -29,22 +28,26 @@ from sbmlutils.dfba.model import DFBAModel
 from sbmlutils import fbc
 
 
-def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True, **kwargs):
+def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True,
+                  abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', **kwargs):
     """ Simulates given model with DFBA.
 
+    Utility function which sets up the model object, a simulator and 
+    executes the given simulation.
 
-    :return: list of result dataframe, DFBAModel, DFBASimulator
+    :return: list of result DataFrame, DFBAModel, DFBASimulator
     """
     start_time = timeit.default_timer()
     # Load model
     dfba_model = DFBAModel(sbml_path=sbml_path)
 
     # simulation
-    dfba_simulator = DFBASimulator(dfba_model, pfba=pfba)
+    dfba_simulator = DFBASimulator(dfba_model, pfba=pfba,
+                                   abs_tol=abs_tol, rel_tol=rel_tol, lp_solver=lp_solver)
     dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
     df = dfba_simulator.solution
 
-    sim_time = dfba_simulator.time
+    sim_time = dfba_simulator.simulation_time
     tot_time = timeit.default_timer()-start_time
     overhead_time = tot_time - sim_time
     print("\n{:<20}: {:4.3f} [s]".format('Simulation time', sim_time))
@@ -73,7 +76,7 @@ class DFBASimulator(object):
         self.rel_tol = rel_tol
         self.solution = None
         self.fba_solution = None  # last LP solution
-        self.time = None
+        self.simulation_time = None
         # set solver
         self.cobra_model.solver = lp_solver
         self.pfba = pfba
@@ -110,6 +113,7 @@ class DFBASimulator(object):
         simulation/modelling framework to use.
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
         """
+        start_time = timeit.default_timer()
         # set the columns in output
         self._set_timecourse_selections()
 
@@ -129,13 +133,12 @@ class DFBASimulator(object):
         df_fbc = fbc.cobra_reaction_info(self.cobra_model)
         logging.info(df_fbc)
         self.cobra_model.optimize(objective_sense=self.objective_sense)
-        # self.cobra_model.summary()
 
         try:
             logging.debug('###########################')
             logging.debug('# Start Simulation')
             logging.debug('###########################')
-            start_time = timeit.default_timer()
+
 
             points = steps + 1
             all_time = np.linspace(start=tstart, stop=tend, num=points)
@@ -148,6 +151,7 @@ class DFBASimulator(object):
                 logging.debug("-" * 80)
                 logging.debug("Time: {}".format(time))
                 logging.debug("* dt = {}".format(self.dt))
+                step_time = timeit.default_timer()
 
                 # --------------------------------------
                 # FBA
@@ -168,21 +172,12 @@ class DFBASimulator(object):
                 else:
                     row = self._ode_simulation(tstart=time, tend=time+self.dt)
 
-                    # set fba fluxes in results
-
-                logging.debug('* Store fluxes in ODE solution')
-                # from pprint import pprint
-
-                # TODO: assign only once at the end
-
-                # pprint(self.fba_model.flat_mapping)
+                # store fba fluxes in ode solution
                 for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
                     flux = self.fba_solution.fluxes[fba_rid]
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
                     logging.debug("\t{} = {}".format(fba_rid, flux))
-                # FIXME: what about dummy_EX_A ? values
-
 
                 all_results.append(row)
 
@@ -191,13 +186,14 @@ class DFBASimulator(object):
                 kstep += 1
 
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
+                logging.debug("Time for step: {:2.4}".format(timeit.default_timer() - step_time))
 
             # create result matrix
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections,
                                       data=all_results)
             df_results.time = all_time
 
-            self.time = timeit.default_timer() - start_time
+            self.simulation_time = timeit.default_timer() - start_time
             logging.debug('###########################')
             logging.debug('# Stop Simulation')
             logging.debug('###########################')
@@ -211,6 +207,7 @@ class DFBASimulator(object):
             df_results.time = all_time[:len(all_results)]
 
         self.solution = df_results
+        self.simulation_time = timeit.default_timer() - start_time
         return self.solution
 
     def benchmark(self, Nrepeat=10, **kwargs):
@@ -250,7 +247,6 @@ class DFBASimulator(object):
         :rtype:
         """
         logging.debug('* FBA set bounds ')
-        counter = 0
 
         for fba_pid in sorted(self.fba_model.fba2top_bounds):
             top_pid = self.fba_model.fba2top_bounds[fba_pid]
@@ -265,7 +261,6 @@ class DFBASimulator(object):
                         ub = 0.0
                     cobra_reaction.upper_bound = ub
                     logging.debug('\tupper: {:<10} = {}'.format(fba_pid, ub))
-                    counter += 1
 
             # lower bounds
             if fba_pid in self.fba_model.lb_parameters:
@@ -277,10 +272,6 @@ class DFBASimulator(object):
                         lb = 0.0
                     cobra_reaction.lower_bound = lb
                     logging.debug('\tlower: {:<10} = {}'.format(fba_pid, lb))
-                    counter += 1
-
-        if counter == 0:
-            logging.debug('\tNo flux bounds set')
 
     def _optimize_fba(self, pfba=True):
         """ Optimize FBA model.
