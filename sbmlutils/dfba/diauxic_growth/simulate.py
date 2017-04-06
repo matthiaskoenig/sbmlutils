@@ -67,7 +67,6 @@ if __name__ == "__main__":
 
     dfba_model = DFBAModel(sbml_path=sbml_path)
     print(dfba_model)
-    exit()
 
 
     # logging.getLogger().setLevel(logging.INFO)

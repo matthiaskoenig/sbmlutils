@@ -207,9 +207,7 @@ class DFBAModel(object):
             # Create FBA model and process
             fba_model = FBAModel(submodel=submodel,
                                  source=source,
-                                 flux_rules=self.flux_rules,
-                                 model_top=self.model_top,
-                                 model_rr=self.rr_comp)
+                                 model_top=self.model_top)
             self.fba_models.append(fba_model)
 
     def _process_dt(self):
@@ -281,7 +279,7 @@ class FBAModel(object):
     Handles setting of FBA bounds & optimization.
     """
 
-    def __init__(self, submodel, source, flux_rules, model_top=None, model_rr=None):
+    def __init__(self, submodel, source, model_top=None):
         """ Creates the FBAModel.
         Processes the bounds for all reactions.
         Reads the sbml and cobra model.
@@ -305,38 +303,36 @@ class FBAModel(object):
         self.lb_parameters = defaultdict(list)
         self.fba2top_bounds = None
 
+        # reaction mapping (top <-> fba)
         self.fba2top_reactions = None
         self.top2flat_reactions = None
 
-        # flux rules
-        self.flux_rules = flux_rules
-
         # objective sense
         self._process_objective_direction()
+
         # bounds
         self._process_bounds()
+
+        # process the top (ode) <-> fba connections (bounds & reaction replacements)
         if model_top is not None:
-            # process the ode <-> fba connection
             self._process_bound_replacements(model_top)
             self._process_fba2top_reactions(model_top)
-
-        # id mapping
-        if model_top and model_rr:
-            self._process_flat_mapping(model_top, model_rr)
+            self._process_top2flat_reactions(model_top)
 
     def __str__(self):
         """ Information string. """
-        # s = "{}\n".format('-' * 80)
+
         s = "{} {}\n".format(self.submodel, self.source)
-        # s += "{}\n".format('-' * 80)
+        s += "{}\n".format('-' * 80)
         s += "\t{:<22}: {}\n".format('obj. direction', self.objective_direction)
         s += "\t{:<22}: {}\n".format('cobra obj. direction', self.cobra_model.objective.direction)
-        s += "\t{:<22}: {}\n".format('flux rules', self.flux_rules)
+        s += "\t{:<22}: {}\n".format('fba2top reactions', self.fba2top_reactions)
+        s += "\t{:<22}: {}\n".format('top2flat reactions', self.top2flat_reactions)
+
         s += "\t{:<22}: {}\n".format('ub parameters', self.ub_parameters)
         s += "\t{:<22}: {}\n".format('lb parameters', self.lb_parameters)
         s += "\t{:<22}: {}\n".format('fba2top bounds', self.fba2top_bounds)
-        s += "\t{:<22}: {}\n".format('fba2top reactions', self.fba2top_reactions)
-        s += "\t{:<22}: {}\n".format('top2flat reactions', self.top2flat_reactions)
+
         # s += "{}\n".format('-' * 80)
 
         return s
@@ -405,47 +401,34 @@ class FBAModel(object):
                         fba2top[id_ref] = top_pid
         self.fba2top_bounds = fba2top
 
-
-    def _process_fba2top_reactions(self, top_model):
+    def _process_fba2top_reactions(self, model_top):
         """ Finds mapping between top reactions and fba reactions.
 
         Necessary for update of top reactions from FBA solution.
 
-        :param flux_rules:
-        :type flux_rules:
-        :return:
-        :rtype:
+        :param model_top: top SBML model 
+        :return: None
         """
-        logging.debug('* (fba) _process_reaction_replacements')
+        # find replacedBy reactions in submodel
+        submodel_id = self.submodel.getId()
         fba2top = {}
-        comp_model = self.model.getPlugin('comp')
+        for reaction in model_top.getListOfReactions():
+            rid_top = reaction.getId()
+            r_comp = reaction.getPlugin("comp")
 
-        for r in top_model.getListOfReactions():
-            top_rid = r.getId()
-            comp_r = r.getPlugin("comp")
-            rep_by = comp_r.getReplacedBy()
-
-            # only process reactions which are replaced with reactions from the
-            # fba model
-            if rep_by is not None:
-                if rep_by.getSubmodelRef() == self.submodel.getId():
-                    portRef = rep_by.getPortRef()
-                    # get the port
-                    port = comp_model.getPort(portRef)
-                    # get the id of object for port
-                    id_ref = port.getIdRef()
-                    # store
-                    fba2top[id_ref] = top_rid
+            if r_comp.isSetReplacedBy():
+                rep_by = r_comp.getReplacedBy()
+                if rep_by.getSubmodelRef() == submodel_id:
+                    element = rep_by.getReferencedElementFrom(self.model)
+                    fba2top[element.getId()] = rid_top
 
         self.fba2top_reactions = fba2top
 
-
-    def _process_flat_mapping(self, model_top, model_rr):
+    def _process_top2flat_reactions(self, model_top):
         """ Get the id mapping of the fluxes to the flattened model.
 
         :param model_top: top SBML model
-        :param model_rr: roadrunner model (flat)
-        :return:
+        :return: None
         """
         submodel_id = self.submodel.getId()
 
@@ -470,8 +453,6 @@ class FBAModel(object):
                     element = rep_by.getReferencedElementFrom(self.model)
                     replaced_in_fba[element.getId()] = rid_top
 
-        logging.debug('replaced_in_fba:', replaced_in_fba)
-
         # create the mapping
         mapping = {}
         for r in self.model.getListOfReactions():
@@ -481,5 +462,4 @@ class FBAModel(object):
             else:
                 mapping[rid] = '{}__{}'.format(submodel_id, rid)
 
-        logging.debug('mapping:', mapping)
         self.top2flat_reactions = mapping

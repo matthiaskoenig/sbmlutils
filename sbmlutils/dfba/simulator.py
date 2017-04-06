@@ -73,8 +73,11 @@ class DFBASimulator(object):
         self.abs_tol = abs_tol
         self.rel_tol = rel_tol
         self.solution = None
-        # self.fba_solution = None  # last LP solution
-        self.fluxes = None  # last LP fluxes dict
+
+        # FIXME
+        self.fba_solution = None  # last LP solution
+        # self.fluxes = None  # last LP fluxes dict
+
         self.simulation_time = None  # duration of last simulation
         # set solver
         self.cobra_model.solver = lp_solver
@@ -86,8 +89,9 @@ class DFBASimulator(object):
         self.cobra_model.optimize()
 
         # add the pfba objective once
-        if self.pfba:
-            cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
+        # FIXME (pfba once effective)
+        # if self.pfba:
+        #    cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
 
 
     @property
@@ -184,10 +188,11 @@ class DFBASimulator(object):
                     row = self._simulate_ode(tstart=time, tend=time + self.dt)
 
                 # store fba fluxes in ode solution
-                for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
+                for fba_rid, flat_rid in iteritems(self.fba_model.top2flat_reactions):
 
-                    # flux = self.fba_solution.fluxes[fba_rid]
-                    flux = self.fluxes[fba_rid]
+                    # FIXME: speed improvemnts
+                    flux = self.fba_solution.fluxes[fba_rid]
+                    # flux = self.fluxes[fba_rid]
 
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
@@ -295,12 +300,14 @@ class DFBASimulator(object):
         """
         logging.debug("* FBA optimize")
         # self.fba_solution = self.cobra_model.optimize()
-        # logging.debug(self.fba_solution.fluxes)
+        # FIXME
+        self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+        logging.debug(self.fba_solution.fluxes)
 
-        self.cobra_model.solver.optimize()
-        self.fluxes = DFBASimulator.get_solution_fluxes(self.cobra_model)
-        logging.debug(self.fluxes)
-
+        # FIXME
+        # self.cobra_model.solver.optimize()
+        # self.fluxes = DFBASimulator.get_solution_fluxes(self.cobra_model)
+        # logging.debug(self.fluxes)
 
     def _set_fluxes(self):
         """ Set fluxes in ODE part.
@@ -316,14 +323,16 @@ class DFBASimulator(object):
 
         for fba_rid in sorted(self.fba_model.fba2top_reactions):
             top_rid = self.fba_model.fba2top_reactions[fba_rid]
-            # flux = self.fba_solution.fluxes[fba_rid]
-            flux = self.fluxes[fba_rid]
+
+            # FIXME
+            flux = self.fba_solution.fluxes[fba_rid]
+            # flux = self.fluxes[fba_rid]
 
             # reaction rates cannot be set directly in roadrunner
             # necessary to get the parameter from the flux rules
             # rr_comp[top_rid] = flux
 
-            top_pid = self.fba_model.flux_rules[top_rid]
+            top_pid = self.dfba_model.flux_rules[top_rid]
             self.ode_model[top_pid] = flux
 
             logging.debug('\t{:<10}: {:<10} = {}'.format(top_rid, fba_rid, flux))
