@@ -13,9 +13,11 @@
 # serve to show the default.
 
 import sys
+import sphinx_rtd_theme
 import os
 
-import sphinx_rtd_theme
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
+
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
@@ -57,8 +59,12 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
 ]
-# nbsphinx_execute = 'always'
-nbsphinx_execute = 'auto'
+# execution of notebooks
+if on_rtd:
+    nbsphinx_execute = 'auto'
+else:
+    nbsphinx_execute = 'always'
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

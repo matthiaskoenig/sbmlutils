@@ -31,6 +31,10 @@ The libsbgn-python package is available from `pypi
     pip install sbmlutils
 
 
+For detailed installation instructions and how to install the develop version see
+`https://github.com/matthiaskoenig/sbmlutils
+<https://github.com/matthiaskoenig/sbmlutils>`_.
+
 Features
 --------
 The following lists the main features. For examples see the examples section.

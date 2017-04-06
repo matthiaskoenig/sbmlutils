@@ -38,10 +38,26 @@ Documentation with examples is available at
 <a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
 
 ## Installation
-`sbmlutils` is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and the stable version can be installed via 
+### Requirements
+For plotting `tkinter` is required which can be installed via
+```
+apt-get install python-tk
+```
+or for python 3 via
+```
+apt-get install python3-tk
+```
+
+### Stable version
+`sbmlutils` is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and be installed via 
 ```
 pip install sbmlutils
 ```
+To update an existing version use
+```
+pip install sbmlutils --upgrade
+```
+
 ### Develop version
 The latest develop version is available via
 ```
