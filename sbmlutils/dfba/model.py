@@ -50,7 +50,7 @@ class DFBAModel(object):
         self.submodels = defaultdict(list)
         self.rr_comp = None
         self.fba_models = []
-        self.flux_rules = []
+        self.flux_rules = {}
         self.dt = None
 
         self._process_top()
@@ -90,9 +90,7 @@ class DFBAModel(object):
 
         # flux rules
         s += "{:<10} :\n".format('flux rules', self.flux_rules)
-        for key in sorted(self.flux_rules):
-            value = self.flux_rules[key]
-            s += "{:<12} {} <-> {}\n".format('', key, value)
+        s += self.flux_rules_str() + '\n'
 
         # fba model information
         for fba_model in self.fba_models:
@@ -106,10 +104,11 @@ class DFBAModel(object):
 
         :return:
         """
-        lines = ['Flux rules:']
-        for key, value in iteritems(self.flux_rules):
-            lines.append('\t{} : {}'.format(key, value))
-        return "\n".join(lines)
+        lines = []
+        for key in sorted(self.flux_rules):
+            value = self.flux_rules[key]
+            lines.append("\t{:>10} <-> {}".format(key, value))
+        return '\n'.join(lines)
 
     def _process_top(self):
         """ Process the top model.
@@ -305,20 +304,21 @@ class FBAModel(object):
         self.ub_parameters = defaultdict(list)
         self.lb_parameters = defaultdict(list)
         self.fba2top_bounds = None
+
         self.fba2top_reactions = None
-        self.flat_mapping = {}
+        self.top2flat_reactions = None
 
         # flux rules
         self.flux_rules = flux_rules
 
         # objective sense
-        self._process_objective_sense()
+        self._process_objective_direction()
         # bounds
         self._process_bounds()
         if model_top is not None:
             # process the ode <-> fba connection
             self._process_bound_replacements(model_top)
-            self._process_reaction_replacements(model_top)
+            self._process_fba2top_reactions(model_top)
 
         # id mapping
         if model_top and model_rr:
@@ -329,18 +329,19 @@ class FBAModel(object):
         # s = "{}\n".format('-' * 80)
         s = "{} {}\n".format(self.submodel, self.source)
         # s += "{}\n".format('-' * 80)
-        s += "\t{:<20}: {}\n".format('objective sense', self.objective_sense)
-        s += "\t{:<20}: {}\n".format('flux rules', self.flux_rules)
-        s += "\t{:<20}: {}\n".format('ub parameters', self.ub_parameters)
-        s += "\t{:<20}: {}\n".format('lb parameters', self.lb_parameters)
-        s += "\t{:<20}: {}\n".format('fba2top bounds', self.fba2top_bounds)
-        s += "\t{:<20}: {}\n".format('fba2top reactions', self.fba2top_reactions)
-        s += "\t{:<20}: {}\n".format('flat mapping', self.flat_mapping)
+        s += "\t{:<22}: {}\n".format('obj. direction', self.objective_direction)
+        s += "\t{:<22}: {}\n".format('cobra obj. direction', self.cobra_model.objective.direction)
+        s += "\t{:<22}: {}\n".format('flux rules', self.flux_rules)
+        s += "\t{:<22}: {}\n".format('ub parameters', self.ub_parameters)
+        s += "\t{:<22}: {}\n".format('lb parameters', self.lb_parameters)
+        s += "\t{:<22}: {}\n".format('fba2top bounds', self.fba2top_bounds)
+        s += "\t{:<22}: {}\n".format('fba2top reactions', self.fba2top_reactions)
+        s += "\t{:<22}: {}\n".format('top2flat reactions', self.top2flat_reactions)
         # s += "{}\n".format('-' * 80)
 
         return s
 
-    def _process_objective_sense(self):
+    def _process_objective_direction(self):
         """ Read the objective sense from the fba model objective.
 
         :return:
@@ -350,7 +351,7 @@ class FBAModel(object):
         flist = fmodel.getListOfObjectives()
         active_oid = flist.getActiveObjective()
         objective = fmodel.getObjective(active_oid)
-        self.objective_sense = objective.getType()
+        self.objective_direction = objective.getType()
 
     def _process_bounds(self):
         """  Determine which parameters are upper and lower bounds for reactions.
@@ -404,7 +405,8 @@ class FBAModel(object):
                         fba2top[id_ref] = top_pid
         self.fba2top_bounds = fba2top
 
-    def _process_reaction_replacements(self, top_model):
+
+    def _process_fba2top_reactions(self, top_model):
         """ Finds mapping between top reactions and fba reactions.
 
         Necessary for update of top reactions from FBA solution.
@@ -436,6 +438,7 @@ class FBAModel(object):
                     fba2top[id_ref] = top_rid
 
         self.fba2top_reactions = fba2top
+
 
     def _process_flat_mapping(self, model_top, model_rr):
         """ Get the id mapping of the fluxes to the flattened model.
@@ -479,4 +482,4 @@ class FBAModel(object):
                 mapping[rid] = '{}__{}'.format(submodel_id, rid)
 
         logging.debug('mapping:', mapping)
-        self.flat_mapping = mapping
+        self.top2flat_reactions = mapping

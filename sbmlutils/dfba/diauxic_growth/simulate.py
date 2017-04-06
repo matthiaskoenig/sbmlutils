@@ -57,25 +57,32 @@ def benchmark(simulator, tend, dt=0.1, Nrepeat=10):
 
 
 if __name__ == "__main__":
+    from sbmlutils.dfba.model import DFBAModel
+    from sbmlutils.dfba.simulator import DFBASimulator
+
     directory = versioned_directory(dgsettings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, dgsettings.top_file)
     print('Model:', sbml_path)
 
+
+    dfba_model = DFBAModel(sbml_path=sbml_path)
+    print(dfba_model)
+    exit()
+
+
     # logging.getLogger().setLevel(logging.INFO)
-    simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.01])
+    # simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.05])
 
-    # benchmarking
-    if False:
-        from sbmlutils.dfba.model import DFBAModel
-        from sbmlutils.dfba.simulator import DFBASimulator
+    # benchmark simulation
+    if True:
+
         dfba_model = DFBAModel(sbml_path=sbml_path)
-        dfba_sim = DFBASimulator(dfba_model, lp_solver='glpk')
-        print(dfba_sim.cobra_model.solver.interface)
-        benchmark(dfba_sim, tend=10)
-        benchmark(dfba_sim, tend=20)
 
-        dfba_sim = DFBASimulator(dfba_model, lp_solver='cplex')
-        print(dfba_sim.cobra_model.solver.interface)
-        benchmark(dfba_sim, tend=10)
-        benchmark(dfba_sim, tend=20)
+        # for solver in ['glpk', 'cplex']:
+        for solver in ['glpk']:
+            dfba_simulator = DFBASimulator(dfba_model, lp_solver=solver)
+            print(dfba_simulator.cobra_model.solver.interface)
+            dfba_simulator.benchmark(n_repeat=20, tend=10, dt=0.05)
+
+
 

@@ -8,13 +8,13 @@ Usage:
     from sbmlutils.dfba import simulate_dfba
     df, model, simulator = simulate_dfba(sbml_path, tend, dt)
 """
+
 # FIXME: handle submodels directly defined in model
-# FIXME: reset of kinetic model
+# TODO: setting of initial conditions, parameters and values.
 # TODO: FVA, i.e. flux variability analysis with cobrapy
 # TODO: store directly in numpy arrays for speed improvements
 # TODO: set tolerances for the ode integration
 
-# logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 from __future__ import print_function, division, absolute_import
 from six import iteritems
@@ -59,8 +59,6 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True,
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
 
-    # TODO: reset methods & setting of parameters and values.
-
     def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True):
         """ Create the simulator with the processed dfba model.
 
@@ -75,11 +73,22 @@ class DFBASimulator(object):
         self.abs_tol = abs_tol
         self.rel_tol = rel_tol
         self.solution = None
-        self.fba_solution = None  # last LP solution
-        self.simulation_time = None
+        # self.fba_solution = None  # last LP solution
+        self.fluxes = None  # last LP fluxes dict
+        self.simulation_time = None  # duration of last simulation
         # set solver
         self.cobra_model.solver = lp_solver
         self.pfba = pfba
+
+        # Check that the FBA model simulates with given FBA model bounds
+        df_fbc = fbc.cobra_reaction_info(self.cobra_model)
+        logging.info(df_fbc)
+        self.cobra_model.optimize()
+
+        # add the pfba objective once
+        if self.pfba:
+            cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
+
 
     @property
     def dt(self):
@@ -88,10 +97,6 @@ class DFBASimulator(object):
         :return:
         """
         return self.dfba_model.dt
-
-    @property
-    def objective_sense(self):
-        return self.dfba_model.fba_model.objective_sense
 
     @property
     def ode_model(self):
@@ -106,6 +111,15 @@ class DFBASimulator(object):
         """ Cobra model for the FBA model. """
         return self.fba_model.cobra_model
 
+    @property
+    def lp_model(self):
+        """ Cobra model for the FBA model. """
+        return self.fba_model.lp_solver
+
+    def reset(self):
+        """ Reset model to initial conditions. """
+        self.ode_model.reset()
+
     def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True):
         """ Perform model simulation.
 
@@ -119,7 +133,9 @@ class DFBASimulator(object):
 
         # reset model to initial state
         if reset:
-            self.ode_model.reset()
+            self.reset()
+
+        # FIXME: set tolerances on the ode model
 
         # number of steps
         steps = np.round(1.0 * tend / dt)
@@ -128,11 +144,6 @@ class DFBASimulator(object):
 
         # set the dt value
         self.dfba_model.set_dt(dt)
-
-        # Check that the FBA model simulates with given FBA model bounds
-        df_fbc = fbc.cobra_reaction_info(self.cobra_model)
-        logging.info(df_fbc)
-        self.cobra_model.optimize(objective_sense=self.objective_sense)
 
         try:
             logging.debug('###########################')
@@ -159,7 +170,7 @@ class DFBASimulator(object):
                 # update fba bounds from ode
                 self._set_fba_bounds()
                 # optimize fba
-                self._optimize_fba(pfba=self.pfba)
+                self._simulate_fba()
                 # set ode fluxes from fba
                 self._set_fluxes()
 
@@ -168,13 +179,16 @@ class DFBASimulator(object):
                 # --------------------------------------
                 if kstep == 0:
                     # initial values
-                    row = self._ode_simulation(tstart=0.0, tend=0.0)
+                    row = self._simulate_ode(tstart=0.0, tend=0.0)
                 else:
-                    row = self._ode_simulation(tstart=time, tend=time+self.dt)
+                    row = self._simulate_ode(tstart=time, tend=time + self.dt)
 
                 # store fba fluxes in ode solution
                 for fba_rid, flat_rid in iteritems(self.fba_model.flat_mapping):
-                    flux = self.fba_solution.fluxes[fba_rid]
+
+                    # flux = self.fba_solution.fluxes[fba_rid]
+                    flux = self.fluxes[fba_rid]
+
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
                     logging.debug("\t{} = {}".format(fba_rid, flux))
@@ -210,30 +224,29 @@ class DFBASimulator(object):
         self.simulation_time = timeit.default_timer() - start_time
         return self.solution
 
-    def benchmark(self, Nrepeat=10, **kwargs):
-        """ Benchmark the simulate function with given settings.
-
-        :param self:
-        :param tstart:
-        :param tend:
-        :param steps:
-        :param absTol:
-        :return:
+    def benchmark(self, n_repeat=10, **kwargs):
+        """ Benchmark the simulate function with provided simulation parameters.
+        
+        See simulate arguments for available kwargs.
+        
+        :return: numpy array of times
         """
         dt = kwargs['dt']
         tend = kwargs['tend']
         steps = np.round(1.0*tend/dt)
-        timings = np.zeros(shape=(10, 1))
-        for k in range(Nrepeat):
+        timings = np.zeros(shape=(n_repeat, 1))
+        for k in range(n_repeat):
+            self.reset()
             self.simulate(**kwargs)
             # how long did the simulation take
-            print('\t[{}/{}] {:.5f}'.format(k, Nrepeat, self.time))
-            timings[k] = self.time
+            print('\t[{}/{}] {:.5f}'.format(k, n_repeat, self.simulation_time))
+            timings[k] = self.simulation_time
         print('-' * 40)
-        print('N={}, mean +- SD'.format(Nrepeat))
-        print('{:.3f} +- {:.3f} ({} steps)'.format(np.mean(timings), np.std(timings), steps))
-        print('{:.5f} +- {:.5f} (per step)'.format(np.mean(timings) / steps, np.std(timings) / steps))
+        print('N={}, mean+-SD'.format(n_repeat))
+        print('\t{:.5f} +- {:.5f} [{} steps]'.format(np.mean(timings), np.std(timings), steps))
+        print('\t{:.5f} +- {:.5f} [per step]'.format(np.mean(timings) / steps, np.std(timings) / steps))
         print('-' * 40)
+        return timings
 
     def _set_fba_bounds(self):
         """ Set FBA bounds from kinetic model.
@@ -252,7 +265,7 @@ class DFBASimulator(object):
             top_pid = self.fba_model.fba2top_bounds[fba_pid]
 
             # upper bounds
-            if fba_pid in self.fba_model.ub_parameters:
+            if fba_pid in iteritems(self.fba_model.ub_parameters):
                 for rid in self.fba_model.ub_parameters.get(fba_pid):
                     cobra_reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
                     ub = self.ode_model[top_pid]
@@ -273,21 +286,21 @@ class DFBASimulator(object):
                     cobra_reaction.lower_bound = lb
                     logging.debug('\tlower: {:<10} = {}'.format(fba_pid, lb))
 
-    def _optimize_fba(self, pfba=True):
+    def _simulate_fba(self):
         """ Optimize FBA model.
 
         Uses the objective sense from the fba model.
         Runs parsimonious FBA (often written pFBA) which finds a flux distribution
         which gives the optimal growth rate, but minimizes the total sum of flux.
         """
-
         logging.debug("* FBA optimize")
-        self.fba_solution = self.cobra_model.optimize(objective_sense=self.objective_sense)
-        if pfba:
-            logging.debug("running parsimonious FBA")
-            self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+        # self.fba_solution = self.cobra_model.optimize()
+        # logging.debug(self.fba_solution.fluxes)
 
-        logging.debug(self.fba_solution.fluxes)
+        self.cobra_model.solver.optimize()
+        self.fluxes = DFBASimulator.get_solution_fluxes(self.cobra_model)
+        logging.debug(self.fluxes)
+
 
     def _set_fluxes(self):
         """ Set fluxes in ODE part.
@@ -303,7 +316,8 @@ class DFBASimulator(object):
 
         for fba_rid in sorted(self.fba_model.fba2top_reactions):
             top_rid = self.fba_model.fba2top_reactions[fba_rid]
-            flux = self.fba_solution.fluxes[fba_rid]
+            # flux = self.fba_solution.fluxes[fba_rid]
+            flux = self.fluxes[fba_rid]
 
             # reaction rates cannot be set directly in roadrunner
             # necessary to get the parameter from the flux rules
@@ -318,7 +332,7 @@ class DFBASimulator(object):
         if counter == 0:
             logging.debug('\tNo flux replacements')
 
-    def _ode_simulation(self, tstart, tend):
+    def _simulate_ode(self, tstart, tend):
         """ ODE integration for a single timestep.
 
         :param kstep:
@@ -342,3 +356,54 @@ class DFBASimulator(object):
             + sorted(rr.getGlobalParameterIds())
 
         self.ode_model.timeCourseSelections = sel
+
+    @staticmethod
+    def get_solution_fluxes(model, reactions=None, metabolites=None):
+        """
+        Generate a solution representation of the current solver state.
+
+        Parameters
+        ---------
+        model : cobra.Model
+            The model whose reactions to retrieve values for.
+        reactions : list, optional
+            An iterable of `cobra.Reaction` objects. Uses `model.reactions` by
+            default.
+        metabolites : list, optional
+            An iterable of `cobra.Metabolite` objects. Uses `model.metabolites` by
+            default.
+
+        Returns
+        -------
+        cobra.Solution
+
+        Note
+        ----
+        This is only intended for the `optlang` solver interfaces and not the
+        legacy solvers.
+        """
+        cobra.core.model.check_solver_status(model.solver.status)
+        if reactions is None:
+            reactions = model.reactions
+        if metabolites is None:
+            metabolites = model.metabolites
+
+        rxn_index = [rxn.id for rxn in reactions]
+        fluxes = np.zeros(len(reactions))
+        var_primals = model.solver.primal_values
+        reduced = np.zeros(len(reactions))
+        var_duals = model.solver.reduced_costs
+
+        # reduced costs are not always defined, e.g. for integer problems
+        if var_duals[rxn_index[0]] is None:
+            reduced.fill(np.nan)
+            for (i, rxn) in enumerate(reactions):
+                fluxes[i] = var_primals[rxn.id] - var_primals[rxn.reverse_id]
+        else:
+            for (i, rxn) in enumerate(reactions):
+                forward = rxn.id
+                reverse = rxn.reverse_id
+                fluxes[i] = var_primals[forward] - var_primals[reverse]
+                reduced[i] = var_duals[forward] - var_duals[reverse]
+
+        return dict(zip(rxn_index, fluxes))
