@@ -74,9 +74,8 @@ class DFBASimulator(object):
         self.rel_tol = rel_tol
         self.solution = None
 
-        # FIXME
         self.fba_solution = None  # last LP solution
-        # self.fluxes = None  # last LP fluxes dict
+        self.fluxes = None  # last LP fluxes dict
 
         self.simulation_time = None  # duration of last simulation
         # set solver
@@ -89,9 +88,8 @@ class DFBASimulator(object):
         self.cobra_model.optimize()
 
         # add the pfba objective once
-        # FIXME (pfba once effective)
-        # if self.pfba:
-        #    cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
+        if self.pfba:
+            cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
 
 
     @property
@@ -189,10 +187,7 @@ class DFBASimulator(object):
 
                 # store fba fluxes in ode solution
                 for fba_rid, flat_rid in iteritems(self.fba_model.top2flat_reactions):
-
-                    # FIXME: speed improvemnts
-                    flux = self.fba_solution.fluxes[fba_rid]
-                    # flux = self.fluxes[fba_rid]
+                    flux = self.fluxes[fba_rid]
 
                     vindex = df_results.columns.get_loc(flat_rid)
                     row[vindex] = flux
@@ -300,14 +295,13 @@ class DFBASimulator(object):
         """
         logging.debug("* FBA optimize")
         # self.fba_solution = self.cobra_model.optimize()
-        # FIXME
-        self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
-        logging.debug(self.fba_solution.fluxes)
+        # # FIXME
+        # self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+        # logging.debug(self.fba_solution.fluxes)
 
-        # FIXME
-        # self.cobra_model.solver.optimize()
-        # self.fluxes = DFBASimulator.get_solution_fluxes(self.cobra_model)
-        # logging.debug(self.fluxes)
+        self.cobra_model.solver.optimize()
+        self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
+        logging.debug(self.fluxes)
 
     def _set_fluxes(self):
         """ Set fluxes in ODE part.
@@ -324,14 +318,10 @@ class DFBASimulator(object):
         for fba_rid in sorted(self.fba_model.fba2top_reactions):
             top_rid = self.fba_model.fba2top_reactions[fba_rid]
 
-            # FIXME
-            flux = self.fba_solution.fluxes[fba_rid]
-            # flux = self.fluxes[fba_rid]
+            flux = self.fluxes[fba_rid]
 
             # reaction rates cannot be set directly in roadrunner
             # necessary to get the parameter from the flux rules
-            # rr_comp[top_rid] = flux
-
             top_pid = self.dfba_model.flux_rules[top_rid]
             self.ode_model[top_pid] = flux
 
@@ -367,41 +357,27 @@ class DFBASimulator(object):
         self.ode_model.timeCourseSelections = sel
 
     @staticmethod
-    def get_solution_fluxes(model, reactions=None, metabolites=None):
+    def get_fluxes_fast(model, reactions=None):
         """
-        Generate a solution representation of the current solver state.
+        Generates fast solution representation of the current solver state.
 
-        Parameters
-        ---------
-        model : cobra.Model
-            The model whose reactions to retrieve values for.
-        reactions : list, optional
-            An iterable of `cobra.Reaction` objects. Uses `model.reactions` by
-            default.
-        metabolites : list, optional
-            An iterable of `cobra.Metabolite` objects. Uses `model.metabolites` by
-            default.
-
-        Returns
-        -------
-        cobra.Solution
-
-        Note
-        ----
-        This is only intended for the `optlang` solver interfaces and not the
-        legacy solvers.
         """
         cobra.core.model.check_solver_status(model.solver.status)
         if reactions is None:
             reactions = model.reactions
-        if metabolites is None:
-            metabolites = model.metabolites
 
         rxn_index = [rxn.id for rxn in reactions]
-        fluxes = np.zeros(len(reactions))
+
+        # FIXME: this should be numpy arrays, no OrderedDict (would allow fast calculation of fluxes via array operation)
+        # dicts would also improve the runtime
+        # just get the order of reactions once, and the order of variables an reuse (we know it does not change)
+
+
         var_primals = model.solver.primal_values
-        reduced = np.zeros(len(reactions))
         var_duals = model.solver.reduced_costs
+
+        reduced = np.zeros(len(reactions))
+        fluxes = np.zeros(len(reactions))
 
         # reduced costs are not always defined, e.g. for integer problems
         if var_duals[rxn_index[0]] is None:
@@ -416,3 +392,23 @@ class DFBASimulator(object):
                 reduced[i] = var_duals[forward] - var_duals[reverse]
 
         return dict(zip(rxn_index, fluxes))
+
+
+    @staticmethod
+    def get_fluxes_vector(model, reactions=None):
+        """
+        Generates fast solution representation of the current solver state.
+
+        """
+        cobra.core.model.check_solver_status(model.solver.status)
+        if reactions is None:
+            reactions = model.reactions
+
+        rxn_index = [rxn.id for rxn in reactions]
+        var_primals = dict(zip(model.solver._get_variables_names(),
+                               model.solver._get_primal_values()))
+        fluxes = {}
+        for (i, rxn) in enumerate(reactions):
+            fluxes[rxn_index[i]] = var_primals[rxn.id] - var_primals[rxn.reverse_id]
+
+        return fluxes
