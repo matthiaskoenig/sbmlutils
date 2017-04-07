@@ -85,7 +85,6 @@ class DFBASimulator(object):
         # Check that the FBA model simulates with given FBA model bounds
         df_fbc = fbc.cobra_reaction_info(self.cobra_model)
         logging.info(df_fbc)
-        self.cobra_model.optimize()
 
         # add the pfba objective once
         if self.pfba:
@@ -201,6 +200,8 @@ class DFBASimulator(object):
 
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
                 logging.debug("Time for step: {:2.4}".format(timeit.default_timer() - step_time))
+
+                exit()
 
             # create result matrix
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections,
