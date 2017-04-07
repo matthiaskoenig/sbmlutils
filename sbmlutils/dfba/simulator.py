@@ -90,6 +90,13 @@ class DFBASimulator(object):
         if self.pfba:
             cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
 
+        # flux replacements in ode model
+        parameter2flux = {}
+        for fba_rid, top_rid in iteritems(self.fba_model.fba2top_reactions):
+            top_pid = self.dfba_model.flux_rules[top_rid]
+            parameter2flux[top_pid] = top_rid
+        self.parameter2flux = parameter2flux
+
 
     @property
     def dt(self):
@@ -120,6 +127,19 @@ class DFBASimulator(object):
     def reset(self):
         """ Reset model to initial conditions. """
         self.ode_model.reset()
+
+    def _set_timecourse_selections(self):
+        """ Timecourse selections for the ode model."""
+
+        rr = self.ode_model.getModel()
+        sel = ['time'] \
+            + sorted(["".join(["[", item, "]"]) for item in rr.getFloatingSpeciesIds()]) \
+            + sorted(["".join(["[", item, "]"]) for item in rr.getBoundarySpeciesIds()]) \
+            + sorted(rr.getReactionIds()) \
+            + sorted(rr.getGlobalParameterIds())
+
+        self.ode_model.timeCourseSelections = sel
+        self.columns = dict(zip(sel, range(len(sel))))
 
     def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True):
         """ Perform model simulation.
@@ -155,8 +175,11 @@ class DFBASimulator(object):
             points = steps + 1
             all_time = np.linspace(start=tstart, stop=tend, num=points)
             all_results = []
-            df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections)
 
+            df_results = pd.DataFrame(index=all_time, columns=self.columns)
+
+            # initial values
+            row = self._simulate_ode(tstart=0.0, tend=0.0)
             time = 0.0
             kstep = 0
             while kstep < points:
@@ -169,7 +192,7 @@ class DFBASimulator(object):
                 # FBA
                 # --------------------------------------
                 # update fba bounds from ode
-                self._set_fba_bounds()
+                self._set_fba_bounds(row)
                 # optimize fba
                 self._simulate_fba()
                 # set ode fluxes from fba
@@ -178,18 +201,16 @@ class DFBASimulator(object):
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
+                # FIXME: correct the start point
                 if kstep == 0:
-                    # initial values
                     row = self._simulate_ode(tstart=0.0, tend=0.0)
                 else:
                     row = self._simulate_ode(tstart=time, tend=time + self.dt)
 
                 # store fba fluxes in ode solution
                 for fba_rid, flat_rid in iteritems(self.fba_model.top2flat_reactions):
-                    flux = self.fluxes[fba_rid]
-
-                    vindex = df_results.columns.get_loc(flat_rid)
-                    row[vindex] = flux
+                    index = self.columns[flat_rid]
+                    row[index] = flux = self.fluxes[fba_rid]
                     logging.debug("\t{} = {}".format(fba_rid, flux))
 
                 all_results.append(row)
@@ -201,7 +222,7 @@ class DFBASimulator(object):
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
                 logging.debug("Time for step: {:2.4}".format(timeit.default_timer() - step_time))
 
-                exit()
+                # exit()
 
             # create result matrix
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections,
@@ -249,43 +270,18 @@ class DFBASimulator(object):
         print('-' * 40)
         return timings
 
-    def _set_fba_bounds(self):
-        """ Set FBA bounds from kinetic model.
+    def _simulate_ode(self, tstart, tend):
+        """ ODE integration for a single timestep.
 
-        Uses the global bound replacements to update the bounds of the FBA reactions.
-        The parameters are read from the kinetic model.
-
-        :param model:
-        :type model:
+        :param kstep:
+        :param step_size:
         :return:
-        :rtype:
         """
-        logging.debug('* FBA set bounds ')
+        logging.debug('* ODE integration')
+        result = self.ode_model.simulate(start=tstart, end=tend, steps=1)
 
-        for fba_pid in sorted(self.fba_model.fba2top_bounds):
-            top_pid = self.fba_model.fba2top_bounds[fba_pid]
-
-            # upper bounds
-            if fba_pid in iteritems(self.fba_model.ub_parameters):
-                for rid in self.fba_model.ub_parameters.get(fba_pid):
-                    cobra_reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
-                    ub = self.ode_model[top_pid]
-                    if abs(ub) <= self.abs_tol:
-                        logging.info('\tupper: {:<10} = {} set to 0.0'.format(fba_pid, ub))
-                        ub = 0.0
-                    cobra_reaction.upper_bound = ub
-                    logging.debug('\tupper: {:<10} = {}'.format(fba_pid, ub))
-
-            # lower bounds
-            if fba_pid in self.fba_model.lb_parameters:
-                for rid in self.fba_model.lb_parameters.get(fba_pid):
-                    cobra_reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
-                    lb = self.ode_model[top_pid]
-                    if abs(lb) <= self.abs_tol:
-                        logging.info('\tlower: {:<10} = {} set to 0.0'.format(fba_pid, lb))
-                        lb = 0.0
-                    cobra_reaction.lower_bound = lb
-                    logging.debug('\tlower: {:<10} = {}'.format(fba_pid, lb))
+        # store ode row, i.e. the end of the simulation
+        return result[1, :]
 
     def _simulate_fba(self):
         """ Optimize FBA model.
@@ -304,97 +300,6 @@ class DFBASimulator(object):
         self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
         logging.debug(self.fluxes)
 
-    def _set_fluxes(self):
-        """ Set fluxes in ODE part.
-
-        Based on replacements the FBA fluxes are written in the kinetic flattended model.
-        :param ode_model:
-        :type ode_model:
-        :return:
-        :rtype:
-        """
-        logging.debug("* ODE set FBA fluxes")
-        counter = 0
-
-        for fba_rid in sorted(self.fba_model.fba2top_reactions):
-            top_rid = self.fba_model.fba2top_reactions[fba_rid]
-
-            flux = self.fluxes[fba_rid]
-
-            # reaction rates cannot be set directly in roadrunner
-            # necessary to get the parameter from the flux rules
-            top_pid = self.dfba_model.flux_rules[top_rid]
-            self.ode_model[top_pid] = flux
-
-            logging.debug('\t{:<10}: {:<10} = {}'.format(top_rid, fba_rid, flux))
-            counter += 1
-
-        if counter == 0:
-            logging.debug('\tNo flux replacements')
-
-    def _simulate_ode(self, tstart, tend):
-        """ ODE integration for a single timestep.
-
-        :param kstep:
-        :param step_size:
-        :return:
-        """
-        logging.debug('* ODE integration')
-        result = self.ode_model.simulate(start=tstart, end=tend, steps=1)
-
-        # store ode row, i.e. the end of the simulation
-        return result[1, :]
-
-    def _set_timecourse_selections(self):
-        """ Timecourse selections for the ode model."""
-
-        rr = self.ode_model.getModel()
-        sel = ['time'] \
-            + sorted(["".join(["[", item, "]"]) for item in rr.getFloatingSpeciesIds()]) \
-            + sorted(["".join(["[", item, "]"]) for item in rr.getBoundarySpeciesIds()]) \
-            + sorted(rr.getReactionIds()) \
-            + sorted(rr.getGlobalParameterIds())
-
-        self.ode_model.timeCourseSelections = sel
-
-    @staticmethod
-    def get_fluxes_fast(model, reactions=None):
-        """
-        Generates fast solution representation of the current solver state.
-
-        """
-        cobra.core.model.check_solver_status(model.solver.status)
-        if reactions is None:
-            reactions = model.reactions
-
-        rxn_index = [rxn.id for rxn in reactions]
-
-        # FIXME: this should be numpy arrays, no OrderedDict (would allow fast calculation of fluxes via array operation)
-        # dicts would also improve the runtime
-        # just get the order of reactions once, and the order of variables an reuse (we know it does not change)
-
-
-        var_primals = model.solver.primal_values
-        var_duals = model.solver.reduced_costs
-
-        reduced = np.zeros(len(reactions))
-        fluxes = np.zeros(len(reactions))
-
-        # reduced costs are not always defined, e.g. for integer problems
-        if var_duals[rxn_index[0]] is None:
-            reduced.fill(np.nan)
-            for (i, rxn) in enumerate(reactions):
-                fluxes[i] = var_primals[rxn.id] - var_primals[rxn.reverse_id]
-        else:
-            for (i, rxn) in enumerate(reactions):
-                forward = rxn.id
-                reverse = rxn.reverse_id
-                fluxes[i] = var_primals[forward] - var_primals[reverse]
-                reduced[i] = var_duals[forward] - var_duals[reverse]
-
-        return dict(zip(rxn_index, fluxes))
-
-
     @staticmethod
     def get_fluxes_vector(model, reactions=None):
         """
@@ -405,6 +310,7 @@ class DFBASimulator(object):
         if reactions is None:
             reactions = model.reactions
 
+        # FIXME: calculate order once and reuse it
         rxn_index = [rxn.id for rxn in reactions]
         var_primals = dict(zip(model.solver._get_variables_names(),
                                model.solver._get_primal_values()))
@@ -413,3 +319,69 @@ class DFBASimulator(object):
             fluxes[rxn_index[i]] = var_primals[rxn.id] - var_primals[rxn.reverse_id]
 
         return fluxes
+
+    def _set_fba_bounds(self, row):
+        """ Set FBA bounds from kinetic model.
+
+        Uses the global bound replacements to update the bounds of the FBA reactions.
+        The parameters are read from the kinetic model.
+
+        :param model:
+        :type model:
+        :return:
+        :rtype:
+        """
+        logging.debug('* FBA set bounds ')
+
+        # FIXME: unify in one inline function
+
+        # upper bounds
+        for top_pid, rid in iteritems(self.fba_model.ub_pid2rid):
+            reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
+
+            # lookup from ode results
+            index = self.columns[top_pid]
+            ub = row[index]
+            # lookup from model
+            # ub = self.ode_model[top_pid]
+
+            if abs(ub) <= self.abs_tol:
+                ub = 0.0
+                logging.info('\tupper: {:<10} = {} set to 0.0'.format(top_pid, ub))
+            reaction.upper_bound = ub
+            logging.debug('\tupper: {:<10} = {}'.format(top_pid, ub))
+
+        # lower bounds
+        for top_pid, rid in iteritems(self.fba_model.lb_pid2rid):
+            reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
+
+            # lookup from ode results
+            index = self.columns[top_pid]
+            lb = row[index]
+            # lookup from model
+            # lb = self.ode_model[top_pid]
+            if abs(lb) <= self.abs_tol:
+                lb = 0.0
+                logging.info('\tlower: {:<10} = {} set to 0.0'.format(top_pid, lb))
+
+            reaction.lower_bound = lb
+            logging.debug('\tlower: {:<10} = {}'.format(top_pid, lb))
+
+
+    def _set_fluxes(self):
+        """ Set fluxes in ODE part.
+
+        Based on replacements the FBA fluxes are written in the kinetic flattended model.
+        :param ode_model:
+        :type ode_model:
+        :return:
+        :rtype:
+        """
+        logging.debug("* ODE set FBA fluxes")
+
+        for top_pid, fba_rid in iteritems(self.parameter2flux):
+            # reaction rates cannot be set directly in roadrunner
+            # parameters have to be set manually
+            self.ode_model[top_pid] = self.fluxes[fba_rid]
+            logging.debug('\t{:<10}: {:<10} = {}'.format(top_pid, fba_rid, self.fluxes[fba_rid]))
+

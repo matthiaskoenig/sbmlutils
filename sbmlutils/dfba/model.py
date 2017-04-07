@@ -311,7 +311,8 @@ class FBAModel(object):
         self._process_objective_direction()
 
         # bounds
-        self._process_bounds()
+        self.ub_pid2rid = None
+        self.lb_pid2rid = None
 
         # process the top (ode) <-> fba connections (bounds & reaction replacements)
         if model_top is not None:
@@ -327,13 +328,12 @@ class FBAModel(object):
         s += "\t{:<22}: {}\n".format('obj. direction', self.objective_direction)
         s += "\t{:<22}: {}\n".format('cobra obj. direction', self.cobra_model.objective.direction)
         s += "\t{:<22}: {}\n".format('fba2top reactions', self.fba2top_reactions)
+
+        # s += "\t{:<22}: {}\n".format('fba2top bounds', self.fba2top_bounds)
+        s += "\t{:<22}: {}\n".format('ub_pid2rid', self.ub_pid2rid)
+        s += "\t{:<22}: {}\n".format('lb_pid2rid', self.lb_pid2rid)
+
         s += "\t{:<22}: {}\n".format('top2flat reactions', self.top2flat_reactions)
-
-        s += "\t{:<22}: {}\n".format('ub parameters', self.ub_parameters)
-        s += "\t{:<22}: {}\n".format('lb parameters', self.lb_parameters)
-        s += "\t{:<22}: {}\n".format('fba2top bounds', self.fba2top_bounds)
-
-        # s += "{}\n".format('-' * 80)
 
         return s
 
@@ -349,22 +349,22 @@ class FBAModel(object):
         objective = fmodel.getObjective(active_oid)
         self.objective_direction = objective.getType()
 
-    def _process_bounds(self):
-        """  Determine which parameters are upper and lower bounds for reactions.
-
-        The dictionaries allow simple lookup of the bound parameters for update.
-
-        :return:
-        :rtype:
-        """
-        logging.debug('* (fba) _process_bounds')
-        for r in self.model.getListOfReactions():
-            fbc_r = r.getPlugin("fbc")
-            rid = r.getId()
-            if fbc_r.isSetUpperFluxBound():
-                self.ub_parameters[fbc_r.getUpperFluxBound()].append(rid)
-            if fbc_r.isSetLowerFluxBound():
-                self.lb_parameters[fbc_r.getLowerFluxBound()].append(rid)
+    # def _process_bounds(self):
+    #     """  Determine which parameters are upper and lower bounds for reactions.
+    #
+    #     The dictionaries allow simple lookup of the bound parameters for update.
+    #
+    #     :return:
+    #     :rtype:
+    #     """
+    #     logging.debug('* (fba) _process_bounds')
+    #     for r in self.model.getListOfReactions():
+    #         fbc_r = r.getPlugin("fbc")
+    #         rid = r.getId()
+    #         if fbc_r.isSetUpperFluxBound():
+    #             self.ub_parameters[fbc_r.getUpperFluxBound()].append(rid)
+    #         if fbc_r.isSetLowerFluxBound():
+    #             self.lb_parameters[fbc_r.getLowerFluxBound()].append(rid)
 
     def _process_bound_replacements(self, top_model):
         """ Process the top bound replacements once.
@@ -379,27 +379,40 @@ class FBAModel(object):
         Necessary for the update of bounds from ode solution.
         """
         logging.debug('* (fba) _process_bound_replacements')
-        fba2top = {}
-        comp_model = self.model.getPlugin('comp')
+        submodel_id = self.submodel.getId()
 
+        # find the bound parameters which are connected to ode model
+        top_pid2fba_pid = {}
         for p in top_model.getListOfParameters():
             top_pid = p.getId()
             comp_p = p.getPlugin("comp")
 
             rep_elements = comp_p.getListOfReplacedElements()
-            # only process parameters with ReplacedBy elements
             if rep_elements:
                 for rep_element in rep_elements:
                     # the submodel of the replacement belongs to the current fba submodel
-                    if rep_element.getSubmodelRef() == self.submodel.getId():
-                        portRef = rep_element.getPortRef()
-                        # get the port
-                        port = comp_model.getPort(portRef)
-                        # get the id of object for port
-                        id_ref = port.getIdRef()
-                        # store
-                        fba2top[id_ref] = top_pid
-        self.fba2top_bounds = fba2top
+                    if rep_element.getSubmodelRef() == submodel_id:
+                        element = rep_element.getReferencedElementFrom(self.model)
+                        top_pid2fba_pid[top_pid] = element.getId()
+
+        bound_pids = set(top_pid2fba_pid.values())
+        # mapping of upper bounds & lower bounds
+        ub_pid2rid = {}
+        lb_pid2rid = {}
+        for r in self.model.getListOfReactions():
+            fbc_r = r.getPlugin("fbc")
+            rid = r.getId()
+            if fbc_r.isSetUpperFluxBound():
+                pid = fbc_r.getUpperFluxBound()
+                if pid in bound_pids:
+                    ub_pid2rid[pid] = rid
+            if fbc_r.isSetLowerFluxBound():
+                pid = fbc_r.getLowerFluxBound()
+                if pid in bound_pids:
+                    lb_pid2rid[pid] = rid
+
+        self.ub_pid2rid = ub_pid2rid
+        self.lb_pid2rid = lb_pid2rid
 
     def _process_fba2top_reactions(self, model_top):
         """ Finds mapping between top reactions and fba reactions.

@@ -76,13 +76,11 @@ if __name__ == "__main__":
     # benchmark simulation
     if True:
 
-
-
         for solver in ['glpk', 'cplex']:
         # for solver in ['glpk', 'cplex', 'gurobi']:
         # for solver in ['glpk']:
             dfba_model = DFBAModel(sbml_path=sbml_path)
             dfba_simulator = DFBASimulator(dfba_model, lp_solver=solver)
             print(dfba_simulator.cobra_model.solver.interface)
-            dfba_simulator.benchmark(n_repeat=50, tend=10, dt=0.05)
+            dfba_simulator.benchmark(n_repeat=20, tend=10, dt=0.05)
 
