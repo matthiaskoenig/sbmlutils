@@ -143,7 +143,7 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
     }
     dfs = []
     for dt in dts:
-        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=True, lp_solver="cplex")
+        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=True)
         dfs.append(df)
 
         # generic analysis
@@ -227,12 +227,27 @@ def simulate_carbon_sources(sbml_path, out_dir):
 
 
 if __name__ == "__main__":
+    from sbmlutils.dfba.model import DFBAModel
+    from sbmlutils.dfba.simulator import DFBASimulator
+
+
     import logging
     # logging.basicConfig(level=logging.DEBUG)
 
     directory = utils.versioned_directory(settings.out_dir, model_factory.version)
-    top_sbml_path = os.path.join(directory, settings.top_file)
+    sbml_path = os.path.join(directory, settings.top_file)
 
-    print(top_sbml_path)
-    simulate_ecoli(top_sbml_path, dts=[0.05], out_dir=directory)
+    print(sbml_path)
+    simulate_ecoli(sbml_path, dts=[0.05], out_dir=directory)
     # simulate_carbon_sources(top_sbml_path, out_dir=directory)
+    # benchmark simulation
+
+    if True:
+
+        # for solver in ['glpk', 'cplex']:
+        # for solver in ['glpk', 'cplex', 'gurobi']:
+        for solver in ['glpk']:
+            dfba_model = DFBAModel(sbml_path=sbml_path)
+            dfba_simulator = DFBASimulator(dfba_model, lp_solver=solver)
+            print(dfba_simulator.cobra_model.solver.interface)
+            dfba_simulator.benchmark(n_repeat=20, tend=3.5, dt=0.01)
