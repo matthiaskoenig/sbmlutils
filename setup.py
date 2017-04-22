@@ -89,7 +89,7 @@ setup(
     packages=find_packages(),
     # package_dir={'': ''},
     package_data={
-      '': ['requirements.txt',
+      '': ['../requirements.txt',
            'tests/data'],
     },
     include_package_data=True,
