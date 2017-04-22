@@ -31,11 +31,12 @@ except:
     requirements = pip.req.parse_requirements(
         'requirements.txt', session=pip.download.PipSession())
 
-for item in requirements:
+for item in pip.req.parse_requirements(
+        'requirements.txt', session=pip.download.PipSession()):
     # we want to handle package names and also repo urls
     if getattr(item, 'url', None):  # older pip has url
         links.append(str(item.url))
-    if getattr(item, 'link', None): # newer pip has link
+    if getattr(item, 'link', None):  # newer pip has link
         links.append(str(item.link))
     if item.req:
         requires.append(str(item.req))
@@ -88,7 +89,8 @@ setup(
     packages=find_packages(),
     # package_dir={'': ''},
     package_data={
-      '': ['tests/data'],
+      '': ['requirements.txt',
+           'tests/data'],
     },
     include_package_data=True,
     zip_safe=False,
