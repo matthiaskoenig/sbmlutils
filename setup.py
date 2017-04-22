@@ -12,16 +12,36 @@ from __future__ import absolute_import, print_function
 
 import io
 import re
-from glob import glob
-from os.path import basename
 from os.path import dirname
 from os.path import join
-from os.path import splitext
 
 from setuptools import find_packages
 from setuptools import setup
 
+import pip
 
+# parse requirements.txt (packages and github links)
+links = []
+requires = []
+
+try:
+    requirements = pip.req.parse_requirements('requirements.txt')
+except:
+    # new versions of pip requires a session
+    requirements = pip.req.parse_requirements(
+        'requirements.txt', session=pip.download.PipSession())
+
+for item in requirements:
+    # we want to handle package names and also repo urls
+    if getattr(item, 'url', None):  # older pip has url
+        links.append(str(item.url))
+    if getattr(item, 'link', None): # newer pip has link
+        links.append(str(item.link))
+    if item.req:
+        requires.append(str(item.req))
+
+
+# read the version and info file
 def read(*names, **kwargs):
     """ Read file info in correct encoding. """
     return io.open(
@@ -70,24 +90,10 @@ setup(
     package_data={
       '': ['tests/data'],
     },
-    # py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
     include_package_data=True,
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
-    # your project is installed. For an analysis of "install_requires" vs pip's
-    # requirements files see:
-    # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[
-        "python-libsbml>=5.13.0",
-        "libroadrunner>=1.4.15",
-        "cobra>=0.6.0a4",
-        # "antimony>2.9.0",
-        "pandas",
-        "tabulate",
-        "Jinja2",
-        "pyexcel",
-        "pyexcel-xlsx",
-        "six",
-    ],
+    install_requires=requires,
+    dependency_links=links,
     extras_require={},
     **setup_kwargs)
