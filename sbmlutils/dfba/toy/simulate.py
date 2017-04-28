@@ -122,12 +122,11 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
+def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
     """
-    tend = 50
     plot_kwargs = {
         'markersize': 4,
         'marker': 's',
@@ -158,6 +157,9 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
 if __name__ == "__main__":
     directory = versioned_directory(settings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, settings.top_file)
+
+    # import logging
+    # logging.basicConfig(level=logging.DEBUG)
 
     from sbmlutils.dfba.model import DFBAModel
     dfba_model = DFBAModel(sbml_path=sbml_path)

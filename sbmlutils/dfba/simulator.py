@@ -86,9 +86,9 @@ class DFBASimulator(object):
         df_fbc = fbc.cobra_reaction_info(self.cobra_model)
         logging.info(df_fbc)
 
-        # add the pfba objective once
-        if self.pfba:
-            cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
+        # FIXME: add the pfba objective once
+        # if self.pfba:
+        #     cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
 
         # flux replacements in ode model
         parameter2flux = {}
@@ -176,7 +176,7 @@ class DFBASimulator(object):
             all_time = np.linspace(start=tstart, stop=tend, num=points)
             all_results = []
 
-            df_results = pd.DataFrame(index=all_time, columns=self.columns)
+            # df_results = pd.DataFrame(index=all_time, columns=self.columns)
 
             # initial values
             row = self._simulate_ode(tstart=0.0, tend=0.0)
@@ -293,12 +293,14 @@ class DFBASimulator(object):
         logging.debug("* FBA optimize")
         # self.fba_solution = self.cobra_model.optimize()
         # # FIXME
-        # self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
-        # logging.debug(self.fba_solution.fluxes)
+        self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+        self.fluxes = self.fba_solution.fluxes
+        logging.debug(self.fba_solution.fluxes)
 
-        self.cobra_model.solver.optimize()
-        self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
-        logging.debug(self.fluxes)
+        # directly call the optimization
+        # self.cobra_model.solver.optimize()
+        # self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
+        # logging.debug(self.fluxes)
 
     @staticmethod
     def get_fluxes_vector(model, reactions=None):
@@ -333,7 +335,7 @@ class DFBASimulator(object):
         """
         logging.debug('* FBA set bounds ')
 
-        # FIXME: unify in one inline function
+        # FIXME: unify in one inline function, set upper and lower bounds at once
 
         # upper bounds
         for top_pid, rid in iteritems(self.fba_model.ub_pid2rid):

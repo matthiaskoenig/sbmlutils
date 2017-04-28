@@ -69,12 +69,12 @@ if __name__ == "__main__":
     print(dfba_model)
 
     # logging.getLogger().setLevel(logging.INFO)
-    # simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.05])
+    simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.05])
 
     # TODO: why is first simulation infeasible
 
     # benchmark simulation
-    if True:
+    if False:
 
         for solver in ['glpk', 'cplex']:
         # for solver in ['glpk', 'cplex', 'gurobi']:

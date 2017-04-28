@@ -11,7 +11,7 @@
     <!-- <meta http-equiv="refresh" content="5" /> -->
 
     <link rel="icon" href="_report/images/sbml.ico">
-    <title>toy_top</title>
+    <title>toy_bounds</title>
 
     <!-- CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
@@ -160,7 +160,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#top">toy_top</a>
+            <a class="navbar-brand" href="#top">toy_bounds</a>
         </div>
 
         <form class="navbar-form navbar-left">
@@ -178,11 +178,11 @@
             <ul class="nav nav-sidebar">
                 <li><a href="#top">Model</a></li>
                     <li><a href="#UnitDefinitions">UnitDefinitions</a></li>
+                    <li><a href="#FunctionDefinitions">FunctionDefinitions</a></li>
                     <li><a href="#Compartments">Compartments</a></li>
                     <li><a href="#Species">Species</a></li>
                     <li><a href="#Parameters">Parameters</a></li>
                     <li><a href="#Rules">Rules</a></li>
-                    <li><a href="#Reactions">Reactions</a></li>
             </ul>
         </div>
         <!-- END LEFT -->
@@ -202,11 +202,12 @@
   <body xmlns="http://www.w3.org/1999/xhtml">
     <h1>Wholecell Toy Model</h1>
     <p>
-      <strong>Model version: 9</strong>
+      <strong>Model version: 10</strong>
     </p>
-    <h2>TOP model</h2>
-    <p>Main comp DFBA model by combining fba, update and bounds
-            model with additional kinetics in the top model.</p>
+    <h2>BOUNDS submodel</h2>
+    <p>Submodel for dynamically calculating the flux bounds.
+    The dynamically changing flux bounds are the input to the
+    FBA model.</p>
     <h2>Description</h2>
     <p>This is a toy model for coupling models with different modeling frameworks via comp.</p>
     <div class="dc:publisher">This file has been produced by
@@ -232,12 +233,12 @@
 
         <hr />
 
-    <h1>Model : toy_top</h1>
+    <h1>Model : toy_bounds</h1>
     <b>Creator</b><br />Matthias, Koenig, Humboldt University Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-04-28 12:24<br /><b>Modified:</b> 2017-04-28 12:24<br /><br />
     <table id="table_model_annotation" class="table table-condensed table-nonfluid table-hover">
         <tr>
             <td>
-                <a href="toy_top.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a><br /><br />
+                <a href="toy_bounds.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a><br /><br />
                     <div class="cvterm">
     </div>
 <br />
@@ -250,8 +251,8 @@
             <td>
                 <table id="table_model" class="table table-condensed table-nonfluid table-hover">
                 <tbody>
-                <tr>	<tr><td class="active">id</td><td>toy_top</td></tr>
-	<tr><td class="active">name</td><td>toy (TOP)</td></tr>
+                <tr>	<tr><td class="active">id</td><td>toy_bounds</td></tr>
+	<tr><td class="active">name</td><td>toy (BOUNDS)</td></tr>
 	<tr><td class="active">version</td><td>L3V1</td></tr>
 	<tr><td class="active">time</td><td>s</td></tr>
 	<tr><td class="active">substance</td><td>item</td></tr>
@@ -269,6 +270,83 @@
     <!--------------------------------------------------->
     <!-- FunctionDefinitions -->
     <!--------------------------------------------------->
+        <a class="anchor" id="FunctionDefinitions"></a>
+        <table id="table_functions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">FunctionDefinitions [2]</th>
+	<th scope="col">name</th>
+	<th scope="col">math</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td class="active">max</td>
+	<td>min</td>
+	<td>    <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <bvar>
+      <ci> y </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <ci> x </ci>
+        <apply>
+          <gt/>
+          <ci> x </ci>
+          <ci> y </ci>
+        </apply>
+      </piece>
+      <otherwise>
+        <ci> y </ci>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math>
+</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td class="active">min</td>
+	<td>max</td>
+	<td>    <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <bvar>
+      <ci> y </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <ci> x </ci>
+        <apply>
+          <lt/>
+          <ci> x </ci>
+          <ci> y </ci>
+        </apply>
+      </piece>
+      <otherwise>
+        <ci> y </ci>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math>
+</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
 
     <!--------------------------------------------------->
     <!-- UnitDefinitions -->
@@ -462,7 +540,7 @@
         <table id="table_species" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Species [4]</th>
+	<th scope="col" class="warning">Species [2]</th>
     <th scope="col">name</th>
 	<th scope="col">compartment</th>
 	<th scope="col">boundary condition</th>
@@ -486,9 +564,9 @@
             <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 
 	<td>
+            1.0
     </td>
 	<td>
-            10.0
     </td>
 	<td>item</td>
 	<td>        <?xml version="1.0" encoding="UTF-8"?>
@@ -509,56 +587,7 @@
             <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 
 	<td>
-    </td>
-	<td>
-            0.0
-    </td>
-	<td>item</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> item </ci>
-</math>
-</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Species</td>
-	<td class="active">dummy_S</td>
-	<td>dummy_S<br />
-        <span class="cvterm blue"></span></td>
-	<td>extern</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-
-	<td>
-            0.0
-    </td>
-	<td>
-    </td>
-	<td>item</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> item </ci>
-</math>
-</td>
-	<td>        <div class="cvterm">
-        <a href="http://identifiers.org/biomodels.sbo/SBO:0000291" target="_blank">SBO:0000291</a>
-        </div>
-</td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Species</td>
-	<td class="active">D</td>
-	<td><br />
-        <span class="cvterm blue"></span></td>
-	<td>extern</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-
-	<td>
-            0.0
+            1.0
     </td>
 	<td>
     </td>
@@ -582,7 +611,7 @@
         <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Parameters [9]</th>
+	<th scope="col" class="warning">Parameters [8]</th>
 	<th scope="col">name</th>
 	<th scope="col">value</th>
 	<th scope="col">unit</th>
@@ -705,9 +734,9 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">pEX_A</td>
+	<td class="active">lb_default</td>
 	<td></td>
-	<td>            1.0
+	<td>            -1000.0
     </td>
 	<td>item_per_s</td>
 	<td>        <?xml version="1.0" encoding="UTF-8"?>
@@ -715,52 +744,6 @@
   <apply>
     <divide/>
     <ci> item </ci>
-    <ci> s </ci>
-  </apply>
-</math>
-</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-
-	<td>        <div class="cvterm">
-        <a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a>
-        </div>
-</td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active">pEX_C</td>
-	<td></td>
-	<td>            1.0
-    </td>
-	<td>item_per_s</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> item </ci>
-    <ci> s </ci>
-  </apply>
-</math>
-</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-
-	<td>        <div class="cvterm">
-        <a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a>
-        </div>
-</td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active">k_R4</td>
-	<td>k R4</td>
-	<td>            0.1
-    </td>
-	<td>per_s</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <cn type="integer"> 1 </cn>
     <ci> s </ci>
   </apply>
 </math>
@@ -793,6 +776,26 @@
 </td>
 	<td></td>
 </tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td class="active">k1</td>
+	<td>k1</td>
+	<td>            -0.2
+    </td>
+	<td>per_s</td>
+	<td>        <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> s </ci>
+  </apply>
+</math>
+</td>
+            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+
+	<td></td>
+	<td></td>
+</tr>
             </tbody>
         </table>
         <hr/>
@@ -808,7 +811,7 @@
         <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Rules [2]</th>
+	<th scope="col" class="warning">Rules [3]</th>
 	<th scope="col">&nbsp;</th>
 	<th scope="col">assignment</th>
 	<th scope="col">derived units</th>
@@ -818,11 +821,50 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Rule</td>
-	<td class="active">pEX_A</td>
+	<td class="active">d ub_R1/dt</td>
 	<td>=</td>
 	<td>    <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> EX_A </ci>
+  <apply>
+    <times/>
+    <ci> k1 </ci>
+    <ci> ub_R1 </ci>
+  </apply>
+</math>
+</td>
+    <td>        <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <apply>
+      <power/>
+      <ci> s </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+  </apply>
+</math>
+</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td class="active">lb_EX_A</td>
+	<td>=</td>
+	<td>    <?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <ci> max </ci>
+    <ci> lb_default </ci>
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> A </ci>
+      </apply>
+      <ci> dt </ci>
+    </apply>
+  </apply>
 </math>
 </td>
     <td>        <?xml version="1.0" encoding="UTF-8"?>
@@ -838,11 +880,22 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td class="active">pEX_C</td>
+	<td class="active">lb_EX_C</td>
 	<td>=</td>
 	<td>    <?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> EX_C </ci>
+  <apply>
+    <ci> max </ci>
+    <ci> lb_default </ci>
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> C </ci>
+      </apply>
+      <ci> dt </ci>
+    </apply>
+  </apply>
 </math>
 </td>
     <td>        <?xml version="1.0" encoding="UTF-8"?>
@@ -868,107 +921,6 @@
     <!--------------------------------------------------->
     <!-- Reactions -->
     <!--------------------------------------------------->
-        <a class="anchor" id="Reactions"></a>
-        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
-            <thead>
-            <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Reactions [3]</th>
-	<th scope="col">name</th>
-	<th scope="col"></th>
-	<th scope="col">equation</th>
-	<th scope="col">modifiers</th>
-    <th scope="col">formula</th>
-	<th scope="col">derived units</th>
-    <th scope="col">sbo</th>
-    <th scope="col">cvterm</th>
-</tr>
-            </thead>
-            <tbody>
-                <tr>    <td class="hidden">Reaction</td>
-	<td class="active">EX_A</td>
-	<td></td>
-	    <td class="danger">&#10142;</td>
-	<td> &#10142; dummy_S</td>
-	<td>
-    </td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
-  <cn sbml:units="item_per_s" type="integer"> 0 </cn>
-</math>
-</td>
-    <td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> item </ci>
-    <ci> s </ci>
-  </apply>
-</math>
-</td>
-	<td>        <div class="cvterm">
-        <a href="http://identifiers.org/biomodels.sbo/SBO:0000631" target="_blank">SBO:0000631</a>
-        </div>
-</td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Reaction</td>
-	<td class="active">EX_C</td>
-	<td></td>
-	    <td class="danger">&#10142;</td>
-	<td> &#10142; dummy_S</td>
-	<td>
-    </td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
-  <cn sbml:units="item_per_s" type="integer"> 0 </cn>
-</math>
-</td>
-    <td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> item </ci>
-    <ci> s </ci>
-  </apply>
-</math>
-</td>
-	<td>        <div class="cvterm">
-        <a href="http://identifiers.org/biomodels.sbo/SBO:0000631" target="_blank">SBO:0000631</a>
-        </div>
-</td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Reaction</td>
-	<td class="active">R4</td>
-	<td>C -> D</td>
-	    <td class="danger">&#10142;</td>
-	<td>C &#10142; D</td>
-	<td>
-    </td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> k_R4 </ci>
-    <ci> C </ci>
-  </apply>
-</math>
-</td>
-    <td>        <?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> item </ci>
-    <ci> s </ci>
-  </apply>
-</math>
-</td>
-	<td></td>
-	<td></td>
-</tr>
-            </tbody>
-        </table>
-        <hr/>
     
     <!--------------------------------------------------->
     <!-- Events -->
