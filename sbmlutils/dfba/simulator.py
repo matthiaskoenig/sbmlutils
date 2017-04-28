@@ -86,9 +86,9 @@ class DFBASimulator(object):
         df_fbc = fbc.cobra_reaction_info(self.cobra_model)
         logging.info(df_fbc)
 
-        # add the pfba objective once
-        if self.pfba:
-            cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
+        # FIXME: add the pfba objective once
+        # if self.pfba:
+        #     cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
 
         # flux replacements in ode model
         parameter2flux = {}
@@ -171,15 +171,13 @@ class DFBASimulator(object):
             logging.debug('# Start Simulation')
             logging.debug('###########################')
 
-
             points = steps + 1
             all_time = np.linspace(start=tstart, stop=tend, num=points)
             all_results = []
 
-            df_results = pd.DataFrame(index=all_time, columns=self.columns)
-
             # initial values
-            row = self._simulate_ode(tstart=0.0, tend=0.0)
+            ode_res = self._simulate_ode(tstart=0.0, tend=0.0)
+            row_next = ode_res[1, :]
             time = 0.0
             kstep = 0
             while kstep < points:
@@ -192,7 +190,7 @@ class DFBASimulator(object):
                 # FBA
                 # --------------------------------------
                 # update fba bounds from ode
-                self._set_fba_bounds(row)
+                self._set_fba_bounds(row_next)
                 # optimize fba
                 self._simulate_fba()
                 # set ode fluxes from fba
@@ -201,17 +199,10 @@ class DFBASimulator(object):
                 # --------------------------------------
                 # ODE
                 # --------------------------------------
-                # FIXME: correct the start point
-                if kstep == 0:
-                    row = self._simulate_ode(tstart=0.0, tend=0.0)
-                else:
-                    row = self._simulate_ode(tstart=time, tend=time + self.dt)
-
-                # store fba fluxes in ode solution
-                for fba_rid, flat_rid in iteritems(self.fba_model.top2flat_reactions):
-                    index = self.columns[flat_rid]
-                    row[index] = flux = self.fluxes[fba_rid]
-                    logging.debug("\t{} = {}".format(fba_rid, flux))
+                ode_res = self._simulate_ode(tstart=time, tend=time + self.dt)
+                row = ode_res[0, :]
+                row_next = ode_res[1, :]
+                self._store_fba_fluxes(row)
 
                 all_results.append(row)
 
@@ -222,7 +213,6 @@ class DFBASimulator(object):
                 logging.debug(pd.Series(row, index=self.ode_model.timeCourseSelections))
                 logging.debug("Time for step: {:2.4}".format(timeit.default_timer() - step_time))
 
-                # exit()
 
             # create result matrix
             df_results = pd.DataFrame(index=all_time, columns=self.ode_model.timeCourseSelections,
@@ -270,6 +260,15 @@ class DFBASimulator(object):
         print('-' * 40)
         return timings
 
+    def _store_fba_fluxes(self, row):
+        """ Store FBA fluxes in ode solution. 
+        :return: 
+        """
+        for fba_rid, flat_rid in iteritems(self.fba_model.top2flat_reactions):
+            index = self.columns[flat_rid]
+            row[index] = flux = self.fluxes[fba_rid]
+            logging.debug("\t{} = {}".format(fba_rid, flux))
+
     def _simulate_ode(self, tstart, tend):
         """ ODE integration for a single timestep.
 
@@ -281,7 +280,7 @@ class DFBASimulator(object):
         result = self.ode_model.simulate(start=tstart, end=tend, steps=1)
 
         # store ode row, i.e. the end of the simulation
-        return result[1, :]
+        return result
 
     def _simulate_fba(self):
         """ Optimize FBA model.
@@ -293,12 +292,14 @@ class DFBASimulator(object):
         logging.debug("* FBA optimize")
         # self.fba_solution = self.cobra_model.optimize()
         # # FIXME
-        # self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
-        # logging.debug(self.fba_solution.fluxes)
+        self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+        self.fluxes = self.fba_solution.fluxes
+        logging.debug(self.fba_solution.fluxes)
 
-        self.cobra_model.solver.optimize()
-        self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
-        logging.debug(self.fluxes)
+        # directly call the optimization
+        # self.cobra_model.solver.optimize()
+        # self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
+        # logging.debug(self.fluxes)
 
     @staticmethod
     def get_fluxes_vector(model, reactions=None):
@@ -333,7 +334,7 @@ class DFBASimulator(object):
         """
         logging.debug('* FBA set bounds ')
 
-        # FIXME: unify in one inline function
+        # FIXME: unify in one inline function, set upper and lower bounds at once
 
         # upper bounds
         for top_pid, rid in iteritems(self.fba_model.ub_pid2rid):

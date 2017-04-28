@@ -231,7 +231,7 @@ if __name__ == "__main__":
     from sbmlutils.dfba.simulator import DFBASimulator
 
 
-    import logging
+    # import logging
     # logging.basicConfig(level=logging.DEBUG)
 
     directory = utils.versioned_directory(settings.out_dir, model_factory.version)
@@ -240,9 +240,9 @@ if __name__ == "__main__":
     print(sbml_path)
     simulate_ecoli(sbml_path, dts=[0.05], out_dir=directory)
     # simulate_carbon_sources(top_sbml_path, out_dir=directory)
-    # benchmark simulation
 
-    if True:
+    # benchmark simulation
+    if False:
 
         # for solver in ['glpk', 'cplex']:
         # for solver in ['glpk', 'cplex', 'gurobi']:
