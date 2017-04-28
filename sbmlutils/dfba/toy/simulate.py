@@ -158,10 +158,11 @@ if __name__ == "__main__":
     directory = versioned_directory(settings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, settings.top_file)
 
-    # import logging
-    # logging.basicConfig(level=logging.DEBUG)
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
 
     from sbmlutils.dfba.model import DFBAModel
     dfba_model = DFBAModel(sbml_path=sbml_path)
 
+    # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
     simulate_toy(sbml_path, out_dir=directory)

@@ -71,8 +71,6 @@ if __name__ == "__main__":
     # logging.getLogger().setLevel(logging.INFO)
     simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.05])
 
-    # TODO: why is first simulation infeasible
-
     # benchmark simulation
     if False:
 
