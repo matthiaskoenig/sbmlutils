@@ -1,6 +1,12 @@
 """
 Validating DFBA files against the guidelines & rules.
+
+It is necessary to define all the rules for the FBA model.
 """
+
+version = ""
+
+
 from __future__ import print_function, division, absolute_import
 from sbmlutils.dfba.model import DFBAModel
 
@@ -42,4 +48,8 @@ class DFBAValidator(object):
         print("-" * 80)
         print(self.dfba_model)
 
-
+class Rule(object):
+    def __init__(self):
+        self.rid = None
+        self.description = None
+        self.f = None
