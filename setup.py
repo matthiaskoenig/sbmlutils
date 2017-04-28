@@ -63,6 +63,14 @@ try:
 except Exception as e:
     print('Could not read version: {}'.format(e))
 
+# descripion from markdown
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')
+except(IOError, ImportError):
+    long_description = open('README.md').read()
+setup_kwargs['long_description'] = long_description
+
 
 setup(
     name='sbmlutils',
