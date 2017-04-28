@@ -142,7 +142,10 @@ def rename_elements(elements, rename_dict):
 def clip(string, prefix):
     """clips a prefix from the beginning of a string if it exists
     """
-    return string[len(prefix):] if string.startswith(prefix) else string
+    if string.startswith(prefix):
+        return string[len(prefix):]
+    else:
+        return string
 
 
 def versioned_directory(output_dir, version):

@@ -101,6 +101,8 @@ def print_fluxes(dfs, filepath=None, **kwargs):
             ax.legend()
 
         # exchange fluxes with bounds
+        ax7.plot(df.time, df['vO2_transfer'.format(key)], color='green', label="vO2_transfer")
+
         for key, ax in iteritems(mapping2):
             ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3,
                             interpolate=False, step='post')
@@ -116,8 +118,10 @@ def print_fluxes(dfs, filepath=None, **kwargs):
             #ax.set_ylim(np.min(np.min(df['EX_{}'.format(key)]), np.min(df['update__update_{}'.format(key)])),
             #            np.max(np.max(df['EX_{}'.format(key)]), np.max(df['update__update_{}'.format(key)])) )
                         # ax.set_xlabel('time [h]')
-            ax.set_ylim(-8, 8)
+            ax.set_ylim(-15.1, 10)
             ax.legend()
+
+
 
         # concentrations
         for key, ax in iteritems(mapping3):

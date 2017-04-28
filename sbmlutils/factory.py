@@ -678,21 +678,21 @@ def set_flux_bounds(reaction, lb, ub):
     rplugin.setUpperFluxBound(ub)
 
 
-def create_objective(mplugin, oid, otype, fluxObjectives, active=True):
-    """ Creates a given flux optimization objective.
+def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
+    """ Create flux optimization objective.
 
-    :param mplugin:
-    :param oid:
+    :param model_fbc: FbcModelPlugin
+    :param oid: objective identifier
     :param otype:
     :param fluxObjectives:
     :param active:
     :return:
     """
-    objective = mplugin.createObjective()
+    objective = model_fbc.createObjective()
     objective.setId(oid)
     objective.setType(otype)
     if active:
-        mplugin.setActiveObjectiveId(oid)
+        model_fbc.setActiveObjectiveId(oid)
     for rid, coefficient in iteritems(fluxObjectives):
         fluxObjective = objective.createFluxObjective()
         fluxObjective.setReaction(rid)

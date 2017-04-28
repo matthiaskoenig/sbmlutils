@@ -77,7 +77,10 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
     current = time.clock()
 
     # all, error, warn
-    Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internalConsistency=True)
+    if internalConsistency:
+        Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internalConsistency=True)
+    else:
+        Nall_in, Nerr_in, Nwarn_in = (0, 0, 0)
     Nall_noin, Nerr_noin, Nwarn_noin = _check_consistency(doc, internalConsistency=False)
 
     # sum up
@@ -130,6 +133,7 @@ def _check_consistency(doc, internalConsistency=False):
                 Nwarn += 1
 
         # FIXME: print to logging
+        print(doc)
         print_errors(doc)
 
     return Nall, Nerr, Nwarn

@@ -26,9 +26,14 @@ def set_matplotlib_parameters():
 class DFBAAnalysis(object):
     """ Plot and analysis functions for given results. """
 
-    def __init__(self, df, rr_comp):
+    def __init__(self, df, ode_model):
+        """ 
+        
+        :param df: Solution DataFrame 
+        :param ode_model: flattened roadrunner ode model
+        """
         self.df = df
-        self.rr_comp = rr_comp
+        self.rr_comp = ode_model
 
     def save_csv(self, filepath):
         """ Save results to csv. """
@@ -37,7 +42,7 @@ class DFBAAnalysis(object):
 
         self.df.to_csv(filepath, sep="\t", index=False)
 
-    def plot_species(self, filepath, **kwargs):
+    def plot_species(self, filepath, filter=None, **kwargs):
         """ Plot species.
 
         :param filepath: filepath to save figure, if None plot is shown
@@ -46,10 +51,19 @@ class DFBAAnalysis(object):
         """
         species_ids = ["[{}]".format(s) for s in self.rr_comp.model.getFloatingSpeciesIds()] \
             + ["[{}]".format(s) for s in self.rr_comp.model.getBoundarySpeciesIds()]
-        self.plot_ids(ids=species_ids, ylabel="species", title="DFBA species timecourse",
+
+        # filter out the fba and update species
+        filtered_sids = []
+        for sid in species_ids:
+            if sid.startswith("[fba__") or sid.startswith("[update__"):
+                continue
+            else:
+                filtered_sids.append(sid)
+
+        self.plot_ids(ids=filtered_sids, ylabel="species", title="DFBA species timecourse",
                       filepath=filepath, **kwargs)
 
-    def plot_reactions(self, filepath, **kwargs):
+    def plot_reactions(self, filepath, filter=None, **kwargs):
         """ Plot species.
 
         :param filepath: filepath to save figure, if None plot is shown
@@ -58,9 +72,9 @@ class DFBAAnalysis(object):
         """
         reaction_ids = self.rr_comp.model.getReactionIds()
         self.plot_ids(ids=reaction_ids, ylabel="reactions", title="DFBA reaction timecourse",
-                      filepath=filepath, **kwargs)
+                      filepath=filepath, filter=None, **kwargs)
 
-    def plot_ids(self, ids, filepath=None, ylabel=None, title=None, **kwargs):
+    def plot_ids(self, ids, filepath=None, ylabel=None, title=None, filter=None, **kwargs):
         """ Plot given ids against time
 
         :param filepath:
@@ -69,10 +83,16 @@ class DFBAAnalysis(object):
         :param ylabel:
         :return:
         """
-        fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(10, 10))
+        def filter_true(oid):
+            return True
+        if filter is None:
+            filter = filter_true
+
+        fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(15, 10))
         x_time = self.df['time']
         for oid in ids:
-            ax1.plot(x_time, self.df[oid], label=oid, **kwargs)
+            if filter(oid):
+                ax1.plot(x_time, self.df[oid], label=oid, **kwargs)
 
         ax1.set_xlabel('time')
         if ylabel:
@@ -80,6 +100,7 @@ class DFBAAnalysis(object):
         if title:
             ax1.set_title(title)
         ax1.legend()
+        ax1.set_xlim(min(x_time), max(x_time)*1.5)
 
         if filepath:
             fig.savefig(filepath, bbox_inches='tight')

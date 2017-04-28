@@ -1,0 +1,2257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
+  <model metaid="meta_e394fa2d7aa64bfd813302c8c96c1241" sboTerm="SBO:0000293" id="rbc_bounds" name="rbc (BOUNDS)" substanceUnits="mmol" timeUnits="h" volumeUnits="l" areaUnits="m2" lengthUnits="m" extentUnits="mmol">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>E.coli core DFBA model</h1>
+        <p>
+          <strong>Model version: 1</strong>
+        </p>
+        <p>
+          <h2>BOUNDS submodel</h2>
+          <p>Submodel for dynamically calculating the flux bounds.
+    The dynamically changing flux bounds are the input to the
+    FBA model.</p>
+        </p>
+        <h2>Description</h2>
+        <div class="dc:description">
+          <p>This is a metabolism model of Homo sapiens in 
+        <a href="http://sbml.org" target="_blank" title="Access the definition of the SBML file format.">SBML</a> format.</p>
+        </div>
+        <div class="dc:provenance">The content of this model has been carefully created in a manual research effort. This file has been exported from the software 
+      <a href="http://dx.doi.org/10.1186/1752-0509-7-74" title="Access publication about COBRApy." target="_blank">COBRApy</a> and further processed with the 
+      <a href="http://dx.doi.org/10.1093/bioinformatics/btv341" title="Access publication about JSBML." target="_blank">JSBML</a>-based 
+      <a href="http://github.com/SBRG/ModelPolisher/" target="_blank" title="Access ModelPolisher on Github">ModelPolisher</a> application.</div>
+        <div class="dc:publisher">This file has been produced by the 
+      <a href="http://systemsbiology.ucsd.edu" title="Website of the Systems Biology Research Group" target="_blank">Systems Biology Research Group</a> using 
+      <a href="http://bigg.ucsd.edu" title="Access BiGG Models knowledge-base." target="_blank">BiGG Models knowledge-base</a> version of Nov 21, 2016, where it is currently hosted and
+      identified by: 
+      <a href="http://identifiers.org/bigg.model/iAB_RBC_283" title="Access to this model via BiGG Models knowledge-base." target="_blank">iAB_RBC_283</a>.</div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2016 The Regents of the University of California.</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model from BiGG Models knowledge-base, with or without modification, are permitted provided that the following conditions are met: 
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+          <p>For specific licensing terms about this particular model and regulations of commercial use, see 
+        <a href="http://identifiers.org/bigg.model/iAB_RBC_283" title="Access to this model via BiGG Models knowledge-base." target="_blank">this model in BiGG Models knowledge-base</a>.</p>
+        </div>
+        <h2>References</h2>When using content from BiGG Models knowledge-base in your research works, please cite 
+      <dl>
+          <dt>King ZA, Lu JS, Dräger A, Miller PC, Federowicz S, Lerman JA, Ebrahim A, Palsson BO, and Lewis NE. (2015). 
+        <dd>BiGG Models: A platform for integrating, standardizing, and sharing genome-scale models. 
+        <i>Nucl Acids Res</i>. 
+        <a href="https://dx.doi.org/10.1093/nar/gkv1049" target="_blank" title="Access the publication about BiGG Models knowledge-base">doi:10.1093/nar/gkv1049</a>
+        </dd>
+      </dt>
+    </dl>
+  </body>
+</notes><annotation>
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+    <rdf:Description rdf:about="#meta_e394fa2d7aa64bfd813302c8c96c1241">
+      <dcterms:creator>
+        <rdf:Bag>
+          <rdf:li rdf:parseType="Resource">
+            <vCard:N rdf:parseType="Resource">
+              <vCard:Family>Koenig</vCard:Family>
+              <vCard:Given>Matthias</vCard:Given>
+            </vCard:N>
+            <vCard:EMAIL>konigmatt@googlemail.com</vCard:EMAIL>
+            <vCard:ORG rdf:parseType="Resource">
+              <vCard:Orgname>Humboldt University Berlin</vCard:Orgname>
+            </vCard:ORG>
+          </rdf:li>
+        </rdf:Bag>
+      </dcterms:creator>
+      <dcterms:created rdf:parseType="Resource">
+        <dcterms:W3CDTF>2017-03-31T17:30:33Z</dcterms:W3CDTF>
+      </dcterms:created>
+      <dcterms:modified rdf:parseType="Resource">
+        <dcterms:W3CDTF>2017-03-31T17:30:33Z</dcterms:W3CDTF>
+      </dcterms:modified>
+    </rdf:Description>
+  </rdf:RDF>
+</annotation><listOfFunctionDefinitions>
+  <functionDefinition id="max" name="min">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <lambda>
+        <bvar>
+          <ci> x </ci>
+        </bvar>
+        <bvar>
+          <ci> y </ci>
+        </bvar>
+        <piecewise>
+          <piece>
+            <ci> x </ci>
+            <apply>
+              <gt/>
+              <ci> x </ci>
+              <ci> y </ci>
+            </apply>
+          </piece>
+          <otherwise>
+            <ci> y </ci>
+          </otherwise>
+        </piecewise>
+      </lambda>
+    </math>
+  </functionDefinition>
+  <functionDefinition id="min" name="max">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <lambda>
+        <bvar>
+          <ci> x </ci>
+        </bvar>
+        <bvar>
+          <ci> y </ci>
+        </bvar>
+        <piecewise>
+          <piece>
+            <ci> x </ci>
+            <apply>
+              <lt/>
+              <ci> x </ci>
+              <ci> y </ci>
+            </apply>
+          </piece>
+          <otherwise>
+            <ci> y </ci>
+          </otherwise>
+        </piecewise>
+      </lambda>
+    </math>
+  </functionDefinition>
+</listOfFunctionDefinitions><listOfUnitDefinitions>
+  <unitDefinition id="h">
+    <listOfUnits>
+      <unit kind="second" exponent="1" scale="0" multiplier="3600"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="g">
+    <listOfUnits>
+      <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="m">
+    <listOfUnits>
+      <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="m2">
+    <listOfUnits>
+      <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="l">
+    <listOfUnits>
+      <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="mmol">
+    <listOfUnits>
+      <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="per_h">
+    <listOfUnits>
+      <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="mmol_per_h">
+    <listOfUnits>
+      <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+      <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="mmol_per_l">
+    <listOfUnits>
+      <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+      <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="l_per_mmol">
+    <listOfUnits>
+      <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+      <unit kind="mole" exponent="-1" scale="-3" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="g_per_l">
+    <listOfUnits>
+      <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+      <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="g_per_mmol">
+    <listOfUnits>
+      <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+      <unit kind="mole" exponent="-1" scale="-3" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+</listOfUnitDefinitions><listOfCompartments>
+  <compartment id="blood" name="blood" spatialDimensions="3" size="1" units="l" constant="true"/>
+</listOfCompartments><listOfSpecies>
+  <species id="ins_e" name="Inosine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="gln__L_e" name="L-Glutamine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="lnlc_e" name="Lnlc c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="thm_e" name="Thiamin" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ncam_e" name="Nicotinamide" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="nac_e" name="Nicotinate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="urea_e" name="Urea" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="hco3_e" name="Bicarbonate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="fum_e" name="Fumarate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="pydxn_e" name="Pyridoxine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="M_4pyrdx_e" name="4pyrdx c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="normete__L_e" name="Normete  L c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="bilglcur_e" name="Bilglcur c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="glyc_e" name="Glycerol" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="h2o_e" name="H2O" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="h_e" name="H+" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="lac__L_e" name="L-Lactate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="sprm_e" name="Spermine C10H30N4" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="M_3moxtyr_e" name="3moxtyr c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="nrpphr_e" name="Nrpphr c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="acnam_e" name="N-Acetylneuraminate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="thmmp_e" name="Thiamin monophosphate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="co2_e" name="CO2" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="lac__D_e" name="D-Lactate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="mal__L_e" name="L-Malate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ocdcea_e" name="Octadecenoate (n-C18:1)" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="k_e" name="Potassium" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="na1_e" name="Sodium" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="dhdascb_e" name="Dhdascb c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="cl_e" name="Chloride" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="arg__L_e" name="L-Arginine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="nh4_e" name="Ammonium" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="adrnl_e" name="Adrnl c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ala__L_e" name="L-Alanine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ptrc_e" name="Putrescine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="gal_e" name="D-Galactose" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ascb__L_e" name="L-Ascorbate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="h2o2_e" name="Hydrogen peroxide" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="mepi_e" name="Mepi c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="acald_e" name="Acetaldehyde" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="leuktrB4_e" name="LeuktrB4 c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="adn_e" name="Adenosine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="pi_e" name="Phosphate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="orot_e" name="Orotate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="M_5aop_e" name="5-Amino-4-oxopentanoate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="phe__L_e" name="L-Phenylalanine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="etha_e" name="Ethanolamine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="co_e" name="Carbon monoxide" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="dopa_e" name="Dopamine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="man_e" name="D-Mannose" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="gam_e" name="D-Glucosamine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="pydx_e" name="Pyridoxal" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ac_e" name="Acetate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="hxan_e" name="Hypoxanthine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="glc__D_e" name="D-Glucose" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="uri_e" name="Uridine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ade_e" name="Adenine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="camp_e" name="CAMP" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="hcys__L_e" name="L-Homocysteine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="o2_e" name="O2" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="hdca_e" name="Hexadecanoate (n-C16:0)" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="pydam_e" name="Pyridoxamine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="M_35cgmp_e" name="3&apos;,5&apos;-Cyclic GMP" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="met__L_e" name="L-Methionine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="gly_e" name="Glycine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="cys__L_e" name="L-Cysteine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="chol_e" name="Choline" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ca2_e" name="Calcium" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="gluala_e" name="5 L Glutamyl L alanine C8H13N2O5" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="ribflv_e" name="Riboflavin" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="fru_e" name="D-Fructose" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="spmd_e" name="Spermidine" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="fe2_e" name="Fe2+" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="leuktrA4_e" name="LeuktrA4 c" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="pyr_e" name="Pyruvate" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="gthox_e" name="Oxidized glutathione" compartment="blood" initialConcentration="1" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+</listOfSpecies><listOfParameters>
+  <parameter sboTerm="SBO:0000346" id="dt" value="0.1" units="h" constant="true"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ins_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ins_e" value="0.024" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_gln__L_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_gln__L_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_lnlc_e" value="-0.006" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_lnlc_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_thm_e" value="-6e-05" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_thm_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ncam_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ncam_e" value="0.001" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_nac_e" value="-0.001" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_nac_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_urea_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_urea_e" value="0.1152" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_hco3_e" value="-0.0824999999999996" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_hco3_e" value="5.87112293333346" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_fum_e" value="-0.25" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_fum_e" value="0.5" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_pydxn_e" value="-0.000128" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_pydxn_e" value="0.000255" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_M_4pyrdx_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_M_4pyrdx_e" value="0.000383" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_normete__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_normete__L_e" value="0.0288" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_bilglcur_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_bilglcur_e" value="0.0025" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_glyc_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_glyc_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_h2o_e" value="-6.45680282666678" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_h2o_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_h_e" value="-0.900450000000104" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_h_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_lac__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_lac__L_e" value="3.67559263333338" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_sprm_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_sprm_e" value="0.0400000685" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_M_3moxtyr_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_M_3moxtyr_e" value="0.0324" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_nrpphr_e" value="-0.0288" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_nrpphr_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_acnam_e" value="-3.74e-05" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_acnam_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_thmmp_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_thmmp_e" value="6e-05" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_co2_e" value="-5.87112293333346" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_co2_e" value="5.33854219999983" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_lac__D_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_lac__D_e" value="1.46778073333337" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_mal__L_e" value="-0.5" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_mal__L_e" value="0.25" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ocdcea_e" value="-0.006" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ocdcea_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_k_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_k_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_na1_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_na1_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_dhdascb_e" value="-0.1111" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_dhdascb_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_cl_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_cl_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_arg__L_e" value="-0.1152" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_arg__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_nh4_e" value="-0.000999999999999446" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_nh4_e" value="0.0341474000000002" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_adrnl_e" value="-0.0378" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_adrnl_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ala__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ala__L_e" value="0.08" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ptrc_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ptrc_e" value="0.1152" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_gal_e" value="-0.3169" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_gal_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ascb__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ascb__L_e" value="0.1111" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_h2o2_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_h2o2_e" value="0.000611000000006356" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_mepi_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_mepi_e" value="0.0378" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_acald_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_acald_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_leuktrB4_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_leuktrB4_e" value="2.4e-06" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_adn_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_adn_e" value="0.014" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_pi_e" value="-1.30470065185183" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_pi_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_orot_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_orot_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_M_5aop_e" value="-0.02" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_M_5aop_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_phe__L_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_phe__L_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_etha_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_etha_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_co_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_co_e" value="0.0025" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_dopa_e" value="-0.0324" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_dopa_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_man_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_man_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_gam_e" value="-1e-05" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_gam_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_pydx_e" value="-0.000155" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_pydx_e" value="0.000228" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ac_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ac_e" value="3.74e-05" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_hxan_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_hxan_e" value="0.024" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_glc__D_e" value="-1.12" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_glc__D_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_uri_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_uri_e" value="0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ade_e" value="-0.014" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ade_e" value="0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_camp_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_camp_e" value="0.024" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_hcys__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_hcys__L_e" value="0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_o2_e" value="-0.0943609999999993" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_o2_e" value="5.0000775" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_hdca_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_hdca_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_pydam_e" value="-0.0001" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_pydam_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_M_35cgmp_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_M_35cgmp_e" value="0.024" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_met__L_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_met__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_gly_e" value="-0.08" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_gly_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_cys__L_e" value="-0.08" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_cys__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_chol_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_chol_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ca2_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ca2_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_gluala_e" value="-0.08" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_gluala_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_ribflv_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_ribflv_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_fru_e" value="-0.0075" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_fru_e" value="1.12" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_spmd_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_spmd_e" value="0.08" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_fe2_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_fe2_e" value="10" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_leuktrA4_e" value="-2.4e-06" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_leuktrA4_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_pyr_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_pyr_e" value="3.67559886666673" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="lb_EX_gthox_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000625" id="ub_EX_gthox_e" value="0.04" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ins_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_gln__L_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_lnlc_e" value="-0.006" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_thm_e" value="-6e-05" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ncam_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_nac_e" value="-0.001" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_urea_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_hco3_e" value="-0.0824999999999996" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_fum_e" value="-0.25" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_pydxn_e" value="-0.000128" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_M_4pyrdx_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_normete__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_bilglcur_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_glyc_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_h2o_e" value="-6.45680282666678" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_h_e" value="-0.900450000000104" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_lac__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_sprm_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_M_3moxtyr_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_nrpphr_e" value="-0.0288" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_acnam_e" value="-3.74e-05" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_thmmp_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_co2_e" value="-5.87112293333346" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_lac__D_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_mal__L_e" value="-0.5" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ocdcea_e" value="-0.006" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_k_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_na1_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_dhdascb_e" value="-0.1111" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_cl_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_arg__L_e" value="-0.1152" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_nh4_e" value="-0.000999999999999446" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_adrnl_e" value="-0.0378" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ala__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ptrc_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_gal_e" value="-0.3169" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ascb__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_h2o2_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_mepi_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_acald_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_leuktrB4_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_adn_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_pi_e" value="-1.30470065185183" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_orot_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_M_5aop_e" value="-0.02" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_phe__L_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_etha_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_co_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_dopa_e" value="-0.0324" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_man_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_gam_e" value="-1e-05" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_pydx_e" value="-0.000155" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ac_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_hxan_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_glc__D_e" value="-1.12" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_uri_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ade_e" value="-0.014" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_camp_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_hcys__L_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_o2_e" value="-0.0943609999999993" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_hdca_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_pydam_e" value="-0.0001" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_M_35cgmp_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_met__L_e" value="-0.01" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_gly_e" value="-0.08" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_cys__L_e" value="-0.08" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_chol_e" value="-0.012" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ca2_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_gluala_e" value="-0.08" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_ribflv_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_fru_e" value="-0.0075" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_spmd_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_fe2_e" value="-10" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_leuktrA4_e" value="-2.4e-06" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_pyr_e" value="0" units="mmol_per_h" constant="false"/>
+  <parameter id="fbalb_EX_gthox_e" value="0" units="mmol_per_h" constant="false"/>
+</listOfParameters><listOfRules>
+  <assignmentRule variable="lb_EX_ins_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ins_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ins_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_gln__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_gln__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> gln__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_lnlc_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_lnlc_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> lnlc_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_thm_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_thm_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> thm_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ncam_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ncam_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ncam_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_nac_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_nac_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> nac_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_urea_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_urea_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> urea_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_hco3_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_hco3_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> hco3_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_fum_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_fum_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> fum_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_pydxn_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_pydxn_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> pydxn_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_M_4pyrdx_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_M_4pyrdx_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> M_4pyrdx_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_normete__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_normete__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> normete__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_bilglcur_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_bilglcur_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> bilglcur_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_glyc_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_glyc_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> glyc_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_h2o_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_h2o_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> h2o_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_h_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_h_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> h_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_lac__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_lac__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> lac__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_sprm_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_sprm_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> sprm_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_M_3moxtyr_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_M_3moxtyr_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> M_3moxtyr_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_nrpphr_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_nrpphr_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> nrpphr_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_acnam_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_acnam_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> acnam_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_thmmp_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_thmmp_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> thmmp_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_co2_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_co2_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> co2_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_lac__D_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_lac__D_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> lac__D_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_mal__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_mal__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> mal__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ocdcea_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ocdcea_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ocdcea_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_k_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_k_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> k_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_na1_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_na1_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> na1_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_dhdascb_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_dhdascb_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> dhdascb_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_cl_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_cl_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> cl_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_arg__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_arg__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> arg__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_nh4_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_nh4_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> nh4_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_adrnl_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_adrnl_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> adrnl_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ala__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ala__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ala__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ptrc_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ptrc_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ptrc_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_gal_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_gal_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> gal_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ascb__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ascb__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ascb__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_h2o2_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_h2o2_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> h2o2_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_mepi_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_mepi_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> mepi_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_acald_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_acald_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> acald_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_leuktrB4_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_leuktrB4_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> leuktrB4_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_adn_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_adn_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> adn_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_pi_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_pi_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> pi_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_orot_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_orot_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> orot_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_M_5aop_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_M_5aop_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> M_5aop_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_phe__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_phe__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> phe__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_etha_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_etha_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> etha_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_co_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_co_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> co_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_dopa_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_dopa_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> dopa_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_man_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_man_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> man_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_gam_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_gam_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> gam_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_pydx_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_pydx_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> pydx_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ac_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ac_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ac_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_hxan_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_hxan_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> hxan_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_glc__D_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_glc__D_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> glc__D_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_uri_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_uri_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> uri_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ade_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ade_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ade_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_camp_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_camp_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> camp_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_hcys__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_hcys__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> hcys__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_o2_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_o2_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> o2_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_hdca_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_hdca_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> hdca_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_pydam_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_pydam_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> pydam_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_M_35cgmp_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_M_35cgmp_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> M_35cgmp_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_met__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_met__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> met__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_gly_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_gly_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> gly_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_cys__L_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_cys__L_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> cys__L_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_chol_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_chol_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> chol_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ca2_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ca2_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ca2_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_gluala_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_gluala_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> gluala_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_ribflv_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_ribflv_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> ribflv_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_fru_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_fru_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> fru_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_spmd_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_spmd_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> spmd_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_fe2_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_fe2_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> fe2_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_leuktrA4_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_leuktrA4_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> leuktrA4_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_pyr_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_pyr_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> pyr_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_gthox_e">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> fbalb_EX_gthox_e </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> blood </ci>
+            </apply>
+            <ci> gthox_e </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+</listOfRules><comp:listOfPorts>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="dt" comp:id="dt_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="blood" comp:id="blood_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ins_e" comp:id="ins_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="gln__L_e" comp:id="gln__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lnlc_e" comp:id="lnlc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="thm_e" comp:id="thm_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ncam_e" comp:id="ncam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="nac_e" comp:id="nac_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="urea_e" comp:id="urea_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="hco3_e" comp:id="hco3_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="fum_e" comp:id="fum_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="pydxn_e" comp:id="pydxn_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="M_4pyrdx_e" comp:id="M_4pyrdx_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="normete__L_e" comp:id="normete__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="bilglcur_e" comp:id="bilglcur_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="glyc_e" comp:id="glyc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="h2o_e" comp:id="h2o_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="h_e" comp:id="h_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lac__L_e" comp:id="lac__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="sprm_e" comp:id="sprm_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="M_3moxtyr_e" comp:id="M_3moxtyr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="nrpphr_e" comp:id="nrpphr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="acnam_e" comp:id="acnam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="thmmp_e" comp:id="thmmp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="co2_e" comp:id="co2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lac__D_e" comp:id="lac__D_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="mal__L_e" comp:id="mal__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ocdcea_e" comp:id="ocdcea_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="k_e" comp:id="k_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="na1_e" comp:id="na1_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="dhdascb_e" comp:id="dhdascb_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="cl_e" comp:id="cl_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="arg__L_e" comp:id="arg__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="nh4_e" comp:id="nh4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="adrnl_e" comp:id="adrnl_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ala__L_e" comp:id="ala__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ptrc_e" comp:id="ptrc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="gal_e" comp:id="gal_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ascb__L_e" comp:id="ascb__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="h2o2_e" comp:id="h2o2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="mepi_e" comp:id="mepi_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="acald_e" comp:id="acald_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="leuktrB4_e" comp:id="leuktrB4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="adn_e" comp:id="adn_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="pi_e" comp:id="pi_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="orot_e" comp:id="orot_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="M_5aop_e" comp:id="M_5aop_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="phe__L_e" comp:id="phe__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="etha_e" comp:id="etha_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="co_e" comp:id="co_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="dopa_e" comp:id="dopa_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="man_e" comp:id="man_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="gam_e" comp:id="gam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="pydx_e" comp:id="pydx_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ac_e" comp:id="ac_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="hxan_e" comp:id="hxan_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="glc__D_e" comp:id="glc__D_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="uri_e" comp:id="uri_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ade_e" comp:id="ade_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="camp_e" comp:id="camp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="hcys__L_e" comp:id="hcys__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="o2_e" comp:id="o2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="hdca_e" comp:id="hdca_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="pydam_e" comp:id="pydam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="M_35cgmp_e" comp:id="M_35cgmp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="met__L_e" comp:id="met__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="gly_e" comp:id="gly_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="cys__L_e" comp:id="cys__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="chol_e" comp:id="chol_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ca2_e" comp:id="ca2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="gluala_e" comp:id="gluala_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ribflv_e" comp:id="ribflv_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="fru_e" comp:id="fru_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="spmd_e" comp:id="spmd_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="fe2_e" comp:id="fe2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="leuktrA4_e" comp:id="leuktrA4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="pyr_e" comp:id="pyr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="gthox_e" comp:id="gthox_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ins_e" comp:id="lb_EX_ins_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ins_e" comp:id="ub_EX_ins_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_gln__L_e" comp:id="lb_EX_gln__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_gln__L_e" comp:id="ub_EX_gln__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_lnlc_e" comp:id="lb_EX_lnlc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_lnlc_e" comp:id="ub_EX_lnlc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_thm_e" comp:id="lb_EX_thm_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_thm_e" comp:id="ub_EX_thm_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ncam_e" comp:id="lb_EX_ncam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ncam_e" comp:id="ub_EX_ncam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_nac_e" comp:id="lb_EX_nac_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_nac_e" comp:id="ub_EX_nac_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_urea_e" comp:id="lb_EX_urea_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_urea_e" comp:id="ub_EX_urea_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_hco3_e" comp:id="lb_EX_hco3_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_hco3_e" comp:id="ub_EX_hco3_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_fum_e" comp:id="lb_EX_fum_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_fum_e" comp:id="ub_EX_fum_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_pydxn_e" comp:id="lb_EX_pydxn_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_pydxn_e" comp:id="ub_EX_pydxn_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_M_4pyrdx_e" comp:id="lb_EX_M_4pyrdx_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_M_4pyrdx_e" comp:id="ub_EX_M_4pyrdx_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_normete__L_e" comp:id="lb_EX_normete__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_normete__L_e" comp:id="ub_EX_normete__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_bilglcur_e" comp:id="lb_EX_bilglcur_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_bilglcur_e" comp:id="ub_EX_bilglcur_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_glyc_e" comp:id="lb_EX_glyc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_glyc_e" comp:id="ub_EX_glyc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_h2o_e" comp:id="lb_EX_h2o_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_h2o_e" comp:id="ub_EX_h2o_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_h_e" comp:id="lb_EX_h_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_h_e" comp:id="ub_EX_h_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_lac__L_e" comp:id="lb_EX_lac__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_lac__L_e" comp:id="ub_EX_lac__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_sprm_e" comp:id="lb_EX_sprm_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_sprm_e" comp:id="ub_EX_sprm_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_M_3moxtyr_e" comp:id="lb_EX_M_3moxtyr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_M_3moxtyr_e" comp:id="ub_EX_M_3moxtyr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_nrpphr_e" comp:id="lb_EX_nrpphr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_nrpphr_e" comp:id="ub_EX_nrpphr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_acnam_e" comp:id="lb_EX_acnam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_acnam_e" comp:id="ub_EX_acnam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_thmmp_e" comp:id="lb_EX_thmmp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_thmmp_e" comp:id="ub_EX_thmmp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_co2_e" comp:id="lb_EX_co2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_co2_e" comp:id="ub_EX_co2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_lac__D_e" comp:id="lb_EX_lac__D_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_lac__D_e" comp:id="ub_EX_lac__D_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_mal__L_e" comp:id="lb_EX_mal__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_mal__L_e" comp:id="ub_EX_mal__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ocdcea_e" comp:id="lb_EX_ocdcea_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ocdcea_e" comp:id="ub_EX_ocdcea_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_k_e" comp:id="lb_EX_k_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_k_e" comp:id="ub_EX_k_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_na1_e" comp:id="lb_EX_na1_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_na1_e" comp:id="ub_EX_na1_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_dhdascb_e" comp:id="lb_EX_dhdascb_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_dhdascb_e" comp:id="ub_EX_dhdascb_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_cl_e" comp:id="lb_EX_cl_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_cl_e" comp:id="ub_EX_cl_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_arg__L_e" comp:id="lb_EX_arg__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_arg__L_e" comp:id="ub_EX_arg__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_nh4_e" comp:id="lb_EX_nh4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_nh4_e" comp:id="ub_EX_nh4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_adrnl_e" comp:id="lb_EX_adrnl_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_adrnl_e" comp:id="ub_EX_adrnl_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ala__L_e" comp:id="lb_EX_ala__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ala__L_e" comp:id="ub_EX_ala__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ptrc_e" comp:id="lb_EX_ptrc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ptrc_e" comp:id="ub_EX_ptrc_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_gal_e" comp:id="lb_EX_gal_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_gal_e" comp:id="ub_EX_gal_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ascb__L_e" comp:id="lb_EX_ascb__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ascb__L_e" comp:id="ub_EX_ascb__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_h2o2_e" comp:id="lb_EX_h2o2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_h2o2_e" comp:id="ub_EX_h2o2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_mepi_e" comp:id="lb_EX_mepi_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_mepi_e" comp:id="ub_EX_mepi_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_acald_e" comp:id="lb_EX_acald_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_acald_e" comp:id="ub_EX_acald_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_leuktrB4_e" comp:id="lb_EX_leuktrB4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_leuktrB4_e" comp:id="ub_EX_leuktrB4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_adn_e" comp:id="lb_EX_adn_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_adn_e" comp:id="ub_EX_adn_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_pi_e" comp:id="lb_EX_pi_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_pi_e" comp:id="ub_EX_pi_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_orot_e" comp:id="lb_EX_orot_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_orot_e" comp:id="ub_EX_orot_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_M_5aop_e" comp:id="lb_EX_M_5aop_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_M_5aop_e" comp:id="ub_EX_M_5aop_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_phe__L_e" comp:id="lb_EX_phe__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_phe__L_e" comp:id="ub_EX_phe__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_etha_e" comp:id="lb_EX_etha_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_etha_e" comp:id="ub_EX_etha_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_co_e" comp:id="lb_EX_co_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_co_e" comp:id="ub_EX_co_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_dopa_e" comp:id="lb_EX_dopa_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_dopa_e" comp:id="ub_EX_dopa_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_man_e" comp:id="lb_EX_man_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_man_e" comp:id="ub_EX_man_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_gam_e" comp:id="lb_EX_gam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_gam_e" comp:id="ub_EX_gam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_pydx_e" comp:id="lb_EX_pydx_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_pydx_e" comp:id="ub_EX_pydx_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ac_e" comp:id="lb_EX_ac_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ac_e" comp:id="ub_EX_ac_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_hxan_e" comp:id="lb_EX_hxan_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_hxan_e" comp:id="ub_EX_hxan_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_glc__D_e" comp:id="lb_EX_glc__D_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_glc__D_e" comp:id="ub_EX_glc__D_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_uri_e" comp:id="lb_EX_uri_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_uri_e" comp:id="ub_EX_uri_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ade_e" comp:id="lb_EX_ade_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ade_e" comp:id="ub_EX_ade_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_camp_e" comp:id="lb_EX_camp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_camp_e" comp:id="ub_EX_camp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_hcys__L_e" comp:id="lb_EX_hcys__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_hcys__L_e" comp:id="ub_EX_hcys__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_o2_e" comp:id="lb_EX_o2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_o2_e" comp:id="ub_EX_o2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_hdca_e" comp:id="lb_EX_hdca_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_hdca_e" comp:id="ub_EX_hdca_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_pydam_e" comp:id="lb_EX_pydam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_pydam_e" comp:id="ub_EX_pydam_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_M_35cgmp_e" comp:id="lb_EX_M_35cgmp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_M_35cgmp_e" comp:id="ub_EX_M_35cgmp_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_met__L_e" comp:id="lb_EX_met__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_met__L_e" comp:id="ub_EX_met__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_gly_e" comp:id="lb_EX_gly_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_gly_e" comp:id="ub_EX_gly_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_cys__L_e" comp:id="lb_EX_cys__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_cys__L_e" comp:id="ub_EX_cys__L_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_chol_e" comp:id="lb_EX_chol_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_chol_e" comp:id="ub_EX_chol_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ca2_e" comp:id="lb_EX_ca2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ca2_e" comp:id="ub_EX_ca2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_gluala_e" comp:id="lb_EX_gluala_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_gluala_e" comp:id="ub_EX_gluala_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_ribflv_e" comp:id="lb_EX_ribflv_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_ribflv_e" comp:id="ub_EX_ribflv_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_fru_e" comp:id="lb_EX_fru_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_fru_e" comp:id="ub_EX_fru_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_spmd_e" comp:id="lb_EX_spmd_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_spmd_e" comp:id="ub_EX_spmd_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_fe2_e" comp:id="lb_EX_fe2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_fe2_e" comp:id="ub_EX_fe2_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_leuktrA4_e" comp:id="lb_EX_leuktrA4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_leuktrA4_e" comp:id="ub_EX_leuktrA4_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_pyr_e" comp:id="lb_EX_pyr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_pyr_e" comp:id="ub_EX_pyr_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_gthox_e" comp:id="lb_EX_gthox_e_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_gthox_e" comp:id="ub_EX_gthox_e_port"/>
+</comp:listOfPorts>
+</model>
+</sbml>

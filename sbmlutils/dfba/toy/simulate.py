@@ -8,7 +8,7 @@ from six import iteritems
 import numpy as np
 import pandas as pd
 
-from sbmlutils.dfba.toy import toysettings, model_factory
+from sbmlutils.dfba.toy import settings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba
 from sbmlutils.dfba.analysis import DFBAAnalysis
 
@@ -85,8 +85,8 @@ def print_fluxes(dfs, filepath=None, **kwargs):
         'fba__R2': ax2,
         'fba__R3': ax3,
         'R4': ax4,
-        'dummy_EX_A': ax5,
-        'dummy_EX_C': ax6,
+        'EX_A': ax5,
+        'EX_C': ax6,
         'update__update_A': ax7,
         'update__update_C': ax8,
     }
@@ -95,8 +95,8 @@ def print_fluxes(dfs, filepath=None, **kwargs):
         'fba__R2': 'darkred',
         'fba__R3': 'orange',
         'R4': 'darkblue',
-        'dummy_EX_A': 'magenta',
-        'dummy_EX_C': 'black',
+        'EX_A': 'magenta',
+        'EX_C': 'black',
         'update__update_A': 'lightblue',
         'update__update_C': 'lightgreen',
     }
@@ -122,12 +122,11 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
+def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
     """
-    tend = 50
     plot_kwargs = {
         'markersize': 4,
         'marker': 's',
@@ -139,7 +138,7 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
         dfs.append(df)
 
         # generic analysis
-        analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
+        analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 
         if figures:
             analysis.plot_reactions(os.path.join(out_dir, "fig_reactions_generic_dt{}.png".format(dt)),
@@ -150,12 +149,20 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True):
 
     # custom model plots
     if figures:
-        print_species(os.path.join(out_dir, "fig_species.png"), dfs, **plot_kwargs)
-        print_fluxes(os.path.join(out_dir, "fig_fluxes.png"), dfs, **plot_kwargs)
+        print_species(dfs=dfs, filepath=os.path.join(out_dir, "fig_species.png"), **plot_kwargs)
+        print_fluxes(dfs=dfs, filepath=os.path.join(out_dir, "fig_fluxes.png"), **plot_kwargs)
     return dfs
 
 
 if __name__ == "__main__":
-    directory = versioned_directory(toysettings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, toysettings.top_file)
+    directory = versioned_directory(settings.out_dir, model_factory.version)
+    sbml_path = os.path.join(directory, settings.top_file)
+
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+
+    from sbmlutils.dfba.model import DFBAModel
+    dfba_model = DFBAModel(sbml_path=sbml_path)
+
+    # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
     simulate_toy(sbml_path, out_dir=directory)

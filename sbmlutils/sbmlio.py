@@ -56,6 +56,7 @@ def write_sbml(doc, filepath, validate=True, program_name=None, program_version=
     writer.writeSBMLToFile(doc, filepath)
 
     # validate the model with units (only for small models)
+    # This validates the written file
     if validate:
         validation.check_sbml(filepath)
 
