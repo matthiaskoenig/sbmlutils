@@ -4,11 +4,9 @@ Validating DFBA files against the guidelines & rules.
 It is necessary to define all the rules for the FBA model.
 """
 
-version = ""
-
-
 from __future__ import print_function, division, absolute_import
 from sbmlutils.dfba.model import DFBAModel
+version = "0.2-draft"
 
 
 def validate_dfba(sbml_path):
@@ -48,8 +46,34 @@ class DFBAValidator(object):
         print("-" * 80)
         print(self.dfba_model)
 
+
+RuleTypes = {}
+
 class Rule(object):
-    def __init__(self):
-        self.rid = None
-        self.description = None
-        self.f = None
+    """ Rule which is checkted
+    
+    """
+    def __init__(self, rid, description, f=None):
+        self.rid = rid
+        self.description = description
+        self.f = f
+
+    def __str__(self):
+        return "[{}] {}".format(self.rid, self.description)
+
+    def DFBA_R0001():
+        self.
+
+
+
+if __name__ == "__main__":
+
+
+
+
+    r1 = Rule("DFBA-R0001",
+              "The DFBA model **MUST** be a single SBML `comp` model.")
+    r1.f =
+
+    print(r1)
+
