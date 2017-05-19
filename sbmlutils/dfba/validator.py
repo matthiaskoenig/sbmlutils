@@ -61,8 +61,6 @@ class Rule(object):
     def __str__(self):
         return "[{}] {}".format(self.rid, self.description)
 
-    def DFBA_R0001():
-        self.
 
 
 
@@ -70,10 +68,8 @@ if __name__ == "__main__":
 
 
 
-
     r1 = Rule("DFBA-R0001",
               "The DFBA model **MUST** be a single SBML `comp` model.")
-    r1.f =
 
     print(r1)
 
