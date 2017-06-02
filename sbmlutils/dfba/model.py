@@ -31,12 +31,13 @@ class DFBAModel(object):
         The models are resolved to their respective simulation framework.
         The top level network must be an ode network.
 
-        :param sbml_path: absolute path of top level SBML file
+        :param sbml_path: path to top level SBML file
         """
 
         # necessary to change the working directory to the sbml file directory
         # to resolve relative links to external model definitions.
         working_dir = os.getcwd()
+        sbml_path = os.path.abspath(sbml_path)
         try:
             sbml_dir = os.path.dirname(sbml_path)
             os.chdir(sbml_dir)
