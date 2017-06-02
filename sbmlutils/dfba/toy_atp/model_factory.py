@@ -127,7 +127,6 @@ def fba_model(sbml_file, directory):
 
         # internal species
         mc.Species(sid='fru16bp', name='Fructose 1,6-bisphospate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='g3p', name='Glyceraldehyde 3-phosphate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
         mc.Species(sid='pg2', name='2-Phosphoglycerate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # bounds
@@ -145,7 +144,6 @@ def fba_model(sbml_file, directory):
                             reactants={"fru16bp": 1}, products={"pg2": 2}, compartment='cell')
     r3 = mc.create_reaction(model, rid="R3", name="pg2 + adp -> pyr + atp", fast=False, reversible=False,
                             reactants={"pg2": 1, "adp": 1}, products={"pyr": 1, "atp": 1}, compartment='cell')
-
     ratp = mc.create_reaction(model, rid="RATP", name="atp -> adp", fast=False, reversible=False,
                             reactants={"atp": 1}, products={"adp": 1}, compartment='cell')
 
@@ -181,19 +179,17 @@ def bounds_model(sbml_file, directory, doc_fba):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    doc = builder.template_doc_bounds("toy")
+    doc = builder.template_doc_bounds(settings.model_id)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=bounds_notes,
                          creators=creators,
                          units=units, main_units=main_units)
-
     builder.create_dfba_dt(model, step_size=DT_SIM, time_unit=UNIT_TIME, create_port=True)
 
     # compartment
-    compartment_id = 'extern'
-    builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME,
-                                    create_port=True)
+    compartment_id = 'cell'
+    builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=True)
 
     # species
     model_fba = doc_fba.getModel()
@@ -362,8 +358,8 @@ def create_model(output_dir):
     # create sbml
     doc_fba = fba_model(settings.fba_file, directory)
 
-    '''
     bounds_model(settings.bounds_file, directory, doc_fba=doc_fba)
+    '''
     update_model(settings.update_file, directory, doc_fba=doc_fba)
 
     emds = {
