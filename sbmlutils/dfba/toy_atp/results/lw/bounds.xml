@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:arrays="http://www.sbml.org/sbml/level3/version1/arrays/version1" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:layout="http://www.sbml.org/sbml/level3/version1/layout/version1" level="3" version="1" comp:required="true" fbc:required="false" layout:required="false" arrays:required="true">
+  <model metaid="iBioSim15" id="bounds" fbc:strict="false">
+    <listOfCompartments>
+      <compartment id="Cell" spatialDimensions="3" size="1" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species metaid="iBioSim1" id="ATP" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species metaid="iBioSim3" id="ADP" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species metaid="iBioSim4" id="Pyruvate" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species metaid="iBioSim5" id="Glucose" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter metaid="iBioSim6" id="max_ATP" value="0" constant="false"/>
+      <parameter metaid="iBioSim7" id="max_ADP" value="0" constant="false"/>
+      <parameter metaid="iBioSim8" id="min_glucose" value="0" constant="false"/>
+      <parameter metaid="iBioSim9" id="min_ATP" value="0" constant="false"/>
+      <parameter metaid="iBioSim10" id="min_ADP" value="0" constant="false"/>
+      <parameter metaid="iBioSim11" id="max_glucose" value="0" constant="false"/>
+      <parameter metaid="iBioSim12" id="dt" value="1" constant="true"/>
+      <parameter metaid="iBioSim13" id="max_default" value="1000" constant="true"/>
+      <parameter metaid="iBioSim2" id="min_pyruvate" value="0" constant="false"/>
+      <parameter metaid="iBioSim14" id="max_pyruvate" value="0" constant="false"/>
+      <parameter metaid="iBioSim16" id="default_min" value="0" constant="true"/>
+      <parameter metaid="iBioSim17" id="default_rv_min" value="-1000" constant="true"/>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment metaid="init__max_ADP" symbol="max_ADP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> max_default </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment metaid="init__max_pyruvate" symbol="max_pyruvate">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> max_default </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment metaid="init__min_ATP" symbol="min_ATP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> default_rv_min </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment metaid="init__min_ADP" symbol="min_ADP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> default_min </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment metaid="init__min_pyruvate" symbol="min_pyruvate">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> default_min </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment metaid="init__min_glucose" symbol="min_glucose">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> default_min </ci>
+        </math>
+      </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <assignmentRule metaid="rule0" variable="max_ATP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> ATP </ci>
+            <ci> dt </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule metaid="rule1" variable="max_glucose">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <piecewise>
+            <piece>
+              <apply>
+                <divide/>
+                <ci> Glucose </ci>
+                <ci> dt </ci>
+              </apply>
+              <apply>
+                <lt/>
+                <apply>
+                  <divide/>
+                  <ci> Glucose </ci>
+                  <ci> dt </ci>
+                </apply>
+                <cn type="integer"> 1 </cn>
+              </apply>
+            </piece>
+            <otherwise>
+              <cn type="integer"> 1 </cn>
+            </otherwise>
+          </piecewise>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <comp:listOfPorts>
+      <comp:port sboTerm="SBO:0000601" comp:idRef="Cell" comp:id="compartment__Cell"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="ATP" comp:id="input__ATP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="ADP" comp:id="input__ADP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="Pyruvate" comp:id="input__Pyruvate"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="Glucose" comp:id="input__Glucose"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="max_ATP" comp:id="input__max_ATP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="max_ADP" comp:id="input__max_ADP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="min_ADP" comp:id="input__min_ADP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="min_ATP" comp:id="input__min_ATP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="min_glucose" comp:id="input__min_glucose"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="max_glucose" comp:id="input__max_glucose"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="dt" comp:id="input__dt"/>
+      <comp:port sboTerm="SBO:0000601" comp:metaIdRef="init__max_ADP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="min_pyruvate" comp:id="input__min_pyruvate"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="max_pyruvate" comp:id="input__max_pyruvate"/>
+      <comp:port sboTerm="SBO:0000601" comp:metaIdRef="init__min_ATP" comp:id="initialAssignment__min_ATP"/>
+      <comp:port sboTerm="SBO:0000601" comp:metaIdRef="init__min_ADP" comp:id="initialAssignment__min_ADP"/>
+      <comp:port sboTerm="SBO:0000601" comp:metaIdRef="init__min_pyruvate" comp:id="initialAssignment__min_pyruvate"/>
+      <comp:port sboTerm="SBO:0000601" comp:metaIdRef="init__min_glucose" comp:id="initialAssignment__min_glucose"/>
+    </comp:listOfPorts>
+    <layout:listOfLayouts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:layout="http://www.sbml.org/sbml/level3/version1/layout/version1">
+      <layout:layout layout:id="iBioSim">
+        <layout:dimensions layout:width="1070" layout:height="425" layout:depth="0"/>
+        <layout:listOfCompartmentGlyphs>
+          <layout:compartmentGlyph layout:id="Glyph__Cell" layout:compartment="Cell">
+            <layout:boundingBox>
+              <layout:position layout:x="0" layout:y="0"/>
+              <layout:dimensions layout:width="1070" layout:height="425"/>
+            </layout:boundingBox>
+          </layout:compartmentGlyph>
+        </layout:listOfCompartmentGlyphs>
+        <layout:listOfSpeciesGlyphs>
+          <layout:speciesGlyph layout:id="Glyph__ATP" layout:species="ATP">
+            <layout:boundingBox>
+              <layout:position layout:x="120" layout:y="160"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:speciesGlyph>
+          <layout:speciesGlyph layout:id="Glyph__ADP" layout:species="ADP">
+            <layout:boundingBox>
+              <layout:position layout:x="290" layout:y="170"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:speciesGlyph>
+          <layout:speciesGlyph layout:id="Glyph__Pyruvate" layout:species="Pyruvate">
+            <layout:boundingBox>
+              <layout:position layout:x="300" layout:y="100"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:speciesGlyph>
+          <layout:speciesGlyph layout:id="Glyph__Glucose" layout:species="Glucose">
+            <layout:boundingBox>
+              <layout:position layout:x="570" layout:y="160"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:speciesGlyph>
+        </layout:listOfSpeciesGlyphs>
+        <layout:listOfTextGlyphs>
+          <layout:textGlyph layout:id="TextGlyph__Cell" layout:text="Cell" layout:graphicalObject="Glyph__Cell">
+            <layout:boundingBox>
+              <layout:position layout:x="0" layout:y="0"/>
+              <layout:dimensions layout:width="1070" layout:height="425"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__ATP" layout:text="ATP" layout:graphicalObject="Glyph__ATP">
+            <layout:boundingBox>
+              <layout:position layout:x="120" layout:y="160"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__ADP" layout:text="ADP" layout:graphicalObject="Glyph__ADP">
+            <layout:boundingBox>
+              <layout:position layout:x="290" layout:y="170"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__Pyruvate" layout:text="Pyruvate" layout:graphicalObject="Glyph__Pyruvate">
+            <layout:boundingBox>
+              <layout:position layout:x="300" layout:y="100"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__Glucose" layout:text="Glucose" layout:graphicalObject="Glyph__Glucose">
+            <layout:boundingBox>
+              <layout:position layout:x="570" layout:y="160"/>
+              <layout:dimensions layout:width="100" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__max_ATP" layout:text="max_ATP" layout:graphicalObject="Glyph__max_ATP">
+            <layout:boundingBox>
+              <layout:position layout:x="80" layout:y="160"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__max_ADP" layout:text="max_ADP" layout:graphicalObject="Glyph__max_ADP">
+            <layout:boundingBox>
+              <layout:position layout:x="390" layout:y="220"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__min_glucose" layout:text="min_glucose" layout:graphicalObject="Glyph__min_glucose">
+            <layout:boundingBox>
+              <layout:position layout:x="470" layout:y="190"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__min_ATP" layout:text="min_ATP" layout:graphicalObject="Glyph__min_ATP">
+            <layout:boundingBox>
+              <layout:position layout:x="110" layout:y="260"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__min_ADP" layout:text="min_ADP" layout:graphicalObject="Glyph__min_ADP">
+            <layout:boundingBox>
+              <layout:position layout:x="300" layout:y="210"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__max_glucose" layout:text="max_glucose" layout:graphicalObject="Glyph__max_glucose">
+            <layout:boundingBox>
+              <layout:position layout:x="760" layout:y="40"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__rule0" layout:text="rule0" layout:graphicalObject="Glyph__rule0">
+            <layout:boundingBox>
+              <layout:position layout:x="70" layout:y="10"/>
+              <layout:dimensions layout:width="50" layout:height="50"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__rule1" layout:text="rule1" layout:graphicalObject="Glyph__rule1">
+            <layout:boundingBox>
+              <layout:position layout:x="560" layout:y="30"/>
+              <layout:dimensions layout:width="50" layout:height="50"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__min_pyruvate" layout:text="min_pyruvate" layout:graphicalObject="Glyph__min_pyruvate">
+            <layout:boundingBox>
+              <layout:position layout:x="420" layout:y="314"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+          <layout:textGlyph layout:id="TextGlyph__max_pyruvate" layout:text="max_pyruvate" layout:graphicalObject="Glyph__max_pyruvate">
+            <layout:boundingBox>
+              <layout:position layout:x="592" layout:y="279"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:textGlyph>
+        </layout:listOfTextGlyphs>
+        <layout:listOfAdditionalGraphicalObjects>
+          <layout:generalGlyph layout:id="Glyph__max_ATP" layout:reference="max_ATP">
+            <layout:boundingBox>
+              <layout:position layout:x="80" layout:y="160"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__max_ADP" layout:reference="max_ADP">
+            <layout:boundingBox>
+              <layout:position layout:x="390" layout:y="220"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__min_glucose" layout:reference="min_glucose">
+            <layout:boundingBox>
+              <layout:position layout:x="470" layout:y="190"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__min_ATP" layout:reference="min_ATP">
+            <layout:boundingBox>
+              <layout:position layout:x="110" layout:y="260"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__min_ADP" layout:reference="min_ADP">
+            <layout:boundingBox>
+              <layout:position layout:x="300" layout:y="210"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__max_glucose" layout:reference="max_glucose">
+            <layout:boundingBox>
+              <layout:position layout:x="760" layout:y="40"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__rule0" layout:metaidRef="rule0">
+            <layout:boundingBox>
+              <layout:position layout:x="70" layout:y="10"/>
+              <layout:dimensions layout:width="50" layout:height="50"/>
+            </layout:boundingBox>
+            <layout:listOfReferenceGlyphs>
+              <layout:referenceGlyph layout:id="Glyph__rule0__substrate__ATP" layout:glyph="Glyph__ATP" layout:role="substrate">
+                <layout:curve>
+                  <layout:listOfCurveSegments>
+                    <layout:curveSegment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="LineSegment">
+                      <layout:start layout:x="170" layout:y="175"/>
+                      <layout:end layout:x="95" layout:y="35"/>
+                    </layout:curveSegment>
+                  </layout:listOfCurveSegments>
+                </layout:curve>
+              </layout:referenceGlyph>
+              <layout:referenceGlyph layout:id="Glyph__rule0__product__max_ATP" layout:glyph="Glyph__max_ATP" layout:role="product">
+                <layout:curve>
+                  <layout:listOfCurveSegments>
+                    <layout:curveSegment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="LineSegment">
+                      <layout:start layout:x="95" layout:y="35"/>
+                      <layout:end layout:x="95" layout:y="175"/>
+                    </layout:curveSegment>
+                  </layout:listOfCurveSegments>
+                </layout:curve>
+              </layout:referenceGlyph>
+            </layout:listOfReferenceGlyphs>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__rule1" layout:metaidRef="rule1">
+            <layout:boundingBox>
+              <layout:position layout:x="560" layout:y="30"/>
+              <layout:dimensions layout:width="50" layout:height="50"/>
+            </layout:boundingBox>
+            <layout:listOfReferenceGlyphs>
+              <layout:referenceGlyph layout:id="Glyph__rule1__substrate__Glucose" layout:glyph="Glyph__Glucose" layout:role="substrate">
+                <layout:curve>
+                  <layout:listOfCurveSegments>
+                    <layout:curveSegment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="LineSegment">
+                      <layout:start layout:x="620" layout:y="175"/>
+                      <layout:end layout:x="585" layout:y="55"/>
+                    </layout:curveSegment>
+                  </layout:listOfCurveSegments>
+                </layout:curve>
+              </layout:referenceGlyph>
+              <layout:referenceGlyph layout:id="Glyph__rule1__product__max_glucose" layout:glyph="Glyph__max_glucose" layout:role="product">
+                <layout:curve>
+                  <layout:listOfCurveSegments>
+                    <layout:curveSegment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="LineSegment">
+                      <layout:start layout:x="585" layout:y="55"/>
+                      <layout:end layout:x="775" layout:y="55"/>
+                    </layout:curveSegment>
+                  </layout:listOfCurveSegments>
+                </layout:curve>
+              </layout:referenceGlyph>
+            </layout:listOfReferenceGlyphs>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__min_pyruvate" layout:reference="min_pyruvate">
+            <layout:boundingBox>
+              <layout:position layout:x="420" layout:y="314"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+          <layout:generalGlyph layout:id="Glyph__max_pyruvate" layout:reference="max_pyruvate">
+            <layout:boundingBox>
+              <layout:position layout:x="592" layout:y="279"/>
+              <layout:dimensions layout:width="30" layout:height="30"/>
+            </layout:boundingBox>
+          </layout:generalGlyph>
+        </layout:listOfAdditionalGraphicalObjects>
+      </layout:layout>
+    </layout:listOfLayouts>
+  </model>
+</sbml>
