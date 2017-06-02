@@ -37,31 +37,34 @@ class DFBAModel(object):
         # necessary to change the working directory to the sbml file directory
         # to resolve relative links to external model definitions.
         working_dir = os.getcwd()
-        sbml_dir = os.path.dirname(sbml_path)
-        os.chdir(sbml_dir)
+        try:
+            sbml_dir = os.path.dirname(sbml_path)
+            os.chdir(sbml_dir)
 
-        self.sbml_top = sbml_path
-        self.sbml_dir = os.path.dirname(sbml_path)
+            self.sbml_top = sbml_path
+            self.sbml_dir = os.path.dirname(sbml_path)
 
-        # read top level model
-        self.doc_top = None
-        self.model_top = None
-        self.framework_top = None
-        self.submodels = defaultdict(list)
-        self.rr_comp = None
-        self.fba_models = []
-        self.flux_rules = {}
-        self.dt = None
+            # read top level model
+            self.doc_top = None
+            self.model_top = None
+            self.framework_top = None
+            self.submodels = defaultdict(list)
+            self.rr_comp = None
+            self.fba_models = []
+            self.flux_rules = {}
+            self.dt = None
 
-        self._process_top()
-        self._process_models()
-        self._process_dt()
+            self._process_top()
+            self._process_models()
+            self._process_dt()
 
-        # log model information
-        logging.info(self)
+            # log model information
+            logging.info(self)
 
-        # change back the working dir
-        os.chdir(working_dir)
+        finally:
+            # change back the working dir
+            os.chdir(working_dir)
+
 
     @property
     def fba_model(self):
