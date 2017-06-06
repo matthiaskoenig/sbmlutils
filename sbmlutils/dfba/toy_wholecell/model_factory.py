@@ -27,7 +27,7 @@ from sbmlutils.report import sbmlreport
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.toy import settings
+from sbmlutils.dfba.toy_wholecell import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 

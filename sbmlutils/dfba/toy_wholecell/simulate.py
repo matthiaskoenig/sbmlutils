@@ -8,7 +8,7 @@ from six import iteritems
 import numpy as np
 import pandas as pd
 
-from sbmlutils.dfba.toy import settings, model_factory
+from sbmlutils.dfba.toy_wholecell import settings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba
 from sbmlutils.dfba.analysis import DFBAAnalysis
 

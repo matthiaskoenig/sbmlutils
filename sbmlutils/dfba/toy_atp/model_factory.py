@@ -130,7 +130,7 @@ def fba_model(sbml_file, directory):
         mc.Species(sid='pg2', name='2-Phosphoglycerate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # bounds
-        mc.Parameter(sid="ub_RATP", value=10.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
+        mc.Parameter(sid="ub_RATP", value=1E-3, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="ub_default", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True,
                      sboTerm=builder.FLUX_BOUND_SBO),
@@ -199,25 +199,28 @@ def bounds_model(sbml_file, directory, doc_fba):
     # exchange bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
 
-    objects = [
-        # exchange bounds
-        # FIXME: readout the FBA network bounds
-        mc.Parameter(sid="lb_default", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
+    # bounds
+    fba_prefix = "fba"
+    model_fba = doc_fba.getModel()
+    objects = []
+    ex_rids = utils.find_exchange_reactions(model_fba)
+    for ex_rid, sid in iteritems(ex_rids):
+        r = model_fba.getReaction(ex_rid)
 
-        # kinetic bound parameter & calculation
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
-        mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
-        mc.RateRule(sid="ub_R1", value="k1*ub_R1"),
+        # lower & upper bound parameters
+        r_fbc = r.getPlugin(builder.SBML_FBC_NAME)
+        lb_id = r_fbc.getLowerFluxBound()
+        fba_lb_id = fba_prefix + lb_id
+        lb_value = model_fba.getParameter(lb_id).getValue()
 
-        # bound assignment rules
-        mc.AssignmentRule(sid="lb_EX_A", value='max(lb_default, -A/dt)'),
-        mc.AssignmentRule(sid="lb_EX_C", value='max(lb_default, -C/dt)'),
-    ]
+        objects.extend([
+            # default bounds from fba
+            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
+            # uptake bounds (lower bound)
+            mc.AssignmentRule(sid=lb_id, value="max({}, -{}/dt)".format(fba_lb_id, sid)),
+        ])
     mc.create_objects(model, objects)
 
-    # ports
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=["ub_R1"])
 
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
@@ -233,7 +236,7 @@ def update_model(sbml_file, directory, doc_fba=None):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    doc = builder.template_doc_update("toy")
+    doc = builder.template_doc_update(settings.model_id)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=update_notes,
@@ -241,7 +244,7 @@ def update_model(sbml_file, directory, doc_fba=None):
                          units=units, main_units=main_units)
 
     # compartment
-    compartment_id = "extern"
+    compartment_id = "cell"
     builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=True)
 
     # dynamic species
@@ -252,7 +255,6 @@ def update_model(sbml_file, directory, doc_fba=None):
     # update reactions
     builder.create_update_reactions(model, model_fba=model_fba, formula="-{}", unit_flux=UNIT_FLUX,
                                     modifiers=[])
-
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
@@ -275,8 +277,7 @@ def top_model(sbml_file, directory, emds, doc_fba):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    model_id = "toy"
-    doc = builder.template_doc_top(model_id, emds)
+    doc = builder.template_doc_top(settings.model_id, emds)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=top_notes,
@@ -286,7 +287,7 @@ def top_model(sbml_file, directory, emds, doc_fba):
     builder.create_dfba_dt(model, step_size=DT_SIM, time_unit=UNIT_TIME, create_port=False)
 
     # compartment
-    compartment_id = "extern"
+    compartment_id = "cell"
     builder.create_dfba_compartment(model, compartment_id=compartment_id, unit_volume=UNIT_VOLUME, create_port=False)
 
     # dynamic species
@@ -311,33 +312,14 @@ def top_model(sbml_file, directory, emds, doc_fba):
 
     # initial concentrations for fba exchange species
     initial_c = {
-        'A': 10.0,
-        'C': 0.0,
+        'atp': 2.0,
+        'adp': 1.0,
+        'glc': 5.0,
+        'pyr': 0.0
     }
     for sid, value in iteritems(initial_c):
         species = model.getSpecies(sid)
         species.setInitialConcentration(value)
-
-    # kinetic model
-    mc.create_objects(model, [
-        # kinetic species
-        mc.Species(sid='D', value=0, unit=UNIT_AMOUNT,
-                   hasOnlySubstanceUnits=True, compartment="extern"),
-
-        # kinetic
-        mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
-
-        # bounds parameter
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
-    ])
-    # kinetic reaction (MMK)
-    mc.create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
-                       reactants={"C": 1}, products={"D": 1}, formula="k_R4*C", compartment="extern")
-
-    # kinetic flux bounds
-    comp.replace_elements(model, 'ub_R1', ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={'bounds': ['ub_R1_port'],
-                                             'fba': ['ub_R1_port']})
 
     # write SBML file
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
@@ -357,16 +339,15 @@ def create_model(output_dir):
 
     # create sbml
     doc_fba = fba_model(settings.fba_file, directory)
-
     bounds_model(settings.bounds_file, directory, doc_fba=doc_fba)
-    '''
     update_model(settings.update_file, directory, doc_fba=doc_fba)
 
     emds = {
-        "toy_fba": settings.fba_file,
-        "toy_bounds": settings.bounds_file,
-        "toy_update": settings.update_file,
+        "{}_fba".format(settings.model_id): settings.fba_file,
+        "{}_bounds".format(settings.model_id): settings.bounds_file,
+        "{}_update".format(settings.model_id): settings.update_file,
     }
+
 
     # flatten top model
     top_model(settings.top_file, directory, emds, doc_fba)
@@ -381,7 +362,6 @@ def create_model(output_dir):
                    settings.top_file,
                    settings.flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
-    '''
     return directory
 
 

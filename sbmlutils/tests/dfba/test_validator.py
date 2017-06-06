@@ -8,8 +8,8 @@ import pytest
 import os
 
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.toy import settings as toysettings
-from sbmlutils.dfba.toy import model_factory as toyfactory
+from sbmlutils.dfba.toy_wholecell import settings as toysettings
+from sbmlutils.dfba.toy_wholecell import model_factory as toyfactory
 from sbmlutils.dfba.simulator import simulate_dfba
 
 from sbmlutils.dfba import validator

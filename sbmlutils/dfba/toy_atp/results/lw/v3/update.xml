@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" level="3" version="1" comp:required="true" fbc:required="false">
+  <model metaid="iBioSim15" sboTerm="SBO:0000293" id="update" fbc:strict="false">
+    <listOfCompartments>
+      <compartment id="Cell" spatialDimensions="3" size="1" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species metaid="iBioSim1" id="ATP" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species metaid="iBioSim3" id="ADP" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species metaid="iBioSim4" id="Glucose" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species metaid="iBioSim5" id="Pyruvate" compartment="Cell" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter metaid="iBioSim10" id="rateOfATP" value="0" constant="false"/>
+      <parameter metaid="iBioSim11" id="rateOfADP" value="0" constant="false"/>
+      <parameter metaid="iBioSim12" id="rateOfGlcxt" value="0" constant="false"/>
+      <parameter metaid="iBioSim13" id="rateOfPyruvate" value="0" constant="false"/>
+      <parameter metaid="iBioSim14" id="Km" value="0.1" constant="true"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction metaid="iBioSim8" id="R2" reversible="false" fast="false" compartment="Cell">
+        <listOfReactants>
+          <speciesReference species="Glucose" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> rateOfGlcxt </ci>
+                <ci> Glucose </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> Km </ci>
+                <ci> Glucose </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="iBioSim6" id="R0" reversible="false" fast="false" compartment="Cell">
+        <listOfReactants>
+          <speciesReference species="ATP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> rateOfATP </ci>
+                <ci> ATP </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> Km </ci>
+                <ci> ATP </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="iBioSim9" id="R3" reversible="false" fast="false" compartment="Cell">
+        <listOfProducts>
+          <speciesReference species="Pyruvate" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <ci> rateOfPyruvate </ci>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="iBioSim7" id="R1" reversible="false" fast="false" compartment="Cell">
+        <listOfReactants>
+          <speciesReference species="ADP" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> rateOfADP </ci>
+                <ci> ADP </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> Km </ci>
+                <ci> ADP </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <comp:listOfPorts>
+      <comp:port sboTerm="SBO:0000601" comp:idRef="Cell" comp:id="compartment__Cell"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="rateOfATP" comp:id="input__rateOfATP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="rateOfADP" comp:id="input__rateOfADP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="rateOfGlcxt" comp:id="input__rateOfGlcxt"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="rateOfPyruvate" comp:id="input__rateOfPyruvate"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="ATP" comp:id="input__ATP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="ADP" comp:id="input__ADP"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="Glucose" comp:id="input__Glucose"/>
+      <comp:port sboTerm="SBO:0000600" comp:idRef="Pyruvate" comp:id="input__Pyruvate"/>
+    </comp:listOfPorts>
+  </model>
+</sbml>

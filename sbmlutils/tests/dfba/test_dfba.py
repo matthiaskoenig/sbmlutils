@@ -8,9 +8,9 @@ import tempfile
 
 from sbmlutils.dfba.utils import versioned_directory
 
-from sbmlutils.dfba.toy import settings
-from sbmlutils.dfba.toy import model_factory as toyfactory
-from sbmlutils.dfba.toy import simulate as toysimulate
+from sbmlutils.dfba.toy_wholecell import settings
+from sbmlutils.dfba.toy_wholecell import model_factory as toyfactory
+from sbmlutils.dfba.toy_wholecell import simulate as toysimulate
 
 from sbmlutils.dfba.diauxic_growth import dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
