@@ -26,7 +26,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 1
+version = 2
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -130,7 +130,7 @@ def fba_model(sbml_file, directory):
         mc.Species(sid='pg2', name='2-Phosphoglycerate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # bounds
-        mc.Parameter(sid="ub_RATP", value=1E-3, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
+        mc.Parameter(sid="ub_R3", value=1E-3, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="ub_default", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True,
                      sboTerm=builder.FLUX_BOUND_SBO),
@@ -144,14 +144,14 @@ def fba_model(sbml_file, directory):
                             reactants={"fru16bp": 1}, products={"pg2": 2}, compartment='cell')
     r3 = mc.create_reaction(model, rid="R3", name="pg2 + adp -> pyr + atp", fast=False, reversible=False,
                             reactants={"pg2": 1, "adp": 1}, products={"pyr": 1, "atp": 1}, compartment='cell')
-    ratp = mc.create_reaction(model, rid="RATP", name="atp -> adp", fast=False, reversible=False,
-                            reactants={"atp": 1}, products={"adp": 1}, compartment='cell')
+    # ratp = mc.create_reaction(model, rid="RATP", name="atp -> adp", fast=False, reversible=False,
+    #                        reactants={"atp": 1}, products={"adp": 1}, compartment='cell')
 
     # flux bounds
     mc.set_flux_bounds(r1, lb="zero", ub="ub_default")
     mc.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r3, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(ratp, lb="zero", ub="ub_RATP")
+    mc.set_flux_bounds(r3, lb="zero", ub="ub_R3")
+    # mc.set_flux_bounds(ratp, lb="zero", ub="ub_RATP")
 
     # exchange reactions
     for sid in ['atp', 'adp', 'glc', 'pyr']:
@@ -159,7 +159,7 @@ def fba_model(sbml_file, directory):
 
     # objective function
     model_fbc = model.getPlugin("fbc")
-    mc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"RATP": 1.0}, active=True)
+    mc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"R3": 1.0}, active=True)
 
     # write SBML
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
