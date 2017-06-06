@@ -26,7 +26,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 2
+version = 4
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -82,8 +82,6 @@ units = [
     mc.Unit('per_s', [(UNIT_KIND_SECOND, -1.0)]),
     mc.Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0),
                            (UNIT_KIND_SECOND, -1.0)]),
-    # mc.Unit('mole_per_m3', [(UNIT_KIND_MOLE, 1.0),
-    #                        (UNIT_KIND_METRE, -3.0)]),
 ]
 
 UNIT_TIME = 's'
@@ -143,9 +141,7 @@ def fba_model(sbml_file, directory):
     r2 = mc.create_reaction(model, rid="R2", name="fru16bp -> 2 pg2", fast=False, reversible=False,
                             reactants={"fru16bp": 1}, products={"pg2": 2}, compartment='cell')
     r3 = mc.create_reaction(model, rid="R3", name="pg2 + adp -> pyr + atp", fast=False, reversible=False,
-                            reactants={"pg2": 1, "adp": 1}, products={"pyr": 1, "atp": 1}, compartment='cell')
-    # ratp = mc.create_reaction(model, rid="RATP", name="atp -> adp", fast=False, reversible=False,
-    #                        reactants={"atp": 1}, products={"adp": 1}, compartment='cell')
+                            reactants={"pg2": 1, "adp": 2}, products={"pyr": 1, "atp": 2}, compartment='cell')
 
     # flux bounds
     mc.set_flux_bounds(r1, lb="zero", ub="ub_default")
@@ -193,8 +189,8 @@ def bounds_model(sbml_file, directory, doc_fba):
 
     # species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT,
-                                hasOnlySubstanceUnits=True, create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+                                hasOnlySubstanceUnits=False, create_port=True)
 
     # exchange bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
@@ -217,7 +213,7 @@ def bounds_model(sbml_file, directory, doc_fba):
             # default bounds from fba
             mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
             # uptake bounds (lower bound)
-            mc.AssignmentRule(sid=lb_id, value="max({}, -{}/dt)".format(fba_lb_id, sid)),
+            mc.AssignmentRule(sid=lb_id, value="max({}, -{}*{}/dt)".format(fba_lb_id, compartment_id, sid)),
         ])
     mc.create_objects(model, objects)
 
@@ -249,8 +245,8 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT,
-                                hasOnlySubstanceUnits=True, create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+                                hasOnlySubstanceUnits=False, create_port=True)
 
     # update reactions
     builder.create_update_reactions(model, model_fba=model_fba, formula="-{}", unit_flux=UNIT_FLUX,
@@ -292,11 +288,11 @@ def top_model(sbml_file, directory, emds, doc_fba):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, hasOnlySubstanceUnits=True,
-                                unit=UNIT_AMOUNT, create_port=False)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, hasOnlySubstanceUnits=False,
+                                unit=UNIT_CONCENTRATION, create_port=False)
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, hasOnlySubstanceUnits=True,
-                                 unit=UNIT_AMOUNT)
+    builder.create_dummy_species(model, compartment_id=compartment_id, hasOnlySubstanceUnits=False,
+                                 unit=UNIT_CONCENTRATION)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -309,6 +305,18 @@ def top_model(sbml_file, directory, emds, doc_fba):
 
     # replaced
     builder.create_top_replacements(model, model_fba, compartment_id=compartment_id)
+
+    objects = [
+        # kinetic parameters
+        mc.Parameter(sid="Vmax_RATP", value=1E-3, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid='k_RATP', value=0.1, unit=UNIT_CONCENTRATION, constant=True),
+    ]
+    mc.create_objects(model, objects)
+
+    ratp = mc.create_reaction(model, rid="RATP", name="atp -> adp", fast=False, reversible=False,
+                            reactants={"atp": 1}, products={"adp": 1}, compartment=compartment_id,
+                              formula='Vmax_RATP * atp/(k_RATP + atp)')
+
 
     # initial concentrations for fba exchange species
     initial_c = {

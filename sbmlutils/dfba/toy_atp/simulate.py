@@ -122,7 +122,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy_atp(sbml_path, out_dir, dts=[10.0, 20.0], figures=True, tend=3600):
+def simulate_toy_atp(sbml_path, out_dir, dts=[100.0], figures=True, tend=15000):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
