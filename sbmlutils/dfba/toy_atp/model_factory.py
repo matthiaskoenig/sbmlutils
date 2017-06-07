@@ -26,7 +26,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 4
+version = 5
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -64,7 +64,7 @@ creators = [
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
 ]
 main_units = {
-    'time': 's',
+    'time': 'h',
     'extent': UNIT_KIND_MOLE,
     'substance': UNIT_KIND_MOLE,
     'length': 'm',
@@ -72,7 +72,7 @@ main_units = {
     'volume': 'm3',
 }
 units = [
-    mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)]),
+    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)]),
     mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)]),
     mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
@@ -80,16 +80,16 @@ units = [
     mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0),
                    (UNIT_KIND_METRE, -3.0)]),
     mc.Unit('per_s', [(UNIT_KIND_SECOND, -1.0)]),
-    mc.Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0),
-                           (UNIT_KIND_SECOND, -1.0)]),
+    mc.Unit('mole_per_h', [(UNIT_KIND_MOLE, 1.0),
+                           (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 ]
 
-UNIT_TIME = 's'
+UNIT_TIME = 'h'
 UNIT_AMOUNT = UNIT_KIND_ITEM
 UNIT_AREA = 'm2'
 UNIT_VOLUME = 'm3'
 UNIT_CONCENTRATION = 'mM'
-UNIT_FLUX = 'mole_per_s'
+UNIT_FLUX = 'mole_per_h'
 
 
 ####################################################
@@ -128,7 +128,7 @@ def fba_model(sbml_file, directory):
         mc.Species(sid='pg2', name='2-Phosphoglycerate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # bounds
-        mc.Parameter(sid="ub_R3", value=1E-3, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
+        mc.Parameter(sid="ub_R3", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         mc.Parameter(sid="ub_default", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True,
                      sboTerm=builder.FLUX_BOUND_SBO),
@@ -308,15 +308,18 @@ def top_model(sbml_file, directory, emds, doc_fba):
 
     objects = [
         # kinetic parameters
-        mc.Parameter(sid="Vmax_RATP", value=1E-3, unit=UNIT_FLUX, constant=True),
+        mc.Parameter(sid="Vmax_RATP", value=1, unit=UNIT_FLUX, constant=True),
         mc.Parameter(sid='k_RATP', value=0.1, unit=UNIT_CONCENTRATION, constant=True),
+
+        # balancing rules
+        mc.AssignmentRule(sid="atp_tot", value="atp + adp", unit="mM"),
+        mc.AssignmentRule(sid="c3_tot", value="2 dimensionless * glc + pyr", unit="mM")
     ]
     mc.create_objects(model, objects)
 
     ratp = mc.create_reaction(model, rid="RATP", name="atp -> adp", fast=False, reversible=False,
-                            reactants={"atp": 1}, products={"adp": 1}, compartment=compartment_id,
+                              reactants={"atp": 1}, products={"adp": 1}, compartment=compartment_id,
                               formula='Vmax_RATP * atp/(k_RATP + atp)')
-
 
     # initial concentrations for fba exchange species
     initial_c = {

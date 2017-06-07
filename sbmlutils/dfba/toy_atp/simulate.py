@@ -37,17 +37,19 @@ def print_species(dfs, filepath=None, **kwargs):
     for k, df in enumerate(dfs):
         for ax in (ax1, ax2):
             if k == 0:
+                ax.plot(df.time, df['atp_tot'], color='black', label="[atp] + [adp]", **kwargs)
+                ax.plot(df.time, df['c3_tot'], color='gray', label="2*[glc] + [pyr]", **kwargs)
                 ax.plot(df.time, df['[atp]'], color='darkred', label="[atp]", **kwargs)
                 ax.plot(df.time, df['[adp]'], color='darkblue', label="[adp]", **kwargs)
                 ax.plot(df.time, df['[glc]'], color='darkgreen', label="[glc]", **kwargs)
                 ax.plot(df.time, df['[pyr]'], color='darkorange', label="[pyr]", **kwargs)
-                ax.plot(df.time, df['[atp]']+df['[adp]'], color='black', label="[atp]+[adp]", **kwargs)
             else:
+                ax.plot(df.time, df['[atp]'] + df['[adp]'], color='black', label="_nolegend_", **kwargs)
+                ax.plot(df.time, df['c3_tot'], color='gray', label="_nolegend_", **kwargs)
                 ax.plot(df.time, df['[atp]'], color='darkred', label="_nolegend_", **kwargs)
                 ax.plot(df.time, df['[adp]'], color='darkblue', label="_nolegend_", **kwargs)
                 ax.plot(df.time, df['[glc]'], color='darkgreen', label="_nolegend_", **kwargs)
                 ax.plot(df.time, df['[pyr]'], color='darkorange', label="_nolegend_", **kwargs)
-                ax.plot(df.time, df['[atp]'] + df['[adp]'], color='black', label="_nolegend_", **kwargs)
     ax2.set_yscale('log')
 
     for ax in (ax1, ax2):
@@ -55,7 +57,7 @@ def print_species(dfs, filepath=None, **kwargs):
 
     for ax in (ax1, ax2):
         ax.set_title('toy_atp')
-        ax.set_xlabel('time [s]')
+        ax.set_xlabel('time [h]')
         ax.legend()
     if filepath is not None:
         fig.savefig(filepath, bbox_inches='tight')
@@ -122,7 +124,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy_atp(sbml_path, out_dir, dts=[100.0], figures=True, tend=15000):
+def simulate_toy_atp(sbml_path, out_dir, dts=[0.1], figures=True, tend=15):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
