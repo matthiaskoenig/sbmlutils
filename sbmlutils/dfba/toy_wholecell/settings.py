@@ -7,7 +7,7 @@ import os
 # output directory
 out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
-model_id = 'toy'
+model_id = 'toy_wholecell'
 
 # model files
 fba_file = '{}_fba.xml'.format(model_id)
@@ -15,3 +15,6 @@ bounds_file = '{}_bounds.xml'.format(model_id)
 update_file = '{}_update.xml'.format(model_id)
 top_file = '{}_top.xml'.format(model_id)
 flattened_file = '{}_flattened.xml'.format(model_id)
+
+# annotation file
+annotations_file = 'annotations.xlsx'

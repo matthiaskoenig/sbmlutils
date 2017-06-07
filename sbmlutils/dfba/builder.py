@@ -479,7 +479,7 @@ def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
 
     # format the formula
     formula = formula.format(FLUX_PARAMETER_PREFIX + sid)
-    fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_PREFIX,
+    fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_SBO,
                        reactants={sid: 1}, modifiers=modifiers,
                        formula=formula)
 

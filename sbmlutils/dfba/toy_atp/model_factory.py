@@ -16,7 +16,6 @@ from sbmlutils import comp
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils import annotation
-from sbmlutils import history
 from sbmlutils.report import sbmlreport
 
 
@@ -356,7 +355,6 @@ def create_model(output_dir):
     :rtype:
     :return directory in which model files exist.
     """
-    from sbmlutils import annotation
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'annotations.xlsx')
     annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
 

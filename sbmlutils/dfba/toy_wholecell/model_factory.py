@@ -24,6 +24,7 @@ from sbmlutils import comp
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
+from sbmlutils import annotation
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -34,7 +35,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 10
+version = 11
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -80,13 +81,13 @@ main_units = {
     'volume': 'm3',
 }
 units = [
-    mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)]),
-    mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)]),
-    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
-    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
-    mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)]),
+    mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)], name="second"),
+    mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)], name="kilogram"),
+    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
+    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="square meter"),
+    mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)], name="cubic meter"),
     mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0),
-                   (UNIT_KIND_METRE, -3.0)]),
+                   (UNIT_KIND_METRE, -3.0)], name="millimolar"),
     mc.Unit('per_s', [(UNIT_KIND_SECOND, -1.0)]),
     mc.Unit('item_per_s', [(UNIT_KIND_ITEM, 1.0),
                            (UNIT_KIND_SECOND, -1.0)]),
@@ -105,7 +106,7 @@ UNIT_FLUX = 'item_per_s'
 ####################################################
 # FBA submodel
 ####################################################
-def fba_model(sbml_file, directory):
+def fba_model(sbml_file, directory, annotations=None):
     """ FBA model
     
     :param sbml_file: output file name 
@@ -116,7 +117,7 @@ def fba_model(sbml_file, directory):
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-    doc = builder.template_doc_fba("toy")
+    doc = builder.template_doc_fba(settings.model_id)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=fba_notes,
@@ -177,6 +178,8 @@ def fba_model(sbml_file, directory):
                       idRefs=["ub_R1"])
 
     # write SBML
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
     return doc
 
@@ -184,7 +187,7 @@ def fba_model(sbml_file, directory):
 ####################################################
 # BOUNDS submodel
 ####################################################
-def bounds_model(sbml_file, directory, doc_fba):
+def bounds_model(sbml_file, directory, doc_fba, annotations=None):
     """"
     Bounds model.
     """
@@ -194,7 +197,7 @@ def bounds_model(sbml_file, directory, doc_fba):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    doc = builder.template_doc_bounds("toy")
+    doc = builder.template_doc_bounds(settings.model_id)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=bounds_notes,
@@ -222,7 +225,7 @@ def bounds_model(sbml_file, directory, doc_fba):
         mc.Parameter(sid="lb_default", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True),
 
         # kinetic bound parameter & calculation
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
         mc.Parameter(sid='k1', value=-0.2, unit="per_s", name="k1", constant=False),
         mc.RateRule(sid="ub_R1", value="k1*ub_R1"),
 
@@ -235,14 +238,15 @@ def bounds_model(sbml_file, directory, doc_fba):
     # ports
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
                       idRefs=["ub_R1"])
-
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
 # UPDATE submodel
 ####################################################
-def update_model(sbml_file, directory, doc_fba=None):
+def update_model(sbml_file, directory, doc_fba=None, annotations=None):
     """ Update model.
     """
     update_notes = notes.format("""
@@ -250,7 +254,7 @@ def update_model(sbml_file, directory, doc_fba=None):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    doc = builder.template_doc_update("toy")
+    doc = builder.template_doc_update(settings.model_id)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=update_notes,
@@ -272,13 +276,15 @@ def update_model(sbml_file, directory, doc_fba=None):
 
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
 # TOP submodel
 ####################################################
-def top_model(sbml_file, directory, emds, doc_fba):
+def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     """ Create top comp model.
 
     Creates full comp model by combining fba, update and bounds
@@ -292,8 +298,7 @@ def top_model(sbml_file, directory, emds, doc_fba):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    model_id = "toy"
-    doc = builder.template_doc_top(model_id, emds)
+    doc = builder.template_doc_top(settings.model_id, emds)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=top_notes,
@@ -357,6 +362,8 @@ def top_model(sbml_file, directory, emds, doc_fba):
                                              'fba': ['ub_R1_port']})
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back the working dir
@@ -372,19 +379,22 @@ def create_model(output_dir):
     """
     directory = utils.versioned_directory(output_dir, version=version)
 
+    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.annotations_file)
+    annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
+
     # create sbml
-    doc_fba = fba_model(settings.fba_file, directory)
-    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba)
-    update_model(settings.update_file, directory, doc_fba=doc_fba)
+    doc_fba = fba_model(settings.fba_file, directory, annotations=annotations)
+    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba, annotations=annotations)
+    update_model(settings.update_file, directory, doc_fba=doc_fba, annotations=annotations)
 
     emds = {
-        "toy_fba": settings.fba_file,
-        "toy_bounds": settings.bounds_file,
-        "toy_update": settings.update_file,
+        "{}_fba".format(settings.model_id): settings.fba_file,
+        "{}_bounds".format(settings.model_id): settings.bounds_file,
+        "{}_update".format(settings.model_id): settings.update_file,
     }
 
     # flatten top model
-    top_model(settings.top_file, directory, emds, doc_fba)
+    top_model(settings.top_file, directory, emds, doc_fba, annotations=annotations)
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
                          output_path=pjoin(directory, settings.flattened_file))
     # create reports
