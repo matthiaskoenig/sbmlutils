@@ -218,7 +218,7 @@ def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port
     """
     objects = [
         fac.Compartment(sid=compartment_id, value=1.0, unit=unit_volume, constant=True, name=compartment_id,
-                        spatialDimension=3),
+                        spatialDimensions=3),
     ]
     c = fac.create_objects(model, objects)
     if create_port:

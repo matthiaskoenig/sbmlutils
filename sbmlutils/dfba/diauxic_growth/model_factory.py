@@ -204,7 +204,7 @@ def fba_model(sbml_file, directory):
     objects = [
         # compartments
         mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
-                       spatialDimension=3),
+                       spatialDimensions=3),
 
         # species
         mc.Species(sid='Glcxt', name="glucose", value=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,

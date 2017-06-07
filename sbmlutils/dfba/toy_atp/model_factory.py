@@ -29,7 +29,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 6
+version = 7
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -117,7 +117,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     objects = [
         # compartments
-        mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimension=3),
+        mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimensions=3),
 
         # exchange species
         mc.Species(sid='atp', name="ATP", value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),

@@ -150,9 +150,10 @@ class Value(Sbase):
         super(Value, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.value = value
 
-    def set_fields(self, object):
-        super(Value, self).set_fields(object)
-        # TODO: set value
+    def set_fields(self, obj):
+        super(Value, self).set_fields(obj)
+        if self.value is not None:
+            obj.setValue(self.value)
 
 
 class ValueWithUnit(Value):
@@ -160,9 +161,10 @@ class ValueWithUnit(Value):
         super(ValueWithUnit, self).__init__(sid=sid, value=value, name=name, sboTerm=sboTerm, metaId=metaId)
         self.unit = unit
 
-    def set_fields(self, object):
-        super(ValueWithUnit, self).set_fields(object)
-        # TODO: set unit
+    def set_fields(self, obj):
+        super(ValueWithUnit, self).set_fields(obj)
+        if self.unit is not None:
+            obj.setUnits(Unit.get_unit_string(self.unit))
 
 
 ##########################################################################
@@ -198,8 +200,8 @@ class Unit(Sbase):
         self.set_fields(unit_def)
         return unit_def
 
-    def set_fields(self, object):
-        super(Unit, self).set_fields(object)
+    def set_fields(self, obj):
+        super(Unit, self).set_fields(obj)
 
     @staticmethod
     def _create(unit_def, kind, exponent, scale=0, multiplier=1.0):
@@ -231,142 +233,73 @@ class Unit(Sbase):
 ##########################################################################
 # Functions
 ##########################################################################
-class Function(Value):
-    """ Function. """
+class Function(Sbase):
+
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
+        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.formula = value
 
     def create_sbml(self, model):
-        """ Create function in model.
-
-        :param model:
-        :return:
-        """
-        return Function._create(model,
-                                sid=self.sid,
-                                formula=self.value,
-                                name=self.name)
-
-    @staticmethod
-    def _create(model, sid, formula, name):
-        """ Create libsbml FunctionDefinition.
-
-        :param model:
-        :param sid:
-        :param formula:
-        :param name:
-        :return:
-        """
         f = model.createFunctionDefinition()
-        f.setId(sid)
-        ast_node = ast_node_from_formula(model, formula)
-        f.setMath(ast_node)
-        if name is not None:
-            f.setName(name)
+        self.set_fields(f, model)
         return f
+
+    def set_fields(self, obj, model):
+        super(Function, self).set_fields(obj)
+        ast_node = ast_node_from_formula(model, self.formula)
+        obj.setMath(ast_node)
 
 
 ##########################################################################
 # Parameters
 ##########################################################################
 class Parameter(ValueWithUnit):
-    """ Parameter. """
 
     def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
         super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
 
     def create_sbml(self, model):
-        """ Create parameter in model."""
-        return Parameter._create(model,
-                                 sid=self.sid,
-                                 value=self.value,
-                                 unit=self.unit,
-                                 constant=self.constant,
-                                 name=self.name,
-                                 sboTerm=self.sboTerm,
-                                 metaId=self.metaId)
-
-    @staticmethod
-    def _create(model, sid, unit, name, value, constant, sboTerm=None, metaId=None):
-        """ Create libsbml Parameter.
-
-        :param model:
-        :param sid:
-        :param unit:
-        :param name:
-        :param value:
-        :param constant:
-        :return:
-        """
         p = model.createParameter()
-        p.setId(sid)
-        if unit is not None:
-            p.setUnits(Unit.get_unit_string(unit))
-        if name is not None:
-            p.setName(name)
-        if value is not None:
-            p.setValue(value)
-        if sboTerm is not None:
-            object.setSBOTerm(sboTerm)
-        if metaId is not None:
-            p.setMetaId(metaId)
-        p.setConstant(constant)
+        self.set_fields(p)
         return p
+
+    def set_fields(self, obj):
+        super(Parameter, self).set_fields(obj)
+        obj.setConstant(self.constant)
 
 
 ##########################################################################
 # Compartments
 ##########################################################################
-class Compartment(ValueWithUnit):
-    """ Compartment. """
+class Compartment(Sbase):
 
-    def __init__(self, sid, value, unit=None, constant=True, spatialDimension=3, name=None, sboTerm=None, metaId=None):
-        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None):
+        super(Compartment, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.formula = value
+        self.unit = unit
         self.constant = constant
-        self.spatialDimension = spatialDimension
+        self.spatialDimensions = spatialDimensions
 
     def create_sbml(self, model):
-        """ Create compartment in model.
-
-        :param model: SBMLModel
-        :return: SBMLCompartment
-        """
-        return Compartment._create(model,
-                                   sid=self.sid,
-                                   name=self.name,
-                                   dims=self.spatialDimension,
-                                   unit=self.unit,
-                                   constant=self.constant,
-                                   value=self.value)
-
-    @staticmethod
-    def _create(model, sid, name, dims, unit, constant, value):
-        """ Create libsbml Compartment.
-
-        :param model:
-        :param sid:
-        :param name:
-        :param dims:
-        :param unit:
-        :param constant:
-        :param value:
-        :return:
-        """
         c = model.createCompartment()
-        c.setId(sid)
-        if name is not None:
-            c.setName(name)
-        c.setSpatialDimensions(dims)
-        if unit is not None:
-            c.setUnits(Unit.get_unit_string(unit))
-        c.setConstant(constant)
-        if type(value) is str:
-            if constant:
-                InitialAssignment._create(model, sid=sid, formula=value)
+        self.set_fields(c)
+
+        if type(self.formula) is str:
+            if self.constant:
+                InitialAssignment._create(model, sid=self.sid, formula=self.formula)
             else:
-                AssignmentRule._create(model, sid=sid, formula=value)
+                AssignmentRule._create(model, sid=self.sid, formula=self.formula)
         else:
-            c.setSize(value)
+            c.setSize(self.formula)
         return c
+
+    def set_fields(self, obj):
+        super(Compartment, self).set_fields(obj)
+        obj.setConstant(self.constant)
+        obj.setSpatialDimensions(self.spatialDimensions)
+        if self.unit is not None:
+            obj.setUnits(Unit.get_unit_string(self.unit))
 
 
 ##########################################################################
@@ -513,7 +446,9 @@ class Rule(ValueWithUnit):
         if (not model.getParameter(sid)) \
                 and (not model.getSpecies(sid)) \
                 and (not model.getCompartment(sid)):
-            Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
+
+            # Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
+            Parameter(sid, unit=rule.unit, name=rule.name, value=None, constant=False).create_sbml(model)
 
         # Make sure the parameter is const=False
         p = model.getParameter(sid)
