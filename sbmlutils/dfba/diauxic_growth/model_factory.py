@@ -88,11 +88,12 @@ from sbmlutils import sbmlio
 from sbmlutils import comp
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
+from sbmlutils import annotation
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
 from sbmlutils.dfba.diauxic_growth.dgsettings import (model_id, fba_file, bounds_file,
-                                                      update_file, top_file, flattened_file)
+                                                      update_file, top_file, flattened_file, annotations_file)
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
@@ -151,11 +152,11 @@ main_units = {
     'volume': 'l',
 }
 units = [
-    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)]),
-    mc.Unit('g', [(UNIT_KIND_GRAM, 1.0)]),
-    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
-    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
-    mc.Unit('l', [(UNIT_KIND_LITRE, 1.0)]),
+    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name='hour'),
+    mc.Unit('g', [(UNIT_KIND_GRAM, 1.0)], name="gram"),
+    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
+    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="cubic meter"),
+    mc.Unit('l', [(UNIT_KIND_LITRE, 1.0)], name="liter"),
     mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
     mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
@@ -184,11 +185,11 @@ UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
 
 # UNIT_CONCENTRATION_PER_G = 'mmol_per_lg'
-UNIT_FLUX_PER_G = 'mmol_per_h'  # !!! FIXME
+UNIT_FLUX_PER_G = 'mmol_per_h'  # !!! FIXME (unit scaling between models)
 
 
 ########################################################################################################
-def fba_model(sbml_file, directory):
+def fba_model(sbml_file, directory, annotations=None):
     """ Create FBA submodel.
 
     FBA submodel in sbml:fbc-version 2.
@@ -256,12 +257,14 @@ def fba_model(sbml_file, directory):
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
     return doc
 
 
-def bounds_model(sbml_file, directory, doc_fba=None):
+def bounds_model(sbml_file, directory, doc_fba=None, annotations=None):
     """"
     Submodel for dynamically calculating the flux bounds.
 
@@ -342,13 +345,16 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X/1 l_per_mmol*bioreactor/dt)"),
     ]
     mc.create_objects(model, objects)
+
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 ####################################################
 # ODE species update
 ####################################################
-def update_model(sbml_file, directory, doc_fba=None):
+def update_model(sbml_file, directory, doc_fba=None, annotations=None):
     """
         Submodel for dynamically updating the metabolite count/concentration.
         This updates the ode model based on the FBA fluxes.
@@ -377,10 +383,12 @@ def update_model(sbml_file, directory, doc_fba=None):
                                     modifiers=["X"])
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
-def top_model(sbml_file, directory, emds, doc_fba=None):
+def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
     """
     Create diauxic comp model.
     Test script for working with the comp extension in SBML.
@@ -460,6 +468,8 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
                        compartment="bioreactor")
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back into working dir
@@ -473,18 +483,19 @@ def create_model(output_dir):
     """
     directory = utils.versioned_directory(output_dir, version=version)
 
+    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), annotations_file)
+    annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
+
     # create sbml
-    doc_fba = fba_model(fba_file, directory)
-
-    bounds_model(bounds_file, directory, doc_fba=doc_fba)
-
-    update_model(update_file, directory, doc_fba=doc_fba)
+    doc_fba = fba_model(fba_file, directory, annotations=annotations)
+    bounds_model(bounds_file, directory, doc_fba=doc_fba, annotations=annotations)
+    update_model(update_file, directory, doc_fba=doc_fba, annotations=annotations)
     emds = {
         "diauxic_fba": fba_file,
         "diauxic_bounds": bounds_file,
         "diauxic_update": update_file,
     }
-    top_model(top_file, directory, emds, doc_fba=doc_fba)
+    top_model(top_file, directory, emds, doc_fba=doc_fba, annotations=annotations)
 
     # flatten top model
     comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
