@@ -16,6 +16,7 @@ from sbmlutils import comp
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
+from sbmlutils import annotation
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -26,7 +27,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 5
+version = 6
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -95,7 +96,7 @@ UNIT_FLUX = 'mole_per_h'
 ####################################################
 # FBA submodel
 ####################################################
-def fba_model(sbml_file, directory):
+def fba_model(sbml_file, directory, annotations=None):
     """ FBA model
     
     :param sbml_file: output file name 
@@ -157,6 +158,9 @@ def fba_model(sbml_file, directory):
     model_fbc = model.getPlugin("fbc")
     mc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"R3": 1.0}, active=True)
 
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
+
     # write SBML
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
     return doc
@@ -165,7 +169,7 @@ def fba_model(sbml_file, directory):
 ####################################################
 # BOUNDS submodel
 ####################################################
-def bounds_model(sbml_file, directory, doc_fba):
+def bounds_model(sbml_file, directory, doc_fba, annotations=None):
     """"
     Bounds model.
     """
@@ -217,6 +221,8 @@ def bounds_model(sbml_file, directory, doc_fba):
         ])
     mc.create_objects(model, objects)
 
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
 
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
@@ -224,9 +230,8 @@ def bounds_model(sbml_file, directory, doc_fba):
 ####################################################
 # UPDATE submodel
 ####################################################
-def update_model(sbml_file, directory, doc_fba=None):
-    """ Update model.
-    """
+def update_model(sbml_file, directory, doc_fba=None, annotations=None):
+    """ Update model."""
     update_notes = notes.format("""
         <h2>UPDATE submodel</h2>
         <p>Submodel for dynamically updating the metabolite count.
@@ -253,13 +258,15 @@ def update_model(sbml_file, directory, doc_fba=None):
                                     modifiers=[])
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
 ####################################################
 # TOP submodel
 ####################################################
-def top_model(sbml_file, directory, emds, doc_fba):
+def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     """ Create top comp model.
 
     Creates full comp model by combining fba, update and bounds
@@ -333,6 +340,8 @@ def top_model(sbml_file, directory, emds, doc_fba):
         species.setInitialConcentration(value)
 
     # write SBML file
+    if annotations:
+        annotation.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back the working dir
@@ -346,12 +355,16 @@ def create_model(output_dir):
     :rtype:
     :return directory in which model files exist.
     """
+    from sbmlutils import annotation
+    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'annotations.xlsx')
+    annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
+
     directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
-    doc_fba = fba_model(settings.fba_file, directory)
-    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba)
-    update_model(settings.update_file, directory, doc_fba=doc_fba)
+    doc_fba = fba_model(settings.fba_file, directory, annotations=annotations)
+    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba, annotations=annotations)
+    update_model(settings.update_file, directory, doc_fba=doc_fba, annotations=annotations)
 
     emds = {
         "{}_fba".format(settings.model_id): settings.fba_file,
@@ -359,9 +372,8 @@ def create_model(output_dir):
         "{}_update".format(settings.model_id): settings.update_file,
     }
 
-
     # flatten top model
-    top_model(settings.top_file, directory, emds, doc_fba)
+    top_model(settings.top_file, directory, emds, doc_fba, annotations=annotations)
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
                          output_path=pjoin(directory, settings.flattened_file))
     # create reports

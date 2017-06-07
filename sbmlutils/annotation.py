@@ -14,6 +14,7 @@ ontology lookup service.
 
 # TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
+# TODO: add the cv terms from SBO terms
 
 from __future__ import print_function, absolute_import
 from six import itervalues
@@ -213,9 +214,9 @@ class ModelAnnotator(object):
         self.doc = doc
         self.model = doc.getModel()
         self.annotations = annotations
-        self.id_dict = self.get_ids_from_model()
+        self.id_dict = self._get_ids_from_model()
 
-    def get_ids_from_model(self):
+    def _get_ids_from_model(self):
         """ Create ids dictionary from the model.
         The dictionary of ids is stored for the given set.
         """
@@ -266,7 +267,7 @@ class ModelAnnotator(object):
                     pattern_ids = self.__class__.get_matching_ids(ids, pattern)
                     elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
 
-            self.annotate_components(elements, a)
+            self.annotate_elements(elements, a)
 
     @staticmethod
     def get_matching_ids(ids, pattern):
@@ -307,8 +308,16 @@ class ModelAnnotator(object):
             elements.append(e)
         return elements
 
-    def annotate_components(self, elements, a):
-        """ Annotate components. """
+    def annotate_elements(self, elements, a):
+        """ Annotate given elements with annotation.
+
+        :param elements: SBase elements to annotate
+        :param a: annotation
+        :return:
+        """
+
+        # TODO: warning if element is not found
+
         for e in elements:
 
             if a.annotation_type == 'RDF':
@@ -323,11 +332,17 @@ class ModelAnnotator(object):
                     warnings.warn("Chemical formula or Charge can only be set on species.")
                 else:
                     s = self.model.getSpecies(e.getId())
-                    splugin = s.getPlugin("fbc")
-                    if a.annotation_type == 'Formula':
-                        splugin.setChemicalFormula(a.value)
+                    if s is None:
+                        logging.warning("Species with id not found in model: {}".format(e.getId()))
                     else:
-                        splugin.setCharge(int(a.value))
+                        splugin = s.getPlugin("fbc")
+                        if splugin is None:
+                            logging.warning("FBC SPlugin not found for species, no fbc: {}".format(s))
+                        else:
+                            if a.annotation_type == 'Formula':
+                                splugin.setChemicalFormula(a.value)
+                            else:
+                                splugin.setCharge(int(a.value))
             else:
                 raise AnnotationException('Annotation type not supported: {}'.format(a.annotation_type))
 
@@ -418,6 +433,20 @@ class ModelAnnotator(object):
         return res
 
 
+def annotate_sbml_doc(doc, annotations):
+    """ Annotates given SBML document using the annotations file.
+
+    :param doc: SBMLDocument 
+    :param annotations: ModelAnnotations 
+    :return: 
+    """
+
+    # annotate the model
+    annotator = ModelAnnotator(doc, annotations)
+    annotator.annotate_model()
+    return doc
+
+
 def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
     """
     Annotate a given SBML file with the provided annotations.
@@ -431,10 +460,9 @@ def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
 
     # read annotations
     annotations = ModelAnnotator.annotations_from_file(f_annotations)
-
-    # annotate the model
-    annotator = ModelAnnotator(doc, annotations)
-    annotator.annotate_model()
+    doc = annotate_sbml_doc(doc, annotations)
 
     # Save
     libsbml.writeSBMLToFile(doc, f_sbml_annotated)
+
+
