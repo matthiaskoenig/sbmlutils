@@ -12,6 +12,7 @@ A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
 
+# TODO: generic generation
 # TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
 # TODO: add the cv terms from SBO terms
@@ -26,6 +27,38 @@ import csv
 import re
 import uuid
 
+
+def annotate_sbml_doc(doc, annotations):
+    """ Annotates given SBML document using the annotations file.
+
+    :param doc: SBMLDocument
+    :param annotations: ModelAnnotations
+    :return:
+    """
+
+    # annotate the model
+    annotator = ModelAnnotator(doc, annotations)
+    annotator.annotate_model()
+    return doc
+
+
+def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
+    """
+    Annotate a given SBML file with the provided annotations.
+
+    :param f_sbml: SBML to annotation
+    :param f_annotations: csv file with annotations
+    :param f_sbml_annotated: annotated file
+    """
+    # read SBML model
+    doc = libsbml.readSBML(f_sbml)
+
+    # read annotations
+    annotations = ModelAnnotator.annotations_from_file(f_annotations)
+    doc = annotate_sbml_doc(doc, annotations)
+
+    # Save
+    libsbml.writeSBMLToFile(doc, f_sbml_annotated)
 
 ########################################################################
 # Qualifier
@@ -69,14 +102,20 @@ BiologicalQualifierType = {
 ########################################################################
 # Annotation
 ########################################################################
-def create_meta_id():
+def create_metaid(sbase):
     """ Creates a unique meta id.
 
     Meta ids are required to store annotation elements.
     """
     # TODO: This must be reproducible, so that models don't change on recreation
-    meta_id = uuid.uuid4()
-    return 'meta_{}'.format(meta_id.hex)
+    if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
+        meta_id = sbase.getId()
+    else:
+        meta_id = uuid.uuid4()
+        meta_id = meta_id.hex
+    if sbase is None:
+        raise ValueError("MetaId can only be created with existing sbase.")
+    return 'meta_{}'.format(meta_id)
 
 
 class AnnotationException(Exception):
@@ -87,7 +126,7 @@ class ModelAnnotation(object):
     """ Class for single annotation, i.e. a single annotation line from a annotation file. """
     _keys = ['pattern', 'sbml_type', 'annotation_type', 'value', 'qualifier', 'collection', 'name']
 
-    _sbml_types = frozenset(["document", "model", "reaction", "transporter", "species",
+    _sbml_types = frozenset(["document", "model", "unit", "reaction", "transporter", "species",
                              "compartment", "parameter", "rule"])
 
     _annotation_types = frozenset(["RDF", "Formula", "Charge"])
@@ -115,6 +154,7 @@ class ModelAnnotation(object):
         ["uniprot", "UniProt Knowledgebase",
          "^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9]"
          "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
+        ["uo", "Ontology of standardized units", "^UO:\d{7}?"],
     ]
 
     def __init__(self, d):
@@ -145,21 +185,51 @@ class ModelAnnotation(object):
 
 
 class ModelAnnotator(object):
-    """ Helper class for annotating SBML models."""
+    """ Helper class for annotating SBML models. """
 
     def __init__(self, doc, annotations):
+        """ Constructor.
+
+        :param doc: SBMLDocument
+        :param annotations: iterateable of ModelAnnotation
+        """
         self.doc = doc
         self.model = doc.getModel()
         self.annotations = annotations
+        # prepare dictionary for lookup of ids
         self.id_dict = self._get_ids_from_model()
 
+    def annotate_model(self):
+        """
+        Annotates the model with the given annotations.
+        """
+        for a in self.annotations:
+            pattern = a.pattern
+            if a.sbml_type == "document":
+                elements = [self.doc]
+            else:
+                # lookup of allowed ids for given sbmlutils type
+                ids = self.id_dict.get(a.sbml_type, None)
+                elements = []
+                if ids:
+                    # find the subset of ids matching the pattern
+                    pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)
+                    elements = ModelAnnotator._elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
+
+            self._annotate_elements(elements, a)
+
     def _get_ids_from_model(self):
-        """ Create ids dictionary from the model.
-        The dictionary of ids is stored for the given set.
+        """ Create dictionary of ids for given model for lookup.
+
+        :return:
         """
         # TODO: generic generation
         id_dict = dict()
         id_dict['model'] = [self.model.getId()]
+
+        lof = self.model.getListOfUnitDefinitions()
+        if lof:
+            id_dict['unit'] = [item.getId() for item in lof]
 
         lof = self.model.getListOfCompartments()
         if lof:
@@ -187,27 +257,10 @@ class ModelAnnotator(object):
 
         return id_dict
 
-    def annotate_model(self):
-        """
-        Annotates the model with the given annotations.
-        """
-        for a in self.annotations:
-            pattern = a.pattern
-            if a.sbml_type == "document":
-                elements = [self.doc]
-            else:
-                # lookup of allowed ids for given sbmlutils type
-                ids = self.id_dict.get(a.sbml_type, None)
-                elements = []
-                if ids:
-                    # find the subset of ids matching the pattern
-                    pattern_ids = self.__class__.get_matching_ids(ids, pattern)
-                    elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
 
-            self.annotate_elements(elements, a)
 
     @staticmethod
-    def get_matching_ids(ids, pattern):
+    def _get_matching_ids(ids, pattern):
         """
         Finds the model ids based on the regular expression pattern.
         """
@@ -220,7 +273,7 @@ class ModelAnnotator(object):
         return match_ids
 
     @staticmethod
-    def elements_from_ids(model, sbml_ids, sbml_type=None):
+    def _elements_from_ids(model, sbml_ids, sbml_type=None):
         """
         Get list of SBML elements from given ids.
 
@@ -233,6 +286,8 @@ class ModelAnnotator(object):
         for sid in sbml_ids:
             if sbml_type == 'rule':
                 e = model.getRuleByVariable(sid)
+            if sbml_type == 'unit':
+                e = model.getUnitDefinition(sid)
             else:
                 # returns the first element with id
                 e = model.getElementBySId(sid)
@@ -245,7 +300,7 @@ class ModelAnnotator(object):
             elements.append(e)
         return elements
 
-    def annotate_elements(self, elements, a):
+    def _annotate_elements(self, elements, a):
         """ Annotate given elements with annotation.
 
         :param elements: SBase elements to annotate
@@ -256,9 +311,8 @@ class ModelAnnotator(object):
         # TODO: warning if element is not found
 
         for e in elements:
-
             if a.annotation_type == 'RDF':
-                self.__class__.add_rdf_to_element(e, a.qualifier, a.collection, a.value)
+                ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.collection, a.value)
                 # write SBO terms based on the SBO RDF
                 if a.collection == 'biomodels.sbo':
                     e.setSBOTerm(a.value)
@@ -269,22 +323,27 @@ class ModelAnnotator(object):
                     warnings.warn("Chemical formula or Charge can only be set on species.")
                 else:
                     s = self.model.getSpecies(e.getId())
-                    if s is None:
-                        logging.warning("Species with id not found in model: {}".format(e.getId()))
+                    splugin = s.getPlugin("fbc")
+                    if splugin is None:
+                        logging.warning("FBC SPlugin not found for species, no fbc: {}".format(s))
                     else:
-                        splugin = s.getPlugin("fbc")
-                        if splugin is None:
-                            logging.warning("FBC SPlugin not found for species, no fbc: {}".format(s))
+                        if a.annotation_type == 'Formula':
+                            splugin.setChemicalFormula(a.value)
                         else:
-                            if a.annotation_type == 'Formula':
-                                splugin.setChemicalFormula(a.value)
-                            else:
-                                splugin.setCharge(int(a.value))
+                            splugin.setCharge(int(a.value))
             else:
                 raise AnnotationException('Annotation type not supported: {}'.format(a.annotation_type))
 
     @classmethod
-    def add_rdf_to_element(cls, element, qualifier, collection, entity):
+    def _add_rdf_to_element(cls, element, qualifier, collection, entity):
+        """ Adds RDF information to given element.
+
+        :param element:
+        :param qualifier:
+        :param collection:
+        :param entity:
+        :return:
+        """
         cv = libsbml.CVTerm()
 
         # set correct type of qualifier
@@ -304,7 +363,7 @@ class ModelAnnotator(object):
 
         # meta id has to be set
         if not element.isSetMetaId():
-            meta_id = create_meta_id()
+            meta_id = create_metaid(element)
             element.setMetaId(meta_id)
 
         success = element.addCVTerm(cv)
@@ -370,34 +429,4 @@ class ModelAnnotator(object):
         return res
 
 
-def annotate_sbml_doc(doc, annotations):
-    """ Annotates given SBML document using the annotations file.
 
-    :param doc: SBMLDocument 
-    :param annotations: ModelAnnotations 
-    :return: 
-    """
-
-    # annotate the model
-    annotator = ModelAnnotator(doc, annotations)
-    annotator.annotate_model()
-    return doc
-
-
-def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
-    """
-    Annotate a given SBML file with the provided annotations.
-
-    :param f_sbml: SBML to annotation
-    :param f_annotations: csv file with annotations
-    :param f_sbml_annotated: annotated file
-    """
-    # read SBML model
-    doc = libsbml.readSBML(f_sbml)
-
-    # read annotations
-    annotations = ModelAnnotator.annotations_from_file(f_annotations)
-    doc = annotate_sbml_doc(doc, annotations)
-
-    # Save
-    libsbml.writeSBMLToFile(doc, f_sbml_annotated)

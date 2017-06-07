@@ -15,8 +15,10 @@ from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
 from sbmlutils import comp
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
-from sbmlutils.report import sbmlreport
 from sbmlutils import annotation
+from sbmlutils import history
+from sbmlutils.report import sbmlreport
+
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -73,14 +75,13 @@ main_units = {
     'volume': 'm3',
 }
 units = [
-    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)]),
-    mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)]),
-    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
-    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
-    mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)]),
+    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name="hour"),
+    mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)], name="kilogram"),
+    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
+    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="square meter"),
+    mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)], name="cubic meter"),
     mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0),
-                   (UNIT_KIND_METRE, -3.0)]),
-    mc.Unit('per_s', [(UNIT_KIND_SECOND, -1.0)]),
+                   (UNIT_KIND_METRE, -3.0)], name="millimolar"),
     mc.Unit('mole_per_h', [(UNIT_KIND_MOLE, 1.0),
                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 ]

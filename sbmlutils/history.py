@@ -6,6 +6,7 @@ import datetime
 import libsbml
 from six import itervalues
 from sbmlutils.validation import check
+from sbmlutils.annotation import create_metaid
 
 
 class History(object):
@@ -30,7 +31,7 @@ class History(object):
         :type creators:
         """
         if not model.isSetMetaId():
-            model.setMetaId(create_meta_id())
+            model.setMetaId(create_metaid(sbase=model))
 
         if creators is None or len(creators) is 0:
             # at least on

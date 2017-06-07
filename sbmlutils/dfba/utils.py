@@ -8,7 +8,7 @@ from os.path import join as pjoin
 from six import iteritems
 
 from libsbml import XMLNode
-from sbmlutils import annotation
+from sbmlutils import history
 from sbmlutils import factory
 from sbmlutils.validation import check
 
@@ -50,7 +50,7 @@ def set_creators(model, creators):
     :param creators: creator info
     :return: 
     """
-    annotation.set_model_history(model, creators)
+    history.History.set_model_history(model, creators)
 
 
 def set_units(model, units):
