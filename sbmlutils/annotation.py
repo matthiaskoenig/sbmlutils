@@ -114,6 +114,7 @@ def create_metaid(sbase):
     else:
         meta_id = uuid.uuid4()
         meta_id = meta_id.hex
+
     if sbase is None:
         raise ValueError("MetaId can only be created with existing sbase.")
     return 'meta_{}'.format(meta_id)
@@ -286,7 +287,7 @@ class ModelAnnotator(object):
         for sid in sbml_ids:
             if sbml_type == 'rule':
                 e = model.getRuleByVariable(sid)
-            if sbml_type == 'unit':
+            elif sbml_type == 'unit':
                 e = model.getUnitDefinition(sid)
             else:
                 # returns the first element with id

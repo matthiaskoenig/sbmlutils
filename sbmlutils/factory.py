@@ -135,30 +135,24 @@ class Sbase(object):
             name = ' ' + name
         return '<{}[{}]{}>'.format(class_name, self.sid, name)
 
-    def set_fields(self, object):
-        object.setId(self.sid)
-        if self.name is not None:
-            object.setName(self.name)
-        if self.sboTerm is not None:
-            object.setSBOTerm(self.sboTerm)
-        if self.metaId is not None:
-            object.setMetaId(self.metaId)
-
-
-class Value(Sbase):
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
-        super(Value, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
-        self.value = value
-
     def set_fields(self, obj):
-        super(Value, self).set_fields(obj)
-        if self.value is not None:
-            obj.setValue(self.value)
+        obj.setId(self.sid)
+        if self.name is not None:
+            obj.setName(self.name)
+        if self.sboTerm is not None:
+            obj.setSBOTerm(self.sboTerm)
+        if self.metaId is not None:
+            obj.setMetaId(self.metaId)
 
 
-class ValueWithUnit(Value):
+class ValueWithUnit(Sbase):
+    """ Helper class.
+    The value field is a helper storage field which is used differently by different
+    subclasses.
+    """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(ValueWithUnit, self).__init__(sid=sid, value=value, name=name, sboTerm=sboTerm, metaId=metaId)
+        super(ValueWithUnit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.value = value
         self.unit = unit
 
     def set_fields(self, obj):
@@ -267,17 +261,17 @@ class Parameter(ValueWithUnit):
     def set_fields(self, obj):
         super(Parameter, self).set_fields(obj)
         obj.setConstant(self.constant)
+        if self.value is not None:
+            obj.setValue(self.value)
 
 
 ##########################################################################
 # Compartments
 ##########################################################################
-class Compartment(Sbase):
+class Compartment(ValueWithUnit):
 
     def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None):
-        super(Compartment, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
-        self.formula = value
-        self.unit = unit
+        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -285,21 +279,19 @@ class Compartment(Sbase):
         c = model.createCompartment()
         self.set_fields(c)
 
-        if type(self.formula) is str:
+        if type(self.value) is str:
             if self.constant:
-                InitialAssignment._create(model, sid=self.sid, formula=self.formula)
+                InitialAssignment._create(model, sid=self.sid, formula=self.value)
             else:
-                AssignmentRule._create(model, sid=self.sid, formula=self.formula)
+                AssignmentRule._create(model, sid=self.sid, formula=self.value)
         else:
-            c.setSize(self.formula)
+            c.setSize(self.value)
         return c
 
     def set_fields(self, obj):
         super(Compartment, self).set_fields(obj)
         obj.setConstant(self.constant)
         obj.setSpatialDimensions(self.spatialDimensions)
-        if self.unit is not None:
-            obj.setUnits(Unit.get_unit_string(self.unit))
 
 
 ##########################################################################
@@ -318,68 +310,26 @@ class Species(ValueWithUnit):
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
-        """ Create species in model.
-
-        :param model: SBMLModel
-        :return: SBMLSpecies
-        """
-        return Species._create(model,
-                               sid=self.sid,
-                               name=self.name,
-                               value=self.value,
-                               unit=self.unit,
-                               compartment=self.compartment,
-                               boundaryCondition=self.boundaryCondition,
-                               constant=self.constant,
-                               hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
-                               conversionFactor=self.conversionFactor,
-                               sboTerm=self.sboTerm,
-                               metaId=self.metaId)
-
-    @staticmethod
-    def _create(model, sid, name, value, unit, compartment,
-                boundaryCondition, constant, hasOnlySubstanceUnits, conversionFactor, sboTerm, metaId):
-        """ Create libsbml Species.
-
-        :param model:
-        :param sid:
-        :param name:
-        :param value:
-        :param unit:
-        :param compartment:
-        :param boundaryCondition:
-        :param constant:
-        :param hasOnlySubstanceUnits:
-        :param conversionFactor
-        :return:
-        """
         s = model.createSpecies()
-        s.setId(sid)
-        if name:
-            s.setName(name)
-        if sboTerm is not None:
-            s.setSBOTerm(sboTerm)
-        if metaId is not None:
-            s.setMetaId(metaId)
-        if unit:
-            s.setUnits(Unit.get_unit_string(unit))
-        s.setCompartment(compartment)
+        self.set_fields(s)
+        s.setSubstanceUnits(model.getSubstanceUnits())
+        return s
 
-        s.setBoundaryCondition(boundaryCondition)
-        s.setConstant(constant)
-        s.setHasOnlySubstanceUnits(hasOnlySubstanceUnits)
+    def set_fields(self, obj):
+        super(Species, self).set_fields(obj)
+        obj.setConstant(self.constant)
+        obj.setCompartment(self.compartment)
+        obj.setBoundaryCondition(self.boundaryCondition)
+        obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
 
         # TODO: handle the amount/concentrations with corresponding substance units correctly
-        if hasOnlySubstanceUnits:
-            s.setInitialAmount(value)
+        if self.hasOnlySubstanceUnits:
+            obj.setInitialAmount(self.value)
         else:
-            s.setInitialConcentration(value)
-        s.setSubstanceUnits(model.getSubstanceUnits())
+            obj.setInitialConcentration(self.value)
 
-        if conversionFactor:
-            s.setConversionFactor(conversionFactor)
-
-        return s
+        if self.conversionFactor:
+            obj.setConversionFactor(self.conversionFactor)
 
 
 ##########################################################################
@@ -408,20 +358,10 @@ class InitialAssignment(ValueWithUnit):
                               value=None,
                               constant=True)
 
-        return InitialAssignment._create(model, sid=sid, formula=self.value)
-
-    @staticmethod
-    def _create(model, sid, formula):
-        """ Create libsbml InitialAssignment.
-
-        :param model:
-        :param sid:
-        :param formula:
-        :return:
-        """
         a = model.createInitialAssignment()
+        self.set_fields(a)
         a.setSymbol(sid)
-        ast_node = ast_node_from_formula(model, formula)
+        ast_node = ast_node_from_formula(model, self.value)
         a.setMath(ast_node)
         return a
 
