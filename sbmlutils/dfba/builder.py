@@ -400,7 +400,7 @@ def update_exchange_reactions(model, flux_unit):
         rid = r.getId()
         if rid != EXCHANGE_REACTION_PREFIX + sid:
             r.setId(EXCHANGE_REACTION_PREFIX + sid)
-            logging.warn("Exchange reaction fixd id: {} -> {}".format(rid, EXCHANGE_REACTION_PREFIX + sid))
+            logging.warning("Exchange reaction fixd id: {} -> {}".format(rid, EXCHANGE_REACTION_PREFIX + sid))
 
     # new lookup necessary, due to possible changed ids
     ex_rids = utils.find_exchange_reactions(model)
@@ -561,7 +561,6 @@ def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits
                         ])
 
 
-
 def create_dummy_reactions(model, model_fba, unit_flux=None):
     """ Creates the dummy reactions.
     This also creates the corresponding flux parameters and flux assignments.
@@ -589,7 +588,7 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
 
         # flux assignment rule
         objects.append(
-            fac.AssignmentRule(pid_flux, value=rid_flux),
+            fac.AssignmentRule(pid_flux, value=rid_flux, sboTerm=FLUX_ASSIGNMENTRULE_SBO),
         )
     fac.create_objects(model, objects)
 

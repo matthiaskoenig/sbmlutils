@@ -428,7 +428,9 @@ class AssignmentRule(Rule):
         :param model:
         :return:
         """
-        return Rule._rule_factory(model, self, rule_type="AssignmentRule")
+        rule = Rule._rule_factory(model, self, rule_type="AssignmentRule")
+        self.set_fields(rule)
+        return rule
 
     @staticmethod
     def _create(model, sid, formula):
@@ -452,7 +454,9 @@ class RateRule(Rule):
         :param model:
         :return:
         """
-        return Rule._rule_factory(model, self, rule_type="RateRule")
+        rule = Rule._rule_factory(model, self, rule_type="RateRule")
+        self.set_fields(rule)
+        return rule
 
     @staticmethod
     def _create(model, sid, formula):
