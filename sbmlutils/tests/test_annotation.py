@@ -6,7 +6,7 @@ import re
 import tempfile
 import libsbml
 
-from sbmlutils.factory import Creator
+
 from sbmlutils import annotation
 from sbmlutils.annotation import ModelAnnotator, ModelAnnotation
 from sbmlutils.tests import data
@@ -17,19 +17,40 @@ def test_model_annotation():
     d = {'pattern': 'test_pattern',
          'sbml_type': 'reaction',
          'annotation_type': 'RDF',
-         'value': 'test_value',
          'qualifier': 'test_qualifier',
          'collection': 'test_collection',
+         'entity': 'test_entity',
          'name': 'test_name'}
 
     ma = ModelAnnotation(d)
     assert 'test_pattern' == ma.pattern
     assert 'reaction' == ma.sbml_type
     assert 'RDF' == ma.annotation_type
-    assert 'test_value' == ma.value
     assert 'test_qualifier' == ma.qualifier
     assert 'test_collection' == ma.collection
+    assert 'test_entity' == ma.entity
     assert 'test_name' == ma.name
+    assert ma.resource is None
+
+def test_model_annotation():
+    """ Check annotation data structure. """
+    d = {'pattern': 'id1',
+         'sbml_type': 'reaction',
+         'annotation_type': 'RDF',
+         'qualifier': 'BQB_IS',
+         'collection': 'sbo',
+         'entity': 'SBO:0000290',
+         'name': 'physical compartment'}
+
+    ma = ModelAnnotation(d)
+    assert 'id1' == ma.pattern
+    assert 'reaction' == ma.sbml_type
+    assert 'RDF' == ma.annotation_type
+    assert "BQB_IS" == ma.qualifier
+    assert "sbo" == ma.collection
+    assert "SBO:0000290" == ma.entity
+    assert "physical compartment" == ma.name
+    assert "http://identifiers.org/sbo/SBO:0000290" == ma.resource
 
 
 def test_model_annotator():
@@ -40,23 +61,6 @@ def test_model_annotator():
     assert model == annotator.model
     assert annotations == annotator.annotations
     annotator.annotate_model()
-
-
-def test_set_model_history():
-    creators = [Creator(familyName='Koenig', givenName="Matthias",
-                        email="konigmatt@googlemail.com", organization="Test organisation")]
-    sbmlns = libsbml.SBMLNamespaces(3, 1)
-    doc = libsbml.SBMLDocument(sbmlns)
-    model = doc.createModel()
-    annotation.set_model_history(model, creators)
-    h = model.getModelHistory()
-    assert h is not None
-    assert h.getNumCreators() == 1
-    c = h.getCreator(0)
-    assert 'Koenig' == c.getFamilyName()
-    assert 'Matthias' == c.getGivenName()
-    assert 'konigmatt@googlemail.com' == c.getEmail()
-    assert 'Test organisation' == c.getOrganization()
 
 
 def test_demo_annotation():
@@ -146,6 +150,7 @@ def test_demo_annotation():
 def test_galactose_annotation():
     """ Annotate the galactose network. """
     f_tmp = tempfile.NamedTemporaryFile()
-    annotation.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS, data.GALACTOSE_ANNOTATIONS,
-                       f_sbml_annotated=f_tmp.name)
+    annotation.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+                                  f_annotations=data.GALACTOSE_ANNOTATIONS,
+                                  f_sbml_annotated=f_tmp.name)
     f_tmp.flush()

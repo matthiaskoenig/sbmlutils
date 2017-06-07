@@ -26,6 +26,7 @@ import pyexcel
 import csv
 import re
 import uuid
+from bioservices import Miriam
 
 
 def annotate_sbml_doc(doc, annotations):
@@ -124,60 +125,58 @@ class AnnotationException(Exception):
 
 class ModelAnnotation(object):
     """ Class for single annotation, i.e. a single annotation line from a annotation file. """
-    _keys = ['pattern', 'sbml_type', 'annotation_type', 'value', 'qualifier', 'collection', 'name']
+    # possible columns in annotation file
+    _keys = ['pattern', 'sbml_type', 'annotation_type', 'qualifier', 'collection', 'entity', 'name']
 
     _sbml_types = frozenset(["document", "model", "unit", "reaction", "transporter", "species",
                              "compartment", "parameter", "rule"])
 
     _annotation_types = frozenset(["RDF", "Formula", "Charge"])
 
-    _collections = [
-        ["biomodels.sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
-        ["bto", "Brenda Tissue Ontology", "^BTO:\d{7}$"],
-        ["chebi", "ChEBI", "^CHEBI:\d+$"],
-        ["ec-code", "Enzyme Nomenclature", "^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$"],
-        ["fma", "Foundational Model of Anatomy Ontology", "^FMA:\d+$"],
-        ["go", "Gene Ontology", "^GO:\d{7}$"],
-        ["kegg.compound", "KEGG Compound", "^C\d+$"],
-        ["kegg.pathway", "KEGG Pathway", "^\w{2,4}\d{5}$"],
-        ["kegg.reaction", "KEGG Reaction", "^R\d+$"],
-        ["omim", "OMIM", "^[*#+%^]?\d{6}$"],
-        ["pubmed", "PubMed", "^\d+$"],
-        ["pw", "Pathway Ontology", "^PW:\d{7}$"],
-        ["reactome", "Reactome", "(^(REACTOME:)?R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+$)"],
-        ["rhea", "Rhea", "^\d{5}$"],
-        ["sabiork.kineticrecord", "SABIO-RK Kinetic Record", "^\d+$"],
-        ["smpdb", "Small Molecule Pathway Database", "^SMP\d{5}$"],
-        ["taxonomy", "Taxonomy", "^\d+$"],
-        ["tcdb", "Transport Classification Database", "^\d+\.[A-Z]\.\d+\.\d+\.\d+$"],
-        ["uberon", "UBERON", "^UBERON\:\d+$"],
-        ["uniprot", "UniProt Knowledgebase",
-         "^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9]"
-         "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
-        ["uo", "Ontology of standardized units", "^UO:\d{7}?"],
-    ]
+    def __init__(self, d, check_miriam=False):
 
-    def __init__(self, d):
         self.d = d
-        for k in self._keys:
+        for key in self._keys:
             # optional fields
-            if k in ['qualifier', 'collection', 'name']:
-                value = d.get(k, '')
+            if key in ['qualifier', 'collection', 'name']:
+                value = d.get(key, '')
             # required fields
             else:
-                value = d[k]
-            setattr(self, k, value)
+                value = d[key]
+            setattr(self, key, value)
+
+        if self.annotation_type == "RDF":
+            # FIXME: this takes much too long, necessary to have local miriam resources for validation
+            # TODO: check against pattern
+            # check with miriam webservices
+            if check_miriam:
+                m = Miriam()
+                uri = m.serv.getURI(self.collection, self.entity)
+                resource = m.convertURN(uri)
+                if resource is None:
+                    warnings.warn("resource could not be found for {} : {}".format(self.collection, self.entity))
+
+            else:
+                # create identifiers.org resource manually
+                resource = ModelAnnotation.identifiers_resource(self.collection, self.entity)
+            setattr(self, 'resource', resource)
+
         self.check()
+
+    @staticmethod
+    def identifiers_resource(collection, entity):
+        """ Create identifiers.org resource from given collection and entity.
+
+        :param collection:
+        :param entity:
+        :return:
+        """
+        return ''.join(['http://identifiers.org/', collection, '/', entity])
 
     def check(self):
         """ Checks if the annotation is valid. """
-        if self.annotation_type not in self._annotation_types:
-            warnings.warn("annotation_type not supported: {}, {}".format(self.annotation_type,
-                                                                         self.d))
         if self.sbml_type not in self._sbml_types:
             warnings.warn("sbml_type not supported: {}, {}".format(self.sbml_type, self.d))
-
-            # TODO: check against MIRIAM dictionary and patterns
 
     def __str__(self):
         return str(self.d)
@@ -203,6 +202,7 @@ class ModelAnnotator(object):
         """
         Annotates the model with the given annotations.
         """
+        # writes all annotations
         for a in self.annotations:
             pattern = a.pattern
             if a.sbml_type == "document":
@@ -309,13 +309,12 @@ class ModelAnnotator(object):
         """
 
         # TODO: warning if element is not found
-
         for e in elements:
             if a.annotation_type == 'RDF':
-                ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.collection, a.value)
+                ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.resource)
                 # write SBO terms based on the SBO RDF
-                if a.collection == 'biomodels.sbo':
-                    e.setSBOTerm(a.value)
+                if a.collection == 'sbo':
+                    e.setSBOTerm(a.entity)
 
             elif a.annotation_type in ['Formula', 'Charge']:
                 # via fbc species plugin, so check that species first
@@ -328,14 +327,14 @@ class ModelAnnotator(object):
                         logging.warning("FBC SPlugin not found for species, no fbc: {}".format(s))
                     else:
                         if a.annotation_type == 'Formula':
-                            splugin.setChemicalFormula(a.value)
+                            splugin.setChemicalFormula(a.entity)
                         else:
-                            splugin.setCharge(int(a.value))
+                            splugin.setCharge(int(a.entity))
             else:
                 raise AnnotationException('Annotation type not supported: {}'.format(a.annotation_type))
 
     @classmethod
-    def _add_rdf_to_element(cls, element, qualifier, collection, entity):
+    def _add_rdf_to_element(cls, element, qualifier, resource):
         """ Adds RDF information to given element.
 
         :param element:
@@ -357,8 +356,7 @@ class ModelAnnotator(object):
             cv.setModelQualifierType(sbml_qualifier)
         else:
             raise AnnotationException('Unsupported qualifier: {}'.format(qualifier))
-        # Use the identifiers.org solution
-        resource = ''.join(['http://identifiers.org/', collection, '/', entity])
+
         cv.addResource(resource)
 
         # meta id has to be set

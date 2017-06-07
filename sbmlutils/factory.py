@@ -102,6 +102,20 @@ def set_main_units(model, main_units):
 
 
 #####################################################################
+# Creator
+#####################################################################
+class Creator(object):
+    """ Creator in ModelHistory. """
+
+    def __init__(self, familyName, givenName, email, organization, site=None):
+        self.familyName = familyName
+        self.givenName = givenName
+        self.email = email
+        self.organization = organization
+        self.site = site
+
+
+#####################################################################
 # Base classes
 #####################################################################
 class Sbase(object):
@@ -121,11 +135,24 @@ class Sbase(object):
             name = ' ' + name
         return '<{}[{}]{}>'.format(class_name, self.sid, name)
 
+    def set_fields(self, object):
+        object.setId(self.sid)
+        if self.name is not None:
+            object.setName(self.name)
+        if self.sboTerm is not None:
+            object.setSBOTerm(self.sboTerm)
+        if self.metaId is not None:
+            object.setMetaId(self.metaId)
+
 
 class Value(Sbase):
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
         super(Value, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.value = value
+
+    def set_fields(self, object):
+        super(Value, self).set_fields(object)
+        # TODO: set value
 
 
 class ValueWithUnit(Value):
@@ -133,19 +160,9 @@ class ValueWithUnit(Value):
         super(ValueWithUnit, self).__init__(sid=sid, value=value, name=name, sboTerm=sboTerm, metaId=metaId)
         self.unit = unit
 
-
-#####################################################################
-# Creator
-#####################################################################
-class Creator(object):
-    """ Creator in ModelHistory. """
-
-    def __init__(self, familyName, givenName, email, organization, site=None):
-        self.familyName = familyName
-        self.givenName = givenName
-        self.email = email
-        self.organization = organization
-        self.site = site
+    def set_fields(self, object):
+        super(ValueWithUnit, self).set_fields(object)
+        # TODO: set unit
 
 
 ##########################################################################
@@ -165,7 +182,7 @@ class Unit(Sbase):
         :return:
         """
         unit_def = model.createUnitDefinition()
-        unit_def.setId(self.sid)
+
         for data in self.definition:
             kind = data[0]
             exponent = data[1]
@@ -177,7 +194,12 @@ class Unit(Sbase):
                 multiplier = data[3]
 
             Unit._create(unit_def, kind, exponent, scale, multiplier)
+
+        self.set_fields(unit_def)
         return unit_def
+
+    def set_fields(self, object):
+        super(Unit, self).set_fields(object)
 
     @staticmethod
     def _create(unit_def, kind, exponent, scale=0, multiplier=1.0):
@@ -284,7 +306,7 @@ class Parameter(ValueWithUnit):
         if value is not None:
             p.setValue(value)
         if sboTerm is not None:
-            p.setSBOTerm(sboTerm)
+            object.setSBOTerm(sboTerm)
         if metaId is not None:
             p.setMetaId(metaId)
         p.setConstant(constant)
