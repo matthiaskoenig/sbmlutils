@@ -374,8 +374,14 @@ def listOfReactions_dict(model):
         # fbc
         rfbc = item.getPlugin("fbc")
         if rfbc:
-            info['lb'] = rfbc.getLowerFluxBound()
-            info['ub'] = rfbc.getUpperFluxBound()
+            # TODO: FIX THIS (getting the values for the bounds)
+            lb_id, ub_id = rfbc.getLowerFluxBound(), rfbc.getUpperFluxBound()
+            lb_p, ub_p = model.getParameter(lb_id), model.getParameter(ub_id)
+            lb_value, ub_value = lb_p.getValue(), ub_p.getValue()
+            bounds = '<span class="cvterm darkgray">[{}={}, {}={}]</span>'.format(lb_id, lb_value, ub_id, ub_value)
+        else:
+            bounds = ''
+        info['bounds'] = bounds
         items.append(info)
 
     return items
