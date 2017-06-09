@@ -159,7 +159,7 @@ def _create_html(doc, basename, html_template='report.html'):
 
             'functions': listOfFunctions(model),
             'units': listOfUnits(model),
-            'compartments': model.getListOfCompartments(),
+            'compartments': listOfCompartments(model, values),
 
             'parameters': model.getListOfParameters(),
             'rules': model.getListOfRules(),
@@ -195,6 +195,13 @@ def infoSbase(item):
     }
     return info
 
+def listOfFunctions(model):
+    items = []
+    for item in model.model.getListOfFunctionDefinitions():
+        info = infoSbase(item)
+        info['math'] = math(item)
+        items.append(info)
+    return items
 
 def listOfUnits(model):
     items = []
@@ -204,11 +211,19 @@ def listOfUnits(model):
         items.append(info)
     return items
 
-def listOfFunctions(model):
+def listOfCompartments(model, values):
     items = []
-    for item in model.model.getListOfFunctionDefinitions():
+    for item in model.getListOfCompartments():
         info = infoSbase(item)
-        info['math'] = math(item)
+        for attr in ['units', 'spatial_dimensions']:
+            info[attr] = getattr(item, attr)
+        info['constant'] = boolean(item)
+        info['derived unit'] = derived_units(item)
+        if item.isSetSize():
+            size = item.size
+        else:
+            size = math(values[item.id])
+        info['size'] = size
         items.append(info)
     return items
 
@@ -259,7 +274,6 @@ def xml(item):
 def derived_units(item):
     if item:
         return SBML_stringToMathML(SBML_unitDefinitionToString(item.getDerivedUnitDefinition()))
-
 
 
 def _create_value_dictionary(model):
