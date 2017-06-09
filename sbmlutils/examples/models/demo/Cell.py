@@ -62,7 +62,7 @@ units.extend([
 compartments.extend([
     mc.Compartment(sid='e', value=1e-06, unit='m3', constant=False, name='external compartment'),
     mc.Compartment(sid='c', value=1e-06, unit='m3', constant=False, name='cell compartment'),
-    mc.Compartment(sid='m', value=1, unit='m2', constant=False, spatialDimension=2, name='plasma membrane'),
+    mc.Compartment(sid='m', value=1, unit='m2', constant=False, spatialDimensions=2, name='plasma membrane'),
 ])
 
 ##############################################################

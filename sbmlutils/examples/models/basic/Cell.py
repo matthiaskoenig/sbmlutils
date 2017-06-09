@@ -62,7 +62,7 @@ units.extend([
 compartments.extend([
     fac.Compartment(sid='ext', value='Vol_e', unit='m3', constant=True, name="external"),
     fac.Compartment(sid='cyto', value='Vol_c', unit='m3', constant=False, name="cytosol"),
-    fac.Compartment(sid='pm', value='A_m', unit="m2", constant=True, spatialDimension=2, name="membrane"),
+    fac.Compartment(sid='pm', value='A_m', unit="m2", constant=True, spatialDimensions=2, name="membrane"),
 ])
 
 ##############################################################

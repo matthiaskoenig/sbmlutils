@@ -8,7 +8,7 @@ from os.path import join as pjoin
 from six import iteritems
 
 from libsbml import XMLNode
-from sbmlutils import annotation
+from sbmlutils import history
 from sbmlutils import factory
 from sbmlutils.validation import check
 
@@ -20,7 +20,7 @@ def set_model_info(model, notes=None, creators=None, units=None, main_units=None
     :return:
     """
     if creators:
-        set_creators(model, creators=creators)
+        history.set_model_history(model, creators=creators)
     if units:
         set_units(model, units=units)
     if main_units:
@@ -41,16 +41,6 @@ def set_notes(model, notes):
         raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
     check(model.setNotes(xml_node),
           message="Setting notes on model")
-
-
-def set_creators(model, creators):
-    """ Set creator information on model.
-
-    :param model: Model
-    :param creators: creator info
-    :return: 
-    """
-    annotation.set_model_history(model, creators)
 
 
 def set_units(model, units):

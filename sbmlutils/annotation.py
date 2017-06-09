@@ -12,11 +12,13 @@ A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
 
+# TODO: generic generation
 # TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
+# TODO: add the cv terms from SBO terms
 
 from __future__ import print_function, absolute_import
-from six import itervalues
+
 import logging
 import warnings
 import libsbml
@@ -24,17 +26,46 @@ import pyexcel
 import csv
 import re
 import uuid
-import datetime
+# from bioservices import Miriam
 
-from sbmlutils.validation import check
 
+def annotate_sbml_doc(doc, annotations):
+    """ Annotates given SBML document using the annotations file.
+
+    :param doc: SBMLDocument
+    :param annotations: ModelAnnotations
+    :return:
+    """
+
+    # annotate the model
+    annotator = ModelAnnotator(doc, annotations)
+    annotator.annotate_model()
+    return doc
+
+
+def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
+    """
+    Annotate a given SBML file with the provided annotations.
+
+    :param f_sbml: SBML to annotation
+    :param f_annotations: csv file with annotations
+    :param f_sbml_annotated: annotated file
+    """
+    # read SBML model
+    doc = libsbml.readSBML(f_sbml)
+
+    # read annotations
+    annotations = ModelAnnotator.annotations_from_file(f_annotations)
+    doc = annotate_sbml_doc(doc, annotations)
+
+    # Save
+    libsbml.writeSBMLToFile(doc, f_sbml_annotated)
 
 ########################################################################
 # Qualifier
 ########################################################################
 # from libsbmlconstants
 # TODO: use ModelQualifierType_toString
-
 
 QualifierType = {
     0: "MODEL_QUALIFIER",
@@ -70,75 +101,23 @@ BiologicalQualifierType = {
 
 
 ########################################################################
-# Model History
-########################################################################
-
-def set_model_history(model, creators):
-    """ Sets the model history from given creators.
-
-    :param model: SBML model
-    :type model: libsbml.Model
-    :param creators: list of creators
-    :type creators:
-    """
-    if not model.isSetMetaId():
-        model.setMetaId(create_meta_id())
-
-    if creators is None or len(creators) is 0:
-        # at least on
-        return
-    else:
-        # create and set model history
-        h = _create_history(creators)
-        check(model.setModelHistory(h), 'set model history')
-
-
-def _create_history(creators):
-    """ Creates the model history.
-
-    Sets the create and modified date to the current time.
-    Creators are a list or dictionary with values as
-    """
-    h = libsbml.ModelHistory()
-
-    if isinstance(creators, dict):
-        values = itervalues(creators)
-    else:
-        values = creators
-
-    # add all creators
-    for creator in values:
-        c = libsbml.ModelCreator()
-        c.setFamilyName(creator.familyName)
-        c.setGivenName(creator.givenName)
-        c.setEmail(creator.email)
-        c.setOrganization(creator.organization)
-        check(h.addCreator(c), 'add creator')
-
-    # create time is now
-    date = date_now()
-    check(h.setCreatedDate(date), 'set creation date')
-    check(h.setModifiedDate(date), 'set modified date')
-    return h
-
-
-def date_now():
-    """ Get the current time. """
-    time = datetime.datetime.now()
-    timestr = time.strftime('%Y-%m-%dT%H:%M:%S')
-    return libsbml.Date(timestr)
-
-
-########################################################################
 # Annotation
 ########################################################################
-def create_meta_id():
+def create_metaid(sbase):
     """ Creates a unique meta id.
 
     Meta ids are required to store annotation elements.
     """
-    meta_id = uuid.uuid4()
-    return 'meta_{}'.format(meta_id.hex)
+    # TODO: This must be reproducible, so that models don't change on recreation
+    if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
+        meta_id = sbase.getId()
+    else:
+        meta_id = uuid.uuid4()
+        meta_id = meta_id.hex
+
+    if sbase is None:
+        raise ValueError("MetaId can only be created with existing sbase.")
+    return 'meta_{}'.format(meta_id)
 
 
 class AnnotationException(Exception):
@@ -147,59 +126,59 @@ class AnnotationException(Exception):
 
 class ModelAnnotation(object):
     """ Class for single annotation, i.e. a single annotation line from a annotation file. """
-    _keys = ['pattern', 'sbml_type', 'annotation_type', 'value', 'qualifier', 'collection', 'name']
+    # possible columns in annotation file
+    _keys = ['pattern', 'sbml_type', 'annotation_type', 'qualifier', 'collection', 'entity', 'name']
 
-    _sbml_types = frozenset(["document", "model", "reaction", "transporter", "species",
+    _sbml_types = frozenset(["document", "model", "unit", "reaction", "transporter", "species",
                              "compartment", "parameter", "rule"])
 
     _annotation_types = frozenset(["RDF", "Formula", "Charge"])
 
-    _collections = [
-        ["biomodels.sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
-        ["bto", "Brenda Tissue Ontology", "^BTO:\d{7}$"],
-        ["chebi", "ChEBI", "^CHEBI:\d+$"],
-        ["ec-code", "Enzyme Nomenclature", "^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$"],
-        ["fma", "Foundational Model of Anatomy Ontology", "^FMA:\d+$"],
-        ["go", "Gene Ontology", "^GO:\d{7}$"],
-        ["kegg.compound", "KEGG Compound", "^C\d+$"],
-        ["kegg.pathway", "KEGG Pathway", "^\w{2,4}\d{5}$"],
-        ["kegg.reaction", "KEGG Reaction", "^R\d+$"],
-        ["omim", "OMIM", "^[*#+%^]?\d{6}$"],
-        ["pubmed", "PubMed", "^\d+$"],
-        ["pw", "Pathway Ontology", "^PW:\d{7}$"],
-        ["reactome", "Reactome", "(^(REACTOME:)?R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+$)"],
-        ["rhea", "Rhea", "^\d{5}$"],
-        ["sabiork.kineticrecord", "SABIO-RK Kinetic Record", "^\d+$"],
-        ["smpdb", "Small Molecule Pathway Database", "^SMP\d{5}$"],
-        ["taxonomy", "Taxonomy", "^\d+$"],
-        ["tcdb", "Transport Classification Database", "^\d+\.[A-Z]\.\d+\.\d+\.\d+$"],
-        ["uberon", "UBERON", "^UBERON\:\d+$"],
-        ["uniprot", "UniProt Knowledgebase",
-         "^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9]"
-         "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
-    ]
+    def __init__(self, d, check_miriam=False):
 
-    def __init__(self, d):
         self.d = d
-        for k in self._keys:
+        for key in self._keys:
             # optional fields
-            if k in ['qualifier', 'collection', 'name']:
-                value = d.get(k, '')
+            if key in ['qualifier', 'collection', 'name']:
+                value = d.get(key, '')
             # required fields
             else:
-                value = d[k]
-            setattr(self, k, value)
+                value = d[key]
+            setattr(self, key, value)
+
+        if self.annotation_type == "RDF":
+            # FIXME: this takes much too long, necessary to have local miriam resources for validation
+            # TODO: check against pattern
+            # check with miriam webservices
+            if check_miriam:
+                '''
+                m = Miriam()
+                uri = m.serv.getURI(self.collection, self.entity)
+                resource = m.convertURN(uri)
+                if resource is None:
+                    warnings.warn("resource could not be found for {} : {}".format(self.collection, self.entity))
+                '''
+            else:
+                # create identifiers.org resource manually
+                resource = ModelAnnotation.identifiers_resource(self.collection, self.entity)
+            setattr(self, 'resource', resource)
+
         self.check()
+
+    @staticmethod
+    def identifiers_resource(collection, entity):
+        """ Create identifiers.org resource from given collection and entity.
+
+        :param collection:
+        :param entity:
+        :return:
+        """
+        return ''.join(['http://identifiers.org/', collection, '/', entity])
 
     def check(self):
         """ Checks if the annotation is valid. """
-        if self.annotation_type not in self._annotation_types:
-            warnings.warn("annotation_type not supported: {}, {}".format(self.annotation_type,
-                                                                         self.d))
         if self.sbml_type not in self._sbml_types:
             warnings.warn("sbml_type not supported: {}, {}".format(self.sbml_type, self.d))
-
-            # TODO: check against MIRIAM dictionary and patterns
 
     def __str__(self):
         return str(self.d)
@@ -207,21 +186,52 @@ class ModelAnnotation(object):
 
 
 class ModelAnnotator(object):
-    """ Helper class for annotating SBML models."""
+    """ Helper class for annotating SBML models. """
 
     def __init__(self, doc, annotations):
+        """ Constructor.
+
+        :param doc: SBMLDocument
+        :param annotations: iterateable of ModelAnnotation
+        """
         self.doc = doc
         self.model = doc.getModel()
         self.annotations = annotations
-        self.id_dict = self.get_ids_from_model()
+        # prepare dictionary for lookup of ids
+        self.id_dict = self._get_ids_from_model()
 
-    def get_ids_from_model(self):
-        """ Create ids dictionary from the model.
-        The dictionary of ids is stored for the given set.
+    def annotate_model(self):
+        """
+        Annotates the model with the given annotations.
+        """
+        # writes all annotations
+        for a in self.annotations:
+            pattern = a.pattern
+            if a.sbml_type == "document":
+                elements = [self.doc]
+            else:
+                # lookup of allowed ids for given sbmlutils type
+                ids = self.id_dict.get(a.sbml_type, None)
+                elements = []
+                if ids:
+                    # find the subset of ids matching the pattern
+                    pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)
+                    elements = ModelAnnotator._elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
+
+            self._annotate_elements(elements, a)
+
+    def _get_ids_from_model(self):
+        """ Create dictionary of ids for given model for lookup.
+
+        :return:
         """
         # TODO: generic generation
         id_dict = dict()
         id_dict['model'] = [self.model.getId()]
+
+        lof = self.model.getListOfUnitDefinitions()
+        if lof:
+            id_dict['unit'] = [item.getId() for item in lof]
 
         lof = self.model.getListOfCompartments()
         if lof:
@@ -249,27 +259,8 @@ class ModelAnnotator(object):
 
         return id_dict
 
-    def annotate_model(self):
-        """
-        Annotates the model with the given annotations.
-        """
-        for a in self.annotations:
-            pattern = a.pattern
-            if a.sbml_type == "document":
-                elements = [self.doc]
-            else:
-                # lookup of allowed ids for given sbmlutils type
-                ids = self.id_dict.get(a.sbml_type, None)
-                elements = []
-                if ids:
-                    # find the subset of ids matching the pattern
-                    pattern_ids = self.__class__.get_matching_ids(ids, pattern)
-                    elements = self.__class__.elements_from_ids(self.model, pattern_ids, sbml_type=a.sbml_type)
-
-            self.annotate_components(elements, a)
-
     @staticmethod
-    def get_matching_ids(ids, pattern):
+    def _get_matching_ids(ids, pattern):
         """
         Finds the model ids based on the regular expression pattern.
         """
@@ -282,7 +273,7 @@ class ModelAnnotator(object):
         return match_ids
 
     @staticmethod
-    def elements_from_ids(model, sbml_ids, sbml_type=None):
+    def _elements_from_ids(model, sbml_ids, sbml_type=None):
         """
         Get list of SBML elements from given ids.
 
@@ -295,6 +286,8 @@ class ModelAnnotator(object):
         for sid in sbml_ids:
             if sbml_type == 'rule':
                 e = model.getRuleByVariable(sid)
+            elif sbml_type == 'unit':
+                e = model.getUnitDefinition(sid)
             else:
                 # returns the first element with id
                 e = model.getElementBySId(sid)
@@ -307,15 +300,22 @@ class ModelAnnotator(object):
             elements.append(e)
         return elements
 
-    def annotate_components(self, elements, a):
-        """ Annotate components. """
-        for e in elements:
+    def _annotate_elements(self, elements, a):
+        """ Annotate given elements with annotation.
 
+        :param elements: SBase elements to annotate
+        :param a: annotation
+        :return:
+        """
+
+        # TODO: warning if element is not found
+        for e in elements:
             if a.annotation_type == 'RDF':
-                self.__class__.add_rdf_to_element(e, a.qualifier, a.collection, a.value)
+                ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.resource)
+                print("Annotating:", e, a.qualifier, a.resource)
                 # write SBO terms based on the SBO RDF
-                if a.collection == 'biomodels.sbo':
-                    e.setSBOTerm(a.value)
+                if a.collection == 'sbo':
+                    e.setSBOTerm(a.entity)
 
             elif a.annotation_type in ['Formula', 'Charge']:
                 # via fbc species plugin, so check that species first
@@ -324,15 +324,26 @@ class ModelAnnotator(object):
                 else:
                     s = self.model.getSpecies(e.getId())
                     splugin = s.getPlugin("fbc")
-                    if a.annotation_type == 'Formula':
-                        splugin.setChemicalFormula(a.value)
+                    if splugin is None:
+                        logging.warning("FBC SPlugin not found for species, no fbc: {}".format(s))
                     else:
-                        splugin.setCharge(int(a.value))
+                        if a.annotation_type == 'Formula':
+                            splugin.setChemicalFormula(a.entity)
+                        else:
+                            splugin.setCharge(int(a.entity))
             else:
                 raise AnnotationException('Annotation type not supported: {}'.format(a.annotation_type))
 
     @classmethod
-    def add_rdf_to_element(cls, element, qualifier, collection, entity):
+    def _add_rdf_to_element(cls, element, qualifier, resource):
+        """ Adds RDF information to given element.
+
+        :param element:
+        :param qualifier:
+        :param collection:
+        :param entity:
+        :return:
+        """
         cv = libsbml.CVTerm()
 
         # set correct type of qualifier
@@ -346,13 +357,12 @@ class ModelAnnotator(object):
             cv.setModelQualifierType(sbml_qualifier)
         else:
             raise AnnotationException('Unsupported qualifier: {}'.format(qualifier))
-        # Use the identifiers.org solution
-        resource = ''.join(['http://identifiers.org/', collection, '/', entity])
+
         cv.addResource(resource)
 
         # meta id has to be set
         if not element.isSetMetaId():
-            meta_id = create_meta_id()
+            meta_id = create_metaid(element)
             element.setMetaId(meta_id)
 
         success = element.addCVTerm(cv)
@@ -418,23 +428,4 @@ class ModelAnnotator(object):
         return res
 
 
-def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
-    """
-    Annotate a given SBML file with the provided annotations.
 
-    :param f_sbml: SBML to annotation
-    :param f_annotations: csv file with annotations
-    :param f_sbml_annotated: annotated file
-    """
-    # read SBML model
-    doc = libsbml.readSBML(f_sbml)
-
-    # read annotations
-    annotations = ModelAnnotator.annotations_from_file(f_annotations)
-
-    # annotate the model
-    annotator = ModelAnnotator(doc, annotations)
-    annotator.annotate_model()
-
-    # Save
-    libsbml.writeSBMLToFile(doc, f_sbml_annotated)

@@ -119,8 +119,8 @@ compartments.extend([
     mc.Compartment(sid='ext', unit='m3', constant=False, value='V_ext', name='blood'),
     mc.Compartment(sid='cyto', unit='m3', constant=False, value='V_cyto', name='cytosol'),
     mc.Compartment(sid='mito', unit='m3', constant=False, value='V_mito', name='mitochondrion'),
-    mc.Compartment(sid='pm', spatialDimension=2, unit='m2', constant=True, value='1.0 m2', name='plasma membrane'),
-    mc.Compartment(sid='mm', spatialDimension=2, unit='m2', constant=True, value='1.0 m2',
+    mc.Compartment(sid='pm', spatialDimensions=2, unit='m2', constant=True, value='1.0 m2', name='plasma membrane'),
+    mc.Compartment(sid='mm', spatialDimensions=2, unit='m2', constant=True, value='1.0 m2',
                    name='mitochondrial membrane'),
 ])
 

@@ -1,19 +1,20 @@
 """
-Definition of general helper functions to create SBML objects
-and setting SBMLObjects in models.
-This are the low level helpers to create models from scratch.
+This module provides definitions of helper functions for the creation of
+SBML objects. These are the low level helpers to create models from scratch
+and are used in the higher level SBML factories.
 
-The general workflow is to create a list/iterable of SBMLObjects by using the
-respective classes in this module, e.g. Compartment, Parameter, Species.
-The object are than created in the model by calling
+The general workflow to create new SBML models isto create a lists/iterables of
+SBMLObjects by using the respective classes in this module,
+e.g. Compartment, Parameter, Species.
+
+The actual SBase objects are than created in the SBMLDocument/Model by calling
     create_objects(model, objects)
-This does NOT take care of the order of the creation.
-
+These functions DO NOT take care of the order of the creation, but the order
+must be correct in the model definition files.
 To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
-
-All model objects are created with the given SBML_LEVEL and SBML_VERSION.
 """
+
 from __future__ import print_function, division
 from six import iteritems
 
@@ -22,14 +23,9 @@ import warnings
 import libsbml
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 
-SBML_LEVEL = 3
-SBML_VERSION = 1
+SBML_LEVEL = 3  # default SBML level
+SBML_VERSION = 1  # default SBML version
 
-
-# TODO: allow setting of sboTerms & metaIds, currently not taken into account
-
-
-#####################################################################
 
 def create_objects(model, obj_iter, debug=False):
     """ Create the objects in the model.
@@ -102,6 +98,20 @@ def set_main_units(model, main_units):
 
 
 #####################################################################
+# Creator
+#####################################################################
+class Creator(object):
+    """ Creator in ModelHistory. """
+
+    def __init__(self, familyName, givenName, email, organization, site=None):
+        self.familyName = familyName
+        self.givenName = givenName
+        self.email = email
+        self.organization = organization
+        self.site = site
+
+
+#####################################################################
 # Base classes
 #####################################################################
 class Sbase(object):
@@ -121,31 +131,42 @@ class Sbase(object):
             name = ' ' + name
         return '<{}[{}]{}>'.format(class_name, self.sid, name)
 
+    def set_fields(self, obj):
+        obj.setId(self.sid)
+        if self.name is not None:
+            obj.setName(self.name)
+        if self.sboTerm is not None:
+            obj.setSBOTerm(self.sboTerm)
+        if self.metaId is not None:
+            obj.setMetaId(self.metaId)
+
 
 class Value(Sbase):
+    """ Helper class.
+    The value field is a helper storage field which is used differently by different
+    subclasses.
+    """
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
-        super(Value, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.value = value
+
+    def set_fields(self, obj):
+        super(Value, self).set_fields(obj)
 
 
 class ValueWithUnit(Value):
+    """ Helper class.
+    The value field is a helper storage field which is used differently by different
+    subclasses.
+    """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(ValueWithUnit, self).__init__(sid=sid, value=value, name=name, sboTerm=sboTerm, metaId=metaId)
+        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
         self.unit = unit
 
-
-#####################################################################
-# Creator
-#####################################################################
-class Creator(object):
-    """ Creator in ModelHistory. """
-
-    def __init__(self, familyName, givenName, email, organization, site=None):
-        self.familyName = familyName
-        self.givenName = givenName
-        self.email = email
-        self.organization = organization
-        self.site = site
+    def set_fields(self, obj):
+        super(ValueWithUnit, self).set_fields(obj)
+        if self.unit is not None:
+            obj.setUnits(Unit.get_unit_string(self.unit))
 
 
 ##########################################################################
@@ -165,7 +186,7 @@ class Unit(Sbase):
         :return:
         """
         unit_def = model.createUnitDefinition()
-        unit_def.setId(self.sid)
+
         for data in self.definition:
             kind = data[0]
             exponent = data[1]
@@ -177,7 +198,12 @@ class Unit(Sbase):
                 multiplier = data[3]
 
             Unit._create(unit_def, kind, exponent, scale, multiplier)
+
+        self.set_fields(unit_def)
         return unit_def
+
+    def set_fields(self, obj):
+        super(Unit, self).set_fields(obj)
 
     @staticmethod
     def _create(unit_def, kind, exponent, scale=0, multiplier=1.0):
@@ -209,142 +235,73 @@ class Unit(Sbase):
 ##########################################################################
 # Functions
 ##########################################################################
-class Function(Value):
-    """ Function. """
+class Function(Sbase):
+
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
+        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.formula = value
 
     def create_sbml(self, model):
-        """ Create function in model.
-
-        :param model:
-        :return:
-        """
-        return Function._create(model,
-                                sid=self.sid,
-                                formula=self.value,
-                                name=self.name)
-
-    @staticmethod
-    def _create(model, sid, formula, name):
-        """ Create libsbml FunctionDefinition.
-
-        :param model:
-        :param sid:
-        :param formula:
-        :param name:
-        :return:
-        """
         f = model.createFunctionDefinition()
-        f.setId(sid)
-        ast_node = ast_node_from_formula(model, formula)
-        f.setMath(ast_node)
-        if name is not None:
-            f.setName(name)
+        self.set_fields(f, model)
         return f
+
+    def set_fields(self, obj, model):
+        super(Function, self).set_fields(obj)
+        ast_node = ast_node_from_formula(model, self.formula)
+        obj.setMath(ast_node)
 
 
 ##########################################################################
 # Parameters
 ##########################################################################
 class Parameter(ValueWithUnit):
-    """ Parameter. """
 
     def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
         super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
 
     def create_sbml(self, model):
-        """ Create parameter in model."""
-        return Parameter._create(model,
-                                 sid=self.sid,
-                                 value=self.value,
-                                 unit=self.unit,
-                                 constant=self.constant,
-                                 name=self.name,
-                                 sboTerm=self.sboTerm,
-                                 metaId=self.metaId)
-
-    @staticmethod
-    def _create(model, sid, unit, name, value, constant, sboTerm=None, metaId=None):
-        """ Create libsbml Parameter.
-
-        :param model:
-        :param sid:
-        :param unit:
-        :param name:
-        :param value:
-        :param constant:
-        :return:
-        """
         p = model.createParameter()
-        p.setId(sid)
-        if unit is not None:
-            p.setUnits(Unit.get_unit_string(unit))
-        if name is not None:
-            p.setName(name)
-        if value is not None:
-            p.setValue(value)
-        if sboTerm is not None:
-            p.setSBOTerm(sboTerm)
-        if metaId is not None:
-            p.setMetaId(metaId)
-        p.setConstant(constant)
+        self.set_fields(p)
         return p
+
+    def set_fields(self, obj):
+        super(Parameter, self).set_fields(obj)
+        obj.setConstant(self.constant)
+        if self.value is not None:
+            obj.setValue(self.value)
 
 
 ##########################################################################
 # Compartments
 ##########################################################################
 class Compartment(ValueWithUnit):
-    """ Compartment. """
 
-    def __init__(self, sid, value, unit=None, constant=True, spatialDimension=3, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None):
         super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
         self.constant = constant
-        self.spatialDimension = spatialDimension
+        self.spatialDimensions = spatialDimensions
 
     def create_sbml(self, model):
-        """ Create compartment in model.
-
-        :param model: SBMLModel
-        :return: SBMLCompartment
-        """
-        return Compartment._create(model,
-                                   sid=self.sid,
-                                   name=self.name,
-                                   dims=self.spatialDimension,
-                                   unit=self.unit,
-                                   constant=self.constant,
-                                   value=self.value)
-
-    @staticmethod
-    def _create(model, sid, name, dims, unit, constant, value):
-        """ Create libsbml Compartment.
-
-        :param model:
-        :param sid:
-        :param name:
-        :param dims:
-        :param unit:
-        :param constant:
-        :param value:
-        :return:
-        """
         c = model.createCompartment()
-        c.setId(sid)
-        if name is not None:
-            c.setName(name)
-        c.setSpatialDimensions(dims)
-        if unit is not None:
-            c.setUnits(Unit.get_unit_string(unit))
-        c.setConstant(constant)
-        if type(value) is str:
-            if constant:
-                InitialAssignment._create(model, sid=sid, formula=value)
+        self.set_fields(c)
+
+        if type(self.value) is str:
+            if self.constant:
+                # InitialAssignment._create(model, sid=self.sid, formula=self.value)
+                InitialAssignment(self.sid, self.value).create_sbml(model)
             else:
-                AssignmentRule._create(model, sid=sid, formula=value)
+                AssignmentRule(self.sid, self.value).create_sbml(model)
+                # AssignmentRule._create(model, sid=self.sid, formula=self.value)
         else:
-            c.setSize(value)
+            c.setSize(self.value)
         return c
+
+    def set_fields(self, obj):
+        super(Compartment, self).set_fields(obj)
+        obj.setConstant(self.constant)
+        obj.setSpatialDimensions(self.spatialDimensions)
 
 
 ##########################################################################
@@ -363,75 +320,37 @@ class Species(ValueWithUnit):
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
-        """ Create species in model.
-
-        :param model: SBMLModel
-        :return: SBMLSpecies
-        """
-        return Species._create(model,
-                               sid=self.sid,
-                               name=self.name,
-                               value=self.value,
-                               unit=self.unit,
-                               compartment=self.compartment,
-                               boundaryCondition=self.boundaryCondition,
-                               constant=self.constant,
-                               hasOnlySubstanceUnits=self.hasOnlySubstanceUnits,
-                               conversionFactor=self.conversionFactor,
-                               sboTerm=self.sboTerm,
-                               metaId=self.metaId)
-
-    @staticmethod
-    def _create(model, sid, name, value, unit, compartment,
-                boundaryCondition, constant, hasOnlySubstanceUnits, conversionFactor, sboTerm, metaId):
-        """ Create libsbml Species.
-
-        :param model:
-        :param sid:
-        :param name:
-        :param value:
-        :param unit:
-        :param compartment:
-        :param boundaryCondition:
-        :param constant:
-        :param hasOnlySubstanceUnits:
-        :param conversionFactor
-        :return:
-        """
         s = model.createSpecies()
-        s.setId(sid)
-        if name:
-            s.setName(name)
-        if sboTerm is not None:
-            s.setSBOTerm(sboTerm)
-        if metaId is not None:
-            s.setMetaId(metaId)
-        if unit:
-            s.setUnits(Unit.get_unit_string(unit))
-        s.setCompartment(compartment)
+        self.set_fields(s)
+        s.setSubstanceUnits(model.getSubstanceUnits())
+        return s
 
-        s.setBoundaryCondition(boundaryCondition)
-        s.setConstant(constant)
-        s.setHasOnlySubstanceUnits(hasOnlySubstanceUnits)
+    def set_fields(self, obj):
+        super(Species, self).set_fields(obj)
+        obj.setConstant(self.constant)
+        obj.setCompartment(self.compartment)
+        obj.setBoundaryCondition(self.boundaryCondition)
+        obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
 
         # TODO: handle the amount/concentrations with corresponding substance units correctly
-        if hasOnlySubstanceUnits:
-            s.setInitialAmount(value)
+        if self.hasOnlySubstanceUnits:
+            obj.setInitialAmount(self.value)
         else:
-            s.setInitialConcentration(value)
-        s.setSubstanceUnits(model.getSubstanceUnits())
+            obj.setInitialConcentration(self.value)
 
-        if conversionFactor:
-            s.setConversionFactor(conversionFactor)
-
-        return s
+        if self.conversionFactor:
+            obj.setConversionFactor(self.conversionFactor)
 
 
 ##########################################################################
 # InitialAssignments
 ##########################################################################
-class InitialAssignment(ValueWithUnit):
+class InitialAssignment(Value):
     """ InitialAssignments. """
+
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
+        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.unit = unit
 
     def create_sbml(self, model):
         """ Create libsbml InitialAssignment.
@@ -446,27 +365,12 @@ class InitialAssignment(ValueWithUnit):
         if (not model.getParameter(sid)) \
                 and (not model.getSpecies(sid)) \
                 and (not model.getCompartment(sid)):
-            Parameter._create(model,
-                              sid=sid,
-                              unit=self.unit,
-                              name=self.name,
-                              value=None,
-                              constant=True)
+            Parameter(sid=sid, value=None, unit=self.unit, constant=True, name=self.name).create_sbml(model)
 
-        return InitialAssignment._create(model, sid=sid, formula=self.value)
-
-    @staticmethod
-    def _create(model, sid, formula):
-        """ Create libsbml InitialAssignment.
-
-        :param model:
-        :param sid:
-        :param formula:
-        :return:
-        """
         a = model.createInitialAssignment()
+        self.set_fields(a)
         a.setSymbol(sid)
-        ast_node = ast_node_from_formula(model, formula)
+        ast_node = ast_node_from_formula(model, self.value)
         a.setMath(ast_node)
         return a
 
@@ -491,7 +395,9 @@ class Rule(ValueWithUnit):
         if (not model.getParameter(sid)) \
                 and (not model.getSpecies(sid)) \
                 and (not model.getCompartment(sid)):
-            Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
+
+            # Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
+            Parameter(sid, unit=rule.unit, name=rule.name, value=None, constant=False).create_sbml(model)
 
         # Make sure the parameter is const=False
         p = model.getParameter(sid)
@@ -531,7 +437,9 @@ class AssignmentRule(Rule):
         :param model:
         :return:
         """
-        return Rule._rule_factory(model, self, rule_type="AssignmentRule")
+        rule = Rule._rule_factory(model, self, rule_type="AssignmentRule")
+        self.set_fields(rule)
+        return rule
 
     @staticmethod
     def _create(model, sid, formula):
@@ -555,7 +463,9 @@ class RateRule(Rule):
         :param model:
         :return:
         """
-        return Rule._rule_factory(model, self, rule_type="RateRule")
+        rule = Rule._rule_factory(model, self, rule_type="RateRule")
+        self.set_fields(rule)
+        return rule
 
     @staticmethod
     def _create(model, sid, formula):
