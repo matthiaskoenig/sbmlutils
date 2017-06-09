@@ -160,11 +160,12 @@ def _create_html(doc, basename, html_template='report.html'):
             'functions': listOfFunctions(model),
             'units': listOfUnits(model),
             'compartments': listOfCompartments(model, values),
+            'species': listOfSpecies(model),
 
             'parameters': model.getListOfParameters(),
             'rules': model.getListOfRules(),
             'assignments': model.getListOfInitialAssignments(),
-            'species': model.getListOfSpecies(),
+
             'reactions': model.getListOfReactions(),
             'constraints': model.getListOfConstraints(),
             'events': model.getListOfEvents(),
@@ -215,15 +216,43 @@ def listOfCompartments(model, values):
     items = []
     for item in model.getListOfCompartments():
         info = infoSbase(item)
-        for attr in ['units', 'spatial_dimensions']:
-            info[attr] = getattr(item, attr)
+        info['units'] = item.units
+        info['spatial_dimensions'] = item.spatial_dimensions
         info['constant'] = boolean(item)
-        info['derived unit'] = derived_units(item)
+        info['derived_units'] = derived_units(item)
         if item.isSetSize():
             size = item.size
         else:
             size = math(values[item.id])
         info['size'] = size
+        items.append(info)
+    return items
+
+def listOfSpecies(model):
+    items = []
+    for item in model.getListOfSpecies():
+        info = infoSbase(item)
+        info['compartment'] = item.compartment
+        info['boundary_condition'] = boolean(item.boundary_condition)
+        info['constant'] = boolean(item.constant)
+        if item.isSetInitialAmount():
+            info['initial_amount'] = item.initial_amount
+        if item.isSetInitialConcentration():
+            info['initial_concentration'] = item.initial_concentration
+        info['substance_units'] = item.substance_units
+        info['derived_units'] = derived_units(item)
+        info['xml'] = xml(item)
+
+        # fbc
+        sfbc = item.getPlugin("fbc")
+        if sfbc:
+            if sfbc.isSetChemicalFormula():
+                info['fbc:formula'] = sfbc.getChemicalFormula()
+            if sfbc.isSetCharge():
+                c = sfbc.getCharge()
+                if c is not 0:
+                    info['fbc:charge'] = ' ({})'.format(sfbc.getCharge())
+
         items.append(info)
     return items
 

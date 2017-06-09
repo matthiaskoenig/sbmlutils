@@ -142,30 +142,6 @@ def reactionBoundsString(reaction):
     return info
 
 
-def formulaChargeStringFromSpecies(species):
-    """ Get the formula and charge string from species.
-    Using the FBC v2.
-
-    :param species:
-    :type species:
-    :return:
-    :rtype:
-    """
-    info = ''
-    sfbc = species.getPlugin("fbc")
-    if sfbc:
-        formula = ''
-        if sfbc.isSetChemicalFormula():
-            formula = sfbc.getChemicalFormula()
-        charge = ''
-        if sfbc.isSetCharge():
-            c = sfbc.getCharge()
-            if c is not 0:
-                charge = ' ({})'.format(sfbc.getCharge())
-        return '{}{}'.format(formula, charge)
-    return info
-
-
 # ------------------------------
 # UnitDefinitions
 # ------------------------------

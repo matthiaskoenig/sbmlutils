@@ -67,7 +67,7 @@
 	<th scope="col">size</th>
 	<th scope="col">constant</th>
 	<th scope="col">spatial dimensions</th>
-	<th scope="col">unit</th>
+	<th scope="col">units</th>
 	<th scope="col">derived units</th>
     <th scope="col">sbo</th>
     <th scope="col">cvterm</th>
@@ -100,36 +100,27 @@
 	<th scope="col">initial concentration</th>
 	<th scope="col">substance units</th>
 	<th scope="col">derived units</th>
-    {# <th scope="col">only substance units</th> #}
     <th scope="col">sbo</th>
     <th scope="col">cvterm</th>
-    {#  <th scope="col">XML</th>  #}
+    {# <th scope="col">xml</th> #}
 {% endmacro %}
 
 {% macro species_content(item) %}
     <td class="hidden">Species</td>
 	<td class="active">{{ item.id }}</td>
 	<td>{{ item.name }}<br />
-        <span class="cvterm blue">{{ item|SBML_formulaChargeString }}</span></td>
+        <span class="cvterm blue">{{ item.formula }}{{item.charge }}</span></td>
 	<td>{{ item.compartment }}</td>
-    {{ helpers.boolean(item.boundary_condition) }}
-    {{ helpers.boolean(item.constant) }}
-	<td>
-        {% if item.isSetInitialAmount() %}
-            {{ item.initial_amount }}
-        {% endif %}
-    </td>
-	<td>
-        {% if item.isSetInitialConcentration() %}
-            {{ item.initial_concentration }}
-        {% endif %}
-    </td>
+    {{ item.boundary_condition }}
+    {{ item.constant }}
+	<td>{{ item.initial_amount }}</td>
+	<td>{{ item.initial_concentration }}</td>
 	<td>{{ item.substance_units }}</td>
-	<td>{{ helpers.derived_units(item) }}</td>
-    {#  {{ helpers.boolean(item.getHasOnlySubstanceUnits()) }} #}
-	<td>{{ helpers.sbo(item) }}</td>
-	<td>{{ helpers.cvterm(item) }}</td>
-    {#  <td>{{ helpers.xml(item) }}</td>  #}
+	<td>{{ item.derived_units }}</td>
+
+	<td>{{ item.sbo }}</td>
+	<td>{{ item.cvterm }}</td>
+    {# <td>{{ item.xml }}</td> #}
 {% endmacro %}
 
 <!------------------------------------------------------->
