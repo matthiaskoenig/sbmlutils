@@ -198,25 +198,6 @@
 {% endmacro %}
 
 <!------------------------------------------------------->
-<!--  CONSTRAINTS			   						   -->
-<!------------------------------------------------------->
-{% macro constraint_header(size) %}
-    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Constraints [{{ size }}]</th>
-	<th scope="col">constraint</th>
-    <th scope="col">sbo</th>
-    <th scope="col">cvterm</th>
-{% endmacro %}
-
-{% macro constraint_content(item) %}
-    <td class="hidden">Constraint</td>
-    <td class="active">{{ item.id }}</td>
-	<td>{{ helpers.math(item) }}</td>
-	<td>{{ helpers.sbo(item) }}</td>
-	<td>{{ helpers.cvterm(item) }}</td>
-{% endmacro %}
-
-<!------------------------------------------------------->
 <!--  REACTIONS 			   						   -->
 <!------------------------------------------------------->
 {% macro reaction_header(size) %}
@@ -235,24 +216,34 @@
 {% macro reaction_content(item) %}
     <td class="hidden">Reaction</td>
 	<td class="active">{{ item.id }}<br />
-        <span class="cvterm blue">{{ item|SBML_reactionBoundsString }}</span></td>
-
+        <span class="cvterm blue">[{{ item.lb }}, {{ item.ub }}]</span></td>
 	<td>{{ item.name }}</td>
-	{% if item.reversible %}
-        <td class="success">&#8646;</td>
-    {% else %}
-	    <td class="danger">&#10142;</td>
-    {% endif %}
-	<td>{{ item|SBML_reactionToString }}</td>
-	<td>
-        {% for mod in item.getListOfModifiers() %}
-        	{{ mod.getSpecies() }}<br />
-		 {% endfor %}
-    </td>
-	<td>{{ helpers.math(item.getKineticLaw()) }}</td>
-    <td>{{ helpers.derived_units(item.getKineticLaw()) }}</td>
-	<td>{{ helpers.sbo(item) }}</td>
-	<td>{{ helpers.cvterm(item) }}</td>
+	{{ item.reversible }}
+	<td>{{ item.equation }}</td>
+	<td>{{ item.modifiers }}</td>
+	<td>{{ item.formula }}</td>
+    <td>{{ item.derived_units }}</td>
+	<td>{{ item.sbo }}</td>
+	<td>{{ item.cvterm }}</td>
+{% endmacro %}
+
+<!------------------------------------------------------->
+<!--  CONSTRAINTS			   						   -->
+<!------------------------------------------------------->
+{% macro constraint_header(size) %}
+    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Constraints [{{ size }}]</th>
+	<th scope="col">constraint</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+{% endmacro %}
+
+{% macro constraint_content(item) %}
+    <td class="hidden">Constraint</td>
+    <td class="active">{{ item.id }}</td>
+	<td>{{ item.constraint }}</td>
+	<td>{{ item.sbo }}</td>
+	<td>{{ item.cvterm }}</td>
 {% endmacro %}
 
 <!------------------------------------------------------->
@@ -274,17 +265,10 @@
     <td class="hidden">Event</td>
 	<td class="active">{{ item.id }}</td>
 	<td>{{ item.name }}</td>
-	<td>
-        {{ helpers.math(item.getTrigger()) }}<br />
-        initialValue = {{ item.getTrigger().initial_value }}<br />
-        persistent = {{ item.getTrigger().persistent }}<br />
-	</td>
+	<td>{{ item.trigger }}</td>
 	<td>{{ item.priority }}</td>
 	<td>{{ item.delay }}</td>
-	<td>{% for eva in item.getListOfEventAssignments() %}
-    		{{eva.getId()}} = {{ helpers.math(eva) }}<br />
-    	{% endfor %}
-    </td>
-	<td>{{ helpers.sbo(item) }}</td>
-	<td>{{ helpers.cvterm(item) }}</td>
+	<td>{{ item.assignments }}</td>
+	<td>{{ item.sbo }}</td>
+	<td>{{ item.cvterm }}</td>
 {% endmacro %}

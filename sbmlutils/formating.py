@@ -129,19 +129,6 @@ def ruleVariableToString(rule):
         raise TypeError(rule)
 
 
-def reactionBoundsString(reaction):
-    """ Get upper and lower bounds information for reaction. """
-    info = ""
-    rfbc = reaction.getPlugin("fbc")
-    if rfbc:
-
-        lb_id = rfbc.getLowerFluxBound()
-        ub_id = rfbc.getUpperFluxBound()
-
-        info = "[{}, {}]".format(lb_id, ub_id)
-    return info
-
-
 # ------------------------------
 # UnitDefinitions
 # ------------------------------

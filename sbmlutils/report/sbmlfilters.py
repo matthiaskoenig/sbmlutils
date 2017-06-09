@@ -24,8 +24,6 @@ filters = [
     'SBML_unitDefinitionToString1',
     'SBML_unitDefinitionToString',
     'SBML_modelHistoryToString',
-    'SBML_reactionToString',
-    'SBML_reactionBoundsString',
 ]
 
 
@@ -62,14 +60,6 @@ def SBML_notesToString(sbase):
 
 def SBML_modelHistoryToString(mhistory):
     return formating.modelHistoryToString(mhistory)
-
-
-def SBML_reactionToString(reaction):
-    return formating.equationStringFromReaction(reaction)
-
-
-def SBML_reactionBoundsString(reaction):
-    return formating.reactionBoundsString(reaction)
 
 
 def SBML_unitDefinitionToString1(ud):

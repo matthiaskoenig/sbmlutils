@@ -164,10 +164,9 @@ def _create_html(doc, basename, html_template='report.html'):
             'parameters': listOfParameters(model, values),
             'assignments': listOfInitialAssignments(model),
             'rules': listOfRules(model),
-
-            'reactions': model.getListOfReactions(),
-            'constraints': model.getListOfConstraints(),
-            'events': model.getListOfEvents(),
+            'reactions': listOfReactions(model),
+            'constraints': listOfConstraints(model),
+            'events': listOfEvents(model),
         }
     else:
         # no model exists
@@ -291,6 +290,63 @@ def listOfRules(model):
 
         items.append(info)
     return items
+
+def listOfConstraints(model):
+    items = []
+    for item in model.getListOfConstraints():
+        info = infoSbase(item)
+        info['constraint'] = math(item)
+        items.append(info)
+    return items
+
+def listOfReactions(model):
+    items = []
+    for item in model.getListOfReactions():
+        info = infoSbase(item)
+
+        if item.reversible:
+            reversible = '<td class ="success">&#8646;</td>'
+        else:
+            reversible = '<td class ="danger">&#10142;</td>'
+        info['reversible'] = reversible
+        info['equation'] = formating.equationStringFromReaction(item)
+        modifiers = ''
+        for mod in item.getListOfModifiers():
+            modifiers += '{}< br / >'.format(mod.getSpecies())
+        info['modifiers'] = modifiers
+        klaw = item.getKineticLaw()
+        info['formula'] = math(klaw)
+        info['derived_units'] = derived_units(klaw)
+
+
+        rfbc = item.getPlugin("fbc")
+        if rfbc:
+            info['lb'] = rfbc.getLowerFluxBound()
+            info['ub'] = rfbc.getUpperFluxBound()
+        items.append(info)
+
+    return items
+
+
+def listOfEvents(model):
+    items = []
+    for item in model.getListOfEvents():
+        info = infoSbase(item)
+
+        trigger = item.getTrigger()
+        info['trigger'] = "{}<br />initialValue = {}<br />persistent = {}< br / >".format(math(trigger),
+                                                                                          trigger.initial_value,
+                                                                                          trigger.persistent)
+        info['priority'] = item.priority
+        info['delay'] = item.delay
+        assignments = ''
+        for eva in item.getListOfEventAssignments():
+            assignments += "{} = {}<br />".format(eva.getId(), math(eva))
+        info['assignments'] = assignments
+        items.append(info)
+    return items
+
+
 
 
 ##############################
