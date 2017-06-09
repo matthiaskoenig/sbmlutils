@@ -157,7 +157,7 @@ def _create_html(doc, basename, html_template='report.html'):
             'model': model,
             'values': values,
 
-            'functions': model.getListOfFunctionDefinitions(),
+            'functions': listOfFunctions(model),
             'units': listOfUnits(model),
             'compartments': model.getListOfCompartments(),
 
@@ -179,97 +179,86 @@ def _create_html(doc, basename, html_template='report.html'):
         }
     return template.render(c)
 
+from sbmlutils.report.sbmlfilters import *
 
 ##############################
 # UnitDefinitions
 ##############################
-def listOfUnits(model):
-    units = []
 
-    for udef in model.getListOfUnitDefinitions():
-        info = {
-            'id': udef.id,
-            'name': udef.name,
-            'units': 'units',       # {{item | SBML_unitDefinitionToString | SBML_stringToMathML}}
-            'sbo': 'sbo',           # helpers.sbo(item)
-            'cvterm': 'cvterm',     # helpers.cvterm(item)
-        }
-        units.append(info)
-    return units
+def infoSbase(item):
+    info = {
+            'id': item.id,
+            'metaId': item.getMetaId(),
+            'name': item.name,
+            'sbo': sbo(item),
+            'cvterm': cvterm(item),
+    }
+    return info
+
+
+def listOfUnits(model):
+    items = []
+    for item in model.getListOfUnitDefinitions():
+        info = infoSbase(item)
+        info['units'] = SBML_stringToMathML(SBML_unitDefinitionToString(item))
+        items.append(info)
+    return items
+
+def listOfFunctions(model):
+    items = []
+    for item in model.model.getListOfFunctionDefinitions():
+        info = infoSbase(item)
+        info['math'] = math(item)
+        items.append(info)
+    return items
+
 
 ##############################
 # Helpers
 ##############################
-from sbmlutils.report.sbmlfilters import *
-
 def notes(item):
     if item.isSetNotes():
         return SBML_notesToString(item)
 
 def cvterm(item):
-    if item.isSetAnnotation()
-       return "<div class="cvterm">{}</div>".format(SBML_annotationToString(item))
+    if item.isSetAnnotation():
+       return '<div class="cvterm">{}</div>'.format(SBML_annotationToString(item))
+    return ''
 
-def sbo
+def sbo(item):
+    if item.getSBOTerm() != -1:
+        return '<div class="cvterm"><a href="{}" target="_blank">{}</a></div>'.format(item.getSBOTermAsURL(), item.getSBOTermID())
+    return ''
 
-{% macro sbo(item) %}
-    {% if item.getSBOTerm() != -1 %}
-        <div class="cvterm">
-        <a href="{{ item.getSBOTermAsURL() }}" target="_blank">{{ item.getSBOTermID() }}</a>
-        </div>
-    {% endif %}
-{% endmacro %}
+def annotation(item):
+    info = '<div class="cvterm">'
+    if item.getSBOTerm() != -1:
+        info += '<a href="{}" target="_blank">{}</a><br />'.format(item.getSBOTermAsURL(), item.getSBOTermID())
+    if item.isSetAnnotation():
+        info += SBML_annotationToString(item)
+    info += '</div>'
+    return info
 
+def math(item):
+    if item:
+        return SBML_astnodeToMathML(item.getMath())
 
-{% macro annotation(item) %}
-    <div class="cvterm">
-    {% if item.getSBOTerm() != -1 %}
-        <a href="{{ item.getSBOTermAsURL() }}" target="_blank">{{ item.getSBOTermID() }}</a><br />
-    {% endif %}
-    {% if item.isSetAnnotation() %}
-       {{ item|SBML_annotationToString }}
-    {% endif %}
-    </div>
-{% endmacro %}
+def boolean(condition):
+    if condition:
+        return '<td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>'
+    else:
+        return '<td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>'
 
+def annotation_xml(item):
+    if item.isSetAnnotation():
+        return '<pre>{}</pre>'.format(item.getAnnotationString().decode('utf-8'))
 
-{% macro math(item) %}
-    {% if item %}
-    {{ item.getMath()|SBML_astnodeToMathML }}
-    {% endif %}
-{% endmacro %}
+def xml(item):
+    return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
 
-
-{% macro boolean(condition) %}
-    {% if condition %}
-        <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
-    {% else %}
-        <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-    {% endif %}
-{% endmacro %}
-
-
-{% macro annotation_xml(item) %}
-    {% if item.isSetAnnotation() %}
-        <pre>{{ item.getAnnotationString().decode('utf-8') }}</pre>
-    {% endif %}
-{% endmacro %}
-
-{%  macro xml(item) %}
-    <textarea style="border:none;">
-        {{ item.toSBML() }}
-    </textarea>
-{%  endmacro %}
-
-
-{% macro derived_units(item) %}
-    {% if item %}
-        {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString|SBML_stringToMathML }}
-    {%  endif %}
-{% endmacro %}
-
-#####################
-
+def derived_units(item):
+    if item:
+        return SBML_stringToMathML(SBML_unitDefinitionToString(item.getDerivedUnitDefinition()))
 
 
 
