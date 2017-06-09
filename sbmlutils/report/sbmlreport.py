@@ -147,15 +147,20 @@ def _create_html(doc, basename, html_template='report.html'):
         template = env.get_template(html_template)
         values = _create_value_dictionary(model)
 
+        # TODO: create all the objects for the templates, i.e. all the logic is performed
+        # here and the template language just accesses the fields
+
         # Context
         c = {
             'basename': basename,
             'doc': doc,
             'model': model,
             'values': values,
-            'units': model.getListOfUnitDefinitions(),
-            'compartments': model.getListOfCompartments(),
+
             'functions': model.getListOfFunctionDefinitions(),
+            'units': listOfUnits(model),
+            'compartments': model.getListOfCompartments(),
+
             'parameters': model.getListOfParameters(),
             'rules': model.getListOfRules(),
             'assignments': model.getListOfInitialAssignments(),
@@ -173,6 +178,99 @@ def _create_html(doc, basename, html_template='report.html'):
             'doc': doc,
         }
     return template.render(c)
+
+
+##############################
+# UnitDefinitions
+##############################
+def listOfUnits(model):
+    units = []
+
+    for udef in model.getListOfUnitDefinitions():
+        info = {
+            'id': udef.id,
+            'name': udef.name,
+            'units': 'units',       # {{item | SBML_unitDefinitionToString | SBML_stringToMathML}}
+            'sbo': 'sbo',           # helpers.sbo(item)
+            'cvterm': 'cvterm',     # helpers.cvterm(item)
+        }
+        units.append(info)
+    return units
+
+##############################
+# Helpers
+##############################
+from sbmlutils.report.sbmlfilters import *
+
+def notes(item):
+    if item.isSetNotes():
+        return SBML_notesToString(item)
+
+def cvterm(item):
+    if item.isSetAnnotation()
+       return "<div class="cvterm">{}</div>".format(SBML_annotationToString(item))
+
+def sbo
+
+{% macro sbo(item) %}
+    {% if item.getSBOTerm() != -1 %}
+        <div class="cvterm">
+        <a href="{{ item.getSBOTermAsURL() }}" target="_blank">{{ item.getSBOTermID() }}</a>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro annotation(item) %}
+    <div class="cvterm">
+    {% if item.getSBOTerm() != -1 %}
+        <a href="{{ item.getSBOTermAsURL() }}" target="_blank">{{ item.getSBOTermID() }}</a><br />
+    {% endif %}
+    {% if item.isSetAnnotation() %}
+       {{ item|SBML_annotationToString }}
+    {% endif %}
+    </div>
+{% endmacro %}
+
+
+{% macro math(item) %}
+    {% if item %}
+    {{ item.getMath()|SBML_astnodeToMathML }}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro boolean(condition) %}
+    {% if condition %}
+        <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    {% else %}
+        <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro annotation_xml(item) %}
+    {% if item.isSetAnnotation() %}
+        <pre>{{ item.getAnnotationString().decode('utf-8') }}</pre>
+    {% endif %}
+{% endmacro %}
+
+{%  macro xml(item) %}
+    <textarea style="border:none;">
+        {{ item.toSBML() }}
+    </textarea>
+{%  endmacro %}
+
+
+{% macro derived_units(item) %}
+    {% if item %}
+        {{ item.getDerivedUnitDefinition()|SBML_unitDefinitionToString|SBML_stringToMathML }}
+    {%  endif %}
+{% endmacro %}
+
+#####################
+
+
 
 
 def _create_value_dictionary(model):
