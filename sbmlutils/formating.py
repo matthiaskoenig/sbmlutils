@@ -11,7 +11,7 @@ def annotation_to_html(item):
 
     :param item: SBO item
     """
-    items = []
+    lines = []
     for kcv in range(item.getNumCVTerms()):
         cv = item.getCVTerm(kcv)
         q_type = cv.getQualifierType()
@@ -19,15 +19,17 @@ def annotation_to_html(item):
             qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
         elif q_type == 1:
             qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-        items.append(''.join(['<b>', qualifier, '</b>']))
+        lines.append(''.join(['<b>', qualifier, '</b>']))
 
+        items = []
         for k in range(cv.getNumResources()):
             uri = cv.getResourceURI(k)
             tokens = uri.split('/')
             resource_id = tokens[-1]
             link = ''.join(['<a href="', uri, '" target="_blank">', resource_id, '</a>'])
             items.append(link)
-    res = "<br />".join(items)
+        lines.append("; ".join(items))
+    res = "<br />".join(lines)
     return res
 
 

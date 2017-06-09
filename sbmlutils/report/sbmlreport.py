@@ -163,6 +163,7 @@ def _create_html(doc, basename, html_template='report.html'):
             'units': listOfUnits_dict(model),
             'compartments': listOfCompartments_dict(model, values),
             'species': listOfSpecies_dict(model),
+            'geneproducts': listOfGeneProducts_dict(model),
             'parameters': listOfParameters_dict(model, values),
             'assignments': listOfInitialAssignments_dict(model),
             'rules': listOfRules_dict(model),
@@ -184,6 +185,25 @@ def _create_html(doc, basename, html_template='report.html'):
 ##############################
 # Information Dictionaries
 ##############################
+
+def _create_value_dictionary(model):
+    values = dict()
+
+    # parse all the initial assignments
+    for assignment in model.getListOfInitialAssignments():
+        # sid = assignment.getId()
+        sid = assignment.getSymbol()
+
+        # math = ' = {}'.format(libsbml.formulaToString(assignment.getMath()))
+        values[sid] = assignment
+    # rules
+    for rule in model.getListOfRules():
+        sid = rule.getVariable()
+        # math = ' = {}'.format(libsbml.formulaToString(rule.getMath()))
+        values[sid] = rule
+
+    return values
+
 
 def infoSbase(item):
     info = {
@@ -231,13 +251,18 @@ def listOfCompartments_dict(model, values):
     for item in model.getListOfCompartments():
         info = infoSbase(item)
         info['units'] = item.units
-        info['spatial_dimensions'] = item.spatial_dimensions
+        if item.isSetSpatialDimensions():
+            spatial_dimensions = item.spatial_dimensions
+        else:
+            spatial_dimensions = ''
+        info['spatial_dimensions'] = spatial_dimensions
         info['constant'] = boolean(item.constant)
         info['derived_units'] = derived_units(item)
         if item.isSetSize():
             size = item.size
         else:
-            size = math(values[item.id])
+            size = math(values.get(item.id, ''))
+
         info['size'] = size
         items.append(info)
     return items
@@ -268,6 +293,17 @@ def listOfSpecies_dict(model):
                     info['fbc:charge'] = ' ({})'.format(sfbc.getCharge())
 
         items.append(info)
+    return items
+
+def listOfGeneProducts_dict(model):
+    items = []
+    mfbc = model.getPlugin("fbc")
+    if mfbc:
+        for item in mfbc.getListOfGeneProducts():
+            info = infoSbase(item)
+            info['label'] = item.label
+            info['associated_species'] = item.associated_species
+            items.append(info)
     return items
 
 
@@ -396,6 +432,8 @@ def annotation(item):
 def math(item):
     if item:
         return formating.astnodeToMathML(item.getMath())
+    else:
+        return ''
 
 def boolean(condition):
     if condition:
@@ -415,21 +453,7 @@ def derived_units(item):
         return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
 
 
-def _create_value_dictionary(model):
-    values = dict()
-
-    # parse all the initial assignments
-    for assignment in model.getListOfInitialAssignments():
-        sid = assignment.getId()
-        # math = ' = {}'.format(libsbml.formulaToString(assignment.getMath()))
-        values[sid] = assignment
-    # rules
-    for rule in model.getListOfRules():
-        sid = rule.getVariable()
-        # math = ' = {}'.format(libsbml.formulaToString(rule.getMath()))
-        values[sid] = rule
-    return values
-
+########################################
 
 def _copy_directory(src, dest):
     """ Copy directory from source to destination.
