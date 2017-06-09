@@ -161,10 +161,9 @@ def _create_html(doc, basename, html_template='report.html'):
             'units': listOfUnits(model),
             'compartments': listOfCompartments(model, values),
             'species': listOfSpecies(model),
-
-            'parameters': model.getListOfParameters(),
-            'rules': model.getListOfRules(),
-            'assignments': model.getListOfInitialAssignments(),
+            'parameters': listOfParameters(model, values),
+            'assignments': listOfInitialAssignments(model),
+            'rules': listOfRules(model),
 
             'reactions': model.getListOfReactions(),
             'constraints': model.getListOfConstraints(),
@@ -188,6 +187,7 @@ from sbmlutils.report.sbmlfilters import *
 
 def infoSbase(item):
     info = {
+            'object': item,
             'id': item.id,
             'metaId': item.getMetaId(),
             'name': item.name,
@@ -218,7 +218,7 @@ def listOfCompartments(model, values):
         info = infoSbase(item)
         info['units'] = item.units
         info['spatial_dimensions'] = item.spatial_dimensions
-        info['constant'] = boolean(item)
+        info['constant'] = boolean(item.constant)
         info['derived_units'] = derived_units(item)
         if item.isSetSize():
             size = item.size
@@ -252,6 +252,42 @@ def listOfSpecies(model):
                 c = sfbc.getCharge()
                 if c is not 0:
                     info['fbc:charge'] = ' ({})'.format(sfbc.getCharge())
+
+        items.append(info)
+    return items
+
+def listOfParameters(model, values):
+    items = []
+    for item in model.getListOfParameters():
+        info = infoSbase(item)
+        info['units'] = item.units
+        if item.isSetValue():
+            value = item.value
+        else:
+            value = math(values[item.id])
+        info['value'] = value
+        info['derived_units'] = derived_units(item)
+        info['constant'] = boolean(item.constant)
+        items.append(info)
+    return items
+
+def listOfInitialAssignments(model):
+    items = []
+    for item in model.getListOfInitialAssignments():
+        info = infoSbase(item)
+        info['symbol'] = item.symbol
+        info['assignment'] = math(item)
+        info['derived_units'] = derived_units(item)
+        items.append(info)
+    return items
+
+def listOfRules(model):
+    items = []
+    for item in model.getListOfRules():
+        info = infoSbase(item)
+        info['variable'] = formating.ruleVariableToString(item)
+        info['assignment'] = math(item)
+        info['derived_units'] = derived_units(item)
 
         items.append(info)
     return items

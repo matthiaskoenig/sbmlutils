@@ -26,7 +26,6 @@ filters = [
     'SBML_modelHistoryToString',
     'SBML_reactionToString',
     'SBML_reactionBoundsString',
-    'SBML_ruleVariableToString',
 ]
 
 
@@ -79,7 +78,3 @@ def SBML_unitDefinitionToString1(ud):
 
 def SBML_unitDefinitionToString(udef):
     return formating.unitDefinitionToString(udef)
-
-
-def SBML_ruleVariableToString(udef):
-    return formating.ruleVariableToString(udef)
