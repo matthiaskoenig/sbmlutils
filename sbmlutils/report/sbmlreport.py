@@ -148,17 +148,13 @@ def _create_html(doc, basename, html_template='report.html'):
         template = env.get_template(html_template)
         values = _create_value_dictionary(model)
 
-        # TODO: create all the objects for the templates, i.e. all the logic is performed
-        # here and the template language just accesses the fields
-
         # Context
         c = {
             'basename': basename,
-            'doc': document_dict(doc),
-            'model': model_dict(model),
-
             'values': values,
 
+            'doc': document_dict(doc),
+            'model': model_dict(model),
             'functions': listOfFunctions_dict(model),
             'units': listOfUnits_dict(model),
             'compartments': listOfCompartments_dict(model, values),
@@ -210,13 +206,14 @@ def infoSbase(item):
     info = {
             'object': item,
             'id': item.id,
-            'metaId': item.getMetaId(),
+            'metaId': metaId(item),
             'name': item.name,
             'sbo': sbo(item),
             'cvterm': cvterm(item),
             'notes': notes(item),
             'annotation': annotation(item)
     }
+
     return info
 
 def document_dict(document):
@@ -360,7 +357,6 @@ def listOfReactions_dict(model):
     items = []
     for item in model.getListOfReactions():
         info = infoSbase(item)
-
         if item.reversible:
             reversible = '<td class ="success">&#8646;</td>'
         else:
@@ -421,6 +417,7 @@ def listOfEvents_dict(model):
 def notes(item):
     if item.isSetNotes():
         return formating.notesToString(item)
+    return ''
 
 def cvterm(item):
     if item.isSetAnnotation():
@@ -430,6 +427,11 @@ def cvterm(item):
 def sbo(item):
     if item.getSBOTerm() != -1:
         return '<div class="cvterm"><a href="{}" target="_blank">{}</a></div>'.format(item.getSBOTermAsURL(), item.getSBOTermID())
+    return ''
+
+def metaId(item):
+    if item.isSetMetaId():
+        return "<code>{}</code>".format(item.getMetaId())
     return ''
 
 def annotation(item):
@@ -444,8 +446,7 @@ def annotation(item):
 def math(item):
     if item:
         return formating.astnodeToMathML(item.getMath())
-    else:
-        return ''
+    return ''
 
 def boolean(condition):
     if condition:
@@ -456,6 +457,7 @@ def boolean(condition):
 def annotation_xml(item):
     if item.isSetAnnotation():
         return '<pre>{}</pre>'.format(item.getAnnotationString().decode('utf-8'))
+    return ''
 
 def xml(item):
     return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
@@ -463,6 +465,7 @@ def xml(item):
 def derived_units(item):
     if item:
         return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
+    return ''
 
 
 ########################################
