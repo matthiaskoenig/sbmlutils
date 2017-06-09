@@ -23,6 +23,7 @@ import libsbml
 from jinja2 import Environment, FileSystemLoader
 
 from sbmlutils.report import sbmlfilters
+from sbmlutils import formating
 from sbmlutils.validation import check_sbml
 from sbmlutils.utils import promote_local_variables
 
@@ -153,20 +154,21 @@ def _create_html(doc, basename, html_template='report.html'):
         # Context
         c = {
             'basename': basename,
-            'doc': doc,
-            'model': model,
+            'doc': document_dict(doc),
+            'model': model_dict(model),
+
             'values': values,
 
-            'functions': listOfFunctions(model),
-            'units': listOfUnits(model),
-            'compartments': listOfCompartments(model, values),
-            'species': listOfSpecies(model),
-            'parameters': listOfParameters(model, values),
-            'assignments': listOfInitialAssignments(model),
-            'rules': listOfRules(model),
-            'reactions': listOfReactions(model),
-            'constraints': listOfConstraints(model),
-            'events': listOfEvents(model),
+            'functions': listOfFunctions_dict(model),
+            'units': listOfUnits_dict(model),
+            'compartments': listOfCompartments_dict(model, values),
+            'species': listOfSpecies_dict(model),
+            'parameters': listOfParameters_dict(model, values),
+            'assignments': listOfInitialAssignments_dict(model),
+            'rules': listOfRules_dict(model),
+            'reactions': listOfReactions_dict(model),
+            'constraints': listOfConstraints_dict(model),
+            'events': listOfEvents_dict(model),
         }
     else:
         # no model exists
@@ -178,10 +180,9 @@ def _create_html(doc, basename, html_template='report.html'):
         }
     return template.render(c)
 
-from sbmlutils.report.sbmlfilters import *
 
 ##############################
-# UnitDefinitions
+# Information Dictionaries
 ##############################
 
 def infoSbase(item):
@@ -192,10 +193,24 @@ def infoSbase(item):
             'name': item.name,
             'sbo': sbo(item),
             'cvterm': cvterm(item),
+            'notes': notes(item),
+            'annotation': annotation(item)
     }
     return info
 
-def listOfFunctions(model):
+def document_dict(document):
+    info = infoSbase(document)
+
+    return info
+
+
+def model_dict(model):
+    info = infoSbase(model)
+    info['history'] = formating.modelHistoryToString(model.getModelHistory())
+    return info
+
+
+def listOfFunctions_dict(model):
     items = []
     for item in model.model.getListOfFunctionDefinitions():
         info = infoSbase(item)
@@ -203,15 +218,15 @@ def listOfFunctions(model):
         items.append(info)
     return items
 
-def listOfUnits(model):
+def listOfUnits_dict(model):
     items = []
     for item in model.getListOfUnitDefinitions():
         info = infoSbase(item)
-        info['units'] = SBML_stringToMathML(SBML_unitDefinitionToString(item))
+        info['units'] = formating.stringToMathML(formating.unitDefinitionToString(item))
         items.append(info)
     return items
 
-def listOfCompartments(model, values):
+def listOfCompartments_dict(model, values):
     items = []
     for item in model.getListOfCompartments():
         info = infoSbase(item)
@@ -227,7 +242,7 @@ def listOfCompartments(model, values):
         items.append(info)
     return items
 
-def listOfSpecies(model):
+def listOfSpecies_dict(model):
     items = []
     for item in model.getListOfSpecies():
         info = infoSbase(item)
@@ -255,7 +270,8 @@ def listOfSpecies(model):
         items.append(info)
     return items
 
-def listOfParameters(model, values):
+
+def listOfParameters_dict(model, values):
     items = []
     for item in model.getListOfParameters():
         info = infoSbase(item)
@@ -270,7 +286,8 @@ def listOfParameters(model, values):
         items.append(info)
     return items
 
-def listOfInitialAssignments(model):
+
+def listOfInitialAssignments_dict(model):
     items = []
     for item in model.getListOfInitialAssignments():
         info = infoSbase(item)
@@ -280,7 +297,8 @@ def listOfInitialAssignments(model):
         items.append(info)
     return items
 
-def listOfRules(model):
+
+def listOfRules_dict(model):
     items = []
     for item in model.getListOfRules():
         info = infoSbase(item)
@@ -291,7 +309,8 @@ def listOfRules(model):
         items.append(info)
     return items
 
-def listOfConstraints(model):
+
+def listOfConstraints_dict(model):
     items = []
     for item in model.getListOfConstraints():
         info = infoSbase(item)
@@ -299,7 +318,8 @@ def listOfConstraints(model):
         items.append(info)
     return items
 
-def listOfReactions(model):
+
+def listOfReactions_dict(model):
     items = []
     for item in model.getListOfReactions():
         info = infoSbase(item)
@@ -318,7 +338,7 @@ def listOfReactions(model):
         info['formula'] = math(klaw)
         info['derived_units'] = derived_units(klaw)
 
-
+        # fbc
         rfbc = item.getPlugin("fbc")
         if rfbc:
             info['lb'] = rfbc.getLowerFluxBound()
@@ -328,7 +348,7 @@ def listOfReactions(model):
     return items
 
 
-def listOfEvents(model):
+def listOfEvents_dict(model):
     items = []
     for item in model.getListOfEvents():
         info = infoSbase(item)
@@ -347,18 +367,16 @@ def listOfEvents(model):
     return items
 
 
-
-
 ##############################
 # Helpers
 ##############################
 def notes(item):
     if item.isSetNotes():
-        return SBML_notesToString(item)
+        return formating.notesToString(item)
 
 def cvterm(item):
     if item.isSetAnnotation():
-       return '<div class="cvterm">{}</div>'.format(SBML_annotationToString(item))
+       return '<div class="cvterm">{}</div>'.format(formating.annotation_to_html(item))
     return ''
 
 def sbo(item):
@@ -371,13 +389,13 @@ def annotation(item):
     if item.getSBOTerm() != -1:
         info += '<a href="{}" target="_blank">{}</a><br />'.format(item.getSBOTermAsURL(), item.getSBOTermID())
     if item.isSetAnnotation():
-        info += SBML_annotationToString(item)
+        info += formating.annotation_to_html(item)
     info += '</div>'
     return info
 
 def math(item):
     if item:
-        return SBML_astnodeToMathML(item.getMath())
+        return formating.astnodeToMathML(item.getMath())
 
 def boolean(condition):
     if condition:
@@ -394,7 +412,7 @@ def xml(item):
 
 def derived_units(item):
     if item:
-        return SBML_stringToMathML(SBML_unitDefinitionToString(item.getDerivedUnitDefinition()))
+        return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
 
 
 def _create_value_dictionary(model):

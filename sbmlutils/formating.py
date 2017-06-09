@@ -6,33 +6,56 @@ import libsbml
 import sbmlutils.annotation as annotation
 
 
-class AnnotationHTML():
-    """ Annotation to HTML converter. """
+def annotation_to_html(item):
+    """ Renders HTML representation of given annotation.
 
-    @classmethod
-    def annotation_to_html(cls, item):
-        """ Renders HTML representation of given annotation.
+    :param item: SBO item
+    """
+    items = []
+    for kcv in range(item.getNumCVTerms()):
+        cv = item.getCVTerm(kcv)
+        q_type = cv.getQualifierType()
+        if q_type == 0:
+            qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
+        elif q_type == 1:
+            qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
+        items.append(''.join(['<b>', qualifier, '</b>']))
 
-        :param item: SBO item
-        """
-        items = []
-        for kcv in range(item.getNumCVTerms()):
-            cv = item.getCVTerm(kcv)
-            q_type = cv.getQualifierType()
-            if q_type == 0:
-                qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
-            elif q_type == 1:
-                qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-            items.append(''.join(['<b>', qualifier, '</b>']))
+        for k in range(cv.getNumResources()):
+            uri = cv.getResourceURI(k)
+            tokens = uri.split('/')
+            resource_id = tokens[-1]
+            link = ''.join(['<a href="', uri, '" target="_blank">', resource_id, '</a>'])
+            items.append(link)
+    res = "<br />".join(items)
+    return res
 
-            for k in range(cv.getNumResources()):
-                uri = cv.getResourceURI(k)
-                tokens = uri.split('/')
-                resource_id = tokens[-1]
-                link = ''.join(['<a href="', uri, '" target="_blank">', resource_id, '</a>'])
-                items.append(link)
-        res = "<br />".join(items)
-        return res
+
+# noinspection PyCompatibility
+def notesToString(sbase):
+    notes = sbase.getNotesString()
+
+    # only decode in python 2, already utf8 str in python 3
+    if hasattr(notes, "decode"):
+        notes = notes.decode('utf-8')
+
+    return notes
+
+# ------------------------------
+# Math and formulas
+# ------------------------------
+def stringToMathML(string):
+    """Parses formula string. """
+    astnode = libsbml.parseL3Formula(str(string))
+    mathml = libsbml.writeMathMLToString(astnode)
+    return mathml
+
+def astnodeToString(astnode):
+    return libsbml.formulaToString(astnode)
+
+def astnodeToMathML(astnode):
+    mathml = libsbml.writeMathMLToString(astnode)
+    return mathml
 
 
 # ------------------------------
