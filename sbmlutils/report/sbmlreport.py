@@ -21,8 +21,10 @@ from distutils import dir_util
 
 import libsbml
 from jinja2 import Environment, FileSystemLoader
-from sbmlutils.validation import check_sbml
+
 from sbmlutils.report import sbmlfilters
+from sbmlutils.validation import check_sbml
+from sbmlutils.utils import promote_local_variables
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -93,27 +95,16 @@ def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False
     if not os.path.exists(sbml_path):
         warnings.warn('SBML file does not exist: {}'.format(sbml_path))
 
-    # check the sbml file
+    # check sbml file
     if validate:
         check_sbml(sbml_path)
 
     # read sbml
     doc = libsbml.readSBML(sbml_path)
-
     if promote:
-        model = doc.getModel()
-        mid = model.id
-        mid = '{}_{}'.format(mid, 'promoted')
-        model.setId(mid)
+        promote_local_variables(doc)
 
-        # promote local parameters
-        props = libsbml.ConversionProperties()
-        props.addOption("promoteLocalParameters", True, "Promotes all Local Parameters to Global ones")
-        if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
-            warnings.warn("SBML Conversion failed...")
-        else:
-            print("SBML Conversion successful")
-
+    # write sbml to output folder
     basename = os.path.basename(sbml_path)
     tokens = basename.split('.')
     name = '.'.join(tokens[:-1])

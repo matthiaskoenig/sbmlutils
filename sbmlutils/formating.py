@@ -129,6 +129,19 @@ def ruleVariableToString(rule):
         raise TypeError(rule)
 
 
+def reactionBoundsString(reaction):
+    """ Get upper and lower bounds information for reaction. """
+    info = ""
+    rfbc = reaction.getPlugin("fbc")
+    if rfbc:
+
+        lb_id = rfbc.getLowerFluxBound()
+        ub_id = rfbc.getUpperFluxBound()
+
+        info = "[{}, {}]".format(lb_id, ub_id)
+    return info
+
+
 def formulaChargeStringFromSpecies(species):
     """ Get the formula and charge string from species.
     Using the FBC v2.
@@ -138,8 +151,9 @@ def formulaChargeStringFromSpecies(species):
     :return:
     :rtype:
     """
+    info = ''
     sfbc = species.getPlugin("fbc")
-    if (sfbc):
+    if sfbc:
         formula = ''
         if sfbc.isSetChemicalFormula():
             formula = sfbc.getChemicalFormula()
@@ -149,8 +163,7 @@ def formulaChargeStringFromSpecies(species):
             if c is not 0:
                 charge = ' ({})'.format(sfbc.getCharge())
         return '{}{}'.format(formula, charge)
-    else:
-        return ''
+    return info
 
 
 # ------------------------------
