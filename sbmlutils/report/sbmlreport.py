@@ -168,6 +168,7 @@ def _create_html(doc, basename, html_template='report.html'):
             'assignments': listOfInitialAssignments_dict(model),
             'rules': listOfRules_dict(model),
             'reactions': listOfReactions_dict(model),
+            'objectives': listOfObjectives_dict(model),
             'constraints': listOfConstraints_dict(model),
             'events': listOfEvents_dict(model),
         }
@@ -383,6 +384,17 @@ def listOfReactions_dict(model):
 
     return items
 
+def listOfObjectives_dict(model):
+    items = []
+    mfbc = model.getPlugin('fbc')
+    if mfbc:
+        for item in mfbc.getListOfObjectives():
+            info = infoSbase(item)
+            info['type'] = item.getType()
+            info['flux_objectives'] = str(item.getListOfFluxObjectives())
+            items.append(info)
+            print(info)
+    return items
 
 def listOfEvents_dict(model):
     items = []
