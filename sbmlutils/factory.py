@@ -1,19 +1,20 @@
 """
-Definition of general helper functions to create SBML objects
-and setting SBMLObjects in models.
-This are the low level helpers to create models from scratch.
+This module provides definitions of helper functions for the creation of
+SBML objects. These are the low level helpers to create models from scratch
+and are used in the higher level SBML factories.
 
-The general workflow is to create a list/iterable of SBMLObjects by using the
-respective classes in this module, e.g. Compartment, Parameter, Species.
-The object are than created in the model by calling
+The general workflow to create new SBML models isto create a lists/iterables of
+SBMLObjects by using the respective classes in this module,
+e.g. Compartment, Parameter, Species.
+
+The actual SBase objects are than created in the SBMLDocument/Model by calling
     create_objects(model, objects)
-This does NOT take care of the order of the creation.
-
+These functions DO NOT take care of the order of the creation, but the order
+must be correct in the model definition files.
 To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
-
-All model objects are created with the given SBML_LEVEL and SBML_VERSION.
 """
+
 from __future__ import print_function, division
 from six import iteritems
 
@@ -22,14 +23,9 @@ import warnings
 import libsbml
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 
-SBML_LEVEL = 3
-SBML_VERSION = 1
+SBML_LEVEL = 3  # default SBML level
+SBML_VERSION = 1  # default SBML version
 
-
-# TODO: allow setting of sboTerms & metaIds, currently not taken into account
-
-
-#####################################################################
 
 def create_objects(model, obj_iter, debug=False):
     """ Create the objects in the model.
@@ -145,14 +141,26 @@ class Sbase(object):
             obj.setMetaId(self.metaId)
 
 
-class ValueWithUnit(Sbase):
+class Value(Sbase):
+    """ Helper class.
+    The value field is a helper storage field which is used differently by different
+    subclasses.
+    """
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
+        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.value = value
+
+    def set_fields(self, obj):
+        super(Value, self).set_fields(obj)
+
+
+class ValueWithUnit(Value):
     """ Helper class.
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(ValueWithUnit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
-        self.value = value
+        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -281,9 +289,11 @@ class Compartment(ValueWithUnit):
 
         if type(self.value) is str:
             if self.constant:
-                InitialAssignment._create(model, sid=self.sid, formula=self.value)
+                # InitialAssignment._create(model, sid=self.sid, formula=self.value)
+                InitialAssignment(self.sid, self.value).create_sbml(model)
             else:
-                AssignmentRule._create(model, sid=self.sid, formula=self.value)
+                AssignmentRule(self.sid, self.value).create_sbml(model)
+                # AssignmentRule._create(model, sid=self.sid, formula=self.value)
         else:
             c.setSize(self.value)
         return c
@@ -335,8 +345,12 @@ class Species(ValueWithUnit):
 ##########################################################################
 # InitialAssignments
 ##########################################################################
-class InitialAssignment(ValueWithUnit):
+class InitialAssignment(Value):
     """ InitialAssignments. """
+
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
+        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.unit = unit
 
     def create_sbml(self, model):
         """ Create libsbml InitialAssignment.
@@ -351,12 +365,7 @@ class InitialAssignment(ValueWithUnit):
         if (not model.getParameter(sid)) \
                 and (not model.getSpecies(sid)) \
                 and (not model.getCompartment(sid)):
-            Parameter._create(model,
-                              sid=sid,
-                              unit=self.unit,
-                              name=self.name,
-                              value=None,
-                              constant=True)
+            Parameter(sid=sid, value=None, unit=self.unit, constant=True, name=self.name).create_sbml(model)
 
         a = model.createInitialAssignment()
         self.set_fields(a)

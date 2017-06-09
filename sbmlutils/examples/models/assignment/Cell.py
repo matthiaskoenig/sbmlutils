@@ -2,15 +2,16 @@
 """
 PKPD example model
 """
-import sbmlutils.factory as mc
-from libsbml import UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
-from libsbml import XMLNode
+from __future__ import absolute_import, print_function
+from libsbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
+
+import sbmlutils.factory as fac
 from sbmlutils.modelcreator import templates
 
 ##############################################################
 creators = templates.creators
 mid = 'assignment'
-version = 2
+version = 3
 notes = XMLNode.convertStringToXMLNode("""""")
 main_units = {
     'time': 'h',
@@ -37,40 +38,40 @@ reactions = list()
 # units (kind, exponent, scale=0, multiplier=1.0)
 units.extend([
 
-    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)]),
-    mc.Unit('kg', [(UNIT_KIND_GRAM, 1.0, 3, 1.0)]),
-    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
-    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
+    fac.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)]),
+    fac.Unit('kg', [(UNIT_KIND_GRAM, 1.0, 3, 1.0)]),
+    fac.Unit('m', [(UNIT_KIND_METRE, 1.0)]),
+    fac.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
 
-    mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    fac.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 
-    mc.Unit('mg', [(UNIT_KIND_GRAM, 1.0, -3, 1.0)]),
-    mc.Unit('mg_per_litre', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
-                             (UNIT_KIND_LITRE, -1.0, 0, 1.0)]),
-    mc.Unit('mg_per_g', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
-                         (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
-    mc.Unit('mg_per_h', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
-                         (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-
-    mc.Unit('litre_per_h', [(UNIT_KIND_LITRE, 1.0, 0, 1.0),
-                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('litre_per_kg', [(UNIT_KIND_LITRE, 1.0, 0, 1.0),
-                             (UNIT_KIND_GRAM, -1.0, 3, 1.0)]),
-    mc.Unit('mulitre_per_min_mg', [(UNIT_KIND_LITRE, 1.0, -6, 1.0),
-                                   (UNIT_KIND_SECOND, -1.0, 0, 60), (UNIT_KIND_GRAM, -1.0, -3, 1.0)]),
-    mc.Unit('ml_per_s', [(UNIT_KIND_LITRE, 1.0, -3, 1.0),
-                         (UNIT_KIND_SECOND, -1.0, 0, 1)]),
-
-    # conversion factors
-    mc.Unit('s_per_h', [(UNIT_KIND_SECOND, 1.0, 0, 1.0),
-                        (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('min_per_h', [(UNIT_KIND_SECOND, 1.0, 0, 60),
+    fac.Unit('mg', [(UNIT_KIND_GRAM, 1.0, -3, 1.0)]),
+    fac.Unit('mg_per_litre', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
+                              (UNIT_KIND_LITRE, -1.0, 0, 1.0)]),
+    fac.Unit('mg_per_g', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
+                          (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
+    fac.Unit('mg_per_h', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),
                           (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 
-    mc.Unit('ml_per_litre', [(UNIT_KIND_LITRE, 1.0, -3, 1.0),
-                             (UNIT_KIND_LITRE, -1.0, 0, 1)]),
-    mc.Unit('mulitre_per_g', [(UNIT_KIND_LITRE, 1.0, -6, 1.0),
-                              (UNIT_KIND_GRAM, -1.0, 0, 1)]),
+    fac.Unit('litre_per_h', [(UNIT_KIND_LITRE, 1.0, 0, 1.0),
+                             (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    fac.Unit('litre_per_kg', [(UNIT_KIND_LITRE, 1.0, 0, 1.0),
+                              (UNIT_KIND_GRAM, -1.0, 3, 1.0)]),
+    fac.Unit('mulitre_per_min_mg', [(UNIT_KIND_LITRE, 1.0, -6, 1.0),
+                                    (UNIT_KIND_SECOND, -1.0, 0, 60), (UNIT_KIND_GRAM, -1.0, -3, 1.0)]),
+    fac.Unit('ml_per_s', [(UNIT_KIND_LITRE, 1.0, -3, 1.0),
+                          (UNIT_KIND_SECOND, -1.0, 0, 1)]),
+
+    # conversion factors
+    fac.Unit('s_per_h', [(UNIT_KIND_SECOND, 1.0, 0, 1.0),
+                         (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    fac.Unit('min_per_h', [(UNIT_KIND_SECOND, 1.0, 0, 60),
+                           (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+
+    fac.Unit('ml_per_litre', [(UNIT_KIND_LITRE, 1.0, -3, 1.0),
+                              (UNIT_KIND_LITRE, -1.0, 0, 1)]),
+    fac.Unit('mulitre_per_g', [(UNIT_KIND_LITRE, 1.0, -6, 1.0),
+                               (UNIT_KIND_GRAM, -1.0, 0, 1)]),
 ])
 
 ##############################################################
@@ -93,15 +94,15 @@ units.extend([
 ##############################################################
 parameters.extend([
     # dosing
-    mc.Parameter('Ave', 0, 'mg', False),
-    mc.Parameter('D', 0, 'mg', False),
-    mc.Parameter('IVDOSE', 0, 'mg', True),
-    mc.Parameter('PODOSE', 100, 'mg', True),
-    mc.Parameter('k1', 0.1, 'litre_per_h', True),
+    fac.Parameter('Ave', 0, 'mg', False),
+    fac.Parameter('D', 0, 'mg', False),
+    fac.Parameter('IVDOSE', 0, 'mg', True),
+    fac.Parameter('PODOSE', 100, 'mg', True),
+    fac.Parameter('k1', 0.1, 'litre_per_h', True),
 
     # whole body data
-    mc.Parameter('BW', 70, 'kg', True),
-    mc.Parameter('FVve', 0.0514, 'litre_per_kg', True),
+    fac.Parameter('BW', 70, 'kg', True),
+    fac.Parameter('FVve', 0.0514, 'litre_per_kg', True),
 ])
 
 ##############################################################
@@ -109,8 +110,8 @@ parameters.extend([
 ##############################################################
 assignments.extend([
     # id, 'value', 'unit'
-    mc.InitialAssignment('Ave', 'IVDOSE', 'mg'),
-    mc.InitialAssignment('D', 'PODOSE', 'mg'),
+    fac.InitialAssignment('Ave', 'IVDOSE', 'mg'),
+    fac.InitialAssignment('D', 'PODOSE', 'mg'),
 ])
 
 ##############################################################
@@ -120,13 +121,13 @@ rules.extend([
     # id,  'value', 'unit'
 
     # concentrations
-    mc.AssignmentRule('Cve', 'Ave/Vve', 'mg_per_litre'),
+    fac.AssignmentRule('Cve', 'Ave/Vve', 'mg_per_litre'),
     # volumes
-    mc.AssignmentRule('Vve', 'BW*FVve', UNIT_KIND_LITRE),
+    fac.AssignmentRule('Vve', 'BW*FVve', UNIT_KIND_LITRE),
 ])
 
 rate_rules.extend([
-    mc.RateRule('Ave', '- k1*Cve', 'mg_per_h'),
+    fac.RateRule('Ave', '- k1*Cve', 'mg_per_h'),
 ])
 
 ##############################################################

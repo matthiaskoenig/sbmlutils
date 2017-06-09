@@ -26,7 +26,7 @@ import pyexcel
 import csv
 import re
 import uuid
-from bioservices import Miriam
+# from bioservices import Miriam
 
 
 def annotate_sbml_doc(doc, annotations):
@@ -151,12 +151,13 @@ class ModelAnnotation(object):
             # TODO: check against pattern
             # check with miriam webservices
             if check_miriam:
+                '''
                 m = Miriam()
                 uri = m.serv.getURI(self.collection, self.entity)
                 resource = m.convertURN(uri)
                 if resource is None:
                     warnings.warn("resource could not be found for {} : {}".format(self.collection, self.entity))
-
+                '''
             else:
                 # create identifiers.org resource manually
                 resource = ModelAnnotation.identifiers_resource(self.collection, self.entity)
