@@ -105,6 +105,53 @@ def _halfEquation(speciesList):
     return ' + '.join(items)
 
 
+# ------------------------------
+# FBC
+# ------------------------------
+def boundsStringFromReaction(reaction):
+    bounds = ''
+    rfbc = reaction.getPlugin("fbc")
+    if rfbc is not None:
+        # get values for bounds
+        lb_id, ub_id = None, None
+        lb_value, ub_value = None, None
+        if rfbc.isSetLowerFluxBound():
+            lb_id = rfbc.getLowerFluxBound()
+            lb_p = model.getParameter(lb_id)
+            if lb_p.isSetValue():
+                lb_value = lb_p.getValue()
+        if rfbc.isSetUpperFluxBound():
+            ub_id = rfbc.getUpperFluxBound()
+            ub_p = model.getParameter(ub_id)
+            if ub_p.isSetValue():
+                ub_value = ub_p.getValue()
+        bounds = '<span class="cvterm darkgray">[{}={} <i class="fa fa-sort" aria-hidden="true"></i> {}={}]</span>'.format(
+            lb_id, lb_value, ub_id, ub_value)
+    return bounds
+
+def geneProductAssociationStringFromReaction(reaction):
+    info = ''
+    rfbc = reaction.getPlugin('fbc')
+
+    if rfbc and rfbc.isSetGeneProductAssociation():
+        from libsbml import GeneProductAssociation
+        gpa = rfbc.getGeneProductAssociation()
+
+        association = gpa.getAssociation()
+        info = _association_string(association)
+    return info
+
+def _association_string(association):
+    from libsbml import GeneProductRef, FbcAnd, FbcOr
+    if type(association) == libsbml.GeneProductRef:
+        return association.getGeneProduct()
+    elif type(association == libsbml.FbcAnd):
+        return '({} and {})'.format()
+
+# ------------------------------
+# ModelHistory
+# ------------------------------
+
 def modelHistoryToString(mhistory):
     """ Renders HTML representation of the model history. """
     if not mhistory:
