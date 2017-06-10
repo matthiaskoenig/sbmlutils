@@ -372,16 +372,32 @@ def listOfReactions_dict(model):
         info['derived_units'] = derived_units(klaw)
 
         # fbc
+        bounds = ''
+        gpa = ''
         rfbc = item.getPlugin("fbc")
-        if rfbc:
-            # TODO: FIX THIS (getting the values for the bounds)
-            lb_id, ub_id = rfbc.getLowerFluxBound(), rfbc.getUpperFluxBound()
-            lb_p, ub_p = model.getParameter(lb_id), model.getParameter(ub_id)
-            lb_value, ub_value = lb_p.getValue(), ub_p.getValue()
-            bounds = '<span class="cvterm darkgray">[{}={}, {}={}]</span>'.format(lb_id, lb_value, ub_id, ub_value)
-        else:
-            bounds = ''
+        if rfbc is not None:
+            # get values for bounds
+            lb_id, ub_id = None, None
+            lb_value, ub_value = None, None
+            if rfbc.isSetLowerFluxBound():
+                lb_id = rfbc.getLowerFluxBound()
+                lb_p = model.getParameter(lb_id)
+                if lb_p.isSetValue():
+                    lb_value = lb_p.getValue()
+            if rfbc.isSetUpperFluxBound():
+                ub_id = rfbc.getUpperFluxBound()
+                ub_p = model.getParameter(ub_id)
+                if ub_p.isSetValue():
+                    ub_value = ub_p.getValue()
+            bounds = '<span class="cvterm darkgray">[{}={} <i class="fa fa-sort" aria-hidden="true"></i> {}={}]</span>'.format(lb_id, lb_value, ub_id, ub_value)
+            # GeneProductAssociation
+            # from libsbml import GeneProductAssociation
+            # GeneProductAssociation.
+            if rfbc.isSetGeneProductAssociation():
+                gpa = str(rfbc.getGeneProductAssociation())
+
         info['bounds'] = bounds
+        info['gpa'] = gpa
         items.append(info)
 
     return items
@@ -393,9 +409,18 @@ def listOfObjectives_dict(model):
         for item in mfbc.getListOfObjectives():
             info = infoSbase(item)
             info['type'] = item.getType()
-            info['flux_objectives'] = str(item.getListOfFluxObjectives())
+
+            flux_objectives = []
+            for f_obj in item.getListOfFluxObjectives():
+                coefficient = f_obj.getCoefficient()
+                if coefficient < 0.0:
+                    sign = '-'
+                else:
+                    sign = '+'
+                part = "{}{}*{}".format(sign, abs(coefficient), f_obj.getReaction())
+                flux_objectives.append(part)
+            info['flux_objectives'] = " ".join(flux_objectives)
             items.append(info)
-            print(info)
     return items
 
 def listOfEvents_dict(model):
