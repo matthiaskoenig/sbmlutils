@@ -108,7 +108,7 @@ def _halfEquation(speciesList):
 # ------------------------------
 # FBC
 # ------------------------------
-def boundsStringFromReaction(reaction):
+def boundsStringFromReaction(reaction, model):
     bounds = ''
     rfbc = reaction.getPlugin("fbc")
     if rfbc is not None:
@@ -130,23 +130,19 @@ def boundsStringFromReaction(reaction):
     return bounds
 
 def geneProductAssociationStringFromReaction(reaction):
+    """ String representation of the GeneProductAssociation for given reaction.
+
+    :param reaction:
+    :return:
+    """
     info = ''
     rfbc = reaction.getPlugin('fbc')
 
     if rfbc and rfbc.isSetGeneProductAssociation():
-        from libsbml import GeneProductAssociation
         gpa = rfbc.getGeneProductAssociation()
-
         association = gpa.getAssociation()
-        info = _association_string(association)
+        info = association.toInfix()
     return info
-
-def _association_string(association):
-    from libsbml import GeneProductRef, FbcAnd, FbcOr
-    if type(association) == libsbml.GeneProductRef:
-        return association.getGeneProduct()
-    elif type(association == libsbml.FbcAnd):
-        return '({} and {})'.format()
 
 # ------------------------------
 # ModelHistory
