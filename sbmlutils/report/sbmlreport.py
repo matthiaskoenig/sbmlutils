@@ -204,15 +204,16 @@ def _create_value_dictionary(model):
 
 def infoSbase(item):
     info = {
-            'object': item,
-            'id': item.id,
-            'metaId': metaId(item),
-            'name': item.name,
-            'sbo': sbo(item),
-            'cvterm': cvterm(item),
-            'notes': notes(item),
-            'annotation': annotation(item)
+        'object': item,
+        'id': item.id,
+        'metaId': metaId(item),
+        'name': item.name,
+        'sbo': sbo(item),
+        'cvterm': cvterm(item),
+        'notes': notes(item),
+        'annotation': annotation(item)
     }
+    info['id_html'] = '<td id="{}" class="active">{} {}</td>'.format(info['id'], info['id'], info['metaId'])
 
     return info
 
@@ -372,8 +373,8 @@ def listOfReactions_dict(model):
         info['derived_units'] = derived_units(klaw)
 
         # fbc
-        info['bounds'] = formating.boundsStringFromReaction(item)
-        info['gpa'] = formating.geneProductAssociationStringFromReaction(items)
+        info['bounds'] = formating.boundsStringFromReaction(item, model)
+        info['gpa'] = formating.geneProductAssociationStringFromReaction(item)
         items.append(info)
 
     return items
