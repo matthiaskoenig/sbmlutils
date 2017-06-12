@@ -213,12 +213,27 @@ def infoSbase(item):
         'notes': notes(item),
         'annotation': annotation(item)
     }
-    info['id_html'] = '<td id="{}" class="active">{} {}</td>'.format(info['id'], info['id'], info['metaId'])
+    info['id_html'] = '<td id="{}" class="active"><span class="collection">{}</span> {}</td>'.format(info['id'], info['id'], info['metaId'])
 
     return info
 
-def document_dict(document):
-    info = infoSbase(document)
+def document_dict(doc):
+    info = infoSbase(doc)
+    packages = ['<span class="package">L{}V{}</span>'.format(doc.getLevel(), doc.getVersion())]
+
+    for k in range(doc.getNumPlugins()):
+        plugin = doc.getPlugin(k)
+        uri = plugin.getURI()
+        prefix = plugin.getPrefix()
+        name = plugin.getPackageName()
+        version = plugin.getPackageVersion()
+
+        # print('Namespace:', prefix, version)
+        packages.append('<span class="package">{}-V{}</span>'.format(prefix, version))
+
+
+    info['packages'] = " ".join(packages)
+
 
     return info
 
@@ -226,6 +241,7 @@ def document_dict(document):
 def model_dict(model):
     info = infoSbase(model)
     info['history'] = formating.modelHistoryToString(model.getModelHistory())
+
     return info
 
 

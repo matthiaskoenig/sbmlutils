@@ -19,7 +19,7 @@ def annotation_to_html(item):
             qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
         elif q_type == 1:
             qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-        lines.append(''.join(['<b>', qualifier, '</b>']))
+        lines.append(''.join(['<span class="qualifier">', qualifier, '</span>']))
 
         items = []
         for k in range(cv.getNumResources()):
