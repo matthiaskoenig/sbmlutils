@@ -124,7 +124,7 @@ def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False
     _copy_directory(os.path.join(TEMPLATE_DIR, '_report'), os.path.join(out_dir, '_report'))
 
 
-def _create_html(doc, basename, html_template='report.html'):
+def _create_html(doc, basename, html_template='report.html', offline=True):
     """Create HTML from SBML.
 
     :param doc:
@@ -150,6 +150,8 @@ def _create_html(doc, basename, html_template='report.html'):
 
         # Context
         c = {
+            'offline': offline,
+
             'basename': basename,
             'values': values,
 
@@ -301,11 +303,11 @@ def listOfSpecies_dict(model):
         sfbc = item.getPlugin("fbc")
         if sfbc:
             if sfbc.isSetChemicalFormula():
-                info['fbc:formula'] = sfbc.getChemicalFormula()
+                info['fbc_formula'] = sfbc.getChemicalFormula()
             if sfbc.isSetCharge():
                 c = sfbc.getCharge()
                 if c is not 0:
-                    info['fbc:charge'] = ' ({})'.format(sfbc.getCharge())
+                    info['fbc_charge'] = ' ({})'.format(sfbc.getCharge())
 
         items.append(info)
     return items
@@ -389,8 +391,8 @@ def listOfReactions_dict(model):
         info['derived_units'] = derived_units(klaw)
 
         # fbc
-        info['bounds'] = formating.boundsStringFromReaction(item, model)
-        info['gpa'] = formating.geneProductAssociationStringFromReaction(item)
+        info['fbc_bounds'] = formating.boundsStringFromReaction(item, model)
+        info['fbc_gpa'] = formating.geneProductAssociationStringFromReaction(item)
         items.append(info)
 
     return items
