@@ -100,7 +100,7 @@
     <td class="hidden">Species</td>
 	{{ item.id_html }}
 	<td>{{ item.name }}<br />
-        <span class="cvterm blue">{{ item.formula }}{{item.charge }}</span></td>
+        <span class="cvterm blue">{{ item.fbc_formula }}{{item.fbc_charge }}</span></td>
 	<td>{{ item.compartment }}</td>
     {{ item.boundary_condition }}
     {{ item.constant }}
@@ -230,8 +230,11 @@
 {% macro reaction_content(item) %}
     <td class="hidden">Reaction</td>
 	{{ item.id_html }}
-        {{ item.bounds }} {{ item.gpa|e }}</td>
-	<td>{{ item.name }}</td>
+         {{ item.gpa|e }}</td>
+	<td>{{ item.name }}<br />
+		{% if item.fbc_bounds %}<span class="cvterm blue">{{ item.fbc_bounds }}</span><br />{% endif %}
+        {% if item.fbc_gpa %}<span class="cvterm blue">{{ item.fbc_gpa }}{{item.fbc_charge }}</span>{% endif %}
+	</td>
 	{{ item.reversible }}
 	<td>{{ item.equation }}</td>
 	<td>{{ item.modifiers }}</td>

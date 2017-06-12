@@ -125,8 +125,8 @@ def boundsStringFromReaction(reaction, model):
             ub_p = model.getParameter(ub_id)
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
-        bounds = '<span class="cvterm darkgray">[{}={} <i class="fa fa-sort" aria-hidden="true"></i> {}={}]</span>'.format(
-            lb_id, lb_value, ub_id, ub_value)
+        bounds = '<span class="cvterm">[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i>{}]</span>'.format(
+            lb_value, ub_value)
     return bounds
 
 def geneProductAssociationStringFromReaction(reaction):
