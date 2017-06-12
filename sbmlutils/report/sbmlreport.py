@@ -425,14 +425,24 @@ def listOfEvents_dict(model):
         info = infoSbase(item)
 
         trigger = item.getTrigger()
-        info['trigger'] = "{}<br />initialValue = {}<br />persistent = {}< br / >".format(math(trigger),
-                                                                                          trigger.initial_value,
-                                                                                          trigger.persistent)
-        info['priority'] = item.priority
-        info['delay'] = item.delay
-        assignments = empty_html()
+        info['trigger'] = "{}<br />initialValue = {}<br />persistent = {}".format(math(trigger),
+                                                                                  trigger.initial_value,
+                                                                                  trigger.persistent)
+
+        priority = empty_html()
+        if item.isSetPriority():
+            priority = item.getPriority()
+        info['priority'] = priority
+
+        delay = empty_html()
+        if item.isSetDelay():
+            delay = item.getDelay()
+        info['delay'] = delay
+        assignments = ''
         for eva in item.getListOfEventAssignments():
             assignments += "{} = {}<br />".format(eva.getId(), math(eva))
+        if len(assignments) == 0:
+            assignments = empty_html()
         info['assignments'] = assignments
         items.append(info)
     return items

@@ -1,0 +1,2017 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title></title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_units">UnitDefinitions</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p align="right">
+      <font face="Arial, Helvetica, sans-serif">
+        <b>
+          <a href="http://www.sbml.org/">SBML</a>
+              level 2 code generated for the JWS Online project by Jacky Snoep using          <a href="http://pysces.sourceforge.net/">PySCeS</a>
+          <br/>
+              Run this model online at          <a href="http://jjj.biochem.sun.ac.za/">http://jjj.biochem.sun.ac.za</a>
+          <br/>
+              To cite JWS Online please refer to: Olivier, B.G. and Snoep, J.L. (2004)          <a href="http://bioinformatics.oupjournals.org/cgi/content/abstract/20/13/2143">Web-based 
+modelling using JWS Online</a>
+              , Bioinformatics, 20:2143-2144          </b>
+        </font>
+      </p>
+      <p>
+        <u>Biomodels Curation</u>
+          The model reproduces the time series depicted in Fig 2 of the paper. Also, by varying the values of Vmax for the second kinase (k5) the time series of X3P as shown in Fig3 can be reproduced. The model was successfully tested on MathSBML and Jarnac.      </p>
+      </body>
+    </notes><hr />
+    <h1>Model : </h1>
+    <b>Creator</b><br />Harish, Dharuri, California Institute of Technology, <a href="mailto:hdharuri@cds.caltech.edu" target="_blank">hdharuri@cds.caltech.edu</a><br /><b>Created:</b> 2006-12-11 10:48<br /><b>Modified:</b> 2012-05-14 12:15<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="" class="active"><span class="package"></span> <code>metaid_0000002</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title"></h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><model metaid="metaid_0000002" name="Hornberg2005_ERKcascade">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <p align="right">
+        <font face="Arial, Helvetica, sans-serif">
+          <b>
+            <a href="http://www.sbml.org/">SBML</a>
+              level 2 code generated for the JWS Online project by Jacky Snoep using          <a href="http://pysces.sourceforge.net/">PySCeS</a>
+            <br/>
+              Run this model online at          <a href="http://jjj.biochem.sun.ac.za/">http://jjj.biochem.sun.ac.za</a>
+            <br/>
+              To cite JWS Online please refer to: Olivier, B.G. and Snoep, J.L. (2004)          <a href="http://bioinformatics.oupjournals.org/cgi/content/abstract/20/13/2143">Web-based 
+modelling using JWS Online</a>
+              , Bioinformatics, 20:2143-2144          </b>
+          </font>
+        </p>
+        <p>
+          <u>Biomodels Curation</u>
+          The model reproduces the time series depicted in Fig 2 of the paper. Also, by varying the values of Vmax for the second kinase (k5) the time series of X3P as shown in Fig3 can be reproduced. The model was successfully tested on MathSBML and Jarnac.      </p>
+        </body>
+      </notes>
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#metaid_0000002">
+            <dc:creator>
+              <rdf:Bag>
+                <rdf:li rdf:parseType="Resource">
+                  <vCard:N rdf:parseType="Resource">
+                    <vCard:Family>Dharuri</vCard:Family>
+                    <vCard:Given>Harish</vCard:Given>
+                  </vCard:N>
+                  <vCard:EMAIL>hdharuri@cds.caltech.edu</vCard:EMAIL>
+                  <vCard:ORG rdf:parseType="Resource">
+                    <vCard:Orgname>California Institute of Technology</vCard:Orgname>
+                  </vCard:ORG>
+                </rdf:li>
+              </rdf:Bag>
+            </dc:creator>
+            <dcterms:created rdf:parseType="Resource">
+              <dcterms:W3CDTF>2006-12-11T10:48:55Z</dcterms:W3CDTF>
+            </dcterms:created>
+            <dcterms:modified rdf:parseType="Resource">
+              <dcterms:W3CDTF>2012-05-14T12:15:35Z</dcterms:W3CDTF>
+            </dcterms:modified>
+            <bqmodel:is>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL6623610941"/>
+              </rdf:Bag>
+            </bqmodel:is>
+            <bqmodel:is>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000084"/>
+              </rdf:Bag>
+            </bqmodel:is>
+            <bqmodel:isDescribedBy>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/pubmed/15634347"/>
+              </rdf:Bag>
+            </bqmodel:isDescribedBy>
+            <bqbiol:is>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000165"/>
+                <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0007173"/>
+              </rdf:Bag>
+            </bqbiol:is>
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/kegg.pathway/rno04010"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:occursIn>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/taxonomy/40674"/>
+              </rdf:Bag>
+            </bqbiol:occursIn>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+      <listOfUnitDefinitions>
+        <unitDefinition metaid="metaid_0000020" id="substance" name="dimensionless">
+          <listOfUnits>
+            <unit metaid="_105063" kind="item" multiplier="1" offset="0"/>
+          </listOfUnits>
+        </unitDefinition>
+      </listOfUnitDefinitions>
+      <listOfCompartments>
+        <compartment metaid="metaid_0000003" id="compartment" name="Cytosol" size="1">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000003">
+                <bqbiol:is>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005829"/>
+                  </rdf:Bag>
+                </bqbiol:is>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </compartment>
+      </listOfCompartments>
+      <listOfSpecies>
+        <species metaid="metaid_0000004" id="R" compartment="compartment" initialAmount="0.5" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000004">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/Q9QX70"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000005" id="Rin" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000005">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/Q9QX70"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000006" id="x1" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000006">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/P04049"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000007" id="x1p" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000007">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/P04049"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000008" id="x2" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000008">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/Q02750"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000009" id="x2p" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000009">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/Q02750"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000010" id="x3" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000010">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/P28482"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+        <species metaid="metaid_0000011" id="x3p" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000011">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/uniprot/P28482"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+        </species>
+      </listOfSpecies>
+      <listOfReactions>
+        <reaction metaid="metaid_0000012" id="v1" name="Receptor inactivation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000012">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0007175"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105075" species="R"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105087" species="Rin"/>
+          </listOfProducts>
+          <kineticLaw metaid="_105099">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Vm1 </ci>
+                  <ci> R </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km1 </ci>
+                  <ci> R </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105111" id="Vm1" value="1"/>
+              <parameter metaid="_105123" id="Km1" value="0.1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000013" id="v2" name="Receptor activation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000013">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0045741"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105135" species="Rin"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105147" species="R"/>
+          </listOfProducts>
+          <kineticLaw metaid="_105159">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Vm2 </ci>
+                  <ci> Rin </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km2 </ci>
+                  <ci> Rin </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105171" id="Vm2" value="0.01"/>
+              <parameter metaid="_105183" id="Km2" value="0.1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000014" id="v3" name="Kinase-1 activation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000014">
+                <bqbiol:is>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000185"/>
+                  </rdf:Bag>
+                </bqbiol:is>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105195" species="x1"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105208" species="x1p"/>
+          </listOfProducts>
+          <listOfModifiers>
+            <modifierSpeciesReference metaid="_105220" species="R"/>
+          </listOfModifiers>
+          <kineticLaw metaid="_105232">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> R </ci>
+                  <ci> x1 </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km3 </ci>
+                  <ci> x1 </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105244" id="k3" value="1"/>
+              <parameter metaid="_105257" id="Km3" value="0.1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000015" id="v4" name="Kinase-1 inactivation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000015">
+                <bqbiol:is>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051390"/>
+                  </rdf:Bag>
+                </bqbiol:is>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105268" species="x1p"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105280" species="x1"/>
+          </listOfProducts>
+          <kineticLaw metaid="_105292">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Vm4 </ci>
+                  <ci> x1p </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km4 </ci>
+                  <ci> x1p </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105304" id="Vm4" value="0.3"/>
+              <parameter metaid="_105316" id="Km4" value="1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000016" id="v5" name="Kinase-2 activation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000016">
+                <bqbiol:is>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.11.1"/>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000186"/>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004709"/>
+                  </rdf:Bag>
+                </bqbiol:is>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105329" species="x2"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105342" species="x2p"/>
+          </listOfProducts>
+          <listOfModifiers>
+            <modifierSpeciesReference metaid="_105354" species="x1p"/>
+          </listOfModifiers>
+          <kineticLaw metaid="_105366">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> k5 </ci>
+                  <ci> x1p </ci>
+                  <ci> x2 </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km5 </ci>
+                  <ci> x2 </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105379" id="k5" value="1"/>
+              <parameter metaid="_105391" id="Km5" value="0.1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000017" id="v6" name="Kinase-2 inactivation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000017">
+                <bqbiol:is>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051389"/>
+                  </rdf:Bag>
+                </bqbiol:is>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105403" species="x2p"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105415" species="x2"/>
+          </listOfProducts>
+          <kineticLaw metaid="_105428">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Vm6 </ci>
+                  <ci> x2p </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km6 </ci>
+                  <ci> x2p </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105440" id="Vm6" value="0.3"/>
+              <parameter metaid="_105452" id="Km6" value="1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000018" id="v7" name="Kinase-3 activation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000018">
+                <bqbiol:is>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.12.2"/>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000187"/>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004708"/>
+                  </rdf:Bag>
+                </bqbiol:is>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105464" species="x3"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105476" species="x3p"/>
+          </listOfProducts>
+          <listOfModifiers>
+            <modifierSpeciesReference metaid="_105488" species="x2p"/>
+          </listOfModifiers>
+          <kineticLaw metaid="_105500">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> x2p </ci>
+                  <ci> x3 </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci> Km7 </ci>
+                  <ci> x3 </ci>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105512" id="k7" value="1"/>
+              <parameter metaid="_105524" id="Km7" value="0.1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+        <reaction metaid="metaid_0000019" id="v8" name="Kinase-3 inactivation">
+          <annotation>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+              <rdf:Description rdf:about="#metaid_0000019">
+                <bqbiol:isVersionOf>
+                  <rdf:Bag>
+                    <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043407"/>
+                  </rdf:Bag>
+                </bqbiol:isVersionOf>
+              </rdf:Description>
+            </rdf:RDF>
+          </annotation>
+          <listOfReactants>
+            <speciesReference metaid="_105536" species="x3p"/>
+          </listOfReactants>
+          <listOfProducts>
+            <speciesReference metaid="_105548" species="x3"/>
+          </listOfProducts>
+          <kineticLaw metaid="_105560">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <divide/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> Vm8 </ci>
+                    <ci> x3p </ci>
+                  </apply>
+                  <ci> Km8 </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <divide/>
+                    <ci> x3p </ci>
+                    <ci> Km8 </ci>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <ci> Inh </ci>
+                    <ci> Ki8 </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </math>
+            <listOfParameters>
+              <parameter metaid="_105572" id="Vm8" value="0.3"/>
+              <parameter metaid="_105584" id="Km8" value="1"/>
+              <parameter metaid="_105596" id="Inh" value="0"/>
+              <parameter metaid="_105608" id="Ki8" value="1"/>
+            </listOfParameters>
+          </kineticLaw>
+        </reaction>
+      </listOfReactions>
+    </model></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td></tr>
+                <tr><td class="active">name</td><td>Hornberg2005_ERKcascade</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000084.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L2V1</span> <span class="package">layout-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL6623610941" target="_blank">MODEL6623610941</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000084" target="_blank">BIOMD0000000084</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/15634347" target="_blank">15634347</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/obo.go/GO:0000165" target="_blank">GO:0000165</a>; <a href="http://identifiers.org/obo.go/GO:0007173" target="_blank">GO:0007173</a><br /><span class="collection">BQB_HAS_PART</span><br /><a href="http://identifiers.org/kegg.pathway/rno04010" target="_blank">rno04010</a><br /><span class="collection">BQB_OCCURS_IN</span><br /><a href="http://identifiers.org/taxonomy/40674" target="_blank">40674</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">UnitDefinitions [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td id="substance" class="active"><span class="package">substance</span> <code>metaid_0000020</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-substance"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-substance" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">substance</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="metaid_0000020" id="substance" name="dimensionless">
+  <listOfUnits>
+    <unit metaid="_105063" kind="item" multiplier="1" offset="0"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>dimensionless</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="compartment" class="active"><span class="package">compartment</span> <code>metaid_0000003</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-compartment"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-compartment" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">compartment</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="metaid_0000003" id="compartment" name="Cytosol" size="1">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000003">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005829"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Cytosol</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/obo.go/GO:0005829" target="_blank">GO:0005829</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [8]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	<td id="R" class="active"><span class="package">R</span> <code>metaid_0000004</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000004" id="R" compartment="compartment" initialAmount="0.5" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000004">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q9QX70"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.5</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q9QX70" target="_blank">Q9QX70</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="Rin" class="active"><span class="package">Rin</span> <code>metaid_0000005</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Rin"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Rin" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Rin</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000005" id="Rin" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000005">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q9QX70"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q9QX70" target="_blank">Q9QX70</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x1" class="active"><span class="package">x1</span> <code>metaid_0000006</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000006" id="x1" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000006">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P04049"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P04049" target="_blank">P04049</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x1p" class="active"><span class="package">x1p</span> <code>metaid_0000007</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x1p"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x1p" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x1p</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000007" id="x1p" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000007">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P04049"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P04049" target="_blank">P04049</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x2" class="active"><span class="package">x2</span> <code>metaid_0000008</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000008" id="x2" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000008">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q02750"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q02750" target="_blank">Q02750</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x2p" class="active"><span class="package">x2p</span> <code>metaid_0000009</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x2p"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x2p" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x2p</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000009" id="x2p" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000009">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q02750"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q02750" target="_blank">Q02750</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x3" class="active"><span class="package">x3</span> <code>metaid_0000010</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000010" id="x3" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000010">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P28482"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P28482" target="_blank">P28482</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x3p" class="active"><span class="package">x3p</span> <code>metaid_0000011</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x3p"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x3p" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x3p</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000011" id="x3p" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000011">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P28482"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i><br />
+        <code></code></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P28482" target="_blank">P28482</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [8]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v1" class="active"><span class="package">v1</span> <code>metaid_0000012</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000012" id="v1" name="Receptor inactivation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000012">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0007175"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105075" species="R"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105087" species="Rin"/>
+  </listOfProducts>
+  <kineticLaw metaid="_105099">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> Vm1 </ci>
+          <ci> R </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km1 </ci>
+          <ci> R </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105111" id="Vm1" value="1"/>
+      <parameter metaid="_105123" id="Km1" value="0.1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Receptor inactivation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>R &#8646; Rin</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> Vm1 </ci>
+      <ci> R </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km1 </ci>
+      <ci> R </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0007175" target="_blank">GO:0007175</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v2" class="active"><span class="package">v2</span> <code>metaid_0000013</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000013" id="v2" name="Receptor activation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000013">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0045741"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105135" species="Rin"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105147" species="R"/>
+  </listOfProducts>
+  <kineticLaw metaid="_105159">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> Vm2 </ci>
+          <ci> Rin </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km2 </ci>
+          <ci> Rin </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105171" id="Vm2" value="0.01"/>
+      <parameter metaid="_105183" id="Km2" value="0.1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Receptor activation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>Rin &#8646; R</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> Vm2 </ci>
+      <ci> Rin </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km2 </ci>
+      <ci> Rin </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0045741" target="_blank">GO:0045741</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v3" class="active"><span class="package">v3</span> <code>metaid_0000014</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000014" id="v3" name="Kinase-1 activation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000014">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000185"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105195" species="x1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105208" species="x1p"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_105220" species="R"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_105232">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> k3 </ci>
+          <ci> R </ci>
+          <ci> x1 </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km3 </ci>
+          <ci> x1 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105244" id="k3" value="1"/>
+      <parameter metaid="_105257" id="Km3" value="0.1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Kinase-1 activation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>x1 &#8646; x1p</td>
+	<td>R< br / ></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> k3 </ci>
+      <ci> R </ci>
+      <ci> x1 </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km3 </ci>
+      <ci> x1 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/obo.go/GO:0000185" target="_blank">GO:0000185</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v4" class="active"><span class="package">v4</span> <code>metaid_0000015</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000015" id="v4" name="Kinase-1 inactivation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000015">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051390"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105268" species="x1p"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105280" species="x1"/>
+  </listOfProducts>
+  <kineticLaw metaid="_105292">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> Vm4 </ci>
+          <ci> x1p </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km4 </ci>
+          <ci> x1p </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105304" id="Vm4" value="0.3"/>
+      <parameter metaid="_105316" id="Km4" value="1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Kinase-1 inactivation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>x1p &#8646; x1</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> Vm4 </ci>
+      <ci> x1p </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km4 </ci>
+      <ci> x1p </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/obo.go/GO:0051390" target="_blank">GO:0051390</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v5" class="active"><span class="package">v5</span> <code>metaid_0000016</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000016" id="v5" name="Kinase-2 activation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000016">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.11.1"/>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000186"/>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004709"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105329" species="x2"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105342" species="x2p"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_105354" species="x1p"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_105366">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> k5 </ci>
+          <ci> x1p </ci>
+          <ci> x2 </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km5 </ci>
+          <ci> x2 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105379" id="k5" value="1"/>
+      <parameter metaid="_105391" id="Km5" value="0.1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Kinase-2 activation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>x2 &#8646; x2p</td>
+	<td>x1p< br / ></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> k5 </ci>
+      <ci> x1p </ci>
+      <ci> x2 </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km5 </ci>
+      <ci> x2 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/ec-code/2.7.11.1" target="_blank">2.7.11.1</a>; <a href="http://identifiers.org/obo.go/GO:0000186" target="_blank">GO:0000186</a>; <a href="http://identifiers.org/obo.go/GO:0004709" target="_blank">GO:0004709</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v6" class="active"><span class="package">v6</span> <code>metaid_0000017</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v6"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v6" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v6</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000017" id="v6" name="Kinase-2 inactivation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000017">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051389"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105403" species="x2p"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105415" species="x2"/>
+  </listOfProducts>
+  <kineticLaw metaid="_105428">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> Vm6 </ci>
+          <ci> x2p </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km6 </ci>
+          <ci> x2p </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105440" id="Vm6" value="0.3"/>
+      <parameter metaid="_105452" id="Km6" value="1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Kinase-2 inactivation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>x2p &#8646; x2</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> Vm6 </ci>
+      <ci> x2p </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km6 </ci>
+      <ci> x2p </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/obo.go/GO:0051389" target="_blank">GO:0051389</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v7" class="active"><span class="package">v7</span> <code>metaid_0000018</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000018" id="v7" name="Kinase-3 activation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000018">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.12.2"/>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000187"/>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004708"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105464" species="x3"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105476" species="x3p"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_105488" species="x2p"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_105500">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> k7 </ci>
+          <ci> x2p </ci>
+          <ci> x3 </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km7 </ci>
+          <ci> x3 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105512" id="k7" value="1"/>
+      <parameter metaid="_105524" id="Km7" value="0.1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Kinase-3 activation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>x3 &#8646; x3p</td>
+	<td>x2p< br / ></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> k7 </ci>
+      <ci> x2p </ci>
+      <ci> x3 </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <ci> Km7 </ci>
+      <ci> x3 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/ec-code/2.7.12.2" target="_blank">2.7.12.2</a>; <a href="http://identifiers.org/obo.go/GO:0000187" target="_blank">GO:0000187</a>; <a href="http://identifiers.org/obo.go/GO:0004708" target="_blank">GO:0004708</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="v8" class="active"><span class="package">v8</span> <code>metaid_0000019</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v8"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v8" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v8</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000019" id="v8" name="Kinase-3 inactivation">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000019">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043407"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_105536" species="x3p"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_105548" species="x3"/>
+  </listOfProducts>
+  <kineticLaw metaid="_105560">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> Vm8 </ci>
+            <ci> x3p </ci>
+          </apply>
+          <ci> Km8 </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> x3p </ci>
+            <ci> Km8 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> Inh </ci>
+            <ci> Ki8 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_105572" id="Vm8" value="0.3"/>
+      <parameter metaid="_105584" id="Km8" value="1"/>
+      <parameter metaid="_105596" id="Inh" value="0"/>
+      <parameter metaid="_105608" id="Ki8" value="1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>Kinase-3 inactivation<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>x3p &#8646; x3</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> Vm8 </ci>
+        <ci> x3p </ci>
+      </apply>
+      <ci> Km8 </ci>
+    </apply>
+    <apply>
+      <plus/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <divide/>
+        <ci> x3p </ci>
+        <ci> Km8 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> Inh </ci>
+        <ci> Ki8 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0043407" target="_blank">GO:0043407</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

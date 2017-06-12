@@ -1,0 +1,792 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2" metaid="metaid_0000001" level="2" version="1">
+  <model metaid="metaid_0000002" id="Weimann2004_CircadianOscillator" name="Weimann2004_CircadianOscillator">
+    <notes>
+      <p xmlns="http://www.w3.org/1999/xhtml">
+    The model reproduces the time profile of the species as depicted in Fig 3A of the paper. Model successfully tested on MathSBML and Jarnac.</p>
+    </notes>
+    <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#metaid_0000002">
+          <dc:creator>
+            <rdf:Bag>
+              <rdf:li rdf:parseType="Resource">
+                <vCard:N rdf:parseType="Resource">
+                  <vCard:Family>Dharuri</vCard:Family>
+                  <vCard:Given>Harish</vCard:Given>
+                </vCard:N>
+                <vCard:EMAIL>hdharuri@cds.caltech.edu</vCard:EMAIL>
+                <vCard:ORG rdf:parseType="Resource">
+                  <vCard:Orgname>California Institute of Technology</vCard:Orgname>
+                </vCard:ORG>
+              </rdf:li>
+            </rdf:Bag>
+          </dc:creator>
+          <dcterms:created rdf:parseType="Resource">
+            <dcterms:W3CDTF>2008-04-16T11:56:13Z</dcterms:W3CDTF>
+          </dcterms:created>
+          <dcterms:modified rdf:parseType="Resource">
+            <dcterms:W3CDTF>2012-05-16T10:04:56Z</dcterms:W3CDTF>
+          </dcterms:modified>
+          <bqmodel:is>
+            <rdf:Bag>
+              <rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL8378813456"/>
+            </rdf:Bag>
+          </bqmodel:is>
+          <bqmodel:is>
+            <rdf:Bag>
+              <rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000170"/>
+            </rdf:Bag>
+          </bqmodel:is>
+          <bqmodel:isDescribedBy>
+            <rdf:Bag>
+              <rdf:li rdf:resource="http://identifiers.org/pubmed/15347590"/>
+            </rdf:Bag>
+          </bqmodel:isDescribedBy>
+          <bqbiol:isPartOf>
+            <rdf:Bag>
+              <rdf:li rdf:resource="http://identifiers.org/kegg.pathway/hsa04710"/>
+            </rdf:Bag>
+          </bqbiol:isPartOf>
+          <bqbiol:is>
+            <rdf:Bag>
+              <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0007623"/>
+            </rdf:Bag>
+          </bqbiol:is>
+          <bqbiol:occursIn>
+            <rdf:Bag>
+              <rdf:li rdf:resource="http://identifiers.org/taxonomy/40674"/>
+            </rdf:Bag>
+          </bqbiol:occursIn>
+        </rdf:Description>
+      </rdf:RDF>
+    </annotation>
+    <listOfUnitDefinitions>
+      <unitDefinition metaid="metaid_0000061" id="substance" name="nano mole">
+        <listOfUnits>
+          <unit metaid="_748528" kind="mole" scale="-9" multiplier="1" offset="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition metaid="metaid_0000062" id="time" name="hour">
+        <listOfUnits>
+          <unit metaid="_748540" kind="second" multiplier="3600" offset="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition metaid="metaid_0000063" id="nM" name="nM">
+        <listOfUnits>
+          <unit metaid="_748552" kind="mole" scale="-9" multiplier="1" offset="0"/>
+          <unit metaid="_748564" kind="litre" exponent="-1" multiplier="1" offset="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition metaid="metaid_0000064" id="nM_per_hour" name="nM_per_hour">
+        <listOfUnits>
+          <unit metaid="_748577" kind="mole" scale="-9" multiplier="1" offset="0"/>
+          <unit metaid="_748589" kind="litre" exponent="-1" multiplier="1" offset="0"/>
+          <unit metaid="_748601" kind="second" exponent="-1" multiplier="3600" offset="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition metaid="metaid_0000065" id="time_inverse" name="hr_inv">
+        <listOfUnits>
+          <unit metaid="_748613" kind="second" exponent="-1" multiplier="3600" offset="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition metaid="metaid_0000066" id="nM_inv_hr_inv" name="nM_inv_hr_inv">
+        <listOfUnits>
+          <unit metaid="_748625" kind="mole" exponent="-1" scale="-9" multiplier="1" offset="0"/>
+          <unit metaid="_748638" kind="litre" multiplier="1" offset="0"/>
+          <unit metaid="_748650" kind="second" exponent="-1" multiplier="3600" offset="0"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment metaid="metaid_0000030" id="Nucleus" name="Nucleus" size="1"/>
+      <compartment metaid="metaid_0000031" id="Cytoplasm" name="Cytoplasm" size="1"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species metaid="metaid_0000033" id="y1" name="Per2 or Cry mRNA" compartment="Cytoplasm" initialConcentration="0.2">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000033">
+              <bqbiol:encodes>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/O15055"/>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q16526"/>
+                </rdf:Bag>
+              </bqbiol:encodes>
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:33699"/>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00046"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="metaid_0000034" id="y2" name="PER2_CRY_complex_cytoplasm" compartment="Cytoplasm" initialConcentration="0">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000034">
+              <bqbiol:hasPart>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/O15055"/>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q16526"/>
+                </rdf:Bag>
+              </bqbiol:hasPart>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="metaid_0000035" id="y3" name="PER2_CRY_complex_nucleus" compartment="Nucleus" initialConcentration="1.1">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000035">
+              <bqbiol:hasPart>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/O15055"/>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q16526"/>
+                </rdf:Bag>
+              </bqbiol:hasPart>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="metaid_0000036" id="y4" name="Bmal1 mRNA" compartment="Cytoplasm" initialConcentration="0.8">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000036">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:33699"/>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00046"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+              <bqbiol:encodes>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q8IUT4"/>
+                </rdf:Bag>
+              </bqbiol:encodes>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="metaid_0000037" id="y5" name="BMAL1_cytoplasm" compartment="Cytoplasm" initialConcentration="1">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000037">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q8IUT4"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="metaid_0000038" id="y6" name="BMAL1_nucleus" compartment="Nucleus" initialConcentration="1">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000038">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q8IUT4"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="metaid_0000039" id="y7" name="Active BMAL1" compartment="Nucleus" initialConcentration="1.05">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000039">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/uniprot/Q8IUT4"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter metaid="metaid_0000003" id="trans_per2_cry" value="0" units="nM_per_hour" constant="false"/>
+      <parameter metaid="metaid_0000004" id="v1b" value="9" units="nM_per_hour"/>
+      <parameter metaid="metaid_0000005" id="c" value="0.01" units="nM"/>
+      <parameter metaid="metaid_0000006" id="k1b" value="1" units="nM"/>
+      <parameter metaid="metaid_0000007" id="k1i" value="0.56" units="nM"/>
+      <parameter metaid="metaid_0000008" id="hill_coeff" value="8" units="dimensionless"/>
+      <parameter metaid="metaid_0000009" id="trans_Bmal1" value="0" units="nM_per_hour" constant="false"/>
+      <parameter metaid="metaid_0000010" id="v4b" value="3.6" units="nM_per_hour"/>
+      <parameter metaid="metaid_0000011" id="r" value="3" units="dimensionless"/>
+      <parameter metaid="metaid_0000012" id="k4b" value="2.16" units="nM"/>
+      <parameter metaid="metaid_0000013" id="y5_y6_y7" value="3.05" units="nM" constant="false"/>
+      <parameter metaid="metaid_0000014" id="k1d" value="0.12" units="time_inverse"/>
+      <parameter metaid="metaid_0000015" id="k2b" value="0.3" units="nM_inv_hr_inv"/>
+      <parameter metaid="metaid_0000016" id="q" value="2" units="dimensionless"/>
+      <parameter metaid="metaid_0000017" id="k2d" value="0.05" units="time_inverse"/>
+      <parameter metaid="metaid_0000018" id="k2t" value="0.24" units="time_inverse"/>
+      <parameter metaid="metaid_0000019" id="k3t" value="0.02" units="time_inverse"/>
+      <parameter metaid="metaid_0000020" id="k3d" value="0.12" units="time_inverse"/>
+      <parameter metaid="metaid_0000021" id="k4d" value="0.75" units="time_inverse"/>
+      <parameter metaid="metaid_0000022" id="k5b" value="0.24" units="time_inverse"/>
+      <parameter metaid="metaid_0000023" id="k5d" value="0.06" units="time_inverse"/>
+      <parameter metaid="metaid_0000024" id="k5t" value="0.45" units="time_inverse"/>
+      <parameter metaid="metaid_0000025" id="k6t" value="0.06" units="time_inverse"/>
+      <parameter metaid="metaid_0000026" id="k6d" value="0.12" units="time_inverse"/>
+      <parameter metaid="metaid_0000027" id="k6a" value="0.09" units="time_inverse"/>
+      <parameter metaid="metaid_0000028" id="k7a" value="0.003" units="time_inverse"/>
+      <parameter metaid="metaid_0000029" id="k7d" value="0.09" units="time_inverse"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="metaid_0000041" variable="trans_per2_cry">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> v1b </ci>
+              <apply>
+                <plus/>
+                <ci> y7 </ci>
+                <ci> c </ci>
+              </apply>
+            </apply>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> k1b </ci>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <power/>
+                    <apply>
+                      <divide/>
+                      <ci> y3 </ci>
+                      <ci> k1i </ci>
+                    </apply>
+                    <ci> hill_coeff </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> y7 </ci>
+              <ci> c </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule metaid="metaid_0000042" variable="trans_Bmal1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> v4b </ci>
+              <apply>
+                <power/>
+                <ci> y3 </ci>
+                <ci> r </ci>
+              </apply>
+            </apply>
+            <apply>
+              <plus/>
+              <apply>
+                <power/>
+                <ci> k4b </ci>
+                <ci> r </ci>
+              </apply>
+              <apply>
+                <power/>
+                <ci> y3 </ci>
+                <ci> r </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule metaid="metaid_0000043" variable="y5_y6_y7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> y5 </ci>
+            <ci> y6 </ci>
+            <ci> y7 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction metaid="metaid_0000044" id="per2_cry_transcription" name="per2_cry_transcription" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000044">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006351"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfProducts>
+          <speciesReference metaid="_748662" species="y1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_748674">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> trans_per2_cry </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000045" id="per2_cry_mRNA_degradation" name="per2_cry_mRNA_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000045">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006402"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748686" species="y1"/>
+        </listOfReactants>
+        <kineticLaw metaid="_748698">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k1d </ci>
+              <ci> y1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000046" id="per2_cry_complex_formation" name="per2_cry_complex_formation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000046">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0046982"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfProducts>
+          <speciesReference metaid="_748710" species="y2"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_748722" species="y1"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_748734">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k2b </ci>
+              <apply>
+                <power/>
+                <ci> y1 </ci>
+                <ci> q </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000047" id="cytoplasmic_per2_cry_complex_degradation" name="cytoplasmic_per2_cry_complex_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000047">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0044257"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748747" species="y2"/>
+        </listOfReactants>
+        <kineticLaw metaid="_748759">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k2d </ci>
+              <ci> y2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000048" id="per2_cry_nuclear_import" name="per2_cry_nuclear_import" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000048">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051170"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748771" species="y2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_748784" species="y3"/>
+        </listOfProducts>
+        <kineticLaw metaid="_748796">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k2t </ci>
+              <ci> y2 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000049" id="per2_cry_nuclear_export" name="per2_cry_nuclear_export" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000049">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051168"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748808" species="y3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_748820" species="y2"/>
+        </listOfProducts>
+        <kineticLaw metaid="_748832">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k3t </ci>
+              <ci> y3 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000050" id="nuclear_per2_cry_complex_degradation" name="nuclear_per2_cry_complex_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000050">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0044257"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748844" species="y3"/>
+        </listOfReactants>
+        <kineticLaw metaid="_748856">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k3d </ci>
+              <ci> y3 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000051" id="Bmal1_transcription" name="Bmal1_transcription" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000051">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006351"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfProducts>
+          <speciesReference metaid="_748868" species="y4"/>
+        </listOfProducts>
+        <kineticLaw metaid="_748880">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> trans_Bmal1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000052" id="Bmal1_mRNA_degradation" name="Bmal1_mRNA_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000052">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006402"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748892" species="y4"/>
+        </listOfReactants>
+        <kineticLaw metaid="_748904">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k4d </ci>
+              <ci> y4 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000053" id="BMAL1_translation" name="BMAL1_translation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000053">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006412"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfProducts>
+          <speciesReference metaid="_748916" species="y5"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_748928" species="y4"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_748940">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k5b </ci>
+              <ci> y4 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000054" id="cytoplasmic_BMAL1_degradation" name="cytoplasmic_BMAL1_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000054">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0044257"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748952" species="y5"/>
+        </listOfReactants>
+        <kineticLaw metaid="_748964">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k5d </ci>
+              <ci> y5 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000055" id="BMAL1_nuclear_import" name="BMAL1_nuclear_import" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000055">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051170"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_748976" species="y5"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_748988" species="y6"/>
+        </listOfProducts>
+        <kineticLaw metaid="_749001">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cytoplasm </ci>
+              <ci> k5t </ci>
+              <ci> y5 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000056" id="BMAL1_nuclear_export" name="BMAL1_nuclear_export" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000056">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051168"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_749013" species="y6"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_749025" species="y5"/>
+        </listOfProducts>
+        <kineticLaw metaid="_749037">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k6t </ci>
+              <ci> y6 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000057" id="nuclear_BMAL1_degradation" name="nuclear_BMAL1_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000057">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0044257"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_749049" species="y6"/>
+        </listOfReactants>
+        <kineticLaw metaid="_749062">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k6d </ci>
+              <ci> y6 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000058" id="BMAL1_activation" name="BMAL1_activation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000058">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051091"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_749074" species="y6"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_749086" species="y7"/>
+        </listOfProducts>
+        <kineticLaw metaid="_749098">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k6a </ci>
+              <ci> y6 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000059" id="BMAL1_deactivation" name="BMAL1_deactivation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000059">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043433"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_749110" species="y7"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_749122" species="y6"/>
+        </listOfProducts>
+        <kineticLaw metaid="_749134">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k7a </ci>
+              <ci> y7 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction metaid="metaid_0000060" id="Active_BMAL1_degradation" name="Active_BMAL1_degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000060">
+              <bqbiol:isVersionOf>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0044257"/>
+                </rdf:Bag>
+              </bqbiol:isVersionOf>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference metaid="_749146" species="y7"/>
+        </listOfReactants>
+        <kineticLaw metaid="_749159">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Nucleus </ci>
+              <ci> k7d </ci>
+              <ci> y7 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

@@ -97,7 +97,7 @@ def _halfEquation(speciesList):
             sd = '{}'.format(species)
         elif abs(stoichiometry + 1.0) < 1E-8:
             sd = '-{}'.format(species)
-        elif stoichiometry > 0:
+        elif stoichiometry >= 0:
             sd = '{} {}'.format(stoichiometry, species)
         elif stoichiometry < 0:
             sd = '-{} {}'.format(stoichiometry, species)
