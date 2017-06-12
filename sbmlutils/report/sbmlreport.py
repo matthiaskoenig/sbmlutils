@@ -190,15 +190,11 @@ def _create_value_dictionary(model):
 
     # parse all the initial assignments
     for assignment in model.getListOfInitialAssignments():
-        # sid = assignment.getId()
         sid = assignment.getSymbol()
-
-        # math = ' = {}'.format(libsbml.formulaToString(assignment.getMath()))
         values[sid] = assignment
     # rules
     for rule in model.getListOfRules():
         sid = rule.getVariable()
-        # math = ' = {}'.format(libsbml.formulaToString(rule.getMath()))
         values[sid] = rule
 
     return values
@@ -209,12 +205,16 @@ def infoSbase(item):
         'object': item,
         'id': item.id,
         'metaId': metaId(item),
-        'name': item.name,
         'sbo': sbo(item),
         'cvterm': cvterm(item),
         'notes': notes(item),
         'annotation': annotation(item)
     }
+    if item.isSetName():
+        name = item.name
+    else:
+        name = empty_html()
+    info['name'] = name
     info['id_html'] = id_html(item)
     return info
 
@@ -224,15 +224,9 @@ def document_dict(doc):
 
     for k in range(doc.getNumPlugins()):
         plugin = doc.getPlugin(k)
-        uri = plugin.getURI()
         prefix = plugin.getPrefix()
-        name = plugin.getPackageName()
         version = plugin.getPackageVersion()
-
-        # print('Namespace:', prefix, version)
         packages.append('<span class="package">{}-V{}</span>'.format(prefix, version))
-
-
     info['packages'] = " ".join(packages)
     return info
 
@@ -268,7 +262,7 @@ def listOfCompartments_dict(model, values):
         if item.isSetSpatialDimensions():
             spatial_dimensions = item.spatial_dimensions
         else:
-            spatial_dimensions = ''
+            spatial_dimensions = empty_html()
         info['spatial_dimensions'] = spatial_dimensions
         info['constant'] = boolean(item.constant)
         info['derived_units'] = derived_units(item)
@@ -276,7 +270,6 @@ def listOfCompartments_dict(model, values):
             size = item.size
         else:
             size = math(values.get(item.id, ''))
-
         info['size'] = size
         items.append(info)
     return items
@@ -289,9 +282,15 @@ def listOfSpecies_dict(model):
         info['boundary_condition'] = boolean(item.boundary_condition)
         info['constant'] = boolean(item.constant)
         if item.isSetInitialAmount():
-            info['initial_amount'] = item.initial_amount
+            initial_amount = item.initial_amount
+        else:
+            initial_amount = empty_html()
+        info['initial_amount'] = initial_amount
         if item.isSetInitialConcentration():
-            info['initial_concentration'] = item.initial_concentration
+            initial_concentration = item.initial_concentration
+        else:
+            initial_concentration = empty_html()
+        info['initial_concentration'] = initial_concentration
         info['substance_units'] = item.substance_units
         info['derived_units'] = derived_units(item)
         info['xml'] = xml(item)
@@ -316,7 +315,10 @@ def listOfGeneProducts_dict(model):
         for item in mfbc.getListOfGeneProducts():
             info = infoSbase(item)
             info['label'] = item.label
-            info['associated_species'] = item.associated_species
+            associated_species = empty_html()
+            if item.isSetAssociatedSpecies():
+                associated_species = item.associated_species
+            info['associated_species'] = associated_species
             items.append(info)
     return items
 
@@ -382,6 +384,8 @@ def listOfReactions_dict(model):
         modifiers = ''
         for mod in item.getListOfModifiers():
             modifiers += '{}< br / >'.format(mod.getSpecies())
+        if len(modifiers) == 0:
+            modifiers = empty_html()
         info['modifiers'] = modifiers
         klaw = item.getKineticLaw()
         info['formula'] = math(klaw)
@@ -426,7 +430,7 @@ def listOfEvents_dict(model):
                                                                                           trigger.persistent)
         info['priority'] = item.priority
         info['delay'] = item.delay
-        assignments = ''
+        assignments = empty_html()
         for eva in item.getListOfEventAssignments():
             assignments += "{} = {}<br />".format(eva.getId(), math(eva))
         info['assignments'] = assignments
@@ -455,6 +459,9 @@ def sbo(item):
         return '<div class="cvterm"><a href="{}" target="_blank">{}</a></div>'.format(item.getSBOTermAsURL(), item.getSBOTermID())
     return ''
 
+def empty_html():
+    return '<i class="fa fa-ban gray"></i>'
+
 def metaId(item):
     if item.isSetMetaId():
         return "<code>{}</code>".format(item.getMetaId())
@@ -481,7 +488,7 @@ def annotation(item):
 def math(item):
     if item:
         return formating.astnodeToMathML(item.getMath())
-    return ''
+    return empty_html()
 
 def boolean(condition):
     if condition:
