@@ -19,7 +19,7 @@ def annotation_to_html(item):
             qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
         elif q_type == 1:
             qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-        lines.append(''.join(['<span class="qualifier">', qualifier, '</span>']))
+        lines.append(''.join(['<span class="collection">', qualifier, '</span>']))
 
         items = []
         for k in range(cv.getNumResources()):
@@ -125,8 +125,8 @@ def boundsStringFromReaction(reaction, model):
             ub_p = model.getParameter(ub_id)
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
-        bounds = '<span class="cvterm">[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i>{}]</span>'.format(
-            lb_value, ub_value)
+        if (lb_value is not None) or (ub_value is not None):
+            bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(lb_value, ub_value)
     return bounds
 
 def geneProductAssociationStringFromReaction(reaction):
