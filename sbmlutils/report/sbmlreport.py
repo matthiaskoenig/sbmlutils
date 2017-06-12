@@ -441,9 +441,6 @@ def listOfEvents_dict(model):
 ##############################
 # Helpers
 ##############################
-
-
-
 def notes(item):
     if item.isSetNotes():
         return formating.notesToString(item)
@@ -470,7 +467,7 @@ def metaId(item):
 def id_html(item):
     id = item.getId()
     meta = metaId(item)
-    info = '<td id="{}" class="active"><span class="collection">{}</span> {}'.format(id, id, meta)
+    info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, id, meta)
     if id is not None:
         info += xml_modal(item)
     info += "</td>"
