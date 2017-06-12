@@ -215,8 +215,7 @@ def infoSbase(item):
         'notes': notes(item),
         'annotation': annotation(item)
     }
-    info['id_html'] = '<td id="{}" class="active"><span class="collection">{}</span> {}</td>'.format(info['id'], info['id'], info['metaId'])
-
+    info['id_html'] = id_html(item)
     return info
 
 def document_dict(doc):
@@ -235,8 +234,6 @@ def document_dict(doc):
 
 
     info['packages'] = " ".join(packages)
-
-
     return info
 
 
@@ -440,6 +437,9 @@ def listOfEvents_dict(model):
 ##############################
 # Helpers
 ##############################
+
+
+
 def notes(item):
     if item.isSetNotes():
         return formating.notesToString(item)
@@ -460,6 +460,15 @@ def metaId(item):
         return "<code>{}</code>".format(item.getMetaId())
     return ''
 
+def id_html(item):
+    id = item.getId()
+    meta = metaId(item)
+    info = '<td id="{}" class="active"><span class="collection">{}</span> {}'.format(id, id, meta)
+    if id is not None:
+        info += xml_modal(item)
+    info += "</td>"
+    return info
+
 def annotation(item):
     info = '<div class="cvterm">'
     if item.getSBOTerm() != -1:
@@ -476,17 +485,35 @@ def math(item):
 
 def boolean(condition):
     if condition:
-        return '<td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>'
+        return '<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>'
     else:
-        return '<td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>'
+        return '<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>'
 
 def annotation_xml(item):
     if item.isSetAnnotation():
         return '<pre>{}</pre>'.format(item.getAnnotationString().decode('utf-8'))
     return ''
 
+def xml_modal(item):
+    info = '''
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{}"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-{}" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">{}</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'">{}</textarea></div>
+          </div>
+        </div>
+      </div>
+    '''.format(item.id, item.id, item.id, xml(item))
+    return info
+
+
 def xml(item):
-    return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
+    html = '{}'.format(item.toSBML())
+
+    return html
+    # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
 
 def derived_units(item):
     if item:

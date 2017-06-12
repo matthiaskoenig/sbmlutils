@@ -417,5 +417,5 @@ def create_reports(output_dir):
 if __name__ == "__main__":
 
     from sbmlutils.dfba.ecoli.settings import out_dir
-    # create_model(output_dir=out_dir)
-    create_reports(output_dir=out_dir)
+    create_model(output_dir=out_dir)
+    # create_reports(output_dir=out_dir)
