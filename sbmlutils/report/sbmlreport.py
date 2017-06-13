@@ -157,6 +157,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
 
             'doc': document_dict(doc),
             'model': model_dict(model),
+            'ports': listOfPorts_dict(model),
             'functions': listOfFunctions_dict(model),
             'units': listOfUnits_dict(model),
             'compartments': listOfCompartments_dict(model, values),
@@ -216,6 +217,20 @@ def infoSbase(item):
         name = empty_html()
     info['name'] = name
     info['id_html'] = id_html(item)
+
+    # comp
+    item_comp = item.getPlugin('comp')
+    if item_comp and type(item_comp) == libsbml.CompSBasePlugin:
+        print(item_comp)
+        # from libsbml import CompSBasePlugin, CompRe
+        # CompSBasePlugin.isSetReplacedBy()
+        # CompSBasePlugin.getReplacedBy()
+        if item_comp.isSetReplacedBy():
+            replaced_by = item_comp.getReplacedBy()
+            submodel_ref = replaced_by.getSubmodelRef()
+
+            info['replaced_by'] = '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>{}:{}</code>'.format(submodel_ref, sbaseref(replaced_by))
+
     return info
 
 def document_dict(doc):
@@ -238,9 +253,34 @@ def model_dict(model):
     return info
 
 
+def listOfPorts_dict(model):
+    items = []
+    model_comp = model.getPlugin('comp')
+    if model_comp:
+        for item in model_comp.getListOfPorts():
+            info = infoSbase(item)
+            port_ref = ''
+            if item.isSetPortRef():
+                port_ref = item.getPortRef()
+            info['port_ref'] = port_ref
+            id_ref = ''
+            if item.isSetIdRef():
+                id_ref = item.getIdRef()
+            info['id_ref'] = id_ref
+            unit_ref = ''
+            if item.isSetUnitRef():
+                unit_ref = item.getUnitRef()
+            info['unit_ref'] = unit_ref
+            metaid_ref = ''
+            if item.isSetMetaIdRef():
+                metaid_ref = item.getMetaIdRef()
+            info['metaid_ref'] = metaid_ref
+            items.append(info)
+    return items
+
 def listOfFunctions_dict(model):
     items = []
-    for item in model.model.getListOfFunctionDefinitions():
+    for item in model.getListOfFunctionDefinitions():
         info = infoSbase(item)
         info['math'] = math(item)
         items.append(info)
@@ -274,6 +314,7 @@ def listOfCompartments_dict(model, values):
         items.append(info)
     return items
 
+
 def listOfSpecies_dict(model):
     items = []
     for item in model.getListOfSpecies():
@@ -305,7 +346,7 @@ def listOfSpecies_dict(model):
                 if c is not 0:
                     info['fbc_charge'] = '({})'.format(sfbc.getCharge())
             if ('fbc_formula' in info) or ('fbc_charge' in info):
-                item['fbc'] = "<br /><code>{} {}</code>".format(info.get('fbc_formula', ''), info.get('fbc_charge', ''))
+                info['fbc'] = "<br /><code>{} {}</code>".format(info.get('fbc_formula', ''), info.get('fbc_charge', ''))
         items.append(info)
     return items
 
@@ -471,6 +512,22 @@ def cvterm(item):
 def sbo(item):
     if item.getSBOTerm() != -1:
         return '<div class="cvterm"><a href="{}" target="_blank">{}</a></div>'.format(item.getSBOTermAsURL(), item.getSBOTermID())
+    return ''
+
+def sbaseref(sref):
+    """ Formats the SBaseRef
+
+    :param sref:
+    :return:
+    """
+    if sref.isSetPortRef():
+        return 'portRef={}'.format(sref.getPortRef())
+    elif sref.isSetIdRef():
+        return 'idRef={}'.format(sref.getIdRef())
+    elif sref.isSetUnitRef():
+        return 'unitRef={}'.format(sref.getUnitRef())
+    elif sref.isSetMetaIdRef():
+        return 'metaIdRef={}'.format(sref.getMetaIdRef())
     return ''
 
 def empty_html():

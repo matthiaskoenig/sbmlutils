@@ -1,9 +1,28 @@
-
 <!------------------------------------------------------->
-<!--  MODEL 									       -->
+<!--  PORTS					   						   -->
 <!------------------------------------------------------->
-{% macro model(m) %}
+{% macro port_header(size) %}
+    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Ports [{{ size }}]</th>
+	<th scope="col">name</th>
+	<th scope="col">port ref</th>
+	<th scope="col">id ref</th>
+	<th scope="col">unit ref</th>
+	<th scope="col">metaid ref</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+{% endmacro %}
 
+{% macro port_content(item) %}
+    <td class="hidden">FunctionDefinition</td>
+	{{ item.id_html }}
+	<td>{{ item.name }}</td>
+	<td>{{ item.port_ref }}</td>
+	<td>{{ item.id_ref }}</td>
+	<td>{{ item.unit_ref }}</td>
+	<td>{{ item.mataid_ref }}</td>
+	<td>{{ item.sbo }}</td>
+	<td>{{ item.cvterm }}</td>
 {% endmacro %}
 
 <!------------------------------------------------------->
@@ -217,6 +236,7 @@
 {% macro reaction_header(size) %}
     <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Reactions [{{ size }}]</th>
+	<th scope="col">id</th>
 	<th scope="col">name</th>
 	<th scope="col"></th>
 	<th scope="col">equation</th>
@@ -229,11 +249,12 @@
 
 {% macro reaction_content(item) %}
     <td class="hidden">Reaction</td>
+	<td>{% if item.replaced_by %}{{ item.replaced_by }}{% endif %}</td>
 	{{ item.id_html }}
          {{ item.gpa|e }}</td>
 	<td>{{ item.name }}<br />
-		{% if item.fbc_bounds %}<span class="cvterm blue">{{ item.fbc_bounds }}</span><br />{% endif %}
-        {% if item.fbc_gpa %}<span class="cvterm blue">{{ item.fbc_gpa }}{{item.fbc_charge }}</span>{% endif %}
+		{% if item.fbc_bounds %}{{ item.fbc_bounds }}<br />{% endif %}
+		{% if item.fbc_gpa %}{{ item.fbc_gpa }}{% endif %}
 	</td>
 	{{ item.reversible }}
 	<td>{{ item.equation }}</td>

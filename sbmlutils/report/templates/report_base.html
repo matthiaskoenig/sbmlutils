@@ -67,6 +67,14 @@
                 "ordering": true
             } );
 
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
 
             var t_functions = $('#table_functions').dataTable({
                 "bPaginate": false,
@@ -197,11 +205,14 @@
 
             <ul class="nav nav-sidebar">
                 <li><a href="#top">Model</a></li>
-                {% if units %}
-                    <li><a href="#table_units">UnitDefinitions</a></li>
+                {% if ports %}
+                    <li><a href="#table_ports">Ports</a></li>
                 {% endif %}
                 {% if functions %}
                     <li><a href="#table_functions">FunctionDefinitions</a></li>
+                {% endif %}
+                {% if units %}
+                    <li><a href="#table_units">UnitDefinitions</a></li>
                 {% endif %}
                 {% if compartments %}
                     <li><a href="#table_compartments">Compartments</a></li>
