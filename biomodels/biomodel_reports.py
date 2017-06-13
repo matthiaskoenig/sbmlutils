@@ -45,6 +45,14 @@ def biomodel_report(biomodel_id, biomodels_folder="r30", output_folder="r30_repo
 
     sbmlreport.create_sbml_report(os.path.join(biomodel_path, biomodel_id), out_dir=output_path, validate=False)
 
+
+def test_simulation():
+    import roadrunner
+    r = roadrunner.RoadRunner("./r30/BIOMD0000000266.xml")
+    r.simulate(0, 100, steps=100)
+    r.plot()
+
 if __name__ == "__main__":
+    # test_simulation()
     # biomodel_report(biomodel_id="BIOMD0000000266.xml")
     biomodel_reports()

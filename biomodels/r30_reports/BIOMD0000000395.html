@@ -1,0 +1,3761 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>Sivakumar2011_HedgehogSignalingPathway</title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <div class="dc:title">
+	  Sivakumar2011 - Hedgehog Signaling Pathway
+	</div>
+    <div class="dc:description">
+      <p>This is the current model for the Hedgehog signaling pathway. The best data for mechanism of signaling has been worked out in Drosophila, so this model is based largely on Drosophila data. Hedgehog target genes vary from tissue to tissue, so the identities of individual target genes have not been listed. The main difference between the Drosophila and mammalian Hedgehog signaling pathways is the fact that there are three mammalian homologs of Cubitus interruptus, Gli1 Gli2 and Gli3. Some or all of the mammalian homologs may be proteolytically processed, but the data are controversial. There are two mammalian Ptc genes and three mammalian Hedgehog genes as well. The pathway for Sonic Hedgehog appears to be most similar to the Drosophila hedgehog pathway.</p>
+      <p>References:</p>
+      <ul>
+        <li>
+          <a href="http://identifiers.org/pubmed/11731473">Hedgehog signaling in animal development: paradigms and principles.</a>
+        </li>
+        <li>
+          <a href="http://identifiers.org/pubmed/11861165">Sonic hedgehog in the nervous system: functions, modifications and mechanisms.</a>
+        </li>
+        <li>
+          <a href="http://identifiers.org/pubmed/12200154">Hedgehog signal transduction: recent findings.</a>
+        </li>
+        <li>
+          <a href="http://identifiers.org/pubmed/14738752">Hedgehog signaling: Costal-2 bridges the transduction gap.</a>
+        </li>
+      </ul>
+    </div>
+    <div class="dc:bibliographicCitation">
+      <p>This model is described in the article:</p>
+      <div class="bibo:title">
+        <a href="http://identifiers.org/pubmed/21978399" title="Access to this publication">A systems biology approach to model neural stem cell regulation by notch, shh, wnt, and EGF signaling pathways.</a>
+      </div>
+      <div class="bibo:authorList">Sivakumar KC, Dhanesh SB, Shobana S, James J, Mundayoor S.</div>
+      <div class="bibo:Journal">Omics: a Journal of Integrative Biology. 2011; 15(10):729-737</div>
+      <p>Abstract:</p>
+      <div class="bibo:abstract">
+        <p>The Notch, Sonic Hedgehog (Shh), Wnt, and EGF pathways have long been known to influence cell fate specification in the developing nervous system. Here we attempted to evaluate the contemporary knowledge about neural stem cell differentiation promoted by various drug-based regulations through a systems biology approach. Our model showed the phenomenon of DAPT-mediated antagonism of Enhancer of split [E(spl)] genes and enhancement of Shh target genes by a SAG agonist that were effectively demonstrated computationally and were consistent with experimental studies. However, in the case of model simulation of Wnt and EGF pathways, the model network did not supply any concurrent results with experimental data despite the fact that drugs were added at the appropriate positions. This paves insight into the potential of crosstalks between pathways considered in our study. Therefore, we manually developed a map of signaling crosstalk, which included the species connected by representatives from Notch, Shh, Wnt, and EGF pathways and highlighted the regulation of a single target gene, Hes-1, based on drug-induced simulations. These simulations provided results that matched with experimental studies. Therefore, these signaling crosstalk models complement as a tool toward the discovery of novel regulatory processes involved in neural stem cell maintenance, proliferation, and differentiation during mammalian central nervous system development. To our knowledge, this is the first report of a simple crosstalk map that highlights the differential regulation of neural stem cell differentiation and underscores the flow of positive and negative regulatory signals modulated by drugs.</p>
+      </div>
+    </div>
+    <div class="dc:publisher">
+      <p>This model is hosted on <a href="http://www.ebi.ac.uk/biomodels/">BioModels Database</a> and identified by: <a href="http://identifiers.org/biomodels.db/BIOMD0000000395">BIOMD0000000395</a>.</p>
+      <p>To cite BioModels Database, please use: <a href="http://identifiers.org/pubmed/20587024" title="Latest BioModels Database publication">BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models</a>.</p>
+    </div>
+    <div class="dc:license">
+      <p>To the extent possible under law, all copyright and related or neighbouring rights to this encoded model have been dedicated to the public domain worldwide. Please refer to <a href="http://creativecommons.org/publicdomain/zero/1.0/" title="Access to: CC0 1.0 Universal (CC0 1.0), Public Domain Dedication">CC0 Public Domain Dedication</a> for more information.</p>
+    </div>
+  </body>
+</notes><hr />
+    <h1>Model : Sivakumar2011_HedgehogSignalingPathway</h1>
+    <b>Creator</b><br />Vijayalakshmi, Chelliah, EMBL-EBI, <a href="mailto:viji@ebi.ac.uk" target="_blank">viji@ebi.ac.uk</a><br />KC, Sivakumar, Rajiv Gandhi Centre for Biotechnology, <a href="mailto:sivakumar.kc@gmail.com" target="_blank">sivakumar.kc@gmail.com</a><br /><b>Created:</b> 2011-11-02 14:45<br /><b>Modified:</b> 2016-04-08 17:16<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="Sivakumar2011_HedgehogSignalingPathway" class="active"><span class="package">Sivakumar2011_HedgehogSignalingPathway</span> <code>_118516</code></td></tr>
+                <tr><td class="active">name</td><td>Sivakumar2011 - Hedgehog Signaling Pathway</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000395.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L2V1</span> <span class="package">layout-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL1101270001" target="_blank">MODEL1101270001</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000395" target="_blank">BIOMD0000000395</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/21978399" target="_blank">21978399</a><br /><span class="collection">BQM_IS_DERIVED_FROM</span><br /><a href="http://identifiers.org/panther.pathway/P00025" target="_blank">P00025</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0007224" target="_blank">GO:0007224</a><br /><span class="collection">BQB_OCCURS_IN</span><br /><a href="http://identifiers.org/taxonomy/40674" target="_blank">40674</a><br /><span class="collection">BQB_OCCURS_IN</span><br /><a href="http://identifiers.org/cl/CL:0000047" target="_blank">CL:0000047</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [4]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="default" class="active"><span class="package">default</span> <code>_118861</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-default"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-default" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">default</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="_118861" id="default" size="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="c1" class="active"><span class="package">c1</span> <code>_118862</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="_118862" id="c1" name="Receiving cell" size="1" outside="default">
+  <annotation>
+    <celldesigner:name>Receiving cell</celldesigner:name>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Receiving cell</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="c4" class="active"><span class="package">c4</span> <code>_118881</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="_118881" id="c4" name="lipid raft" size="1" outside="c1">
+  <annotation>
+    <celldesigner:name>lipid raft</celldesigner:name>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>lipid raft</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="c5" class="active"><span class="package">c5</span> <code>_118900</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="_118900" id="c5" name="nucleus" size="1" outside="c1">
+  <annotation>
+    <celldesigner:name>nucleus</celldesigner:name>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>nucleus</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [23]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s9" class="active"><span class="package">s9</span> <code>_118920</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s9"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s9" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s9</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_118920" id="s9" name="ATP" compartment="c1" initialAmount="2" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  ATP
+Synonym:  Synonym not specified
+Accession:  S01691</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>SIMPLE_MOLECULE</celldesigner:class>
+      <celldesigner:name>ATP</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_118920">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15422"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ATP</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>2.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/chebi/CHEBI:15422" target="_blank">CHEBI:15422</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s10" class="active"><span class="package">s10</span> <code>_118940</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s10"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s10" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s10</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_118940" id="s10" name="ADP" compartment="c1" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  ADP
+Synonym:  Synonym not specified
+Accession:  S01693</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>SIMPLE_MOLECULE</celldesigner:class>
+      <celldesigner:name>ADP</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_118940">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16761"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ADP</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/chebi/CHEBI:16761" target="_blank">CHEBI:16761</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s1" class="active"><span class="package">s1</span> <code>_118959</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_118959" id="s1" name="Patched" compartment="c1" initialAmount="5" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Patched
+Synonym:  Ptc,Ptc1
+Accession:  P00689</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>transmembrane</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p1</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_118959">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q13635"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Patched</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>5.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q13635" target="_blank">Q13635</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s75" class="active"><span class="package">s75</span> <code>_118978</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s75"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s75" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s75</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_118978" id="s75" name="Hedgehog target gene" compartment="c5" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  e.g., ptc
+Synonym:  Synonym not specified
+Accession:  G01526</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>GENE</celldesigner:class>
+      <celldesigner:geneReference>gn1</celldesigner:geneReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_118978">
+        <bqbiol:isDescribedBy>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0007228"/>
+          </rdf:Bag>
+        </bqbiol:isDescribedBy>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Hedgehog target gene</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/go/GO:0007228" target="_blank">GO:0007228</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s135" class="active"><span class="package">s135</span> <code>_118998</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s135"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s135" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s135</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_118998" id="s135" name="Sap18" compartment="c5" initialAmount="2.5" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Sap18
+Synonym:  Sin3-associated polypeptide 18
+Accession:  P00697</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p21</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_118998">
+        <bqbiol:isHomologTo>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q3MHS8"/>
+          </rdf:Bag>
+        </bqbiol:isHomologTo>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Sap18</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>2.5</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_HOMOLOG_TO</span><br /><a href="http://identifiers.org/uniprot/Q3MHS8" target="_blank">Q3MHS8</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s7" class="active"><span class="package">s7</span> <code>_119017</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119017" id="s7" name="Hedgehog" compartment="default" initialAmount="5" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Hedgehog
+Synonym:  Hh,Shh,Sonic hedgehog
+Accession:  P00688</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p3</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119017">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q15465"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Hedgehog</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>5.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q15465" target="_blank">Q15465</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s21" class="active"><span class="package">s21</span> <code>_119036</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s21"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s21" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s21</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119036" id="s21" name="Complex_br_(Patched/Hedgehog)" compartment="c1" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Long Name:  Long name not specified
+Synonym:  Synonym not specified
+Accession:  U05221
+Heterodimer Member Info:  Hedgehog#PROTEIN#Hedgehog#P00688#Hh|Shh|Sonic hedgehog#;Patched#PROTEIN#Patched#P00689#Ptc|Ptc1#</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>transmembrane</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Patched/Hedgehog)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <celldesigner:listOfCatalyzedReactions>
+      <celldesigner:catalyzed reaction="r14"/>
+      <celldesigner:catalyzed reaction="r15"/>
+      <celldesigner:catalyzed reaction="r23"/>
+    </celldesigner:listOfCatalyzedReactions>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119036">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Patched/Hedgehog)</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s46" class="active"><span class="package">s46</span> <code>_119057</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s46"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s46" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s46</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119057" id="s46" name="Complex_br_(Costal2/Fused/_br_Smoothened)" compartment="c1" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Long Name:  Smoothened
+Synonym:  Synonym not specified
+Accession:  U05226
+Heterodimer Member Info:  Smoothened#PROTEIN#Smoothened#P00685#Smo#;Fused#PROTEIN#Fused#P00686#Fu#;Costal2#PROTEIN#Costal2#P00698#Cos-2|Cos2|Costal-2#</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>transmembrane</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Costal2/Fused/_br_Smoothened)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119057">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Costal2/Fused/_br_Smoothened)</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s48" class="active"><span class="package">s48</span> <code>_119076</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s48"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s48" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s48</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119076" id="s48" name="Complex_br_(Costal2/Smoothened/_br_Fused)" compartment="c1" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Long Name:  Long name not specified
+Synonym:  Synonym not specified
+Accession:  U05228
+Heterodimer Member Info:  Smoothened#PROTEIN#Smoothened#P00685#Smo#;Fused#PROTEIN#Fused#P00686#Fu#;Costal2#PROTEIN#Costal2#P00698#Cos-2|Cos2|Costal-2#</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>transmembrane</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Costal2/Smoothened/_br_Fused)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <celldesigner:listOfCatalyzedReactions>
+      <celldesigner:catalyzed reaction="r53"/>
+    </celldesigner:listOfCatalyzedReactions>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119076">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Costal2/Smoothened/_br_Fused)</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s69" class="active"><span class="package">s69</span> <code>_119096</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s69"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s69" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s69</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119096" id="s69" name="Complex_br_(Costal2/Fused/_br_Smoothened)" compartment="c4" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Long Name:  Long name not specified
+Synonym:  Synonym not specified
+Accession:  U05229
+Heterodimer Member Info:  Smoothened#PROTEIN#Smoothened#P00685#Smo#;Fused#PROTEIN#Fused#P00686#Fu#;Costal2#PROTEIN#Costal2#P00698#Cos-2|Cos2|Costal-2#</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>innerSurface</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Costal2/Fused/_br_Smoothened)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119096">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Costal2/Fused/_br_Smoothened)</td>
+	<td>c4</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s71" class="active"><span class="package">s71</span> <code>_119114</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s71"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s71" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s71</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119114" id="s71" name="CBP" compartment="c5" initialAmount="2" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  CBP
+Synonym:  CREB binding protein,p300
+Accession:  P00691</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p11</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119114">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q92793"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>CBP</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>2.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q92793" target="_blank">Q92793</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s68" class="active"><span class="package">s68</span> <code>_119134</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s68"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s68" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s68</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119134" id="s68" name="Microtubule" compartment="c1" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Microtubule
+Synonym:  Synonym not specified
+Accession:  P00696</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p10</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119134">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0005874"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Microtubule</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/go/GO:0005874" target="_blank">GO:0005874</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s70" class="active"><span class="package">s70</span> <code>_119153</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s70"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s70" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s70</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119153" id="s70" name="Cubitus_space_interruptus" compartment="c5" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Cubitus interruptus
+Synonym:  Ci,CiFL,Gli1,Gli2,Gli3
+Accession:  P00690</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p6</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119153">
+        <bqbiol:isHomologTo>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/B4NUI3"/>
+          </rdf:Bag>
+        </bqbiol:isHomologTo>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Cubitus_space_interruptus</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_HOMOLOG_TO</span><br /><a href="http://identifiers.org/uniprot/B4NUI3" target="_blank">B4NUI3</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s128" class="active"><span class="package">s128</span> <code>_119173</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s128"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s128" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s128</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119173" id="s128" name="Complex_br_(Cubitus_space_interruptus_space_repressor/Su(fu))" compartment="c5" initialAmount="2.5" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Long Name:  Long name not specified
+Synonym:  Synonym not specified
+Accession:  U05220
+Heterodimer Member Info:  Cubitus interruptus repressor#PROTEIN#Cubitus interruptus repressor#P00687#CiR#;Su(fu)#PROTEIN#Su(fu)#P00699#Suppressor of Fused#</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Cubitus_space_interruptus_space_repressor/Su(fu))</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119173">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Cubitus_space_interruptus_space_repressor/Su(fu))</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>2.5</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s140" class="active"><span class="package">s140</span> <code>_119192</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s140"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s140" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s140</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119192" id="s140" name="Complex_br_(Sap18/Su(fu)/_br_Cubitus_space_interruptus_space_repressor)" compartment="c5" initialAmount="0" charge="0">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>Long Name:  Long Name:  Long name not specified
+Synonym:  Synonym not specified
+Accession:  U05217
+Heterodimer Member Info:  Cubitus interruptus repressor#PROTEIN#Cubitus interruptus repressor#P00687#CiR#;Sap18#PROTEIN#Sap18#P00697#Sin3-associated polypeptide 18#;Su(fu)#PROTEIN#Su(fu)#P00699#Suppressor of Fused#</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Sap18/Su(fu)/_br_Cubitus_space_interruptus_space_repressor)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119192">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Sap18/Su(fu)/_br_Cubitus_space_interruptus_space_repressor)</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s148" class="active"><span class="package">s148</span> <code>_119211</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s148"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s148" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s148</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119211" id="s148" name="smoothened" compartment="c1" initialAmount="3" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>pr22</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>smoothened</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>3.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s150" class="active"><span class="package">s150</span> <code>_119230</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s150"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s150" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s150</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119230" id="s150" name="complex" compartment="c1" initialAmount="3" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>complex</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119230">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>complex</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>3.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s152" class="active"><span class="package">s152</span> <code>_119250</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s152"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s152" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s152</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119250" id="s152" name="MIcrotubule" compartment="c1" initialAmount="0">
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>PROTEIN</celldesigner:class>
+      <celldesigner:proteinReference>p7</celldesigner:proteinReference>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119250">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0005874"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>MIcrotubule</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0005874" target="_blank">GO:0005874</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s157" class="active"><span class="package">s157</span> <code>_119269</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s157"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s157" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s157</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119269" id="s157" name="sag" compartment="c1" initialAmount="0.5" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>DRUG</celldesigner:class>
+      <celldesigner:name>sag</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <celldesigner:listOfCatalyzedReactions>
+      <celldesigner:catalyzed reaction="re24"/>
+    </celldesigner:listOfCatalyzedReactions>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119269">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P10523"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>sag</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.5</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P10523" target="_blank">P10523</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s158" class="active"><span class="package">s158</span> <code>_119289</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s158"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s158" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s158</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119289" id="s158" name="Complex_br_(CBP/Cubitus)" compartment="c5" initialAmount="0" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(CBP/Cubitus)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119289">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(CBP/Cubitus)</td>
+	<td>c5</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s159" class="active"><span class="package">s159</span> <code>_119308</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s159"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s159" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s159</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119308" id="s159" name="Complex_br_(Costal2/Fused/../microtubule)" compartment="c4" initialAmount="0" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>innerSurface</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Costal2/Fused/../microtubule)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119308">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Costal2/Fused/../microtubule)</td>
+	<td>c4</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s160" class="active"><span class="package">s160</span> <code>_119327</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s160"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s160" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s160</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119327" id="s160" name="Complex_br_(Su(fu)/Fused/../_br_Smoothened)" compartment="c4" initialAmount="0" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>innerSurface</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Su(fu)/Fused/../_br_Smoothened)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_119327">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0043234"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Su(fu)/Fused/../_br_Smoothened)</td>
+	<td>c4</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0043234" target="_blank">GO:0043234</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s161" class="active"><span class="package">s161</span> <code>_119346</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s161"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s161" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s161</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_119346" id="s161" name="Complex_br_(Su(fu)/Cubitus)" compartment="c1" initialAmount="0" charge="0">
+  <annotation>
+    <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+    <celldesigner:speciesIdentity>
+      <celldesigner:class>COMPLEX</celldesigner:class>
+      <celldesigner:name>Complex_br_(Su(fu)/Cubitus)</celldesigner:name>
+    </celldesigner:speciesIdentity>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Complex_br_(Su(fu)/Cubitus)</td>
+	<td>c1</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [25]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r7" class="active"><span class="package">kass_r7</span> <code>_119651</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119651" id="kass_r7" value="1.13"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.13</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r7" class="active"><span class="package">kdiss_r7</span> <code>_119652</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119652" id="kdiss_r7" value="1.122"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.122</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kcatp_r14" class="active"><span class="package">kcatp_r14</span> <code>_119653</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kcatp_r14"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kcatp_r14" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kcatp_r14</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119653" id="kcatp_r14" value="1.146"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.146</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kM_r14_s69" class="active"><span class="package">kM_r14_s69</span> <code>_119656</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kM_r14_s69"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kM_r14_s69" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kM_r14_s69</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119656" id="kM_r14_s69" value="1.03"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.03</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kcatn_r14" class="active"><span class="package">kcatn_r14</span> <code>_119657</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kcatn_r14"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kcatn_r14" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kcatn_r14</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119657" id="kcatn_r14" value="1.75"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.75</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kM_r14_s46" class="active"><span class="package">kM_r14_s46</span> <code>_119658</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kM_r14_s46"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kM_r14_s46" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kM_r14_s46</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119658" id="kM_r14_s46" value="0.215"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.215</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r25" class="active"><span class="package">kass_r25</span> <code>_119659</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r25"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r25" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r25</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119659" id="kass_r25" value="1.27"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.27</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r25" class="active"><span class="package">kdiss_r25</span> <code>_119660</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r25"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r25" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r25</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119660" id="kdiss_r25" value="0.73"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.73</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r26" class="active"><span class="package">kass_r26</span> <code>_119661</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r26"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r26" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r26</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119661" id="kass_r26" value="1.33"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.33</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r26" class="active"><span class="package">kdiss_r26</span> <code>_119662</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r26"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r26" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r26</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119662" id="kdiss_r26" value="0.61"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.61</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r51" class="active"><span class="package">kass_r51</span> <code>_119663</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r51"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r51" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r51</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119663" id="kass_r51" value="1.23"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.23</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r51" class="active"><span class="package">kdiss_r51</span> <code>_119664</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r51"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r51" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r51</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119664" id="kdiss_r51" value="0.46"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.46</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r52" class="active"><span class="package">kass_r52</span> <code>_119665</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r52"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r52" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r52</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119665" id="kass_r52" value="0.6"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.6</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r52" class="active"><span class="package">kdiss_r52</span> <code>_119666</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r52"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r52" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r52</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119666" id="kdiss_r52" value="1.67"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.67</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kcatp_r53" class="active"><span class="package">kcatp_r53</span> <code>_119667</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kcatp_r53"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kcatp_r53" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kcatp_r53</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119667" id="kcatp_r53" value="1.29"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.29</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kM_r53_s70" class="active"><span class="package">kM_r53_s70</span> <code>_119668</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kM_r53_s70"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kM_r53_s70" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kM_r53_s70</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119668" id="kM_r53_s70" value="0.79"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.79</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kcatn_r53" class="active"><span class="package">kcatn_r53</span> <code>_119669</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kcatn_r53"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kcatn_r53" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kcatn_r53</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119669" id="kcatn_r53" value="1.62"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.62</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r54" class="active"><span class="package">kass_r54</span> <code>_119670</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r54"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r54" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r54</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119670" id="kass_r54" value="1.28"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.28</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r54" class="active"><span class="package">kdiss_r54</span> <code>_119671</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r54"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r54" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r54</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119671" id="kdiss_r54" value="0.71"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.71</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r55" class="active"><span class="package">kass_r55</span> <code>_119672</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r55"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r55" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r55</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119672" id="kass_r55" value="1.56"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.56</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r15_s21" class="active"><span class="package">kass_r15_s21</span> <code>_119673</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r15_s21"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r15_s21" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r15_s21</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119673" id="kass_r15_s21" value="1.53"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.53</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r15_s21" class="active"><span class="package">kdiss_r15_s21</span> <code>_119674</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r15_s21"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r15_s21" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r15_s21</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119674" id="kdiss_r15_s21" value="0.89"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.89</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_re24_s157" class="active"><span class="package">kass_re24_s157</span> <code>_119675</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_re24_s157"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_re24_s157" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_re24_s157</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119675" id="kass_re24_s157" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kass_r23_s21" class="active"><span class="package">kass_r23_s21</span> <code>_119676</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kass_r23_s21"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kass_r23_s21" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kass_r23_s21</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119676" id="kass_r23_s21" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kdiss_r23_s21" class="active"><span class="package">kdiss_r23_s21</span> <code>_119677</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kdiss_r23_s21"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kdiss_r23_s21" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kdiss_r23_s21</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="_119677" id="kdiss_r23_s21" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [12]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r52" class="active"><span class="package">r52</span> <code>_119366</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r52"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r52" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r52</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119366" id="r52" reversible="false">
+  <annotation>
+    <celldesigner:reactionType>TRANSCRIPTIONAL_INHIBITION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a222" species="s140"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a102" species="s75"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection index="0" value="unknown"/>
+        <celldesigner:lineDirection index="1" value="unknown"/>
+        <celldesigner:lineDirection index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints>0.3441925240046757,-0.1322380695629901 0.7033715854318032,-0.08606555924071113</celldesigner:editPoints>
+    <celldesigner:line color="ff808080" width="4.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673296" species="s140">
+      <annotation>
+        <celldesigner:alias>a222</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673308" species="s75">
+      <annotation>
+        <celldesigner:alias>a102</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673320">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> kass_r52 </ci>
+          <ci> s140 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kdiss_r52 </ci>
+          <ci> s75 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s140 &#10142; s75</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> kass_r52 </ci>
+      <ci> s140 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kdiss_r52 </ci>
+      <ci> s75 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r55" class="active"><span class="package">r55</span> <code>_119389</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r55"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r55" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r55</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119389" id="r55" reversible="false">
+  <annotation>
+    <celldesigner:reactionType>TRANSCRIPTIONAL_ACTIVATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a227" species="s158"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a102" species="s75"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection index="0" value="unknown"/>
+        <celldesigner:lineDirection index="1" value="unknown"/>
+        <celldesigner:lineDirection index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints>0.13925367307339442,-0.18763096736073237 0.5678578037815392,-0.11768157157429471</celldesigner:editPoints>
+    <celldesigner:line color="ff808080" width="4.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673332" species="s158">
+      <annotation>
+        <celldesigner:alias>a227</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673344" species="s75">
+      <annotation>
+        <celldesigner:alias>a102</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673356">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> kass_r55 </ci>
+        <ci> s158 </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s158 &#10142; s75</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> kass_r55 </ci>
+    <ci> s158 </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r7" class="active"><span class="package">r7</span> <code>_119410</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119410" id="r7" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>mass action rate law for second order forward, first order reverse, reversible reactions, two reactants, continuous scheme</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>HETERODIMER_ASSOCIATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a26" species="s7"/>
+      <celldesigner:baseReactant alias="a25" species="s1"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a30" species="s21"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection arm="0" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints num0="2" num1="2" num2="2" tShapeIndex="0">0.33333333333333304,-4.163336342344337E-16 0.666666666666667,-6.38378239159465E-16 0.33333333333333304,0.0 0.6666666666666661,0.0 0.3362541863016242,-0.0036561576981637423 0.672508372603247,-0.0073123153963274845 0.32725792219672245,0.3347743023511141</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673368" species="s7">
+      <annotation>
+        <celldesigner:alias>a26</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673380" species="s1">
+      <annotation>
+        <celldesigner:alias>a25</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673392" species="s21">
+      <annotation>
+        <celldesigner:alias>a30</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673404">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> kass_r7 </ci>
+          <ci> s7 </ci>
+          <ci> s1 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kdiss_r7 </ci>
+          <ci> s21 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s7 + s1 &#8646; s21</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> kass_r7 </ci>
+      <ci> s7 </ci>
+      <ci> s1 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kdiss_r7 </ci>
+      <ci> s21 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r14" class="active"><span class="package">r14</span> <code>_119433</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r14"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r14" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r14</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119433" id="r14" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>kinetics of non-modulated unireactant enzymes</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>TRANSPORT</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a95" species="s69"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a55" species="s46"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct" rectangleIndex="0">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection index="0" value="unknown"/>
+        <celldesigner:lineDirection index="1" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints>0.7016891304993713,0.013609958692707869</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+    <celldesigner:listOfModification>
+      <celldesigner:modification aliases="a30" editPoints="0.3281721162735478,7.909602370945734E-4 0.6564984605931354,0.004868442685994012" modifiers="s21" targetLineIndex="-1,2" type="CATALYSIS">
+        <celldesigner:connectScheme connectPolicy="direct">
+          <celldesigner:listOfLineDirection>
+            <celldesigner:lineDirection index="0" value="unknown"/>
+            <celldesigner:lineDirection index="1" value="unknown"/>
+            <celldesigner:lineDirection index="2" value="unknown"/>
+          </celldesigner:listOfLineDirection>
+        </celldesigner:connectScheme>
+        <celldesigner:line color="ff000000" width="1.0"/>
+      </celldesigner:modification>
+    </celldesigner:listOfModification>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673416" species="s69">
+      <annotation>
+        <celldesigner:alias>a95</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673428" species="s46">
+      <annotation>
+        <celldesigner:alias>a55</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_673440" species="s21">
+      <annotation>
+        <celldesigner:alias>a30</celldesigner:alias>
+      </annotation>
+    </modifierSpeciesReference>
+  </listOfModifiers>
+  <kineticLaw metaid="_673452">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> s21 </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> kcatp_r14 </ci>
+                <ci> kM_r14_s69 </ci>
+              </apply>
+              <ci> s69 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> kcatn_r14 </ci>
+                <ci> kM_r14_s46 </ci>
+              </apply>
+              <ci> s46 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> s69 </ci>
+              <ci> kM_r14_s69 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> s46 </ci>
+              <ci> kM_r14_s46 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s69 &#8646; s46</td>
+	<td>s21</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> s21 </ci>
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> kcatp_r14 </ci>
+            <ci> kM_r14_s69 </ci>
+          </apply>
+          <ci> s69 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> kcatn_r14 </ci>
+            <ci> kM_r14_s46 </ci>
+          </apply>
+          <ci> s46 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> s69 </ci>
+          <ci> kM_r14_s69 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> s46 </ci>
+          <ci> kM_r14_s46 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r51" class="active"><span class="package">r51</span> <code>_119458</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r51"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r51" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r51</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119458" id="r51" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>mass action rate law for second order forward, first order reverse, reversible reactions, two reactants, continuous scheme</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>HETERODIMER_ASSOCIATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a215" species="s135"/>
+      <celldesigner:baseReactant alias="a200" species="s128"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a222" species="s140"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection arm="0" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints num0="2" num1="2" num2="2" tShapeIndex="0">0.3333333333333339,1.0658141036401503E-14 0.6666666666666661,1.0658141036401503E-14 0.3333333333333286,7.105427357601002E-15 0.6666666666666643,5.329070518200751E-15 0.18496728222224768,0.024747540951246094 0.48367759749219275,-0.05686730340235613 0.3313777674059075,0.304787384438157</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673464" species="s135">
+      <annotation>
+        <celldesigner:alias>a215</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673476" species="s128">
+      <annotation>
+        <celldesigner:alias>a200</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673488" species="s140">
+      <annotation>
+        <celldesigner:alias>a222</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673500">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> kass_r51 </ci>
+          <ci> s135 </ci>
+          <ci> s128 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kdiss_r51 </ci>
+          <ci> s140 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s135 + s128 &#8646; s140</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> kass_r51 </ci>
+      <ci> s135 </ci>
+      <ci> s128 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kdiss_r51 </ci>
+      <ci> s140 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r53" class="active"><span class="package">r53</span> <code>_119481</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r53"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r53" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r53</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119481" id="r53" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>kinetics of non-modulated unireactant enzymes</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>STATE_TRANSITION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a46" species="s70"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a223" species="s70"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct" rectangleIndex="1">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection index="0" value="unknown"/>
+        <celldesigner:lineDirection index="1" value="unknown"/>
+        <celldesigner:lineDirection index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints>0.33333333333332504,-1.7763568394002505E-15 0.6666666666666607,-1.7763568394002505E-15</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+    <celldesigner:listOfModification>
+      <celldesigner:modification aliases="a57" modifiers="s48" targetLineIndex="-1,2" type="CATALYSIS">
+        <celldesigner:connectScheme connectPolicy="direct">
+          <celldesigner:listOfLineDirection>
+            <celldesigner:lineDirection index="0" value="unknown"/>
+          </celldesigner:listOfLineDirection>
+        </celldesigner:connectScheme>
+        <celldesigner:line color="ff000000" width="1.0"/>
+      </celldesigner:modification>
+    </celldesigner:listOfModification>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673512" species="s70">
+      <annotation>
+        <celldesigner:alias>a46</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673524" species="s70">
+      <annotation>
+        <celldesigner:alias>a223</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_673536" species="s48">
+      <annotation>
+        <celldesigner:alias>a57</celldesigner:alias>
+      </annotation>
+    </modifierSpeciesReference>
+  </listOfModifiers>
+  <kineticLaw metaid="_673548">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> s48 </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> kcatp_r53 </ci>
+                <ci> kM_r53_s70 </ci>
+              </apply>
+              <ci> s70 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> kcatn_r53 </ci>
+                <ci> kM_r53_s70 </ci>
+              </apply>
+              <ci> s70 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> s70 </ci>
+              <ci> kM_r53_s70 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> s70 </ci>
+              <ci> kM_r53_s70 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s70 &#8646; s70</td>
+	<td>s48</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> s48 </ci>
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> kcatp_r53 </ci>
+            <ci> kM_r53_s70 </ci>
+          </apply>
+          <ci> s70 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> kcatn_r53 </ci>
+            <ci> kM_r53_s70 </ci>
+          </apply>
+          <ci> s70 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> s70 </ci>
+          <ci> kM_r53_s70 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> s70 </ci>
+          <ci> kM_r53_s70 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="re24" class="active"><span class="package">re24</span> <code>_119503</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-re24"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-re24" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">re24</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119503" id="re24" reversible="false" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>mass action rate law for second order irreversible reactions, two reactants, continuous scheme</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>HETERODIMER_ASSOCIATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="sa92" species="s148">
+        <celldesigner:linkAnchor position="E"/>
+      </celldesigner:baseReactant>
+      <celldesigner:baseReactant alias="csa18" species="s150">
+        <celldesigner:linkAnchor position="NE"/>
+      </celldesigner:baseReactant>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a115" species="s159">
+        <celldesigner:linkAnchor position="WNW"/>
+      </celldesigner:baseProduct>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection arm="0" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="0" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints num0="0" num1="0" num2="0" tShapeIndex="0">0.16514962593516214,0.2787406483790523</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+    <celldesigner:listOfModification>
+      <celldesigner:modification aliases="sa100" modifiers="s157" targetLineIndex="2,2" type="CATALYSIS">
+        <celldesigner:connectScheme connectPolicy="direct">
+          <celldesigner:listOfLineDirection>
+            <celldesigner:lineDirection index="0" value="unknown"/>
+          </celldesigner:listOfLineDirection>
+        </celldesigner:connectScheme>
+        <celldesigner:linkTarget alias="sa100" species="s157">
+          <celldesigner:linkAnchor position="S"/>
+        </celldesigner:linkTarget>
+        <celldesigner:line color="ff000000" width="1.0"/>
+      </celldesigner:modification>
+    </celldesigner:listOfModification>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673560" species="s148">
+      <annotation>
+        <celldesigner:alias>sa92</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673572" species="s150">
+      <annotation>
+        <celldesigner:alias>csa18</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673584" species="s159">
+      <annotation>
+        <celldesigner:alias>a115</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_673596" species="s157">
+      <annotation>
+        <celldesigner:alias>sa100</celldesigner:alias>
+      </annotation>
+    </modifierSpeciesReference>
+  </listOfModifiers>
+  <kineticLaw metaid="_673608">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> s157 </ci>
+        <ci> kass_re24_s157 </ci>
+        <ci> s148 </ci>
+        <ci> s150 </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s148 + s150 &#10142; s159</td>
+	<td>s157</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> s157 </ci>
+    <ci> kass_re24_s157 </ci>
+    <ci> s148 </ci>
+    <ci> s150 </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r15" class="active"><span class="package">r15</span> <code>_119527</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r15"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r15" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r15</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119527" id="r15" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>reversible rapid-equilibrium random order ternary-complex mechanism with two products</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>STATE_TRANSITION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a55" species="s46"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a57" species="s48"/>
+    </celldesigner:baseProducts>
+    <celldesigner:listOfReactantLinks>
+      <celldesigner:reactantLink alias="a12" reactant="s9" targetLineIndex="-1,0">
+        <celldesigner:line color="ff000000" type="Curve" width="1.0"/>
+      </celldesigner:reactantLink>
+    </celldesigner:listOfReactantLinks>
+    <celldesigner:listOfProductLinks>
+      <celldesigner:productLink alias="a13" product="s10" targetLineIndex="-1,1">
+        <celldesigner:line color="ff000000" type="Curve" width="1.0"/>
+      </celldesigner:productLink>
+    </celldesigner:listOfProductLinks>
+    <celldesigner:connectScheme connectPolicy="direct" rectangleIndex="1">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection index="0" value="unknown"/>
+        <celldesigner:lineDirection index="1" value="unknown"/>
+        <celldesigner:lineDirection index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints>0.3180842010670162,-0.017281098347200485 0.6590669511484935,-0.010917014192077357</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+    <celldesigner:listOfModification>
+      <celldesigner:modification aliases="a30" editPoints="0.045980823299893725,-0.09635558890825746 0.9751929608934229,-0.14499821980991295" modifiers="s21" targetLineIndex="-1,2" type="CATALYSIS">
+        <celldesigner:connectScheme connectPolicy="direct">
+          <celldesigner:listOfLineDirection>
+            <celldesigner:lineDirection index="0" value="unknown"/>
+            <celldesigner:lineDirection index="1" value="unknown"/>
+            <celldesigner:lineDirection index="2" value="unknown"/>
+          </celldesigner:listOfLineDirection>
+        </celldesigner:connectScheme>
+        <celldesigner:line color="ff000000" width="1.0"/>
+      </celldesigner:modification>
+    </celldesigner:listOfModification>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673620" species="s46">
+      <annotation>
+        <celldesigner:alias>a55</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673632" species="s9">
+      <annotation>
+        <celldesigner:alias>a12</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673644" species="s48">
+      <annotation>
+        <celldesigner:alias>a57</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673656" species="s10">
+      <annotation>
+        <celldesigner:alias>a13</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_673668" species="s21">
+      <annotation>
+        <celldesigner:alias>a30</celldesigner:alias>
+      </annotation>
+    </modifierSpeciesReference>
+  </listOfModifiers>
+  <kineticLaw metaid="_673680">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> s21 </ci>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> kass_r15_s21 </ci>
+            <ci> s46 </ci>
+            <ci> s9 </ci>
+          </apply>
+          <apply>
+            <times/>
+            <ci> kdiss_r15_s21 </ci>
+            <ci> s48 </ci>
+            <ci> s10 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s46 + s9 &#8646; s48 + s10</td>
+	<td>s21</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> s21 </ci>
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> kass_r15_s21 </ci>
+        <ci> s46 </ci>
+        <ci> s9 </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> kdiss_r15_s21 </ci>
+        <ci> s48 </ci>
+        <ci> s10 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r23" class="active"><span class="package">r23</span> <code>_119551</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r23"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r23" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r23</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119551" id="r23" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>reversible simple convenience kinetics</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>DISSOCIATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a115" species="s159"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a94" species="s68"/>
+      <celldesigner:baseProduct alias="a123" species="s160"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection arm="0" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints num0="2" num1="0" num2="2" tShapeIndex="0">0.3553212475742926,0.0016533464186903046 0.7106424951485852,0.003306692837378833 0.3527711769625359,0.014142807837544069 0.70554235392507,0.028285615675083697 0.19166036602376124,0.44655782255740917</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+    <celldesigner:listOfModification>
+      <celldesigner:modification aliases="a30" editPoints="0.32927361684162926,-0.0024288109881118736 0.6646368084208152,-0.0012144054940561588" modifiers="s21" targetLineIndex="-1,2" type="CATALYSIS">
+        <celldesigner:connectScheme connectPolicy="direct">
+          <celldesigner:listOfLineDirection>
+            <celldesigner:lineDirection index="0" value="unknown"/>
+            <celldesigner:lineDirection index="1" value="unknown"/>
+            <celldesigner:lineDirection index="2" value="unknown"/>
+          </celldesigner:listOfLineDirection>
+        </celldesigner:connectScheme>
+        <celldesigner:line color="ff000000" width="1.0"/>
+      </celldesigner:modification>
+    </celldesigner:listOfModification>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673692" species="s159">
+      <annotation>
+        <celldesigner:alias>a115</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673704" species="s68">
+      <annotation>
+        <celldesigner:alias>a94</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673716" species="s160">
+      <annotation>
+        <celldesigner:alias>a123</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_673728" species="s21">
+      <annotation>
+        <celldesigner:alias>a30</celldesigner:alias>
+      </annotation>
+    </modifierSpeciesReference>
+  </listOfModifiers>
+  <kineticLaw metaid="_673740">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> s21 </ci>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> kass_r23_s21 </ci>
+            <ci> s159 </ci>
+          </apply>
+          <apply>
+            <times/>
+            <ci> kdiss_r23_s21 </ci>
+            <ci> s68 </ci>
+            <ci> s160 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s159 &#8646; s68 + s160</td>
+	<td>s21</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> s21 </ci>
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> kass_r23_s21 </ci>
+        <ci> s159 </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> kdiss_r23_s21 </ci>
+        <ci> s68 </ci>
+        <ci> s160 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r54" class="active"><span class="package">r54</span> <code>_119575</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r54"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r54" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r54</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119575" id="r54" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>mass action rate law for second order forward, first order reverse, reversible reactions, two reactants, continuous scheme</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>HETERODIMER_ASSOCIATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a223" species="s70"/>
+      <celldesigner:baseReactant alias="a96" species="s71"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a227" species="s158"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection arm="0" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="2" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="2" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints num0="2" num1="2" num2="2" tShapeIndex="0">0.33333333333333215,0.0 0.6666666666666607,0.0 0.3333333333333215,0.0 0.6666666666666643,3.552713678800501E-15 0.3325145108557681,0.006772978007919761 0.665029021711538,0.013545956015837746 0.32855283506645705,0.318504211107264</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673752" species="s70">
+      <annotation>
+        <celldesigner:alias>a223</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673764" species="s71">
+      <annotation>
+        <celldesigner:alias>a96</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673776" species="s158">
+      <annotation>
+        <celldesigner:alias>a227</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673788">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> kass_r54 </ci>
+          <ci> s70 </ci>
+          <ci> s71 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kdiss_r54 </ci>
+          <ci> s158 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s70 + s71 &#8646; s158</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> kass_r54 </ci>
+      <ci> s70 </ci>
+      <ci> s71 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kdiss_r54 </ci>
+      <ci> s158 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r26" class="active"><span class="package">r26</span> <code>_119598</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r26"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r26" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r26</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119598" id="r26" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>mass action rate law for first order forward, first order reverse, reversible reactions, continuous scheme</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>TRANSPORT</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a124" species="s161"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a46" species="s70"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct" rectangleIndex="0">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection index="0" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:line color="ff000000" width="1.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673800" species="s161">
+      <annotation>
+        <celldesigner:alias>a124</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673812" species="s70">
+      <annotation>
+        <celldesigner:alias>a46</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673824">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> kass_r26 </ci>
+          <ci> s161 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kdiss_r26 </ci>
+          <ci> s70 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s161 &#8646; s70</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> kass_r26 </ci>
+      <ci> s161 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kdiss_r26 </ci>
+      <ci> s70 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="r25" class="active"><span class="package">r25</span> <code>_119619</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r25"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r25" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r25</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_119619" id="r25" fast="false">
+  <notes>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <body>mass action rate law for first order forward, second order reverse, reversible reactions, two products, continuous scheme</body>
+    </html>
+  </notes>
+  <annotation>
+    <celldesigner:reactionType>DISSOCIATION</celldesigner:reactionType>
+    <celldesigner:baseReactants>
+      <celldesigner:baseReactant alias="a123" species="s160"/>
+    </celldesigner:baseReactants>
+    <celldesigner:baseProducts>
+      <celldesigner:baseProduct alias="a124" species="s161"/>
+      <celldesigner:baseProduct alias="a95" species="s69"/>
+    </celldesigner:baseProducts>
+    <celldesigner:connectScheme connectPolicy="direct">
+      <celldesigner:listOfLineDirection>
+        <celldesigner:lineDirection arm="0" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="0" index="1" value="unknown"/>
+        <celldesigner:lineDirection arm="1" index="0" value="unknown"/>
+        <celldesigner:lineDirection arm="2" index="0" value="unknown"/>
+      </celldesigner:listOfLineDirection>
+    </celldesigner:connectScheme>
+    <celldesigner:editPoints num0="1" num1="0" num2="0" tShapeIndex="0">0.6618806263562558,-0.08515967069548891 0.358811873906558,0.3727542001822759</celldesigner:editPoints>
+    <celldesigner:line color="ff000000" width="1.0"/>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_673836" species="s160">
+      <annotation>
+        <celldesigner:alias>a123</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_673848" species="s161">
+      <annotation>
+        <celldesigner:alias>a124</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+    <speciesReference metaid="_673860" species="s69">
+      <annotation>
+        <celldesigner:alias>a95</celldesigner:alias>
+      </annotation>
+    </speciesReference>
+  </listOfProducts>
+  <kineticLaw metaid="_673872">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> kass_r25 </ci>
+          <ci> s160 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kdiss_r25 </ci>
+          <ci> s161 </ci>
+          <ci> s69 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>s160 &#8646; s161 + s69</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> kass_r25 </ci>
+      <ci> s160 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kdiss_r25 </ci>
+      <ci> s161 </ci>
+      <ci> s69 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>
