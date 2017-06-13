@@ -303,8 +303,9 @@ def listOfSpecies_dict(model):
             if sfbc.isSetCharge():
                 c = sfbc.getCharge()
                 if c is not 0:
-                    info['fbc_charge'] = ' ({})'.format(sfbc.getCharge())
-
+                    info['fbc_charge'] = '({})'.format(sfbc.getCharge())
+            if ('fbc_formula' in info) or ('fbc_charge' in info):
+                item['fbc'] = "<br /><code>{} {}</code>".format(info.get('fbc_formula', ''), info.get('fbc_charge', ''))
         items.append(info)
     return items
 
@@ -331,7 +332,11 @@ def listOfParameters_dict(model, values):
         if item.isSetValue():
             value = item.value
         else:
-            value = math(values[item.id])
+            from pprint import pprint
+            value_formula = values.get(item.id, None)
+            if value_formula is None:
+                warnings.warn("No value for parameter via Value, InitialAssignment or AssignmentRule: {}".format(item.id))
+            value = math(value_formula)
         info['value'] = value
         info['derived_units'] = derived_units(item)
         info['constant'] = boolean(item.constant)
@@ -381,11 +386,13 @@ def listOfReactions_dict(model):
             reversible = '<td class ="danger">&#10142;</td>'
         info['reversible'] = reversible
         info['equation'] = formating.equationStringFromReaction(item)
-        modifiers = ''
+        modifiers = []
         for mod in item.getListOfModifiers():
-            modifiers += '{}< br / >'.format(mod.getSpecies())
+            modifiers.append(mod.getSpecies())
         if len(modifiers) == 0:
             modifiers = empty_html()
+        else:
+            modifiers = '<br />'.join(modifiers)
         info['modifiers'] = modifiers
         klaw = item.getKineticLaw()
         info['formula'] = math(klaw)
@@ -478,7 +485,7 @@ def id_html(item):
     id = item.getId()
     meta = metaId(item)
     info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, id, meta)
-    if id is not None:
+    if id is not None and (type(item) is not libsbml.Model):
         info += xml_modal(item)
     info += "</td>"
     return info
