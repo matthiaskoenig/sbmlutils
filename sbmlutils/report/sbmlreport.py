@@ -157,6 +157,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
 
             'doc': document_dict(doc),
             'model': model_dict(model),
+            'submodels': listOfSubmodels_dict(model),
             'ports': listOfPorts_dict(model),
             'functions': listOfFunctions_dict(model),
             'units': listOfUnits_dict(model),
@@ -252,6 +253,33 @@ def model_dict(model):
 
     return info
 
+def listOfSubmodels_dict(model):
+    items = []
+    model_comp = model.getPlugin('comp')
+    if model_comp:
+        for item in model_comp.getListOfSubmodels():
+            info = infoSbase(item)
+            info['model_ref'] = item.getModelRef()
+
+            deletions = []
+            for deletion in item.getListOfDeletions():
+                deletions.append(sbaseref(deletion))
+            if len(deletions) == 0:
+                deletions = empty_html()
+            else:
+                deletions = "<br />".join(deletions)
+            info['deletions'] = deletions
+
+            time_conversion = empty_html()
+            if item.isSetTimeConversionFactor():
+                time_conversion = item.getTimeConversionFactor()
+            info['time_conversion'] = time_conversion
+            extent_conversion = empty_html()
+            if item.isSetExtentConversionFactor():
+                extent_conversion = item.getExtentConversionFactor()
+            info['extent_conversion'] = extent_conversion
+            items.append(info)
+    return items
 
 def listOfPorts_dict(model):
     items = []
