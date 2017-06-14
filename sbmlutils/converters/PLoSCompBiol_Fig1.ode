@@ -3,7 +3,7 @@
 # Default parameters as in Fig. 1A
 
 # Differential equations
-v'= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKATP*(1+sigma*q) + Ileak + IGABAR)
+V'= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKatp*(1+sigma*q) + Ileak + Igabar)
 
 # use for stochastic simulation in Fig 1E
 wiener q
@@ -22,7 +22,7 @@ Cam'=f*( (JCaL+JCaPQ+JCaT) - B*(Cam-Cac)/Volm*Volc - L/Volm*Volc )
 Cac'=f*(B*(Cam-Cac)-Jserca+Jleak)
 
 # Initial conditions
-v(0)=-63
+V(0)=-63
 mkv(0)=0.02
 mBK(0)=0.002
 hNa(0)=0.97
@@ -43,21 +43,21 @@ par VCl=-40
 par gleak=0.015
 par vleak=-30
 
-Ileak=gleak*(v-vleak)
+Ileak=gleak*(V-vleak)
 aux Ileak=Ileak
 
 ## IKv
 par taumkv0=2, Vmkv=0, nmkv=-10, gkv=1
 
 mkvinf=1/(1+exp((V-Vmkv)/nmkv))
-taumkv=taumkv0+10*exp(min(log(3),(-20-v)/6))
-IKv=gkv*mkv*(V-Vk)
+taumkv=taumkv0+10*exp(min(log(3),(-20-V)/6))
+IKv=gkv*mkv*(V-VK)
 
 ## IBK
 par taumBK=2, VmBK=0, nmBK=-10, BBK=20, gBK=0.02
 
 mBKinf=1/( 1+exp((V-VmBK)/nmBK))
-IBK = gBK*(-ICa+BBK)*mBK*(V-Vk)
+IBK = gBK*(-ICa+BBK)*mBK*(V-VK)
 aux ibk=IBK
 
 ## hERG channels
@@ -67,7 +67,7 @@ par gHERG=0
 
 mHERGinf=1/( 1+exp((V-VmHERG)/nmHERG) )
 hHERGinf=1/( 1+exp((V-VhHERG)/nhHERG) )
-IHERG = gHERG*mHERG*hHERG*(V-Vk)
+IHERG = gHERG*mHERG*hHERG*(V-VK)
 
 ## Na current
 par gNa=0.4, VmNa=-18, nmNa=-5, VhNa=-42, nhNa=6, tauhNa=2
@@ -79,22 +79,21 @@ INa=gNa*mNainf*hNa*(V-VNa)
 par gCaL=0.14, VmCaL=-25, nmCaL=-6, tauhCaL=20
 
 mCaLinf=1/( 1+exp((V-VmCaL)/nmCaL) ) 
-hCaLinf=max(0,min(1,1+mCaLinf*(V-vCa)/57))
-ICaL = gCaL*mCaLinf*hCaL*(V-vCa)
-aux Ical=IcaL
+hCaLinf=max(0,min(1,1+mCaLinf*(V-VCa)/57))
+ICaL = gCaL*mCaLinf*hCaL*(V-VCa)
 
 ## PQ-type Ca current
 par gCaPQ=0.17, VmCaPQ=-10, nmCaPQ=-6
 
 mCaPQinf=1/( 1+exp((V-VmCaPQ)/nmCaPQ) )
-ICaPQ = gCaPQ*mCaPQinf*(V-vCa)
+ICaPQ = gCaPQ*mCaPQinf*(V-VCa)
 
 ## T-type Ca current
 par gCaT=0.05, VmCaT=-40, nmCaT=-4, VhCaT=-64, nhCaT=8, tauhCaT=7
 
 mCaTinf=1/( 1+exp((V-VmCaT)/nmCaT) )
 hCaTinf=1/( 1+exp((V-VhCaT)/nhCaT) )
-ICaT = gCaT*mCaTinf*hCaT*(V-vCa)
+ICaT = gCaT*mCaTinf*hCaT*(V-VCa)
 ICa=ICaL+ICaPQ+ICaT
 
 ## Katp current
@@ -111,7 +110,7 @@ par ggabar=0
 ## ISK current
 par gSK=0.1, kSK=0.57, nSK=5.2
 
-ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-Vk)
+ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-VK)
 #aux ISK=ISK
 
 ## Ca diffusion
