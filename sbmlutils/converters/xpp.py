@@ -20,8 +20,14 @@ Variables have to be case sensitive !!!, but this can easily be fixed based on v
 
 """
 # TODO: d()/dt syntax for odes
-# TODO: ** --> power conversion in formula
-# TODO: bug multiple whitespace before keywords
+
+# TODO: support function definitions & usage of function definitions
+
+# TODO: if ... then ... else
+# TODO: support global
+# TODO: support line continuation
+# TODO: special functions like heav
+
 
 
 from __future__ import print_function, absolute_import
@@ -89,6 +95,13 @@ NOTES = """
 """.format(__version__, '{}')
 
 
+def escape_string(info):
+    info = info.replace("<", "&lt;")
+    info = info.replace(">", "&gt;")
+    info = info.replace("&", "&amp;")
+    return info
+
+
 def parse_keyword(xpp_id):
     """ Parses the keyword and returns the xpp keyword type.
     :param xpp_id:
@@ -98,7 +111,7 @@ def parse_keyword(xpp_id):
     for xpp_key, c in XPP_TYPE_CHARS.items():
         if xpp_id.startswith(c):
             return xpp_key
-    warnings.warn("Keyword not supported:", xpp_id)
+    warnings.warn("Keyword not supported: {}".format(xpp_id))
     return None
 
 
@@ -152,12 +165,29 @@ def xpp2sbml(xpp_file, sbml_file):
         # definition of min and max
         fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
         fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
+        # heav (heavyside)
+        fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 1,gt(x,0)))', name='max'),
+
     ]
 
-    with open(xpp_file) as f:
+    def create_initial_assignment(sid, value):
+        try:
+            f_value = float(value)
+            parameters.append(
+                fac.Parameter(sid=sid, value=f_value, constant=False)
+            )
+        except ValueError:
+            parameters.append(
+                fac.Parameter(sid=sid, constant=False)
+            )
+            initial_assignments.append(
+                fac.InitialAssignment(sid=sid, value=value)
+            )
+
+    with open(xpp_file, encoding="utf-8") as f:
         lines = f.readlines()
 
-        text = "".join(lines)
+        text = escape_string("".join(lines))
         fac.set_notes(model, NOTES.format(text))
 
         for line in lines:
@@ -175,6 +205,8 @@ def xpp2sbml(xpp_file, sbml_file):
             # end word
             if line == XPP_END_WORD:
                 continue
+
+            line = line.replace('**', '^')
 
             # check for the equal sign
             tokens = line.split('=')
@@ -223,11 +255,9 @@ def xpp2sbml(xpp_file, sbml_file):
                         ''' Parameter values are optional; if not they are set to zero. 
                         Number declarations are like parameter declarations, except that they cannot be 
                         changed within the program and do not appear in the parameter window. '''
-                        for a in parts:
-                            sid, value = [t.strip() for t in a.split('=')]
-                            parameters.append(
-                                fac.Parameter(sid=sid, value=float(value), constant=True)
-                            )
+                        for part in parts:
+                            sid, value = sid_value_from_part(part)
+                            create_initial_assignment(sid, value)
 
                     # aux
                     elif xpp_type == XPP_AUX:
@@ -248,15 +278,17 @@ def xpp2sbml(xpp_file, sbml_file):
                     elif xpp_type == XPP_INIT:
                         for part in parts:
                             sid, value = sid_value_from_part(part)
-                            parameters.append(
-                                fac.Parameter(sid=sid, value=float(value), constant=False)
-                            )
-                            initial_assignments.append(
-                                fac.InitialAssignment(sid=sid, value=value)
-                            )
+                            create_initial_assignment(sid, value)
 
-                    elif xpp_type == [XPP_ZIP, XPP_GLO, XPP_TAB]:
-                        warnings.warn("XPP_ZIP, XPP_GLO or XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
+                    # zippy
+                    elif xpp_type == XPP_ZIP:
+                        warnings.warn("XPP_ZIP not supported: XPP line not parsed: '{}'".format(line))
+                    # global
+                    elif xpp_type == XPP_GLO:
+                        warnings.warn("XPP_GLO not supported: XPP line not parsed: '{}'".format(line))
+                    # table
+                    elif xpp_type == XPP_TAB:
+                        warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
 
                     else:
                         warnings.warn("XPP line not parsed: '{}'".format(line))
@@ -267,13 +299,8 @@ def xpp2sbml(xpp_file, sbml_file):
 
                     # init
                     if left.endswith('(0)'):
-                        sid = left[0:-3]
-                        parameters.append(
-                            fac.Parameter(sid=sid, value=float(right), constant=False)
-                        )
-                        initial_assignments.append(
-                            fac.InitialAssignment(sid=sid, value=right)
-                        )
+                        sid, value = left[0:-3], right
+                        create_initial_assignment(sid, value)
 
                     # difference equations
                     elif left.endswith('(t+1)'):

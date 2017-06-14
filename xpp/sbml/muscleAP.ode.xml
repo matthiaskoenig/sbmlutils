@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by sbmlutils version 0.1.5a6 on 2017-06-14 18:21 with libSBML version 5.15.0. -->
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre>% Model for action potential of skeletal muscle fiber
+% Adrian RH, Chandler WK, Hodgkin AL. Voltage clamp experiments in striated muscle
+% fibres. J Physiol 208:607-44, 1970.
+% implemented by Dr. Sheng-Nan Wu
+
+% Initial values
+Initial Vm=-95, Vt=-95, m=0.0, h=1.0, n=0.0
+
+% Stimulus
+Param period=200, iStim_mag=3, iStim_beg=1, iStim_dur=0.5
+iStim=  iStim_mag * heav(mod(t,period)-iStim_beg) * heav(iStim_beg+iStim_dur-mod(t,period))
+
+% Values of the model parameters
+Param gNa_max=1.0, gK_max=0.415, gL_max=0.0024
+Param ENa=50.0, EK=-70.0, EL=-95.0, Cm=0.0090, Ct=0.04, Rs=15.0
+Param alpha_m_max=0.208
+Param beta_m_max=2.081
+Param alpha_n_max=0.0229
+Param beta_n_max=0.09616
+Param alpha_h_max=0.0156
+Param beta_h_max=3.382
+Param Em=-42.0, En=-40.0, Eh=-41.0
+Param v_alpha_m=10.0, v_alpha_h=14.7, v_alpha_n=7.0
+Param v_beta_m=18.0, v_beta_h=7.6, v_beta_n=40.0
+
+% Expressions
+
+Ina= (gNa_max * m * m * m * h * (Vm - ENa))
+beta_n= (beta_n_max * exp(((En - Vm) / v_beta_n)))
+beta_m= (beta_m_max * exp(((Em - Vm) / v_beta_m)))
+beta_h= (beta_h_max / (1.0 + exp(((Eh - Vm) / v_beta_h))))
+IT= ((Vm - Vt) / Rs)
+IL= (gL_max * (Vm - EL))
+IK= (gK_max * n * n * n * n * (Vm - EK))
+alpha_n= (alpha_n_max * (Vm - En) / (1.0 - exp(((En - Vm) / v_alpha_n))))
+alpha_m= (alpha_m_max * (Vm - Em) / (1.0 - exp(((Em - Vm) / v_alpha_m))))
+alpha_h= (alpha_h_max * exp(((Eh - Vm) / v_alpha_h)))
+
+% Differential equations 
+dVm/dt= ((iStim - (INa + IK + IL + IT)) / Cm)
+dm/dt= ((alpha_m * (1.0 - m)) - (beta_m * m))
+dh/dt= ((alpha_h * (1.0 - h)) - (beta_h * h))
+dn/dt= ((alpha_n * (1.0 - n)) - (beta_n * n))
+dVt/dt=((Vm - Vt) / (Rs * Ct))
+
+% Numerical and plotting parameters for xpp
+@ meth=Euler, dt=0.01, total=25
+@ yp=v, yhi=50, ylo=-110, xlo=0, xhi=25, bounds=5000
+
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="min">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="max">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="max">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="Vm" value="-95" constant="false"/>
+      <parameter id="Vt" value="-95" constant="false"/>
+      <parameter id="m" value="0" constant="false"/>
+      <parameter id="h" value="1" constant="false"/>
+      <parameter id="n" value="0" constant="false"/>
+      <parameter id="period" value="200" constant="false"/>
+      <parameter id="iStim_mag" value="3" constant="false"/>
+      <parameter id="iStim_beg" value="1" constant="false"/>
+      <parameter id="iStim_dur" value="0.5" constant="false"/>
+      <parameter id="gNa_max" value="1" constant="false"/>
+      <parameter id="gK_max" value="0.415" constant="false"/>
+      <parameter id="gL_max" value="0.0024" constant="false"/>
+      <parameter id="ENa" value="50" constant="false"/>
+      <parameter id="EK" value="-70" constant="false"/>
+      <parameter id="EL" value="-95" constant="false"/>
+      <parameter id="Cm" value="0.009" constant="false"/>
+      <parameter id="Ct" value="0.04" constant="false"/>
+      <parameter id="Rs" value="15" constant="false"/>
+      <parameter id="alpha_m_max" value="0.208" constant="false"/>
+      <parameter id="beta_m_max" value="2.081" constant="false"/>
+      <parameter id="alpha_n_max" value="0.0229" constant="false"/>
+      <parameter id="beta_n_max" value="0.09616" constant="false"/>
+      <parameter id="alpha_h_max" value="0.0156" constant="false"/>
+      <parameter id="beta_h_max" value="3.382" constant="false"/>
+      <parameter id="Em" value="-42" constant="false"/>
+      <parameter id="En" value="-40" constant="false"/>
+      <parameter id="Eh" value="-41" constant="false"/>
+      <parameter id="v_alpha_m" value="10" constant="false"/>
+      <parameter id="v_alpha_h" value="14.7" constant="false"/>
+      <parameter id="v_alpha_n" value="7" constant="false"/>
+      <parameter id="v_beta_m" value="18" constant="false"/>
+      <parameter id="v_beta_h" value="7.6" constant="false"/>
+      <parameter id="v_beta_n" value="40" constant="false"/>
+      <parameter id="iStim" units="dimensionless" constant="false"/>
+      <parameter id="Ina" units="dimensionless" constant="false"/>
+      <parameter id="beta_n" units="dimensionless" constant="false"/>
+      <parameter id="beta_m" units="dimensionless" constant="false"/>
+      <parameter id="beta_h" units="dimensionless" constant="false"/>
+      <parameter id="IT" units="dimensionless" constant="false"/>
+      <parameter id="IL" units="dimensionless" constant="false"/>
+      <parameter id="IK" units="dimensionless" constant="false"/>
+      <parameter id="alpha_n" units="dimensionless" constant="false"/>
+      <parameter id="alpha_m" units="dimensionless" constant="false"/>
+      <parameter id="alpha_h" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="iStim">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> iStim_mag </ci>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> mod </ci>
+                  <ci> t </ci>
+                  <ci> period </ci>
+                </apply>
+                <ci> iStim_beg </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <ci> iStim_beg </ci>
+                  <ci> iStim_dur </ci>
+                </apply>
+                <apply>
+                  <ci> mod </ci>
+                  <ci> t </ci>
+                  <ci> period </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Ina">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gNa_max </ci>
+            <ci> m </ci>
+            <ci> m </ci>
+            <ci> m </ci>
+            <ci> h </ci>
+            <apply>
+              <minus/>
+              <ci> Vm </ci>
+              <ci> ENa </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="beta_n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> beta_n_max </ci>
+            <apply>
+              <exp/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <ci> En </ci>
+                  <ci> Vm </ci>
+                </apply>
+                <ci> v_beta_n </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="beta_m">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> beta_m_max </ci>
+            <apply>
+              <exp/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <ci> Em </ci>
+                  <ci> Vm </ci>
+                </apply>
+                <ci> v_beta_m </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="beta_h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> beta_h_max </ci>
+            <apply>
+              <plus/>
+              <cn> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> Eh </ci>
+                    <ci> Vm </ci>
+                  </apply>
+                  <ci> v_beta_h </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IT">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> Vm </ci>
+              <ci> Vt </ci>
+            </apply>
+            <ci> Rs </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IL">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gL_max </ci>
+            <apply>
+              <minus/>
+              <ci> Vm </ci>
+              <ci> EL </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IK">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gK_max </ci>
+            <ci> n </ci>
+            <ci> n </ci>
+            <ci> n </ci>
+            <ci> n </ci>
+            <apply>
+              <minus/>
+              <ci> Vm </ci>
+              <ci> EK </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="alpha_n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> alpha_n_max </ci>
+              <apply>
+                <minus/>
+                <ci> Vm </ci>
+                <ci> En </ci>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <cn> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> En </ci>
+                    <ci> Vm </ci>
+                  </apply>
+                  <ci> v_alpha_n </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="alpha_m">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> alpha_m_max </ci>
+              <apply>
+                <minus/>
+                <ci> Vm </ci>
+                <ci> Em </ci>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <cn> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> Em </ci>
+                    <ci> Vm </ci>
+                  </apply>
+                  <ci> v_alpha_m </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="alpha_h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> alpha_h_max </ci>
+            <apply>
+              <exp/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <ci> Eh </ci>
+                  <ci> Vm </ci>
+                </apply>
+                <ci> v_alpha_h </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> iStim </ci>
+              <apply>
+                <plus/>
+                <ci> INa </ci>
+                <ci> IK </ci>
+                <ci> IL </ci>
+                <ci> IT </ci>
+              </apply>
+            </apply>
+            <ci> Cm </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> alpha_m </ci>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+                <ci> m </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> beta_m </ci>
+              <ci> m </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> alpha_h </ci>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+                <ci> h </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> beta_h </ci>
+              <ci> h </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> alpha_n </ci>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+                <ci> n </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> beta_n </ci>
+              <ci> n </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> Vm </ci>
+              <ci> Vt </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Rs </ci>
+              <ci> Ct </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

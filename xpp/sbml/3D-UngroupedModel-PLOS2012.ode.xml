@@ -6,43 +6,57 @@
       <body xmlns="http://www.w3.org/1999/xhtml">
         <h1>XPP model</h1>
         <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
-        <pre># HH-ext.ode: an XppAut file for the Hodgkin-Huxley equations
-# + strength of external electrical field
-# time in msec, voltage in mV and frequency in Hz
+        <pre># from Rho and Prescott, PLoS Comput Biol 2012
+# to be run in XPP
+# code for 3-D &quot;ungrouped&quot; model; see Fig 7 from paper
 
-# initial conditions
-init V=0, m=0.052, h=0.596, n=0.317
 
-# the parameters
-param Vext=8, iapp=1, freq=0.3
-param VNa=115,VK=-12,VL=10.599, gNa=120
-param gK=36, gL=0.3, cm=1
+# DIFFERENTIAL EQUATIONS
 
-# time constants and steady state functions for gating variables
-am(v)=0.1*(25-v)/(exp((25-v)/10)-1)
-bm(v)=4*exp(-v/18)
-ah(v)=0.07*exp(-v/20)
-bh(v)=1/(exp((30-v)/10)+1)
-an(v)=0.01*(10-v)/(exp((10-v)/10)-1)
-bn(v)=0.125*exp(-v/80)
+dv/dt = (Istim-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gl*(V-Vl)-gsubNa*yNa*(V-Vna)-gsubK*yK*(V-Vk))/cap
+dw/dt = phi_w*(winf(V)-w)/tauw(V)
+dyNa/dt = phi_yna*(yna_inf(V)-yNa)/tauyna(V)
+dyK/dt = phi_yk*(yk_inf(V)-yK)/tauyk(V)
 
-vex(t)=vext*(sin(2*pi*(freq/1000)*t))
-ik=gk*n^4*(v+vex(t)-vk)
-ina=gna*m^3*h*(v+vex(t)-vna)
-il=gl*(v+vex(t)-vl)
+# FUNCTIONS AND PARAMETERS
 
-# the equations
-v&apos;=(-ik-ina-il+iapp)/cm
-m&apos;=(am(v)*(1-m)-bm(v)*m)
-n&apos;=(an(v)*(1-n)-bn(v)*n)
-h&apos;=(ah(v)*(1-h)-bh(v)*h)
+minf(v)=.5*(1+tanh((v-beta_m)/gamma_m))
+winf(v)=.5*(1+tanh((v-beta_w)/gamma_w))
+yna_inf(v)=.5*(1+tanh((v-beta_y)/gamma_y))
+yk_inf(v)=.5*(1+tanh((v-beta_y)/gamma_y))
 
-aux vex=vex(t)
+tauw(v)=1/cosh((v-beta_w)/(2*gamma_w))
+tauyna(v)=1/cosh((v-beta_y)/(2*gamma_y))
+tauyk(v)=1/cosh((v-beta_y)/(2*gamma_y))
 
-# set xpp parameters
-@ total=25000, xp=t, yp=v, xlo=0, xhi=25000, ylo=-20, yhi=120, bounds=10000000, dt=0.01
-@ maxstor=10000000
-done</pre>
+param Istim=0 
+param vna=50,vk=-100,vl=-70
+param gk=20,gl=2,gna=20
+param beta_m=-1.2,gamma_m=18
+param beta_w=-13,gamma_w=10
+# for some simulations, beta_w was -21
+param phi_w=.15
+
+# This code is designed to implement either a subthreshold Na or K current by setting the corresponding gsub to &gt;0
+# Leave the other gsub at 0 
+param gsubNa=0,gsubK=0
+param beta_y=-23,gamma_y=9,
+param phi_yna=0.3,phi_yk=0.15
+param cap=2
+
+# INITIAL CONDITIONS
+yNa(0)=0
+yK(0)=0
+V(0)=-70
+w(0)=0.000025
+
+# ALWAYS USE EULER! - Actually this is only true for noise
+@ total=10000,dt=.05,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=euler
+@ MAXSTOR=1000000,bounds=10000
+
+done
+</pre>
         <div class="dc:publisher">This file has been produced by
       <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
     </div>
@@ -143,21 +157,29 @@ done</pre>
       </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
-      <parameter id="V" value="0" constant="false"/>
-      <parameter id="m" value="0.052" constant="false"/>
-      <parameter id="h" value="0.596" constant="false"/>
-      <parameter id="n" value="0.317" constant="false"/>
-      <parameter id="Vext" value="8" constant="false"/>
-      <parameter id="iapp" value="1" constant="false"/>
-      <parameter id="freq" value="0.3" constant="false"/>
-      <parameter id="VNa" value="115" constant="false"/>
-      <parameter id="VK" value="-12" constant="false"/>
-      <parameter id="VL" value="10.599" constant="false"/>
-      <parameter id="gNa" value="120" constant="false"/>
-      <parameter id="gK" value="36" constant="false"/>
-      <parameter id="gL" value="0.3" constant="false"/>
-      <parameter id="cm" value="1" constant="false"/>
-      <parameter id="v" units="dimensionless" constant="false"/>
+      <parameter id="Istim" value="0" constant="false"/>
+      <parameter id="vna" value="50" constant="false"/>
+      <parameter id="vk" value="-100" constant="false"/>
+      <parameter id="vl" value="-70" constant="false"/>
+      <parameter id="gk" value="20" constant="false"/>
+      <parameter id="gl" value="2" constant="false"/>
+      <parameter id="gna" value="20" constant="false"/>
+      <parameter id="beta_m" value="-1.2" constant="false"/>
+      <parameter id="gamma_m" value="18" constant="false"/>
+      <parameter id="beta_w" value="-13" constant="false"/>
+      <parameter id="gamma_w" value="10" constant="false"/>
+      <parameter id="phi_w" value="0.15" constant="false"/>
+      <parameter id="gsubNa" value="0" constant="false"/>
+      <parameter id="gsubK" value="0" constant="false"/>
+      <parameter id="beta_y" value="-23" constant="false"/>
+      <parameter id="gamma_y" value="9" constant="false"/>
+      <parameter id="phi_yna" value="0.3" constant="false"/>
+      <parameter id="phi_yk" value="0.15" constant="false"/>
+      <parameter id="cap" value="2" constant="false"/>
+      <parameter id="yNa" value="0" constant="false"/>
+      <parameter id="yK" value="0" constant="false"/>
+      <parameter id="V" value="-70" constant="false"/>
+      <parameter id="w" value="2.5e-05" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
@@ -165,163 +187,200 @@ done</pre>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
-      <parameter id="ik" units="dimensionless" constant="false"/>
-      <parameter id="ina" units="dimensionless" constant="false"/>
-      <parameter id="il" units="dimensionless" constant="false"/>
-      <parameter id="vex" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
-      <rateRule variable="v">
+      <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
             <apply>
-              <plus/>
+              <minus/>
               <apply>
                 <minus/>
                 <apply>
                   <minus/>
                   <apply>
                     <minus/>
-                    <ci> ik </ci>
+                    <apply>
+                      <minus/>
+                      <ci> Istim </ci>
+                      <apply>
+                        <times/>
+                        <ci> gna </ci>
+                        <apply>
+                          <ci> minf </ci>
+                          <ci> V </ci>
+                        </apply>
+                        <apply>
+                          <minus/>
+                          <ci> V </ci>
+                          <ci> Vna </ci>
+                        </apply>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> gk </ci>
+                      <ci> w </ci>
+                      <apply>
+                        <minus/>
+                        <ci> V </ci>
+                        <ci> VK </ci>
+                      </apply>
+                    </apply>
                   </apply>
-                  <ci> ina </ci>
+                  <apply>
+                    <times/>
+                    <ci> gl </ci>
+                    <apply>
+                      <minus/>
+                      <ci> V </ci>
+                      <ci> Vl </ci>
+                    </apply>
+                  </apply>
                 </apply>
-                <ci> il </ci>
+                <apply>
+                  <times/>
+                  <ci> gsubNa </ci>
+                  <ci> yNa </ci>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> Vna </ci>
+                  </apply>
+                </apply>
               </apply>
-              <ci> iapp </ci>
+              <apply>
+                <times/>
+                <ci> gsubK </ci>
+                <ci> yK </ci>
+                <apply>
+                  <minus/>
+                  <ci> V </ci>
+                  <ci> Vk </ci>
+                </apply>
+              </apply>
             </apply>
-            <ci> cm </ci>
+            <ci> cap </ci>
           </apply>
         </math>
-      </rateRule>
-      <rateRule variable="m">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> am </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> m </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <ci> bm </ci>
-                <ci> v </ci>
-              </apply>
-              <ci> m </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
-      <rateRule variable="n">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> an </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> n </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <ci> bn </ci>
-                <ci> v </ci>
-              </apply>
-              <ci> n </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
-      <rateRule variable="h">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> ah </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> h </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <ci> bh </ci>
-                <ci> v </ci>
-              </apply>
-              <ci> h </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
+      </assignmentRule>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
             <apply>
               <times/>
-              <cn> 0.1 </cn>
+              <ci> phi_w </ci>
               <apply>
                 <minus/>
-                <cn type="integer"> 25 </cn>
-                <ci> v </ci>
+                <apply>
+                  <ci> winf </ci>
+                  <ci> V </ci>
+                </apply>
+                <ci> w </ci>
               </apply>
             </apply>
             <apply>
-              <minus/>
+              <ci> tauw </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> phi_yna </ci>
               <apply>
-                <exp/>
+                <minus/>
+                <apply>
+                  <ci> yna_inf </ci>
+                  <ci> V </ci>
+                </apply>
+                <ci> yNa </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> tauyna </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> phi_yk </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> yk_inf </ci>
+                  <ci> V </ci>
+                </apply>
+                <ci> yK </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> tauyk </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.5 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <tanh/>
                 <apply>
                   <divide/>
                   <apply>
                     <minus/>
-                    <cn type="integer"> 25 </cn>
                     <ci> v </ci>
+                    <ci> beta_m </ci>
                   </apply>
-                  <cn type="integer"> 10 </cn>
+                  <ci> gamma_m </ci>
                 </apply>
               </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.5 </cn>
+            <apply>
+              <plus/>
               <cn type="integer"> 1 </cn>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn type="integer"> 4 </cn>
-            <apply>
-              <exp/>
               <apply>
-                <divide/>
+                <tanh/>
                 <apply>
-                  <minus/>
-                  <ci> v </ci>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> beta_w </ci>
+                  </apply>
+                  <ci> gamma_w </ci>
                 </apply>
-                <cn type="integer"> 18 </cn>
               </apply>
             </apply>
           </apply>
@@ -331,16 +390,45 @@ done</pre>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <times/>
-            <cn> 0.07 </cn>
+            <cn> 0.5 </cn>
             <apply>
-              <exp/>
+              <plus/>
+              <cn type="integer"> 1 </cn>
               <apply>
-                <divide/>
+                <tanh/>
                 <apply>
-                  <minus/>
-                  <ci> v </ci>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> beta_y </ci>
+                  </apply>
+                  <ci> gamma_y </ci>
                 </apply>
-                <cn type="integer"> 20 </cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.5 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <tanh/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> beta_y </ci>
+                  </apply>
+                  <ci> gamma_y </ci>
+                </apply>
               </apply>
             </apply>
           </apply>
@@ -352,20 +440,20 @@ done</pre>
             <divide/>
             <cn type="integer"> 1 </cn>
             <apply>
-              <plus/>
+              <cosh/>
               <apply>
-                <exp/>
+                <divide/>
                 <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <cn type="integer"> 30 </cn>
-                    <ci> v </ci>
-                  </apply>
-                  <cn type="integer"> 10 </cn>
+                  <minus/>
+                  <ci> v </ci>
+                  <ci> beta_w </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> gamma_w </ci>
                 </apply>
               </apply>
-              <cn type="integer"> 1 </cn>
             </apply>
           </apply>
         </math>
@@ -374,48 +462,21 @@ done</pre>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
+            <cn type="integer"> 1 </cn>
             <apply>
-              <times/>
-              <cn> 0.01 </cn>
-              <apply>
-                <minus/>
-                <cn type="integer"> 10 </cn>
-                <ci> v </ci>
-              </apply>
-            </apply>
-            <apply>
-              <minus/>
-              <apply>
-                <exp/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <cn type="integer"> 10 </cn>
-                    <ci> v </ci>
-                  </apply>
-                  <cn type="integer"> 10 </cn>
-                </apply>
-              </apply>
-              <cn type="integer"> 1 </cn>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.125 </cn>
-            <apply>
-              <exp/>
+              <cosh/>
               <apply>
                 <divide/>
                 <apply>
                   <minus/>
                   <ci> v </ci>
+                  <ci> beta_y </ci>
                 </apply>
-                <cn type="integer"> 80 </cn>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> gamma_y </ci>
+                </apply>
               </apply>
             </apply>
           </apply>
@@ -424,101 +485,24 @@ done</pre>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
-            <times/>
-            <ci> vext </ci>
+            <divide/>
+            <cn type="integer"> 1 </cn>
             <apply>
-              <sin/>
+              <cosh/>
               <apply>
-                <times/>
-                <cn type="integer"> 2 </cn>
-                <pi/>
+                <divide/>
                 <apply>
-                  <divide/>
-                  <ci> freq </ci>
-                  <cn type="integer"> 1000 </cn>
+                  <minus/>
+                  <ci> v </ci>
+                  <ci> beta_y </ci>
                 </apply>
-                <ci> t </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="ik">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gk </ci>
-            <apply>
-              <power/>
-              <ci> n </ci>
-              <cn type="integer"> 4 </cn>
-            </apply>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <ci> v </ci>
                 <apply>
-                  <ci> vex </ci>
-                  <ci> t </ci>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> gamma_y </ci>
                 </apply>
               </apply>
-              <ci> vk </ci>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="ina">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gna </ci>
-            <apply>
-              <power/>
-              <ci> m </ci>
-              <cn type="integer"> 3 </cn>
-            </apply>
-            <ci> h </ci>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <ci> v </ci>
-                <apply>
-                  <ci> vex </ci>
-                  <ci> t </ci>
-                </apply>
-              </apply>
-              <ci> vna </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="il">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gl </ci>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <ci> v </ci>
-                <apply>
-                  <ci> vex </ci>
-                  <ci> t </ci>
-                </apply>
-              </apply>
-              <ci> vl </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="vex">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <ci> vex </ci>
-            <ci> t </ci>
           </apply>
         </math>
       </assignmentRule>

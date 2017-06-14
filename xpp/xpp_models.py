@@ -129,12 +129,26 @@ if __name__ == "__main__":
     # pprint(sorted(ode_all))
 
     # create the sbml files
+    import traceback
+    import sys
     from sbmlutils.converters import xpp
     out_dir = './sbml'
-    for xpp_file in sorted(ode_all):
+    Nall = len(ode_all)
+    Nfail = 0
+    for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml
         basename = os.path.basename(xpp_file)
         sbml_file = os.path.join(out_dir, "{}.xml".format(basename))
-        xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+        try:
+            print('[{}]'.format(k))
+            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+        except:
+            print()
+            traceback.print_exc(file=sys.stdout)
+            print()
+            Nfail += 1
+    print('*'*80)
+    print('SUCCESS: {}/{}={:.2f}'.format((Nall-Nfail), Nall, 1.0*(Nall-Nfail)/Nall))
+    print('*' * 80)
 
