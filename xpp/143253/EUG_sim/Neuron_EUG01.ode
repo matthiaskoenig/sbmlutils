@@ -1,0 +1,69 @@
+# Neuron_EUG01.ode
+# 
+# gNani - noninactivating sodium conductace
+# initial conditions
+init Vs=-59, Vd=-59
+init cad=0.056, hs=0.995, ma_ni=0.00583, ns=0.00148, sd=0.0153, cd=0.01169, qd=0.00125
+
+# Parameter values
+par ip0=0.75
+par gLs=0.0,  gLd=0.0,   gCa=1,  gKahp=2.5
+
+" Parameter values: simulate EUG (1 uM) effect final_gNa=17.1  final_gNani=0.3
+par gKC=20
+par gNa=18, gNani=0.5
+par gKdr=24
+par VNa=60  VCa=80  VK=-75  VL=-60  Vsyn=0
+par gc=2.1 pp=0.5  Cm=3
+par alphac=2 betac=0.1
+par tstim=1.0e4 n=500
+par gkatp=0.0236*(4^0.24)
+par iatp=0.1
+par natp=50
+
+# Output cols are t, ODEs, AUXs in order, here:
+# t versus vd cad hs ns sd cd qd gqk gkc 
+Vs'=(-gLs*(Vs-VL)-gNa*(Minfs(Vs)^2)*hs*(Vs-VNa)-gNani*ma_ni^3*(Vs-VNa)-gKdr*ns*(Vs-VK)-gkatp*natp*poatp*(Vs-VK)+(gc/pp)*(Vd-Vs)+Ip0/pp)/Cm
+Vd'=(-gLd*(Vd-VL)-ICad-gKahp*qd*(Vd-VK)-gKC*cd*chid*(Vd-VK)-gkatp*natp*poatp*(Vd-VK)+(gc*(Vs-Vd))/(1.0-pp))/Cm
+Cad'=  -0.13*ICad-0.075*Cad
+hs'=  alphahs(Vs)-(alphahs(Vs)+betahs(Vs))*hs
+ma_ni'=(1/(1+exp((-23-Vs)/7.0))-ma_ni)*(alphams(Vs)+betams(Vs))
+ns'=  alphans(Vs)-(alphans(Vs)+betans(Vs))*ns
+sd'=  alphasd(Vd)-(alphasd(Vd)+betasd(Vd))*sd
+cd'=  alphacd(Vd)-(alphacd(Vd)+betacd(Vd))*cd
+qd'=  alphaqd-(alphaqd+betaqd)*qd
+
+# Cell functions
+ICad =  gCa*sd*sd*(Vd-VCa)
+alphams(v) =  0.32*(-46.9-v)/(exp((-46.9-v)/4.0)-1.0)
+betams(v) =  0.28*(v+19.9)/(exp((v+19.9)/5.0)-1.0)
+Minfs(v) =  alphams(v)/(alphams(v)+betams(v))
+alphans(v) =  0.016*(-24.9-v)/(exp((-24.9-v)/5.0)-1.0)
+betans(v) =  0.25*exp(-1.0-0.025*v)
+alphahs(v) =  0.128*exp((-43.0-v)/18.0)
+betahs(v) =  4.0/(1.0+exp((-20.0-v)/5.0))
+alphasd(v) = 1.6/(1.0+exp(-0.072*(v-5.0)))
+betasd(v) =  0.02*(v+8.9)/(exp((v+8.9)/5.0)-1.0)
+alphacd(v) = (1.0-heav(v+10.0))*exp((v+50.0)/11-(v+53.5)/27)/18.975+heav(v+10.0)*2.0*exp((-53.5-v)/27.0)
+betacd(v) =  (1.0-heav(v+10.0))*(2.0*exp((-53.5-v)/27.0)-alphacd(v))
+alphaqd = min(0.00002*Cad,0.01)
+betaqd = 0.001
+chid = min(Cad/250.0,1.0)
+
+# Level of intracellular ATP concentration
+poatp = 0.8/(1+(iatp/0.023)^2)
+
+# auxiliary equationns
+# aux Ica=ICad
+# aux ikca = gKC*cd*chid*(Vd-VK)
+aux ina = gNa*(Minfs(Vs)^2)*hs*(Vs-VNa)
+# aux ikdr=gKdr*ns*(Vs-VK)
+# aux ikatp = gkatp*natp*poatp*(Vs-VK)
+aux ina_ni=gNani*ma_ni^3*(Vs-VNa)
+
+# Numerical and plotting parameters for xpp
+@ maxstor=1600000,total=5000,bound=10000,xlo=0,xhi=5000,ylo=-90,yhi=40
+@ meth=cvode,atol=0.0001,toler=0.0001,dt=0.05
+set EUG {gNa=17.1, gNani=0.3}
+
+done

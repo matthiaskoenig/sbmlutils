@@ -1,0 +1,82 @@
+# default: gnap=2,gcan=0.7,I=1 (SD-Burst)
+
+# AUGUST 2010
+# cell is combination of  Nap and CaN burster (Can closed-cell model with ER in dendrtes) 
+# NaP burster is from from Butera, 1999; setting gcan=0 reproduce Butera 1999 model
+# Frequency of Ca oscillations controlled by either Catot or I (larger values - faster bursting)
+
+# units: V = mV; Cm = pF; g = uS
+
+minf=1/(1+exp((v-vm) /sm)) 
+ninf=1/(1+exp((v-vn) /sn))
+minfp=1/(1+exp((v-vmp)/smp))
+hinf=1/(1+exp((v-vh) /sh))
+
+taun=taunb/cosh((v-vn)/(2*sn))
+tauh=tauhb/cosh((v-vh)/(2*sh))
+
+I_na=gna*minf^3*(1-n)*(v-vna)
+I_k=gk*n^4*(v-Vk)
+I_nap=gnap*minfp*h*(v-vna)
+I_l =gl*(v-vleaks)
+
+# Equations for CaN current
+caninf =1/(1+(Kcan/C)^ncan)
+I_can=gcan*caninf*(v-vna)
+
+#Fluxes in and out of ER
+# l is fraction of open IP3 channels
+J_ER_in=(LL + P*( (I*C*l)/( (I+Ki)*(C+Ka) ) )^3 )*(Ce - C)
+J_ER_out=Ve*C^2/(Ke^2+C^2)
+Ce = (Ct - C)/sigma
+
+# Equations
+v'= (-I_k - I_na-I_nap-I_l-I_aps-I_can)/Cms
+n'= (ninf-n)/taun
+h'= (hinf-h)/tauh
+C' = fi*( J_ER_in- J_ER_out)
+l' = A*( Kd - (C + Kd)*l )
+
+# Auxilary variables
+aux Ce=Ce
+aux ican=I_can
+aux inaps=I_nap
+
+#Initial conditions
+
+v(0)=-50
+n(0)=0.004
+h(0)=0.33
+C(0)=0.03
+l(0)=0.93
+
+# Voltage parameters
+par Cms=21, I_aps=0
+num vna=50,vk=-85, vleaks=-58 
+num vm=-34,vn=-29, vmp=-40, vh=-48
+num sm=-5, sn=-4,  smp=-6,  sh=5
+num taunb=10,  tauhb=10000, 
+par gk=11.2, gna=28, gnap=2,gl=2.3
+
+# Ca parameters
+par Kcan=0.74, ncan=0.97,gcan=0.7
+par I=1
+par Ct=1.25
+par fi=0.000025
+num LL=0.37
+par P=31000
+par Ki=1.0
+par Ka=0.4
+par Ve=400
+par Ke=0.2
+par A=0.005 
+par Kd=0.4
+par sigma=0.185
+
+
+@ dt=0.1,total=10000,meth=qualrk,xp=t,yp=v
+@ xlo=0,xhi=10000,ylo=-60,yhi=10.,bound=500001,maxstor=5000001
+
+done
+
+

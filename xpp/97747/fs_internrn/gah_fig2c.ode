@@ -1,0 +1,70 @@
+# numbers:
+number Cm=1.0
+
+# parameters:
+p Iapp=3.35
+p gA=0.39
+p theta_m=-24.0
+p gNa=112.5,gK=225.0,gL=0.25
+p sigma_m=11.5
+p theta_h=-58.3  , sigma_h=-6.7
+p theta_n=-12.4  , sigma_n=6.8
+p theta_t_h=-60  , sigma_t_h=-12.0
+p theta_tna=-14.6, sigma_tna=-8.6
+p theta_tnb=1.3  , sigma_tnb=18.7
+p theta_a=-50    , sigma_a=20
+p theta_b=-70    , sigma_b=-6
+p tau_b=150, tau_a=2
+p power_n=2.0
+p V_Na=50.0,V_K=-90.0,V_L=-70.0
+
+# auxilary functions:
+GAMMAF(VV,theta,sigma)=1.0/(1.0+exp(-(VV-theta)/sigma))
+
+# innitial conditions
+V(0)=-70.038
+h(0)=0.8522
+n(0)=0.000208
+a(0)=0.2686
+b(0)=0.5016
+# functions:
+m_inf=GAMMAF(V,theta_m,sigma_m)
+h_inf=GAMMAF(V,theta_h,sigma_h)
+n_inf=GAMMAF(V,theta_n,sigma_n)
+a_inf=GAMMAF(V,theta_a,sigma_a)
+b_inf=GAMMAF(V,theta_b,sigma_b)
+tau_h(V)=0.5+14.0*GAMMAF(V,theta_t_h,sigma_t_h)
+tau_n(V)=(0.087+11.4*GAMMAF(V,theta_tna,sigma_tna))*(0.087+11.4*GAMMAF(V,theta_tnb,sigma_tnb))
+
+# ode's
+V'=-gNa*m_inf^3*h*(V-V_Na)-gK*(n^power_n)*(V-V_K)-gL*(V-V_L)-gA*a^3*b*(V-V_k)+Iapp
+h'=(h_inf-h)/tau_h (V)
+n'=(n_inf-n)/tau_n(V)
+a'=(a_inf-a)/tau_a
+b'=(b_inf-b)/tau_b
+
+# 
+@ MAXSTOR=16000000
+@ BACK=Black
+@ XP=T
+@ YP=Vs
+@ AXES=2
+@ TOTAL=1000.0
+@ DT=0.01
+@ NJMP=1
+@ T0=0.0
+@ TRANS=0.0
+@ NMESH=40
+@ METH=rungekutta
+@ DTMIN=0.001
+@ DTMAX=1.0
+@ TOLER=0.00001
+@ BOUND=10000.0
+@ DELAY=0.0
+@ XLO=0.0, XHI=1000.0, YLO=-90.0, YHI=50.0
+@ NTST=50,NMAX=20000,NPR=50
+@ DS=0.02,DSMIN=0.001,DSMAX=0.5
+@ PARMIN=-10,PARMAX=200,NORMMIN=0.0,NORMMAX=10000.0
+@ AUTOVAR=V,AUTOXMIN=-10.0,AUTOXMAX=100.0,AUTOYMIN=-90.0,AUTOYMAX=90.0
+
+done

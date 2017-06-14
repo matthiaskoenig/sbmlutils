@@ -1,0 +1,43 @@
+# HH-Vext.ode: an XppAut file for the Hodgkin-Huxley equations
+# Ref: Chen et al., Chinese J Physiol 2010, 54 (6), 423-429.
+# + strength of external electrical field
+# + trp channel
+# time in msec, voltage in mV and frequency in Hz
+
+# initial conditions
+init v=-71, m=0.038, h=0.69, n=0.159
+
+# the parameters
+param vext=8, iapp=0, freq=0.3
+param gna=120
+param gk=36, gl=0.3, gtrp=0.03, cm=1
+number vna=50, vk=-80, vtrp=0, vl=-49
+
+# time constants and steady state functions for gating variables
+am(v)=0.1*(v+40)/(1-exp(-(v+40)/10))
+bm(v)=4*exp(-(v+65)/18)
+ah(v)=0.07*exp(-(v+65)/20)
+bh(v)=1/( 1+ exp(-(v+35)/10) )
+an(v)=0.01*(v+55)/(1-exp(-(V + 55)/10))
+bn(v)=0.125*exp(-(V+65)/80)
+
+vex(t)=vext*(sin(2*pi*(freq/1000)*t))
+ik=gk*n^4*(v+vex(t)-vk)
+ina=gna*m^3*h*(v+vex(t)-vna)
+il=gl*(v+vex(t)-vl)
+itrp=gtrp*(v+vex(t)-vtrp)
+
+# the equations
+v'=(-ik-ina-il-itrp+iapp)/cm
+m'=(am(v)*(1-m)-bm(v)*m)
+n'=(an(v)*(1-n)-bn(v)*n)
+h'=(ah(v)*(1-h)-bh(v)*h)
+
+aux vex=vex(t)
+aux itrp=itrp
+
+# set xpp parameters
+@ total=10000, xp=t, yp=v, xlo=0, xhi=10000, ylo=-90, yhi=50, bounds=10000000, dt=0.01
+@ maxstor=10000000
+
+done

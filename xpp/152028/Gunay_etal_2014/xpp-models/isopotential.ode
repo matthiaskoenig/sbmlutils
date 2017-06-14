@@ -1,0 +1,74 @@
+# successor of model-fk-sk-na_7-1.ode, with changes:
+# * new fast K model with 2 tauh
+# * new slow K model with p=4
+#
+# conductances in nS  
+# currents in pA  
+# Voltages in mV  
+# time in ms  
+# capacitances in pF  
+  
+#dV/dt=-1/c*(gKs*mKs^4*(V-EK) + gKf*mKf^4*(fh*hKf+(1-fh)*hKf2)*(V-EK) + gNa*mNa^3*hNa*(V-ENa) + gleak*(V-Eleak)-I)  
+
+dV/dt=-1/c*(Iks+Ikf+Ina+Inap+gleak*(V-Eleak)-I)
+  
+#slow K  
+# orig = 5.1
+par gKs=50
+par EK=-80  
+minfKs(V) = 1/(1+exp((V+12.85)/(-19.91)))  
+mtauKs(V) = 2.03 + 1.96 /(1+exp((V-29.83)/3.32))  
+dmKs/dt=(minfKs(V)-mKs)/mtauKs(V)  
+Iks=gKs*mKs^4*(V-EK)  
+aux Iks=Iks
+
+#fast K with 2 inactivation time constants
+dmKf/dt=(minfKf(V)-mKf)/mtauKf(V)  
+dhKf/dt=(hinfK(V)-hKf)/htauK(V)  
+dhKf2/dt=(hinfK2(V)-hKf)/116  
+Ikf=gKf*mKf^4*(fh*hKf + (1-fh)*hKf2)*(V-EK)  
+par gKf=24.1
+par fh=.95
+minfKf(V) = 1/(1+exp((V+17.55)/(-7.27)))  
+mtauKf(V) = 1.94+2.66/(1+exp((V-8.12)/7.96))  
+hinfK(V) = 1/(1+exp((V+45)/6))  
+htauK(V) = 1.79+515.8/(1+exp((V+147.4)/(28.66)))  
+# mistake; should be hinfK == hinfK2
+hinfK2(V) = 1/(1+exp((V+44.2)/1.5))
+aux Ikf=Ikf
+  
+#na  
+# from O'Dowd and Aldrich (1988)
+dmNa/dt=(minfNa(V)-mNa)/mtauNa(V)
+dhNa/dt=(hinfNa(V)-hNa)/htauNa(V)
+Ina=gNa*mNa^3*hNa*(V-ENa)
+par ENa=45
+# gNa reported as 500 pS/pF, multiply with C=20 pF
+par gNa=100
+minfNa(V) = 1/(1+exp((V+29.13)/(-8.922)))
+mtauNa(V) = 3.861-3.434/(1+exp((V+51.35)/(-5.98)))
+hinfNa(V) = 1/(1+exp((V+40)/6.048))
+htauNa(V) = 2.834-2.371/(1+exp((V+21.9)/(-2.641)))
+aux Ina=Ina
+
+# NaP from DmNav10 of WHL oocyte #1
+dmNaP/dt=(minfNaP(V)-mNaP)/mtauNaP(V)
+Inap=gNaP*mNaP*(V-ENa)
+par gNaP=.8
+minfNap(V) = 1/(1+exp((V+48.77)/(-3.68)))
+mtauNap(V) = 1
+aux Inap=Inap
+
+global 1 t {I=Ihold}    
+global 1 t-10 {I=Ipulse}  
+global 1 t-510 {I=Ihold}  
+
+# initial conditions for settled at I=-12
+# easiest way is to get this is to save "info" from File menu
+init V=-54.56137733296305, MKS=0.1095841015345856, MKF=0.006114411948700807, HKF=0.831116786237579, HKF2=6.331878827270821, MNA=0.05466001581199555, HNA=0.9174076713170543, MNAP=0.1716833324516358
+
+@ total=530,bounds=10000000000,meth=euler,dt=.001, nout=100, maxstor=10000000  
+
+par I=0 c=4 Ipulse=0 Ihold=-12
+par gleak=6.8 eleak=-55
+done 
