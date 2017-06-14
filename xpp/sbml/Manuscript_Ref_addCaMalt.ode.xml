@@ -1,0 +1,2490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by sbmlutils version 0.1.5a6 on 2017-06-14 18:21 with libSBML version 5.15.0. -->
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre>#Kim et al. PLoS Comp Biol 2010
+####Models of Second Messenger Pathways in CA1 pyramidal cell.
+#
+## ALL Units in nM for concentration and second for time.
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+# CaMCa4 binding Partner&apos;s affinities: (1) PP2B(28 pM); (2) PDE1B(10 nM); 
+#                                      (3) CaMKII(80 nM); (4) AC1(150 nM)
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#
+#### This version based on rebased with Cab=70 nM, CaMtot=15 uM, CK_tot=20 uM, Ca_max=10 uM
+
+param t_rise=0.01
+#300 sec inter-train interval:
+#param Ca_max=10000, t_dur=0.009,tau=0.01,train_len=1, t1=100, t2=400, t3=700, t4=1000, Cab=70
+#3 sec inter-tr
+param Ca_max=10000, t_dur=0.009,tau=0.01,train_len=1, t1=100, t2=103, t3=106, t4=109, Cab=70
+
+tm=mod(t, tau)
+t_pulse=t_dur-tm
+
+param t_tau=0.01
+
+Ca_pre =Cab+(Ca_max-Cab)*heav(t-t1)*heav(t1+train_len-t)*heav(t_pulse)+(Ca_max-Cab)*heav(t-t2)*heav(t2+train_len-t)*heav(t_pulse)+(Ca_max-Cab)*heav(t-t3)*heav(t3+train_len-t)*heav(t_pulse)+(Ca_max-Cab)*heav(t-t4)*heav(t4+train_len-t)*heav(t_pulse)
+
+dCa/dt=(Ca_pre-Ca)/t_tau
+#aux Ca=Ca
+
+#cam_rate - approximates additional calmodulin diffusing into spine or dissociating from neurogranin as calmodulin decreases
+#make cam_rate = 0 to see how CaMKII activation changes consequent to depletion of calmodulin (figure S4A).
+Par cam_rate=0.1
+cam_a=cam_rate*(7924-cam)
+aux cam_a=cam_a
+
+##L##
+param Lb=10, L_max=1000, tauL=2
+
+
+L=Lb+(L_max-Lb)*heav(t-t1)*heav(t1+train_len-t)+(L_max-Lb)*heav(t-t2)*heav(t2+train_len-t)+(L_max-Lb)*heav(t-t3)*heav(t3+train_len-t)+(L_max-Lb)*heav(t-t4)*heav(t4+train_len-t)
+#aux L=L
+
+#param Cab=70, Lb=10
+
+#Ca=Cab
+#L=Lb
+
+####G_protein part####################################
+#
+#L + R &lt;--&gt; LR (k1, k_1), Kd=9000
+#LR + G &lt;--&gt; LRG (k2, k_2), Kd=1.666667
+#G + R &lt;--&gt; GR (k1a, k_1a), Kd=5
+#GR + L &lt;--&gt; LRG (k2a, k_2a), Kd=3000
+#LRG --&gt;LR + GaGTP + Gbg (k3)
+# or maybe: LRG --&gt;L + R + GaGTP + Gbg (k3)
+#GaGTP --&gt;GaGDP (k4)
+#GaGDP + Gbg --&gt; G (k5)
+#
+######################################################
+
+par k2a=0.00333333 k_2a=10
+par k1a=0.00006 k_1a=0.0003
+par k_1=10 k1=0.0011111
+par k2=0.0006 k_2=0.001
+parameters k3=20
+parameters k4=10
+parameters k5=100
+
+dLR/dt=k1*R*L-k_1*LR-k2*LR*G+k_2*LRG+k3*LRG
+init LR=0.9886277
+
+dLRG/dt=k2*LR*G-k_2*LRG-k3*LRG+k2a*GR*L-k_2a*LRG
+init  LRG=0.5300418
+
+dGaGTP/dt=k3*LRG-k4*GaGTP+E*k_6-GaGTP*AC1*k6
+init  GaGTP=1.060084
+
+dGaGDP/dt=k4*GaGTP-k5*GaGDP*Gbg
+init  GaGDP=143.092094
+
+dGR/dt=k1a*G*R-k_1a*GR-k2a*GR*L+k_2a*LRG
+init  GR=434.160416
+
+dGbg/dt=k3*LRG-k5*GaGDP*Gbg
+init  Gbg=0.000739
+
+
+G=Gtot-(LRG+GaGTP+GaGDP+E+ECam+ECamATP+GR)
+#Aux G=G
+
+
+par Gtot=3000
+Galfa=GaGTP+GaGDP
+#Aux Galfa=Galfa
+R=Rtot-LR-LRG-GR
+par Rtot=500
+#aux R=R
+
+##### AC part: AC1 &amp; AC8 activation thr Ca4CaM ###########################
+#
+#GaGTP + AC1 &lt;--&gt; E (K6, K_6) : Kd=260 nM from Dessaur paper(AC5?)
+#E+ CaMCa4 &lt;---&gt; ECam(k7, k_7): Kd=100 nM
+#ECam + ATP &lt;---&gt; ECamATP(k8,k_8)---&gt;ECam + cAMP(v8): Km=162 uM
+#
+# Synergic effect: v8 increase X10 or X100(see JNeuroscience2003_Wang et al., 23(30)9710_9718)
+#
+#AC1 + CaMCa4 &lt;---&gt; AC1Cam (k9,k_9): Kd=150 nM
+#AC1Cam + ATP &lt;---&gt;AC1CamATP(k10,k_10)---&gt;AC1Cam + cAMP(v10):Km=162 uM
+#
+#AC8 + CaMCa4 &lt;---&gt;AC8Cam(k11,k_11):Kd=800 nM
+#AC8Cam + ATP &lt;---&gt;AC8CamATP(k12, k_12)---&gt;AC8Cam + cAMP(v12):Km=162 uM
+#
+#k10=0.01------&gt; cAMP_basal=56 nM
+#
+##########################################################################
+
+par k6=0.0385,k_6=10
+par k7=0.009,k_7=0.9
+
+
+par k8=0.01, k_8=2273, v8=28.42
+par k9=0.006,k_9=0.9
+ 
+
+par k10=0.01, k_10=2273, v10=2.842
+par k11=0.00125,k_11=1
+par k12=0.01,k_12=2273,v12=2.842
+
+par AC1tot=2500, AC8tot=2500
+
+dE/dt=k6*GaGTP*AC1-K_6*E+k_7*ECam-k7*E*CaMCa4
+dECam/dt=k7*E*CaMCa4-K_7*ECam+(k_8+v8)*ECamATP-k8*ECam*ATP
+dECamATP/dt=k8*ECam*ATP-(k_8+v8)*ECamATP
+
+dAC1Cam/dt=k9*AC1*CaMCa4-k_9*AC1Cam-k10*AC1Cam*ATP+(k_10+v10)*AC1CamATP
+dAC1CamATP/dt=k10*AC1Cam*ATP-(k_10+v10)*AC1CamATP
+
+dAC8Cam/dt=k11*AC8*CaMCa4-k_11*AC8Cam+(k_12+v12)*AC8CamATP-k12*AC8Cam*ATP
+dAC8CamATP/dt=k12*AC8Cam*ATP-(k_12+v12)*AC8CamATP
+  
+dCAMP/dt=ECamATP*v8+AC1CamATP*v10+AC8CamATP*v12\
+-KfPde1*PDE1cam*cAMP+KbPde1*PDE1cAMP-KfPde4*PDE4*cAMP+KbPde4*PDE4cAMP\
+-2*kfhigh*camp*pka+2*kbhigh*PKAcamp1-2*kflow*camp*pkacamp1+2*kblow*pkacamp2
+
+
+par ATPtot=2e6
+par katp=10
+
+
+ATP=ATPtot-cAMP-ECamATP-AC1CamATP-AC8CamATP-AMP-PDE1cAMP-PDE4cAMP\
+-2*PKAcamp1-4*PKAcamp2-4*PKAr
+
+
+ACCam=ECam + AC1Cam+AC8Cam+AC1CamATP+AC8CamATP
+aux ACCam=ACCam
+
+init  CAMP=135.9675
+init  E=8.714253
+init  ECam=0.221507627
+init  ECamATP=1.923882
+init  AC1Cam=36.38592
+init  AC1CamATP=319.7911
+init  AC8Cam=7.760417
+init  AC8CamATP=68.15126
+
+
+AC1=AC1tot-(E+ECam+ECamATP+AC1CamATP+AC1Cam)
+AC8=AC8tot-(AC8Cam+AC8CamATP)
+
+#Aux AC1=AC1
+#Aux AC8=AC8
+#Aux ATP=ATP
+
+### PDE part ###########################################################################
+#
+# PDE1 + CaMca4 &lt;=&gt; PDECam (KbpdeCam, KfpdeCam :Kd=10 nM)
+# PDE1cam + cAMP&lt;=&gt;PDE1-cAMP -&gt; PDE1 + AMP : Km (K_PDE1) Vmax=V_PDE1 (KfPde1, KbPde1)
+# PDE4 + cAMP&lt;=&gt;PDE4-cAMP -&gt; PDE4 + AMP : Km (K_PDE4) Vmax=V_PDE4 (KfPde4, KbPde4)
+#
+########################################################################################
+
+par K_Pde4=4000 V_Pde4=18 KfPde4=0.02 KbPde4=72
+par K_Pde1=12000 V_Pde1=11 KfPde1=0.0046 KbPde1=44
+
+par Pde1Tot=4000, Pde4Tot=2000
+
+par speedpde=0.1
+KbpdeCam=10*speedpde
+KfpdeCam=1*speedpde
+
+
+init  PDE1cAMP=9.2542541
+init  PDE4cAMP=58.653095
+init  AMP=115.76139
+
+PDE1=Pde1Tot-PDE1cAMP-PDE1Cam
+PDE4=Pde4Tot-PDE4cAMP
+aux PDE1=PDE1
+aux PDE4=PDE4
+
+
+dPDE1cAMP/dt = KfPde1*PDE1Cam*cAMP - KbPde1*PDE1cAMP - V_Pde1*PDE1cAMP
+dPDE4cAMP/dt = KfPde4*PDE4*cAMP - KbPde4*PDE4cAMP - V_Pde4*PDE4cAMP
+dAMP/dt = V_Pde1*PDE1cAMP + V_Pde4*PDE4cAMP - katp*amp
+
+dPDE1Cam/dt=KfpdeCam*PDE1*CaMCa4-KbpdeCam*PDE1Cam-KfPde1*PDE1Cam*cAMP+(KbPde1+V_Pde1)*PDE1cAMP
+init  PDE1CaM=813.6621
+
+### CaM,CaMCa4 &amp; PP2B Binding ##############################################################
+#
+#CaM+2Ca &lt;-&gt; CaMCa2_C  (KfC, KbC; Kd=1.5 uM )
+#CaMCa2_C + 2Ca &lt;-&gt; Ca4CaM (KfN, KbN; Kd=10 uM)
+#CaM + PP2(2B) &lt;-&gt; PP2CaM (K33a, K_33a)
+#CaMCa2 + PP2(2B) &lt;-&gt; PP2CaMCa2 (K33c, K_33c)
+#CamCa4 + PP2(2B) &lt;-&gt; PP2B (K32, K_32) :: New rate constants from waxham 2006 paper!!!
+#PP2CaM + 2Ca &lt;-&gt; PP2CaMCa2 (KfC, KbCP - old 34a; KbCP is ~10x slower than KbC)
+#PP2CaMCa2 + 2 Ca &lt;-&gt; PP2B(= PP2CaMCa4) (KfN, KbNP - old 34c; KbNP is ~10x slower than KbN)
+#
+############################################################################################
+
+Par KfN=0.1 KbN=1000 KbNP=10
+Par KfC=6e-3 KbC=9.1 KbCP=0.91
+
+par k33c=1 k_33c=0.3
+par k33a=1 k_33a=3
+par k32=0.046 k_32=0.0012
+
+init  CaMCa2=365.7787
+init  CaMCa4=2.561034
+init  PP2B=720.91025
+init  PP2cam=2236.603
+init  PP2camc2=1029.996
+
+#Par CaMtot=15000
+Par PP2Btot=4000
+
+#CaMtot=15000+cam_a
+dCaMtot/dt=cam_a
+init CaMtot=15000
+
+dCaMCa2/dt=kfC*Ca*CaM-kbC*CaMCa2+kbN*CaMCa4-kfN*Ca*CaMCa2\
++k_33c*PP2camc2-k33c*CaMCa2*2B
+
+
+#3rd line has been added into CaMCa4 &amp; CaM eqns..
+dCaMCa4/dt=kfN*Ca*CaMCa2-kbN*CaMCa4-k32*CaMCa4*2B+k_32*PP2B\
+-k51*CaMCa4*CK+k_51*CKCam-KfpdeCam*PDE1*CaMCa4+KbpdeCam*PDE1Cam\
+-k7*E*CaMCa4+k_7*ECam-k9*AC1*CaMCa4+k_9*AC1Cam-k11*AC8*CaMCa4+k_11*AC8Cam
+
+
+
+
+CaM=CaMtot-(CaMca2+CaMca4+AC1Cam+AC8Cam+PP2cam+PP2camc2+PP2B+Ip35p1p2+Ip35pp2b\
++CKCam+CKpCam+PDE1cam+PDE1camp\
++ECam+ECamATP+AC1Cam+AC1CamATP+AC8Cam+AC8CamATP)
+aux CaM=CaM
+
+
+camc4bnd=PP2B+Ip35PP2B+Ip35p1p2+CKCam+CKpCam+pde1cam+pde1camp\
++ECam+ECamATP+AC1Cam+AC1CamATP+AC8Cam+AC8CamATP
+aux camc4bnd=camc4bnd
+
+totCaM=caM+caMca2+caMca4+PP2cam+PP2camc2+camc4bnd
+
+
+dPP2B/dt=k32*CaMCa4*2B-k_32*PP2B+kfN*PP2camc2*Ca-KbNP*PP2B\
+-k22*Ip35*PP2B+(k_22+v22)*Ip35pp2b-k23*Ip35pp1*PP2B+(k_23+v23)*Ip35p1p2
+
+
+dPP2cam/dt=k33a*CaM*2B-k_33a*PP2cam-kfC*PP2cam*Ca+kbCP*PP2camc2
+
+
+dPP2camc2/dt=k33c*CaMCa2*2B-k_33c*PP2camc2-kfN*PP2camc2*Ca+kbNP*PP2B\
++kfC*PP2Cam*Ca-kbCP*PP2camc2
+
+
+
+2B=PP2Btot-(PP2B+PP2camc2+PP2cam+Ip35pp2B+Ip35p1p2)
+
+
+#2B=2Btot-PP2B-PP2camc2-PP2cam-Ip35pp2B-Ip35p1p2
+#PAR 2Btot=4000
+aux 2B=2B
+
+PP2Bact=PP2B+Ip35pp2B+Ip35p1p2
+
+####CaMKII Part:modified from Dupont&apos;s Model:#######################################
+#
+#  Dec.2006: convert to qantitative model from Dupont&apos;s code
+#  April,2007: eliminate CKpC form --&gt; combined CKpCam &amp; CKpC
+#  June_2007 : simplified Va form to match De Koninck&apos;s Exp. data
+#
+## Chemical Reactions: CaMCa4 + CK &lt;-&gt; CKCam (k51, k_51): bounded form(kd=80 nM)
+#                      CKCam --&gt; CKpCam (Va : Autophoshorylation)
+#                      CKpCam &lt;--&gt; CKp + CaMCa4 ( k52, k_52):trapped form(kd=10e-12)
+#                                  K_52: 1/3 of K_51(0.26667)suggested by Meyer et al.(1992)
+#                      Ckp + PP1 &lt;--&gt;CKpPP1 --&gt; PP1 + CK :Dephoshop(k54,k_54,k54cat)
+#                           ; Km=5.1 uM  from foulkes et. al.,  et al., Eur. JBiochem.1983 132(309-313))
+#                           ; Vmax=5.7 umol/min --&gt; kcat=3.5 sec-1 &amp; kb=14 sec-1
+#                           ; Simonelli 1984(Grad Thesis,CUNY) showed that other substrate are about 1/10
+#                           ; rate of phosphorylase a so, reduce kf,kb,kcat by 10
+#                           ; Schulman&apos;s Exp. data taken
+########################################################################################
+
+
+param CK_ini=20000
+
+
+CK=CK_ini-CKCam-CkpCam-CKp-CKpPP1 
+aux CK=CK
+
+dCKCam/dt = k51*CaMCa4*CK - K_51*CKCam-Va*CK_ini
+init CKCam=594.4366
+
+
+dCKpCam/dt = Va*CK_ini + k_52*CKp*CaMCa4-k52*CKpCam
+init CKpCam=812.7395
+
+
+dCKp/dt =k52*CKpCam - k_52*CKp*CaMCa4 + k_54*CKpPP1-k54*CKp*PP1
+init CKp=10.63496
+
+
+dCKpPP1/dt =k54*CKp*PP1-(k_54+k54cat)*CKpPP1
+init CKpPP1=3.341977
+
+Va=Ka1*((qb*CKCam)^3/(CK_ini^3)+((qb*CKCam)^2*qp*CKpCam)/(CK_ini^3))
+
+param k51=0.01,k_51=0.8,k52=0.0008,k_52=0.0133,Kd=1000,Ka1=0.46
+param k54=0.000039,k_54=0.34,k54cat=0.086
+param qb=0.75, qp=1, qt=0.8, qa=0.8, qpt=1.0
+
+par pp1tot=3500
+PP1= PP1tot-CKpPP1-Ip35PP1-Ip35P1P2
+aux pp1=pp1
+
+
+
+QActi=qpt*CKpCam+qa*CKp
+Acti=QActi/CK_ini
+
+aux QActi=QActi
+#aux Acti=Acti
+
+
+### PKA part:#############################
+#
+#PKA+2cAMP&lt;-&gt;PKAcAMP1; Kdhigh, slow
+#PKAcAMP1+2cAMP&lt;-&gt;PKAcAMP2; Kdlow
+#PKAcAMP2&lt;-&gt;PKAr+2PKAc; Kd_diss, slow
+#
+##########################################
+
+par speedpka=10.0
+kbhigh=0.002*speedpka
+kfhigh=4.3478e-06*speedpka*2
+kblow=0.02*speedpka
+kflow=5.7703e-6*speedpka*2
+kasrc=0.00017*speedpka
+kdisrc=0.0016*speedpka
+
+par PKAtot=1200
+
+dPKAcAMP1/dt=kfhigh*cAMP*PKA-kbhigh*PKAcAMP1-kflow*cAMP*PKAcAMP1+kblow*PKAcAMP2
+dPKAcAMP2/dt=kflow*cAMP*PKAcAMP1-kblow*PKAcAMP2-kdisrc*PKAcAMP2+kasrc*PKAc*PKAr
+dPKAc/dt=2*kdisrc*PKAcamp2-2*kasrc*PKAc*PKAr-k20*I1*PKAc+k_20*I1PKAc+v20*I1PKAc
+
+
+
+Pka=PKAtot-PKAcAMP1-PKAcAMP2-0.5*(PKAc+I1PKAc)
+PKAr=0.5*(PKAc+I1PKAc)
+
+
+
+
+
+init  PKAcAMP1=428.0043
+init  PKAcAMP2=33.5732
+init  PKAc=22.17636
+
+PKAact=PKAc+I1PKAc
+
+
+totPKA=PKA+PKAcAMP1+PKAcAMP2+0.5*(PKAc+I1PKAc)
+
+
+
+
+####Inhibitor 1 Phospho &amp; Dephosphorylation ################
+##
+##  I1+PKAc &lt;--&gt; I1PKAc --&gt; Ip35 + PKAc (20)
+##  Ip35 + PP1 &lt;--&gt; Ip35pp1 (21)
+##  Ip35 + PP2B &lt;--&gt; Ip35pp2b --&gt; I1 + PP2B (22)
+##  Ip35pp1 + PP2B &lt;--&gt; Ip35p1p2 --&gt; I1 + PP1 + PP2B (23)
+##
+############################################################
+
+par I1tot=1500
+
+I1=I1tot-I1PKAc-Ip35-Ip35pp1-Ip35pp2b-Ip35p1p2
+aux I1=I1
+
+par k20=0.0014 k_20=5.6 v20=1.4
+dI1PKAc/dt=k20*I1*PKAc-k_20*I1PKAc-v20*I1PKAc
+
+init  I1PKAc=6.32017
+
+
+dIp35/dt=v20*I1PKAc+k_22*Ip35pp2b-k22*Ip35*PP2B-k21*Ip35*PP1+k_21*Ip35pp1
+
+init  Ip35=2.169742
+
+#### Ip35 + PP1 &lt;--&gt; Ip35pp1 (21) #####
+
+par  k21=0.001 k_21=0.0011
+dIp35pp1/dt=k21*Ip35*PP1-k_21*Ip35pp1-k23*Ip35pp1*pp2b+k_23*Ip35p1p2
+
+init  Ip35pp1=51.23495
+#### Ip35 + PP2B &lt;--&gt; Ip35pp2b --&gt; I1 + PP2B (22) #############
+
+par  k22=0.00467 k_22=11.2 v22=2.8
+dIp35pp2b/dt=k22*Ip35*PP2B-k_22*Ip35pp2b-v22*Ip35pp2b
+
+init  Ip35pp2b=0.5217763
+
+#### Ip35pp1 + PP2B &lt;--&gt; Ip35p1p2 --&gt; I1 + PP1 + PP2B (23) #####
+
+par k23_a=1.0
+k23=0.001*k23_a
+k_23=2*k23_a
+v23=0.5*k23_a
+
+dIp35p1p2/dt=k23*Ip35pp1*PP2B-k_23*Ip35p1p2-v23*Ip35p1p2
+
+init  Ip35p1p2=14.77453
+
+###########################################################
+
+
+dPKAauc/dt=PKAc
+init PKAauc=0
+
+
+@ Total=1400 dt=0.1 method=stiff xlo=0 xhi=3000 ylo=0 yhi=1 maxstor=6000000 \
+  bounds=10000000000 BACK=black nOutput=10000
+d
+
+
+
+
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="min">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="max">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="max">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="t_rise" value="0.01" constant="false"/>
+      <parameter id="Ca_max" value="10000" constant="false"/>
+      <parameter id="t_dur" value="0.009" constant="false"/>
+      <parameter id="tau" value="0.01" constant="false"/>
+      <parameter id="train_len" value="1" constant="false"/>
+      <parameter id="t1" value="100" constant="false"/>
+      <parameter id="t2" value="103" constant="false"/>
+      <parameter id="t3" value="106" constant="false"/>
+      <parameter id="t4" value="109" constant="false"/>
+      <parameter id="Cab" value="70" constant="false"/>
+      <parameter id="t_tau" value="0.01" constant="false"/>
+      <parameter id="cam_rate" value="0.1" constant="false"/>
+      <parameter id="Lb" value="10" constant="false"/>
+      <parameter id="L_max" value="1000" constant="false"/>
+      <parameter id="tauL" value="2" constant="false"/>
+      <parameter id="k2a" value="0.00333333" constant="false"/>
+      <parameter id="k_2a" value="10" constant="false"/>
+      <parameter id="k1a" value="6e-05" constant="false"/>
+      <parameter id="k_1a" value="0.0003" constant="false"/>
+      <parameter id="k_1" value="10" constant="false"/>
+      <parameter id="k1" value="0.0011111" constant="false"/>
+      <parameter id="k2" value="0.0006" constant="false"/>
+      <parameter id="k_2" value="0.001" constant="false"/>
+      <parameter id="k3" value="20" constant="false"/>
+      <parameter id="k4" value="10" constant="false"/>
+      <parameter id="k5" value="100" constant="false"/>
+      <parameter id="LR" value="0.9886277" constant="false"/>
+      <parameter id="LRG" value="0.5300418" constant="false"/>
+      <parameter id="GaGTP" value="1.060084" constant="false"/>
+      <parameter id="GaGDP" value="143.092094" constant="false"/>
+      <parameter id="GR" value="434.160416" constant="false"/>
+      <parameter id="Gbg" value="0.000739" constant="false"/>
+      <parameter id="Gtot" value="3000" constant="false"/>
+      <parameter id="Rtot" value="500" constant="false"/>
+      <parameter id="k6" value="0.0385" constant="false"/>
+      <parameter id="k_6" value="10" constant="false"/>
+      <parameter id="k7" value="0.009" constant="false"/>
+      <parameter id="k_7" value="0.9" constant="false"/>
+      <parameter id="k8" value="0.01" constant="false"/>
+      <parameter id="k_8" value="2273" constant="false"/>
+      <parameter id="v8" value="28.42" constant="false"/>
+      <parameter id="k9" value="0.006" constant="false"/>
+      <parameter id="k_9" value="0.9" constant="false"/>
+      <parameter id="k10" value="0.01" constant="false"/>
+      <parameter id="k_10" value="2273" constant="false"/>
+      <parameter id="v10" value="2.842" constant="false"/>
+      <parameter id="k11" value="0.00125" constant="false"/>
+      <parameter id="k_11" value="1" constant="false"/>
+      <parameter id="k12" value="0.01" constant="false"/>
+      <parameter id="k_12" value="2273" constant="false"/>
+      <parameter id="v12" value="2.842" constant="false"/>
+      <parameter id="AC1tot" value="2500" constant="false"/>
+      <parameter id="AC8tot" value="2500" constant="false"/>
+      <parameter id="ATPtot" value="2000000" constant="false"/>
+      <parameter id="katp" value="10" constant="false"/>
+      <parameter id="CAMP" value="135.9675" constant="false"/>
+      <parameter id="E" value="8.714253" constant="false"/>
+      <parameter id="ECam" value="0.221507627" constant="false"/>
+      <parameter id="ECamATP" value="1.923882" constant="false"/>
+      <parameter id="AC1Cam" value="36.38592" constant="false"/>
+      <parameter id="AC1CamATP" value="319.7911" constant="false"/>
+      <parameter id="AC8Cam" value="7.760417" constant="false"/>
+      <parameter id="AC8CamATP" value="68.15126" constant="false"/>
+      <parameter id="K_Pde4" value="4000" constant="false"/>
+      <parameter id="V_Pde4" value="18" constant="false"/>
+      <parameter id="KfPde4" value="0.02" constant="false"/>
+      <parameter id="KbPde4" value="72" constant="false"/>
+      <parameter id="K_Pde1" value="12000" constant="false"/>
+      <parameter id="V_Pde1" value="11" constant="false"/>
+      <parameter id="KfPde1" value="0.0046" constant="false"/>
+      <parameter id="KbPde1" value="44" constant="false"/>
+      <parameter id="Pde1Tot" value="4000" constant="false"/>
+      <parameter id="Pde4Tot" value="2000" constant="false"/>
+      <parameter id="speedpde" value="0.1" constant="false"/>
+      <parameter id="PDE1cAMP" value="9.2542541" constant="false"/>
+      <parameter id="PDE4cAMP" value="58.653095" constant="false"/>
+      <parameter id="AMP" value="115.76139" constant="false"/>
+      <parameter id="PDE1CaM" value="813.6621" constant="false"/>
+      <parameter id="KfN" value="0.1" constant="false"/>
+      <parameter id="KbN" value="1000" constant="false"/>
+      <parameter id="KbNP" value="10" constant="false"/>
+      <parameter id="KfC" value="0.006" constant="false"/>
+      <parameter id="KbC" value="9.1" constant="false"/>
+      <parameter id="KbCP" value="0.91" constant="false"/>
+      <parameter id="k33c" value="1" constant="false"/>
+      <parameter id="k_33c" value="0.3" constant="false"/>
+      <parameter id="k33a" value="1" constant="false"/>
+      <parameter id="k_33a" value="3" constant="false"/>
+      <parameter id="k32" value="0.046" constant="false"/>
+      <parameter id="k_32" value="0.0012" constant="false"/>
+      <parameter id="CaMCa2" value="365.7787" constant="false"/>
+      <parameter id="CaMCa4" value="2.561034" constant="false"/>
+      <parameter id="PP2B" value="720.91025" constant="false"/>
+      <parameter id="PP2cam" value="2236.603" constant="false"/>
+      <parameter id="PP2camc2" value="1029.996" constant="false"/>
+      <parameter id="PP2Btot" value="4000" constant="false"/>
+      <parameter id="CaMtot" value="15000" constant="false"/>
+      <parameter id="CK_ini" value="20000" constant="false"/>
+      <parameter id="CKCam" value="594.4366" constant="false"/>
+      <parameter id="CKpCam" value="812.7395" constant="false"/>
+      <parameter id="CKp" value="10.63496" constant="false"/>
+      <parameter id="CKpPP1" value="3.341977" constant="false"/>
+      <parameter id="k51" value="0.01" constant="false"/>
+      <parameter id="k_51" value="0.8" constant="false"/>
+      <parameter id="k52" value="0.0008" constant="false"/>
+      <parameter id="k_52" value="0.0133" constant="false"/>
+      <parameter id="Kd" value="1000" constant="false"/>
+      <parameter id="Ka1" value="0.46" constant="false"/>
+      <parameter id="k54" value="3.9e-05" constant="false"/>
+      <parameter id="k_54" value="0.34" constant="false"/>
+      <parameter id="k54cat" value="0.086" constant="false"/>
+      <parameter id="qb" value="0.75" constant="false"/>
+      <parameter id="qp" value="1" constant="false"/>
+      <parameter id="qt" value="0.8" constant="false"/>
+      <parameter id="qa" value="0.8" constant="false"/>
+      <parameter id="qpt" value="1" constant="false"/>
+      <parameter id="pp1tot" value="3500" constant="false"/>
+      <parameter id="speedpka" value="10" constant="false"/>
+      <parameter id="PKAtot" value="1200" constant="false"/>
+      <parameter id="PKAcAMP1" value="428.0043" constant="false"/>
+      <parameter id="PKAcAMP2" value="33.5732" constant="false"/>
+      <parameter id="PKAc" value="22.17636" constant="false"/>
+      <parameter id="I1tot" value="1500" constant="false"/>
+      <parameter id="k20" value="0.0014" constant="false"/>
+      <parameter id="k_20" value="5.6" constant="false"/>
+      <parameter id="v20" value="1.4" constant="false"/>
+      <parameter id="I1PKAc" value="6.32017" constant="false"/>
+      <parameter id="Ip35" value="2.169742" constant="false"/>
+      <parameter id="k21" value="0.001" constant="false"/>
+      <parameter id="k_21" value="0.0011" constant="false"/>
+      <parameter id="Ip35pp1" value="51.23495" constant="false"/>
+      <parameter id="k22" value="0.00467" constant="false"/>
+      <parameter id="k_22" value="11.2" constant="false"/>
+      <parameter id="v22" value="2.8" constant="false"/>
+      <parameter id="Ip35pp2b" value="0.5217763" constant="false"/>
+      <parameter id="k23_a" value="1" constant="false"/>
+      <parameter id="Ip35p1p2" value="14.77453" constant="false"/>
+      <parameter id="PKAauc" value="0" constant="false"/>
+      <parameter id="tm" units="dimensionless" constant="false"/>
+      <parameter id="t_pulse" units="dimensionless" constant="false"/>
+      <parameter id="Ca_pre" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="cam_a" units="dimensionless" constant="false"/>
+      <parameter id="L" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="G" units="dimensionless" constant="false"/>
+      <parameter id="Galfa" units="dimensionless" constant="false"/>
+      <parameter id="R" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="ATP" units="dimensionless" constant="false"/>
+      <parameter id="ACCam" units="dimensionless" constant="false"/>
+      <parameter id="AC1" units="dimensionless" constant="false"/>
+      <parameter id="AC8" units="dimensionless" constant="false"/>
+      <parameter id="KbpdeCam" units="dimensionless" constant="false"/>
+      <parameter id="KfpdeCam" units="dimensionless" constant="false"/>
+      <parameter id="PDE1" units="dimensionless" constant="false"/>
+      <parameter id="PDE4" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="CaM" units="dimensionless" constant="false"/>
+      <parameter id="camc4bnd" units="dimensionless" constant="false"/>
+      <parameter id="totCaM" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="PP2Bact" units="dimensionless" constant="false"/>
+      <parameter id="CK" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="Va" units="dimensionless" constant="false"/>
+      <parameter id="PP1" units="dimensionless" constant="false"/>
+      <parameter id="QActi" units="dimensionless" constant="false"/>
+      <parameter id="Acti" units="dimensionless" constant="false"/>
+      <parameter id="kbhigh" units="dimensionless" constant="false"/>
+      <parameter id="kfhigh" units="dimensionless" constant="false"/>
+      <parameter id="kblow" units="dimensionless" constant="false"/>
+      <parameter id="kflow" units="dimensionless" constant="false"/>
+      <parameter id="kasrc" units="dimensionless" constant="false"/>
+      <parameter id="kdisrc" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="Pka" units="dimensionless" constant="false"/>
+      <parameter id="PKAr" units="dimensionless" constant="false"/>
+      <parameter id="PKAact" units="dimensionless" constant="false"/>
+      <parameter id="totPKA" units="dimensionless" constant="false"/>
+      <parameter id="I1" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="k23" units="dimensionless" constant="false"/>
+      <parameter id="k_23" units="dimensionless" constant="false"/>
+      <parameter id="v23" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter id="bounds" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="tm">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> mod </ci>
+            <ci> t </ci>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t_pulse">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> t_dur </ci>
+            <ci> tm </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Ca_pre">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> Cab </ci>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> Ca_max </ci>
+                <ci> Cab </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t1 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <ci> t_pulse </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> Ca_max </ci>
+                <ci> Cab </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t2 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <ci> t_pulse </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> Ca_max </ci>
+                <ci> Cab </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t3 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t3 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <ci> t_pulse </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> Ca_max </ci>
+                <ci> Cab </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t4 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t4 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <ci> t_pulse </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> Ca_pre </ci>
+              <ci> Ca </ci>
+            </apply>
+            <ci> t_tau </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="cam_a">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> cam_rate </ci>
+            <apply>
+              <minus/>
+              <cn type="integer"> 7924 </cn>
+              <ci> cam </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="L">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> Lb </ci>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> L_max </ci>
+                <ci> Lb </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t1 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> L_max </ci>
+                <ci> Lb </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t2 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> L_max </ci>
+                <ci> Lb </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t3 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t3 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> L_max </ci>
+                <ci> Lb </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t4 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t4 </ci>
+                    <ci> train_len </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k1 </ci>
+                  <ci> R </ci>
+                  <ci> L </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_1 </ci>
+                  <ci> LR </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k2 </ci>
+                <ci> LR </ci>
+                <ci> G </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_2 </ci>
+              <ci> LRG </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k3 </ci>
+              <ci> LRG </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> k2 </ci>
+                    <ci> LR </ci>
+                    <ci> G </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k_2 </ci>
+                    <ci> LRG </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> LRG </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k2a </ci>
+                <ci> GR </ci>
+                <ci> L </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_2a </ci>
+              <ci> LRG </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> LRG </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k4 </ci>
+                  <ci> GaGTP </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> E </ci>
+                <ci> k_6 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> GaGTP </ci>
+              <ci> AC1 </ci>
+              <ci> k6 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k4 </ci>
+              <ci> GaGTP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k5 </ci>
+              <ci> GaGDP </ci>
+              <ci> Gbg </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k1a </ci>
+                  <ci> G </ci>
+                  <ci> R </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_1a </ci>
+                  <ci> GR </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k2a </ci>
+                <ci> GR </ci>
+                <ci> L </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_2a </ci>
+              <ci> LRG </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k3 </ci>
+              <ci> LRG </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k5 </ci>
+              <ci> GaGDP </ci>
+              <ci> Gbg </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="G">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> Gtot </ci>
+            <apply>
+              <plus/>
+              <ci> LRG </ci>
+              <ci> GaGTP </ci>
+              <ci> GaGDP </ci>
+              <ci> E </ci>
+              <ci> ECam </ci>
+              <ci> ECamATP </ci>
+              <ci> GR </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Galfa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> GaGTP </ci>
+            <ci> GaGDP </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="R">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> Rtot </ci>
+                <ci> LR </ci>
+              </apply>
+              <ci> LRG </ci>
+            </apply>
+            <ci> GR </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k6 </ci>
+                  <ci> GaGTP </ci>
+                  <ci> AC1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> K_6 </ci>
+                  <ci> E </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_7 </ci>
+                <ci> ECam </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k7 </ci>
+              <ci> E </ci>
+              <ci> CaMCa4 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> E </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> K_7 </ci>
+                  <ci> ECam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <plus/>
+                  <ci> k_8 </ci>
+                  <ci> v8 </ci>
+                </apply>
+                <ci> ECamATP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k8 </ci>
+              <ci> ECam </ci>
+              <ci> ATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k8 </ci>
+              <ci> ECam </ci>
+              <ci> ATP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_8 </ci>
+                <ci> v8 </ci>
+              </apply>
+              <ci> ECamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k9 </ci>
+                  <ci> AC1 </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_9 </ci>
+                  <ci> AC1Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k10 </ci>
+                <ci> AC1Cam </ci>
+                <ci> ATP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_10 </ci>
+                <ci> v10 </ci>
+              </apply>
+              <ci> AC1CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <ci> AC1Cam </ci>
+              <ci> ATP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_10 </ci>
+                <ci> v10 </ci>
+              </apply>
+              <ci> AC1CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k11 </ci>
+                  <ci> AC8 </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_11 </ci>
+                  <ci> AC8Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <plus/>
+                  <ci> k_12 </ci>
+                  <ci> v12 </ci>
+                </apply>
+                <ci> AC8CamATP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k12 </ci>
+              <ci> AC8Cam </ci>
+              <ci> ATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k12 </ci>
+              <ci> AC8Cam </ci>
+              <ci> ATP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_12 </ci>
+                <ci> v12 </ci>
+              </apply>
+              <ci> AC8CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule/>
+      <assignmentRule variable="ATP"/>
+      <assignmentRule variable="ACCam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> ECam </ci>
+            <ci> AC1Cam </ci>
+            <ci> AC8Cam </ci>
+            <ci> AC1CamATP </ci>
+            <ci> AC8CamATP </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="AC1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> AC1tot </ci>
+            <apply>
+              <plus/>
+              <ci> E </ci>
+              <ci> ECam </ci>
+              <ci> ECamATP </ci>
+              <ci> AC1CamATP </ci>
+              <ci> AC1Cam </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="AC8">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> AC8tot </ci>
+            <apply>
+              <plus/>
+              <ci> AC8Cam </ci>
+              <ci> AC8CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="KbpdeCam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 10 </cn>
+            <ci> speedpde </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="KfpdeCam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 1 </cn>
+            <ci> speedpde </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PDE1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <ci> Pde1Tot </ci>
+              <ci> PDE1cAMP </ci>
+            </apply>
+            <ci> PDE1Cam </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PDE4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> Pde4Tot </ci>
+            <ci> PDE4cAMP </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> KfPde1 </ci>
+                <ci> PDE1Cam </ci>
+                <ci> cAMP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KbPde1 </ci>
+                <ci> PDE1cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> V_Pde1 </ci>
+              <ci> PDE1cAMP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> KfPde4 </ci>
+                <ci> PDE4 </ci>
+                <ci> cAMP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KbPde4 </ci>
+                <ci> PDE4cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> V_Pde4 </ci>
+              <ci> PDE4cAMP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> V_Pde1 </ci>
+                <ci> PDE1cAMP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> V_Pde4 </ci>
+                <ci> PDE4cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> katp </ci>
+              <ci> amp </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> KfpdeCam </ci>
+                  <ci> PDE1 </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> KbpdeCam </ci>
+                  <ci> PDE1Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KfPde1 </ci>
+                <ci> PDE1Cam </ci>
+                <ci> cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> KbPde1 </ci>
+                <ci> V_Pde1 </ci>
+              </apply>
+              <ci> PDE1cAMP </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> cam_a </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule/>
+      <assignmentRule/>
+      <assignmentRule variable="CaM"/>
+      <assignmentRule variable="camc4bnd"/>
+      <assignmentRule variable="totCaM">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> caM </ci>
+            <ci> caMca2 </ci>
+            <ci> caMca4 </ci>
+            <ci> PP2cam </ci>
+            <ci> PP2camc2 </ci>
+            <ci> camc4bnd </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule/>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k33a </ci>
+                  <ci> CaM </ci>
+                  <cn sbml:units="B" type="integer"> 2 </cn>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_33a </ci>
+                  <ci> PP2cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kfC </ci>
+                <ci> PP2cam </ci>
+                <ci> Ca </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kbCP </ci>
+              <ci> PP2camc2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule/>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> PP2Btot </ci>
+            <apply>
+              <plus/>
+              <ci> PP2B </ci>
+              <ci> PP2camc2 </ci>
+              <ci> PP2cam </ci>
+              <ci> Ip35pp2B </ci>
+              <ci> Ip35p1p2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PP2Bact">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> PP2B </ci>
+            <ci> Ip35pp2B </ci>
+            <ci> Ip35p1p2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="CK">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <ci> CK_ini </ci>
+                  <ci> CKCam </ci>
+                </apply>
+                <ci> CkpCam </ci>
+              </apply>
+              <ci> CKp </ci>
+            </apply>
+            <ci> CKpPP1 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k51 </ci>
+                <ci> CaMCa4 </ci>
+                <ci> CK </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> K_51 </ci>
+                <ci> CKCam </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Va </ci>
+              <ci> CK_ini </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> Va </ci>
+                <ci> CK_ini </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_52 </ci>
+                <ci> CKp </ci>
+                <ci> CaMCa4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k52 </ci>
+              <ci> CKpCam </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k52 </ci>
+                  <ci> CKpCam </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_52 </ci>
+                  <ci> CKp </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_54 </ci>
+                <ci> CKpPP1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k54 </ci>
+              <ci> CKp </ci>
+              <ci> PP1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k54 </ci>
+              <ci> CKp </ci>
+              <ci> PP1 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_54 </ci>
+                <ci> k54cat </ci>
+              </apply>
+              <ci> CKpPP1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Va">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ka1 </ci>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <apply>
+                  <power/>
+                  <apply>
+                    <times/>
+                    <ci> qb </ci>
+                    <ci> CKCam </ci>
+                  </apply>
+                  <cn type="integer"> 3 </cn>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> CK_ini </ci>
+                  <cn type="integer"> 3 </cn>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <power/>
+                    <apply>
+                      <times/>
+                      <ci> qb </ci>
+                      <ci> CKCam </ci>
+                    </apply>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <ci> qp </ci>
+                  <ci> CKpCam </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> CK_ini </ci>
+                  <cn type="integer"> 3 </cn>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PP1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> PP1tot </ci>
+                <ci> CKpPP1 </ci>
+              </apply>
+              <ci> Ip35PP1 </ci>
+            </apply>
+            <ci> Ip35P1P2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="QActi">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <ci> qpt </ci>
+              <ci> CKpCam </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> qa </ci>
+              <ci> CKp </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Acti">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> QActi </ci>
+            <ci> CK_ini </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kbhigh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.002 </cn>
+            <ci> speedpka </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kfhigh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 4.3478 <sep/> -6 </cn>
+            <ci> speedpka </ci>
+            <cn type="integer"> 2 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kblow">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.02 </cn>
+            <ci> speedpka </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kflow">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 5.7703 <sep/> -6 </cn>
+            <ci> speedpka </ci>
+            <cn type="integer"> 2 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kasrc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.00017 </cn>
+            <ci> speedpka </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kdisrc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.0016 </cn>
+            <ci> speedpka </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kfhigh </ci>
+                  <ci> cAMP </ci>
+                  <ci> PKA </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kbhigh </ci>
+                  <ci> PKAcAMP1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kflow </ci>
+                <ci> cAMP </ci>
+                <ci> PKAcAMP1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kblow </ci>
+              <ci> PKAcAMP2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kflow </ci>
+                  <ci> cAMP </ci>
+                  <ci> PKAcAMP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kblow </ci>
+                  <ci> PKAcAMP2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kdisrc </ci>
+                <ci> PKAcAMP2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kasrc </ci>
+              <ci> PKAc </ci>
+              <ci> PKAr </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> kdisrc </ci>
+                  <ci> PKAcamp2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> kasrc </ci>
+                  <ci> PKAc </ci>
+                  <ci> PKAr </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k20 </ci>
+                <ci> I1 </ci>
+                <ci> PKAc </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_20 </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v20 </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Pka">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> PKAtot </ci>
+                <ci> PKAcAMP1 </ci>
+              </apply>
+              <ci> PKAcAMP2 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <ci> PKAc </ci>
+                <ci> I1PKAc </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PKAr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.5 </cn>
+            <apply>
+              <plus/>
+              <ci> PKAc </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PKAact">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> PKAc </ci>
+            <ci> I1PKAc </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="totPKA">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> PKA </ci>
+            <ci> PKAcAMP1 </ci>
+            <ci> PKAcAMP2 </ci>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <ci> PKAc </ci>
+                <ci> I1PKAc </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="I1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <ci> I1tot </ci>
+                    <ci> I1PKAc </ci>
+                  </apply>
+                  <ci> Ip35 </ci>
+                </apply>
+                <ci> Ip35pp1 </ci>
+              </apply>
+              <ci> Ip35pp2b </ci>
+            </apply>
+            <ci> Ip35p1p2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k20 </ci>
+                <ci> I1 </ci>
+                <ci> PKAc </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_20 </ci>
+                <ci> I1PKAc </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v20 </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <ci> v20 </ci>
+                    <ci> I1PKAc </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k_22 </ci>
+                    <ci> Ip35pp2b </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k22 </ci>
+                  <ci> Ip35 </ci>
+                  <ci> PP2B </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k21 </ci>
+                <ci> Ip35 </ci>
+                <ci> PP1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_21 </ci>
+              <ci> Ip35pp1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k21 </ci>
+                  <ci> Ip35 </ci>
+                  <ci> PP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_21 </ci>
+                  <ci> Ip35pp1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k23 </ci>
+                <ci> Ip35pp1 </ci>
+                <ci> pp2b </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_23 </ci>
+              <ci> Ip35p1p2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k22 </ci>
+                <ci> Ip35 </ci>
+                <ci> PP2B </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_22 </ci>
+                <ci> Ip35pp2b </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v22 </ci>
+              <ci> Ip35pp2b </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k23">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.001 </cn>
+            <ci> k23_a </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_23">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 2 </cn>
+            <ci> k23_a </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="v23">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.5 </cn>
+            <ci> k23_a </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k23 </ci>
+                <ci> Ip35pp1 </ci>
+                <ci> PP2B </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_23 </ci>
+                <ci> Ip35p1p2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v23 </ci>
+              <ci> Ip35p1p2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> PKAc </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="bounds">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <cn sbml:units="BACK"> 10000000000 </cn>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

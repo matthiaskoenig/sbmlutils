@@ -6,43 +6,68 @@
       <body xmlns="http://www.w3.org/1999/xhtml">
         <h1>XPP model</h1>
         <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
-        <pre># HH-ext.ode: an XppAut file for the Hodgkin-Huxley equations
-# + strength of external electrical field
-# time in msec, voltage in mV and frequency in Hz
-
-# initial conditions
-init V=0, m=0.052, h=0.596, n=0.317
-
-# the parameters
-param Vext=8, iapp=1, freq=0.3
-param VNa=115,VK=-12,VL=10.599, gNa=120
-param gK=36, gL=0.3, cm=1
-
-# time constants and steady state functions for gating variables
-am(v)=0.1*(25-v)/(exp((25-v)/10)-1)
-bm(v)=4*exp(-v/18)
-ah(v)=0.07*exp(-v/20)
-bh(v)=1/(exp((30-v)/10)+1)
-an(v)=0.01*(10-v)/(exp((10-v)/10)-1)
-bn(v)=0.125*exp(-v/80)
-
-vex(t)=vext*(sin(2*pi*(freq/1000)*t))
-ik=gk*n^4*(v+vex(t)-vk)
-ina=gna*m^3*h*(v+vex(t)-vna)
-il=gl*(v+vex(t)-vl)
-
-# the equations
-v&apos;=(-ik-ina-il+iapp)/cm
-m&apos;=(am(v)*(1-m)-bm(v)*m)
-n&apos;=(an(v)*(1-n)-bn(v)*n)
-h&apos;=(ah(v)*(1-h)-bh(v)*h)
-
-aux vex=vex(t)
-
-# set xpp parameters
-@ total=25000, xp=t, yp=v, xlo=0, xhi=25000, ylo=-20, yhi=120, bounds=10000000, dt=0.01
-@ maxstor=10000000
-done</pre>
+        <pre># 200 e and 50 I HH equations
+# random applied current, random conductances
+# to get it started, just set the excitatory synapses
+# to some random values between 0 and 1
+# you will get persistent activity.
+# here are the HH functions
+am(v)=phi*.1*(v+40)/(1-exp(-(v+40)/10))
+bm(v)=phi*4*exp(-(v+65)/18)
+ah(v)=phi*.07*exp(-(v+65)/20)
+bh(v)=phi*1/(1+exp(-(v+35)/10))
+an(v)=phi*.01*(v+55)/(1-exp(-(v+55)/10))
+bn(v)=phi*.125*exp(-(v+65)/80)
+par phi=1
+# this is the current for each cell
+ihh(v,m,h,n)=gna*h*(v-vna)*m^3+gk*(v-vk)*n^4+gl*(v-vl)
+# synaptic onset parameters
+# s&apos; = a(vpre)(1-s)-s/tau
+ae(x)=ae0/(1+exp(-x/5))
+ai(x)=ai0/(1+exp(-x/5))
+par ae0=4,ai0=1
+# dont recompute the random tables every time a parameter is changed
+@ autoeval=0
+# random synapses - 20 % connectivity
+table wee % 40000 0 39999 ran(1)&lt;.02
+table wei % 10000 0 9999 ran(1)&lt;.02
+table wie % 10000 0 9999 ran(1)&lt;.02
+table wii % 2500 0 2499  ran(1)&lt;.02
+# multiply synapses by weights
+special see=mmult(200,200,wee,se0)
+special sei=mmult(200,50,wei,se0)
+special sie=mmult(50,200,wie,si0)
+special sii=mmult(50,50,wii,si0)
+# random currents applied to each cell
+table r_e % 200 0 199  ran(1)-.5
+table r_i % 50 0 49 ran(1)-.5
+# parameters
+par taue=4,taui=10
+par vna=50  vk=-77  vl=-54.4  gna=120  gk=36  gl=0.3
+par ie0=10,ie1=0
+par ii0=10,ii1=0
+par gee=0,gie=0,gii=0,gei=0
+par eex=0,ein=-75
+# finally the ODEs
+ve[0..199]&apos;=ie0+ie1*r_e([j])-ihh(ve[j],me[j],he[j],ne[j])-gee*see([j])*(ve[j]-eex)-gie*sie([j])*(ve[j]-ein)
+vi[0..49]&apos;=ii0+ii1*r_i([j])-ihh(vi[j],mi[j],hi[j],ni[j])-gei*sei([j])*(vi[j]-eex)-gii*sii([j])*(vi[j]-ein)
+# synapses...
+se[0..199]&apos;=-se[j]/taue+ae(ve[j])*(1-se[j])
+si[0..49]&apos;=-si[j]/taui+ai(vi[j])*(1-si[j])
+# gating variables
+me[0..199]&apos;=am(ve[j])*(1-me[j])-bm(ve[j])*me[j]
+he[0..199]&apos;=ah(ve[j])*(1-he[j])-bh(ve[j])*he[j]
+ne[0..199]&apos;=an(ve[j])*(1-ne[j])-bn(ve[j])*ne[j]
+mi[0..49]&apos;=am(vi[j])*(1-mi[j])-bm(vi[j])*mi[j]
+hi[0..49]&apos;=ah(vi[j])*(1-hi[j])-bh(vi[j])*hi[j]
+ni[0..49]&apos;=an(vi[j])*(1-ni[j])-bn(vi[j])*ni[j]
+# initial data
+init ve[0..199]=-65
+init vi[0..49]=-65
+# some numerical settings
+@ total=200,meth=euler,nout=10,dt=.01
+done
+</pre>
         <div class="dc:publisher">This file has been produced by
       <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
     </div>
@@ -143,21 +168,29 @@ done</pre>
       </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
-      <parameter id="V" value="0" constant="false"/>
-      <parameter id="m" value="0.052" constant="false"/>
-      <parameter id="h" value="0.596" constant="false"/>
-      <parameter id="n" value="0.317" constant="false"/>
-      <parameter id="Vext" value="8" constant="false"/>
-      <parameter id="iapp" value="1" constant="false"/>
-      <parameter id="freq" value="0.3" constant="false"/>
-      <parameter id="VNa" value="115" constant="false"/>
-      <parameter id="VK" value="-12" constant="false"/>
-      <parameter id="VL" value="10.599" constant="false"/>
-      <parameter id="gNa" value="120" constant="false"/>
-      <parameter id="gK" value="36" constant="false"/>
-      <parameter id="gL" value="0.3" constant="false"/>
-      <parameter id="cm" value="1" constant="false"/>
-      <parameter id="v" units="dimensionless" constant="false"/>
+      <parameter id="phi" value="1" constant="false"/>
+      <parameter id="ae0" value="4" constant="false"/>
+      <parameter id="ai0" value="1" constant="false"/>
+      <parameter id="taue" value="4" constant="false"/>
+      <parameter id="taui" value="10" constant="false"/>
+      <parameter id="vna" value="50" constant="false"/>
+      <parameter id="vk" value="-77" constant="false"/>
+      <parameter id="vl" value="-54.4" constant="false"/>
+      <parameter id="gna" value="120" constant="false"/>
+      <parameter id="gk" value="36" constant="false"/>
+      <parameter id="gl" value="0.3" constant="false"/>
+      <parameter id="ie0" value="10" constant="false"/>
+      <parameter id="ie1" value="0" constant="false"/>
+      <parameter id="ii0" value="10" constant="false"/>
+      <parameter id="ii1" value="0" constant="false"/>
+      <parameter id="gee" value="0" constant="false"/>
+      <parameter id="gie" value="0" constant="false"/>
+      <parameter id="gii" value="0" constant="false"/>
+      <parameter id="gei" value="0" constant="false"/>
+      <parameter id="eex" value="0" constant="false"/>
+      <parameter id="ein" value="-75" constant="false"/>
+      <parameter value="-65" constant="false"/>
+      <parameter value="-65" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
@@ -165,145 +198,62 @@ done</pre>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
-      <parameter id="ik" units="dimensionless" constant="false"/>
-      <parameter id="ina" units="dimensionless" constant="false"/>
-      <parameter id="il" units="dimensionless" constant="false"/>
-      <parameter id="vex" units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
+      <parameter units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
-      <rateRule variable="v">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <minus/>
-                  <apply>
-                    <minus/>
-                    <ci> ik </ci>
-                  </apply>
-                  <ci> ina </ci>
-                </apply>
-                <ci> il </ci>
-              </apply>
-              <ci> iapp </ci>
-            </apply>
-            <ci> cm </ci>
-          </apply>
-        </math>
-      </rateRule>
-      <rateRule variable="m">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> am </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> m </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <ci> bm </ci>
-                <ci> v </ci>
-              </apply>
-              <ci> m </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
-      <rateRule variable="n">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> an </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> n </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <ci> bn </ci>
-                <ci> v </ci>
-              </apply>
-              <ci> n </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
-      <rateRule variable="h">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> ah </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> h </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <ci> bh </ci>
-                <ci> v </ci>
-              </apply>
-              <ci> h </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
             <apply>
               <times/>
+              <ci> phi </ci>
               <cn> 0.1 </cn>
               <apply>
-                <minus/>
-                <cn type="integer"> 25 </cn>
+                <plus/>
                 <ci> v </ci>
+                <cn type="integer"> 40 </cn>
               </apply>
             </apply>
             <apply>
               <minus/>
+              <cn type="integer"> 1 </cn>
               <apply>
                 <exp/>
                 <apply>
                   <divide/>
                   <apply>
                     <minus/>
-                    <cn type="integer"> 25 </cn>
-                    <ci> v </ci>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 40 </cn>
+                    </apply>
                   </apply>
                   <cn type="integer"> 10 </cn>
                 </apply>
               </apply>
-              <cn type="integer"> 1 </cn>
             </apply>
           </apply>
         </math>
@@ -312,6 +262,7 @@ done</pre>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <times/>
+            <ci> phi </ci>
             <cn type="integer"> 4 </cn>
             <apply>
               <exp/>
@@ -319,7 +270,11 @@ done</pre>
                 <divide/>
                 <apply>
                   <minus/>
-                  <ci> v </ci>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 65 </cn>
+                  </apply>
                 </apply>
                 <cn type="integer"> 18 </cn>
               </apply>
@@ -331,6 +286,7 @@ done</pre>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <times/>
+            <ci> phi </ci>
             <cn> 0.07 </cn>
             <apply>
               <exp/>
@@ -338,7 +294,11 @@ done</pre>
                 <divide/>
                 <apply>
                   <minus/>
-                  <ci> v </ci>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 65 </cn>
+                  </apply>
                 </apply>
                 <cn type="integer"> 20 </cn>
               </apply>
@@ -350,22 +310,29 @@ done</pre>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
-            <cn type="integer"> 1 </cn>
+            <apply>
+              <times/>
+              <ci> phi </ci>
+              <cn type="integer"> 1 </cn>
+            </apply>
             <apply>
               <plus/>
+              <cn type="integer"> 1 </cn>
               <apply>
                 <exp/>
                 <apply>
                   <divide/>
                   <apply>
                     <minus/>
-                    <cn type="integer"> 30 </cn>
-                    <ci> v </ci>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 35 </cn>
+                    </apply>
                   </apply>
                   <cn type="integer"> 10 </cn>
                 </apply>
               </apply>
-              <cn type="integer"> 1 </cn>
             </apply>
           </apply>
         </math>
@@ -376,28 +343,32 @@ done</pre>
             <divide/>
             <apply>
               <times/>
+              <ci> phi </ci>
               <cn> 0.01 </cn>
               <apply>
-                <minus/>
-                <cn type="integer"> 10 </cn>
+                <plus/>
                 <ci> v </ci>
+                <cn type="integer"> 55 </cn>
               </apply>
             </apply>
             <apply>
               <minus/>
+              <cn type="integer"> 1 </cn>
               <apply>
                 <exp/>
                 <apply>
                   <divide/>
                   <apply>
                     <minus/>
-                    <cn type="integer"> 10 </cn>
-                    <ci> v </ci>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 55 </cn>
+                    </apply>
                   </apply>
                   <cn type="integer"> 10 </cn>
                 </apply>
               </apply>
-              <cn type="integer"> 1 </cn>
             </apply>
           </apply>
         </math>
@@ -406,6 +377,7 @@ done</pre>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <times/>
+            <ci> phi </ci>
             <cn> 0.125 </cn>
             <apply>
               <exp/>
@@ -413,7 +385,11 @@ done</pre>
                 <divide/>
                 <apply>
                   <minus/>
-                  <ci> v </ci>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 65 </cn>
+                  </apply>
                 </apply>
                 <cn type="integer"> 80 </cn>
               </apply>
@@ -424,101 +400,91 @@ done</pre>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
-            <times/>
-            <ci> vext </ci>
+            <plus/>
             <apply>
-              <sin/>
+              <times/>
+              <ci> gna </ci>
+              <ci> h </ci>
               <apply>
-                <times/>
-                <cn type="integer"> 2 </cn>
-                <pi/>
+                <minus/>
+                <ci> v </ci>
+                <ci> vna </ci>
+              </apply>
+              <apply>
+                <power/>
+                <ci> m </ci>
+                <cn type="integer"> 3 </cn>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> gk </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vk </ci>
+              </apply>
+              <apply>
+                <power/>
+                <ci> n </ci>
+                <cn type="integer"> 4 </cn>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> gl </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vl </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> ae0 </ci>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
                 <apply>
                   <divide/>
-                  <ci> freq </ci>
-                  <cn type="integer"> 1000 </cn>
+                  <apply>
+                    <minus/>
+                    <ci> x </ci>
+                  </apply>
+                  <cn type="integer"> 5 </cn>
                 </apply>
-                <ci> t </ci>
               </apply>
             </apply>
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule variable="ik">
+      <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
-            <times/>
-            <ci> gk </ci>
+            <divide/>
+            <ci> ai0 </ci>
             <apply>
-              <power/>
-              <ci> n </ci>
-              <cn type="integer"> 4 </cn>
-            </apply>
-            <apply>
-              <minus/>
+              <plus/>
+              <cn type="integer"> 1 </cn>
               <apply>
-                <plus/>
-                <ci> v </ci>
+                <exp/>
                 <apply>
-                  <ci> vex </ci>
-                  <ci> t </ci>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> x </ci>
+                  </apply>
+                  <cn type="integer"> 5 </cn>
                 </apply>
               </apply>
-              <ci> vk </ci>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="ina">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gna </ci>
-            <apply>
-              <power/>
-              <ci> m </ci>
-              <cn type="integer"> 3 </cn>
-            </apply>
-            <ci> h </ci>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <ci> v </ci>
-                <apply>
-                  <ci> vex </ci>
-                  <ci> t </ci>
-                </apply>
-              </apply>
-              <ci> vna </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="il">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gl </ci>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <ci> v </ci>
-                <apply>
-                  <ci> vex </ci>
-                  <ci> t </ci>
-                </apply>
-              </apply>
-              <ci> vl </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="vex">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <ci> vex </ci>
-            <ci> t </ci>
           </apply>
         </math>
       </assignmentRule>
