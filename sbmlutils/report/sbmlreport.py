@@ -212,6 +212,7 @@ def infoSbase(item):
         'notes': notes(item),
         'annotation': annotation(item)
     }
+
     if item.isSetName():
         name = item.name
     else:
@@ -568,8 +569,12 @@ def metaId(item):
 
 def id_html(item):
     id = item.getId()
+    if type(item) == libsbml.RateRule:
+        full_id = 'd {}/dt'.format(id)
+    else:
+        full_id = id
     meta = metaId(item)
-    info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, id, meta)
+    info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, full_id, meta)
     if id is not None and (type(item) is not libsbml.Model):
         info += xml_modal(item)
     info += "</td>"

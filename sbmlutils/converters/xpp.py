@@ -44,10 +44,9 @@ XPP_COMMENT_CHAR = '#'
 XPP_SETTING_CHAR = '@'
 XPP_END_WORD = 'done'
 XPP_TYPE_CHARS = {
-    XPP_PAR: 'p', # parameter
-    XPP_AUX: 'a', # assignment rule
-    XPP_WIE: 'w', #
-
+    XPP_PAR: 'p',
+    XPP_AUX: 'a',
+    XPP_WIE: 'w',
 }
 
 NOTES = """
@@ -92,9 +91,15 @@ def xpp2sbml(xpp_file, sbml_file):
     model = doc.createModel()
 
     parameters = []
+    initial_assignments = []
     rate_rules = []
     assignment_rules = []
-    initial_assignments = []
+
+    functions = [
+        # definition of min and max
+        fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
+        fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
+    ]
 
     with open(xpp_file) as f:
         lines = f.readlines()
@@ -125,7 +130,7 @@ def xpp2sbml(xpp_file, sbml_file):
             #####################
             # Line without '=' sign
             #####################
-            # parameter, wiener
+            # wiener
             if len(tokens) == 1:
                 items = [t.strip() for t in tokens[0].split(' ')]
                 # keyword, value
@@ -148,20 +153,66 @@ def xpp2sbml(xpp_file, sbml_file):
             #####################
             # Line with '=' sign
             #####################
-            # ode, difference equation
-            elif len(tokens) == 2:
-                left, right = tokens[0], tokens[1]
-                # parameters
+            # parameter, aux, ode, initial assignments
+            elif len(tokens) >= 2:
+                left = tokens[0]
+                items = [t.strip() for t in left.split(' ')]
+                # keyword based information
+                if len(items) == 2:
+                    xid = items[0]  # xpp keyword
+                    expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:]) # full expression after keyword
+                    # parameter
+                    if xid.startswith(XPP_TYPE_CHARS[XPP_PAR]):
 
+                        assignments = [t.strip() for t in expression.split(',')]
+                        for a in assignments:
+                            sid, value = [t.strip() for t in a.split('=')]
+                            parameters.append(
+                                fac.Parameter(sid=sid, value=float(value), constant=True)
+                            )
+                    # aux
+                    elif xid.startswith(XPP_TYPE_CHARS[XPP_AUX]):
+                        if sid == right:
+                            # avoid circular dependencies (no information in statement)
+                            pass
+                        else:
+                            assignment_rules.append(
+                                fac.AssignmentRule(sid=sid, value=right)
+                            )
+                    else:
+                        warnings.warn("XPP line not parsed: '{}'".format(line))
 
-                # ode
-                if left.endswith("'"):
-                    sid = left[0:-1]
-                    rate_rules.append(
-                        fac.RateRule(sid=sid, value=right)
-                    )
+                # direct assignments
+                elif len(items) == 1:
+                    right = tokens[1]
+                    # initial assignments
+                    if left.endswith('(0)'):
+                        sid = left[0:-3]
+                        parameters.append(
+                            fac.Parameter(sid=sid, value=float(right), constant=False)
+                        )
+                        initial_assignments.append(
+                            fac.InitialAssignment(sid=sid, value=right)
+                        )
+
+                    # ode
+                    elif left.endswith("'"):
+                        # FIXME: also check for d*/dt expression
+                        sid = left[0:-1]
+                        rate_rules.append(
+                            fac.RateRule(sid=sid, value=right)
+                        )
+                    # assignment rules
+                    else:
+                        assignment_rules.append(
+                            fac.AssignmentRule(sid=left, value=right)
+                        )
                 else:
                     warnings.warn("XPP line not parsed: '{}'".format(line))
+
+    # create SBML objects
+    objects = parameters + functions + initial_assignments + assignment_rules # + rate_rules
+    fac.create_objects(model, objects)
 
     sbmlio.write_sbml(doc, sbml_file, validate=False, program_name="sbmlutils", program_version=__version__)
 
@@ -169,4 +220,4 @@ if __name__ == "__main__":
     xpp_file = "PLoSCompBiol_Fig1.ode"
     sbml_file = "PLoSCompBiol_Fig1.xml"
     xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_sbml_report(sbml_file, out_dir=".")
+    sbmlreport.create_sbml_report(sbml_file, out_dir=".", validate=True)
