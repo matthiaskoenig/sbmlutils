@@ -19,6 +19,13 @@ Only supports subset of features.
 Variables have to be case sensitive !!!, but this can easily be fixed based on validator output.
 
 """
+# TODO: d()/dt syntax for odes
+# TODO: init/Initial/I syntax for initial assignments/values
+# TODO: number/Number/N syntax
+# TODO: ** --> power conversion in formula
+# TODO: bug multiple whitespace before keywords
+
+
 from __future__ import print_function, absolute_import
 
 import warnings
@@ -32,7 +39,7 @@ XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
 XPP_IE = "integral equation"  # x(t) =  ...int{K(u,t,t')}...
 XPP_ZIP = "zippy"  # Fixed or hidden values
 XPP_FUN = "functions"  # f(x,y) = x^2/(x^2+y^2)
-XPP_IDA = "initial data"
+XPP_INIT = "initial data"
 XPP_AUX = "auxiliary quantities"
 XPP_MAR = "markov variables"
 XPP_WIE = "wiener variables"
@@ -41,13 +48,15 @@ XPP_PAR = "parameter"
 XPP_NUM = "number"
 XPP_TAB = "table"
 
-XPP_COMMENT_CHAR = '#'
+XPP_COMMENT_CHARS = ['#', '%']
 XPP_SETTING_CHAR = '@'
 XPP_END_WORD = 'done'
 XPP_TYPE_CHARS = {
     XPP_PAR: 'p',
     XPP_AUX: 'a',
     XPP_WIE: 'w',
+    XPP_INIT: 'i',
+    XPP_NUM: 'n',
 }
 
 NOTES = """
@@ -86,7 +95,7 @@ def xpp2sbml(xpp_file, sbml_file):
     :return:
     """
     print('-' * 80)
-    print('xpp2sbml')
+    print('xpp2sbml: ', xpp_file, '->', sbml_file)
     print('-' * 80)
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
@@ -102,6 +111,19 @@ def xpp2sbml(xpp_file, sbml_file):
         fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
     ]
 
+    def parse_keyword(xpp_id):
+        """ Parses the keyword and returns the xpp keyword type.
+        :param xpp_id:
+        :return:
+        """
+        xpp_id = xpp_id.lower()
+        for xpp_key, c in XPP_TYPE_CHARS.items():
+            if xpp_id.startswith(c):
+                return xpp_key
+        warnings.warn("Keyword not supported:", xpp_id)
+        return None
+
+
     with open(xpp_file) as f:
         lines = f.readlines()
 
@@ -115,7 +137,7 @@ def xpp2sbml(xpp_file, sbml_file):
             if len(line) == 0:
                 continue
             # comment line
-            if line.startswith(XPP_COMMENT_CHAR):
+            if line[0] in XPP_COMMENT_CHARS:
                 continue
             # xpp setting
             if line.startswith(XPP_SETTING_CHAR):
@@ -137,9 +159,10 @@ def xpp2sbml(xpp_file, sbml_file):
                 # keyword, value
                 if len(items) == 2:
                     xid, sid = items[0], items[1]
+                    xpp_type = parse_keyword(xid)
 
                     # wiener
-                    if xid.startswith(XPP_TYPE_CHARS[XPP_WIE]):
+                    if xpp_type == XPP_WIE:
                         ''' Wiener parameters are normally distributed numbers with zero mean 
                         and unit standard deviation. They are useful in stochastic simulations since 
                         they automatically scale with change in the integration time step. 
@@ -161,18 +184,20 @@ def xpp2sbml(xpp_file, sbml_file):
                 # keyword based information
                 if len(items) == 2:
                     xid = items[0]  # xpp keyword
-                    expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:]) # full expression after keyword
-                    # parameter
-                    if xid.startswith(XPP_TYPE_CHARS[XPP_PAR]):
+                    xpp_type = parse_keyword(xid)
+                    expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:])  # full expression after keyword
 
+                    # parameter
+                    if xpp_type == XPP_PAR:
                         assignments = [t.strip() for t in expression.split(',')]
                         for a in assignments:
                             sid, value = [t.strip() for t in a.split('=')]
                             parameters.append(
                                 fac.Parameter(sid=sid, value=float(value), constant=True)
                             )
+
                     # aux
-                    elif xid.startswith(XPP_TYPE_CHARS[XPP_AUX]):
+                    elif xpp_type == XPP_AUX:
                         assignments = [t.strip() for t in expression.split(',')]
                         for a in assignments:
                             sid, value = [t.strip() for t in a.split('=')]
@@ -181,7 +206,6 @@ def xpp2sbml(xpp_file, sbml_file):
                                 # avoid circular dependencies (no information in statement)
                                 pass
                             else:
-                                print('aux:', sid, '=', value, '[', line, ']')
                                 assignment_rules.append(
                                     fac.AssignmentRule(sid=sid, value=value)
                                 )

@@ -98,7 +98,6 @@ def get_models(download=True):
     print('Number xpp models:', len(model_ids))
 
     ode_all = []
-
     for model_id in model_ids:
         if download:
             # download zip files
@@ -114,19 +113,28 @@ def get_models(download=True):
 
 
 if __name__ == "__main__":
-    ode_all = get_models(download=True)
-    from pprint import pprint
-    pprint(sorted(ode_all))
+    # ode_all = get_models(download=True)
+
+    # get all ode files
+    ode_all = []
+    xpp_path = "."
+
+    for root, dirnames, filenames in os.walk(xpp_path):
+        for f in filenames:
+            if f.endswith('.ode'):
+                f_path = os.path.join(root, f)
+                ode_all.append(f_path)
+
+    # from pprint import pprint
+    # pprint(sorted(ode_all))
 
     # create the sbml files
     from sbmlutils.converters import xpp
+    out_dir = './sbml'
+    for xpp_file in sorted(ode_all):
 
-    '''
-    xpp.xpp2sbml()
-    
-    # convert xpp to sbml
-    out_dir = './xpp_example'
-    xpp_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.ode")
-    sbml_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.xml")
-    xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    '''
+        # convert xpp to sbml
+        basename = os.path.basename(xpp_file)
+        sbml_file = os.path.join(out_dir, "{}.xml".format(basename))
+        xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+
