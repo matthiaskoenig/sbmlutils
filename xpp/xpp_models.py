@@ -52,7 +52,13 @@ def download_model_zip(model_id, output_dir):
     return file_name
 
 
-def unzip_ode(model_id, output_dir):
+def unzip_odes(model_id, output_dir):
+    """ Unzip the ode files for the given model_id.
+
+    :param model_id:
+    :param output_dir:
+    :return: list of ode files
+    """
 
     name = os.path.join(output_dir, '{}.zip'.format(model_id))
     print('Extracting:', model_id)
@@ -61,11 +67,11 @@ def unzip_ode(model_id, output_dir):
         z = zipfile.ZipFile(name)
     except zipfile.error as e:
         print("Bad zipfile (from %r): %s" % (url, e))
-        return
+        return []
 
     zip_dir = os.path.join(output_dir, str(model_id))
 
-    # z.extractall(path=zip_dir)
+    ode_files = []
 
     for n in z.namelist():
         # only extract the xpp ode files
@@ -73,17 +79,25 @@ def unzip_ode(model_id, output_dir):
             print('\t', n)
             try:
                 z.extract(n, path=zip_dir)
+                ode_files.append(os.path.join(zip_dir, n))
             except zipfile.BadZipfile as e:
                 warnings.warn('BadZipFile: {}'.format(model_id))
                 warnings.warn(e)
 
+    return ode_files
 
-if __name__ == "__main__":
-    download = True
 
+def get_models(download=True):
+    """ Extract models
+
+    :param download: download the zip files.
+    :return: list of all ode files
+    """
     # get model ids from webpage
     model_ids = xpp_model_ids()
     print('Number xpp models:', len(model_ids))
+
+    ode_all = []
 
     for model_id in model_ids:
         if download:
@@ -94,5 +108,25 @@ if __name__ == "__main__":
         if model_id in [62676]:
             # bad zip files, error reported
             continue
-        unzip_ode(model_id=model_id, output_dir='.')
+        ode_files = unzip_odes(model_id=model_id, output_dir='.')
+        ode_all.extend(ode_files)
+    return ode_all
 
+
+if __name__ == "__main__":
+    ode_all = get_models(download=True)
+    from pprint import pprint
+    pprint(sorted(ode_all))
+
+    # create the sbml files
+    from sbmlutils.converters import xpp
+
+    '''
+    xpp.xpp2sbml()
+    
+    # convert xpp to sbml
+    out_dir = './xpp_example'
+    xpp_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.ode")
+    sbml_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.xml")
+    xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+    '''

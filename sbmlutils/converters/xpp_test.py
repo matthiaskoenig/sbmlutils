@@ -2,6 +2,7 @@
 Test xpp file
 """
 from __future__ import print_function, absolute_import
+import os
 from sbmlutils.report import sbmlreport
 from sbmlutils.converters import xpp
 import roadrunner
@@ -10,11 +11,13 @@ from matplotlib import pyplot as plt
 
 if __name__ == "__main__":
 
+
     # convert xpp to sbml
-    xpp_file = "PLoSCompBiol_Fig1.ode"
-    sbml_file = "PLoSCompBiol_Fig1.xml"
+    out_dir = './xpp_example'
+    xpp_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.ode")
+    sbml_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.xml")
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_sbml_report(sbml_file, out_dir=".", validate=True)
+    sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=True)
 
     # test simulation
     r = roadrunner.RoadRunner(sbml_file)
@@ -32,5 +35,6 @@ if __name__ == "__main__":
         ax.set_xlabel('Time [?]')
         ax.legend()
 
-    fig.savefig("PLoSCompBiol_Fig1.png", bbox_inches='tight')
+    fig.savefig(os.path.join(out_dir, "PLoSCompBiol_Fig1.png"),
+                bbox_inches='tight')
 
