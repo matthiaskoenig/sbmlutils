@@ -26,7 +26,6 @@ Variables have to be case sensitive !!!, but this can easily be fixed based on v
 # TODO: if ... then ... else
 # TODO: support global
 # TODO: support line continuation
-# TODO: special functions like heav
 
 
 
@@ -52,7 +51,8 @@ XPP_PAR = "parameter"
 XPP_NUM = "number"
 XPP_TAB = "table"
 
-XPP_COMMENT_CHARS = ['#', '%']
+XPP_COMMENT_CHARS = ['#', '%', '"']
+XPP_CONTINUATION_CHAR = '\\'
 XPP_SETTING_CHAR = '@'
 XPP_END_WORD = 'done'
 XPP_TYPE_CHARS = {
@@ -190,9 +190,18 @@ def xpp2sbml(xpp_file, sbml_file):
         text = escape_string("".join(lines))
         fac.set_notes(model, NOTES.format(text))
 
+        old_line = None
         for line in lines:
             # clean up the ends
             line = line.rstrip('\n').strip()
+            # handle douple continuation characters in some models
+            line = line.replace('\\\\', '\\')
+
+            # join continuation
+            if old_line:
+                line = old_line + line
+                old_line = None
+
             # empty line
             if len(line) == 0:
                 continue
@@ -205,16 +214,24 @@ def xpp2sbml(xpp_file, sbml_file):
             # end word
             if line == XPP_END_WORD:
                 continue
+            # line continuation
+            if line.endswith(XPP_CONTINUATION_CHAR):
+                old_line = line.rstrip(XPP_CONTINUATION_CHAR)
+                continue
 
+            # handle the power function
             line = line.replace('**', '^')
 
+            ################################
+            # Start parsing the given line
+            ################################
             # check for the equal sign
             tokens = line.split('=')
             tokens = [t.strip() for t in tokens]
 
-            #####################
+            #######################
             # Line without '=' sign
-            #####################
+            #######################
             # wiener
             if len(tokens) == 1:
                 items = [t.strip() for t in tokens[0].split(' ') if len(t) > 0]
