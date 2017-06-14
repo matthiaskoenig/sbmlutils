@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created by sbmlutils version 0.1.5a6 on 2017-06-14 18:51 with libSBML version 5.15.0. -->
+<!-- Created by sbmlutils version 0.1.5a6 on 2017-06-14 19:24 with libSBML version 5.15.0. -->
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
   <model>
     <notes>
@@ -263,7 +263,7 @@ done
       <parameter id="Sca" value="3" constant="false"/>
       <parameter id="CaConst" value="0.016" constant="false"/>
       <parameter id="th" value="0.05" constant="false"/>
-      <parameter id="gbarNa" constant="false"/>
+      <parameter id="gbarNa" value="50" constant="false"/>
       <parameter id="Vdrh" value="-5" constant="false"/>
       <parameter id="tk" value="1" constant="false"/>
       <parameter id="gbarDR" value="2" constant="false"/>
@@ -280,7 +280,7 @@ done
       <parameter id="vgnz" value="0" constant="false"/>
       <parameter id="dg" value="0" constant="false"/>
       <parameter id="gampag" value="0" constant="false"/>
-      <parameter id="gnmdabarg" constant="false"/>
+      <parameter id="gnmdabarg" value="0" constant="false"/>
       <parameter id="v" value="-60" constant="false"/>
       <parameter id="u" value="50" constant="false"/>
       <parameter id="vgaba" value="-40" constant="false"/>
@@ -334,10 +334,6 @@ done
       <parameter id="Idrg" units="dimensionless" constant="false"/>
       <parameter id="ILg" units="dimensionless" constant="false"/>
     </listOfParameters>
-    <listOfInitialAssignments>
-      <initialAssignment symbol="gbarNa"/>
-      <initialAssignment symbol="gnmdabarg"/>
-    </listOfInitialAssignments>
     <listOfRules>
       <rateRule variable="v">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -836,7 +832,88 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule/>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <piecewise>
+            <piece>
+              <apply>
+                <gt/>
+                <apply>
+                  <abs/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> Vcah </ci>
+                  </apply>
+                </apply>
+                <cn type="e-notation"> 1 <sep/> -5 </cn>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.0032 </cn>
+                  </apply>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> Vcah </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <minus/>
+                          <ci> V </ci>
+                          <ci> Vcah </ci>
+                        </apply>
+                      </apply>
+                      <ci> Sca </ci>
+                    </apply>
+                  </apply>
+                  <cn> 1 </cn>
+                </apply>
+              </apply>
+            </piece>
+            <otherwise>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.0032 </cn>
+                  </apply>
+                  <cn type="e-notation"> 1 <sep/> -5 </cn>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <minus/>
+                        <cn type="e-notation"> 1 <sep/> -5 </cn>
+                      </apply>
+                      <ci> Sca </ci>
+                    </apply>
+                  </apply>
+                  <cn> 1 </cn>
+                </apply>
+              </apply>
+            </otherwise>
+          </piecewise>
+        </math>
+      </assignmentRule>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
