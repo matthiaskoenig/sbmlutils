@@ -1,0 +1,41 @@
+# AP-sim-Ca.ode
+
+" Ref: Brown AM (2003) Computer Methods and Programs in Biomedicine 71:25-31.
+init v=-71, m=0.000734, h=0.726655, n=0.001932, mca=0.003016
+param gnabar=20, gkbar=2.0, gkleak=0.007, gnaleak=0.00265, Cao=1, Cai=50e-6, Pca=0.08
+param ena=45, ek=-105, Cm=1, z=2
+number rgas=8.315, temp=298, faraday=96480
+param ton=3, toff=4, ipulse=40
+Io=ipulse*heav(t-ton)*heav(toff-t)
+
+am = 0.091*(v+38)/(1-exp(-(v+38)/5))
+bm = -0.062*(v+38)/(1-EXP((v+38)/5))
+ah = 0.016*EXP((-55-v)/15)
+bh = 2.07/(EXP((17-v)/21)+1)
+an = 0.01*(-45-v)/(EXP((-45-v)/5)-1)
+bn = 0.17*EXP((-50-v)/40)
+amca = 1.6/(1+EXP(-0.072*(v-5)))
+bmca = 0.02*(v-1.31)/(EXP((v-1.31)/5.36)-1)
+
+ina = gnabar*(m*m*m)*h*(v-ena)
+ik = gkbar*(n^4)*(v-ek)
+ica = ((mca^2)*Pca*2e-3*2*v*(faraday^2)/(rgas*temp*1000))* \
+(Cai-Cao*exp(-z*faraday*v/(rgas*temp*1000)))/(1-exp(-z*faraday*v/(rgas*temp*1000)))
+ikleak = gkleak*(v-ek)
+inaleak = gnaleak*(v-ena)
+
+dm/dt = am*(1-m) - bm*m
+dh/dt = ah*(1-h) - bh*h
+dn/dt = an*(1-n) - bn*n
+dmca/dt = amca*(1-mca) - bmca*mca
+dv/dt = (-ina-ik-ica-ikleak-inaleak+Io)/Cm
+
+aux ina=ina
+aux ik=ik
+aux ica=ica
+
+#  Numerical and plotting parameters for xpp
+@ meth=Euler, dt=0.01, total=20, xlo=0, xhi=20, ylo=-80, yhi=60
+@ bounds=100000
+@ xp=t, yp=v
+done

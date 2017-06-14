@@ -1,0 +1,50 @@
+# from Rho and Prescott, PLoS Comput Biol 2012
+# to be run in XPP
+# code for 3-D "ungrouped" model; see Fig 7 from paper
+
+
+# DIFFERENTIAL EQUATIONS
+
+dv/dt = (Istim-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gl*(V-Vl)-gsubNa*yNa*(V-Vna)-gsubK*yK*(V-Vk))/cap
+dw/dt = phi_w*(winf(V)-w)/tauw(V)
+dyNa/dt = phi_yna*(yna_inf(V)-yNa)/tauyna(V)
+dyK/dt = phi_yk*(yk_inf(V)-yK)/tauyk(V)
+
+# FUNCTIONS AND PARAMETERS
+
+minf(v)=.5*(1+tanh((v-beta_m)/gamma_m))
+winf(v)=.5*(1+tanh((v-beta_w)/gamma_w))
+yna_inf(v)=.5*(1+tanh((v-beta_y)/gamma_y))
+yk_inf(v)=.5*(1+tanh((v-beta_y)/gamma_y))
+
+tauw(v)=1/cosh((v-beta_w)/(2*gamma_w))
+tauyna(v)=1/cosh((v-beta_y)/(2*gamma_y))
+tauyk(v)=1/cosh((v-beta_y)/(2*gamma_y))
+
+param Istim=0 
+param vna=50,vk=-100,vl=-70
+param gk=20,gl=2,gna=20
+param beta_m=-1.2,gamma_m=18
+param beta_w=-13,gamma_w=10
+# for some simulations, beta_w was -21
+param phi_w=.15
+
+# This code is designed to implement either a subthreshold Na or K current by setting the corresponding gsub to >0
+# Leave the other gsub at 0 
+param gsubNa=0,gsubK=0
+param beta_y=-23,gamma_y=9,
+param phi_yna=0.3,phi_yk=0.15
+param cap=2
+
+# INITIAL CONDITIONS
+yNa(0)=0
+yK(0)=0
+V(0)=-70
+w(0)=0.000025
+
+# ALWAYS USE EULER! - Actually this is only true for noise
+@ total=10000,dt=.05,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=euler
+@ MAXSTOR=1000000,bounds=10000
+
+done

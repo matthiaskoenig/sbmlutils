@@ -1,0 +1,71 @@
+# Kuznetsova and Deth, JCN, 2007
+# 4-cell model:  8 E cells (Ve1, Ve2, ...Ve8) and 2 I (Vi1, Vi2) cells reciprocally connected 
+# variables: V-voltage, R-K channel, C-Ca channel, H- Ca dependent K chanel, S,F - synapse 
+
+init Ve1=-0.75 Ve2=-0.745 Ve3=-0.73 Ve4=-0.74 Ve5=-0.72 Ve6=-0.735 Ve7=-0.71 Ve8=-0.715
+init Vi1=-0.75 Vi2=-0.71
+init Re[1..8]=0.26
+init Ce[1..8]=0.1
+init He[1..8]=0.1
+init Ri[1..2]=0.26
+init Ci[1..2]=0.1
+
+par Ie=0.6
+#continuos input in all E cells, no in I cells
+par GCe=0.1, GCi=0.25
+par GHe=4.0
+par TRe[1]=2.1
+par TRe[2]=2.2
+par TRe[3]=2.3
+par TRe[4]=2.15
+par TRe[5]=2.25
+par TRe[6]=2.16
+par TRe[7]=2.12
+par TRe[8]=2.22
+# this is time constant for K channel in E cells, it is varied from 6 to 2
+
+par GSee=0.857
+#6/7, 0.857
+par GSei=1.5
+#6/4
+par GSi=3
+#from E to E; E to I; and I to E and I to I
+
+par TRi[1..2]=1.5
+#  in I cells, usualy it is not varied 
+
+par TSe=2, TSi=8
+#par ESe=0, ESi=-0.75
+#excit=0  inhib=-0.75
+par W=-0.1
+
+AlE=Se1+Se2+Se3+Se4+Se5+Se6+Se7+Se8
+AlI=Si1+Si2
+
+Fe[1..8]'=(1/TSe)*(-Fe[j]+heav(Ve[j]-W))
+Se[1..8]'=(1/TSe)*(-Se[j]+Fe[j])
+
+Fi[1..2]'=(1/TSi)*(-Fi[j]+heav(Vi[j]-W))
+Si[1..2]'=(1/TSi)*(-Si[j]+Fi[j])
+
+Ve[1..8]'=-Minf(Ve[j])*(Ve[j]-0.5)-26*Re[j]*(Ve[j]+0.95)-GCe*Ce[j]*(Ve[j]-1.2)-GHe*He[j]*(Ve[j]+0.95)-GSi*(Ve[j]+0.75)*AlI-GSee*(Ve[j]+0.0)*(AlE-Se[j])+Ie
+Re[1..8]'=(1/TRe[j])*(-Re[j]+Rinf(Ve[j]))
+Ce[1..8]'=(1/14)*(-Ce[j]+Cinf(Ve[j]))
+He[1..8]'=(1/45)*(-He[j]+3*Ce[j])
+
+Vi[1..2]'=-Minf(Vi[j])*(Vi[j]-0.5)-26*Ri[j]*(Vi[j]+0.95)-GCi*Ci[j]*(Vi[j]-1.2)-GSi*(Vi[j]+0.75)*(AlI-Si[j])-GSei*(Vi[j]+0.0)*AlE
+Ri[1..2]'=(1/TRi[j])*(-Ri[j]+Rinf(Vi[j]))
+Ci[1..2]'=(1/14)*(-Ci[j]+Cinf(Vi[j]))
+
+Cinf(V)=8*(V+0.725)^2
+Minf(V)=17.8+47.6*V+33.8*V*V
+Rinf(V)=1.24+3.7*V+3.2*V*V
+
+aux  n=(Ve1+Ve2+Ve3+Ve4+Ve5+Ve6+Ve7+Ve8)/8.
+
+@ METHOD=stiff, TOLERANCE=.00001
+@ MAXSTOR=400000, TOTAL=1000, XP=t,YP=n, BELL=0
+@ xmin=0.0,xmax=1000,ymin=-1,ymax=0.5
+@ DT=0.01, xlo=0.0,ylo=-1.0,xhi=1000,yhi=0.5,bound=30000
+ 
+done

@@ -1,0 +1,189 @@
+# XPP has its own rule of naming parameters, so the parameter names in this code might be different from those in the paper.
+
+# Equations of PKA and ERK dynamics are same as the ones in Nature Neuroscience paper
+ 
+pRaf'=(K_fRaf*(delay(5HT, 25)))*Raf-K_bRaf*pRaf
+Raf=Raf_total-pRaf
+
+MAPKK'=-K_fMAPKK*pRaf*(MAPKK/(MAPKK+K_1mkk))+K_bMAPKK*(pMAPKK/(pMAPKK+K_2mkk))
+
+ppMAPKK'=K_fMAPKK*pRaf*(pMAPKK/(pMAPKK+K_1mkk))-K_bMAPKK*(ppMAPKK/(ppMAPKK+K_2mkk))
+
+pMAPKK=MAPKK_tt-MAPKK-ppMAPKK
+
+
+MAPK'=-K_fMAPK*ppMAPKK*(MAPK/(MAPK+K_1mk))+K_bMAPK*(pMAPK/(pMAPK+K_2mk))
+ppMAPK'=K_fMAPK*ppMAPKK*(pMAPK/(pMAPK+K_1mk))-K_bMAPK*(ppMAPK/(ppMAPK+K_2mk))
+pMAPK=MAPK_tt-ppMAPK-MAPK
+
+
+cAMP'=lamda*(5HT/(5HT+K_5HT))-K_bcamp*cAMP
+
+PKAR'=K_fpka*PKARC*cAMP^2-K_bpka*PKAR*PKAC
+
+PKARC'=-K_fpka*PKARC*cAMP^2+K_bpka*PKAR*PKAC
+
+PKAC'=K_fpka*PKARC*cAMP^2-K_bpka*PKAR*PKAC
+
+
+
+p K_fRaf=0.004
+p K_bRaf=0.1
+p Raf_total=0.5
+
+p K_fMAPKK=0.41
+p K_bMAPKK=0.04
+p K_1mkk=0.20
+p K_2mkk=0.19
+p MAPKK_tt=0.5
+
+
+p K_fMAPK=0.41
+p K_bMAPK=0.12
+p K_1mk=0.19
+p K_2mk=0.21
+p MAPK_tt=0.5
+
+p lamda=3.64
+p K_bcamp=1
+p K_5HT=85
+
+
+p K_fpka=20
+p K_bpka=12
+
+
+
+
+# PKACA is the activity of PKA, calculated in the way as described in Muller and Carew 1998.
+# 3.8 is the maximal PKAC.
+
+PKACA=PKAC/3.8
+inducer=PKACA*ppMAPK
+
+
+init pRaf=0
+init MAPKK=0.5
+init ppMAPKK=0
+init MAPK=0.5
+init PPMAPK=0
+
+init PKAC=0
+init cAMP=0
+init PKAR=0
+init PKARC=4
+
+
+
+# the following are the equations of CREB1, CREB2, and CEBP
+
+#phosphorylated CREB1 protein
+pCREB1'=K_phosC1*PKACA*CREB1-K_dephC1*pCREB1
+
+
+#phosphorylated CREB2 protein
+pCREB2'=K_phosC2*ppMAPK*CREB2-K_dephC2*pCREB2
+
+CREB1=0.05-pCREB1
+CREB2=0.05-pCREB2
+
+
+p K_phosC1=0.15
+p K_dephC1=0.05
+
+p K_phosC2=3.5
+p K_dephC2=0.5
+
+
+#synthesis OF CEBP protein
+CEBP'=((V_xCBP*((f5^2/K_xCBP)/(1+f5^2/K_xCBP+f6^2/K_yCBP)))-K_dxCBP*CEBP)-(K_phosC3*ppMAPK*CEBP-K_dephC3*pCEBP)
+
+#phosphorylated CEBP protein
+pCEBP'=(K_phosC3*ppMAPK*CEBP-K_dephC3*pCEBP-K_dZ2*pCEBP)
+
+f5=pCREB1
+f6=CREB2
+
+# CBP would be reduced to 0.65 when CBP knockdown was simulated. 
+CBP=1
+
+# we do not know the binding affinity of CBP, so we actually tried different Kcbp, ranging from 1 to 20. 
+# We found that varying Kcbp did not change the rank of the Rescue Protocol in 10000 protocols, which always ended up as the one with highest peak pCEBP. 
+# Varying Kcbp, we got different numbers of potential rescue protocols. The maximum number of potential rescue protocols we got was 421.    
+
+Kcbp=20
+
+
+v_xCBP=20*(CBP/(Kcbp+CBP))
+
+# parameters K5 and K6 in J Neurosci. paper are the square root of K_xCBP and K_yCBP.
+p K_xCBP=0.00009
+p K_yCBP=0.00001
+
+p K_dxCBP=0.075
+p K_dZ2=0.0015
+
+p K_phosC3=0.25
+p K_dephC3=0.5
+
+
+#init pCREB1, pCREB2, CEBP
+init pCREB1=0
+init pCREB2=0
+init CEBP=0
+
+# 5 pulses of 5-HT
+5HT'=50*(on0*heav(t-t2)*heav(t2+5-t)+on1*heav(t-t2-inter1)*heav(inter1+5+t2-t)+on2*heav(t-t2-inter1-inter2)*heav(inter1+inter2+5+t2-t)+on3*heav(t-t2-inter1-inter2-inter3)*heav(inter1+inter2+inter3+5+t2-t)+on4*heav(t-t2-inter1-inter2-inter3-inter4)*heav(inter1+inter2+inter3+inter4+5+t2-t))*turnon-5HT
+
+# calculation of ISIs
+inter1=5*(1+a1)
+
+inter2=5*(1+a2)
+
+inter3=5*(1+a3)
+
+inter4=5*(1+a4)
+
+# on0 - on4 control how many pulses of 5-HT we will use
+p on0=1
+p on1=1
+p on2=1
+p on3=1
+p on4=1
+
+
+p turnon=1
+p t1=2995
+p t2=2910
+
+
+aux 1=(t-t2)
+aux 4=5HT
+aux 7=a1
+aux 8=a2
+aux 9=a3
+aux 10=a4
+aux 13=inducer
+aux 14=PKACA
+aux 15=ppMAPK
+auX 17=CEBP+pCEBP
+aux 18=pCEBP
+
+
+
+
+p step=1131
+
+
+# This is how we code 10,000 protocols
+a4=(step-10*flr(step/10))
+a3=flr((step-100*flr(step/100))/10)
+a2=flr((step-1000*flr(step/1000))/100)
+a1=flr(step/1000)
+
+@ total=4000, xlo=0, xhi=5000, ylo=0, yhi=10, bounds=10e30, MAXSTOR=1300000,xp=vs, yp=mk,nout=250, dt=0.01,
+@ delay=6000
+#@ output=test.txt
+
+# This is how we run 10,000 simulations. 
+@ RANGE=1, RANGEOVER=step, RANGESTEP=10000, RANGELOW=0, RANGEHIGH=10000, RANGERESET=yes, RANGEOLDIC=yes, output=test

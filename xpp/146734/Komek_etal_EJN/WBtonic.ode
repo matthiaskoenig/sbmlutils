@@ -1,0 +1,92 @@
+# Wang-Buzsaki neuron network with 50E-cells and 20I-cells with all-to-all 
+# connectivity with heterogeneity with tonic input for 1 sec 
+
+table Ir % 50 0 49 ran(1)*0.5
+@ autoeval=0
+wiener ze[0..49]
+wiener zi[0..19]
+#
+# Parameters used
+p gKLe=0.12, gNaL=0.017, gKLi=0.15
+p gK=9.0, gNa=35.0
+p ENa=55.0, EK=-90.0
+p gei=0.6, gee=0.05, gie=0.6, gii=0.10
+p sige=1.2,sigi=1.2
+p phi=5.0
+p Vsyni=-75,Vti=2,Vsi=5,alphai=5,betai=.1,tmaxi=1
+p Vsyne=0,Vte=2,Vse=5,alphae=1.1,betae=.19,tmaxe=1
+p Vlth=-25,Vshp=5
+#
+# Tonic input description and parameters
+Iapp[0..49]=I0+I1*Ir([j])
+p I0=2.5,I1=2
+#
+aveVE=(sum(0,49)of(shift(Ve0,i')))/50
+inputse=sum(0,49)of(shift(se0,i'))/50
+inputsi=sum(0,19)of(shift(si0,i'))/20
+#
+#ODEs for e-cells
+Ve[0..49]'=Iapp[j]-gKLe*(Ve[j]-EK)-gNaL*(Ve[j]-ENa)-gNa*(Minf(ve[j])^3)*he[j]*(Ve[j]-ENa)-gK*(ne[j]^4)*(Ve[j]-EK)-gie*inputsi*(Ve[j]-Vsyni)-gee*inputse*(Ve[j]-Vsyne)-ica(ve[j])-iahp(ca[j],ve[j])+sige*ze[j]
+he[0..49]'=phi*(Hinf(ve[j])-he[j])/tauH(ve[j])
+ne[0..49]'=phi*(Ninf(ve[j])-ne[j])/tauN(ve[j])
+se[0..49]'=alphae*ke(ve[j])*(1-se[j])-betae*se[j]
+#
+#ODEs for i-cells
+Vi[0..19]'=-gKLi*(Vi[j]-EK)-gNaL*(Vi[j]-ENa)-gNa*(Minf(vi[j])^3)*hi[j]*(Vi[j]-ENa)-gK*(ni[j]^4)*(Vi[j]-EK)-gei*inputse*(Vi[j]-Vsyne)-gii*inputsi*(Vi[j]-Vsyni)+sigi*zi[j]
+hi[0..19]'=phi*(Hinf(vi[j])-hi[j])/tauH(vi[j])
+ni[0..19]'=phi*(Ninf(vi[j])-ni[j])/tauN(vi[j])
+si[0..19]'=alphai*ki(vi[j])*(1-si[j])-betai*si[j]
+#
+ki(x)=tmaxi/(1+exp(-(x-vti)/vsi))
+ke(y)=tmaxe/(1+exp(-(y-vte)/vse))
+#
+# Spike frequency adaptation description with parameters
+# calcium
+mlinf(v)=1/(1+exp(-(v-vlth)/vshp))
+ica(v)=gca*mlinf(v)*(v-eca)
+ca[0..49]'=(-alpha*ica(ve[j])-ca[j]/tauca)
+# k-ca
+iahp(ca,v)=gahp*(ca/(ca+kd))*(v-Ek)
+# corresponding parameters
+p kd=30, Eca=120
+p alpha=.002, tauca=80, gca=1, gahp=3
+#
+#
+alpham(v)=0.1*(V+35.0)/(1.0-exp(-(V+35.0)/10.0))
+betam(v)=4.0*exp(-(V+60.0)/18.0)
+Minf(v)=alpham(v)/(alpham(v)+betam(v))
+#
+alphah(v)= 0.07*exp(-(V+58.0)/20.0)
+betah(v)=1.0/(1.0+exp(-(V+28.0)/10.0))
+Hinf(v)=alphah(v)/(alphah(v)+betah(v))
+tauH(v)=1.0/(alphah(v)+betah(v))
+#
+alphan(v)=0.01*(V+34.0)/(1.0-exp(-(V+34.0)/10.00))
+betan(v)=0.125*exp(-(V+44.0)/80.0)
+Ninf(v)=alphan(v)/(alphan(v)+betan(v))
+tauN(v)=1.0/(alphan(v)+betan(v))
+#
+# Initial conditions
+init Ve[0..49]=-64
+init he[0..49]=0.78
+init ne[0..49]=0.09
+init Vi[0..19]=-64
+init hi[0..19]=0.78
+init ni[0..19]=0.09
+#
+# Creating some auxiliary variables
+aux aveSE=inputse
+auc aveSI=inputsi
+aux LFP=aveVE
+#
+# Numerics description
+@ XP=T
+@ YP=LFP
+@ autoeval=0
+@ TOTAL=1400,trans=400
+@ nOut=10  
+@ DT=0.01,bound=100000,maxstor=1000000
+@ METH=euler
+@ TOLER=0.00001
+@ XLO=0.0, XHI=30.0, YLO=-90.0, YHI=30.0
+done

@@ -1,0 +1,181 @@
+#D.P.Dougherty 2010
+#Spiking model of mouse ORN
+#This is a multi-scale extension of the model in Dougherty et al 2005. PNAS 102(30):10415-10420
+#which includes cilium, dendrite, and soma compartments.
+#
+#The XPP file is configured to demonstrate a dual-pulse stimulation protocol
+#with whole cell suction pipette recording showing the slow transduction
+#current and fast action potentials generated.
+#
+
+#Alphabetically sorted listing of all model parameters (descriptions given below).
+
+param cap=0.0035
+param cc1lin=0.6362
+param cc2=20.9869
+param ck1lin=10.3615
+param ck2=0.5833
+param clmax=0.8294
+param cnmax=3.6417
+param ef=7.9725
+param gl=15.4267
+param hmc1=1.5965
+param hmc2=7.6415
+param inf=1.4654
+param inhmax=0.98
+param k1=2.2748
+param k2lin=42.0896
+param kI=16.5304
+param kinh=1.3875
+param kinhcng=0.2242
+param n1=5.6384
+param n2=3.4161
+param ninh=0.4067
+param ninhcng=0.6306
+param pd=15.4669
+param r1=9.4574
+param r2=12.5485
+param smax=63.0987
+param vcl=-7.3248
+param vcng=0.4641
+param vl=-69.6653
+
+#Spiking aspect of the model -- dendrite and soma parameters.
+param ge1=70.244          
+param ge2=20.245          
+param tau_soma=6100       
+param epsilon=0.09        
+param beta=0.092          
+param beta_cap=0.95          
+param cap_max=400.5      
+param cap_off=-75         
+param gamma=43.92         
+param VSspike=-58.23     
+param VSamp=14.36         
+param vd=0.05   
+
+
+#Parameters descriptions with their units.
+#
+#cap	  #Capacitance of ORN ciliary membrane# nF 										   
+#cc1lin   #Rate at which Ca2+ associates with CaM to form CaCaM # s^-1							   
+#cc2	  #Rate at which CaCaM dissociates to Ca2+ and CaM # s^-1 							   
+#ck1lin   #Rate at which CaCaM activates CaMK	# s^-1								   
+#ck2	  #Rate at which active CaMK deactivates # s^-1										   
+#clmax    #Maximal conductance of ANO2 Cl(Ca) channels # nS								   
+#cnmax    #Maximal conductance of CNG channels # nS							   
+#ef	  #Maximum calcium efflux (assumed sodium & potassium independent) #s^-1				   
+#gl	  #Maximum leak (generic) conductance # nS									   
+#hmc1	  #Concentration of cAMP needed to achieve half-maximal activation (K1/2) of the CNG channel # uM						   
+#hmc2	  #Concentration of Ca2+ needed to achieve half-maximal activation (K1/2) of the Cl(Ca) channel| # uM							   
+#inf	  #Net calcium inward flux via CNG channel # uM*pC^-1								   
+#inhmax   #Maximum inhibition of CNG by CaCAM # unitless								   
+#k1	  #Receptor affinity for ligand # (um*s)^-1								   
+#k2lin    #Rate of G-protein activation per bound receptor complex  # s^-1						   
+#kinh	  #Concentration of aCaMK needed for half-maximal inhibition (IC50) of cAMP production # uM							   
+#kinhcng  #Concentration of CaCaM needed for half-maximal inhibition of the CNG channel # uM							   
+#n1	  #Hill coefficient of the CNG channel activation function #	unitless						   
+#n2	  #Hill coefficient of the Cl(Ca) channel activation function	# unitless							   
+#ninh	  #Steepness of the decreasing sigmoid representing aCaMK-mediated inhibition of cAMP synthesis	 # unitless					   
+#ninhcng  #Steepness of the sigmoid inhcng representing inhibition of CNG channel by CaCaM # unitless				   
+#pd	  #Rate at which a cAMP molecule is degraded by phosphodiesterase # s^-1									   
+#r1	  #Rate of unbinding of odorant from receptor	 # s^-1								   
+#r2	  #Rate at which a G-protein becomes deactivate rate # s^-1								   
+#smax	  #Maximal (uninhibited) rate of cAMP production by adenylyl cyclase per active G-protein # uM*s^-1						   
+#vcl	  #Reversal potential of Cl(Ca) channels  # mV							   
+#vcng	  #Reversal potential of CNG channels # mV								   
+#vl	  #Effective reversal potential for leak current # mV 							   
+#ge1	  #Coupling strength between cilia and dendrite compartments	# s^-1				   
+#ge2	  #Coupling strength between dendrite and soma compartments 	# mV^-1				   
+#tau_soma #Relative time scale of soma to cilia dynamics #s^-1						   
+#epsilon  #Relative time scale of Na and K channel dynamics to voltage dynamics in soma #Unitless		   
+#beta	  #Sharpness of Na and K channel response to voltage	# mV					   
+#beta_cap #Sharpness of soma capacitance dependence on voltage  # mV					   
+#cap_max  #Maximum soma capacitance	# nF 							   
+#cap_off  #Voltage at which soma capacitance is half maximal	#mV					   
+#gamma    #Na and K channel activation rate (sets height of channel manifold)	#unitless			   
+#VSspike  #Reference voltage for action potentials by soma # mV						   
+#VSamp    #Sharpness of soma voltage response #mV								   
+#vd	  #Diffusive dendritic voltage leak/loss. #s^-1					   
+ 
+ 
+ 
+#Now parameters related to the experimental design: 
+ 
+#Micromolar concentration of odorant at full concentration
+#Feel free to play with this!!
+
+param ostim=100 
+
+#hv defines a heaviside-like pulse but with adjustable steepness parameter.  
+#Use this to describe a "smeared" square wave odorant plume reaching the neuron.
+#Sharpness of odorant plume          
+param SHARPNESS=0.0001    
+hv(x,s)=1/(1+exp(-x/s))
+#Pulse comes on for 1s at t=1 then on again for 1s at t=5.
+PULSE(t)=(hv(t-1,SHARPNESS) - hv(t-2,SHARPNESS) + (hv(t-5,SHARPNESS) - hv(t-6,SHARPNESS)))			   
+OD(t) = ostim*PULSE(t)
+
+#The vertebrate ORN model has 3 compartments i) Cilia, ii) Dendrite, and iii) Soma.
+#### Cilia Compartment ####
+dbLR/dt       = k1*OD(t)*(1-bLR)-r1*bLR
+daG/dt        = k2lin*bLR*(1-aG) - r2*aG
+dcAMP/dt      = (aG*smax)/(1 + ((CAMK/kinh)^ninh)) - pd*cAMP
+dCa/dt        = inf*Icng(cAMP,Vcilia) - ef*Ca + (-cc1lin*Ca + cc2*CaCAM)
+dCaCAM/dt     = cc1lin*Ca - cc2*CaCAM
+dCAMK/dt      = ck1lin*CaCAM - ck2*CAMK
+dVcilia/dt    = (1/cap)*(Icng(cAMP,Vcilia) + Icacl(Ca,Vcilia) + Il(Vcilia))
+
+#### Dendrite Compartment ####
+dVdend/dt     = ge1*(Vcilia-Vdend) - vd*Vdend
+
+#### Soma Compartment ####
+dVsoma/dt     = VOLTAGE(V(Vsoma),Vcilia,Vdend)
+dNaKXsoma/dt  = tau_soma*(epsilon*(gamma*(1+tanh(V(Vsoma)/beta))-NaKXsoma))
+
+
+Input(x,y)  = ge2*(x-y)
+V(x)      = (x-VSspike)/(0.5*VSamp)
+VOLTAGE(x,y,z) = tau_soma*(3*x - x^3 + 2 - NaKXsoma + Input(y,z))
+
+inhcng(CaCAM) = 1+(inhmax-1)*((CaCAM^ninhcng)/(CaCAM^ninhcng + kinhcng^ninhcng))
+
+#Current models:
+Icng(cAMP,Vcilia) = ((cnmax*cAMP^n1)/(cAMP^n1 + (inhcng(CaCAM)*hmc1)^n1))*(vcng-Vcilia)
+Icacl(Ca,Vcilia)  = ((clmax*Ca^n2)/(Ca^n2 + hmc2^n2))*(vcl-Vcilia)
+Il(Vcilia)     = gl*(vl-Vcilia)
+cap_soma(Vcilia) = cap_max*(1+tanh((cap_off-Vcilia)/beta_cap))
+Isoma(x,y,z)  = cap_soma(Vcilia)*VOLTAGE(x,y,z)
+
+
+#These auxilliary functions simply model what is actually measured by suction pipette recording
+#from whole cell.
+
+aux Icilia=-(Icng(cAMP,Vcilia) + Icacl(Ca,Vcilia))
+aux WholeCell=Isoma(V(Vsoma),Vcilia,Vdend) -(Icng(cAMP,Vcilia) + Icacl(Ca,Vcilia))
+aux Odorant=100*PULSE(t)
+#The number 100 is used above simply to give the odorant pulses a nice magnitude when plotted in the 
+#same axes as the currrents.  Unfortunately XPP does not have real double y-axis plots.
+#Anyway, at least you can see the odorant pulses now!
+
+#Initial conditions.  Note that we actually run the model to steady-state in the absence 
+#of odorant for 1s before simulation of the experiment. See T0 option below.  
+#
+
+init bLR=1.e-8
+init aG=1.e-8
+init cAMP=1.e-8
+init Ca=1.e-8
+init CaCAM=1.e-8
+init CAMK=1.e-8
+init Vcilia=vl
+init Vdend=vl
+init Vsoma=vl
+init NaKXsoma=3.e-8
+
+@ BUT=RunModel:ig,BUT=FitAxes:wf,MAXSTOR=2000000,T0=-1,TOTAL=8.0,BOUND=1000000
+@ meth=cvode,TOL=1e-5,ATOL=1e-5,T0=-1,DT=0.00001,DTMIN=0.0001,DTMAX=0.001
+@ XLO=0,XHI=8,YLO=-250,YHI=150
+@ NPLOT=2,YP=WholeCell,YP2=Odorant
+
+done

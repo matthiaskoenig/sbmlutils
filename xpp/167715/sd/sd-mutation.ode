@@ -1,0 +1,177 @@
+#############################
+# SYSTEM DEFINING EQUATIONS #
+#############################
+v'    = 1000. * V_DOT(v,n,k_so,k_ex,h)
+n'    = 1000. * N_DOT(v,n,k_so,k_ex)
+k_so' = 1000. * K_SO_DOT(v,n,k_so,k_ex)
+k_ex' = 1000. * K_EX_DOT(v,n,k_so,k_ex)
+h'    = 1000. * H_DOT(v,h)
+
+######################
+# INITIAL CONDITIONS #
+######################
+
+# PHYSIOLOGICAL
+###############
+# par KBATH=4
+# init v=-68.019025 
+# init n=0.064944565
+# init k_so=130.99026  
+# init k_ex=3.9992148  
+
+# TONIC FIRING
+##############
+# par KBATH=7
+# init v=-56.844971
+# init n=0.14995722
+# init k_so=136.81308
+# init k_ex=6.9882756
+
+# SEIZURE-LIKE
+##############
+
+# kbath:
+#KBATH=4+20*heav(t-10)*heav(50-t)
+#par IAPP=0
+#par MAX_PUMP=5.2471672
+
+# iapp:
+#IAPP=50*heav(t-10)*heav(17-t)
+#par KBATH=4.01
+#par MAX_PUMP=5.2471672
+
+# pump:
+par t1=10
+par t2=17.1
+par t3=22.1
+#par t1=10
+#par t2=25
+#par t3=30
+
+stim(arg)=heav(t1-arg)*(1-((1-0.2)/t1)*arg)+ 0.2*heav(arg-(t1+0.000001))*heav(t2-arg) + heav(arg-(t2+0.000001))*heav(t3-arg)*(0.2+(1-0.2)/(t3-t2)*(arg-t2))+heav(arg-(t3+0.000001))
+MAX_PUMP(t)=5.2471672*stim(t)
+par KBATH=4.0
+par IAPP=0
+
+init v=-67.971672
+init n=0.065193631
+init k_so=131.07088
+init k_ex=4.0102115
+init h=0.69483376
+
+# TONIC FIRING
+##############
+# par KBATH=12
+# init v=-5.8720033538E+01
+# init n=1.3065201430E-01
+# init k_so=1.3504571762E+02
+# init k_ex=1.1993252621E+01
+
+# PERIODIC SD
+#############
+# par KBATH=17
+# init v=-93.984886
+# init n=0.0063529861
+# init k_so=117.70079
+# init k_ex=5.4777171
+
+
+par F_DIFF=0.05
+par Vmax=-66.8091
+
+##########
+# GATING #
+##########
+ALPHA_N(v) = 0.01 * (v + 34.0) / (1.0 - exp(-0.1 * (v + 34.0))) 
+BETA_N(v)  = 0.125 * exp(-(v + 44.0) / 80.0)
+ALPHA_M(v) = 0.1 * (v + 30.0) / (1.0 - exp(-0.1 * (v + 30.0))) 
+BETA_M(v)  = 4.0 * exp(-(v + 55.0) / 18.0) 
+ALPHA_H(v) = 0.07* exp( -0.05* (v+44))
+BETA_H(v)  = 1.0 / (1 + exp(-0.1 * (v + 14)))
+TAU_H1(v)  = (1.0/(ALPHA_H(v)+BETA_H(v)))/PHI
+TAU_H(x)   = TAU_H1(x)*(1.335*tanh((x-Vmax)*0.1)+1.665)
+H_INF(v)   = ALPHA_H(V) / (ALPHA_H(v) + BETA_H(v))
+M(v)       = ALPHA_M(v) / (ALPHA_M(v) + BETA_M(v))
+#H(n)       = 1 - 1. / (1 + exp(-6.5*(n-0.35)))
+
+######################
+# ION CONCENTRATIONS #
+######################
+par VOL_SO=2.16
+par VOL_EX=0.72
+par NA_SO_INI=27.
+par K_SO_INI=130.98993
+par NA_EX_INI=120.
+
+#par V_INI=-68.
+
+NA_SO(k_so) =  NA_SO_INI + K_SO_INI - k_so
+NA_EX(k_so) = (NA_SO_INI * VOL_SO + NA_EX_INI * VOL_EX - NA_SO(k_so) * VOL_SO) / VOL_EX
+
+#####################
+# NERNST POTENTIALS #
+#####################
+EK(k_so,k_ex) = 26.64 * log(k_ex/k_so)	      
+ENA(k_so)     = 26.64 * log(NA_EX(k_so)/NA_SO(k_so))
+
+############
+# CURRENTS #
+############
+par G_NA_L=0.0175
+par G_NA_G=100.
+par G_K_L=0.05
+par G_K_G=40.
+
+par NA_PUMP=25
+par K_PUMP=5.5
+
+I_NA_L(v,k_so)       = G_NA_L * (v - ENA(k_so))
+I_NA_G(v,n,k_so,h)     = G_NA_G * M(v) * M(v) * M(v) * h * (v - ENA(k_so))
+I_K_L(v,k_so,k_ex)   = G_K_L * (v - EK(k_so,k_ex))
+I_K_G(v,n,k_so,k_ex) = G_K_G * n * n * n * n * (v - EK(k_so,k_ex))
+IPUMP(k_so,k_ex)     = MAX_PUMP(t) / (1.0 + exp((NA_PUMP - NA_SO(k_so))/3.)) / (1. + exp(K_PUMP - k_ex))
+
+I_NA(v,n,k_so,k_ex,h) = I_NA_L(v,k_so) + I_NA_G(v,n,k_so,h) + 3. * IPUMP(k_so,k_ex)
+I_K(v,n,k_so,k_ex)  = I_K_L(v,k_so,k_ex)  + I_K_G(v,n,k_so,k_ex)  - 2. * IPUMP(k_so,k_ex)
+JDIFF(k_ex)         = F_DIFF * 4. / 3. * (KBATH - k_ex) / 1000.
+
+##################
+# RATE FUNCTIONS #
+##################
+par PHI=3
+par C=1
+par CONV=9.55589e-05
+
+V_DOT(v,n,k_so,k_ex,h)  = -1. / C * (I_NA(v,n,k_so,k_ex,h) + I_K(v,n,k_so,k_ex)-IAPP)
+N_DOT(v,n,k_so,k_ex)    =  PHI * (ALPHA_N(v) * (1 - n) - BETA_N(v) * n)
+K_SO_DOT(v,n,k_so,k_ex) = -1. / VOL_SO * CONV * I_K(v,n,k_so,k_ex)
+K_EX_DOT(v,n,k_so,k_ex) =  1. / VOL_EX * CONV * I_K(v,n,k_so,k_ex) + JDIFF(k_ex)
+H_DOT(v,h)	        = (1.0 / TAU_H(v)) * (H_INF(v) - h)
+
+###############
+# AUXILIARIES #
+###############
+#aux _Ina_gl = I_NA_L(v,k_so) + I_NA_G(v,n,k_so,h)
+#aux _Ik_gl  = I_K_L(v,k_so,k_ex)  + I_K_G(v,n,k_so,k_ex)
+aux _ENA    = ENA(k_so)
+aux _EK	    = EK(k_so,k_ex)
+aux _stim   = stim(t)
+aux _Ip     = IPUMP(k_so,k_ex)
+############
+# NUMERICS #
+############
+#@ meth=runge-kutta
+@ meth=cvode
+@ dt=1e-4,tol=1e-10,atol=1e-10
+@ maxstor=1000000000, bounds=10000000
+@ total=100
+@ bell=0
+
+############
+# GRAPHICS #
+############
+@ xhi=100
+@ nplot=4, yp1=v, yp2=_EK, yp3=_ENA, yp4=_stim, ylo=-150, yhi=160
+#@ nplot=4, yp1=k_so, yp2=k_ex, yp3=_NA_SO, yp4=_NA_EX, ylo=0, yhi=150
+
+done

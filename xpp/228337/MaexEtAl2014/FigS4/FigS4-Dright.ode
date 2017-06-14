@@ -1,0 +1,313 @@
+# XPP scripts for supplementary Figure S4D right of 
+# Maex R, Grinevich VP, Grinevich V, Budygin E, Bencherif M, Gutkin B (2014)
+# Understanding the role a7 nicotinic receptors play in dopamine efflux
+# in nucleus accumbens. ACS Chemical Neuroscience 5, 1032-1040.
+#
+# Activation model of Figure 3B; varying the dose of TC-7020.
+# simulating the effect of pre-applying a positive allosteric modulator before the partial agonist TC-7020 is applied (green)
+# or the effect of single application of an intrinsically active PAM such as 4BP-TQS (a nondensensitizing agonist) (red).
+
+# Output is accumbal dopamine concentration in microM.
+
+
+# Naming conventions 
+#
+# V_      = membrane voltage of (neuron or neuron population)
+# R_      = release of (transmitter)
+# C_      = concentration of (transmitter)
+# I_      = membrane current of (channel or receptor)
+# P_      = presynatic membrane current of (receptor)
+# tau_    = time-constant of
+# tmin_ = minimum value of time-constant of
+# tmax_ = maximum value of time-constant of
+# inf_    = steady-state value of
+# act_    = level of activation of (receptor)
+# des_    = level of desensitisation of (receptor)
+# w_      = weight of
+# EC50_   = halfmax concentration of steady-state response
+# Ktau_   = halfmax concentration of time-constant
+# stim_   = stimulation by
+
+# glu  = glutamate or glu-ergic neuron (population)
+# dop  = dopamine or dopamine-ergic neuron (population)
+# gab  = gaba or gaba-ergic neuron (population)
+# ach  = acetylcholine
+# nic  = nicotine
+# a7   = alpha7-type nicACh receptor
+# a4b2 = alpha4-beta2-type nicACh receptor
+# bas  = basal
+#
+
+
+# Units 
+# time seconds
+# concentration microMolar (nanoMolar in printed figures)
+
+
+# Transfer functions (input-output) 
+# sigmoid
+f(x) = 1/(1 + exp(-x)) 
+# halfwave rectification
+hwr(x) = heav(x) * x    
+# clipped at 0 and 1
+clip(x) = (1 + (x-1) * (heav (1-x))) * heav(x) 
+# Hill equation
+# Hill(x,K,n) = 1 / (1 + (K/x)^n)
+Hill(x,K,n) = x^n / (x^n + K^n) 
+# competitive Hill ---THIS IS NEW and allows for competitive inhibition between up to three compounds --- 
+compHill(x,y,z,wx,wy,wz,Kx,Ky,Kz,n) = \
+  (wx * x^n/(x^n + Kx^n * (1 + (y/Ky)^n + (z/Kz)^n))) + \
+  (wy * y^n/(y^n + Ky^n * (1 + (x/Kx)^n + (z/Kz)^n))) + \
+  (wz * z^n/(z^n + Kz^n * (1 + (x/Kx)^n + (y/Ky)^n)))
+# rectangular pulse
+rect_pulse(t,from,to,amp) = amp * (heav (t-from) - heav (t-to))
+
+
+
+# THE MODEL (some of this code is based on Graupner & Gutkin)
+
+# We now have two neuron populations sharing inputs from
+# glu neurons (mostly a7-driven) and through a4b2 receptors.
+# The parameter coefficients r and s specify the balance 
+# between these inputs.
+
+
+   par s=0,r=0.7
+
+# the dynamics of the dopaminergic neuron population V_dop
+
+   V_dop' = (-V_dop - I_gab + hwr (I_basDop + s*I_glu + r*I_b2)) / tau_Vdop
+
+   par tau_Vdop=0.02,I_basDop=0.1
+   aux aux_hwr=hwr (I_basDop + s*I_glu + r*I_b2)
+
+
+# the dynamics of the gaba-ergic neuron population V_gab
+
+   V_gab' = (-V_gab + hwr ((1-s)*I_glu + (1-r)*I_b2)) / tau_Vgab
+
+   par tau_Vgab=0.02
+
+
+# the (stationary) glutamatergic input I_glu to dopamine (and GABA) neurons
+
+   I_glu = w_glu * clip (V_glu + P_glu)
+
+   par w_glu=1,V_glu=0.1
+
+
+# the (varying) gaba-ergic input I_gab to dopamine neurons
+
+   I_gab = w_gab * clip (V_gab + I_basGab)
+
+   aux auxI_gab=I_gab
+   par w_gab=1.5 
+   par I_basGab=-0.05
+   aux auxI_gab=I_gab
+
+# the presynaptic facilitation of glu input to dopamine (and GABA) neurons
+
+   P_glu = P_a7
+
+
+# the dynamics of presynaptic a7 receptors (same single variable for 
+# glu inputs to dopamine cells in VTA and medium spiny neurons in striatum)
+
+
+# HERE WE ABOLISH THE DESENSITIZATION TO SIMULATE THE PAM EFFECT
+#   P_a7 = act_a7 * (1 - des_a7)
+   P_a7 = act_a7
+
+   aux auxP_a7=P_a7
+   aux auxact_a7=act_a7
+   aux auxsen_a7=1-des_a7
+
+
+#   /* activation of alpha7 */
+
+   act_a7' = (- act_a7 + inf_actA7) / tau_actA7
+
+   inf_actA7 = compHill(C_ach,    C_nic,        C_agA7, \
+                            1, w_actNicA7,   w_actAgA7, \
+                   EC50_A7ach, EC50_A7nic,   EC50_A7ag, Hill_actA7)
+
+
+   par EC50_A7=80
+   par EC50_A7ach=68
+   par EC50_A7nic=13
+   par Hill_actA7=1.73
+   par EC50_A7ag=0.03 
+   par w_actNicA7=0.8 
+   par w_actAgA7=0.3
+   par tau_actA7=0.005
+
+# WE CAN IN ADDITION PUT THE EFFICACY TO 100 % TO SIMULATE THE EFFECT OF AN INTRINSICALLY ACTIVE PAM.
+#   par w_actAgA7=1.0
+
+
+#   /* desensitisation of alpha7 */
+
+   des_a7' = (- des_a7 + inf_desA7) / tau_desA7
+
+   inf_desA7 = compHill(    0,      C_nic,      C_agA7, \
+                            1,          1,           1, \
+                            1, IC50_A7nic,   IC50_A7ag, Hill_desA7)
+
+   par IC50_A7nic=1.3
+   par Hill_desA7=2
+
+   par IC50_A7ag=0.002
+
+   tau_desA7 = tmin_desA7 + \ 
+               tmax_desA7 * (1 - inf_desA7)
+   aux aux_tdA7=tau_desA7
+
+   par tmin_desA7=0.05
+   par tmax_desA7=120
+
+
+# the dynamics of somatic a4b2 receptors on the soma/dendrite of dopamine neurons
+
+   I_b2 = act_b2 * (1 - des_b2)
+
+   aux auxI_b2=I_b2
+   aux auxact_b2=act_b2
+   aux auxsen_b2=1-des_b2
+
+
+#   /* activation of alpha4beta2 */
+
+   act_b2' = (- act_b2 + inf_actB2) / tau_actB2
+
+   inf_actB2 = compHill(C_ach,      C_nic,        C_agB2, \
+                            1, w_actNicB2,   w_actAgB2, \
+                   EC50_B2ach, EC50_B2nic,   EC50_B2ag, Hill_actB2)
+
+
+   par EC50_actB2=30
+   par EC50_B2ach=30
+   par EC50_B2ag=30
+   par EC50_B2nic=0.23
+   par Hill_actB2=1.05
+   par w_actNicB2=2
+   par w_actAgB2=1
+   par tau_actB2=0.005
+
+
+#   /* desensitisation */
+
+   des_b2' = (- des_b2 + inf_desB2) / tau_desB2
+
+   inf_desB2 = Hill (C_nic + C_agB2, EC50_desB2, Hill_desB2)
+
+   tau_desB2 = tmin_desB2 + \ 
+               tmax_desB2 * Hill (Ktau_desB2, C_nic + C_agB2, Htau_desB2)
+
+   aux aux_tdB2=tau_desB2
+
+   par EC50_desB2=0.061
+   par Hill_desB2=0.5
+   par tmin_desB2=0.5
+   par tmax_desB2=600
+   par Ktau_desB2=0.11
+   par Htau_desB2=3
+
+
+# the dynamics of dopamine release AND RE-UPTAKE
+# This is a bit complicated because for a fair comparison, all dopamine levels
+# are normalized to the same fixed baseline (about 50 nanoMolar). Hence we assume
+# that homeostatic mechanisms are at work that keep the baseline fixed under variable
+# parameter conditions (mostly varying cholinergic tones).
+
+   R_dop' = (C_basDop * (1 + (V_dop-ss_Vdop) / ss_Vdop) - R_dop) / tau_Rdop - R_dop * Vmax_Rdop / (R_dop + EC50_Rdop)
+
+   par tau_Rdop=0.2,P_a7bas=0.01
+   par C_basDop=0.1
+# the following values are from Chen and Budygin 2007
+   par Vmax_Rdop=1.3
+   par EC50_Rdop=0.2
+
+
+# the physiological (ach) and pharmacological (nic, specific a7 and a4b2 agonists) stimuli
+
+#  /* acetylcoline */
+   par C_ach=0
+
+#   /* nicotine */
+   stim_nic = bas_nic + rect_pulse (t, 66, 67, dose_Nic)
+
+   par dose_nic=1
+
+# we now simulate an alpha function as a second-order ode
+# the alpha-function is area normalized
+# to calculate its peak, take amplitude and divide by 10*e
+
+   C_nic_nic' = (-C_nic_nic + stim_nic)/tau1_nic
+   C_nic' = (-C_nic + C_nic_nic)/tau2_nic
+
+   par tau1_nic=10,tau2_nic=10,bas_nic=0 
+
+#   /* alpha7 agonist */
+
+   stim_a7 = rect_pulse (t, 36, 37, dose_Aga7)
+
+# THIS IS THE PARAMETER VARIED IN THE FIGURE
+#   par dose_Aga7=0.1
+#   par dose_Aga7=0.3
+   par dose_Aga7=0.5
+#   par dose_Aga7=1.0
+#   par dose_Aga7=2.0
+
+   C_agA7A7' = (-C_agA7A7 + stim_a7) / tau1_agA7
+   C_agA7' = (-C_agA7 + C_agA7A7) / tau2_agA7
+
+   par tau1_agA7=10,tau2_agA7=100
+
+#   /* alpha4 beta2 agonist */
+
+   stim_b2 = rect_pulse (t, 60, 61, 0)
+   C_agB2' = (-C_agB2 + stim_b2) / tau_agB2
+
+   par tau_agB2=10
+
+
+# /* calculating the steady-states (in reverse order) */
+    ss_Ib2 = compHill(   C_ach,          0,           0, \
+                            1, w_actNicB2,   w_actAgB2, \
+                   EC50_B2ach, EC50_B2nic,   EC50_B2ag, Hill_actB2)
+    ss_Pa7 = compHill(   C_ach,          0,           0, \
+                            1, w_actNicA7,   w_actAgA7, \
+                   EC50_A7ach, EC50_A7nic,   EC50_A7ag, Hill_actA7)
+    ss_Pglu = ss_Pa7
+    ss_Iglu = w_glu * clip (V_glu + ss_Pglu)
+    ss_Vgab = hwr ((1-s)*ss_Iglu + (1-r)*ss_Ib2)
+    ss_Igab = w_gab * clip (ss_Vgab + I_basGab)
+    ss_Vdop = - ss_Igab + hwr (I_basDop + s*ss_Iglu + r*ss_Ib2)
+# aux auxss_Vdop=ss_Vdop
+
+
+# the initial conditions
+act_a7(0)=0
+des_a7(0)=0
+act_b2(0)=0
+des_b2(0)=0
+V_dop(0)=0
+V_gab(0)=0
+C_nic(0)=bas_nic
+C_nic_nic(0)=bas_nic
+
+
+# the numerical parameters
+@ MAXSTOR=500000
+@ BOUNDS=1e+8
+@ DT=0.005
+@ TOTAL=150
+@ xlo=20
+@ xhi=120
+@ ylo=0
+@ yhi=0.12
+@ METHOD=rk
+@ NJMP=20
+@ YP=r_dop
+done
+

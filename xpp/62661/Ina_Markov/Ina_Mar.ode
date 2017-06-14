@@ -1,0 +1,70 @@
+# Markov model for cardiac Na(+) channel implemented by Dr. Jiun-Shian Wu, Dr. Sheng-Nan Wu, 
+# and Dr. Ruey J. Sung, Han-Dong Chang.
+# Clancy CE and Rudy Y. Na(+) channel mutation that causes both Brugada and long-QT 
+# syndrome phenotypes: a simulation study of mechanism. Circulation 2002;105:1208-13.
+# This simulation makes traces similar to fig 3A of the paper by Makita et al (2002).
+# Makita N et al. Drug-induced long-QT syndrome associated with a subclinical SCN5A mutation. 
+# Circulation 2002;106:1269-74.
+
+# Constant:
+Rk=8314
+Fara=96485
+Temp=310
+
+# Initial values
+init C3=1, C2=0, C1=0
+init IC3=0, IC2=0, iif=0, IM1=0, IM2=0
+init O=0
+
+# Values of the model parameters
+par ko=4.5, ki=136.89149
+par nao=140, nai=15
+par vhold=-80, vtest_1=30, vtest_2=-50
+par cai=7.9e-5
+par scale=1000
+
+# voltage-clamp protocols
+par ton=5, toff=20, toff_r=5000
+v=vhold+heav(t-ton)*heav(toff-t)*(vtest_1-vhold)+heav(t-toff)*heav(toff_r-t)*(vtest_2-vhold)
+Ena=((Rk*temp)/Fara)*ln(nao/nai)
+
+# Expressions:
+a11 = 3.802/(0.1027*exp(-v/17.0)+0.20*exp(-v/150))
+a12 = 3.802/(0.1027*exp(-v/15.0)+0.23*exp(-v/150))
+a13 = 3.802/(0.1027*exp(-v/12.0)+0.25*exp(-v/150))
+
+b11 = 0.1917*exp(-v/20.3)
+b12 = 0.20*exp(-(v-5)/20.3)
+b13 = 0.22*exp(-(v-10)/20.3)
+
+a2 = (9.178*exp(v/29.68))
+b2 = (a13*a2*a3)/( b13*b3)
+
+a3 = (3.7933*0.00000001)*exp(-v/7.7)
+b3 = (0.0084+0.00002*v)
+
+a4 = a2/100
+b4 = a3
+
+a5 = a2/(9.5*10000)
+b5 = a3/50
+
+# Gating functions
+C1' = C2*a12-C1*b12+O*b13-C1*a13+iif*a3-C1*b3
+C2' = C3*a11-C2*b11-C2*a12+C1*b12+IC2*a3-C2*b3
+C3' = C2*b11-C3*a11+IC3*a3-C3*b3
+O'  = C1*a13-O*b13+iif*b2-O*a2 
+
+IC3' = C3*b3-IC3*a3+IC2*b11-IC3*a11
+IC2' = IC3*a11-IC2*b11+iif*b12-IC2*a12+C2*b3-IC2*a3
+iif' = IC2*a12-iif*b12+IM1*b4-iif*a4+C1*b3-iif*a3+O*a2-iif*b2
+IM1'= IM2*b5-IM1*a5+iif*a4-IM1*b4
+IM2'= IM1*a5-IM2*b5
+
+Gna=23.5
+aux ina=Gna*(O/(IC3+IC2+iif+IM1+IM2+C3+C2+C1+O))*(v-Ena)/scale
+
+@ meth=Euler, dt=.005, total=20
+@ yp=ina, yhi=0.1, ylo=-0.5, xlo=0, xhi=20
+
+done

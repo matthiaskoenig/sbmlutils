@@ -1,7 +1,6 @@
 """
 Download models from ModelDB
 """
-
 from __future__ import print_function, absolute_import
 import os
 import urllib
@@ -12,9 +11,9 @@ from bs4 import BeautifulSoup
 import requests
 import urllib.request
 import shutil
+import warnings
 
 URL_ZIP = "https://senselab.med.yale.edu/modeldb/eavBinDown.cshtml?o={}&a=23&mime=application/zip"
-
 
 def xpp_model_ids():
     """ Find the xpp models on the xpp model page.
@@ -33,29 +32,30 @@ def xpp_model_ids():
     return model_ids
 
 
-def getunzipped(model_id, output_dir):
+def download_model_zip(model_id, output_dir):
     """ Get zip
 
     :param theurl:
     :param thedir:
-    :return:
+    :return: zip filename
     """
     # target address
     url = URL_ZIP.format(model_id)
-    print(url)
 
     # download file
-    name = os.path.join(output_dir, '{}.zip'.format(model_id))
+    file_name = os.path.join(output_dir, '{}.zip'.format(model_id))
 
     # Download the file from `url` and save it locally under `file_name`:
-    with urllib.request.urlopen(url) as response, open(name, 'wb') as out_file:
+    print('Downloading', url)
+    with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
+    return file_name
 
 
+def unzip_ode(model_id, output_dir):
 
-
-
-
+    name = os.path.join(output_dir, '{}.zip'.format(model_id))
+    print('Extracting:', model_id)
     # extract zip file
     try:
         z = zipfile.ZipFile(name)
@@ -63,26 +63,36 @@ def getunzipped(model_id, output_dir):
         print("Bad zipfile (from %r): %s" % (url, e))
         return
 
-    zip_dir = os.path.join(output_dir, model_id)
+    zip_dir = os.path.join(output_dir, str(model_id))
+
+    # z.extractall(path=zip_dir)
 
     for n in z.namelist():
-        dest = os.path.join(zip_dir, n)
-        destdir = os.path.dirname(dest)
-        if not os.path.isdir(destdir):
-            os.makedirs(destdir)
-        data = z.read(n)
-        f = open(dest, 'w')
-        f.write(data)
-        f.close()
-        z.close()
-        os.unlink(name)
+        # only extract the xpp ode files
+        if n.endswith('.ode'):
+            print('\t', n)
+            try:
+                z.extract(n, path=zip_dir)
+            except zipfile.BadZipfile as e:
+                warnings.warn('BadZipFile: {}'.format(model_id))
+                warnings.warn(e)
 
 
 if __name__ == "__main__":
-    model_ids = xpp_model_ids()
-    from pprint import pprint
-    pprint(model_ids)
-    print(len(model_ids))
+    download = True
 
-    model_id = 84606
-    getunzipped(model_id=model_id, output_dir='.')
+    # get model ids from webpage
+    model_ids = xpp_model_ids()
+    print('Number xpp models:', len(model_ids))
+
+    for model_id in model_ids:
+        if download:
+            # download zip files
+            download_model_zip(model_id=model_id, output_dir='.')
+
+        # extract ode files
+        if model_id in [62676]:
+            # bad zip files, error reported
+            continue
+        unzip_ode(model_id=model_id, output_dir='.')
+

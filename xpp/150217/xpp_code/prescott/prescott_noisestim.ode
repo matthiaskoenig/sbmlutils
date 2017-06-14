@@ -1,0 +1,55 @@
+# Modified Morris-Lecar model from Prescott (2008, 2008) 
+# modified from ml_salka.ode
+
+#stim used in experiments, mean=0, std=0.1
+table Iext stim.tab
+#Iext(t)=0
+
+nd=normal(0,0.3)
+par dc_noise=2.2218
+aux noise=dc_noise+nd
+
+dV/dt = (i_dc(t)+amp*Iext(t)+dc_noise+nd-gna*minf(V)*(V-Vna)-gk*y*(V-VK)-gl*(V-Vl))/c
+# dy/dt = phi_y*(yinf(V)-y)/tauy(V)
+dy/dt = if(y<0)then(0.1)else(if(y>1)then(-0.1)else(phi_y*(yinf(V)-y)/tauy(V)))
+par c=2
+
+
+i_dc(t)=idc
+# idc is -20.42 voor -80, -1.15 voor -70, 16.8 voor -60, 31.25 voor -50
+par idc=32
+init V=-50, y=0
+
+par amp=150
+aux stim=i_dc(t)+amp*Iext(t)
+
+
+
+# FAST INWARD CURRENT (INa or activation variable)
+# This is assumed to activate instantaneously with changes in voltage
+# voltage-dependent activation curve is described by m
+minf(V)=.5*(1+tanh((V-beta_m)/gamma_m))
+# maximal conductance and reversal potential
+par beta_m=-1.2,gamma_m=18
+par gna=20,vna=50
+
+# DELAYED RECTIFIER CURRENT (IKdr or recovery variable)
+# this current activates more slowly than INa
+# In this code, activation of IKdr is controlled by y
+yinf(V)=.5*(1+tanh((V-beta_y)/gamma_y))
+tauy(V)=1/cosh((V-beta_y)/(2*gamma_y))
+# in the 2D model, varying beta_w shifts the w activation curve (w=y here) and can convert the neuron between class 1, 2, and 3 
+par beta_y=0, gamma_y=10
+# maximal conductance and reversal potential
+par gk=20, vk=-100, phi_y=0.15
+
+# LEAK CURRENT (Il)
+# just a passive leak conductance
+par gl=2, vl=-70
+
+# following parameters control duration of simulation and axes of default plot
+@ total=303000,xlo=0,xhi=6000,ylo=-100,yhi=50
+@ meth=euler, dt=0.1, bounds=1000     
+@ MAXSTOR=3030010
+
+done

@@ -1,0 +1,189 @@
+# 2 Compartment Spinal Cord Injury Motoneuron Model
+# Basic SCI motoneuron model without synaptic inputs
+# Applied current can be a ramp, pulse or a single value
+# Change parameter values to get different motoneuron behavior
+
+#-------------------------------------------------------------
+#   Current Balance
+#-------------------------------------------------------------
+dvs/dt=(-INa-IKdr-IsCaN-IsKCa-Isleak+Is+gc*(vd-vs)/p)/c
+dvd/dt=(-ICaP-INap-IdKCa-Idleak+Id+gc*(vs-vd)/(1-p))/c
+
+#-------------------------------------------------------------
+#   Currents: Soma
+#-------------------------------------------------------------
+INa=gna*mna^3*hna*(vs-ena)
+IKdr=gkdr*n^4*(vs-ek)
+IsCaN=gscan*mscan^2*hscan*(vs-eca)
+IsKCa=gskca*(cas/(cas+0.2))*(vs-ek)
+Isleak=gl*(vs-el)
+
+Is=Iramp+Ipulse+Iappls
+Id=Iappld
+
+#-------------------------------------------------------------
+#   Currents: Dendrites
+#-------------------------------------------------------------
+IdKCa=gdkca*(cad/(cad+0.2))*(vd-ek)
+ICaP=gcap*mcap*(vd-eca)
+Idleak=gl*(vd-el)
+INap=gnap*mnap*(vd-ena)
+
+#-------------------------------------------------------------
+#   Variables: Soma
+#-------------------------------------------------------------
+mna=1/(1+exp((vs-thetamna)/kmna))
+dhna/dt=(hnainf-hna)/tauhna
+hnainf=1/(1+exp((vs-thetahna)/khna))
+tauhna=120/(exp((vs+50)/15)+exp(-(vs+50)/16))
+
+dn/dt=(ninf-n)/taun
+ninf=1/(1+exp((vs-thetan)/kn))
+taun=28/(exp((vs+40)/40)+exp(-(vs+40)/50))
+
+dmscan/dt=(mscaninf-mscan)/taumscan
+mscaninf=1/(1+exp((vs-thetamsca)/kmscan))
+dhscan/dt=(hscaninf-hscan)/tauhscan
+hscaninf=1/(1+exp((vs-thetahsca)/khscan))
+
+dcas/dt=f*(-alpha1*IsCaN-kca*cas)
+
+#-------------------------------------------------------------
+#   Variables:  Dendrites
+#-------------------------------------------------------------
+dmcap/dt=(mcapinf-mcap)/taumcap
+mcapinf=1/(1+exp((vd-thetamcap)/kmcap))
+
+dmnap/dt=(mnapinf-mnap)/taumnap
+mnapinf=1/(1+exp((vd-thetamnap)/kmnap))
+
+dcad/dt=f*(-alpha2*ICaP-kca*cad)
+
+#-------------------------------------------------------------
+# Applied Current
+#-------------------------------------------------------------
+# Applied
+par Iappls=0
+par Iappld=0
+
+# Ramp
+Iramp=offsetr+scaler*(t-tonr)*(heav(t-tonr)*heav(toffr-t))\
++2*scaler*(tswitchr-t)*(heav(t-tswitchr)*heav(toffr-t))
+par offsetr=0
+#par scaler=0
+par scaler=0.01
+par tonr=0
+par toffr=10000
+par tswitchr=2500
+
+# Pulse
+Ipulse=offsetp+scalep1*(heav(t-tonp1)*heav(toffp1-t))\
++scalep2*(heav(t-tonp2)*heav(toffp2-t))
+par offsetp=0
+par scalep1=0
+#par scalep1=20 for pulse figures
+par tonp1=2000
+par toffp1=4000
+par scalep2=0
+par tonp2=4000
+par toffp2=10000
+
+#-------------------------------------------------------------
+#  Parameters
+#-------------------------------------------------------------
+par gc=0.1
+par p=0.1
+par c=1
+
+par gna=120
+par ena=55
+par thetamna=-35
+par kmna=-7.8
+par thetahna=-55
+par khna=7
+
+par gkdr=100
+par ek=-80
+par thetan=-28
+par kn=-15
+
+par gscan=14
+par eca=80
+par thetamsca=-30
+par kmscan=-5
+par taumscan=16
+par thetahsca=-45
+par khscan=5
+par tauhscan=160
+
+par gskca=3.136
+par gdkca=0.69
+
+par gl=0.51
+par el=-60
+
+par f=0.01
+par alpha1=0.009
+par alpha2=0.009
+par kca=2
+
+par gcap=.33
+par thetamcap=-40
+par kmcap=-7
+par taumcap=40
+
+par gnap=.2
+par thetamnap=-25
+par kmnap=-4
+par taumnap=40
+
+# ------------------------------------------------------------
+#   Auxiliary Variables
+# ------------------------------------------------------------
+aux Na=INa
+aux Kdr=IKdr
+aux Ca1=IsCaN
+aux CaCs=cas
+aux CaCd=cad
+aux sKCa=IsKCa
+aux dKCa=IdKCa
+aux sLeak=Isleak
+aux dLeak=Idleak
+aux CaP=ICaP
+#aux Cap=ICap
+aux Nap=INap
+aux I1=Is
+aux I2=Id
+
+# --------------------------------------------------------
+#   Initial Conditions
+# --------------------------------------------------------
+
+init vs=-53.97266
+init vd=-52.66585
+init hna=0.463375
+init n=0.1503945
+init mscan=0.008206959
+init hscan=0.857482
+init cas=0.0004874682
+init mcap=0.1407098
+init mnap=0.0009903489
+init cad=0.02772107
+
+
+# ------------------------------------------------------------
+#   Settings
+# ------------------------------------------------------------	
+@ bounds=1000000
+@ TOTAL=10000
+@ DT=.05
+@ xlo=0
+@ xhi=10000
+@ ylo=-100
+@ yhi=80
+@ nplot=2
+@ yp2=I1
+@ METH=qualrk
+@ maxstor=1000000
+
+d

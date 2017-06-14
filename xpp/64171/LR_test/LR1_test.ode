@@ -1,0 +1,74 @@
+# Luo-Rudy phase 1 kinetics for cardiac action potential
+# Ref: Luo CH, Rudy T. Circ Res 1991;68:1501-1526
+# Ref: Wu SN, Chinese J Physiol 2004;47:15-22
+
+#Constant:
+number R=8314.0, Fara=96484.6, Temp=310.0, C=1.0
+
+# Initial values
+initial V=-81.0, m=0.0, h=0.98, j=0.99, d=0.0, f=1.0, X=0.0, Cai=0.0002
+
+# Value sof the model parameters
+param  Nao=140.0, Nai=18.0, Ko=5.4, Ki=145.0, Cao=1.8
+param  g_Na=23.0, g_Kmax=0.282, g_Kp=0.0183, g_bl=0.03921, g_b=0.03921
+param E_Na=54.4, E_b=-59.87, E_b1=-59.87, PR_NaK=0.01833
+param period=500, iStim_mag=8.0, iStim_beg=20.0,  iStim_dur=5.0
+
+# Stimulus
+i_Stim=  iStim_mag*(heav(mod(t,period)-iStim_beg)*heav((iStim_beg+iStim_dur)-mod(t,period)))
+
+# Expressions
+E_K1= (ln((Ko / Ki)) * R * Temp / Fara)
+E_Kp= E_K1
+E_K= (ln(((Ko + (PR_NaK * Nao)) / (Ki + (PR_NaK * Nai)))) * R * Temp / Fara)
+E_si= (7.7 - (13.0287 * ln(Cai)))
+alpha_m= (0.32 * (47.13 + V) / (1.0 - exp( - (0.1 * (47.13 + V)))))
+alpha_j= heav(-V-40)*(( - (127140.0 * exp((0.2444 * V))) - (3.474E-5 * exp( - (0.04391 * V)))) * (37.78 + V) / (1.0 + exp((0.311 * (79.23 + V)))))
+alpha_h=heav(-V-40)*(0.135 * exp( - (0.14705882352941177 * (80.0 + V))))
+alpha_K1= (1.02 / (1.0 + exp((0.2385 * (-59.215 + V - E_K1)))))
+alpha_f= (0.012 * exp( - (0.0080 * (28.0 + V))) / (1.0 + exp((0.15 * (28.0 + V)))))
+alpha_d= (0.095 * exp( - (0.01 * (-5.0 + V))) / (1.0 + exp( - (0.072 * (-5.0 + V)))))
+alpha_X= (5.0E-4 * exp((0.083 * (50.0 + V))) / (1.0 + exp((0.057 * (50.0 + V)))))
+Xi=heav(V+100)*((2.837 * (-1.0 + exp((0.04 * (77.0 + V)))) / ((77.0 + V) * exp((0.04 * (35.0 + V))))))
+beta_m= (0.08 * exp( - (0.09090909090909091 * V)))
+beta_j= heav(-V-40)*((0.1212  * exp( - (0.01052 * V)) / (1.0 + exp( - (0.1378 * (40.14 + V)))))) + heav(V+40)*((0.3 * exp( - (2.535E-7 * V)) / (1.0 + exp( - (0.1 * (32.0 + V))))))
+beta_h= heav(-V-40)*((((3.56 * exp((0.079 * V))) + (310000.0 * exp((0.35 * V)))))) + heav(V+40)*((1 / (0.13 * (1.0 + exp( - (0.0900900900900901 * (10.66 + V)))))))
+beta_f= (0.0065 * exp( - (0.02 * (30.0 + V))) / (1.0 + exp( - (0.2 * (30.0 + V)))))
+Kp= (1.0 / (1.0 + exp((0.16722408026755853 * (7.488 - V)))))
+beta_d= (0.07 * exp( - (0.017 * (44.0 + V))) / (1.0 + exp((0.05 * (44.0 + V)))))
+beta_K1= (((0.49124 * exp((0.08032 * (5.476 - E_K1 + V)))) + exp((0.06175 * (V - (594.31 + E_K1))))) / (1.0 + exp( - (0.5143 * (4.753 + V - E_K1)))))
+K1_inf= (alpha_K1 / (alpha_K1 + beta_K1))
+beta_X= (0.0013 * exp( - (0.06 * (20.0 + V))) / (1.0 + exp( - (0.04 * (20.0 + V)))))
+g_K= (g_Kmax *(0.18518518518518517 * Ko)^0.5)
+g_K1= (0.6047 * (0.18518518518518517 * Ko)^0.5)
+
+i_Na= (g_Na * m^3 * h * j * (V - E_Na))
+i_si= (0.09 * d * f * (V - E_si))
+i_K= (g_K * X * Xi * (V - E_K))
+i_K1= (g_K1 * K1_inf * (V - E_K1))
+i_Kp= (g_Kp * Kp * (V - E_Kp))
+i_b= (g_b * (V - E_b))
+
+# Differential equations
+V'= - ((-i_Stim + i_Na + i_si + i_K + i_K1 + i_Kp + i_b) / C)
+m'= ((alpha_m * (1.0 - m)) - (beta_m * m))
+h'= ((alpha_h * (1.0 - h)) - (beta_h * h))
+j'= ((alpha_j * (1.0 - j)) - (beta_j * j))
+d'= ((alpha_d * (1.0 - d)) - (beta_d * d))
+f'= ((alpha_f * (1.0 - f)) - (beta_f * f))
+X'= ((alpha_X * (1.0 - X)) - (beta_X * X))
+Cai'= ( - (1.0E-4 * i_si) + (0.07 * (1.0E-4 - Cai)))
+
+aux iapp=i_Stim
+aux ina=I_Na
+aux isi=i_si
+aux ik=i_K
+aux ik1=i_K1
+aux ikp=i_Kp
+aux iktot=i_K+i_K1+i_Kp
+
+# Numerical and plotting parameters for xpp
+@ maxstor=1000000, total=1000, bounds=100000, total=2000, xp=t, yp=V, xlo=0, xhi=2000, ylo=-100, yhi=60
+@ meth=Euler, dt=0.01     
+
+done
