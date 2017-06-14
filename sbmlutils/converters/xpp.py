@@ -15,16 +15,17 @@ file, but this is optional.
 Initial data are optional, XPP sets them to zero by default and they can be changed within the program.
 
 Only supports subset of features.
+
+Variables have to be case sensitive !!!, but this can easily be fixed based on validator output.
+
 """
 from __future__ import print_function, absolute_import
-import os
-import re
+
 import warnings
 import libsbml
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
 from sbmlutils import sbmlio
-from sbmlutils.report import sbmlreport
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
@@ -172,13 +173,19 @@ def xpp2sbml(xpp_file, sbml_file):
                             )
                     # aux
                     elif xid.startswith(XPP_TYPE_CHARS[XPP_AUX]):
-                        if sid == right:
-                            # avoid circular dependencies (no information in statement)
-                            pass
-                        else:
-                            assignment_rules.append(
-                                fac.AssignmentRule(sid=sid, value=right)
-                            )
+                        assignments = [t.strip() for t in expression.split(',')]
+                        for a in assignments:
+                            sid, value = [t.strip() for t in a.split('=')]
+
+                            if sid == value:
+                                # avoid circular dependencies (no information in statement)
+                                pass
+                            else:
+                                print('aux:', sid, '=', value, '[', line, ']')
+                                assignment_rules.append(
+                                    fac.AssignmentRule(sid=sid, value=value)
+                                )
+
                     else:
                         warnings.warn("XPP line not parsed: '{}'".format(line))
 
@@ -211,13 +218,7 @@ def xpp2sbml(xpp_file, sbml_file):
                     warnings.warn("XPP line not parsed: '{}'".format(line))
 
     # create SBML objects
-    objects = parameters + functions + initial_assignments + assignment_rules # + rate_rules
+    objects = parameters + functions + initial_assignments + rate_rules + assignment_rules
     fac.create_objects(model, objects)
 
     sbmlio.write_sbml(doc, sbml_file, validate=False, program_name="sbmlutils", program_version=__version__)
-
-if __name__ == "__main__":
-    xpp_file = "PLoSCompBiol_Fig1.ode"
-    sbml_file = "PLoSCompBiol_Fig1.xml"
-    xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_sbml_report(sbml_file, out_dir=".", validate=True)

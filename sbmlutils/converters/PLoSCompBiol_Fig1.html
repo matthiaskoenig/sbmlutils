@@ -224,7 +224,7 @@
 # Default parameters as in Fig. 1A
 
 # Differential equations
-v&apos;= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKATP*(1+sigma*q) + Ileak + IGABAR)
+V&apos;= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKatp*(1+sigma*q) + Ileak + Igabar)
 
 # use for stochastic simulation in Fig 1E
 wiener q
@@ -243,7 +243,7 @@ Cam&apos;=f*( (JCaL+JCaPQ+JCaT) - B*(Cam-Cac)/Volm*Volc - L/Volm*Volc )
 Cac&apos;=f*(B*(Cam-Cac)-Jserca+Jleak)
 
 # Initial conditions
-v(0)=-63
+V(0)=-63
 mkv(0)=0.02
 mBK(0)=0.002
 hNa(0)=0.97
@@ -264,21 +264,21 @@ par VCl=-40
 par gleak=0.015
 par vleak=-30
 
-Ileak=gleak*(v-vleak)
+Ileak=gleak*(V-vleak)
 aux Ileak=Ileak
 
 ## IKv
 par taumkv0=2, Vmkv=0, nmkv=-10, gkv=1
 
 mkvinf=1/(1+exp((V-Vmkv)/nmkv))
-taumkv=taumkv0+10*exp(min(log(3),(-20-v)/6))
-IKv=gkv*mkv*(V-Vk)
+taumkv=taumkv0+10*exp(min(log(3),(-20-V)/6))
+IKv=gkv*mkv*(V-VK)
 
 ## IBK
 par taumBK=2, VmBK=0, nmBK=-10, BBK=20, gBK=0.02
 
 mBKinf=1/( 1+exp((V-VmBK)/nmBK))
-IBK = gBK*(-ICa+BBK)*mBK*(V-Vk)
+IBK = gBK*(-ICa+BBK)*mBK*(V-VK)
 aux ibk=IBK
 
 ## hERG channels
@@ -288,7 +288,7 @@ par gHERG=0
 
 mHERGinf=1/( 1+exp((V-VmHERG)/nmHERG) )
 hHERGinf=1/( 1+exp((V-VhHERG)/nhHERG) )
-IHERG = gHERG*mHERG*hHERG*(V-Vk)
+IHERG = gHERG*mHERG*hHERG*(V-VK)
 
 ## Na current
 par gNa=0.4, VmNa=-18, nmNa=-5, VhNa=-42, nhNa=6, tauhNa=2
@@ -300,22 +300,21 @@ INa=gNa*mNainf*hNa*(V-VNa)
 par gCaL=0.14, VmCaL=-25, nmCaL=-6, tauhCaL=20
 
 mCaLinf=1/( 1+exp((V-VmCaL)/nmCaL) ) 
-hCaLinf=max(0,min(1,1+mCaLinf*(V-vCa)/57))
-ICaL = gCaL*mCaLinf*hCaL*(V-vCa)
-aux Ical=IcaL
+hCaLinf=max(0,min(1,1+mCaLinf*(V-VCa)/57))
+ICaL = gCaL*mCaLinf*hCaL*(V-VCa)
 
 ## PQ-type Ca current
 par gCaPQ=0.17, VmCaPQ=-10, nmCaPQ=-6
 
 mCaPQinf=1/( 1+exp((V-VmCaPQ)/nmCaPQ) )
-ICaPQ = gCaPQ*mCaPQinf*(V-vCa)
+ICaPQ = gCaPQ*mCaPQinf*(V-VCa)
 
 ## T-type Ca current
 par gCaT=0.05, VmCaT=-40, nmCaT=-4, VhCaT=-64, nhCaT=8, tauhCaT=7
 
 mCaTinf=1/( 1+exp((V-VmCaT)/nmCaT) )
 hCaTinf=1/( 1+exp((V-VhCaT)/nhCaT) )
-ICaT = gCaT*mCaTinf*hCaT*(V-vCa)
+ICaT = gCaT*mCaTinf*hCaT*(V-VCa)
 ICa=ICaL+ICaPQ+ICaT
 
 ## Katp current
@@ -332,7 +331,7 @@ par ggabar=0
 ## ISK current
 par gSK=0.1, kSK=0.57, nSK=5.2
 
-ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-Vk)
+ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-VK)
 #aux ISK=ISK
 
 ## Ca diffusion
@@ -587,7 +586,7 @@ done</pre>
         <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Parameters [101]</th>
+	<th scope="col" class="warning">Parameters [102]</th>
 	<th scope="col">name</th>
 	<th scope="col">constant</th>
 	<th scope="col">value</th>
@@ -641,13 +640,13 @@ done</pre>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="v" class="active"><span class="package">v</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-v" role="dialog">
+	<td id="V" class="active"><span class="package">V</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-V"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-V" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">v</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="v" value="-63" constant="false"/></textarea></div>
+            <div class="modal-header"><h4 class="modal-title">V</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="V" value="-63" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
@@ -962,13 +961,13 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">vleak</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vleak" value="-30" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vleak" value="-30" constant="true"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>-30.0</td>
 	<td></td>
 	<td>None</td>
@@ -1151,13 +1150,13 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">gBK</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="gBK" value="0.02" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="gBK" value="0.02" constant="true"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>0.02</td>
 	<td></td>
 	<td>None</td>
@@ -1508,13 +1507,13 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">tauhCaL</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="tauhCaL" value="20" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="tauhCaL" value="20" constant="true"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>20.0</td>
 	<td></td>
 	<td>None</td>
@@ -2089,7 +2088,7 @@ done</pre>
     <ci> gleak </ci>
     <apply>
       <minus/>
-      <ci> v </ci>
+      <ci> V </ci>
       <ci> vleak </ci>
     </apply>
   </apply>
@@ -2184,7 +2183,7 @@ done</pre>
                 <minus/>
                 <cn type="integer"> 20 </cn>
               </apply>
-              <ci> v </ci>
+              <ci> V </ci>
             </apply>
             <cn type="integer"> 6 </cn>
           </apply>
@@ -2222,7 +2221,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -2306,9 +2305,33 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
+</math></td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ibk" class="active"><span class="package">ibk</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ibk"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ibk" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ibk</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ibk" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> IBK </ci>
 </math></td>
 	<td>dimensionless</td>
 	<td>None</td>
@@ -2426,7 +2449,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -2632,7 +2655,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> vCa </ci>
+              <ci> VCa </ci>
             </apply>
           </apply>
           <cn type="integer"> 57 </cn>
@@ -2671,7 +2694,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> vCa </ci>
+      <ci> VCa </ci>
     </apply>
   </apply>
 </math></td>
@@ -2747,7 +2770,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> vCa </ci>
+      <ci> VCa </ci>
     </apply>
   </apply>
 </math></td>
@@ -2867,7 +2890,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> vCa </ci>
+      <ci> VCa </ci>
     </apply>
   </apply>
 </math></td>
@@ -3013,7 +3036,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -3292,7 +3315,7 @@ done</pre>
             </thead>
             <tbody>
                 <tr>    <td class="hidden">InitialAssignment</td>
-    <td class="active">v </td>
+    <td class="active">V </td>
     <td><i class="fa fa-ban gray"></i></td>
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
@@ -3424,7 +3447,7 @@ done</pre>
         <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Rules [34]</th>
+	<th scope="col" class="warning">Rules [42]</th>
 	<th scope="col">&nbsp;</th>
 	<th scope="col">assignment</th>
 	<th scope="col">name</th>
@@ -3434,6 +3457,556 @@ done</pre>
 </tr>
             </thead>
             <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="V" class="active"><span class="package">d V/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-V"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-V" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">V</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="V">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <ci> ISK </ci>
+        <ci> IBK </ci>
+        <ci> IKv </ci>
+        <ci> IHERG </ci>
+        <ci> INa </ci>
+        <ci> ICaL </ci>
+        <ci> ICaPQ </ci>
+        <ci> ICaT </ci>
+        <apply>
+          <times/>
+          <ci> IKatp </ci>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <times/>
+              <ci> sigma </ci>
+              <ci> q </ci>
+            </apply>
+          </apply>
+        </apply>
+        <ci> Ileak </ci>
+        <ci> Igabar </ci>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <ci> ISK </ci>
+      <ci> IBK </ci>
+      <ci> IKv </ci>
+      <ci> IHERG </ci>
+      <ci> INa </ci>
+      <ci> ICaL </ci>
+      <ci> ICaPQ </ci>
+      <ci> ICaT </ci>
+      <apply>
+        <times/>
+        <ci> IKatp </ci>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <times/>
+            <ci> sigma </ci>
+            <ci> q </ci>
+          </apply>
+        </apply>
+      </apply>
+      <ci> Ileak </ci>
+      <ci> Igabar </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="mkv" class="active"><span class="package">d mkv/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mkv"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mkv" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mkv</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="mkv">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> mkvinf </ci>
+        <ci> mkv </ci>
+      </apply>
+      <ci> taumkv </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> mkvinf </ci>
+      <ci> mkv </ci>
+    </apply>
+    <ci> taumkv </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="mBK" class="active"><span class="package">d mBK/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mBK"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mBK" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mBK</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="mBK">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> mBKinf </ci>
+        <ci> mBK </ci>
+      </apply>
+      <ci> taumBK </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> mBKinf </ci>
+      <ci> mBK </ci>
+    </apply>
+    <ci> taumBK </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="hNa" class="active"><span class="package">d hNa/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-hNa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-hNa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">hNa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="hNa">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> hNainf </ci>
+        <ci> hNa </ci>
+      </apply>
+      <ci> tauhNa </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> hNainf </ci>
+      <ci> hNa </ci>
+    </apply>
+    <ci> tauhNa </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="hCaL" class="active"><span class="package">d hCaL/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-hCaL"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-hCaL" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">hCaL</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="hCaL">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> hCaLinf </ci>
+        <ci> hCaL </ci>
+      </apply>
+      <ci> tauhCaL </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> hCaLinf </ci>
+      <ci> hCaL </ci>
+    </apply>
+    <ci> tauhCaL </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="hCaT" class="active"><span class="package">d hCaT/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-hCaT"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-hCaT" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">hCaT</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="hCaT">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> hCaTinf </ci>
+        <ci> hCaT </ci>
+      </apply>
+      <ci> tauhCaT </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> hCaTinf </ci>
+      <ci> hCaT </ci>
+    </apply>
+    <ci> tauhCaT </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="mHERG" class="active"><span class="package">d mHERG/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mHERG"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mHERG" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mHERG</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="mHERG">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> mHERGinf </ci>
+        <ci> mHERG </ci>
+      </apply>
+      <ci> taumHERG </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> mHERGinf </ci>
+      <ci> mHERG </ci>
+    </apply>
+    <ci> taumHERG </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="hHERG" class="active"><span class="package">d hHERG/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-hHERG"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-hHERG" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">hHERG</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="hHERG">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <minus/>
+        <ci> hHERGinf </ci>
+        <ci> hHERG </ci>
+      </apply>
+      <ci> tauhHERG </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <minus/>
+      <ci> hHERGinf </ci>
+      <ci> hHERG </ci>
+    </apply>
+    <ci> tauhHERG </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="Cam" class="active"><span class="package">d Cam/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Cam"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Cam" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Cam</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="Cam">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> f </ci>
+      <apply>
+        <minus/>
+        <apply>
+          <minus/>
+          <apply>
+            <plus/>
+            <ci> JCaL </ci>
+            <ci> JCaPQ </ci>
+            <ci> JCaT </ci>
+          </apply>
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> B </ci>
+                <apply>
+                  <minus/>
+                  <ci> Cam </ci>
+                  <ci> Cac </ci>
+                </apply>
+              </apply>
+              <ci> Volm </ci>
+            </apply>
+            <ci> Volc </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> L </ci>
+            <ci> Volm </ci>
+          </apply>
+          <ci> Volc </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> f </ci>
+    <apply>
+      <minus/>
+      <apply>
+        <minus/>
+        <apply>
+          <plus/>
+          <ci> JCaL </ci>
+          <ci> JCaPQ </ci>
+          <ci> JCaT </ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> B </ci>
+              <apply>
+                <minus/>
+                <ci> Cam </ci>
+                <ci> Cac </ci>
+              </apply>
+            </apply>
+            <ci> Volm </ci>
+          </apply>
+          <ci> Volc </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <ci> L </ci>
+          <ci> Volm </ci>
+        </apply>
+        <ci> Volc </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="Cac" class="active"><span class="package">d Cac/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Cac"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Cac" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Cac</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="Cac">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> f </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> B </ci>
+            <apply>
+              <minus/>
+              <ci> Cam </ci>
+              <ci> Cac </ci>
+            </apply>
+          </apply>
+          <ci> Jserca </ci>
+        </apply>
+        <ci> Jleak </ci>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> f </ci>
+    <apply>
+      <plus/>
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> B </ci>
+          <apply>
+            <minus/>
+            <ci> Cam </ci>
+            <ci> Cac </ci>
+          </apply>
+        </apply>
+        <ci> Jserca </ci>
+      </apply>
+      <ci> Jleak </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
                 <tr>    <td class="hidden">Rule</td>
 	<td id="Ileak" class="active"><span class="package">Ileak</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Ileak"><i class="fa fa-code"></i></button>
@@ -3448,7 +4021,7 @@ done</pre>
       <ci> gleak </ci>
       <apply>
         <minus/>
-        <ci> v </ci>
+        <ci> V </ci>
         <ci> vleak </ci>
       </apply>
     </apply>
@@ -3466,49 +4039,7 @@ done</pre>
     <ci> gleak </ci>
     <apply>
       <minus/>
-      <ci> v </ci>
-      <ci> vleak </ci>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td id="vleak" class="active"><span class="package">vleak</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vleak"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-vleak" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">vleak</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="vleak">
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-      <times/>
-      <ci> gleak </ci>
-      <apply>
-        <minus/>
-        <ci> v </ci>
-        <ci> vleak </ci>
-      </apply>
-    </apply>
-  </math>
-</assignmentRule></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> gleak </ci>
-    <apply>
-      <minus/>
-      <ci> v </ci>
+      <ci> V </ci>
       <ci> vleak </ci>
     </apply>
   </apply>
@@ -3616,7 +4147,7 @@ done</pre>
                   <minus/>
                   <cn type="integer"> 20 </cn>
                 </apply>
-                <ci> v </ci>
+                <ci> V </ci>
               </apply>
               <cn type="integer"> 6 </cn>
             </apply>
@@ -3658,7 +4189,7 @@ done</pre>
                 <minus/>
                 <cn type="integer"> 20 </cn>
               </apply>
-              <ci> v </ci>
+              <ci> V </ci>
             </apply>
             <cn type="integer"> 6 </cn>
           </apply>
@@ -3688,7 +4219,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> Vk </ci>
+        <ci> VK </ci>
       </apply>
     </apply>
   </math>
@@ -3707,7 +4238,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -3804,7 +4335,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> Vk </ci>
+        <ci> VK </ci>
       </apply>
     </apply>
   </math>
@@ -3831,7 +4362,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -3841,32 +4372,15 @@ done</pre>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="gBK" class="active"><span class="package">gBK</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-gBK"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-gBK" role="dialog">
+	<td id="ibk" class="active"><span class="package">ibk</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ibk"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ibk" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">gBK</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="gBK">
+            <div class="modal-header"><h4 class="modal-title">ibk</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="ibk">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-      <times/>
-      <ci> gBK </ci>
-      <apply>
-        <plus/>
-        <apply>
-          <minus/>
-          <ci> ICa </ci>
-        </apply>
-        <ci> BBK </ci>
-      </apply>
-      <ci> mBK </ci>
-      <apply>
-        <minus/>
-        <ci> V </ci>
-        <ci> Vk </ci>
-      </apply>
-    </apply>
+    <ci> IBK </ci>
   </math>
 </assignmentRule></textarea></div>
           </div>
@@ -3876,24 +4390,7 @@ done</pre>
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> gBK </ci>
-    <apply>
-      <plus/>
-      <apply>
-        <minus/>
-        <ci> ICa </ci>
-      </apply>
-      <ci> BBK </ci>
-    </apply>
-    <ci> mBK </ci>
-    <apply>
-      <minus/>
-      <ci> V </ci>
-      <ci> Vk </ci>
-    </apply>
-  </apply>
+  <ci> IBK </ci>
 </math></td>
 	<td><i class="fa fa-ban gray"></i>
     <td>None</td>
@@ -4045,7 +4542,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> Vk </ci>
+        <ci> VK </ci>
       </apply>
     </apply>
   </math>
@@ -4065,7 +4562,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -4338,7 +4835,7 @@ done</pre>
               <apply>
                 <minus/>
                 <ci> V </ci>
-                <ci> vCa </ci>
+                <ci> VCa </ci>
               </apply>
             </apply>
             <cn type="integer"> 57 </cn>
@@ -4372,7 +4869,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> vCa </ci>
+              <ci> VCa </ci>
             </apply>
           </apply>
           <cn type="integer"> 57 </cn>
@@ -4403,7 +4900,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> vCa </ci>
+        <ci> VCa </ci>
       </apply>
     </apply>
   </math>
@@ -4423,53 +4920,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> vCa </ci>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td id="tauhCaL" class="active"><span class="package">tauhCaL</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-tauhCaL"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-tauhCaL" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">tauhCaL</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="tauhCaL">
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-      <times/>
-      <ci> gCaL </ci>
-      <ci> mCaLinf </ci>
-      <ci> hCaL </ci>
-      <apply>
-        <minus/>
-        <ci> V </ci>
-        <ci> vCa </ci>
-      </apply>
-    </apply>
-  </math>
-</assignmentRule></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> gCaL </ci>
-    <ci> mCaLinf </ci>
-    <ci> hCaL </ci>
-    <apply>
-      <minus/>
-      <ci> V </ci>
-      <ci> vCa </ci>
+      <ci> VCa </ci>
     </apply>
   </apply>
 </math></td>
@@ -4558,7 +5009,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> vCa </ci>
+        <ci> VCa </ci>
       </apply>
     </apply>
   </math>
@@ -4577,7 +5028,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> vCa </ci>
+      <ci> VCa </ci>
     </apply>
   </apply>
 </math></td>
@@ -4731,7 +5182,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> vCa </ci>
+        <ci> VCa </ci>
       </apply>
     </apply>
   </math>
@@ -4751,7 +5202,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> vCa </ci>
+      <ci> VCa </ci>
     </apply>
   </apply>
 </math></td>
@@ -4916,7 +5367,7 @@ done</pre>
       <apply>
         <minus/>
         <ci> V </ci>
-        <ci> Vk </ci>
+        <ci> VK </ci>
       </apply>
     </apply>
   </math>
@@ -4955,7 +5406,7 @@ done</pre>
     <apply>
       <minus/>
       <ci> V </ci>
-      <ci> Vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>

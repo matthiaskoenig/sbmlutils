@@ -10,7 +10,7 @@
 # Default parameters as in Fig. 1A
 
 # Differential equations
-v&apos;= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKATP*(1+sigma*q) + Ileak + IGABAR)
+V&apos;= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKatp*(1+sigma*q) + Ileak + Igabar)
 
 # use for stochastic simulation in Fig 1E
 wiener q
@@ -29,7 +29,7 @@ Cam&apos;=f*( (JCaL+JCaPQ+JCaT) - B*(Cam-Cac)/Volm*Volc - L/Volm*Volc )
 Cac&apos;=f*(B*(Cam-Cac)-Jserca+Jleak)
 
 # Initial conditions
-v(0)=-63
+V(0)=-63
 mkv(0)=0.02
 mBK(0)=0.002
 hNa(0)=0.97
@@ -50,21 +50,21 @@ par VCl=-40
 par gleak=0.015
 par vleak=-30
 
-Ileak=gleak*(v-vleak)
+Ileak=gleak*(V-vleak)
 aux Ileak=Ileak
 
 ## IKv
 par taumkv0=2, Vmkv=0, nmkv=-10, gkv=1
 
 mkvinf=1/(1+exp((V-Vmkv)/nmkv))
-taumkv=taumkv0+10*exp(min(log(3),(-20-v)/6))
-IKv=gkv*mkv*(V-Vk)
+taumkv=taumkv0+10*exp(min(log(3),(-20-V)/6))
+IKv=gkv*mkv*(V-VK)
 
 ## IBK
 par taumBK=2, VmBK=0, nmBK=-10, BBK=20, gBK=0.02
 
 mBKinf=1/( 1+exp((V-VmBK)/nmBK))
-IBK = gBK*(-ICa+BBK)*mBK*(V-Vk)
+IBK = gBK*(-ICa+BBK)*mBK*(V-VK)
 aux ibk=IBK
 
 ## hERG channels
@@ -74,7 +74,7 @@ par gHERG=0
 
 mHERGinf=1/( 1+exp((V-VmHERG)/nmHERG) )
 hHERGinf=1/( 1+exp((V-VhHERG)/nhHERG) )
-IHERG = gHERG*mHERG*hHERG*(V-Vk)
+IHERG = gHERG*mHERG*hHERG*(V-VK)
 
 ## Na current
 par gNa=0.4, VmNa=-18, nmNa=-5, VhNa=-42, nhNa=6, tauhNa=2
@@ -86,22 +86,21 @@ INa=gNa*mNainf*hNa*(V-VNa)
 par gCaL=0.14, VmCaL=-25, nmCaL=-6, tauhCaL=20
 
 mCaLinf=1/( 1+exp((V-VmCaL)/nmCaL) ) 
-hCaLinf=max(0,min(1,1+mCaLinf*(V-vCa)/57))
-ICaL = gCaL*mCaLinf*hCaL*(V-vCa)
-aux Ical=IcaL
+hCaLinf=max(0,min(1,1+mCaLinf*(V-VCa)/57))
+ICaL = gCaL*mCaLinf*hCaL*(V-VCa)
 
 ## PQ-type Ca current
 par gCaPQ=0.17, VmCaPQ=-10, nmCaPQ=-6
 
 mCaPQinf=1/( 1+exp((V-VmCaPQ)/nmCaPQ) )
-ICaPQ = gCaPQ*mCaPQinf*(V-vCa)
+ICaPQ = gCaPQ*mCaPQinf*(V-VCa)
 
 ## T-type Ca current
 par gCaT=0.05, VmCaT=-40, nmCaT=-4, VhCaT=-64, nhCaT=8, tauhCaT=7
 
 mCaTinf=1/( 1+exp((V-VmCaT)/nmCaT) )
 hCaTinf=1/( 1+exp((V-VhCaT)/nhCaT) )
-ICaT = gCaT*mCaTinf*hCaT*(V-vCa)
+ICaT = gCaT*mCaTinf*hCaT*(V-VCa)
 ICa=ICaL+ICaPQ+ICaT
 
 ## Katp current
@@ -118,7 +117,7 @@ par ggabar=0
 ## ISK current
 par gSK=0.1, kSK=0.57, nSK=5.2
 
-ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-Vk)
+ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-VK)
 #aux ISK=ISK
 
 ## Ca diffusion
@@ -225,7 +224,7 @@ done</pre>
     <listOfParameters>
       <parameter id="q" value="0" constant="true"/>
       <parameter id="sigma" value="0" constant="true"/>
-      <parameter id="v" value="-63" constant="false"/>
+      <parameter id="V" value="-63" constant="false"/>
       <parameter id="mkv" value="0.02" constant="false"/>
       <parameter id="mBK" value="0.002" constant="false"/>
       <parameter id="hNa" value="0.97" constant="false"/>
@@ -240,7 +239,7 @@ done</pre>
       <parameter id="VK" value="-75" constant="true"/>
       <parameter id="VCl" value="-40" constant="true"/>
       <parameter id="gleak" value="0.015" constant="true"/>
-      <parameter id="vleak" value="-30" constant="false"/>
+      <parameter id="vleak" value="-30" constant="true"/>
       <parameter id="taumkv0" value="2" constant="true"/>
       <parameter id="Vmkv" value="0" constant="true"/>
       <parameter id="nmkv" value="-10" constant="true"/>
@@ -249,7 +248,7 @@ done</pre>
       <parameter id="VmBK" value="0" constant="true"/>
       <parameter id="nmBK" value="-10" constant="true"/>
       <parameter id="BBK" value="20" constant="true"/>
-      <parameter id="gBK" value="0.02" constant="false"/>
+      <parameter id="gBK" value="0.02" constant="true"/>
       <parameter id="VmHERG" value="-30" constant="true"/>
       <parameter id="nmHERG" value="-10" constant="true"/>
       <parameter id="taumHERG" value="100" constant="true"/>
@@ -266,7 +265,7 @@ done</pre>
       <parameter id="gCaL" value="0.14" constant="true"/>
       <parameter id="VmCaL" value="-25" constant="true"/>
       <parameter id="nmCaL" value="-6" constant="true"/>
-      <parameter id="tauhCaL" value="20" constant="false"/>
+      <parameter id="tauhCaL" value="20" constant="true"/>
       <parameter id="gCaPQ" value="0.17" constant="true"/>
       <parameter id="VmCaPQ" value="-10" constant="true"/>
       <parameter id="nmCaPQ" value="-6" constant="true"/>
@@ -299,6 +298,7 @@ done</pre>
       <parameter id="IKv" units="dimensionless" constant="false"/>
       <parameter id="mBKinf" units="dimensionless" constant="false"/>
       <parameter id="IBK" units="dimensionless" constant="false"/>
+      <parameter id="ibk" units="dimensionless" constant="false"/>
       <parameter id="mHERGinf" units="dimensionless" constant="false"/>
       <parameter id="hHERGinf" units="dimensionless" constant="false"/>
       <parameter id="IHERG" units="dimensionless" constant="false"/>
@@ -326,7 +326,7 @@ done</pre>
       <parameter id="L" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfInitialAssignments>
-      <initialAssignment symbol="v">
+      <initialAssignment symbol="V">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <minus/>
@@ -381,6 +381,201 @@ done</pre>
       </initialAssignment>
     </listOfInitialAssignments>
     <listOfRules>
+      <rateRule variable="V">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <ci> ISK </ci>
+              <ci> IBK </ci>
+              <ci> IKv </ci>
+              <ci> IHERG </ci>
+              <ci> INa </ci>
+              <ci> ICaL </ci>
+              <ci> ICaPQ </ci>
+              <ci> ICaT </ci>
+              <apply>
+                <times/>
+                <ci> IKatp </ci>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <times/>
+                    <ci> sigma </ci>
+                    <ci> q </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> Ileak </ci>
+              <ci> Igabar </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mkv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mkvinf </ci>
+              <ci> mkv </ci>
+            </apply>
+            <ci> taumkv </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mBK">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mBKinf </ci>
+              <ci> mBK </ci>
+            </apply>
+            <ci> taumBK </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hNa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hNainf </ci>
+              <ci> hNa </ci>
+            </apply>
+            <ci> tauhNa </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hCaL">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hCaLinf </ci>
+              <ci> hCaL </ci>
+            </apply>
+            <ci> tauhCaL </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hCaT">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hCaTinf </ci>
+              <ci> hCaT </ci>
+            </apply>
+            <ci> tauhCaT </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mHERG">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mHERGinf </ci>
+              <ci> mHERG </ci>
+            </apply>
+            <ci> taumHERG </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hHERG">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hHERGinf </ci>
+              <ci> hHERG </ci>
+            </apply>
+            <ci> tauhHERG </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Cam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> f </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <ci> JCaL </ci>
+                  <ci> JCaPQ </ci>
+                  <ci> JCaT </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <ci> B </ci>
+                      <apply>
+                        <minus/>
+                        <ci> Cam </ci>
+                        <ci> Cac </ci>
+                      </apply>
+                    </apply>
+                    <ci> Volm </ci>
+                  </apply>
+                  <ci> Volc </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> L </ci>
+                  <ci> Volm </ci>
+                </apply>
+                <ci> Volc </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Cac">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> f </ci>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> B </ci>
+                  <apply>
+                    <minus/>
+                    <ci> Cam </ci>
+                    <ci> Cac </ci>
+                  </apply>
+                </apply>
+                <ci> Jserca </ci>
+              </apply>
+              <ci> Jleak </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
       <assignmentRule variable="Ileak">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -388,20 +583,7 @@ done</pre>
             <ci> gleak </ci>
             <apply>
               <minus/>
-              <ci> v </ci>
-              <ci> vleak </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="vleak">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gleak </ci>
-            <apply>
-              <minus/>
-              <ci> v </ci>
+              <ci> V </ci>
               <ci> vleak </ci>
             </apply>
           </apply>
@@ -458,7 +640,7 @@ done</pre>
                         <minus/>
                         <cn type="integer"> 20 </cn>
                       </apply>
-                      <ci> v </ci>
+                      <ci> V </ci>
                     </apply>
                     <cn type="integer"> 6 </cn>
                   </apply>
@@ -477,7 +659,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> Vk </ci>
+              <ci> VK </ci>
             </apply>
           </apply>
         </math>
@@ -523,31 +705,14 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> Vk </ci>
+              <ci> VK </ci>
             </apply>
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule variable="gBK">
+      <assignmentRule variable="ibk">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gBK </ci>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <ci> ICa </ci>
-              </apply>
-              <ci> BBK </ci>
-            </apply>
-            <ci> mBK </ci>
-            <apply>
-              <minus/>
-              <ci> V </ci>
-              <ci> Vk </ci>
-            </apply>
-          </apply>
+          <ci> IBK </ci>
         </math>
       </assignmentRule>
       <assignmentRule variable="mHERGinf">
@@ -608,7 +773,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> Vk </ci>
+              <ci> VK </ci>
             </apply>
           </apply>
         </math>
@@ -719,7 +884,7 @@ done</pre>
                     <apply>
                       <minus/>
                       <ci> V </ci>
-                      <ci> vCa </ci>
+                      <ci> VCa </ci>
                     </apply>
                   </apply>
                   <cn type="integer"> 57 </cn>
@@ -739,22 +904,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> vCa </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule variable="tauhCaL">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> gCaL </ci>
-            <ci> mCaLinf </ci>
-            <ci> hCaL </ci>
-            <apply>
-              <minus/>
-              <ci> V </ci>
-              <ci> vCa </ci>
+              <ci> VCa </ci>
             </apply>
           </apply>
         </math>
@@ -792,7 +942,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> vCa </ci>
+              <ci> VCa </ci>
             </apply>
           </apply>
         </math>
@@ -855,7 +1005,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> vCa </ci>
+              <ci> VCa </ci>
             </apply>
           </apply>
         </math>
@@ -925,7 +1075,7 @@ done</pre>
             <apply>
               <minus/>
               <ci> V </ci>
-              <ci> Vk </ci>
+              <ci> VK </ci>
             </apply>
           </apply>
         </math>
