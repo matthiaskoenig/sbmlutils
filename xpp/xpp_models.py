@@ -113,25 +113,24 @@ def get_models(download=True):
 
 
 if __name__ == "__main__":
+    import traceback
+    import sys
+    from sbmlutils.report import sbmlreport
+    from sbmlutils.converters import xpp
+
+    # download and unzip all sbml files
     # ode_all = get_models(download=True)
 
     # get all ode files
     ode_all = []
     xpp_path = "."
-
     for root, dirnames, filenames in os.walk(xpp_path):
         for f in filenames:
             if f.endswith('.ode'):
                 f_path = os.path.join(root, f)
                 ode_all.append(f_path)
 
-    # from pprint import pprint
-    # pprint(sorted(ode_all))
-
     # create the sbml files
-    import traceback
-    import sys
-    from sbmlutils.converters import xpp
     out_dir = './sbml'
     Nall = len(ode_all)
     Nfail = 0
@@ -143,6 +142,7 @@ if __name__ == "__main__":
         try:
             print('[{}]'.format(k))
             xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+            sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
         except:
             print()
             traceback.print_exc(file=sys.stdout)
