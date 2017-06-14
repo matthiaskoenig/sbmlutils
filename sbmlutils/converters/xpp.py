@@ -20,8 +20,6 @@ Variables have to be case sensitive !!!, but this can easily be fixed based on v
 
 """
 # TODO: d()/dt syntax for odes
-# TODO: init/Initial/I syntax for initial assignments/values
-# TODO: number/Number/N syntax
 # TODO: ** --> power conversion in formula
 # TODO: bug multiple whitespace before keywords
 
@@ -57,6 +55,10 @@ XPP_TYPE_CHARS = {
     XPP_WIE: 'w',
     XPP_INIT: 'i',
     XPP_NUM: 'n',
+    # not supported yet
+    XPP_ZIP: 'z',
+    XPP_GLO: 'g',
+    XPP_TAB: 't',
 }
 
 NOTES = """
@@ -87,6 +89,47 @@ NOTES = """
 """.format(__version__, '{}')
 
 
+def parse_keyword(xpp_id):
+    """ Parses the keyword and returns the xpp keyword type.
+    :param xpp_id:
+    :return:
+    """
+    xpp_id = xpp_id.lower()
+    for xpp_key, c in XPP_TYPE_CHARS.items():
+        if xpp_id.startswith(c):
+            return xpp_key
+    warnings.warn("Keyword not supported:", xpp_id)
+    return None
+
+
+def parts_from_expression(expression):
+    """ Returns the parts of given expression.
+    The parts can be whitespace or comma separated.
+
+    V1=-0.75  R1=0.26  CA1=0.1 H1=0.1
+    V1=-0.75,  R1=0.26,  CA1=0.1, H1=0.1
+
+    :return: list of cleaned parts
+    """
+    # replace all separators with comma
+    expression = expression.replace(' ', ',')
+    expression = expression.replace('\t', ',')
+    # collect non-empty parts
+    parts = [t.strip() for t in expression.split(',')]
+    parts = [p for p in parts if len(p) > 0]
+    return parts
+
+
+def sid_value_from_part(part):
+    """ Get sid, value tuple from given part of expression.
+
+    :param part:
+    :return:
+    """
+    sid, value = [t.strip() for t in part.split('=')]
+    return sid, value
+
+
 def xpp2sbml(xpp_file, sbml_file):
     """ Reads given xpp_file and converts to SBML file.
 
@@ -110,19 +153,6 @@ def xpp2sbml(xpp_file, sbml_file):
         fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
         fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
     ]
-
-    def parse_keyword(xpp_id):
-        """ Parses the keyword and returns the xpp keyword type.
-        :param xpp_id:
-        :return:
-        """
-        xpp_id = xpp_id.lower()
-        for xpp_key, c in XPP_TYPE_CHARS.items():
-            if xpp_id.startswith(c):
-                return xpp_key
-        warnings.warn("Keyword not supported:", xpp_id)
-        return None
-
 
     with open(xpp_file) as f:
         lines = f.readlines()
@@ -155,7 +185,7 @@ def xpp2sbml(xpp_file, sbml_file):
             #####################
             # wiener
             if len(tokens) == 1:
-                items = [t.strip() for t in tokens[0].split(' ')]
+                items = [t.strip() for t in tokens[0].split(' ') if len(t) > 0]
                 # keyword, value
                 if len(items) == 2:
                     xid, sid = items[0], items[1]
@@ -180,17 +210,20 @@ def xpp2sbml(xpp_file, sbml_file):
             # parameter, aux, ode, initial assignments
             elif len(tokens) >= 2:
                 left = tokens[0]
-                items = [t.strip() for t in left.split(' ')]
+                items = [t.strip() for t in left.split(' ') if len(t) > 0]
                 # keyword based information
                 if len(items) == 2:
                     xid = items[0]  # xpp keyword
                     xpp_type = parse_keyword(xid)
                     expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:])  # full expression after keyword
+                    parts = parts_from_expression(expression)
 
-                    # parameter
-                    if xpp_type == XPP_PAR:
-                        assignments = [t.strip() for t in expression.split(',')]
-                        for a in assignments:
+                    # parameter & numbers
+                    if xpp_type in [XPP_PAR, XPP_NUM]:
+                        ''' Parameter values are optional; if not they are set to zero. 
+                        Number declarations are like parameter declarations, except that they cannot be 
+                        changed within the program and do not appear in the parameter window. '''
+                        for a in parts:
                             sid, value = [t.strip() for t in a.split('=')]
                             parameters.append(
                                 fac.Parameter(sid=sid, value=float(value), constant=True)
@@ -198,10 +231,11 @@ def xpp2sbml(xpp_file, sbml_file):
 
                     # aux
                     elif xpp_type == XPP_AUX:
-                        assignments = [t.strip() for t in expression.split(',')]
-                        for a in assignments:
-                            sid, value = [t.strip() for t in a.split('=')]
-
+                        '''Auxiliary quantities are expressions that depend on all of your dynamic 
+                        variables which you want to keep track of. Energy is one such example. They are declared
+                        like fixed quantities, but are prefaced by aux .'''
+                        for part in parts:
+                            sid, value = sid_value_from_part(part)
                             if sid == value:
                                 # avoid circular dependencies (no information in statement)
                                 pass
@@ -210,13 +244,28 @@ def xpp2sbml(xpp_file, sbml_file):
                                     fac.AssignmentRule(sid=sid, value=value)
                                 )
 
+                    # init
+                    elif xpp_type == XPP_INIT:
+                        for part in parts:
+                            sid, value = sid_value_from_part(part)
+                            parameters.append(
+                                fac.Parameter(sid=sid, value=float(value), constant=False)
+                            )
+                            initial_assignments.append(
+                                fac.InitialAssignment(sid=sid, value=value)
+                            )
+
+                    elif xpp_type == [XPP_ZIP, XPP_GLO, XPP_TAB]:
+                        warnings.warn("XPP_ZIP, XPP_GLO or XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
+
                     else:
                         warnings.warn("XPP line not parsed: '{}'".format(line))
 
                 # direct assignments
                 elif len(items) == 1:
                     right = tokens[1]
-                    # initial assignments
+
+                    # init
                     if left.endswith('(0)'):
                         sid = left[0:-3]
                         parameters.append(
@@ -225,6 +274,10 @@ def xpp2sbml(xpp_file, sbml_file):
                         initial_assignments.append(
                             fac.InitialAssignment(sid=sid, value=right)
                         )
+
+                    # difference equations
+                    elif left.endswith('(t+1)'):
+                        warnings.warn("Difference Equations not supported: XPP line not parsed: '{}'".format(line))
 
                     # ode
                     elif left.endswith("'"):
