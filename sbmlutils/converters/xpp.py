@@ -18,20 +18,20 @@ Only supports subset of features.
 
 Variables have to be case sensitive !!!, but this can easily be fixed based on validator output.
 
+Not supported:
+- global
+- table
+- sum, shift
+
 """
-# TODO: d()/dt syntax for odes
-
 # TODO: support function definitions & usage of function definitions
-
-# TODO: if ... then ... else
-# TODO: support global
-# TODO: support line continuation
-
+# FIXME: d()/dt syntax for odes
+# FIXME: support global via events
 
 
 from __future__ import print_function, absolute_import
-
 import warnings
+import re
 import libsbml
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
@@ -40,7 +40,6 @@ from sbmlutils import sbmlio
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
 XPP_IE = "integral equation"  # x(t) =  ...int{K(u,t,t')}...
-XPP_ZIP = "zippy"  # Fixed or hidden values
 XPP_FUN = "functions"  # f(x,y) = x^2/(x^2+y^2)
 XPP_INIT = "initial data"
 XPP_AUX = "auxiliary quantities"
@@ -61,8 +60,7 @@ XPP_TYPE_CHARS = {
     XPP_WIE: 'w',
     XPP_INIT: 'i',
     XPP_NUM: 'n',
-    # not supported yet
-    XPP_ZIP: 'z',
+    # not supported
     XPP_GLO: 'g',
     XPP_TAB: 't',
 }
@@ -196,6 +194,8 @@ def xpp2sbml(xpp_file, sbml_file):
             line = line.rstrip('\n').strip()
             # handle douple continuation characters in some models
             line = line.replace('\\\\', '\\')
+            # handle semicolons
+            line = line.rstrip(';')
 
             # join continuation
             if old_line:
@@ -221,6 +221,13 @@ def xpp2sbml(xpp_file, sbml_file):
 
             # handle the power function
             line = line.replace('**', '^')
+            # handle if(...)then(...)else()
+            groups = re.findall('if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)', line)
+            if len(groups) > 0:
+                f_piecewise = "piecewise({}, {}, {})".format(*groups[0])
+                line = re.sub("if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)", f_piecewise, line)
+
+
 
             ################################
             # Start parsing the given line
@@ -296,15 +303,20 @@ def xpp2sbml(xpp_file, sbml_file):
                         for part in parts:
                             sid, value = sid_value_from_part(part)
                             create_initial_assignment(sid, value)
-
-                    # zippy
-                    elif xpp_type == XPP_ZIP:
-                        warnings.warn("XPP_ZIP not supported: XPP line not parsed: '{}'".format(line))
                     # global
                     elif xpp_type == XPP_GLO:
+                        '''Global flags are expressions that signal events when they change sign, from less than 
+                        to greater than zero if sign=1 , greater than to less than if sign=-1 or eithet way 
+                        if sign=0. The condition should be delimited by braces {} The events are of the form 
+                        variable=expression , are delimited by braces, and separated by semicolons. When the 
+                        condition occurs all the variables in the event set are changed possibly discontinuously.
+                        '''
                         warnings.warn("XPP_GLO not supported: XPP line not parsed: '{}'".format(line))
                     # table
                     elif xpp_type == XPP_TAB:
+                        ''' The Table declaration allows the user to specify a function of 1 variable in terms 
+                        of a lookup table which uses linear interpolation. The name of the function follows the 
+                        declaration and this is followed by (i) a filename (ii) or a function of "t".'''
                         warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
 
                     else:
