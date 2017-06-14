@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title></title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <h1>XPP model</h1>
+    <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+    <pre># PLOS Computational Biology, Riz et al., 2013
+# human beta-cell model including SK-channels and Ca2+ dynamics
+# Default parameters as in Fig. 1A
+
+# Differential equations
+v&apos;= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKATP*(1+sigma*q) + Ileak + IGABAR)
+
+# use for stochastic simulation in Fig 1E
+wiener q
+par sigma=0
+
+mkv&apos;=(mkvinf-mkv)/taumkv
+mBK&apos;=(mBKinf-mBK)/taumBK
+hNa&apos;=(hNainf-hNa)/tauhNa
+hCaL&apos;=(hCaLinf-hCaL)/tauhCaL
+hCaT&apos;=(hCaTinf-hCaT)/tauhCaT
+mHERG&apos;=(mHERGinf-mHERG)/taumHERG
+hHERG&apos;=(hHERGinf-hHERG)/tauhHERG
+
+# Differential equations for Ca2+ dynamics
+Cam&apos;=f*( (JCaL+JCaPQ+JCaT) - B*(Cam-Cac)/Volm*Volc - L/Volm*Volc )
+Cac&apos;=f*(B*(Cam-Cac)-Jserca+Jleak)
+
+# Initial conditions
+v(0)=-63
+mkv(0)=0.02
+mBK(0)=0.002
+hNa(0)=0.97
+hCaL(0)=0.98
+hCaT(0)=0.52
+mHERG(0)=0.1
+hHERG(0)=0.7
+Cam(0)=0.30
+Cac(0)=0.17
+
+## Nernst voltages
+par VNa=70
+par VCa=65
+par VK=-75
+par VCl=-40
+
+## Leak current
+par gleak=0.015
+par vleak=-30
+
+Ileak=gleak*(v-vleak)
+aux Ileak=Ileak
+
+## IKv
+par taumkv0=2, Vmkv=0, nmkv=-10, gkv=1
+
+mkvinf=1/(1+exp((V-Vmkv)/nmkv))
+taumkv=taumkv0+10*exp(min(log(3),(-20-v)/6))
+IKv=gkv*mkv*(V-Vk)
+
+## IBK
+par taumBK=2, VmBK=0, nmBK=-10, BBK=20, gBK=0.02
+
+mBKinf=1/( 1+exp((V-VmBK)/nmBK))
+IBK = gBK*(-ICa+BBK)*mBK*(V-Vk)
+aux ibk=IBK
+
+## hERG channels
+par VmHERG=-30, nmHERG=-10, taumHERG=100
+par VhHERG=-42, nhHERG=17.5, tauhHERG=50
+par gHERG=0
+
+mHERGinf=1/( 1+exp((V-VmHERG)/nmHERG) )
+hHERGinf=1/( 1+exp((V-VhHERG)/nhHERG) )
+IHERG = gHERG*mHERG*hHERG*(V-Vk)
+
+## Na current
+par gNa=0.4, VmNa=-18, nmNa=-5, VhNa=-42, nhNa=6, tauhNa=2
+hNainf=1/( 1+exp((V-VhNa)/nhNa) )
+mNainf=1/( 1+exp((V-VmNa)/nmNa) )
+INa=gNa*mNainf*hNa*(V-VNa)
+
+## L-type Ca current
+par gCaL=0.14, VmCaL=-25, nmCaL=-6, tauhCaL=20
+
+mCaLinf=1/( 1+exp((V-VmCaL)/nmCaL) ) 
+hCaLinf=max(0,min(1,1+mCaLinf*(V-vCa)/57))
+ICaL = gCaL*mCaLinf*hCaL*(V-vCa)
+aux Ical=IcaL
+
+## PQ-type Ca current
+par gCaPQ=0.17, VmCaPQ=-10, nmCaPQ=-6
+
+mCaPQinf=1/( 1+exp((V-VmCaPQ)/nmCaPQ) )
+ICaPQ = gCaPQ*mCaPQinf*(V-vCa)
+
+## T-type Ca current
+par gCaT=0.05, VmCaT=-40, nmCaT=-4, VhCaT=-64, nhCaT=8, tauhCaT=7
+
+mCaTinf=1/( 1+exp((V-VmCaT)/nmCaT) )
+hCaTinf=1/( 1+exp((V-VhCaT)/nhCaT) )
+ICaT = gCaT*mCaTinf*hCaT*(V-vCa)
+ICa=ICaL+ICaPQ+ICaT
+
+## Katp current
+IKatp=gkatp*(V-VK)
+
+par gkatp=0.01
+
+## Gabar current
+Igabar=ggabar*(V-VCl)
+
+par ggabar=0
+
+
+## ISK current
+par gSK=0.1, kSK=0.57, nSK=5.2
+
+ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-Vk)
+#aux ISK=ISK
+
+## Ca diffusion
+#definition of fluxes
+par Cm=10
+
+JCaL=-alpha*ICaL*Cm/Volm
+JCaPQ=-alpha*ICaPQ*Cm/Volm
+JCaT=-alpha*ICaT*Cm/Volm
+Jserca=Jsercamax*Cac^2/(Kserca^2 + Cac^2)
+Jpmca=Jpmcamax*Cam/(Kpmca + Cam)
+Jncx=Jncx0*(Cam)
+L=Jpmca+Jncx
+
+# Calcium dynamics parameters
+
+par f=0.01
+par B=0.1
+par Volc=1.15e-12, Volm=1e-13
+ 
+# conversion to fluxes
+par alpha=5.18e-15
+ 
+# other fluxes
+par Jsercamax=0.06, Kserca=0.27, Jpmcamax=0.021, Kpmca=0.5, Jleak=0.94e-3, Jncx0=0.01867
+
+@ meth=cvode, toler=1.0e-10, atoler=1.0e-10, dt=.01, total=3000,
+@ maxstor=2000000,bounds=10000000000000000000, xp=t, yp=v
+@ xlo=0, xhi=3000, ylo=-80, yhi=10
+
+done</pre>
+    <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+    <h2>Terms of use</h2>
+    <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+    <div class="dc:license">
+      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+        <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+        <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+      </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+    </div>
+  </body>
+</notes><hr />
+    <h1>Model : </h1>
+    
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="" class="active"><span class="package"></span> </td></tr>
+                <tr><td class="active">name</td><td><i class="fa fa-ban gray"></i></td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="PLoSCompBiol_Fig1.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L3V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

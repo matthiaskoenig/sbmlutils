@@ -21,7 +21,9 @@ from six import iteritems
 import logging
 import warnings
 import libsbml
+
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
+from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
@@ -96,6 +98,18 @@ def set_main_units(model, main_units):
         elif key == 'volume':
             model.setVolumeUnits(unit)
 
+def set_notes(model, notes):
+    """ Set notes information on model.
+
+    :param model: Model
+    :param notes: notes information (xml string)
+    :return:
+    """
+    xml_node = libsbml.XMLNode.convertStringToXMLNode(notes)
+    if xml_node is None:
+        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+    check(model.setNotes(xml_node),
+          message="Setting notes on model")
 
 #####################################################################
 # Creator
