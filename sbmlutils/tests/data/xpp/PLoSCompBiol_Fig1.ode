@@ -1,0 +1,144 @@
+# PLOS Computational Biology, Riz et al., 2013
+# human beta-cell model including SK-channels and Ca2+ dynamics
+# Default parameters as in Fig. 1A
+
+# Differential equations
+V'= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKatp*(1+sigma*q) + Ileak + Igabar)
+
+# use for stochastic simulation in Fig 1E
+wiener q
+par sigma=0
+
+mkv'=(mkvinf-mkv)/taumkv
+mBK'=(mBKinf-mBK)/taumBK
+hNa'=(hNainf-hNa)/tauhNa
+hCaL'=(hCaLinf-hCaL)/tauhCaL
+hCaT'=(hCaTinf-hCaT)/tauhCaT
+mHERG'=(mHERGinf-mHERG)/taumHERG
+hHERG'=(hHERGinf-hHERG)/tauhHERG
+
+# Differential equations for Ca2+ dynamics
+Cam'=f*( (JCaL+JCaPQ+JCaT) - B*(Cam-Cac)/Volm*Volc - L/Volm*Volc )
+Cac'=f*(B*(Cam-Cac)-Jserca+Jleak)
+
+# Initial conditions
+V(0)=-63
+mkv(0)=0.02
+mBK(0)=0.002
+hNa(0)=0.97
+hCaL(0)=0.98
+hCaT(0)=0.52
+mHERG(0)=0.1
+hHERG(0)=0.7
+Cam(0)=0.30
+Cac(0)=0.17
+
+## Nernst voltages
+par VNa=70
+par VCa=65
+par VK=-75
+par VCl=-40
+
+## Leak current
+par gleak=0.015
+par vleak=-30
+
+Ileak=gleak*(V-vleak)
+aux Ileak=Ileak
+
+## IKv
+par taumkv0=2, Vmkv=0, nmkv=-10, gkv=1
+
+mkvinf=1/(1+exp((V-Vmkv)/nmkv))
+taumkv=taumkv0+10*exp(min(log(3),(-20-V)/6))
+IKv=gkv*mkv*(V-VK)
+
+## IBK
+par taumBK=2, VmBK=0, nmBK=-10, BBK=20, gBK=0.02
+
+mBKinf=1/( 1+exp((V-VmBK)/nmBK))
+IBK = gBK*(-ICa+BBK)*mBK*(V-VK)
+aux ibk=IBK
+
+## hERG channels
+par VmHERG=-30, nmHERG=-10, taumHERG=100
+par VhHERG=-42, nhHERG=17.5, tauhHERG=50
+par gHERG=0
+
+mHERGinf=1/( 1+exp((V-VmHERG)/nmHERG) )
+hHERGinf=1/( 1+exp((V-VhHERG)/nhHERG) )
+IHERG = gHERG*mHERG*hHERG*(V-VK)
+
+## Na current
+par gNa=0.4, VmNa=-18, nmNa=-5, VhNa=-42, nhNa=6, tauhNa=2
+hNainf=1/( 1+exp((V-VhNa)/nhNa) )
+mNainf=1/( 1+exp((V-VmNa)/nmNa) )
+INa=gNa*mNainf*hNa*(V-VNa)
+
+## L-type Ca current
+par gCaL=0.14, VmCaL=-25, nmCaL=-6, tauhCaL=20
+
+mCaLinf=1/( 1+exp((V-VmCaL)/nmCaL) ) 
+hCaLinf=max(0,min(1,1+mCaLinf*(V-VCa)/57))
+ICaL = gCaL*mCaLinf*hCaL*(V-VCa)
+
+## PQ-type Ca current
+par gCaPQ=0.17, VmCaPQ=-10, nmCaPQ=-6
+
+mCaPQinf=1/( 1+exp((V-VmCaPQ)/nmCaPQ) )
+ICaPQ = gCaPQ*mCaPQinf*(V-VCa)
+
+## T-type Ca current
+par gCaT=0.05, VmCaT=-40, nmCaT=-4, VhCaT=-64, nhCaT=8, tauhCaT=7
+
+mCaTinf=1/( 1+exp((V-VmCaT)/nmCaT) )
+hCaTinf=1/( 1+exp((V-VhCaT)/nhCaT) )
+ICaT = gCaT*mCaTinf*hCaT*(V-VCa)
+ICa=ICaL+ICaPQ+ICaT
+
+## Katp current
+IKatp=gkatp*(V-VK)
+
+par gkatp=0.01
+
+## Gabar current
+Igabar=ggabar*(V-VCl)
+
+par ggabar=0
+
+
+## ISK current
+par gSK=0.1, kSK=0.57, nSK=5.2
+
+ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-VK)
+#aux ISK=ISK
+
+## Ca diffusion
+#definition of fluxes
+par Cm=10
+
+JCaL=-alpha*ICaL*Cm/Volm
+JCaPQ=-alpha*ICaPQ*Cm/Volm
+JCaT=-alpha*ICaT*Cm/Volm
+Jserca=Jsercamax*Cac^2/(Kserca^2 + Cac^2)
+Jpmca=Jpmcamax*Cam/(Kpmca + Cam)
+Jncx=Jncx0*(Cam)
+L=Jpmca+Jncx
+
+# Calcium dynamics parameters
+
+par f=0.01
+par B=0.1
+par Volc=1.15e-12, Volm=1e-13
+ 
+# conversion to fluxes
+par alpha=5.18e-15
+ 
+# other fluxes
+par Jsercamax=0.06, Kserca=0.27, Jpmcamax=0.021, Kpmca=0.5, Jleak=0.94e-3, Jncx0=0.01867
+
+@ meth=cvode, toler=1.0e-10, atoler=1.0e-10, dt=.01, total=3000,
+@ maxstor=2000000,bounds=10000000000000000000, xp=t, yp=v
+@ xlo=0, xhi=3000, ylo=-80, yhi=10
+
+done

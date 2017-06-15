@@ -17,7 +17,7 @@ if __name__ == "__main__":
     xpp_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.ode")
     sbml_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.xml")
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=True)
+    sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
 
     # test simulation
     r = roadrunner.RoadRunner(sbml_file)

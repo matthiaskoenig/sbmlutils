@@ -12,6 +12,8 @@ import time
 import libsbml
 
 
+VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
+
 def check(value, message):
     """
     Checks the libsbml return value and prints message if something happened.
@@ -92,7 +94,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
     lines = [
         '-' * 80,
         name,
-        "{:<25}: <{}>".format("valid", str(valid_status).upper()),
+        "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
     if Nall > 0:
         lines += [
@@ -100,7 +102,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
             "{:<25}: {}".format("validation warnings(s)", Nwarn),
         ]
     lines += [
-        "{:<25}: {}".format("check time (ms)", str(time.clock() - current)),
+        "{:<25}: {:.3f}".format("check time (ms)", time.clock() - current),
         '-' * 80,
     ]
     info = "\n".join(lines)
@@ -109,8 +111,9 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
         if Nerr > 0:
             logging.error(info)
         else:
-            logging.warn(info)
+            logging.warning(info)
     else:
+        print(info)
         logging.debug(info)
 
     return Nall, Nerr, Nwarn
