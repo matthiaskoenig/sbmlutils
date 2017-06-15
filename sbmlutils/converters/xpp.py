@@ -191,6 +191,10 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
         fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum'),
         # heav (heavyside)
         fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0)))', name='heavyside'),
+        # mod (modulo)
+        # fac.Function('mod', 'lambda(x,y, x-y*floor(x/y))', name='modulo'),
+        fac.Function('mod', 'lambda(x,y, x % y)', name='modulo'),
+
     ]
     function_definitions = []
 
