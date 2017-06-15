@@ -105,7 +105,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -130,7 +130,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -155,7 +155,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -190,6 +190,69 @@ done
           </lambda>
         </math>
       </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
       <parameter id="Ca" value="0.0001" constant="false"/>
@@ -209,7 +272,7 @@ done
       <parameter id="gKAHP_h" value="0.8" constant="false"/>
       <parameter id="gsd" value="2.1" constant="false"/>
       <parameter id="tau_AMPA" value="2" constant="false"/>
-      <parameter id="gAMPA_PP_h" constant="false"/>
+      <parameter id="gAMPA_PP_h" value="0" constant="false"/>
       <parameter id="VAMPA" value="0" constant="false"/>
       <parameter id="tau_GABA_IP" value="7" constant="false"/>
       <parameter id="gGABA_IP_h" value="1e-06" constant="false"/>
@@ -221,27 +284,28 @@ done
       <parameter id="s" value="0.01086703" constant="false"/>
       <parameter id="q" value="0.0811213" constant="false"/>
       <parameter id="c" value="0.00809387" constant="false"/>
-      <parameter id="alpham" units="dimensionless" constant="false"/>
-      <parameter id="betam" units="dimensionless" constant="false"/>
-      <parameter id="m_inf" units="dimensionless" constant="false"/>
-      <parameter id="alphah" units="dimensionless" constant="false"/>
-      <parameter id="betah" units="dimensionless" constant="false"/>
-      <parameter id="alphan" units="dimensionless" constant="false"/>
-      <parameter id="betan" units="dimensionless" constant="false"/>
-      <parameter id="alphas" units="dimensionless" constant="false"/>
-      <parameter id="betas" units="dimensionless" constant="false"/>
-      <parameter id="qinf" units="dimensionless" constant="false"/>
-      <parameter id="tauq" units="dimensionless" constant="false"/>
-      <parameter id="cinf" units="dimensionless" constant="false"/>
-      <parameter id="tauc" units="dimensionless" constant="false"/>
-      <parameter id="I_Ls" units="dimensionless" constant="false"/>
-      <parameter id="I_Na" units="dimensionless" constant="false"/>
-      <parameter id="I_K" units="dimensionless" constant="false"/>
-      <parameter id="I_sd" units="dimensionless" constant="false"/>
-      <parameter id="I_Ld" units="dimensionless" constant="false"/>
-      <parameter id="I_Ca" units="dimensionless" constant="false"/>
-      <parameter id="I_KAHP" units="dimensionless" constant="false"/>
-      <parameter id="I_KCa" units="dimensionless" constant="false"/>
+      <parameter id="alpham" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betam" value="0" units="dimensionless" constant="false"/>
+      <parameter id="m_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphah" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betah" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphan" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betan" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphas" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betas" value="0" units="dimensionless" constant="false"/>
+      <parameter id="qinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tauq" value="0" units="dimensionless" constant="false"/>
+      <parameter id="cinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tauc" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_Ls" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_Na" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_K" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_sd" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_Ld" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_Ca" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_KAHP" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_KCa" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfInitialAssignments>
       <initialAssignment symbol="gAMPA_PP_h"/>
@@ -934,6 +998,11 @@ done
               <ci> VK_h </ci>
             </apply>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

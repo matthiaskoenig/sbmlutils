@@ -77,7 +77,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -102,7 +102,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -127,7 +127,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -158,6 +158,69 @@ done
                   <cn type="integer"> 0 </cn>
                 </apply>
               </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
             </piecewise>
           </lambda>
         </math>
@@ -197,17 +260,18 @@ done
       <parameter id="v_beta_m" value="18" constant="false"/>
       <parameter id="v_beta_h" value="7.6" constant="false"/>
       <parameter id="v_beta_n" value="40" constant="false"/>
-      <parameter id="iStim" units="dimensionless" constant="false"/>
-      <parameter id="Ina" units="dimensionless" constant="false"/>
-      <parameter id="beta_n" units="dimensionless" constant="false"/>
-      <parameter id="beta_m" units="dimensionless" constant="false"/>
-      <parameter id="beta_h" units="dimensionless" constant="false"/>
-      <parameter id="IT" units="dimensionless" constant="false"/>
-      <parameter id="IL" units="dimensionless" constant="false"/>
-      <parameter id="IK" units="dimensionless" constant="false"/>
-      <parameter id="alpha_n" units="dimensionless" constant="false"/>
-      <parameter id="alpha_m" units="dimensionless" constant="false"/>
-      <parameter id="alpha_h" units="dimensionless" constant="false"/>
+      <parameter id="iStim" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Ina" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_n" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_m" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_h" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IT" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IL" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IK" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_n" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_m" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_h" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="Vm">
@@ -551,6 +615,11 @@ done
               </apply>
             </apply>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

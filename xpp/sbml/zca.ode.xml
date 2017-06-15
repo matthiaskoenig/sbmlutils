@@ -92,7 +92,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -117,7 +117,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -142,7 +142,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -174,6 +174,107 @@ done
                 </apply>
               </piece>
             </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="GAMMAF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> VV </ci>
+            </bvar>
+            <bvar>
+              <ci> theta </ci>
+            </bvar>
+            <bvar>
+              <ci> sigma </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <ci> VV </ci>
+                        <ci> theta </ci>
+                      </apply>
+                    </apply>
+                    <ci> sigma </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
           </lambda>
         </math>
       </functionDefinition>
@@ -217,16 +318,16 @@ done
       <parameter id="nns" value="0.02457" constant="false"/>
       <parameter id="bbs" value="0.203517" constant="false"/>
       <parameter id="zzs" value="0.00141" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="Iappx" units="dimensionless" constant="false"/>
-      <parameter id="Minfs" units="dimensionless" constant="false"/>
-      <parameter id="Pinfs" units="dimensionless" constant="false"/>
-      <parameter id="Ainfs" units="dimensionless" constant="false"/>
-      <parameter id="INa" units="dimensionless" constant="false"/>
-      <parameter id="INaP" units="dimensionless" constant="false"/>
-      <parameter id="IKdr" units="dimensionless" constant="false"/>
-      <parameter id="IA" units="dimensionless" constant="false"/>
-      <parameter id="Iz" units="dimensionless" constant="false"/>
+      <parameter id="Iappx" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Minfs" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Pinfs" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Ainfs" value="0" units="dimensionless" constant="false"/>
+      <parameter id="INa" value="0" units="dimensionless" constant="false"/>
+      <parameter id="INaP" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IKdr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IA" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Iz" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="VVs">
@@ -385,33 +486,6 @@ done
           </apply>
         </math>
       </rateRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn> 1 </cn>
-            <apply>
-              <plus/>
-              <cn> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <apply>
-                      <minus/>
-                      <ci> VV </ci>
-                      <ci> theta </ci>
-                    </apply>
-                  </apply>
-                  <ci> sigma </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="Iappx">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <ci> Iapp </ci>
@@ -529,6 +603,11 @@ done
               <ci> VK </ci>
             </apply>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

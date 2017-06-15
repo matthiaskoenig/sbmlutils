@@ -91,7 +91,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -116,7 +116,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -141,7 +141,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -176,273 +176,319 @@ done
           </lambda>
         </math>
       </functionDefinition>
-    </listOfFunctionDefinitions>
-    <listOfParameters>
-      <parameter id="rho" value="1.25" constant="false"/>
-      <parameter id="epsilon" value="1.2" constant="false"/>
-      <parameter id="kbath" value="4" constant="false"/>
-      <parameter id="glia" value="66" constant="false"/>
-      <parameter id="ko" units="dimensionless" constant="false"/>
-      <parameter id="nai" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="ipumps" units="dimensionless" constant="false"/>
-      <parameter id="iglia" units="dimensionless" constant="false"/>
-      <parameter id="idiff" units="dimensionless" constant="false"/>
-      <parameter id="ki" units="dimensionless" constant="false"/>
-      <parameter id="nao" units="dimensionless" constant="false"/>
-    </listOfParameters>
-    <listOfRules>
-      <rateRule variable="ko">
+      <functionDefinition id="mod" name="modulo">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
                 <apply>
-                  <times/>
-                  <cn> 0.33 </cn>
+                  <minus/>
+                  <ci> x </ci>
                   <apply>
-                    <ci> Ik </ci>
+                    <times/>
+                    <ci> y </ci>
                     <apply>
-                      <divide/>
-                      <ci> ko </ci>
-                      <ci> ki </ci>
-                    </apply>
-                    <apply>
-                      <divide/>
-                      <ci> nai </ci>
-                      <ci> nao </ci>
-                    </apply>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <cn> 14 </cn>
-                  <ci> ipumps </ci>
-                </apply>
-              </apply>
-              <ci> iglia </ci>
-            </apply>
-            <ci> idiff </ci>
-          </apply>
-        </math>
-      </rateRule>
-      <rateRule variable="nai">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <cn> 0.04714 </cn>
-              <apply>
-                <ci> Ina </ci>
-                <apply>
-                  <divide/>
-                  <ci> ko </ci>
-                  <ci> ki </ci>
-                </apply>
-                <apply>
-                  <divide/>
-                  <ci> nai </ci>
-                  <ci> nao </ci>
-                </apply>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <cn> 3 </cn>
-              <ci> ipumps </ci>
-            </apply>
-          </apply>
-        </math>
-      </rateRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 420 </cn>
-            <apply>
-              <minus/>
-              <cn> 1 </cn>
-              <apply>
-                <times/>
-                <cn> 0.75 </cn>
-                <apply>
-                  <power/>
-                  <apply>
-                    <minus/>
-                    <cn> 1 </cn>
-                    <apply>
-                      <times/>
-                      <cn> 0.93 </cn>
+                      <ceiling/>
                       <apply>
-                        <exp/>
-                        <apply>
-                          <times/>
-                          <apply>
-                            <minus/>
-                            <cn> 2.6 </cn>
-                          </apply>
-                          <ci> na_ratio </ci>
-                        </apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
                       </apply>
                     </apply>
                   </apply>
-                  <cn> 0.3 </cn>
                 </apply>
-              </apply>
-            </apply>
-          </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
         </math>
-      </assignmentRule>
-      <assignmentRule>
+      </functionDefinition>
+      <functionDefinition id="g1">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <exp/>
+          <lambda>
+            <bvar>
+              <ci> na_ratio </ci>
+            </bvar>
             <apply>
-              <divide/>
+              <times/>
+              <cn> 420 </cn>
               <apply>
                 <minus/>
                 <cn> 1 </cn>
                 <apply>
                   <times/>
-                  <cn> 7.41 </cn>
-                  <ci> k_ratio </ci>
-                </apply>
-              </apply>
-              <apply>
-                <plus/>
-                <cn> 1.94 </cn>
-                <apply>
-                  <times/>
-                  <cn> 1.98 </cn>
+                  <cn> 0.75 </cn>
                   <apply>
-                    <exp/>
+                    <power/>
                     <apply>
-                      <times/>
+                      <minus/>
+                      <cn> 1 </cn>
                       <apply>
-                        <minus/>
-                        <cn> 2.6 </cn>
-                      </apply>
-                      <ci> na_ratio </ci>
-                    </apply>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <apply>
-              <power/>
-              <apply>
-                <divide/>
-                <cn> 1 </cn>
-                <apply>
-                  <plus/>
-                  <cn type="integer"> 1 </cn>
-                  <apply>
-                    <exp/>
-                    <apply>
-                      <times/>
-                      <cn> 35.7 </cn>
-                      <apply>
-                        <minus/>
+                        <times/>
+                        <cn> 0.93 </cn>
                         <apply>
-                          <plus/>
-                          <cn> 1 </cn>
+                          <exp/>
                           <apply>
                             <times/>
-                            <cn> 1.94 </cn>
+                            <apply>
+                              <minus/>
+                              <cn> 2.6 </cn>
+                            </apply>
                             <ci> na_ratio </ci>
                           </apply>
                         </apply>
-                        <apply>
-                          <times/>
-                          <cn> 24.3 </cn>
-                          <ci> k_ratio </ci>
-                        </apply>
                       </apply>
                     </apply>
+                    <cn> 0.3 </cn>
                   </apply>
                 </apply>
               </apply>
-              <cn type="integer"> 5 </cn>
             </apply>
-            <apply>
-              <power/>
-              <apply>
-                <divide/>
-                <cn> 1 </cn>
-                <apply>
-                  <plus/>
-                  <cn type="integer"> 1 </cn>
-                  <apply>
-                    <exp/>
-                    <apply>
-                      <times/>
-                      <cn> 0.88 </cn>
-                      <apply>
-                        <minus/>
-                        <apply>
-                          <plus/>
-                          <cn> 1 </cn>
-                          <apply>
-                            <times/>
-                            <cn> 1.48 </cn>
-                            <ci> na_ratio </ci>
-                          </apply>
-                        </apply>
-                        <apply>
-                          <times/>
-                          <cn> 24.6 </cn>
-                          <ci> k_ratio </ci>
-                        </apply>
-                      </apply>
-                    </apply>
-                  </apply>
-                </apply>
-              </apply>
-              <cn type="integer"> 5 </cn>
-            </apply>
-          </apply>
+          </lambda>
         </math>
-      </assignmentRule>
-      <assignmentRule>
+      </functionDefinition>
+      <functionDefinition id="g2">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 2.6 </cn>
+          <lambda>
+            <bvar>
+              <ci> k_ratio </ci>
+            </bvar>
+            <bvar>
+              <ci> na_ratio </ci>
+            </bvar>
             <apply>
               <exp/>
               <apply>
-                <times/>
+                <divide/>
                 <apply>
                   <minus/>
-                  <cn> 32.5 </cn>
+                  <cn> 1 </cn>
+                  <apply>
+                    <times/>
+                    <cn> 7.41 </cn>
+                    <ci> k_ratio </ci>
+                  </apply>
                 </apply>
-                <ci> k_ratio </ci>
+                <apply>
+                  <plus/>
+                  <cn> 1.94 </cn>
+                  <apply>
+                    <times/>
+                    <cn> 1.98 </cn>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <times/>
+                        <apply>
+                          <minus/>
+                          <cn> 2.6 </cn>
+                        </apply>
+                        <ci> na_ratio </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
               </apply>
             </apply>
-          </apply>
+          </lambda>
         </math>
-      </assignmentRule>
-      <assignmentRule>
+      </functionDefinition>
+      <functionDefinition id="g3">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.94 </cn>
+          <lambda>
+            <bvar>
+              <ci> k_ratio </ci>
+            </bvar>
+            <bvar>
+              <ci> na_ratio </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <power/>
+                <apply>
+                  <divide/>
+                  <cn> 1 </cn>
+                  <apply>
+                    <plus/>
+                    <cn type="integer"> 1 </cn>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <times/>
+                        <cn> 35.7 </cn>
+                        <apply>
+                          <minus/>
+                          <apply>
+                            <plus/>
+                            <cn> 1 </cn>
+                            <apply>
+                              <times/>
+                              <cn> 1.94 </cn>
+                              <ci> na_ratio </ci>
+                            </apply>
+                          </apply>
+                          <apply>
+                            <times/>
+                            <cn> 24.3 </cn>
+                            <ci> k_ratio </ci>
+                          </apply>
+                        </apply>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <cn type="integer"> 5 </cn>
+              </apply>
+              <apply>
+                <power/>
+                <apply>
+                  <divide/>
+                  <cn> 1 </cn>
+                  <apply>
+                    <plus/>
+                    <cn type="integer"> 1 </cn>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <times/>
+                        <cn> 0.88 </cn>
+                        <apply>
+                          <minus/>
+                          <apply>
+                            <plus/>
+                            <cn> 1 </cn>
+                            <apply>
+                              <times/>
+                              <cn> 1.48 </cn>
+                              <ci> na_ratio </ci>
+                            </apply>
+                          </apply>
+                          <apply>
+                            <times/>
+                            <cn> 24.6 </cn>
+                            <ci> k_ratio </ci>
+                          </apply>
+                        </apply>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <cn type="integer"> 5 </cn>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="glk">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> k_ratio </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 2.6 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 32.5 </cn>
+                  </apply>
+                  <ci> k_ratio </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="Ik">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> k_ratio </ci>
+            </bvar>
+            <bvar>
+              <ci> na_ratio </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.94 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <ci> g1 </ci>
+                    <ci> na_ratio </ci>
+                  </apply>
+                  <apply>
+                    <ci> g2 </ci>
+                    <ci> k_ratio </ci>
+                    <ci> na_ratio </ci>
+                  </apply>
+                  <apply>
+                    <ci> g3 </ci>
+                    <ci> k_ratio </ci>
+                    <ci> na_ratio </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> glk </ci>
+                  <ci> k_ratio </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="Ina">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> k_ratio </ci>
+            </bvar>
+            <bvar>
+              <ci> na_ratio </ci>
+            </bvar>
             <apply>
               <plus/>
               <apply>
@@ -462,39 +508,29 @@ done
                   <ci> na_ratio </ci>
                 </apply>
               </apply>
-              <apply>
-                <ci> glk </ci>
-                <ci> k_ratio </ci>
-              </apply>
+              <cn> 1.5 </cn>
             </apply>
-          </apply>
+          </lambda>
         </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <times/>
-              <apply>
-                <ci> g1 </ci>
-                <ci> na_ratio </ci>
-              </apply>
-              <apply>
-                <ci> g2 </ci>
-                <ci> k_ratio </ci>
-                <ci> na_ratio </ci>
-              </apply>
-              <apply>
-                <ci> g3 </ci>
-                <ci> k_ratio </ci>
-                <ci> na_ratio </ci>
-              </apply>
-            </apply>
-            <cn> 1.5 </cn>
-          </apply>
-        </math>
-      </assignmentRule>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="rho" value="1.25" constant="false"/>
+      <parameter id="epsilon" value="1.2" constant="false"/>
+      <parameter id="kbath" value="4" constant="false"/>
+      <parameter id="glia" value="66" constant="false"/>
+      <parameter id="ko" value="0" units="dimensionless" constant="false"/>
+      <parameter id="nai" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ipumps" value="0" units="dimensionless" constant="false"/>
+      <parameter id="iglia" value="0" units="dimensionless" constant="false"/>
+      <parameter id="idiff" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ki" value="0" units="dimensionless" constant="false"/>
+      <parameter id="nao" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="ko"/>
+      <rateRule variable="nai"/>
       <assignmentRule variable="ipumps">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -603,6 +639,11 @@ done
               </apply>
             </apply>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

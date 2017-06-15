@@ -86,7 +86,7 @@ d
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -111,7 +111,7 @@ d
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -136,7 +136,7 @@ d
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -171,6 +171,764 @@ d
           </lambda>
         </math>
       </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alphaNam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <cn> 0.1 </cn>
+                <apply>
+                  <plus/>
+                  <ci> v </ci>
+                  <cn type="integer"> 40 </cn>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <minus/>
+                      <cn> 0.09 </cn>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 40 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="betaNam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn type="integer"> 4 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.055 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 70 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mNainf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <ci> betaNam </ci>
+                    <ci> v </ci>
+                  </apply>
+                  <apply>
+                    <ci> alphaNam </ci>
+                    <ci> v </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauNam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alphaNam </ci>
+                  <ci> v </ci>
+                </apply>
+                <apply>
+                  <ci> betaNam </ci>
+                  <ci> v </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alphaNah">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.07 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.05 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 70 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="betaNah">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <minus/>
+                      <cn> 0.09 </cn>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 25 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="hNainf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <ci> betaNah </ci>
+                    <ci> v </ci>
+                  </apply>
+                  <apply>
+                    <ci> alphaNah </ci>
+                    <ci> v </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauNah">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alphaNah </ci>
+                  <ci> v </ci>
+                </apply>
+                <apply>
+                  <ci> betaNah </ci>
+                  <ci> v </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alphaKn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <cn> 0.01 </cn>
+                <apply>
+                  <plus/>
+                  <ci> v </ci>
+                  <cn type="integer"> 60 </cn>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <minus/>
+                      <cn> 0.1 </cn>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <ci> V </ci>
+                      <cn type="integer"> 60 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="betaKn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.125 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.0125 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> V </ci>
+                    <cn type="integer"> 70 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="nKinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <ci> betaKn </ci>
+                    <ci> v </ci>
+                    <ci> V </ci>
+                  </apply>
+                  <apply>
+                    <ci> alphaKn </ci>
+                    <ci> v </ci>
+                    <ci> V </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauKn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alphaKn </ci>
+                  <ci> v </ci>
+                  <ci> V </ci>
+                </apply>
+                <apply>
+                  <ci> betaKn </ci>
+                  <ci> v </ci>
+                  <ci> V </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alphaKh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.001 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.04 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 70 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="betaKh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.001 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.0195 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 40 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="hKinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <ci> betaKh </ci>
+                    <ci> v </ci>
+                  </apply>
+                  <apply>
+                    <ci> alphaKh </ci>
+                    <ci> v </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauKh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alphaKh </ci>
+                  <ci> v </ci>
+                </apply>
+                <apply>
+                  <ci> betaKh </ci>
+                  <ci> v </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alphaIRn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 0.09 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <cn> 0.11 </cn>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 100 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="betaIRn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.00035 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <cn> 0.07 </cn>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn type="integer"> 25 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="nIRinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <ci> betaIRn </ci>
+                    <ci> v </ci>
+                  </apply>
+                  <apply>
+                    <ci> alphaIRn </ci>
+                    <ci> v </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauIRn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alphaIRn </ci>
+                  <ci> v </ci>
+                </apply>
+                <apply>
+                  <ci> betaIRn </ci>
+                  <ci> v </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alphaIRr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 30 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <cn> 0.04 </cn>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 230 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="betaIRr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 0.15 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <minus/>
+                      <cn> 0.05 </cn>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn type="integer"> 120 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="rIRinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <ci> betaIRr </ci>
+                    <ci> v </ci>
+                  </apply>
+                  <apply>
+                    <ci> alphaIRr </ci>
+                    <ci> v </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauIRr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alphaIRr </ci>
+                  <ci> v </ci>
+                </apply>
+                <apply>
+                  <ci> betaIRr </ci>
+                  <ci> v </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
       <parameter id="v" value="-72" constant="false"/>
@@ -192,31 +950,8 @@ d
       <parameter id="vl" value="-80" constant="false"/>
       <parameter id="tpulse" value="610" constant="false"/>
       <parameter id="tfirst" value="10" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="istim" units="dimensionless" constant="false"/>
+      <parameter id="istim" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="v">
@@ -334,12 +1069,14 @@ d
               <apply>
                 <ci> nKinf </ci>
                 <ci> v </ci>
+                <ci> V </ci>
               </apply>
               <ci> nK </ci>
             </apply>
             <apply>
               <ci> tauKn </ci>
               <ci> v </ci>
+              <ci> V </ci>
             </apply>
           </apply>
         </math>
@@ -401,565 +1138,6 @@ d
           </apply>
         </math>
       </rateRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <times/>
-              <cn> 0.1 </cn>
-              <apply>
-                <plus/>
-                <ci> v </ci>
-                <cn type="integer"> 40 </cn>
-              </apply>
-            </apply>
-            <apply>
-              <minus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <apply>
-                    <minus/>
-                    <cn> 0.09 </cn>
-                  </apply>
-                  <apply>
-                    <plus/>
-                    <ci> v </ci>
-                    <cn type="integer"> 40 </cn>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn type="integer"> 4 </cn>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <cn> 0.055 </cn>
-                </apply>
-                <apply>
-                  <plus/>
-                  <ci> v </ci>
-                  <cn type="integer"> 70 </cn>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <ci> betaNam </ci>
-                  <ci> v </ci>
-                </apply>
-                <apply>
-                  <ci> alphaNam </ci>
-                  <ci> v </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alphaNam </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <ci> betaNam </ci>
-                <ci> v </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.07 </cn>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <cn> 0.05 </cn>
-                </apply>
-                <apply>
-                  <plus/>
-                  <ci> v </ci>
-                  <cn type="integer"> 70 </cn>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <apply>
-                    <minus/>
-                    <cn> 0.09 </cn>
-                  </apply>
-                  <apply>
-                    <plus/>
-                    <ci> v </ci>
-                    <cn type="integer"> 25 </cn>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <ci> betaNah </ci>
-                  <ci> v </ci>
-                </apply>
-                <apply>
-                  <ci> alphaNah </ci>
-                  <ci> v </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alphaNah </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <ci> betaNah </ci>
-                <ci> v </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <times/>
-              <cn> 0.01 </cn>
-              <apply>
-                <plus/>
-                <ci> v </ci>
-                <cn type="integer"> 60 </cn>
-              </apply>
-            </apply>
-            <apply>
-              <minus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <apply>
-                    <minus/>
-                    <cn> 0.1 </cn>
-                  </apply>
-                  <apply>
-                    <plus/>
-                    <ci> V </ci>
-                    <cn type="integer"> 60 </cn>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.125 </cn>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <cn> 0.0125 </cn>
-                </apply>
-                <apply>
-                  <plus/>
-                  <ci> V </ci>
-                  <cn type="integer"> 70 </cn>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <ci> betaKn </ci>
-                  <ci> v </ci>
-                </apply>
-                <apply>
-                  <ci> alphaKn </ci>
-                  <ci> v </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alphaKn </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <ci> betaKn </ci>
-                <ci> v </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.001 </cn>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <cn> 0.04 </cn>
-                </apply>
-                <apply>
-                  <plus/>
-                  <ci> v </ci>
-                  <cn type="integer"> 70 </cn>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.001 </cn>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <cn> 0.0195 </cn>
-                </apply>
-                <apply>
-                  <plus/>
-                  <ci> v </ci>
-                  <cn type="integer"> 40 </cn>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <ci> betaKh </ci>
-                  <ci> v </ci>
-                </apply>
-                <apply>
-                  <ci> alphaKh </ci>
-                  <ci> v </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alphaKh </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <ci> betaKh </ci>
-                <ci> v </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn> 0.09 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <cn> 0.11 </cn>
-                  <apply>
-                    <plus/>
-                    <ci> v </ci>
-                    <cn type="integer"> 100 </cn>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.00035 </cn>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <cn> 0.07 </cn>
-                <apply>
-                  <plus/>
-                  <ci> v </ci>
-                  <cn type="integer"> 25 </cn>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <ci> betaIRn </ci>
-                  <ci> v </ci>
-                </apply>
-                <apply>
-                  <ci> alphaIRn </ci>
-                  <ci> v </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alphaIRn </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <ci> betaIRn </ci>
-                <ci> v </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 30 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <cn> 0.04 </cn>
-                  <apply>
-                    <plus/>
-                    <ci> v </ci>
-                    <cn type="integer"> 230 </cn>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn> 0.15 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <apply>
-                    <minus/>
-                    <cn> 0.05 </cn>
-                  </apply>
-                  <apply>
-                    <plus/>
-                    <ci> v </ci>
-                    <cn type="integer"> 120 </cn>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <ci> betaIRr </ci>
-                  <ci> v </ci>
-                </apply>
-                <apply>
-                  <ci> alphaIRr </ci>
-                  <ci> v </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alphaIRr </ci>
-                <ci> v </ci>
-              </apply>
-              <apply>
-                <ci> betaIRr </ci>
-                <ci> v </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="istim">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -985,6 +1163,11 @@ d
               </apply>
             </apply>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

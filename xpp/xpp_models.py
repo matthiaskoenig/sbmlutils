@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
     # get all ode files
     ode_all = []
-    xpp_path = "./tmp/"
+    xpp_path = "."
     for root, dirnames, filenames in os.walk(xpp_path):
         for f in filenames:
             if f.endswith('.ode'):
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     Nall = len(ode_all)
     Nfail = 0
 
-    ode_all = ["./105528/SkM_AP/SkM_AP_KCa.ode"]
+    # ode_all = ["./105528/SkM_AP/SkM_AP_KCa.ode"]
     for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml

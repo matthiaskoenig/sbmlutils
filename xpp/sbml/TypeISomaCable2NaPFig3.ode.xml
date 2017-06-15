@@ -137,7 +137,7 @@ d
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -162,7 +162,7 @@ d
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -187,7 +187,7 @@ d
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -222,6 +222,186 @@ d
           </lambda>
         </math>
       </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="pinfd">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> Vp </ci>
+            </bvar>
+            <bvar>
+              <ci> Vsp </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <ci> V </ci>
+                        <ci> Vp </ci>
+                      </apply>
+                    </apply>
+                    <ci> Vsp </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="Inap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <bvar>
+              <ci> Vna </ci>
+            </bvar>
+            <bvar>
+              <ci> gld </ci>
+            </bvar>
+            <bvar>
+              <ci> gnad </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> gnad </ci>
+                <ci> y </ci>
+                <apply>
+                  <minus/>
+                  <ci> V </ci>
+                  <ci> Vna </ci>
+                </apply>
+              </apply>
+              <ci> gld </ci>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="Ild">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> Vl </ci>
+            </bvar>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> Vl </ci>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="pulse">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> sigma </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <ci> heav </ci>
+                <ci> t </ci>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> sigma </ci>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
       <parameter id="gbarNa" value="80" constant="false"/>
@@ -230,7 +410,7 @@ d
       <parameter id="C" value="1" constant="false"/>
       <parameter id="i" value="0.61" constant="false"/>
       <parameter id="v" value="-70" constant="false"/>
-      <parameter id="h" constant="false"/>
+      <parameter id="h" value="0" constant="false"/>
       <parameter id="m" value="1e-06" constant="false"/>
       <parameter id="n" value="1e-06" constant="false"/>
       <parameter id="Vna" value="50" constant="false"/>
@@ -263,27 +443,24 @@ d
       <parameter id="Esyn" value="0" constant="false"/>
       <parameter id="x1" value="0" constant="false"/>
       <parameter id="y1" value="0" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="u1" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="taup" units="dimensionless" constant="false"/>
-      <parameter id="longcur" units="dimensionless" constant="false"/>
-      <parameter id="gNa" units="dimensionless" constant="false"/>
-      <parameter id="alpham" units="dimensionless" constant="false"/>
-      <parameter id="betam" units="dimensionless" constant="false"/>
-      <parameter id="alphah" units="dimensionless" constant="false"/>
-      <parameter id="betah" units="dimensionless" constant="false"/>
-      <parameter id="gK" units="dimensionless" constant="false"/>
-      <parameter id="alphan" units="dimensionless" constant="false"/>
-      <parameter id="betan" units="dimensionless" constant="false"/>
-      <parameter id="sod" units="dimensionless" constant="false"/>
-      <parameter id="pot" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="u51" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="prc" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter id="u1" value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter id="taup" value="0" units="dimensionless" constant="false"/>
+      <parameter id="longcur" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gNa" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpham" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betam" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphah" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betah" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gK" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphan" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betan" value="0" units="dimensionless" constant="false"/>
+      <parameter id="sod" value="0" units="dimensionless" constant="false"/>
+      <parameter id="pot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="u51" value="0" units="dimensionless" constant="false"/>
+      <parameter id="prc" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfInitialAssignments>
       <initialAssignment symbol="h">
@@ -365,6 +542,7 @@ d
                   <ci> t </ci>
                   <ci> taup </ci>
                 </apply>
+                <ci> sigma </ci>
               </apply>
             </apply>
           </apply>
@@ -472,12 +650,16 @@ d
                   <apply>
                     <ci> Ild </ci>
                     <ci> u1 </ci>
+                    <ci> Vl </ci>
                   </apply>
                 </apply>
                 <apply>
                   <ci> Inap </ci>
                   <ci> u1 </ci>
                   <ci> pn1 </ci>
+                  <ci> Vna </ci>
+                  <ci> gld </ci>
+                  <ci> gnad </ci>
                 </apply>
               </apply>
               <ci> tau </ci>
@@ -492,6 +674,7 @@ d
                   <ci> t </ci>
                   <ci> taup </ci>
                 </apply>
+                <ci> sigma </ci>
               </apply>
             </apply>
           </apply>
@@ -846,60 +1029,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <apply>
-                      <minus/>
-                      <ci> V </ci>
-                      <ci> Vp </ci>
-                    </apply>
-                  </apply>
-                  <ci> Vsp </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <times/>
-              <ci> gnad </ci>
-              <ci> y </ci>
-              <apply>
-                <minus/>
-                <ci> V </ci>
-                <ci> Vna </ci>
-              </apply>
-            </apply>
-            <ci> gld </ci>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <ci> V </ci>
-            <ci> Vl </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="u51">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -929,25 +1058,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <apply>
-              <ci> heav </ci>
-              <ci> t </ci>
-            </apply>
-            <apply>
-              <ci> heav </ci>
-              <apply>
-                <minus/>
-                <ci> sigma </ci>
-                <ci> t </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="prc">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -955,6 +1065,11 @@ d
             <ci> t0 </ci>
             <ci> t </ci>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

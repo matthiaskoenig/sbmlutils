@@ -55,7 +55,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -80,7 +80,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -105,7 +105,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -140,6 +140,139 @@ done
           </lambda>
         </math>
       </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="CAB">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 8 </cn>
+              <apply>
+                <power/>
+                <apply>
+                  <plus/>
+                  <ci> V </ci>
+                  <cn> 0.725 </cn>
+                </apply>
+                <cn type="integer"> 2 </cn>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="MB">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <cn> 17.8 </cn>
+              <apply>
+                <times/>
+                <cn> 47.6 </cn>
+                <ci> V </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn> 33.8 </cn>
+                <ci> V </ci>
+                <ci> V </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="RB">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <cn> 1.24 </cn>
+              <apply>
+                <times/>
+                <cn> 3.7 </cn>
+                <ci> V </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn> 3.2 </cn>
+                <ci> V </ci>
+                <ci> V </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
       <parameter id="V1" value="-0.7" constant="false"/>
@@ -153,9 +286,7 @@ done
       <parameter id="TR1" value="4.2" constant="false"/>
       <parameter id="TS" value="14" constant="false"/>
       <parameter id="TH" value="45" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="V1">
@@ -290,59 +421,9 @@ done
           </apply>
         </math>
       </rateRule>
-      <assignmentRule>
+      <assignmentRule variable="t">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 8 </cn>
-            <apply>
-              <power/>
-              <apply>
-                <plus/>
-                <ci> V </ci>
-                <cn> 0.725 </cn>
-              </apply>
-              <cn type="integer"> 2 </cn>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <cn> 17.8 </cn>
-            <apply>
-              <times/>
-              <cn> 47.6 </cn>
-              <ci> V </ci>
-            </apply>
-            <apply>
-              <times/>
-              <cn> 33.8 </cn>
-              <ci> V </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <cn> 1.24 </cn>
-            <apply>
-              <times/>
-              <cn> 3.7 </cn>
-              <ci> V </ci>
-            </apply>
-            <apply>
-              <times/>
-              <cn> 3.2 </cn>
-              <ci> V </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

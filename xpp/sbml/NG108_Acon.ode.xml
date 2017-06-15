@@ -105,7 +105,7 @@ done</pre>
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -130,7 +130,7 @@ done</pre>
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -155,7 +155,7 @@ done</pre>
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -186,6 +186,69 @@ done</pre>
                   <cn type="integer"> 0 </cn>
                 </apply>
               </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
             </piecewise>
           </lambda>
         </math>
@@ -228,39 +291,40 @@ done</pre>
       <parameter id="tau_h1" value="1000" constant="false"/>
       <parameter id="Cm" value="14" constant="false"/>
       <parameter id="girbar" value="50" constant="false"/>
-      <parameter id="alpha" units="dimensionless" constant="false"/>
-      <parameter id="beta" units="dimensionless" constant="false"/>
-      <parameter id="m_inf" units="dimensionless" constant="false"/>
-      <parameter id="m_inf1" units="dimensionless" constant="false"/>
-      <parameter id="h_inf" units="dimensionless" constant="false"/>
-      <parameter id="n_inf" units="dimensionless" constant="false"/>
-      <parameter id="n_inf1" units="dimensionless" constant="false"/>
-      <parameter id="n_inf2" units="dimensionless" constant="false"/>
-      <parameter id="h_inf1" units="dimensionless" constant="false"/>
-      <parameter id="alphaIRn" units="dimensionless" constant="false"/>
-      <parameter id="betaIRn" units="dimensionless" constant="false"/>
-      <parameter id="nIRinf" units="dimensionless" constant="false"/>
-      <parameter id="tauIRn" units="dimensionless" constant="false"/>
-      <parameter id="alphaIRr" units="dimensionless" constant="false"/>
-      <parameter id="betaIRr" units="dimensionless" constant="false"/>
-      <parameter id="rIRinf" units="dimensionless" constant="false"/>
-      <parameter id="tauIRr" units="dimensionless" constant="false"/>
-      <parameter id="tau_n" units="dimensionless" constant="false"/>
-      <parameter id="tau_m" units="dimensionless" constant="false"/>
-      <parameter id="tau_n1" units="dimensionless" constant="false"/>
-      <parameter id="tau_m1" units="dimensionless" constant="false"/>
-      <parameter id="a" units="dimensionless" constant="false"/>
-      <parameter id="O" units="dimensionless" constant="false"/>
-      <parameter id="i_Na" units="dimensionless" constant="false"/>
-      <parameter id="i_Ca_L" units="dimensionless" constant="false"/>
-      <parameter id="i_Ca_T" units="dimensionless" constant="false"/>
-      <parameter id="i_K_dr" units="dimensionless" constant="false"/>
-      <parameter id="i_M" units="dimensionless" constant="false"/>
-      <parameter id="iir" units="dimensionless" constant="false"/>
-      <parameter id="i_d" units="dimensionless" constant="false"/>
-      <parameter id="iKir" units="dimensionless" constant="false"/>
-      <parameter id="ina" units="dimensionless" constant="false"/>
-      <parameter id="iKdr" units="dimensionless" constant="false"/>
+      <parameter id="alpha" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta" value="0" units="dimensionless" constant="false"/>
+      <parameter id="m_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="m_inf1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="h_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_inf1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_inf2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="h_inf1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphaIRn" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betaIRn" value="0" units="dimensionless" constant="false"/>
+      <parameter id="nIRinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tauIRn" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alphaIRr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="betaIRr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="rIRinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tauIRr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tau_n" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tau_m" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tau_n1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tau_m1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="a" value="0" units="dimensionless" constant="false"/>
+      <parameter id="O" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_Na" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_Ca_L" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_Ca_T" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_K_dr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_M" value="0" units="dimensionless" constant="false"/>
+      <parameter id="iir" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_d" value="0" units="dimensionless" constant="false"/>
+      <parameter id="iKir" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ina" value="0" units="dimensionless" constant="false"/>
+      <parameter id="iKdr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="V">
@@ -1267,6 +1331,11 @@ done</pre>
       <assignmentRule variable="iKdr">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <ci> i_K_dr </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>
