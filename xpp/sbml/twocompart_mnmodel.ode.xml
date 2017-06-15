@@ -363,8 +363,6 @@ d</pre>
       <parameter id="mcap" value="0.1407098" constant="false"/>
       <parameter id="mnap" value="0.0009903489" constant="false"/>
       <parameter id="cad" value="0.02772107" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="INa" units="dimensionless" constant="false"/>
       <parameter id="IKdr" units="dimensionless" constant="false"/>
       <parameter id="IsCaN" units="dimensionless" constant="false"/>
@@ -377,22 +375,14 @@ d</pre>
       <parameter id="Idleak" units="dimensionless" constant="false"/>
       <parameter id="INap" units="dimensionless" constant="false"/>
       <parameter id="mna" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="hnainf" units="dimensionless" constant="false"/>
       <parameter id="tauhna" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="ninf" units="dimensionless" constant="false"/>
       <parameter id="taun" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="mscaninf" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="hscaninf" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="mcapinf" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="mnapinf" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Iramp" units="dimensionless" constant="false"/>
       <parameter id="Ipulse" units="dimensionless" constant="false"/>
       <parameter id="Na" units="dimensionless" constant="false"/>
@@ -410,7 +400,7 @@ d</pre>
       <parameter id="I2" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
-      <assignmentRule>
+      <rateRule variable="vs">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
@@ -454,8 +444,8 @@ d</pre>
             <ci> c </ci>
           </apply>
         </math>
-      </assignmentRule>
-      <assignmentRule>
+      </rateRule>
+      <rateRule variable="vd">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
@@ -499,7 +489,133 @@ d</pre>
             <ci> c </ci>
           </apply>
         </math>
-      </assignmentRule>
+      </rateRule>
+      <rateRule variable="hna">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hnainf </ci>
+              <ci> hna </ci>
+            </apply>
+            <ci> tauhna </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> ninf </ci>
+              <ci> n </ci>
+            </apply>
+            <ci> taun </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mscan">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mscaninf </ci>
+              <ci> mscan </ci>
+            </apply>
+            <ci> taumscan </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hscan">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hscaninf </ci>
+              <ci> hscan </ci>
+            </apply>
+            <ci> tauhscan </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cas">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> f </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <ci> alpha1 </ci>
+                </apply>
+                <ci> IsCaN </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kca </ci>
+                <ci> cas </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mcap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mcapinf </ci>
+              <ci> mcap </ci>
+            </apply>
+            <ci> taumcap </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mnap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mnapinf </ci>
+              <ci> mnap </ci>
+            </apply>
+            <ci> taumnap </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cad">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> f </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <ci> alpha2 </ci>
+                </apply>
+                <ci> ICaP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kca </ci>
+                <ci> cad </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
       <assignmentRule variable="INa">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -693,19 +809,6 @@ d</pre>
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> hnainf </ci>
-              <ci> hna </ci>
-            </apply>
-            <ci> tauhna </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="hnainf">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -765,19 +868,6 @@ d</pre>
                 </apply>
               </apply>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> ninf </ci>
-              <ci> n </ci>
-            </apply>
-            <ci> taun </ci>
           </apply>
         </math>
       </assignmentRule>
@@ -843,19 +933,6 @@ d</pre>
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> mscaninf </ci>
-              <ci> mscan </ci>
-            </apply>
-            <ci> taumscan </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="mscaninf">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -877,19 +954,6 @@ d</pre>
                 </apply>
               </apply>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> hscaninf </ci>
-              <ci> hscan </ci>
-            </apply>
-            <ci> tauhscan </ci>
           </apply>
         </math>
       </assignmentRule>
@@ -917,43 +981,6 @@ d</pre>
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> f </ci>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <ci> alpha1 </ci>
-                </apply>
-                <ci> IsCaN </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kca </ci>
-                <ci> cas </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> mcapinf </ci>
-              <ci> mcap </ci>
-            </apply>
-            <ci> taumcap </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="mcapinf">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -978,19 +1005,6 @@ d</pre>
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> mnapinf </ci>
-              <ci> mnap </ci>
-            </apply>
-            <ci> taumnap </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="mnapinf">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -1010,30 +1024,6 @@ d</pre>
                   </apply>
                   <ci> kmnap </ci>
                 </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> f </ci>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <ci> alpha2 </ci>
-                </apply>
-                <ci> ICaP </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kca </ci>
-                <ci> cad </ci>
               </apply>
             </apply>
           </apply>

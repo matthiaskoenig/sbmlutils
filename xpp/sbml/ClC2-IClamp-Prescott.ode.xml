@@ -316,22 +316,20 @@ done
       <parameter id="tauy" value="100" constant="false"/>
       <parameter id="gadapt" value="3" constant="false"/>
       <parameter id="y" value="0" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
+      <parameter id="v" units="dimensionless" constant="false"/>
+      <parameter id="gexc" units="dimensionless" constant="false"/>
+      <parameter id="ginh" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter id="Iclc2" units="dimensionless" constant="false"/>
       <parameter id="gexc_" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="enorm" units="dimensionless" constant="false"/>
       <parameter id="erect" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter id="ginh_" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="inorm" units="dimensionless" constant="false"/>
       <parameter id="irect" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
@@ -345,13 +343,11 @@ done
       <parameter id="vgaba_" units="dimensionless" constant="false"/>
       <parameter id="x" units="dimensionless" constant="false"/>
       <parameter id="x_" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Ikcc2" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
-      <assignmentRule>
+      <rateRule variable="v">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
@@ -503,8 +499,8 @@ done
             <ci> cap </ci>
           </apply>
         </math>
-      </assignmentRule>
-      <assignmentRule>
+      </rateRule>
+      <rateRule variable="w">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
@@ -526,7 +522,163 @@ done
             </apply>
           </apply>
         </math>
-      </assignmentRule>
+      </rateRule>
+      <rateRule variable="p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> pinf </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> p </ci>
+            </apply>
+            <ci> taup </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="gexc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> gexc </ci>
+              </apply>
+              <ci> tau_exc </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> scale_exc </ci>
+              <ci> nz1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ginh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> ginh </ci>
+              </apply>
+              <ci> tau_inh </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> scale_inh </ci>
+              <ci> nz2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> SAvol </ci>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <times/>
+                      <ci> ginh </ci>
+                      <ci> inorm </ci>
+                    </apply>
+                    <ci> ginh_avg </ci>
+                  </apply>
+                  <ci> irect </ci>
+                  <ci> x </ci>
+                  <apply>
+                    <plus/>
+                    <cn type="integer"> 0 </cn>
+                    <apply>
+                      <ci> oninh </ci>
+                      <ci> t </ci>
+                    </apply>
+                    <apply>
+                      <ci> offinh </ci>
+                      <ci> t </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> Vcl </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> gkcc2 </ci>
+                  <apply>
+                    <minus/>
+                    <ci> Vk </ci>
+                    <ci> Vcl </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> gclc </ci>
+                  <ci> p </ci>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> Vcl </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> F </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="y">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <divide/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <plus/>
+                          <ci> V </ci>
+                          <ci> betay </ci>
+                        </apply>
+                      </apply>
+                      <ci> gammay </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> y </ci>
+            </apply>
+            <ci> tauy </ci>
+          </apply>
+        </math>
+      </rateRule>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -603,22 +755,6 @@ done
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> pinf </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> p </ci>
-            </apply>
-            <ci> taup </ci>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
             <cn type="integer"> 1 </cn>
             <apply>
               <plus/>
@@ -682,26 +818,6 @@ done
                 <ci> offexc </ci>
                 <ci> t </ci>
               </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <divide/>
-              <apply>
-                <minus/>
-                <ci> gexc </ci>
-              </apply>
-              <ci> tau_exc </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> scale_exc </ci>
-              <ci> nz1 </ci>
             </apply>
           </apply>
         </math>
@@ -790,26 +906,6 @@ done
                 <ci> offinh </ci>
                 <ci> t </ci>
               </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <divide/>
-              <apply>
-                <minus/>
-                <ci> ginh </ci>
-              </apply>
-              <ci> tau_inh </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> scale_inh </ci>
-              <ci> nz2 </ci>
             </apply>
           </apply>
         </math>
@@ -1036,71 +1132,6 @@ done
           <ci> x </ci>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <times/>
-              <ci> SAvol </ci>
-              <apply>
-                <plus/>
-                <apply>
-                  <times/>
-                  <apply>
-                    <plus/>
-                    <apply>
-                      <times/>
-                      <ci> ginh </ci>
-                      <ci> inorm </ci>
-                    </apply>
-                    <ci> ginh_avg </ci>
-                  </apply>
-                  <ci> irect </ci>
-                  <ci> x </ci>
-                  <apply>
-                    <plus/>
-                    <cn type="integer"> 0 </cn>
-                    <apply>
-                      <ci> oninh </ci>
-                      <ci> t </ci>
-                    </apply>
-                    <apply>
-                      <ci> offinh </ci>
-                      <ci> t </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <minus/>
-                    <ci> v </ci>
-                    <ci> Vcl </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> gkcc2 </ci>
-                  <apply>
-                    <minus/>
-                    <ci> Vk </ci>
-                    <ci> Vcl </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> gclc </ci>
-                  <ci> p </ci>
-                  <apply>
-                    <minus/>
-                    <ci> V </ci>
-                    <ci> Vcl </ci>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-            <ci> F </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="Ikcc2">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -1124,41 +1155,6 @@ done
               <cn type="integer"> 10 </cn>
               <ci> ra </ci>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <divide/>
-                <cn type="integer"> 1 </cn>
-                <apply>
-                  <plus/>
-                  <cn type="integer"> 1 </cn>
-                  <apply>
-                    <exp/>
-                    <apply>
-                      <divide/>
-                      <apply>
-                        <minus/>
-                        <apply>
-                          <plus/>
-                          <ci> V </ci>
-                          <ci> betay </ci>
-                        </apply>
-                      </apply>
-                      <ci> gammay </ci>
-                    </apply>
-                  </apply>
-                </apply>
-              </apply>
-              <ci> y </ci>
-            </apply>
-            <ci> tauy </ci>
           </apply>
         </math>
       </assignmentRule>

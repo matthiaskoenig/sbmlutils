@@ -702,29 +702,16 @@ d
       <parameter id="k23_a" value="1" constant="false"/>
       <parameter id="Ip35p1p2" value="14.77453" constant="false"/>
       <parameter id="PKAauc" value="0" constant="false"/>
+      <parameter id="Ca" units="dimensionless" constant="false"/>
+      <parameter id="PDE1Cam" units="dimensionless" constant="false"/>
       <parameter id="tm" units="dimensionless" constant="false"/>
       <parameter id="t_pulse" units="dimensionless" constant="false"/>
       <parameter id="Ca_pre" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="cam_a" units="dimensionless" constant="false"/>
       <parameter id="L" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="G" units="dimensionless" constant="false"/>
       <parameter id="Galfa" units="dimensionless" constant="false"/>
       <parameter id="R" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="ATP" units="dimensionless" constant="false"/>
       <parameter id="ACCam" units="dimensionless" constant="false"/>
       <parameter id="AC1" units="dimensionless" constant="false"/>
@@ -733,26 +720,12 @@ d
       <parameter id="KfpdeCam" units="dimensionless" constant="false"/>
       <parameter id="PDE1" units="dimensionless" constant="false"/>
       <parameter id="PDE4" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="CaM" units="dimensionless" constant="false"/>
       <parameter id="camc4bnd" units="dimensionless" constant="false"/>
       <parameter id="totCaM" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="PP2Bact" units="dimensionless" constant="false"/>
       <parameter id="CK" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Va" units="dimensionless" constant="false"/>
       <parameter id="PP1" units="dimensionless" constant="false"/>
       <parameter id="QActi" units="dimensionless" constant="false"/>
@@ -763,26 +736,1366 @@ d
       <parameter id="kflow" units="dimensionless" constant="false"/>
       <parameter id="kasrc" units="dimensionless" constant="false"/>
       <parameter id="kdisrc" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Pka" units="dimensionless" constant="false"/>
       <parameter id="PKAr" units="dimensionless" constant="false"/>
       <parameter id="PKAact" units="dimensionless" constant="false"/>
       <parameter id="totPKA" units="dimensionless" constant="false"/>
       <parameter id="I1" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="k23" units="dimensionless" constant="false"/>
       <parameter id="k_23" units="dimensionless" constant="false"/>
       <parameter id="v23" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="bounds" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
+      <rateRule variable="Ca">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> Ca_pre </ci>
+              <ci> Ca </ci>
+            </apply>
+            <ci> t_tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="LR">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k1 </ci>
+                  <ci> R </ci>
+                  <ci> L </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_1 </ci>
+                  <ci> LR </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k2 </ci>
+                <ci> LR </ci>
+                <ci> G </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_2 </ci>
+              <ci> LRG </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k3 </ci>
+              <ci> LRG </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="LRG">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> k2 </ci>
+                    <ci> LR </ci>
+                    <ci> G </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k_2 </ci>
+                    <ci> LRG </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> LRG </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k2a </ci>
+                <ci> GR </ci>
+                <ci> L </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_2a </ci>
+              <ci> LRG </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="GaGTP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> LRG </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k4 </ci>
+                  <ci> GaGTP </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> E </ci>
+                <ci> k_6 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> GaGTP </ci>
+              <ci> AC1 </ci>
+              <ci> k6 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="GaGDP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k4 </ci>
+              <ci> GaGTP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k5 </ci>
+              <ci> GaGDP </ci>
+              <ci> Gbg </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="GR">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k1a </ci>
+                  <ci> G </ci>
+                  <ci> R </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_1a </ci>
+                  <ci> GR </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k2a </ci>
+                <ci> GR </ci>
+                <ci> L </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_2a </ci>
+              <ci> LRG </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Gbg">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k3 </ci>
+              <ci> LRG </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k5 </ci>
+              <ci> GaGDP </ci>
+              <ci> Gbg </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="E">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k6 </ci>
+                  <ci> GaGTP </ci>
+                  <ci> AC1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> K_6 </ci>
+                  <ci> E </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_7 </ci>
+                <ci> ECam </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k7 </ci>
+              <ci> E </ci>
+              <ci> CaMCa4 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ECam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> E </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> K_7 </ci>
+                  <ci> ECam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <plus/>
+                  <ci> k_8 </ci>
+                  <ci> v8 </ci>
+                </apply>
+                <ci> ECamATP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k8 </ci>
+              <ci> ECam </ci>
+              <ci> ATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ECamATP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k8 </ci>
+              <ci> ECam </ci>
+              <ci> ATP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_8 </ci>
+                <ci> v8 </ci>
+              </apply>
+              <ci> ECamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="AC1Cam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k9 </ci>
+                  <ci> AC1 </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_9 </ci>
+                  <ci> AC1Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k10 </ci>
+                <ci> AC1Cam </ci>
+                <ci> ATP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_10 </ci>
+                <ci> v10 </ci>
+              </apply>
+              <ci> AC1CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="AC1CamATP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <ci> AC1Cam </ci>
+              <ci> ATP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_10 </ci>
+                <ci> v10 </ci>
+              </apply>
+              <ci> AC1CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="AC8Cam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k11 </ci>
+                  <ci> AC8 </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_11 </ci>
+                  <ci> AC8Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <plus/>
+                  <ci> k_12 </ci>
+                  <ci> v12 </ci>
+                </apply>
+                <ci> AC8CamATP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k12 </ci>
+              <ci> AC8Cam </ci>
+              <ci> ATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="AC8CamATP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k12 </ci>
+              <ci> AC8Cam </ci>
+              <ci> ATP </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_12 </ci>
+                <ci> v12 </ci>
+              </apply>
+              <ci> AC8CamATP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CAMP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <plus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <plus/>
+                        <apply>
+                          <minus/>
+                          <apply>
+                            <plus/>
+                            <apply>
+                              <times/>
+                              <ci> ECamATP </ci>
+                              <ci> v8 </ci>
+                            </apply>
+                            <apply>
+                              <times/>
+                              <ci> AC1CamATP </ci>
+                              <ci> v10 </ci>
+                            </apply>
+                            <apply>
+                              <times/>
+                              <ci> AC8CamATP </ci>
+                              <ci> v12 </ci>
+                            </apply>
+                          </apply>
+                          <apply>
+                            <times/>
+                            <ci> KfPde1 </ci>
+                            <ci> PDE1cam </ci>
+                            <ci> cAMP </ci>
+                          </apply>
+                        </apply>
+                        <apply>
+                          <times/>
+                          <ci> KbPde1 </ci>
+                          <ci> PDE1cAMP </ci>
+                        </apply>
+                      </apply>
+                      <apply>
+                        <times/>
+                        <ci> KfPde4 </ci>
+                        <ci> PDE4 </ci>
+                        <ci> cAMP </ci>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> KbPde4 </ci>
+                      <ci> PDE4cAMP </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> kfhigh </ci>
+                    <ci> camp </ci>
+                    <ci> pka </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> kbhigh </ci>
+                  <ci> PKAcamp1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 2 </cn>
+                <ci> kflow </ci>
+                <ci> camp </ci>
+                <ci> pkacamp1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> kblow </ci>
+              <ci> pkacamp2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PDE1cAMP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> KfPde1 </ci>
+                <ci> PDE1Cam </ci>
+                <ci> cAMP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KbPde1 </ci>
+                <ci> PDE1cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> V_Pde1 </ci>
+              <ci> PDE1cAMP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PDE4cAMP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> KfPde4 </ci>
+                <ci> PDE4 </ci>
+                <ci> cAMP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KbPde4 </ci>
+                <ci> PDE4cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> V_Pde4 </ci>
+              <ci> PDE4cAMP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="AMP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> V_Pde1 </ci>
+                <ci> PDE1cAMP </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> V_Pde4 </ci>
+                <ci> PDE4cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> katp </ci>
+              <ci> amp </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PDE1Cam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> KfpdeCam </ci>
+                  <ci> PDE1 </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> KbpdeCam </ci>
+                  <ci> PDE1Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KfPde1 </ci>
+                <ci> PDE1Cam </ci>
+                <ci> cAMP </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> KbPde1 </ci>
+                <ci> V_Pde1 </ci>
+              </apply>
+              <ci> PDE1cAMP </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CaMtot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> cam_a </ci>
+        </math>
+      </rateRule>
+      <rateRule variable="CaMCa2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <times/>
+                      <ci> kfC </ci>
+                      <ci> Ca </ci>
+                      <ci> CaM </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> kbC </ci>
+                      <ci> CaMCa2 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> kbN </ci>
+                    <ci> CaMCa4 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kfN </ci>
+                  <ci> Ca </ci>
+                  <ci> CaMCa2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_33c </ci>
+                <ci> PP2camc2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k33c </ci>
+              <ci> CaMCa2 </ci>
+              <cn sbml:units="B" type="integer"> 2 </cn>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CaMCa4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <plus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <plus/>
+                        <apply>
+                          <minus/>
+                          <apply>
+                            <plus/>
+                            <apply>
+                              <minus/>
+                              <apply>
+                                <plus/>
+                                <apply>
+                                  <minus/>
+                                  <apply>
+                                    <minus/>
+                                    <apply>
+                                      <times/>
+                                      <ci> kfN </ci>
+                                      <ci> Ca </ci>
+                                      <ci> CaMCa2 </ci>
+                                    </apply>
+                                    <apply>
+                                      <times/>
+                                      <ci> kbN </ci>
+                                      <ci> CaMCa4 </ci>
+                                    </apply>
+                                  </apply>
+                                  <apply>
+                                    <times/>
+                                    <ci> k32 </ci>
+                                    <ci> CaMCa4 </ci>
+                                    <cn sbml:units="B" type="integer"> 2 </cn>
+                                  </apply>
+                                </apply>
+                                <apply>
+                                  <times/>
+                                  <ci> k_32 </ci>
+                                  <ci> PP2B </ci>
+                                </apply>
+                              </apply>
+                              <apply>
+                                <times/>
+                                <ci> k51 </ci>
+                                <ci> CaMCa4 </ci>
+                                <ci> CK </ci>
+                              </apply>
+                            </apply>
+                            <apply>
+                              <times/>
+                              <ci> k_51 </ci>
+                              <ci> CKCam </ci>
+                            </apply>
+                          </apply>
+                          <apply>
+                            <times/>
+                            <ci> KfpdeCam </ci>
+                            <ci> PDE1 </ci>
+                            <ci> CaMCa4 </ci>
+                          </apply>
+                        </apply>
+                        <apply>
+                          <times/>
+                          <ci> KbpdeCam </ci>
+                          <ci> PDE1Cam </ci>
+                        </apply>
+                      </apply>
+                      <apply>
+                        <times/>
+                        <ci> k7 </ci>
+                        <ci> E </ci>
+                        <ci> CaMCa4 </ci>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k_7 </ci>
+                      <ci> ECam </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k9 </ci>
+                    <ci> AC1 </ci>
+                    <ci> CaMCa4 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_9 </ci>
+                  <ci> AC1Cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k11 </ci>
+                <ci> AC8 </ci>
+                <ci> CaMCa4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_11 </ci>
+              <ci> AC8Cam </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PP2B">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <plus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <plus/>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <times/>
+                          <ci> k32 </ci>
+                          <ci> CaMCa4 </ci>
+                          <cn sbml:units="B" type="integer"> 2 </cn>
+                        </apply>
+                        <apply>
+                          <times/>
+                          <ci> k_32 </ci>
+                          <ci> PP2B </ci>
+                        </apply>
+                      </apply>
+                      <apply>
+                        <times/>
+                        <ci> kfN </ci>
+                        <ci> PP2camc2 </ci>
+                        <ci> Ca </ci>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> KbNP </ci>
+                      <ci> PP2B </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k22 </ci>
+                    <ci> Ip35 </ci>
+                    <ci> PP2B </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <apply>
+                    <plus/>
+                    <ci> k_22 </ci>
+                    <ci> v22 </ci>
+                  </apply>
+                  <ci> Ip35pp2b </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k23 </ci>
+                <ci> Ip35pp1 </ci>
+                <ci> PP2B </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_23 </ci>
+                <ci> v23 </ci>
+              </apply>
+              <ci> Ip35p1p2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PP2cam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k33a </ci>
+                  <ci> CaM </ci>
+                  <cn sbml:units="B" type="integer"> 2 </cn>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_33a </ci>
+                  <ci> PP2cam </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kfC </ci>
+                <ci> PP2cam </ci>
+                <ci> Ca </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kbCP </ci>
+              <ci> PP2camc2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PP2camc2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> k33c </ci>
+                    <ci> CaMCa2 </ci>
+                    <cn sbml:units="B" type="integer"> 2 </cn>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k_33c </ci>
+                    <ci> PP2camc2 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kfN </ci>
+                  <ci> PP2camc2 </ci>
+                  <ci> Ca </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kbNP </ci>
+                <ci> PP2B </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kfC </ci>
+                <ci> PP2Cam </ci>
+                <ci> Ca </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kbCP </ci>
+              <ci> PP2camc2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CKCam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k51 </ci>
+                <ci> CaMCa4 </ci>
+                <ci> CK </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> K_51 </ci>
+                <ci> CKCam </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Va </ci>
+              <ci> CK_ini </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CKpCam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> Va </ci>
+                <ci> CK_ini </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_52 </ci>
+                <ci> CKp </ci>
+                <ci> CaMCa4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k52 </ci>
+              <ci> CKpCam </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CKp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k52 </ci>
+                  <ci> CKpCam </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_52 </ci>
+                  <ci> CKp </ci>
+                  <ci> CaMCa4 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_54 </ci>
+                <ci> CKpPP1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k54 </ci>
+              <ci> CKp </ci>
+              <ci> PP1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="CKpPP1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k54 </ci>
+              <ci> CKp </ci>
+              <ci> PP1 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_54 </ci>
+                <ci> k54cat </ci>
+              </apply>
+              <ci> CKpPP1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PKAcAMP1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kfhigh </ci>
+                  <ci> cAMP </ci>
+                  <ci> PKA </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kbhigh </ci>
+                  <ci> PKAcAMP1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kflow </ci>
+                <ci> cAMP </ci>
+                <ci> PKAcAMP1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kblow </ci>
+              <ci> PKAcAMP2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PKAcAMP2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kflow </ci>
+                  <ci> cAMP </ci>
+                  <ci> PKAcAMP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kblow </ci>
+                  <ci> PKAcAMP2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> kdisrc </ci>
+                <ci> PKAcAMP2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kasrc </ci>
+              <ci> PKAc </ci>
+              <ci> PKAr </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PKAc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> kdisrc </ci>
+                  <ci> PKAcamp2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> kasrc </ci>
+                  <ci> PKAc </ci>
+                  <ci> PKAr </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k20 </ci>
+                <ci> I1 </ci>
+                <ci> PKAc </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_20 </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v20 </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="I1PKAc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k20 </ci>
+                <ci> I1 </ci>
+                <ci> PKAc </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_20 </ci>
+                <ci> I1PKAc </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v20 </ci>
+              <ci> I1PKAc </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Ip35">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <ci> v20 </ci>
+                    <ci> I1PKAc </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k_22 </ci>
+                    <ci> Ip35pp2b </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k22 </ci>
+                  <ci> Ip35 </ci>
+                  <ci> PP2B </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k21 </ci>
+                <ci> Ip35 </ci>
+                <ci> PP1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_21 </ci>
+              <ci> Ip35pp1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Ip35pp1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k21 </ci>
+                  <ci> Ip35 </ci>
+                  <ci> PP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_21 </ci>
+                  <ci> Ip35pp1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k23 </ci>
+                <ci> Ip35pp1 </ci>
+                <ci> pp2b </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_23 </ci>
+              <ci> Ip35p1p2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Ip35pp2b">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k22 </ci>
+                <ci> Ip35 </ci>
+                <ci> PP2B </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_22 </ci>
+                <ci> Ip35pp2b </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v22 </ci>
+              <ci> Ip35pp2b </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Ip35p1p2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k23 </ci>
+                <ci> Ip35pp1 </ci>
+                <ci> PP2B </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_23 </ci>
+                <ci> Ip35p1p2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> v23 </ci>
+              <ci> Ip35p1p2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PKAauc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> PKAc </ci>
+        </math>
+      </rateRule>
       <assignmentRule variable="tm">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -937,19 +2250,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> Ca_pre </ci>
-              <ci> Ca </ci>
-            </apply>
-            <ci> t_tau </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="cam_a">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -1083,194 +2383,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k1 </ci>
-                  <ci> R </ci>
-                  <ci> L </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_1 </ci>
-                  <ci> LR </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k2 </ci>
-                <ci> LR </ci>
-                <ci> G </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_2 </ci>
-              <ci> LRG </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k3 </ci>
-              <ci> LRG </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <minus/>
-                  <apply>
-                    <times/>
-                    <ci> k2 </ci>
-                    <ci> LR </ci>
-                    <ci> G </ci>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> k_2 </ci>
-                    <ci> LRG </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k3 </ci>
-                  <ci> LRG </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k2a </ci>
-                <ci> GR </ci>
-                <ci> L </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_2a </ci>
-              <ci> LRG </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k3 </ci>
-                  <ci> LRG </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k4 </ci>
-                  <ci> GaGTP </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> E </ci>
-                <ci> k_6 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> GaGTP </ci>
-              <ci> AC1 </ci>
-              <ci> k6 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> k4 </ci>
-              <ci> GaGTP </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k5 </ci>
-              <ci> GaGDP </ci>
-              <ci> Gbg </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k1a </ci>
-                  <ci> G </ci>
-                  <ci> R </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_1a </ci>
-                  <ci> GR </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k2a </ci>
-                <ci> GR </ci>
-                <ci> L </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_2a </ci>
-              <ci> LRG </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> k3 </ci>
-              <ci> LRG </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k5 </ci>
-              <ci> GaGDP </ci>
-              <ci> Gbg </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="G">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -1312,318 +2424,6 @@ d
               <ci> LRG </ci>
             </apply>
             <ci> GR </ci>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k6 </ci>
-                  <ci> GaGTP </ci>
-                  <ci> AC1 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> K_6 </ci>
-                  <ci> E </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_7 </ci>
-                <ci> ECam </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k7 </ci>
-              <ci> E </ci>
-              <ci> CaMCa4 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k7 </ci>
-                  <ci> E </ci>
-                  <ci> CaMCa4 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> K_7 </ci>
-                  <ci> ECam </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <apply>
-                  <plus/>
-                  <ci> k_8 </ci>
-                  <ci> v8 </ci>
-                </apply>
-                <ci> ECamATP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k8 </ci>
-              <ci> ECam </ci>
-              <ci> ATP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> k8 </ci>
-              <ci> ECam </ci>
-              <ci> ATP </ci>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> k_8 </ci>
-                <ci> v8 </ci>
-              </apply>
-              <ci> ECamATP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k9 </ci>
-                  <ci> AC1 </ci>
-                  <ci> CaMCa4 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_9 </ci>
-                  <ci> AC1Cam </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k10 </ci>
-                <ci> AC1Cam </ci>
-                <ci> ATP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> k_10 </ci>
-                <ci> v10 </ci>
-              </apply>
-              <ci> AC1CamATP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> k10 </ci>
-              <ci> AC1Cam </ci>
-              <ci> ATP </ci>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> k_10 </ci>
-                <ci> v10 </ci>
-              </apply>
-              <ci> AC1CamATP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k11 </ci>
-                  <ci> AC8 </ci>
-                  <ci> CaMCa4 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_11 </ci>
-                  <ci> AC8Cam </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <apply>
-                  <plus/>
-                  <ci> k_12 </ci>
-                  <ci> v12 </ci>
-                </apply>
-                <ci> AC8CamATP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k12 </ci>
-              <ci> AC8Cam </ci>
-              <ci> ATP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> k12 </ci>
-              <ci> AC8Cam </ci>
-              <ci> ATP </ci>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> k_12 </ci>
-                <ci> v12 </ci>
-              </apply>
-              <ci> AC8CamATP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <apply>
-                  <minus/>
-                  <apply>
-                    <plus/>
-                    <apply>
-                      <minus/>
-                      <apply>
-                        <plus/>
-                        <apply>
-                          <minus/>
-                          <apply>
-                            <plus/>
-                            <apply>
-                              <times/>
-                              <ci> ECamATP </ci>
-                              <ci> v8 </ci>
-                            </apply>
-                            <apply>
-                              <times/>
-                              <ci> AC1CamATP </ci>
-                              <ci> v10 </ci>
-                            </apply>
-                            <apply>
-                              <times/>
-                              <ci> AC8CamATP </ci>
-                              <ci> v12 </ci>
-                            </apply>
-                          </apply>
-                          <apply>
-                            <times/>
-                            <ci> KfPde1 </ci>
-                            <ci> PDE1cam </ci>
-                            <ci> cAMP </ci>
-                          </apply>
-                        </apply>
-                        <apply>
-                          <times/>
-                          <ci> KbPde1 </ci>
-                          <ci> PDE1cAMP </ci>
-                        </apply>
-                      </apply>
-                      <apply>
-                        <times/>
-                        <ci> KfPde4 </ci>
-                        <ci> PDE4 </ci>
-                        <ci> cAMP </ci>
-                      </apply>
-                    </apply>
-                    <apply>
-                      <times/>
-                      <ci> KbPde4 </ci>
-                      <ci> PDE4cAMP </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <cn type="integer"> 2 </cn>
-                    <ci> kfhigh </ci>
-                    <ci> camp </ci>
-                    <ci> pka </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <cn type="integer"> 2 </cn>
-                  <ci> kbhigh </ci>
-                  <ci> PKAcamp1 </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <cn type="integer"> 2 </cn>
-                <ci> kflow </ci>
-                <ci> camp </ci>
-                <ci> pkacamp1 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <cn type="integer"> 2 </cn>
-              <ci> kblow </ci>
-              <ci> pkacamp2 </ci>
-            </apply>
           </apply>
         </math>
       </assignmentRule>
@@ -1765,299 +2565,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <ci> KfPde1 </ci>
-                <ci> PDE1Cam </ci>
-                <ci> cAMP </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> KbPde1 </ci>
-                <ci> PDE1cAMP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> V_Pde1 </ci>
-              <ci> PDE1cAMP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <ci> KfPde4 </ci>
-                <ci> PDE4 </ci>
-                <ci> cAMP </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> KbPde4 </ci>
-                <ci> PDE4cAMP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> V_Pde4 </ci>
-              <ci> PDE4cAMP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <times/>
-                <ci> V_Pde1 </ci>
-                <ci> PDE1cAMP </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> V_Pde4 </ci>
-                <ci> PDE4cAMP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> katp </ci>
-              <ci> amp </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> KfpdeCam </ci>
-                  <ci> PDE1 </ci>
-                  <ci> CaMCa4 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> KbpdeCam </ci>
-                  <ci> PDE1Cam </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> KfPde1 </ci>
-                <ci> PDE1Cam </ci>
-                <ci> cAMP </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> KbPde1 </ci>
-                <ci> V_Pde1 </ci>
-              </apply>
-              <ci> PDE1cAMP </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <ci> cam_a </ci>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <plus/>
-                  <apply>
-                    <minus/>
-                    <apply>
-                      <times/>
-                      <ci> kfC </ci>
-                      <ci> Ca </ci>
-                      <ci> CaM </ci>
-                    </apply>
-                    <apply>
-                      <times/>
-                      <ci> kbC </ci>
-                      <ci> CaMCa2 </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> kbN </ci>
-                    <ci> CaMCa4 </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> kfN </ci>
-                  <ci> Ca </ci>
-                  <ci> CaMCa2 </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_33c </ci>
-                <ci> PP2camc2 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k33c </ci>
-              <ci> CaMCa2 </ci>
-              <cn sbml:units="B" type="integer"> 2 </cn>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <apply>
-                  <minus/>
-                  <apply>
-                    <plus/>
-                    <apply>
-                      <minus/>
-                      <apply>
-                        <plus/>
-                        <apply>
-                          <minus/>
-                          <apply>
-                            <plus/>
-                            <apply>
-                              <minus/>
-                              <apply>
-                                <plus/>
-                                <apply>
-                                  <minus/>
-                                  <apply>
-                                    <minus/>
-                                    <apply>
-                                      <times/>
-                                      <ci> kfN </ci>
-                                      <ci> Ca </ci>
-                                      <ci> CaMCa2 </ci>
-                                    </apply>
-                                    <apply>
-                                      <times/>
-                                      <ci> kbN </ci>
-                                      <ci> CaMCa4 </ci>
-                                    </apply>
-                                  </apply>
-                                  <apply>
-                                    <times/>
-                                    <ci> k32 </ci>
-                                    <ci> CaMCa4 </ci>
-                                    <cn sbml:units="B" type="integer"> 2 </cn>
-                                  </apply>
-                                </apply>
-                                <apply>
-                                  <times/>
-                                  <ci> k_32 </ci>
-                                  <ci> PP2B </ci>
-                                </apply>
-                              </apply>
-                              <apply>
-                                <times/>
-                                <ci> k51 </ci>
-                                <ci> CaMCa4 </ci>
-                                <ci> CK </ci>
-                              </apply>
-                            </apply>
-                            <apply>
-                              <times/>
-                              <ci> k_51 </ci>
-                              <ci> CKCam </ci>
-                            </apply>
-                          </apply>
-                          <apply>
-                            <times/>
-                            <ci> KfpdeCam </ci>
-                            <ci> PDE1 </ci>
-                            <ci> CaMCa4 </ci>
-                          </apply>
-                        </apply>
-                        <apply>
-                          <times/>
-                          <ci> KbpdeCam </ci>
-                          <ci> PDE1Cam </ci>
-                        </apply>
-                      </apply>
-                      <apply>
-                        <times/>
-                        <ci> k7 </ci>
-                        <ci> E </ci>
-                        <ci> CaMCa4 </ci>
-                      </apply>
-                    </apply>
-                    <apply>
-                      <times/>
-                      <ci> k_7 </ci>
-                      <ci> ECam </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> k9 </ci>
-                    <ci> AC1 </ci>
-                    <ci> CaMCa4 </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_9 </ci>
-                  <ci> AC1Cam </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k11 </ci>
-                <ci> AC8 </ci>
-                <ci> CaMCa4 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_11 </ci>
-              <ci> AC8Cam </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="CaM">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -2122,167 +2629,6 @@ d
         </math>
       </assignmentRule>
       <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <plus/>
-                <apply>
-                  <minus/>
-                  <apply>
-                    <minus/>
-                    <apply>
-                      <plus/>
-                      <apply>
-                        <minus/>
-                        <apply>
-                          <times/>
-                          <ci> k32 </ci>
-                          <ci> CaMCa4 </ci>
-                          <cn sbml:units="B" type="integer"> 2 </cn>
-                        </apply>
-                        <apply>
-                          <times/>
-                          <ci> k_32 </ci>
-                          <ci> PP2B </ci>
-                        </apply>
-                      </apply>
-                      <apply>
-                        <times/>
-                        <ci> kfN </ci>
-                        <ci> PP2camc2 </ci>
-                        <ci> Ca </ci>
-                      </apply>
-                    </apply>
-                    <apply>
-                      <times/>
-                      <ci> KbNP </ci>
-                      <ci> PP2B </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> k22 </ci>
-                    <ci> Ip35 </ci>
-                    <ci> PP2B </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <apply>
-                    <plus/>
-                    <ci> k_22 </ci>
-                    <ci> v22 </ci>
-                  </apply>
-                  <ci> Ip35pp2b </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k23 </ci>
-                <ci> Ip35pp1 </ci>
-                <ci> PP2B </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> k_23 </ci>
-                <ci> v23 </ci>
-              </apply>
-              <ci> Ip35p1p2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k33a </ci>
-                  <ci> CaM </ci>
-                  <cn sbml:units="B" type="integer"> 2 </cn>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_33a </ci>
-                  <ci> PP2cam </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kfC </ci>
-                <ci> PP2cam </ci>
-                <ci> Ca </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> kbCP </ci>
-              <ci> PP2camc2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <minus/>
-                  <apply>
-                    <times/>
-                    <ci> k33c </ci>
-                    <ci> CaMCa2 </ci>
-                    <cn sbml:units="B" type="integer"> 2 </cn>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> k_33c </ci>
-                    <ci> PP2camc2 </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> kfN </ci>
-                  <ci> PP2camc2 </ci>
-                  <ci> Ca </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kbNP </ci>
-                <ci> PP2B </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kfC </ci>
-                <ci> PP2Cam </ci>
-                <ci> Ca </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> kbCP </ci>
-              <ci> PP2camc2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <minus/>
@@ -2326,115 +2672,6 @@ d
               <ci> CKp </ci>
             </apply>
             <ci> CKpPP1 </ci>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <ci> k51 </ci>
-                <ci> CaMCa4 </ci>
-                <ci> CK </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> K_51 </ci>
-                <ci> CKCam </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> Va </ci>
-              <ci> CK_ini </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <times/>
-                <ci> Va </ci>
-                <ci> CK_ini </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_52 </ci>
-                <ci> CKp </ci>
-                <ci> CaMCa4 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k52 </ci>
-              <ci> CKpCam </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <plus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k52 </ci>
-                  <ci> CKpCam </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_52 </ci>
-                  <ci> CKp </ci>
-                  <ci> CaMCa4 </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_54 </ci>
-                <ci> CKpPP1 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k54 </ci>
-              <ci> CKp </ci>
-              <ci> PP1 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> k54 </ci>
-              <ci> CKp </ci>
-              <ci> PP1 </ci>
-            </apply>
-            <apply>
-              <times/>
-              <apply>
-                <plus/>
-                <ci> k_54 </ci>
-                <ci> k54cat </ci>
-              </apply>
-              <ci> CKpPP1 </ci>
-            </apply>
           </apply>
         </math>
       </assignmentRule>
@@ -2587,118 +2824,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> kfhigh </ci>
-                  <ci> cAMP </ci>
-                  <ci> PKA </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> kbhigh </ci>
-                  <ci> PKAcAMP1 </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kflow </ci>
-                <ci> cAMP </ci>
-                <ci> PKAcAMP1 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> kblow </ci>
-              <ci> PKAcAMP2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> kflow </ci>
-                  <ci> cAMP </ci>
-                  <ci> PKAcAMP1 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> kblow </ci>
-                  <ci> PKAcAMP2 </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> kdisrc </ci>
-                <ci> PKAcAMP2 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> kasrc </ci>
-              <ci> PKAc </ci>
-              <ci> PKAr </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <cn type="integer"> 2 </cn>
-                  <ci> kdisrc </ci>
-                  <ci> PKAcamp2 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <cn type="integer"> 2 </cn>
-                  <ci> kasrc </ci>
-                  <ci> PKAc </ci>
-                  <ci> PKAr </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k20 </ci>
-                <ci> I1 </ci>
-                <ci> PKAc </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_20 </ci>
-              <ci> I1PKAc </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> v20 </ci>
-              <ci> I1PKAc </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="Pka">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -2790,136 +2915,6 @@ d
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <ci> k20 </ci>
-                <ci> I1 </ci>
-                <ci> PKAc </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_20 </ci>
-                <ci> I1PKAc </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> v20 </ci>
-              <ci> I1PKAc </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <plus/>
-                  <apply>
-                    <times/>
-                    <ci> v20 </ci>
-                    <ci> I1PKAc </ci>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> k_22 </ci>
-                    <ci> Ip35pp2b </ci>
-                  </apply>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k22 </ci>
-                  <ci> Ip35 </ci>
-                  <ci> PP2B </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k21 </ci>
-                <ci> Ip35 </ci>
-                <ci> PP1 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_21 </ci>
-              <ci> Ip35pp1 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <minus/>
-              <apply>
-                <minus/>
-                <apply>
-                  <times/>
-                  <ci> k21 </ci>
-                  <ci> Ip35 </ci>
-                  <ci> PP1 </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <ci> k_21 </ci>
-                  <ci> Ip35pp1 </ci>
-                </apply>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k23 </ci>
-                <ci> Ip35pp1 </ci>
-                <ci> pp2b </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> k_23 </ci>
-              <ci> Ip35p1p2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <ci> k22 </ci>
-                <ci> Ip35 </ci>
-                <ci> PP2B </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_22 </ci>
-                <ci> Ip35pp2b </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> v22 </ci>
-              <ci> Ip35pp2b </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="k23">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -2945,37 +2940,6 @@ d
             <cn> 0.5 </cn>
             <ci> k23_a </ci>
           </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <minus/>
-              <apply>
-                <times/>
-                <ci> k23 </ci>
-                <ci> Ip35pp1 </ci>
-                <ci> PP2B </ci>
-              </apply>
-              <apply>
-                <times/>
-                <ci> k_23 </ci>
-                <ci> Ip35p1p2 </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> v23 </ci>
-              <ci> Ip35p1p2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <ci> PKAc </ci>
         </math>
       </assignmentRule>
       <assignmentRule variable="bounds">

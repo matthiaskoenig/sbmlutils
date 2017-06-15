@@ -209,17 +209,17 @@ done
       <parameter id="Ihold" value="-12" constant="false"/>
       <parameter id="gleak" value="6.8" constant="false"/>
       <parameter id="eleak" value="-55" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
+      <parameter id="mKs" units="dimensionless" constant="false"/>
+      <parameter id="mKf" units="dimensionless" constant="false"/>
+      <parameter id="hKf" units="dimensionless" constant="false"/>
+      <parameter id="hKf2" units="dimensionless" constant="false"/>
+      <parameter id="mNa" units="dimensionless" constant="false"/>
+      <parameter id="hNa" units="dimensionless" constant="false"/>
+      <parameter id="mNaP" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter id="Iks" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Ikf" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
@@ -230,13 +230,12 @@ done
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Inap" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
-      <assignmentRule>
+      <rateRule variable="V">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <times/>
@@ -270,7 +269,137 @@ done
             </apply>
           </apply>
         </math>
-      </assignmentRule>
+      </rateRule>
+      <rateRule variable="mKs">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> minfKs </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> mKs </ci>
+            </apply>
+            <apply>
+              <ci> mtauKs </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mKf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> minfKf </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> mKf </ci>
+            </apply>
+            <apply>
+              <ci> mtauKf </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hKf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> hinfK </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> hKf </ci>
+            </apply>
+            <apply>
+              <ci> htauK </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hKf2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> hinfK2 </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> hKf </ci>
+            </apply>
+            <cn type="integer"> 116 </cn>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mNa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> minfNa </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> mNa </ci>
+            </apply>
+            <apply>
+              <ci> mtauNa </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hNa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> hinfNa </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> hNa </ci>
+            </apply>
+            <apply>
+              <ci> htauNa </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mNaP">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> minfNaP </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> mNaP </ci>
+            </apply>
+            <apply>
+              <ci> mtauNaP </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
       <assignmentRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -326,25 +455,6 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> minfKs </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> mKs </ci>
-            </apply>
-            <apply>
-              <ci> mtauKs </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="Iks">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -360,60 +470,6 @@ done
               <ci> V </ci>
               <ci> EK </ci>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> minfKf </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> mKf </ci>
-            </apply>
-            <apply>
-              <ci> mtauKf </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> hinfK </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> hKf </ci>
-            </apply>
-            <apply>
-              <ci> htauK </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> hinfK2 </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> hKf </ci>
-            </apply>
-            <cn type="integer"> 116 </cn>
           </apply>
         </math>
       </assignmentRule>
@@ -583,44 +639,6 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> minfNa </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> mNa </ci>
-            </apply>
-            <apply>
-              <ci> mtauNa </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> hinfNa </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> hNa </ci>
-            </apply>
-            <apply>
-              <ci> htauNa </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="Ina">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -749,25 +767,6 @@ done
                   </apply>
                 </apply>
               </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> minfNaP </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> mNaP </ci>
-            </apply>
-            <apply>
-              <ci> mtauNaP </ci>
-              <ci> V </ci>
             </apply>
           </apply>
         </math>

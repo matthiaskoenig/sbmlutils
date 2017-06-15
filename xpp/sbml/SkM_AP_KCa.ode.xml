@@ -113,7 +113,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -138,7 +138,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -163,7 +163,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -195,6 +195,142 @@ done
                 </apply>
               </piece>
             </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> Vm </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <ci> abar </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> k1 </ci>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <divide/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <apply>
+                              <minus/>
+                              <cn type="integer"> 2 </cn>
+                            </apply>
+                            <ci> d1 </ci>
+                            <cn> 96.485 </cn>
+                            <ci> Vm </ci>
+                          </apply>
+                          <cn> 8.313424 </cn>
+                        </apply>
+                        <cn type="integer"> 310 </cn>
+                      </apply>
+                    </apply>
+                  </apply>
+                  <ci> c </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="beta">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> Vm </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <ci> bbar </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <ci> c </ci>
+                  <apply>
+                    <times/>
+                    <ci> k2 </ci>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <divide/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <apply>
+                              <minus/>
+                              <cn type="integer"> 2 </cn>
+                            </apply>
+                            <ci> d2 </ci>
+                            <cn> 96.485 </cn>
+                            <ci> Vm </ci>
+                          </apply>
+                          <cn> 8.313424 </cn>
+                        </apply>
+                        <cn type="integer"> 310 </cn>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tau">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> Vm </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alp </ci>
+                  <ci> Vm </ci>
+                </apply>
+                <apply>
+                  <ci> beta </ci>
+                  <ci> Vm </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="ooinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> Vm </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <ci> alp </ci>
+                <ci> Vm </ci>
+              </apply>
+              <apply>
+                <ci> tau </ci>
+                <ci> Vm </ci>
+              </apply>
+            </apply>
           </lambda>
         </math>
       </functionDefinition>
@@ -262,10 +398,6 @@ done
       <parameter id="alpha_n" units="dimensionless" constant="false"/>
       <parameter id="alpha_m" units="dimensionless" constant="false"/>
       <parameter id="alpha_h" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="dinf" units="dimensionless" constant="false"/>
       <parameter id="taud" units="dimensionless" constant="false"/>
       <parameter id="alphad" units="dimensionless" constant="false"/>
@@ -633,122 +765,6 @@ done
                 </apply>
                 <ci> v_alpha_h </ci>
               </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <ci> abar </ci>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <apply>
-                  <times/>
-                  <ci> k1 </ci>
-                  <apply>
-                    <exp/>
-                    <apply>
-                      <divide/>
-                      <apply>
-                        <divide/>
-                        <apply>
-                          <times/>
-                          <apply>
-                            <minus/>
-                            <cn type="integer"> 2 </cn>
-                          </apply>
-                          <ci> d1 </ci>
-                          <cn> 96.485 </cn>
-                          <ci> Vm </ci>
-                        </apply>
-                        <cn> 8.313424 </cn>
-                      </apply>
-                      <cn type="integer"> 310 </cn>
-                    </apply>
-                  </apply>
-                </apply>
-                <ci> c </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <ci> bbar </ci>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <divide/>
-                <ci> c </ci>
-                <apply>
-                  <times/>
-                  <ci> k2 </ci>
-                  <apply>
-                    <exp/>
-                    <apply>
-                      <divide/>
-                      <apply>
-                        <divide/>
-                        <apply>
-                          <times/>
-                          <apply>
-                            <minus/>
-                            <cn type="integer"> 2 </cn>
-                          </apply>
-                          <ci> d2 </ci>
-                          <cn> 96.485 </cn>
-                          <ci> Vm </ci>
-                        </apply>
-                        <cn> 8.313424 </cn>
-                      </apply>
-                      <cn type="integer"> 310 </cn>
-                    </apply>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <apply>
-                <ci> alp </ci>
-                <ci> Vm </ci>
-              </apply>
-              <apply>
-                <ci> beta </ci>
-                <ci> Vm </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <apply>
-              <ci> alp </ci>
-              <ci> Vm </ci>
-            </apply>
-            <apply>
-              <ci> tau </ci>
-              <ci> Vm </ci>
             </apply>
           </apply>
         </math>
