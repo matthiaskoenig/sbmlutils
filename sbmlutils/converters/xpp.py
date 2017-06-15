@@ -170,7 +170,6 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
         fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0)))', name='heavyside'),
     ]
     function_definitions = []
-    FunctionData = namedtuple('FunctionData', 'fid old_args new_args formula')
 
     def create_initial_assignment(sid, value):
         try:
@@ -268,7 +267,10 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 print('new_args:', new_args)
 
                 function_definitions.append(
-                    FunctionData(fid, old_args, new_args, formula)
+                    {'fid': fid,
+                     'old_args': old_args,
+                     'new_args': new_args,
+                     'formula': formula}
                 )
                 continue
 
@@ -276,8 +278,15 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
     from pprint import pprint
 
-    print('FUNCTION_DEFINITIONS')
+    print('\n\nFUNCTION_DEFINITIONS')
     pprint(function_definitions)
+
+    def replace_formula(formula, fid, old_args, new_args):
+
+        groups = re.findall('({}\(.*?\))'.format(fid), formula)
+        if groups:
+            print(formula, groups)
+        return None
 
     def replace_fdef():
         changes = False
@@ -285,15 +294,26 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             for i in range(len(function_definitions)):
                 if i != k:
                     # replace i with k
-                    function_definitions[i].formula = -1
+                    formula = function_definitions[i]['formula']
+                    new_formula = replace_formula(
+                        formula,
+                        fid=function_definitions[k]['fid'],
+                        old_args=function_definitions[k]['old_args'],
+                        new_args=function_definitions[k]['new_args']
+                    )
+                    if new_formula:
+                        function_definitions[i]['formula'] = new_formula
+                        changes=True
+
         return changes
 
+    print()
     # functions can use functions so this also must be replaced
     changes = True
     while(changes):
         changes = replace_fdef()
 
-    print('FUNCTION_DEFINITIONS')
+    print('\nREPLACED FUNCTION_DEFINITIONS')
     pprint(function_definitions)
 
     # fid, old_args, new_args, formula
@@ -306,6 +326,7 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
         fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
     )
     '''
+    exit()
 
 
     ###########################################################################
