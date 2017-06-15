@@ -57,7 +57,7 @@ def check_sbml(filepath, name=None, ucheck=True, show_errors=False):
     return check_doc(doc, name=name, ucheck=ucheck, show_errors=show_errors)
 
 
-def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors=True):
+def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors=False):
     """
         Checks the given SBML document and prints errors of the given severity.
 
@@ -139,7 +139,8 @@ def _check_consistency(doc, internalConsistency=False, show_errors=True):
 
         # FIXME: print to logging & make optional
         if show_errors:
-            print_errors(doc)
+            pass
+            #print_errors(doc)
 
     return Nall, Nerr, Nwarn
 
