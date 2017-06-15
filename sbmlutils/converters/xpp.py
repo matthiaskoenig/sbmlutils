@@ -36,6 +36,7 @@ import libsbml
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
 from sbmlutils import sbmlio
+from sbmlutils import validation
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
@@ -141,11 +142,12 @@ def sid_value_from_part(part):
     return sid, value
 
 
-def xpp2sbml(xpp_file, sbml_file):
+def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     """ Reads given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
+    :param validate: perform validation on the generated SBML file
     :return:
     """
     print('-' * 80)
@@ -354,4 +356,4 @@ def xpp2sbml(xpp_file, sbml_file):
     objects = parameters + functions + initial_assignments + rate_rules + assignment_rules
     fac.create_objects(model, objects)
 
-    sbmlio.write_sbml(doc, sbml_file, validate=False, program_name="sbmlutils", program_version=__version__)
+    sbmlio.write_sbml(doc, sbml_file, validate=validate, program_name="sbmlutils", program_version=__version__)
