@@ -12,8 +12,6 @@ The first line of the file cannot be a number (as this tells XPP that the file i
 other charcter or declaration. It is standard form to make the first line a comment which has the name of the
 file, but this is optional.
 
-Initial data are optional, XPP sets them to zero by default and they can be changed within the program.
-
 ! Variables have to be case sensitive !. These issues can easily be fixed based on validator output.
 
 Only supports subset of features.
@@ -227,8 +225,11 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 fac.Parameter(sid=sid, value=f_value, constant=False)
             )
         except ValueError:
+            '''
+            Initial data are optional, XPP sets them to zero by default (many xpp model don't write the p(0)=0.
+            '''
             parameters.append(
-                fac.Parameter(sid=sid, constant=False)
+                fac.Parameter(sid=sid, value=0.0, constant=False)
             )
             initial_assignments.append(
                 fac.InitialAssignment(sid=sid, value=value)
@@ -497,5 +498,13 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     # create SBML objects
     objects = parameters + initial_assignments + functions + rate_rules + assignment_rules
     fac.create_objects(model, objects, debug=False)
+
+    '''
+    Parameter values are optional; if not they are set to zero in xpp.
+    Many models do not encode the initial zeros.
+    '''
+    for p in doc.getModel().getListOfParameters():
+        if not p.isSetValue():
+            p.setValue(0.0)
 
     sbmlio.write_sbml(doc, sbml_file, validate=validate, program_name="sbmlutils", program_version=__version__)

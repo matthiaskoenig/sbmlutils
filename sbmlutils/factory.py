@@ -394,7 +394,7 @@ class InitialAssignment(Value):
 ##########################################################################
 class Rule(ValueWithUnit):
     @staticmethod
-    def _rule_factory(model, rule, rule_type):
+    def _rule_factory(model, rule, rule_type, value=None):
         """ Creates libsbml rule of given rule_type.
 
         :param model:
@@ -411,7 +411,7 @@ class Rule(ValueWithUnit):
                 and (not model.getCompartment(sid)):
 
             # Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
-            Parameter(sid, unit=rule.unit, name=rule.name, value=None, constant=False).create_sbml(model)
+            Parameter(sid, unit=rule.unit, name=rule.name, value=value, constant=False).create_sbml(model)
 
         # Make sure the parameter is const=False
         p = model.getParameter(sid)
