@@ -254,6 +254,7 @@ done
       <parameter id="iStim_mag" value="2" constant="false"/>
       <parameter id="iStim_beg" value="5" constant="false"/>
       <parameter id="iStim_dur" value="1" constant="false"/>
+      <parameter id="d" units="dimensionless" constant="false"/>
       <parameter id="iStim" units="dimensionless" constant="false"/>
       <parameter id="beta_n" units="dimensionless" constant="false"/>
       <parameter id="beta_m" units="dimensionless" constant="false"/>
@@ -281,19 +282,177 @@ done
       <parameter id="ICa" units="dimensionless" constant="false"/>
       <parameter id="IL" units="dimensionless" constant="false"/>
       <parameter id="IK" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="i_na" units="dimensionless" constant="false"/>
       <parameter id="i_kca" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
+      <rateRule variable="Vm">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> Istim </ci>
+              <apply>
+                <plus/>
+                <ci> INa </ci>
+                <ci> ICa </ci>
+                <ci> IK </ci>
+                <ci> IL </ci>
+                <ci> IT </ci>
+                <ci> IKCa </ci>
+              </apply>
+            </apply>
+            <ci> Cm </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="m">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> alpha_m </ci>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+                <ci> m </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> beta_m </ci>
+              <ci> m </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> alpha_h </ci>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+                <ci> h </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> beta_h </ci>
+              <ci> h </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> alpha_n </ci>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+                <ci> n </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> beta_n </ci>
+              <ci> n </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Vt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> Vm </ci>
+              <ci> Vt </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Rs </ci>
+              <ci> Ct </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="d">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <ci> d </ci>
+              </apply>
+              <ci> alphad </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> d </ci>
+              <ci> betad </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="o">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> ooinf </ci>
+                <ci> Vm </ci>
+              </apply>
+              <ci> o </ci>
+            </apply>
+            <apply>
+              <ci> tau </ci>
+              <ci> Vm </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> fcyt </ci>
+            <apply>
+              <plus/>
+              <ci> jmem </ci>
+              <ci> jer </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cer">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> fer </ci>
+            </apply>
+            <ci> vcytver </ci>
+            <ci> jer </ci>
+          </apply>
+        </math>
+      </rateRule>
       <assignmentRule variable="iStim">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -860,173 +1019,6 @@ done
               <ci> Vm </ci>
               <ci> EK </ci>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> Istim </ci>
-              <apply>
-                <plus/>
-                <ci> INa </ci>
-                <ci> ICa </ci>
-                <ci> IK </ci>
-                <ci> IL </ci>
-                <ci> IT </ci>
-                <ci> IKCa </ci>
-              </apply>
-            </apply>
-            <ci> Cm </ci>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> alpha_m </ci>
-              <apply>
-                <minus/>
-                <cn> 1 </cn>
-                <ci> m </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> beta_m </ci>
-              <ci> m </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> alpha_h </ci>
-              <apply>
-                <minus/>
-                <cn> 1 </cn>
-                <ci> h </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> beta_h </ci>
-              <ci> h </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <ci> alpha_n </ci>
-              <apply>
-                <minus/>
-                <cn> 1 </cn>
-                <ci> n </ci>
-              </apply>
-            </apply>
-            <apply>
-              <times/>
-              <ci> beta_n </ci>
-              <ci> n </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <ci> Vm </ci>
-              <ci> Vt </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> Rs </ci>
-              <ci> Ct </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <minus/>
-            <apply>
-              <times/>
-              <apply>
-                <minus/>
-                <cn type="integer"> 1 </cn>
-                <ci> d </ci>
-              </apply>
-              <ci> alphad </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> d </ci>
-              <ci> betad </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> ooinf </ci>
-                <ci> Vm </ci>
-              </apply>
-              <ci> o </ci>
-            </apply>
-            <apply>
-              <ci> tau </ci>
-              <ci> Vm </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> fcyt </ci>
-            <apply>
-              <plus/>
-              <ci> jmem </ci>
-              <ci> jer </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <apply>
-              <minus/>
-              <ci> fer </ci>
-            </apply>
-            <ci> vcytver </ci>
-            <ci> jer </ci>
           </apply>
         </math>
       </assignmentRule>

@@ -37,7 +37,7 @@ def read_sbml(filepath):
     return doc
 
 
-def write_sbml(doc, filepath, validate=True, program_name=None, program_version=None):
+def write_sbml(doc, filepath, validate=True, program_name=None, program_version=None, show_errors=True):
     """
     Write SBMLDocument to file.
 
@@ -61,7 +61,7 @@ def write_sbml(doc, filepath, validate=True, program_name=None, program_version=
         if validate is True:
             validation.check_sbml(filepath)
         elif validate is validation.VALIDATION_NO_UNITS:
-            validation.check_sbml(filepath, ucheck=False)
+            validation.check_sbml(filepath, ucheck=False, show_errors=True)
 
 
 def writeModelToSBML(model, filepath):
