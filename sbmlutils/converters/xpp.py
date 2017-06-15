@@ -36,6 +36,7 @@ from sbmlutils._version import __version__
 from sbmlutils import factory as fac
 from sbmlutils import sbmlio
 from sbmlutils import validation
+from sbmlutils.converters import astnode
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
@@ -239,11 +240,29 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             ################################
             # Function definitions
             ################################
+            ''' Functions are defined in xpp via fid(arguments) = formula
+            f(x,y) = x^2/(x^2+y^2)
+            They can have up to 9 arguments.
+            The difference to SBML functions is that xpp functions have access to the global parameter values
+            '''
             groups = re.findall('(.*)\((.*)\)\s*=\s*(.*)', line)
             if groups:
                 print('FUNCTION DEFINITION FOUND:', line)
                 print(groups)
-                fid, arguments, formula = groups[0]
+                fid, args, formula = groups[0]
+
+                # necessary to find the additional arguments from the ast_node
+                ast = libsbml.parseL3Formula(formula)
+                names = set(astnode.find_names_in_ast(ast))
+                old_args = [t.strip() for t in args.split(',')]
+                new_args = [a for a in names if a not in old_args]
+
+                arguments = ','.join(old_args+new_args)
+
+                print('old_args:', old_args)
+                print('new_args:', new_args)
+                print('arguments:', arguments)
+
                 functions.append(
                     fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
                 )
