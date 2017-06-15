@@ -8,7 +8,6 @@ import unittest
 import os
 
 from sbmlutils.converters import xpp
-from sbmlutils.report import sbmlreport
 from sbmlutils.tests import data
 from sbmlutils import validation
 

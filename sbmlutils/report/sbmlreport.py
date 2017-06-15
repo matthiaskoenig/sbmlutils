@@ -568,16 +568,27 @@ def metaId(item):
     return ''
 
 def id_html(item):
+    """ Create info from id and metaid
+
+    :param item:
+    :return:
+    """
     id = item.getId()
-    if type(item) == libsbml.RateRule:
-        full_id = 'd {}/dt'.format(id)
-    else:
-        full_id = id
     meta = metaId(item)
-    info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, full_id, meta)
-    if id is not None and (type(item) is not libsbml.Model):
-        info += xml_modal(item)
-    info += "</td>"
+    if id:
+        if type(item) == libsbml.RateRule:
+            full_id = 'd {}/dt'.format(id)
+        else:
+            full_id = id
+        info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, full_id, meta)
+        if id is not None and (type(item) is not libsbml.Model):
+            info += xml_modal(item)
+        info += "</td>"
+    else:
+        if meta:
+            info = '<td class="active">{}</td>'.format(meta)
+        else:
+            info = '<td class="active">{}</td>'.format(empty_html())
     return info
 
 def annotation(item):

@@ -25,9 +25,7 @@ Not supported:
 
 """
 # TODO: support function definitions & usage of function definitions
-# FIXME: d()/dt syntax for odes
 # FIXME: support global via events
-
 
 from __future__ import print_function, absolute_import
 import warnings
@@ -269,7 +267,7 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             elif len(tokens) >= 2:
                 left = tokens[0]
                 items = [t.strip() for t in left.split(' ') if len(t) > 0]
-                # keyword based information
+                # keyword based information, i.e 2 items are on the left of the first '=' sign
                 if len(items) == 2:
                     xid = items[0]  # xpp keyword
                     xpp_type = parse_keyword(xid)
@@ -339,8 +337,12 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
                     # ode
                     elif left.endswith("'"):
-                        # FIXME: also check for d*/dt expression
                         sid = left[0:-1]
+                        rate_rules.append(
+                            fac.RateRule(sid=sid, value=right)
+                        )
+                    elif left.endswith("/dt"):
+                        sid = left[1:-3]
                         rate_rules.append(
                             fac.RateRule(sid=sid, value=right)
                         )

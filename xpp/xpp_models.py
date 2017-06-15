@@ -115,6 +115,7 @@ def get_models(download=True):
 if __name__ == "__main__":
     import traceback
     import sys
+    from sbmlutils import validation
     from sbmlutils.report import sbmlreport
     from sbmlutils.converters import xpp
 
@@ -134,6 +135,8 @@ if __name__ == "__main__":
     out_dir = './sbml'
     Nall = len(ode_all)
     Nfail = 0
+
+    ode_all = ["./105528/SkM_AP/SkM_AP_KCa.ode"]
     for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml
@@ -142,7 +145,7 @@ if __name__ == "__main__":
         try:
             print('[{}]'.format(k))
             xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-            sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
+            sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=validation.VALIDATION_NO_UNITS)
         except:
             print()
             traceback.print_exc(file=sys.stdout)
