@@ -282,11 +282,18 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     pprint(function_definitions)
 
     def replace_formula(formula, fid, old_args, new_args):
-
+        new_formula = formula
         groups = re.findall('({}\(.*?\))'.format(fid), formula)
         if groups:
-            print(formula, groups)
-        return None
+            for g in groups:
+                # replace with the new arguments
+                n_args = len(g.split(','))
+                if n_args < len(old_args) + len(new_args):
+                    add_str = g[:-1] + ',' + ','.join(new_args) + ')'
+                    new_formula = new_formula.replace(g, add_str)
+            print(fid, ':', formula, '->', new_formula)
+        return new_formula
+
 
     def replace_fdef():
         changes = False
@@ -301,8 +308,10 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                         old_args=function_definitions[k]['old_args'],
                         new_args=function_definitions[k]['new_args']
                     )
-                    if new_formula:
+                    if new_formula != formula:
                         function_definitions[i]['formula'] = new_formula
+                        # function_definitions[i]['old_args'] = function_definitions[i]['old_args'] function_definitions[i]['old_args'],
+                        function_definitions[i]['new_args'] = function_definitions[k]['new_args']
                         changes=True
 
         return changes
