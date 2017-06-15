@@ -237,13 +237,6 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 line = re.sub("if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)", f_piecewise, line)
 
             ################################
-            # Start parsing the given line
-            ################################
-            # check for the equal sign
-            tokens = line.split('=')
-            tokens = [t.strip() for t in tokens]
-
-            ################################
             # Function definitions
             ################################
             ''' Functions are defined in xpp via fid(arguments) = formula
@@ -280,8 +273,17 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
     print('\n\nFUNCTION_DEFINITIONS')
     pprint(function_definitions)
+    print()
 
     def replace_formula(formula, fid, old_args, new_args):
+        """ Replace information in given formula.
+
+        :param formula:
+        :param fid:
+        :param old_args:
+        :param new_args:
+        :return:
+        """
         new_formula = formula
         groups = re.findall('({}\(.*?\))'.format(fid), formula)
         if groups:
@@ -291,11 +293,11 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 if n_args < len(old_args) + len(new_args):
                     add_str = g[:-1] + ',' + ','.join(new_args) + ')'
                     new_formula = new_formula.replace(g, add_str)
-            print(fid, ':', formula, '->', new_formula)
+            # print(fid, ':', formula, '->', new_formula)
         return new_formula
 
-
     def replace_fdef():
+        """ Replace all arguments within the formula definitions."""
         changes = False
         for k, fdata in enumerate(function_definitions):
             for i in range(len(function_definitions)):
@@ -316,32 +318,38 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
         return changes
 
-    print()
     # functions can use functions so this also must be replaced
     changes = True
-    while(changes):
+    while changes:
         changes = replace_fdef()
 
     print('\nREPLACED FUNCTION_DEFINITIONS')
     pprint(function_definitions)
 
-    # fid, old_args, new_args, formula
-    # function_replacements.append(['{}\((.*)\)'.format(fid), new_args])
-
-    '''
     # Create function definitions
-    arguments = ','.join(old_args + new_args)
-    functions.append(
-        fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
-    )
-    '''
-    exit()
+    for k, fdata in enumerate(function_definitions):
+        fid = fdata['fid']
+        formula = fdata['formula']
+        arguments = ','.join(fdata['old_args'] + fdata['new_args'])
+        functions.append(
+            fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
+        )
 
 
     ###########################################################################
     # Second iteration
     ###########################################################################
+    print('\nPARSED LINES')
+    pprint(parsed_lines)
     for line in parsed_lines:
+        print('*'*3, line, '*'*3)
+
+        ################################
+        # Start parsing the given line
+        ################################
+        # check for the equal sign
+        tokens = line.split('=')
+        tokens = [t.strip() for t in tokens]
 
         #######################
         # Line without '=' sign
@@ -364,6 +372,7 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                     parameters.append(
                         fac.Parameter(sid=sid, value=0.0)
                     )
+                    continue  # line finished
             else:
                 warnings.warn("XPP line not parsed: '{}'".format(line))
 
@@ -463,6 +472,9 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
     # create SBML objects
     objects = parameters + initial_assignments + functions + rate_rules + assignment_rules
-    fac.create_objects(model, objects)
+    # objects = parameters + initial_assignments + functions + rate_rules #+ assignment_rules
+    # objects = assignment_rules
+
+    fac.create_objects(model, objects, debug=True)
 
     sbmlio.write_sbml(doc, sbml_file, validate=validate, program_name="sbmlutils", program_version=__version__)
