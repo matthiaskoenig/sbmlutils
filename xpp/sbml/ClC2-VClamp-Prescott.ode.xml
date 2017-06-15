@@ -281,17 +281,15 @@ done
       <parameter id="gkcc2" value="0.7" constant="false"/>
       <parameter id="shape" value="3" constant="false"/>
       <parameter id="ra" value="0.0063" constant="false"/>
+      <parameter id="ginh" units="dimensionless" constant="false"/>
       <parameter id="v" units="dimensionless" constant="false"/>
       <parameter id="v_" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="ginh_" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="inorm" units="dimensionless" constant="false"/>
       <parameter id="irect" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
@@ -303,11 +301,146 @@ done
       <parameter id="vgaba_" units="dimensionless" constant="false"/>
       <parameter id="x" units="dimensionless" constant="false"/>
       <parameter id="x_" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
       <parameter id="Ikcc2" units="dimensionless" constant="false"/>
       <parameter units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
+      <rateRule variable="w">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> phi </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> winf </ci>
+                  <ci> V </ci>
+                </apply>
+                <ci> w </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> tauw </ci>
+              <ci> V </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ginh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> ginh </ci>
+              </apply>
+              <ci> tau_inh </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> scale_inh </ci>
+              <ci> nz2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> pinf </ci>
+                <ci> V </ci>
+              </apply>
+              <ci> p </ci>
+            </apply>
+            <ci> taup </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> SAvol </ci>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <plus/>
+                      <apply>
+                        <times/>
+                        <ci> ginh </ci>
+                        <ci> inorm </ci>
+                      </apply>
+                      <ci> ginh_avg </ci>
+                    </apply>
+                    <ci> irect </ci>
+                    <ci> x </ci>
+                    <apply>
+                      <plus/>
+                      <cn type="integer"> 0 </cn>
+                      <apply>
+                        <ci> oninh </ci>
+                        <ci> t </ci>
+                      </apply>
+                      <apply>
+                        <ci> offinh </ci>
+                        <ci> t </ci>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> Vcl </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> gkcc2 </ci>
+                    <apply>
+                      <minus/>
+                      <ci> Vk </ci>
+                      <ci> Vcl </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> gclc </ci>
+                    <ci> p </ci>
+                    <apply>
+                      <minus/>
+                      <ci> V </ci>
+                      <ci> Vcl </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> F </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> pip_cl </ci>
+                <ci> cli </ci>
+              </apply>
+              <ci> tau_pip </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
       <assignmentRule variable="v">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -343,29 +476,6 @@ done
       <assignmentRule variable="v_">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <ci> v </ci>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <times/>
-              <ci> phi </ci>
-              <apply>
-                <minus/>
-                <apply>
-                  <ci> winf </ci>
-                  <ci> V </ci>
-                </apply>
-                <ci> w </ci>
-              </apply>
-            </apply>
-            <apply>
-              <ci> tauw </ci>
-              <ci> V </ci>
-            </apply>
-          </apply>
         </math>
       </assignmentRule>
       <assignmentRule>
@@ -469,26 +579,6 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <divide/>
-              <apply>
-                <minus/>
-                <ci> ginh </ci>
-              </apply>
-              <ci> tau_inh </ci>
-            </apply>
-            <apply>
-              <times/>
-              <ci> scale_inh </ci>
-              <ci> nz2 </ci>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="inorm">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -545,22 +635,6 @@ done
               <minus/>
               <cn type="integer"> 1 </cn>
             </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <minus/>
-              <apply>
-                <ci> pinf </ci>
-                <ci> V </ci>
-              </apply>
-              <ci> p </ci>
-            </apply>
-            <ci> taup </ci>
           </apply>
         </math>
       </assignmentRule>
@@ -743,83 +817,6 @@ done
       <assignmentRule variable="x_">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <ci> x </ci>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <apply>
-              <divide/>
-              <apply>
-                <times/>
-                <ci> SAvol </ci>
-                <apply>
-                  <plus/>
-                  <apply>
-                    <times/>
-                    <apply>
-                      <plus/>
-                      <apply>
-                        <times/>
-                        <ci> ginh </ci>
-                        <ci> inorm </ci>
-                      </apply>
-                      <ci> ginh_avg </ci>
-                    </apply>
-                    <ci> irect </ci>
-                    <ci> x </ci>
-                    <apply>
-                      <plus/>
-                      <cn type="integer"> 0 </cn>
-                      <apply>
-                        <ci> oninh </ci>
-                        <ci> t </ci>
-                      </apply>
-                      <apply>
-                        <ci> offinh </ci>
-                        <ci> t </ci>
-                      </apply>
-                    </apply>
-                    <apply>
-                      <minus/>
-                      <ci> v </ci>
-                      <ci> Vcl </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> gkcc2 </ci>
-                    <apply>
-                      <minus/>
-                      <ci> Vk </ci>
-                      <ci> Vcl </ci>
-                    </apply>
-                  </apply>
-                  <apply>
-                    <times/>
-                    <ci> gclc </ci>
-                    <ci> p </ci>
-                    <apply>
-                      <minus/>
-                      <ci> V </ci>
-                      <ci> Vcl </ci>
-                    </apply>
-                  </apply>
-                </apply>
-              </apply>
-              <ci> F </ci>
-            </apply>
-            <apply>
-              <divide/>
-              <apply>
-                <minus/>
-                <ci> pip_cl </ci>
-                <ci> cli </ci>
-              </apply>
-              <ci> tau_pip </ci>
-            </apply>
-          </apply>
         </math>
       </assignmentRule>
       <assignmentRule variable="Ikcc2">

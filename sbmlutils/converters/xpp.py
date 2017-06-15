@@ -24,8 +24,9 @@ Not supported:
 - sum, shift
 
 """
-# TODO: support function definitions & usage of function definitions
+# TODO: support function definitions
 # FIXME: support global via events
+# TODO: rnd via dist
 
 from __future__ import print_function, absolute_import
 import warnings
@@ -161,10 +162,10 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
     functions = [
         # definition of min and max
-        fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
-        fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
+        fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum'),
+        fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum'),
         # heav (heavyside)
-        fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0)))', name='max'),
+        fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0)))', name='heavyside'),
 
     ]
 
@@ -221,13 +222,12 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
             # handle the power function
             line = line.replace('**', '^')
+
             # handle if(...)then(...)else()
             groups = re.findall('if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)', line)
             if len(groups) > 0:
                 f_piecewise = "piecewise({}, {}, {})".format(*groups[0])
                 line = re.sub("if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)", f_piecewise, line)
-
-
 
             ################################
             # Start parsing the given line
@@ -235,6 +235,20 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             # check for the equal sign
             tokens = line.split('=')
             tokens = [t.strip() for t in tokens]
+
+            ################################
+            # Function definitions
+            ################################
+            groups = re.findall('(.*)\((.*)\)\s*=\s*(.*)', line)
+            if groups:
+                print('FUNCTION DEFINITION FOUND:', line)
+                print(groups)
+                fid, arguments, formula = groups[0]
+                functions.append(
+                    fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
+                )
+                continue
+
 
             #######################
             # Line without '=' sign

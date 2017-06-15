@@ -39,7 +39,7 @@ def check(value, message):
         return
 
 
-def check_sbml(filepath, name=None, ucheck=True, show_errors=True):
+def check_sbml(filepath, name=None, ucheck=True, show_errors=False):
     """ Checks the given SBML file path or String for validation errors.
 
     :param filepath: path of SBML file
