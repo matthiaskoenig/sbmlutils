@@ -214,9 +214,8 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                     )
                     if new_formula != formula:
                         function_definitions[i]['formula'] = new_formula
-                        # function_definitions[i]['old_args'] = function_definitions[i]['old_args'] + function_definitions[k]['old_args']
-                        function_definitions[i]['new_args'] = function_definitions[i]['new_args'] + \
-                                                              function_definitions[k]['new_args']
+                        function_definitions[i]['new_args'] = list(sorted(set(function_definitions[i]['new_args'] + \
+                                                              function_definitions[k]['new_args'])))
                         changes = True
 
         return changes
@@ -337,6 +336,7 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     # clean the new arguments
     for fdata in function_definitions:
         fdata['new_args'] = list(sorted(set(fdata['new_args'])))
+
 
     # print('\nREPLACED FUNCTION_DEFINITIONS')
     # pprint(function_definitions)
