@@ -341,8 +341,19 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     ###########################################################################
     print('\nPARSED LINES')
     pprint(parsed_lines)
+    print('\n\n')
     for line in parsed_lines:
         print('*'*3, line, '*'*3)
+
+        # replace function definitions in lines
+        new_line = line
+        for fdata in function_definitions:
+            new_line = replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
+        if new_line != line:
+            print('REPLACED')
+            print(line, '->', new_line)
+            line = new_line
+
 
         ################################
         # Start parsing the given line
@@ -472,9 +483,6 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
 
     # create SBML objects
     objects = parameters + initial_assignments + functions + rate_rules + assignment_rules
-    # objects = parameters + initial_assignments + functions + rate_rules #+ assignment_rules
-    # objects = assignment_rules
-
-    fac.create_objects(model, objects, debug=True)
+    fac.create_objects(model, objects, debug=False)
 
     sbmlio.write_sbml(doc, sbml_file, validate=validate, program_name="sbmlutils", program_version=__version__)
