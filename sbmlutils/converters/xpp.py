@@ -31,6 +31,7 @@ Not supported:
 from __future__ import print_function, absolute_import
 import warnings
 import re
+from collections import namedtuple
 import libsbml
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
@@ -167,8 +168,9 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
         fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum'),
         # heav (heavyside)
         fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0)))', name='heavyside'),
-
     ]
+    function_definitions = []
+    FunctionData = namedtuple('FunctionData', 'fid old_args new_args formula')
 
     def create_initial_assignment(sid, value):
         try:
@@ -184,12 +186,17 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 fac.InitialAssignment(sid=sid, value=value)
             )
 
+    parsed_lines = []
     with open(xpp_file, encoding="utf-8") as f:
         lines = f.readlines()
 
+        # add info to sbml
         text = escape_string("".join(lines))
         fac.set_notes(model, NOTES.format(text))
 
+        ###########################################################################
+        # First iteration to parse relevant lines and get the replacement patterns
+        ###########################################################################
         old_line = None
         for line in lines:
             # clean up the ends
@@ -257,138 +264,175 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 old_args = [t.strip() for t in args.split(',')]
                 new_args = [a for a in names if a not in old_args]
 
-                arguments = ','.join(old_args+new_args)
-
                 print('old_args:', old_args)
                 print('new_args:', new_args)
-                print('arguments:', arguments)
 
-                functions.append(
-                    fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
+                function_definitions.append(
+                    FunctionData(fid, old_args, new_args, formula)
                 )
                 continue
 
+            parsed_lines.append(line)
 
-            #######################
-            # Line without '=' sign
-            #######################
-            # wiener
-            if len(tokens) == 1:
-                items = [t.strip() for t in tokens[0].split(' ') if len(t) > 0]
-                # keyword, value
-                if len(items) == 2:
-                    xid, sid = items[0], items[1]
-                    xpp_type = parse_keyword(xid)
+    from pprint import pprint
 
-                    # wiener
-                    if xpp_type == XPP_WIE:
-                        ''' Wiener parameters are normally distributed numbers with zero mean 
-                        and unit standard deviation. They are useful in stochastic simulations since 
-                        they automatically scale with change in the integration time step. 
-                        Their names are listed separated by commas or spaces. '''
-                        # FIXME: this should be encoded using dist
-                        parameters.append(
-                            fac.Parameter(sid=sid, value=0.0)
-                        )
-                else:
-                    warnings.warn("XPP line not parsed: '{}'".format(line))
+    print('FUNCTION_DEFINITIONS')
+    pprint(function_definitions)
 
-            #####################
-            # Line with '=' sign
-            #####################
-            # parameter, aux, ode, initial assignments
-            elif len(tokens) >= 2:
-                left = tokens[0]
-                items = [t.strip() for t in left.split(' ') if len(t) > 0]
-                # keyword based information, i.e 2 items are on the left of the first '=' sign
-                if len(items) == 2:
-                    xid = items[0]  # xpp keyword
-                    xpp_type = parse_keyword(xid)
-                    expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:])  # full expression after keyword
-                    parts = parts_from_expression(expression)
+    def replace_fdef():
+        changes = False
+        for k, fdata in enumerate(function_definitions):
+            for i in range(len(function_definitions)):
+                if i != k:
+                    # replace i with k
+                    function_definitions[i].formula = -1
+        return changes
 
-                    # parameter & numbers
-                    if xpp_type in [XPP_PAR, XPP_NUM]:
-                        ''' Parameter values are optional; if not they are set to zero. 
-                        Number declarations are like parameter declarations, except that they cannot be 
-                        changed within the program and do not appear in the parameter window. '''
-                        for part in parts:
-                            sid, value = sid_value_from_part(part)
-                            create_initial_assignment(sid, value)
+    # functions can use functions so this also must be replaced
+    changes = True
+    while(changes):
+        changes = replace_fdef()
 
-                    # aux
-                    elif xpp_type == XPP_AUX:
-                        '''Auxiliary quantities are expressions that depend on all of your dynamic 
-                        variables which you want to keep track of. Energy is one such example. They are declared
-                        like fixed quantities, but are prefaced by aux .'''
-                        for part in parts:
-                            sid, value = sid_value_from_part(part)
-                            if sid == value:
-                                # avoid circular dependencies (no information in statement)
-                                pass
-                            else:
-                                assignment_rules.append(
-                                    fac.AssignmentRule(sid=sid, value=value)
-                                )
+    print('FUNCTION_DEFINITIONS')
+    pprint(function_definitions)
 
-                    # init
-                    elif xpp_type == XPP_INIT:
-                        for part in parts:
-                            sid, value = sid_value_from_part(part)
-                            create_initial_assignment(sid, value)
-                    # global
-                    elif xpp_type == XPP_GLO:
-                        '''Global flags are expressions that signal events when they change sign, from less than 
-                        to greater than zero if sign=1 , greater than to less than if sign=-1 or eithet way 
-                        if sign=0. The condition should be delimited by braces {} The events are of the form 
-                        variable=expression , are delimited by braces, and separated by semicolons. When the 
-                        condition occurs all the variables in the event set are changed possibly discontinuously.
-                        '''
-                        warnings.warn("XPP_GLO not supported: XPP line not parsed: '{}'".format(line))
-                    # table
-                    elif xpp_type == XPP_TAB:
-                        ''' The Table declaration allows the user to specify a function of 1 variable in terms 
-                        of a lookup table which uses linear interpolation. The name of the function follows the 
-                        declaration and this is followed by (i) a filename (ii) or a function of "t".'''
-                        warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
+    # fid, old_args, new_args, formula
+    # function_replacements.append(['{}\((.*)\)'.format(fid), new_args])
 
-                    else:
-                        warnings.warn("XPP line not parsed: '{}'".format(line))
+    '''
+    # Create function definitions
+    arguments = ','.join(old_args + new_args)
+    functions.append(
+        fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
+    )
+    '''
 
-                # direct assignments
-                elif len(items) == 1:
-                    right = tokens[1]
 
-                    # init
-                    if left.endswith('(0)'):
-                        sid, value = left[0:-3], right
+    ###########################################################################
+    # Second iteration
+    ###########################################################################
+    for line in parsed_lines:
+
+        #######################
+        # Line without '=' sign
+        #######################
+        # wiener
+        if len(tokens) == 1:
+            items = [t.strip() for t in tokens[0].split(' ') if len(t) > 0]
+            # keyword, value
+            if len(items) == 2:
+                xid, sid = items[0], items[1]
+                xpp_type = parse_keyword(xid)
+
+                # wiener
+                if xpp_type == XPP_WIE:
+                    ''' Wiener parameters are normally distributed numbers with zero mean 
+                    and unit standard deviation. They are useful in stochastic simulations since 
+                    they automatically scale with change in the integration time step. 
+                    Their names are listed separated by commas or spaces. '''
+                    # FIXME: this should be encoded using dist
+                    parameters.append(
+                        fac.Parameter(sid=sid, value=0.0)
+                    )
+            else:
+                warnings.warn("XPP line not parsed: '{}'".format(line))
+
+        #####################
+        # Line with '=' sign
+        #####################
+        # parameter, aux, ode, initial assignments
+        elif len(tokens) >= 2:
+            left = tokens[0]
+            items = [t.strip() for t in left.split(' ') if len(t) > 0]
+            # keyword based information, i.e 2 items are on the left of the first '=' sign
+            if len(items) == 2:
+                xid = items[0]  # xpp keyword
+                xpp_type = parse_keyword(xid)
+                expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:])  # full expression after keyword
+                parts = parts_from_expression(expression)
+
+                # parameter & numbers
+                if xpp_type in [XPP_PAR, XPP_NUM]:
+                    ''' Parameter values are optional; if not they are set to zero. 
+                    Number declarations are like parameter declarations, except that they cannot be 
+                    changed within the program and do not appear in the parameter window. '''
+                    for part in parts:
+                        sid, value = sid_value_from_part(part)
                         create_initial_assignment(sid, value)
 
-                    # difference equations
-                    elif left.endswith('(t+1)'):
-                        warnings.warn("Difference Equations not supported: XPP line not parsed: '{}'".format(line))
+                # aux
+                elif xpp_type == XPP_AUX:
+                    '''Auxiliary quantities are expressions that depend on all of your dynamic 
+                    variables which you want to keep track of. Energy is one such example. They are declared
+                    like fixed quantities, but are prefaced by aux .'''
+                    for part in parts:
+                        sid, value = sid_value_from_part(part)
+                        if sid == value:
+                            # avoid circular dependencies (no information in statement)
+                            pass
+                        else:
+                            assignment_rules.append(
+                                fac.AssignmentRule(sid=sid, value=value)
+                            )
 
-                    # ode
-                    elif left.endswith("'"):
-                        sid = left[0:-1]
-                        rate_rules.append(
-                            fac.RateRule(sid=sid, value=right)
-                        )
-                    elif left.endswith("/dt"):
-                        sid = left[1:-3]
-                        rate_rules.append(
-                            fac.RateRule(sid=sid, value=right)
-                        )
-                    # assignment rules
-                    else:
-                        assignment_rules.append(
-                            fac.AssignmentRule(sid=left, value=right)
-                        )
+                # init
+                elif xpp_type == XPP_INIT:
+                    for part in parts:
+                        sid, value = sid_value_from_part(part)
+                        create_initial_assignment(sid, value)
+                # global
+                elif xpp_type == XPP_GLO:
+                    '''Global flags are expressions that signal events when they change sign, from less than 
+                    to greater than zero if sign=1 , greater than to less than if sign=-1 or eithet way 
+                    if sign=0. The condition should be delimited by braces {} The events are of the form 
+                    variable=expression , are delimited by braces, and separated by semicolons. When the 
+                    condition occurs all the variables in the event set are changed possibly discontinuously.
+                    '''
+                    warnings.warn("XPP_GLO not supported: XPP line not parsed: '{}'".format(line))
+                # table
+                elif xpp_type == XPP_TAB:
+                    ''' The Table declaration allows the user to specify a function of 1 variable in terms 
+                    of a lookup table which uses linear interpolation. The name of the function follows the 
+                    declaration and this is followed by (i) a filename (ii) or a function of "t".'''
+                    warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
+
                 else:
                     warnings.warn("XPP line not parsed: '{}'".format(line))
 
+            # direct assignments
+            elif len(items) == 1:
+                right = tokens[1]
+
+                # init
+                if left.endswith('(0)'):
+                    sid, value = left[0:-3], right
+                    create_initial_assignment(sid, value)
+
+                # difference equations
+                elif left.endswith('(t+1)'):
+                    warnings.warn("Difference Equations not supported: XPP line not parsed: '{}'".format(line))
+
+                # ode
+                elif left.endswith("'"):
+                    sid = left[0:-1]
+                    rate_rules.append(
+                        fac.RateRule(sid=sid, value=right)
+                    )
+                elif left.endswith("/dt"):
+                    sid = left[1:-3]
+                    rate_rules.append(
+                        fac.RateRule(sid=sid, value=right)
+                    )
+                # assignment rules
+                else:
+                    assignment_rules.append(
+                        fac.AssignmentRule(sid=left, value=right)
+                    )
+            else:
+                warnings.warn("XPP line not parsed: '{}'".format(line))
+
     # create SBML objects
-    objects = parameters + functions + initial_assignments + rate_rules + assignment_rules
+    objects = parameters + initial_assignments + functions + rate_rules + assignment_rules
     fac.create_objects(model, objects)
 
     sbmlio.write_sbml(doc, sbml_file, validate=validate, program_name="sbmlutils", program_version=__version__)
