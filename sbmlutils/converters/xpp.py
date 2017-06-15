@@ -14,25 +14,23 @@ file, but this is optional.
 
 Initial data are optional, XPP sets them to zero by default and they can be changed within the program.
 
+! Variables have to be case sensitive !. These issues can easily be fixed based on validator output.
+
 Only supports subset of features.
-
-Variables have to be case sensitive !!!, but this can easily be fixed based on validator output.
-
 Not supported:
 - global
 - table
 - sum, shift
-
 """
-# TODO: support function definitions
 # FIXME: support global via events
 # TODO: rnd via dist
 
 from __future__ import print_function, absolute_import
 import warnings
 import re
-from collections import namedtuple
+from pprint import pprint
 import libsbml
+
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
 from sbmlutils import sbmlio
@@ -143,6 +141,34 @@ def sid_value_from_part(part):
     return sid, value
 
 
+##################################
+# Formula replacement helpers
+##################################
+def replace_formula(formula, fid, old_args, new_args):
+    """ Replace information in given formula.
+
+    :param formula:
+    :param fid:
+    :param old_args:
+    :param new_args:
+    :return:
+    """
+    new_formula = formula
+    groups = re.findall('({}\(.*?\))'.format(fid), formula)
+    if groups:
+        for g in groups:
+            # replace with the new arguments
+            n_args = len(g.split(','))
+            if n_args < len(old_args) + len(new_args):
+                add_str = g[:-1] + ',' + ','.join(new_args) + ')'
+                new_formula = new_formula.replace(g, add_str)
+        # print(fid, ':', formula, '->', new_formula)
+    return new_formula
+
+
+##################################
+# Converter
+##################################
 def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     """ Reads given xpp_file and converts to SBML file.
 
@@ -161,7 +187,6 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     initial_assignments = []
     rate_rules = []
     assignment_rules = []
-
     functions = [
         # definition of min and max
         fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum'),
@@ -171,7 +196,31 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     ]
     function_definitions = []
 
+    def replace_fdef():
+        """ Replace all arguments within the formula definitions."""
+        changes = False
+        for k, fdata in enumerate(function_definitions):
+            for i in range(len(function_definitions)):
+                if i != k:
+                    # replace i with k
+                    formula = function_definitions[i]['formula']
+                    new_formula = replace_formula(
+                        formula,
+                        fid=function_definitions[k]['fid'],
+                        old_args=function_definitions[k]['old_args'],
+                        new_args=function_definitions[k]['new_args']
+                    )
+                    if new_formula != formula:
+                        function_definitions[i]['formula'] = new_formula
+                        # function_definitions[i]['old_args'] = function_definitions[i]['old_args'] + function_definitions[k]['old_args']
+                        function_definitions[i]['new_args'] = function_definitions[i]['new_args'] + \
+                                                              function_definitions[k]['new_args']
+                        changes = True
+
+        return changes
+
     def create_initial_assignment(sid, value):
+        """ Helper for creating initial assignments """
         try:
             f_value = float(value)
             parameters.append(
@@ -185,6 +234,9 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 fac.InitialAssignment(sid=sid, value=value)
             )
 
+    ###########################################################################
+    # First iteration to parse relevant lines and get the replacement patterns
+    ###########################################################################
     parsed_lines = []
     with open(xpp_file, encoding="utf-8") as f:
         lines = f.readlines()
@@ -193,9 +245,6 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
         text = escape_string("".join(lines))
         fac.set_notes(model, NOTES.format(text))
 
-        ###########################################################################
-        # First iteration to parse relevant lines and get the replacement patterns
-        ###########################################################################
         old_line = None
         for line in lines:
             # clean up the ends
@@ -246,9 +295,13 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             '''
             groups = re.findall('(.*)\((.*)\)\s*=\s*(.*)', line)
             if groups:
-                print('FUNCTION DEFINITION FOUND:', line)
-                print(groups)
+                # function definitions found
                 fid, args, formula = groups[0]
+                # handles the initial assignments which look like function definitions
+                if args == '0':
+                    parsed_lines.append(line)
+                    continue
+
 
                 # necessary to find the additional arguments from the ast_node
                 ast = libsbml.parseL3Formula(formula)
@@ -256,75 +309,32 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 old_args = [t.strip() for t in args.split(',')]
                 new_args = [a for a in names if a not in old_args]
 
-                print('old_args:', old_args)
-                print('new_args:', new_args)
-
+                # store functions with additional arguments
                 function_definitions.append(
                     {'fid': fid,
                      'old_args': old_args,
                      'new_args': new_args,
                      'formula': formula}
                 )
+                # don't append line, function definition has been handeled
                 continue
 
             parsed_lines.append(line)
 
-    from pprint import pprint
-
-    print('\n\nFUNCTION_DEFINITIONS')
-    pprint(function_definitions)
-    print()
-
-    def replace_formula(formula, fid, old_args, new_args):
-        """ Replace information in given formula.
-
-        :param formula:
-        :param fid:
-        :param old_args:
-        :param new_args:
-        :return:
-        """
-        new_formula = formula
-        groups = re.findall('({}\(.*?\))'.format(fid), formula)
-        if groups:
-            for g in groups:
-                # replace with the new arguments
-                n_args = len(g.split(','))
-                if n_args < len(old_args) + len(new_args):
-                    add_str = g[:-1] + ',' + ','.join(new_args) + ')'
-                    new_formula = new_formula.replace(g, add_str)
-            # print(fid, ':', formula, '->', new_formula)
-        return new_formula
-
-    def replace_fdef():
-        """ Replace all arguments within the formula definitions."""
-        changes = False
-        for k, fdata in enumerate(function_definitions):
-            for i in range(len(function_definitions)):
-                if i != k:
-                    # replace i with k
-                    formula = function_definitions[i]['formula']
-                    new_formula = replace_formula(
-                        formula,
-                        fid=function_definitions[k]['fid'],
-                        old_args=function_definitions[k]['old_args'],
-                        new_args=function_definitions[k]['new_args']
-                    )
-                    if new_formula != formula:
-                        function_definitions[i]['formula'] = new_formula
-                        # function_definitions[i]['old_args'] = function_definitions[i]['old_args'] function_definitions[i]['old_args'],
-                        function_definitions[i]['new_args'] = function_definitions[k]['new_args']
-                        changes=True
-
-        return changes
+    # print('\n\nFUNCTION_DEFINITIONS')
+    # pprint(function_definitions)
 
     # functions can use functions so this also must be replaced
     changes = True
     while changes:
         changes = replace_fdef()
 
-    print('\nREPLACED FUNCTION_DEFINITIONS')
-    pprint(function_definitions)
+    # clean the new arguments
+    for fdata in function_definitions:
+        fdata['new_args'] = list(sorted(set(fdata['new_args'])))
+
+    # print('\nREPLACED FUNCTION_DEFINITIONS')
+    # pprint(function_definitions)
 
     # Create function definitions
     for k, fdata in enumerate(function_definitions):
@@ -335,25 +345,23 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
         )
 
-
     ###########################################################################
     # Second iteration
     ###########################################################################
-    print('\nPARSED LINES')
-    pprint(parsed_lines)
-    print('\n\n')
+    # print('\nPARSED LINES')
+    # pprint(parsed_lines)
+    # print('\n\n')
     for line in parsed_lines:
-        print('*'*3, line, '*'*3)
+        # print('*'*3, line, '*'*3)
 
         # replace function definitions in lines
         new_line = line
         for fdata in function_definitions:
             new_line = replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
         if new_line != line:
-            print('REPLACED')
-            print(line, '->', new_line)
+            # print('REPLACED')
+            # print(line, '->', new_line)
             line = new_line
-
 
         ################################
         # Start parsing the given line
@@ -480,6 +488,11 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                     )
             else:
                 warnings.warn("XPP line not parsed: '{}'".format(line))
+
+    # add time
+    assignment_rules.append(
+        fac.AssignmentRule(sid="t", value="time", name="model time")
+    )
 
     # create SBML objects
     objects = parameters + initial_assignments + functions + rate_rules + assignment_rules
