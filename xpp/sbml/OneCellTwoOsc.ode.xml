@@ -109,7 +109,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -134,7 +134,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -159,7 +159,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -190,6 +190,69 @@ done
                   <cn type="integer"> 0 </cn>
                 </apply>
               </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
             </piecewise>
           </lambda>
         </math>
@@ -235,23 +298,24 @@ done
       <parameter id="A" value="0.005" constant="false"/>
       <parameter id="Kd" value="0.4" constant="false"/>
       <parameter id="sigma" value="0.185" constant="false"/>
-      <parameter id="minf" units="dimensionless" constant="false"/>
-      <parameter id="ninf" units="dimensionless" constant="false"/>
-      <parameter id="minfp" units="dimensionless" constant="false"/>
-      <parameter id="hinf" units="dimensionless" constant="false"/>
-      <parameter id="taun" units="dimensionless" constant="false"/>
-      <parameter id="tauh" units="dimensionless" constant="false"/>
-      <parameter id="I_na" units="dimensionless" constant="false"/>
-      <parameter id="I_k" units="dimensionless" constant="false"/>
-      <parameter id="I_nap" units="dimensionless" constant="false"/>
-      <parameter id="I_l" units="dimensionless" constant="false"/>
-      <parameter id="caninf" units="dimensionless" constant="false"/>
-      <parameter id="I_can" units="dimensionless" constant="false"/>
-      <parameter id="J_ER_in" units="dimensionless" constant="false"/>
-      <parameter id="J_ER_out" units="dimensionless" constant="false"/>
-      <parameter id="Ce" units="dimensionless" constant="false"/>
-      <parameter id="ican" units="dimensionless" constant="false"/>
-      <parameter id="inaps" units="dimensionless" constant="false"/>
+      <parameter id="minf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ninf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="minfp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="hinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="taun" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tauh" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_na" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_k" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_nap" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="caninf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="I_can" value="0" units="dimensionless" constant="false"/>
+      <parameter id="J_ER_in" value="0" units="dimensionless" constant="false"/>
+      <parameter id="J_ER_out" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Ce" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ican" value="0" units="dimensionless" constant="false"/>
+      <parameter id="inaps" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="v">
@@ -690,6 +754,11 @@ done
       <assignmentRule variable="inaps">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <ci> I_nap </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

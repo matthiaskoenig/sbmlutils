@@ -97,7 +97,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -122,7 +122,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -147,7 +147,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -179,6 +179,188 @@ done
                 </apply>
               </piece>
             </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="GAMMAF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> VV </ci>
+            </bvar>
+            <bvar>
+              <ci> theta </ci>
+            </bvar>
+            <bvar>
+              <ci> sigma </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <ci> VV </ci>
+                        <ci> theta </ci>
+                      </apply>
+                    </apply>
+                    <ci> sigma </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tau_h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> sigma_t_h </ci>
+            </bvar>
+            <bvar>
+              <ci> theta_t_h </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <cn> 0.5 </cn>
+              <apply>
+                <times/>
+                <cn> 14 </cn>
+                <apply>
+                  <ci> GAMMAF </ci>
+                  <ci> V </ci>
+                  <ci> theta_t_h </ci>
+                  <ci> sigma_t_h </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tau_n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> sigma_tna </ci>
+            </bvar>
+            <bvar>
+              <ci> sigma_tnb </ci>
+            </bvar>
+            <bvar>
+              <ci> theta_tna </ci>
+            </bvar>
+            <bvar>
+              <ci> theta_tnb </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn> 0.087 </cn>
+                <apply>
+                  <times/>
+                  <cn> 11.4 </cn>
+                  <apply>
+                    <ci> GAMMAF </ci>
+                    <ci> V </ci>
+                    <ci> theta_tna </ci>
+                    <ci> sigma_tna </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn> 0.087 </cn>
+                <apply>
+                  <times/>
+                  <cn> 11.4 </cn>
+                  <apply>
+                    <ci> GAMMAF </ci>
+                    <ci> V </ci>
+                    <ci> theta_tnb </ci>
+                    <ci> sigma_tnb </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
           </lambda>
         </math>
       </functionDefinition>
@@ -217,14 +399,12 @@ done
       <parameter id="n" value="0.000208" constant="false"/>
       <parameter id="a" value="0.2686" constant="false"/>
       <parameter id="b" value="0.5016" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="m_inf" units="dimensionless" constant="false"/>
-      <parameter id="h_inf" units="dimensionless" constant="false"/>
-      <parameter id="n_inf" units="dimensionless" constant="false"/>
-      <parameter id="a_inf" units="dimensionless" constant="false"/>
-      <parameter id="b_inf" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
+      <parameter id="m_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="h_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="a_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="b_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="V">
@@ -328,6 +508,10 @@ done
             <apply>
               <ci> tau_n </ci>
               <ci> V </ci>
+              <ci> sigma_tna </ci>
+              <ci> sigma_tnb </ci>
+              <ci> theta_tna </ci>
+              <ci> theta_tnb </ci>
             </apply>
           </apply>
         </math>
@@ -358,33 +542,6 @@ done
           </apply>
         </math>
       </rateRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn> 1 </cn>
-            <apply>
-              <plus/>
-              <cn> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <apply>
-                      <minus/>
-                      <ci> VV </ci>
-                      <ci> theta </ci>
-                    </apply>
-                  </apply>
-                  <ci> sigma </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="m_inf">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -435,57 +592,9 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
+      <assignmentRule variable="t">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <cn> 0.5 </cn>
-            <apply>
-              <times/>
-              <cn> 14 </cn>
-              <apply>
-                <ci> GAMMAF </ci>
-                <ci> V </ci>
-                <ci> theta_t_h </ci>
-                <ci> sigma_t_h </ci>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <apply>
-              <plus/>
-              <cn> 0.087 </cn>
-              <apply>
-                <times/>
-                <cn> 11.4 </cn>
-                <apply>
-                  <ci> GAMMAF </ci>
-                  <ci> V </ci>
-                  <ci> theta_tna </ci>
-                  <ci> sigma_tna </ci>
-                </apply>
-              </apply>
-            </apply>
-            <apply>
-              <plus/>
-              <cn> 0.087 </cn>
-              <apply>
-                <times/>
-                <cn> 11.4 </cn>
-                <apply>
-                  <ci> GAMMAF </ci>
-                  <ci> V </ci>
-                  <ci> theta_tnb </ci>
-                  <ci> sigma_tnb </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

@@ -100,7 +100,7 @@ done</pre>
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -125,7 +125,7 @@ done</pre>
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -150,7 +150,7 @@ done</pre>
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -181,6 +181,69 @@ done</pre>
                   <cn type="integer"> 0 </cn>
                 </apply>
               </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
             </piecewise>
           </lambda>
         </math>
@@ -217,43 +280,44 @@ done</pre>
       <parameter id="iStim_mag" value="8" constant="false"/>
       <parameter id="iStim_beg" value="20" constant="false"/>
       <parameter id="iStim_dur" value="5" constant="false"/>
-      <parameter id="i_Stim" units="dimensionless" constant="false"/>
-      <parameter id="E_K1" units="dimensionless" constant="false"/>
-      <parameter id="E_Kp" units="dimensionless" constant="false"/>
-      <parameter id="E_K" units="dimensionless" constant="false"/>
-      <parameter id="E_si" units="dimensionless" constant="false"/>
-      <parameter id="alpha_m" units="dimensionless" constant="false"/>
-      <parameter id="alpha_j" units="dimensionless" constant="false"/>
-      <parameter id="alpha_h" units="dimensionless" constant="false"/>
-      <parameter id="alpha_K1" units="dimensionless" constant="false"/>
-      <parameter id="alpha_f" units="dimensionless" constant="false"/>
-      <parameter id="alpha_d" units="dimensionless" constant="false"/>
-      <parameter id="alpha_X" units="dimensionless" constant="false"/>
-      <parameter id="Xi" units="dimensionless" constant="false"/>
-      <parameter id="beta_m" units="dimensionless" constant="false"/>
-      <parameter id="beta_j" units="dimensionless" constant="false"/>
-      <parameter id="beta_h" units="dimensionless" constant="false"/>
-      <parameter id="beta_f" units="dimensionless" constant="false"/>
-      <parameter id="Kp" units="dimensionless" constant="false"/>
-      <parameter id="beta_d" units="dimensionless" constant="false"/>
-      <parameter id="beta_K1" units="dimensionless" constant="false"/>
-      <parameter id="K1_inf" units="dimensionless" constant="false"/>
-      <parameter id="beta_X" units="dimensionless" constant="false"/>
-      <parameter id="g_K" units="dimensionless" constant="false"/>
-      <parameter id="g_K1" units="dimensionless" constant="false"/>
-      <parameter id="i_Na" units="dimensionless" constant="false"/>
-      <parameter id="i_si" units="dimensionless" constant="false"/>
-      <parameter id="i_K" units="dimensionless" constant="false"/>
-      <parameter id="i_K1" units="dimensionless" constant="false"/>
-      <parameter id="i_Kp" units="dimensionless" constant="false"/>
-      <parameter id="i_b" units="dimensionless" constant="false"/>
-      <parameter id="iapp" units="dimensionless" constant="false"/>
-      <parameter id="ina" units="dimensionless" constant="false"/>
-      <parameter id="isi" units="dimensionless" constant="false"/>
-      <parameter id="ik" units="dimensionless" constant="false"/>
-      <parameter id="ik1" units="dimensionless" constant="false"/>
-      <parameter id="ikp" units="dimensionless" constant="false"/>
-      <parameter id="iktot" units="dimensionless" constant="false"/>
+      <parameter id="i_Stim" value="0" units="dimensionless" constant="false"/>
+      <parameter id="E_K1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="E_Kp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="E_K" value="0" units="dimensionless" constant="false"/>
+      <parameter id="E_si" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_m" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_j" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_h" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_K1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_f" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_d" value="0" units="dimensionless" constant="false"/>
+      <parameter id="alpha_X" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Xi" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_m" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_j" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_h" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_f" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Kp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_d" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_K1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="K1_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="beta_X" value="0" units="dimensionless" constant="false"/>
+      <parameter id="g_K" value="0" units="dimensionless" constant="false"/>
+      <parameter id="g_K1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_Na" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_si" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_K" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_K1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_Kp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_b" value="0" units="dimensionless" constant="false"/>
+      <parameter id="iapp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ina" value="0" units="dimensionless" constant="false"/>
+      <parameter id="isi" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ik" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ik1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ikp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="iktot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="V">
@@ -1528,6 +1592,11 @@ done</pre>
             <ci> i_K1 </ci>
             <ci> i_Kp </ci>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>
