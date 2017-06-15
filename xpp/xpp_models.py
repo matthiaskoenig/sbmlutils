@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
     # get all ode files
     ode_all = []
-    xpp_path = "."
+    xpp_path = "./tmp/"
     for root, dirnames, filenames in os.walk(xpp_path):
         for f in filenames:
             if f.endswith('.ode'):

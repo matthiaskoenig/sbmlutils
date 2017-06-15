@@ -8,10 +8,21 @@ from sbmlutils.converters import xpp
 import roadrunner
 from matplotlib import pyplot as plt
 
+def example0():
+    # convert xpp to sbml
+    out_dir = './xpp_example'
+    model_id = "SkM_AP_KCa"
+    xpp_file = os.path.join(out_dir, "{}.ode".format(model_id))
+    sbml_file = os.path.join(out_dir, "{}.xml".format(model_id))
+    xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+    sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
 
-if __name__ == "__main__":
+    # test simulation
+    r = roadrunner.RoadRunner(sbml_file)
+    s = r.simulate(start=0, end=1000, steps=100)
 
 
+def example1():
     # convert xpp to sbml
     out_dir = './xpp_example'
     xpp_file = os.path.join(out_dir, "PLoSCompBiol_Fig1.ode")
@@ -37,4 +48,12 @@ if __name__ == "__main__":
 
     fig.savefig(os.path.join(out_dir, "PLoSCompBiol_Fig1.png"),
                 bbox_inches='tight')
+
+
+if __name__ == "__main__":
+    example0()
+    example1()
+
+
+
 
