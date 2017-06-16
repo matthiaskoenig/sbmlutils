@@ -63,10 +63,8 @@ def replace_formula(formula, fid, old_args, new_args):
             print('bracket_content: ', content)
 
         # replace with the new arguments
-        n_args = len(g.split(','))
         # TODO: find the real number of arguments (if arguments are functions this calculation is wrong)
-
-
+        n_args = len(content.split(','))
         if n_args < len(old_args) + len(new_args):
             old_phrase = fid + '(' + content + ')'
             new_phrase = fid + '(' + content + ',' + ','.join(new_args) + ')'

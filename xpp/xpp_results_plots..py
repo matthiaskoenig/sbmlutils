@@ -18,7 +18,7 @@ failures = {
     'boundary': [70],
 
     'bug': [26, 31, 32, 69],
-    'unknown': [38, 39, 41, 45, 46, 47, 49, 50, 51, 52, 55, 61, 62, 63, 64,
+    'unknown': [39, 41, 45, 46, 47, 49, 50, 51, 52, 55, 61, 62, 63, 64,
                 66, 67, 68, 86, 87, 88, 89, 95, 96, 111, 116, 124, 125, 137, 138],
 }
 
@@ -52,8 +52,8 @@ def make_plot():
     ax3.legend()
     ax3.set_xlim(-1, 20)
 
-    plt.show()
-    # fig.savefig("xpp_results.png", bbox_inches='tight')
+    # plt.show()
+    fig.savefig("xpp_results.png", bbox_inches='tight')
 
 if __name__ == "__main__":
     make_plot()
