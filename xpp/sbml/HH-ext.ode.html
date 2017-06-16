@@ -226,7 +226,7 @@
 init V=0, m=0.052, h=0.596, n=0.317
 
 # the parameters
-param Vext=8, iapp=1, freq=0.3
+param vext=8, iapp=1, freq=0.3
 param VNa=115,VK=-12,VL=10.599, gNa=120
 param gK=36, gL=0.3, cm=1
 
@@ -239,9 +239,9 @@ an(v)=0.01*(10-v)/(exp((10-v)/10)-1)
 bn(v)=0.125*exp(-v/80)
 
 vex(t)=vext*(sin(2*pi*(freq/1000)*t))
-ik=gk*n^4*(v+vex(t)-vk)
-ina=gna*m^3*h*(v+vex(t)-vna)
-il=gl*(v+vex(t)-vl)
+ik=gK*n^4*(v+vex(t)-VK)
+ina=gNa*m^3*h*(v+vex(t)-VNa)
+il=gL*(v+vex(t)-VL)
 
 # the equations
 v&apos;=(-ik-ina-il+iapp)/cm
@@ -249,12 +249,13 @@ m&apos;=(am(v)*(1-m)-bm(v)*m)
 n&apos;=(an(v)*(1-n)-bn(v)*n)
 h&apos;=(ah(v)*(1-h)-bh(v)*h)
 
-aux vex=vex(t)
+aux vexf=vex(t)
 
 # set xpp parameters
 @ total=25000, xp=t, yp=v, xlo=0, xhi=25000, ylo=-20, yhi=120, bounds=10000000, dt=0.01
 @ maxstor=10000000
-done</pre>
+done
+</pre>
     <div class="dc:publisher">This file has been produced by
       <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
     </div>
@@ -316,7 +317,7 @@ done</pre>
         <table id="table_functions" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">FunctionDefinitions [3]</th>
+	<th scope="col" class="warning">FunctionDefinitions [11]</th>
 	<th scope="col">name</th>
 	<th scope="col">math</th>
     <th scope="col">sbo</th>
@@ -331,7 +332,7 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">max</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="max" name="min">
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="max" name="minimum">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <lambda>
       <bvar>
@@ -360,7 +361,7 @@ done</pre>
         </div>
       </div>
     </td>
-	<td>min</td>
+	<td>minimum</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <lambda>
@@ -395,7 +396,7 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">min</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="min" name="max">
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="min" name="maximum">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <lambda>
       <bvar>
@@ -424,7 +425,7 @@ done</pre>
         </div>
       </div>
     </td>
-	<td>max</td>
+	<td>maximum</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <lambda>
@@ -459,7 +460,7 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">heav</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="heav" name="max">
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="heav" name="heavyside">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <lambda>
       <bvar>
@@ -498,7 +499,7 @@ done</pre>
         </div>
       </div>
     </td>
-	<td>max</td>
+	<td>heavyside</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <lambda>
@@ -536,6 +537,660 @@ done</pre>
 	<td></td>
 	<td></td>
 </tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="mod" class="active"><span class="package">mod</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mod"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mod" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mod</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="mod" name="modulo">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> x </ci>
+      </bvar>
+      <bvar>
+        <ci> y </ci>
+      </bvar>
+      <piecewise>
+        <piece>
+          <apply>
+            <minus/>
+            <ci> x </ci>
+            <apply>
+              <times/>
+              <ci> y </ci>
+              <apply>
+                <ceiling/>
+                <apply>
+                  <divide/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+          <apply>
+            <xor/>
+            <apply>
+              <lt/>
+              <ci> x </ci>
+              <cn type="integer"> 0 </cn>
+            </apply>
+            <apply>
+              <lt/>
+              <ci> y </ci>
+              <cn type="integer"> 0 </cn>
+            </apply>
+          </apply>
+        </piece>
+        <otherwise>
+          <apply>
+            <minus/>
+            <ci> x </ci>
+            <apply>
+              <times/>
+              <ci> y </ci>
+              <apply>
+                <floor/>
+                <apply>
+                  <divide/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </otherwise>
+      </piecewise>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>modulo</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <bvar>
+      <ci> y </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <apply>
+          <minus/>
+          <ci> x </ci>
+          <apply>
+            <times/>
+            <ci> y </ci>
+            <apply>
+              <ceiling/>
+              <apply>
+                <divide/>
+                <ci> x </ci>
+                <ci> y </ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <xor/>
+          <apply>
+            <lt/>
+            <ci> x </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+          <apply>
+            <lt/>
+            <ci> y </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+        </apply>
+      </piece>
+      <otherwise>
+        <apply>
+          <minus/>
+          <ci> x </ci>
+          <apply>
+            <times/>
+            <ci> y </ci>
+            <apply>
+              <floor/>
+              <apply>
+                <divide/>
+                <ci> x </ci>
+                <ci> y </ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="am" class="active"><span class="package">am</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-am"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-am" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">am</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="am">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <cn> 0.1 </cn>
+          <apply>
+            <minus/>
+            <cn type="integer"> 25 </cn>
+            <ci> v </ci>
+          </apply>
+        </apply>
+        <apply>
+          <minus/>
+          <apply>
+            <exp/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <cn type="integer"> 25 </cn>
+                <ci> v </ci>
+              </apply>
+              <cn type="integer"> 10 </cn>
+            </apply>
+          </apply>
+          <cn type="integer"> 1 </cn>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <cn> 0.1 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 25 </cn>
+          <ci> v </ci>
+        </apply>
+      </apply>
+      <apply>
+        <minus/>
+        <apply>
+          <exp/>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <cn type="integer"> 25 </cn>
+              <ci> v </ci>
+            </apply>
+            <cn type="integer"> 10 </cn>
+          </apply>
+        </apply>
+        <cn type="integer"> 1 </cn>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="bm" class="active"><span class="package">bm</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bm"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bm" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bm</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="bm">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <apply>
+        <times/>
+        <cn type="integer"> 4 </cn>
+        <apply>
+          <exp/>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+            </apply>
+            <cn type="integer"> 18 </cn>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <apply>
+      <times/>
+      <cn type="integer"> 4 </cn>
+      <apply>
+        <exp/>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <ci> v </ci>
+          </apply>
+          <cn type="integer"> 18 </cn>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="ah" class="active"><span class="package">ah</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ah"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ah" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ah</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="ah">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <apply>
+        <times/>
+        <cn> 0.07 </cn>
+        <apply>
+          <exp/>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+            </apply>
+            <cn type="integer"> 20 </cn>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <apply>
+      <times/>
+      <cn> 0.07 </cn>
+      <apply>
+        <exp/>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <ci> v </ci>
+          </apply>
+          <cn type="integer"> 20 </cn>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="bh" class="active"><span class="package">bh</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bh"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bh" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bh</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="bh">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <plus/>
+          <apply>
+            <exp/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <cn type="integer"> 30 </cn>
+                <ci> v </ci>
+              </apply>
+              <cn type="integer"> 10 </cn>
+            </apply>
+          </apply>
+          <cn type="integer"> 1 </cn>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <plus/>
+        <apply>
+          <exp/>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <cn type="integer"> 30 </cn>
+              <ci> v </ci>
+            </apply>
+            <cn type="integer"> 10 </cn>
+          </apply>
+        </apply>
+        <cn type="integer"> 1 </cn>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="an" class="active"><span class="package">an</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-an"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-an" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">an</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="an">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <cn> 0.01 </cn>
+          <apply>
+            <minus/>
+            <cn type="integer"> 10 </cn>
+            <ci> v </ci>
+          </apply>
+        </apply>
+        <apply>
+          <minus/>
+          <apply>
+            <exp/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <cn type="integer"> 10 </cn>
+                <ci> v </ci>
+              </apply>
+              <cn type="integer"> 10 </cn>
+            </apply>
+          </apply>
+          <cn type="integer"> 1 </cn>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <cn> 0.01 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 10 </cn>
+          <ci> v </ci>
+        </apply>
+      </apply>
+      <apply>
+        <minus/>
+        <apply>
+          <exp/>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <cn type="integer"> 10 </cn>
+              <ci> v </ci>
+            </apply>
+            <cn type="integer"> 10 </cn>
+          </apply>
+        </apply>
+        <cn type="integer"> 1 </cn>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="bn" class="active"><span class="package">bn</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bn"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bn" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bn</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="bn">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <apply>
+        <times/>
+        <cn> 0.125 </cn>
+        <apply>
+          <exp/>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+            </apply>
+            <cn type="integer"> 80 </cn>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <apply>
+      <times/>
+      <cn> 0.125 </cn>
+      <apply>
+        <exp/>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <ci> v </ci>
+          </apply>
+          <cn type="integer"> 80 </cn>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="vex" class="active"><span class="package">vex</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vex"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vex" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vex</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="vex">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> t </ci>
+      </bvar>
+      <bvar>
+        <ci> freq </ci>
+      </bvar>
+      <bvar>
+        <ci> vext </ci>
+      </bvar>
+      <apply>
+        <times/>
+        <ci> vext </ci>
+        <apply>
+          <sin/>
+          <apply>
+            <times/>
+            <cn type="integer"> 2 </cn>
+            <pi/>
+            <apply>
+              <divide/>
+              <ci> freq </ci>
+              <cn type="integer"> 1000 </cn>
+            </apply>
+            <ci> t </ci>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> t </ci>
+    </bvar>
+    <bvar>
+      <ci> freq </ci>
+    </bvar>
+    <bvar>
+      <ci> vext </ci>
+    </bvar>
+    <apply>
+      <times/>
+      <ci> vext </ci>
+      <apply>
+        <sin/>
+        <apply>
+          <times/>
+          <cn type="integer"> 2 </cn>
+          <pi/>
+          <apply>
+            <divide/>
+            <ci> freq </ci>
+            <cn type="integer"> 1000 </cn>
+          </apply>
+          <ci> t </ci>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
             </tbody>
         </table>
         <hr/>
@@ -562,7 +1217,7 @@ done</pre>
         <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Parameters [26]</th>
+	<th scope="col" class="warning">Parameters [20]</th>
 	<th scope="col">name</th>
 	<th scope="col">constant</th>
 	<th scope="col">value</th>
@@ -658,13 +1313,13 @@ done</pre>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="Vext" class="active"><span class="package">Vext</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Vext"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-Vext" role="dialog">
+	<td id="vext" class="active"><span class="package">vext</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vext"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vext" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">Vext</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="Vext" value="8" constant="false"/></textarea></div>
+            <div class="modal-header"><h4 class="modal-title">vext</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vext" value="8" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
@@ -874,253 +1529,14 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">v</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="v" units="dimensionless" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="v" value="0" units="dimensionless" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <apply>
-      <plus/>
-      <apply>
-        <minus/>
-        <apply>
-          <minus/>
-          <apply>
-            <minus/>
-            <ci> ik </ci>
-          </apply>
-          <ci> ina </ci>
-        </apply>
-        <ci> il </ci>
-      </apply>
-      <ci> iapp </ci>
-    </apply>
-    <ci> cm </ci>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td>dimensionless</td>
-	<td>None</td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
+	<td>0.0</td>
 	<td>dimensionless</td>
 	<td>None</td>
 
@@ -1134,37 +1550,14 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">ik</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ik" units="dimensionless" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ik" value="0" units="dimensionless" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> gk </ci>
-    <apply>
-      <power/>
-      <ci> n </ci>
-      <cn type="integer"> 4 </cn>
-    </apply>
-    <apply>
-      <minus/>
-      <apply>
-        <plus/>
-        <ci> v </ci>
-        <apply>
-          <ci> vex </ci>
-          <ci> t </ci>
-        </apply>
-      </apply>
-      <ci> vk </ci>
-    </apply>
-  </apply>
-</math></td>
+	<td>0.0</td>
 	<td>dimensionless</td>
 	<td>None</td>
 
@@ -1178,38 +1571,14 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">ina</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ina" units="dimensionless" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ina" value="0" units="dimensionless" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> gna </ci>
-    <apply>
-      <power/>
-      <ci> m </ci>
-      <cn type="integer"> 3 </cn>
-    </apply>
-    <ci> h </ci>
-    <apply>
-      <minus/>
-      <apply>
-        <plus/>
-        <ci> v </ci>
-        <apply>
-          <ci> vex </ci>
-          <ci> t </ci>
-        </apply>
-      </apply>
-      <ci> vna </ci>
-    </apply>
-  </apply>
-</math></td>
+	<td>0.0</td>
 	<td>dimensionless</td>
 	<td>None</td>
 
@@ -1223,32 +1592,14 @@ done</pre>
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">il</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="il" units="dimensionless" constant="false"/></textarea></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="il" value="0" units="dimensionless" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> gl </ci>
-    <apply>
-      <minus/>
-      <apply>
-        <plus/>
-        <ci> v </ci>
-        <apply>
-          <ci> vex </ci>
-          <ci> t </ci>
-        </apply>
-      </apply>
-      <ci> vl </ci>
-    </apply>
-  </apply>
-</math></td>
+	<td>0.0</td>
 	<td>dimensionless</td>
 	<td>None</td>
 
@@ -1256,26 +1607,41 @@ done</pre>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="vex" class="active"><span class="package">vex</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vex"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-vex" role="dialog">
+	<td id="vexf" class="active"><span class="package">vexf</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vexf"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vexf" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">vex</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vex" units="dimensionless" constant="false"/></textarea></div>
+            <div class="modal-header"><h4 class="modal-title">vexf</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vexf" value="0" units="dimensionless" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
     </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <ci> vex </ci>
-    <ci> t </ci>
-  </apply>
-</math></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="t" class="active"><span class="package">t</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-t"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-t" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">t</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>model time</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
 	<td>dimensionless</td>
 	<td>None</td>
 
@@ -1296,7 +1662,7 @@ done</pre>
         <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">Rules [15]</th>
+	<th scope="col" class="warning">Rules [9]</th>
 	<th scope="col">&nbsp;</th>
 	<th scope="col">assignment</th>
 	<th scope="col">name</th>
@@ -1581,222 +1947,6 @@ done</pre>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <apply>
-      <times/>
-      <cn> 0.1 </cn>
-      <apply>
-        <minus/>
-        <cn type="integer"> 25 </cn>
-        <ci> v </ci>
-      </apply>
-    </apply>
-    <apply>
-      <minus/>
-      <apply>
-        <exp/>
-        <apply>
-          <divide/>
-          <apply>
-            <minus/>
-            <cn type="integer"> 25 </cn>
-            <ci> v </ci>
-          </apply>
-          <cn type="integer"> 10 </cn>
-        </apply>
-      </apply>
-      <cn type="integer"> 1 </cn>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <cn type="integer"> 4 </cn>
-    <apply>
-      <exp/>
-      <apply>
-        <divide/>
-        <apply>
-          <minus/>
-          <ci> v </ci>
-        </apply>
-        <cn type="integer"> 18 </cn>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <cn> 0.07 </cn>
-    <apply>
-      <exp/>
-      <apply>
-        <divide/>
-        <apply>
-          <minus/>
-          <ci> v </ci>
-        </apply>
-        <cn type="integer"> 20 </cn>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <cn type="integer"> 1 </cn>
-    <apply>
-      <plus/>
-      <apply>
-        <exp/>
-        <apply>
-          <divide/>
-          <apply>
-            <minus/>
-            <cn type="integer"> 30 </cn>
-            <ci> v </ci>
-          </apply>
-          <cn type="integer"> 10 </cn>
-        </apply>
-      </apply>
-      <cn type="integer"> 1 </cn>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <apply>
-      <times/>
-      <cn> 0.01 </cn>
-      <apply>
-        <minus/>
-        <cn type="integer"> 10 </cn>
-        <ci> v </ci>
-      </apply>
-    </apply>
-    <apply>
-      <minus/>
-      <apply>
-        <exp/>
-        <apply>
-          <divide/>
-          <apply>
-            <minus/>
-            <cn type="integer"> 10 </cn>
-            <ci> v </ci>
-          </apply>
-          <cn type="integer"> 10 </cn>
-        </apply>
-      </apply>
-      <cn type="integer"> 1 </cn>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <cn> 0.125 </cn>
-    <apply>
-      <exp/>
-      <apply>
-        <divide/>
-        <apply>
-          <minus/>
-          <ci> v </ci>
-        </apply>
-        <cn type="integer"> 80 </cn>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td class="active"><i class="fa fa-ban gray"></i></td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <times/>
-    <ci> vext </ci>
-    <apply>
-      <sin/>
-      <apply>
-        <times/>
-        <cn type="integer"> 2 </cn>
-        <pi/>
-        <apply>
-          <divide/>
-          <ci> freq </ci>
-          <cn type="integer"> 1000 </cn>
-        </apply>
-        <ci> t </ci>
-      </apply>
-    </apply>
-  </apply>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td>None</td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
 	<td id="ik" class="active"><span class="package">ik</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ik"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-ik" role="dialog">
@@ -1807,7 +1957,7 @@ done</pre>
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <times/>
-      <ci> gk </ci>
+      <ci> gK </ci>
       <apply>
         <power/>
         <ci> n </ci>
@@ -1821,9 +1971,11 @@ done</pre>
           <apply>
             <ci> vex </ci>
             <ci> t </ci>
+            <ci> freq </ci>
+            <ci> vext </ci>
           </apply>
         </apply>
-        <ci> vk </ci>
+        <ci> VK </ci>
       </apply>
     </apply>
   </math>
@@ -1837,7 +1989,7 @@ done</pre>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
-    <ci> gk </ci>
+    <ci> gK </ci>
     <apply>
       <power/>
       <ci> n </ci>
@@ -1851,9 +2003,11 @@ done</pre>
         <apply>
           <ci> vex </ci>
           <ci> t </ci>
+          <ci> freq </ci>
+          <ci> vext </ci>
         </apply>
       </apply>
-      <ci> vk </ci>
+      <ci> VK </ci>
     </apply>
   </apply>
 </math></td>
@@ -1873,7 +2027,7 @@ done</pre>
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <times/>
-      <ci> gna </ci>
+      <ci> gNa </ci>
       <apply>
         <power/>
         <ci> m </ci>
@@ -1888,9 +2042,11 @@ done</pre>
           <apply>
             <ci> vex </ci>
             <ci> t </ci>
+            <ci> freq </ci>
+            <ci> vext </ci>
           </apply>
         </apply>
-        <ci> vna </ci>
+        <ci> VNa </ci>
       </apply>
     </apply>
   </math>
@@ -1904,7 +2060,7 @@ done</pre>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
-    <ci> gna </ci>
+    <ci> gNa </ci>
     <apply>
       <power/>
       <ci> m </ci>
@@ -1919,9 +2075,11 @@ done</pre>
         <apply>
           <ci> vex </ci>
           <ci> t </ci>
+          <ci> freq </ci>
+          <ci> vext </ci>
         </apply>
       </apply>
-      <ci> vna </ci>
+      <ci> VNa </ci>
     </apply>
   </apply>
 </math></td>
@@ -1941,7 +2099,7 @@ done</pre>
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <times/>
-      <ci> gl </ci>
+      <ci> gL </ci>
       <apply>
         <minus/>
         <apply>
@@ -1950,9 +2108,11 @@ done</pre>
           <apply>
             <ci> vex </ci>
             <ci> t </ci>
+            <ci> freq </ci>
+            <ci> vext </ci>
           </apply>
         </apply>
-        <ci> vl </ci>
+        <ci> VL </ci>
       </apply>
     </apply>
   </math>
@@ -1966,7 +2126,7 @@ done</pre>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
-    <ci> gl </ci>
+    <ci> gL </ci>
     <apply>
       <minus/>
       <apply>
@@ -1975,9 +2135,11 @@ done</pre>
         <apply>
           <ci> vex </ci>
           <ci> t </ci>
+          <ci> freq </ci>
+          <ci> vext </ci>
         </apply>
       </apply>
-      <ci> vl </ci>
+      <ci> VL </ci>
     </apply>
   </apply>
 </math></td>
@@ -1987,17 +2149,19 @@ done</pre>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="vex" class="active"><span class="package">vex</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vex"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-vex" role="dialog">
+	<td id="vexf" class="active"><span class="package">vexf</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vexf"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vexf" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">vex</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="vex">
+            <div class="modal-header"><h4 class="modal-title">vexf</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="vexf">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <ci> vex </ci>
       <ci> t </ci>
+      <ci> freq </ci>
+      <ci> vext </ci>
     </apply>
   </math>
 </assignmentRule></textarea></div>
@@ -2011,7 +2175,35 @@ done</pre>
   <apply>
     <ci> vex </ci>
     <ci> t </ci>
+    <ci> freq </ci>
+    <ci> vext </ci>
   </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="t" class="active"><span class="package">t</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-t"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-t" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">t</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="t">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
 </math></td>
 	<td><i class="fa fa-ban gray"></i>
     <td>None</td>

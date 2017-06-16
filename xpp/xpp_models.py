@@ -111,6 +111,31 @@ def get_models(download=True):
         ode_all.extend(ode_files)
     return ode_all
 
+def simulate(sbml_file):
+    """ Simulate given SBML file.
+    :param sbml_file:
+    :return:
+    """
+    print("SIMULATING SBML FILE")
+
+    # test simulation
+    r = roadrunner.RoadRunner(sbml_file)
+    s = r.simulate(start=0, end=1000, steps=100)
+
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+    axes = (ax1, ax2)
+
+    for ax in axes:
+        for sid in r.timeCourseSelections[1:]:
+            ax.plot(s['time'], s[sid], label=sid)
+    ax2.set_yscale('log')
+    for ax in axes:
+        ax.set_ylabel('Value [?]')
+        ax.set_xlabel('Time [?]')
+        ax.legend()
+
+    fig.savefig("{}.png".format(sbml_file), bbox_inches='tight')
+
 
 if __name__ == "__main__":
     import traceback
@@ -118,6 +143,9 @@ if __name__ == "__main__":
     from sbmlutils import validation
     from sbmlutils.report import sbmlreport
     from sbmlutils.converters import xpp
+    import roadrunner
+    import numpy as np
+    from matplotlib import pyplot as plt
 
     # download and unzip all sbml files
     # ode_all = get_models(download=True)
@@ -133,10 +161,12 @@ if __name__ == "__main__":
 
     # create the sbml files
     out_dir = './sbml'
-    Nall = len(ode_all)
+    N = len(ode_all)
     Nfail = 0
 
-    # ode_all = ["./105528/SkM_AP/SkM_AP_KCa.ode"]
+    results = []
+
+    # ode_all = ["./97743/DARPPmodel_2006/DARPPmodel_2006.ode"]
     for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml
@@ -144,14 +174,43 @@ if __name__ == "__main__":
         sbml_file = os.path.join(out_dir, "{}.xml".format(basename))
         try:
             print('[{}]'.format(k))
-            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, debug=False)
+            success = True
             sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=validation.VALIDATION_NO_UNITS)
+            Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, show_errors=False)
+            valid = (Nerr == 0)
+            simulates = False
+            if valid:
+                try:
+                    simulate(sbml_file)
+                    simulates = True
+                except:
+                    # simulation exception
+                    simulates = False
+                    print()
+                    traceback.print_exc(file=sys.stdout)
+                    print()
+
         except:
             print()
             traceback.print_exc(file=sys.stdout)
             print()
+            success = False
+            valid = np.NaN
+            simulates = np.NaN
+            Nall, Nerr, Nwarn = np.NaN, np.NaN, np.NaN
+
             Nfail += 1
+        results.append([xpp_file, success, valid, simulates, Nall, Nerr, Nwarn])
+
+    import pandas as pd
+    df = pd.DataFrame(data=results, columns=['xpp_file', 'success', 'valid', 'simulates', 'Nall', 'Nerr', 'Nwarn'])
+    df.to_csv("./xpp_results.tsv", sep="\t")
     print('*'*80)
-    print('SUCCESS: {}/{}={:.2f}'.format((Nall-Nfail), Nall, 1.0*(Nall-Nfail)/Nall))
+    print('CONVERTED: {}/{}={:.2f}'.format((N-Nfail), N, 1.0*(N-Nfail)/N))
+    Nvalid = np.nansum(df.valid)
+    print('VALID: {}/{}={:.2f}'.format(Nvalid, N, 1.0 * Nvalid / N))
+    Nsimulates = np.nansum(df.simulates)
+    print('SIMULATES: {}/{}={:.2f}'.format(Nsimulates, N, 1.0 * Nsimulates / N))
     print('*' * 80)
 

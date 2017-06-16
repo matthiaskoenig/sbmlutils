@@ -10,8 +10,10 @@ from matplotlib import pyplot as plt
 
 def example(model_id):
     # convert xpp to sbml
-    out_dir = './xpp_example'
-    xpp_file = os.path.join(out_dir, "{}.ode".format(model_id))
+    xpp_dir = './xpp_example'
+    out_dir = './xpp_example/results'
+
+    xpp_file = os.path.join(xpp_dir, "{}.ode".format(model_id))
     sbml_file = os.path.join(out_dir, "{}.xml".format(model_id))
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
     sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
@@ -36,17 +38,11 @@ def example(model_id):
                 bbox_inches='tight')
 
 
-def example0():
+if __name__ == "__main__":
+    example(model_id="112836_HH-ext")
     example(model_id="SkM_AP_KCa")
-
-
-def example1():
     example(model_id="PLoSCompBiol_Fig1")
 
-
-if __name__ == "__main__":
-    example0()
-    example1()
 
 
 

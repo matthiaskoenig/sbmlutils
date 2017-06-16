@@ -140,7 +140,7 @@ def _check_consistency(doc, internalConsistency=False, show_errors=True):
         # FIXME: print to logging & make optional
         if show_errors:
             pass
-            #print_errors(doc)
+            # print_errors(doc)
 
     return Nall, Nerr, Nwarn
 
