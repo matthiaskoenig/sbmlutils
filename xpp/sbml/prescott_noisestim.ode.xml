@@ -82,7 +82,7 @@ done
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -107,7 +107,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -132,7 +132,7 @@ done
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -167,6 +167,187 @@ done
           </lambda>
         </math>
       </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="i_dc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> idc </ci>
+            </bvar>
+            <ci> idc </ci>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="minf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_m </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_m </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <tanh/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> V </ci>
+                      <ci> beta_m </ci>
+                    </apply>
+                    <ci> gamma_m </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="yinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_y </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_y </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <tanh/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> V </ci>
+                      <ci> beta_y </ci>
+                    </apply>
+                    <ci> gamma_y </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauy">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> V </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_y </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_y </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <cosh/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> beta_y </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> gamma_y </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
       <parameter id="dc_noise" value="2.2218" constant="false"/>
@@ -186,13 +367,10 @@ done
       <parameter id="phi_y" value="0.15" constant="false"/>
       <parameter id="gl" value="2" constant="false"/>
       <parameter id="vl" value="-70" constant="false"/>
-      <parameter id="nd" units="dimensionless" constant="false"/>
-      <parameter id="noise" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="stim" units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
+      <parameter id="nd" value="0" units="dimensionless" constant="false"/>
+      <parameter id="noise" value="0" units="dimensionless" constant="false"/>
+      <parameter id="stim" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="V">
@@ -210,6 +388,7 @@ done
                     <apply>
                       <ci> i_dc </ci>
                       <ci> t </ci>
+                      <ci> idc </ci>
                     </apply>
                     <apply>
                       <times/>
@@ -228,6 +407,8 @@ done
                     <apply>
                       <ci> minf </ci>
                       <ci> V </ci>
+                      <ci> beta_m </ci>
+                      <ci> gamma_m </ci>
                     </apply>
                     <apply>
                       <minus/>
@@ -280,11 +461,6 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <ci> idc </ci>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="stim">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
@@ -292,6 +468,7 @@ done
             <apply>
               <ci> i_dc </ci>
               <ci> t </ci>
+              <ci> idc </ci>
             </apply>
             <apply>
               <times/>
@@ -304,76 +481,9 @@ done
           </apply>
         </math>
       </assignmentRule>
-      <assignmentRule>
+      <assignmentRule variable="t">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.5 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <tanh/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <ci> V </ci>
-                    <ci> beta_m </ci>
-                  </apply>
-                  <ci> gamma_m </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <cn> 0.5 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <tanh/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <ci> V </ci>
-                    <ci> beta_y </ci>
-                  </apply>
-                  <ci> gamma_y </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <cosh/>
-              <apply>
-                <divide/>
-                <apply>
-                  <minus/>
-                  <ci> V </ci>
-                  <ci> beta_y </ci>
-                </apply>
-                <apply>
-                  <times/>
-                  <cn type="integer"> 2 </cn>
-                  <ci> gamma_y </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

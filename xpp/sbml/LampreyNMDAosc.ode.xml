@@ -70,7 +70,7 @@ c(0)=0
       </body>
     </notes>
     <listOfFunctionDefinitions>
-      <functionDefinition id="max" name="min">
+      <functionDefinition id="max" name="minimum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -95,7 +95,7 @@ c(0)=0
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="min" name="max">
+      <functionDefinition id="min" name="maximum">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -120,7 +120,7 @@ c(0)=0
           </lambda>
         </math>
       </functionDefinition>
-      <functionDefinition id="heav" name="max">
+      <functionDefinition id="heav" name="heavyside">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <lambda>
             <bvar>
@@ -155,6 +155,134 @@ c(0)=0
           </lambda>
         </math>
       </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> sm </ci>
+            </bvar>
+            <bvar>
+              <ci> vmhalf </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <ci> sm </ci>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> vmhalf </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <times/>
+                    <ci> sm </ci>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> vmhalf </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="act_k"/>
+      <functionDefinition id="act_cav"/>
+      <functionDefinition id="act_kca">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> C </ci>
+            </bvar>
+            <bvar>
+              <ci> tc </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> tc </ci>
+              <ci> C </ci>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
     </listOfFunctionDefinitions>
     <listOfParameters>
       <parameter id="gnmda" value="0.005" constant="false"/>
@@ -180,11 +308,8 @@ c(0)=0
       <parameter id="v" value="-70" constant="false"/>
       <parameter value="-70" constant="false"/>
       <parameter id="c" value="0" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter units="dimensionless" constant="false"/>
-      <parameter id="act" units="dimensionless" constant="false"/>
+      <parameter id="act" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
     </listOfParameters>
     <listOfRules>
       <rateRule variable="v">
@@ -199,6 +324,8 @@ c(0)=0
                 <apply>
                   <ci> p </ci>
                   <ci> v </ci>
+                  <ci> sm </ci>
+                  <ci> vmhalf </ci>
                 </apply>
                 <ci> gnmda </ci>
                 <apply>
@@ -213,6 +340,7 @@ c(0)=0
                 <apply>
                   <ci> act_kca </ci>
                   <ci> C </ci>
+                  <ci> tc </ci>
                 </apply>
                 <apply>
                   <minus/>
@@ -226,6 +354,10 @@ c(0)=0
                 <apply>
                   <ci> act_k </ci>
                   <ci> v </ci>
+                  <ci> sk </ci>
+                  <ci> sm </ci>
+                  <ci> vkhalf </ci>
+                  <ci> vmhalf </ci>
                 </apply>
                 <apply>
                   <minus/>
@@ -248,6 +380,10 @@ c(0)=0
                 <apply>
                   <ci> act_cav </ci>
                   <ci> v </ci>
+                  <ci> sca </ci>
+                  <ci> sm </ci>
+                  <ci> vcahalf </ci>
+                  <ci> vmhalf </ci>
                 </apply>
                 <apply>
                   <minus/>
@@ -272,6 +408,8 @@ c(0)=0
                 <apply>
                   <ci> p </ci>
                   <ci> v </ci>
+                  <ci> sm </ci>
+                  <ci> vmhalf </ci>
                 </apply>
                 <ci> gnmda </ci>
                 <apply>
@@ -287,6 +425,10 @@ c(0)=0
                 <apply>
                   <ci> act_cav </ci>
                   <ci> v </ci>
+                  <ci> sca </ci>
+                  <ci> sm </ci>
+                  <ci> vcahalf </ci>
+                  <ci> vmhalf </ci>
                 </apply>
                 <apply>
                   <minus/>
@@ -303,104 +445,18 @@ c(0)=0
           </apply>
         </math>
       </rateRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <apply>
-              <exp/>
-              <apply>
-                <times/>
-                <ci> sm </ci>
-                <apply>
-                  <minus/>
-                  <ci> v </ci>
-                  <ci> vmhalf </ci>
-                </apply>
-              </apply>
-            </apply>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <times/>
-                  <ci> sm </ci>
-                  <apply>
-                    <minus/>
-                    <ci> v </ci>
-                    <ci> vmhalf </ci>
-                  </apply>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <ci> v </ci>
-                    <ci> vkhalf </ci>
-                  </apply>
-                  <ci> sk </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <divide/>
-            <cn type="integer"> 1 </cn>
-            <apply>
-              <plus/>
-              <cn type="integer"> 1 </cn>
-              <apply>
-                <exp/>
-                <apply>
-                  <divide/>
-                  <apply>
-                    <minus/>
-                    <ci> v </ci>
-                    <ci> vcahalf </ci>
-                  </apply>
-                  <ci> sca </ci>
-                </apply>
-              </apply>
-            </apply>
-          </apply>
-        </math>
-      </assignmentRule>
-      <assignmentRule>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> tc </ci>
-            <ci> C </ci>
-          </apply>
-        </math>
-      </assignmentRule>
       <assignmentRule variable="act">
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
             <ci> act_kca </ci>
             <ci> C </ci>
+            <ci> tc </ci>
           </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
         </math>
       </assignmentRule>
     </listOfRules>

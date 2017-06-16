@@ -19,8 +19,13 @@ Not supported:
 - global
 - table
 - sum, shift
+- set
+- boundary
+- ran
+- arrays
 """
 # FIXME: support global via events
+# FIXME: recursive if than else not supported
 # TODO: rnd via dist
 
 from __future__ import print_function, absolute_import
@@ -118,14 +123,26 @@ def parts_from_expression(expression):
     V1=-0.75  R1=0.26  CA1=0.1 H1=0.1
     V1=-0.75,  R1=0.26,  CA1=0.1, H1=0.1
 
+    but there can also be commas in function definitions
+    vex=vex(t,freq,vext)
+
     :return: list of cleaned parts
     """
     # replace all separators with comma
-    expression = expression.replace(' ', ',')
-    expression = expression.replace('\t', ',')
-    # collect non-empty parts
-    parts = [t.strip() for t in expression.split(',')]
-    parts = [p for p in parts if len(p) > 0]
+    # groups = re.findall('(.+?=.+?)[,\s]+', expression)
+    # print('groups', groups)
+    # return groups
+
+    tokens = expression.split('=')
+    if len(tokens) == 2:
+        return [expression]
+    else:
+        # get the individual parts, i.e. all the assignments
+        # FIXME: bad hack which will break with function definitions
+        expression = expression.replace(' ', ',')
+        expression = expression.replace('\t', ',')
+        parts = [t.strip() for t in expression.split(',')]
+        parts = [p for p in parts if len(p) > 0]
     return parts
 
 
@@ -167,7 +184,7 @@ def replace_formula(formula, fid, old_args, new_args):
 ##################################
 # Converter
 ##################################
-def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
+def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS, debug=False):
     """ Reads given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
@@ -337,9 +354,9 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     for fdata in function_definitions:
         fdata['new_args'] = list(sorted(set(fdata['new_args'])))
 
-
-    # print('\nREPLACED FUNCTION_DEFINITIONS')
-    # pprint(function_definitions)
+    if debug:
+        print('\nREPLACED FUNCTION_DEFINITIONS')
+        pprint(function_definitions)
 
     # Create function definitions
     for k, fdata in enumerate(function_definitions):
@@ -353,11 +370,12 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
     ###########################################################################
     # Second iteration
     ###########################################################################
-    # print('\nPARSED LINES')
-    # pprint(parsed_lines)
-    # print('\n\n')
+    if debug:
+        print('\nPARSED LINES')
+        pprint(parsed_lines)
+        print('\n\n')
     for line in parsed_lines:
-        # print('*'*3, line, '*'*3)
+
 
         # replace function definitions in lines
         new_line = line
@@ -367,6 +385,10 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
             # print('REPLACED')
             # print(line, '->', new_line)
             line = new_line
+
+        if debug:
+            # line after function replacements
+            print('*'*3, line, '*'*3)
 
         ################################
         # Start parsing the given line
@@ -413,6 +435,10 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS):
                 xpp_type = parse_keyword(xid)
                 expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:])  # full expression after keyword
                 parts = parts_from_expression(expression)
+                if False:
+                    print('xid:', xid)
+                    print('expression:', expression)
+                    print('parts:', parts)
 
                 # parameter & numbers
                 if xpp_type in [XPP_PAR, XPP_NUM]:

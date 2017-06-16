@@ -424,7 +424,8 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            warnings.warn('Rule with sid already exists in model: {}'.format(sid))
+            warnings.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            obj = model.getRule(sid)
         return obj
 
     @staticmethod
