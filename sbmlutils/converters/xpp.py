@@ -169,8 +169,15 @@ def replace_formula(formula, fid, old_args, new_args):
     :return:
     """
     new_formula = formula
-    groups = re.findall('({}\s*\(.*?\))'.format(fid), formula)
+    pattern = re.compile('(?<!\w)({}\s*\(.*?\))'.format(fid))
+    groups = re.findall(pattern, formula)
     if groups:
+        if False:
+            print('-'*80)
+            print('pattern', pattern)
+            print('formula:', formula)
+            print('groups:', groups)
+            print('-' * 80)
         for g in groups:
             # replace with the new arguments
             n_args = len(g.split(','))
@@ -208,9 +215,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum'),
         fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum'),
         # heav (heavyside)
-        fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0)))', name='heavyside'),
+        fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0), 0))', name='heavyside'),
         # mod (modulo)
-        # fac.Function('mod', 'lambda(x,y, x-y*floor(x/y))', name='modulo'),
         fac.Function('mod', 'lambda(x,y, x % y)', name='modulo'),
 
     ]
@@ -240,6 +246,11 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
     def create_initial_assignment(sid, value):
         """ Helper for creating initial assignments """
+        # check if valid identifier
+        if '(' in sid:
+            warnings.warn("sid is not valid: {}. Initial assignment is not generated".format(sid))
+            return
+
         try:
             f_value = float(value)
             parameters.append(
@@ -305,10 +316,15 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
             line = line.replace('**', '^')
 
             # handle if(...)then(...)else()
-            groups = re.findall('if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)', line)
-            if len(groups) > 0:
-                f_piecewise = "piecewise({}, {}, {})".format(*groups[0])
-                line = re.sub("if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)", f_piecewise, line)
+            pattern_ite = re.compile('if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)')
+            pattern_ite_sub = re.compile("if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)")
+            groups = re.findall(pattern_ite, line)
+            for group in groups:
+                condition = group[0]
+                assignment = group[1]
+                otherwise = group[2]
+                f_piecewise = "piecewise({}, {}, {})".format(assignment, condition, otherwise)
+                line = re.sub(pattern_ite_sub, f_piecewise, line)
 
             ################################
             # Function definitions
@@ -318,7 +334,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
             They can have up to 9 arguments.
             The difference to SBML functions is that xpp functions have access to the global parameter values
             '''
-            groups = re.findall('(.*)\s*\((.*)\)\s*=\s*(.*)', line)
+            f_pattern = re.compile('(.*)\s*\((.*)\)\s*=\s*(.*)')
+            groups = re.findall(f_pattern, line)
             if groups:
                 # function definitions found
                 fid, args, formula = groups[0]
@@ -326,7 +343,6 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                 if args == '0':
                     parsed_lines.append(line)
                     continue
-
 
                 # necessary to find the additional arguments from the ast_node
                 ast = libsbml.parseL3Formula(formula)
@@ -345,9 +361,9 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                 continue
 
             parsed_lines.append(line)
-
-    # print('\n\nFUNCTION_DEFINITIONS')
-    # pprint(function_definitions)
+    if debug:
+        print('\n\nFUNCTION_DEFINITIONS')
+        pprint(function_definitions)
 
     # functions can use functions so this also must be replaced
     changes = True
@@ -385,8 +401,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         for fdata in function_definitions:
             new_line = replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
         if new_line != line:
-            if debug:
-                print('Replaced FD:', line, '->', new_line)
+            # if debug:
+            #    print('Replaced FD:', line, '->', new_line)
             line = new_line
 
         if debug:
