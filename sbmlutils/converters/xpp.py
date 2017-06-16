@@ -375,26 +375,14 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         pprint(parsed_lines)
         print('\n\n')
     for line in parsed_lines:
-        # line after function replacements
-        print('*' * 3, line, '*' * 3)
 
         # replace function definitions in lines
         new_line = line
         for fdata in function_definitions:
-
-
             new_line = xpp_helpers.replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
 
-            if line.startswith("aux wholecell=isoma(v(vsoma)") and fdata['fid'] == "v":
-                print('-'*80)
-                print(fdata)
-                print('after:', new_line)
-                print('-'*80)
-                exit()
-
-
         if new_line != line:
-            if debug:
+            if False:
                 print('\nReplaced FD', fdata['fid'], ':', new_line)
                 print('->', new_line, '\n')
             line = new_line
