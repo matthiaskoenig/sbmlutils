@@ -48,31 +48,33 @@ def replace_formula(formula, fid, old_args, new_args):
     :return:
     """
     new_formula = formula
-    pattern = re.compile('(?<!\w)({}\s*\(.*?\))'.format(fid))
-    # FIXME: this does probably not find the full expression
+    pattern = re.compile('(?<!\w){}\s*\(.*?\)'.format(fid))
 
-    groups = re.findall(pattern, formula)
-    if groups:
+    for m in pattern.finditer(formula):
+        g = formula[m.start():]
+        content = top_bracket_content(g)
 
-        if True:
+        if False:
             print('-'*80)
             print('formula:\t', formula)
-            print('groups:\t', groups)
+            # print('groups:\t', groups)
+            print('match:', m.start(), m.group())
+            print('g:', g)
+            print('bracket_content: ', content)
 
-        for g in groups:
-            # [fid(v(),  )] (...)
-            content = top_bracket_content(g)
-            print('\tbracket_content: ', g)
+        # replace with the new arguments
+        n_args = len(g.split(','))
+        # TODO: find the real number of arguments (if arguments are functions this calculation is wrong)
 
-            # replace with the new arguments
-            n_args = len(g.split(','))
-            if n_args < len(old_args) + len(new_args):
-                old_phrase = fid + '(' + content + ')'
-                new_phrase = fid + '(' + content + ',' + ','.join(new_args) + ')'
-                new_formula = new_formula.replace(old_phrase, new_phrase)
-        if True:
+
+        if n_args < len(old_args) + len(new_args):
+            old_phrase = fid + '(' + content + ')'
+            new_phrase = fid + '(' + content + ',' + ','.join(new_args) + ')'
+            new_formula = new_formula.replace(old_phrase, new_phrase)
+        if False:
             print('new_formula:\t', new_formula)
             print('-' * 80)
+
     return new_formula
 
 # This is a workaround due to not using a real parser.
@@ -96,7 +98,7 @@ def bracket_stack(s):
             pstack.append(i)
         elif c == ')':
             if len(pstack) == 0:
-                raise IndexError("No matching opening parens at: " + str(i))
+                return toret
             toret[pstack.pop()] = i
 
     return toret
@@ -118,9 +120,10 @@ if __name__ == "__main__":
 
     print('------------------------')
 
-    s = "vtest(v(a, b, c), x(a, b, c), d)*(abc)"
-    # s = 'hv(t-1,sharpness) - hv(t-2,sharpness) + (hv(t-5,sharpness) - hv(t-6,sharpness)))'
+    # s = "vtest(v(a, b, c), x(a, b, c), d)*(abc)"
+    s = 'hv(t-1,sharpness) - hv(t-2,sharpness) + (hv(t-5,sharpness) - hv(t-6,sharpness)))'
     toret = bracket_stack(s)
     print(toret)
     test = top_bracket_content(s)
-    print('content:', test)
+    print('formula:', s)
+    print('content first top bracket:', test)
