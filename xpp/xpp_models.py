@@ -166,7 +166,7 @@ if __name__ == "__main__":
     force_lower = True
     results = []
 
-    ode_all = ["./97747/fs_internrn/gah_fig2c.ode"]
+    ode_all = ["./114450/Neuron-OXC/Neuron_OXC.ode"]
     for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml
@@ -174,9 +174,9 @@ if __name__ == "__main__":
         sbml_file = os.path.join(out_dir, "{}.xml".format(basename))
         try:
             print('[{}]'.format(k))
-            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, debug=True)
+            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, validate=False, debug=False)
             success = True
-            sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=validation.VALIDATION_NO_UNITS)
+            sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
             Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, show_errors=False)
             valid = (Nerr == 0)
             simulates = False
