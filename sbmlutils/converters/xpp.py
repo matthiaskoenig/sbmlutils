@@ -18,15 +18,28 @@ Only supports subset of features.
 Not supported:
 - global
 - table
-- sum, shift
+- sum,
+- shift
 - set
 - boundary
 - ran
 - arrays
+
+ shift(var,expr) This operator evaluates the expression expr converts it to an integer and then uses this to
+ indirectly address a variable whose address is that of var plus the integer value of the expression. This is a way
+ to imitate arrays in XPP. For example if you defined the sequence of 5 variables, u0,u1,u2,u3,u4 one right after
+ another, then shift(u0,2) would return the value of u2.
+
+ sum(ex1,ex2)of(ex3) is a way of summing up things. The expressions ex1>, are evaluated and their integer parts are
+ used as the lower and upper limits of the sum. The index of the sum is i' so that you cannot have double sums since
+ there is only one index. ex3 is the expression to be summed and will generally involve i' For example sum(1,10)of(i')
+ will be evaluated to 55. Another example combines the sum with the shift operator. sum(0,4)of(shift(u0,i')) will
+ sum up u0 and the next four variables that were defined after it.
 """
 # FIXME: support global via events
 # FIXME: recursive if than else not supported
 # TODO: rnd via dist
+# TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
 from __future__ import print_function, absolute_import
 import warnings
@@ -38,7 +51,7 @@ from sbmlutils._version import __version__
 from sbmlutils import factory as fac
 from sbmlutils import sbmlio
 from sbmlutils import validation
-from sbmlutils.converters import astnode
+from sbmlutils.converters import xpp_helpers
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
@@ -157,38 +170,6 @@ def sid_value_from_part(part):
 
 
 ##################################
-# Formula replacement helpers
-##################################
-def replace_formula(formula, fid, old_args, new_args):
-    """ Replace information in given formula.
-
-    :param formula:
-    :param fid:
-    :param old_args:
-    :param new_args:
-    :return:
-    """
-    new_formula = formula
-    pattern = re.compile('(?<!\w)({}\s*\(.*?\))'.format(fid))
-    groups = re.findall(pattern, formula)
-    if groups:
-        if False:
-            print('-'*80)
-            print('pattern', pattern)
-            print('formula:', formula)
-            print('groups:', groups)
-            print('-' * 80)
-        for g in groups:
-            # replace with the new arguments
-            n_args = len(g.split(','))
-            if n_args < len(old_args) + len(new_args):
-                add_str = g[:-1] + ',' + ','.join(new_args) + ')'
-                new_formula = new_formula.replace(g, add_str)
-        # print(fid, ':', formula, '->', new_formula)
-    return new_formula
-
-
-##################################
 # Converter
 ##################################
 def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDATION_NO_UNITS, debug=False):
@@ -218,7 +199,6 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0), 0))', name='heavyside'),
         # mod (modulo)
         fac.Function('mod', 'lambda(x,y, x % y)', name='modulo'),
-
     ]
     function_definitions = []
 
@@ -230,7 +210,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                 if i != k:
                     # replace i with k
                     formula = function_definitions[i]['formula']
-                    new_formula = replace_formula(
+                    new_formula = xpp_helpers.replace_formula(
                         formula,
                         fid=function_definitions[k]['fid'],
                         old_args=function_definitions[k]['old_args'],
@@ -346,7 +326,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
                 # necessary to find the additional arguments from the ast_node
                 ast = libsbml.parseL3Formula(formula)
-                names = set(astnode.find_names_in_ast(ast))
+                names = set(xpp_helpers.find_names_in_ast(ast))
                 old_args = [t.strip() for t in args.split(',')]
                 new_args = [a for a in names if a not in old_args]
 
@@ -399,10 +379,12 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         # replace function definitions in lines
         new_line = line
         for fdata in function_definitions:
-            new_line = replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
+            new_line = xpp_helpers.replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
+
         if new_line != line:
-            # if debug:
-            #    print('Replaced FD:', line, '->', new_line)
+            if debug:
+                print('\nReplaced FD', fdata['fid'], ':', new_line)
+                print('->', new_line, '\n')
             line = new_line
 
         if debug:
