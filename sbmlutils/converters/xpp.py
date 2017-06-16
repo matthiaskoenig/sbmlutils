@@ -169,7 +169,7 @@ def replace_formula(formula, fid, old_args, new_args):
     :return:
     """
     new_formula = formula
-    groups = re.findall('({}\(.*?\))'.format(fid), formula)
+    groups = re.findall('({}\s*\(.*?\))'.format(fid), formula)
     if groups:
         for g in groups:
             # replace with the new arguments
@@ -184,11 +184,12 @@ def replace_formula(formula, fid, old_args, new_args):
 ##################################
 # Converter
 ##################################
-def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS, debug=False):
+def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDATION_NO_UNITS, debug=False):
     """ Reads given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
+    :param force_lower: force lower case for all lines
     :param validate: perform validation on the generated SBML file
     :return:
     """
@@ -268,6 +269,9 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS, debug
 
         old_line = None
         for line in lines:
+            if force_lower:
+                line = line.lower()
+
             # clean up the ends
             line = line.rstrip('\n').strip()
             # handle douple continuation characters in some models
@@ -314,7 +318,7 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS, debug
             They can have up to 9 arguments.
             The difference to SBML functions is that xpp functions have access to the global parameter values
             '''
-            groups = re.findall('(.*)\((.*)\)\s*=\s*(.*)', line)
+            groups = re.findall('(.*)\s*\((.*)\)\s*=\s*(.*)', line)
             if groups:
                 # function definitions found
                 fid, args, formula = groups[0]
@@ -376,14 +380,13 @@ def xpp2sbml(xpp_file, sbml_file, validate=validation.VALIDATION_NO_UNITS, debug
         print('\n\n')
     for line in parsed_lines:
 
-
         # replace function definitions in lines
         new_line = line
         for fdata in function_definitions:
             new_line = replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
         if new_line != line:
-            # print('REPLACED')
-            # print(line, '->', new_line)
+            if debug:
+                print('Replaced FD:', line, '->', new_line)
             line = new_line
 
         if debug:

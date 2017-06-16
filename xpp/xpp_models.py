@@ -163,10 +163,10 @@ if __name__ == "__main__":
     out_dir = './sbml'
     N = len(ode_all)
     Nfail = 0
-
+    force_lower = True
     results = []
 
-    # ode_all = ["./97743/DARPPmodel_2006/DARPPmodel_2006.ode"]
+    ode_all = ["./97747/fs_internrn/gah_fig2c.ode"]
     for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         sbml_file = os.path.join(out_dir, "{}.xml".format(basename))
         try:
             print('[{}]'.format(k))
-            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, debug=False)
+            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, debug=True)
             success = True
             sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=validation.VALIDATION_NO_UNITS)
             Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, show_errors=False)
@@ -203,9 +203,18 @@ if __name__ == "__main__":
             Nfail += 1
         results.append([xpp_file, success, valid, simulates, Nall, Nerr, Nwarn])
 
+    # create report
+
     import pandas as pd
     df = pd.DataFrame(data=results, columns=['xpp_file', 'success', 'valid', 'simulates', 'Nall', 'Nerr', 'Nwarn'])
-    df.to_csv("./xpp_results.tsv", sep="\t")
+
+    if force_lower:
+        csv_file = "./xpp_results_lower.tsv"
+    else:
+        csv_file = "./xpp_results.tsv"
+    df.to_csv(csv_file, sep="\t")
+
+
     print('*'*80)
     print('CONVERTED: {}/{}={:.2f}'.format((N-Nfail), N, 1.0*(N-Nfail)/N))
     Nvalid = np.nansum(df.valid)
