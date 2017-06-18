@@ -62,7 +62,7 @@ notes = """
     </body>
 """.format(version, '{}')
 creators = [
-    mc.Creator(familyName='König', givenName='Matthias', email='konigmatt@googlemail.com',
+    mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
 ]
 main_units = {
