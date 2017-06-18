@@ -1,0 +1,77 @@
+# Modified Morris-Lecar model 
+# modified from ml_salka.ode
+
+dV/dt = (i_dc-gna*minf(V)*(V-Vna)-gk*y*(V-VK)-gl*(V-Vl)-gsub*z*(V-Vsub))/c
+dy/dt = phi_y*(yinf(V)-y)/tauy(V)
+dz/dt = phi_z*(zinf(V)-z)/tauz(V)
+param c=2
+
+# HERE IS EVERYTHING YOU NEED TO KNOW ABOUT THE STIMULuS
+
+# DC OFFSET 
+# this is controlled by i_dc
+param i_dc=0
+
+## noise not included here.  
+## To add it, uncomment lines below by removing one "#" per line, and add "i_noise" to line 3 (dv/dt=...) above
+## NOISE
+## This is modeled as an Ornstein-Uhlenbeck process, gives new noise on each trial
+## Here is the Wiener variable
+#wiener nz
+## With scale=0 you get no noise 
+## effects of changing dt are automatically controlled for in XPP
+## However, variance of i_noise also depends on tau_inoise (variance = sigma^2*tau/2) 
+## Therefore, if you want to keep the same variance, you must manually change sigma_inoise if you change tau_inoise 
+#di_noise/dt=-1/tau_inoise*(i_noise-i_avg)+sigma*nz
+#param sigma=0, tau_inoise=5, i_avg=0
+
+## frozen noise can be repeated on multiple trials by saving i_noise to a .tab file and playing it back
+## see xpp documentation about tables
+
+# HERE IS EVERYTHING YOU NEED TO KNOW ABOUT INTRINSIC CURRENTS
+# Initial conditions
+V(0)=-70
+y(0)=0.000025
+z(0)=0
+# if you want to make sure initial conditions are at steady state
+# run trial with no stim, then select "initial conditions/last" from main menu... this will start you at the conditions at the end of your previous trial
+
+# FAST INWARD CURRENT (INa or activation variable)
+# This is assumed to activate instantaneously with changes in voltage
+# voltage-dependent activation curve is described by m
+minf(V)=.5*(1+tanh((V-beta_m)/gamma_m))
+# maximal conductance and reversal potential
+param beta_m=-1.2, gamma_m=18
+param gna=20, vna=50
+
+# DELAYED RECTIFIER CURRENT (IKdr or recovery variable)
+# this current activates more slowly than INa, but is still faster than Isub or Iadapt (not included here)
+# In this code, activation of IKdr is controlled by y
+yinf(V)=.5*(1+tanh((V-beta_y)/gamma_y))
+tauy(V)=1/cosh((V-beta_y)/(2*gamma_y))
+# in the 2D model, varying beta_w shifts the w activation curve (w=y here) and can convert the neuron between class 1, 2, and 3 
+param beta_y=-10, gamma_y=10
+# maximal conductance and reversal potential
+param gk=20, vk=-100, phi_y=0.15
+
+# LEAK CURRENT (Il)
+# just a passive leak conductance
+param gl=2, vl=-70
+
+# SLOW SUBTHRESHOLD INWARD OR OUTWARD CURRENT (Isub)
+zinf(V)=.5*(1+tanh((V-beta_z)/gamma_z))
+tauz(V)=1/cosh((V-beta_z)/(2*gamma_z))
+param beta_z=-21, gamma_z=15
+# parameters below are for outward current
+param gsub=7, Vsub=-100, phi_z=0.15
+# for inward current, change to gsub=3, Vsub=50, phi_z=0.5
+# these parameters for Isub correspond to those used in Figure 4 of the paper
+
+# slow adaptation is not included in this 3D model.
+
+# following parameters control duration of simulation and axes of default plot
+@ total=100000,dt=.1,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=y
+@ meth=euler
+@ MAXSTOR=1000000
+
+done

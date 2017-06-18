@@ -1,0 +1,949 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre>#D.P.Dougherty 2010
+#Model of mouse ORN
+#The XPP file is configured to demonstrate the slow transduction
+#current generated during a prolonged odorant presentation
+
+
+#Alphabetically sorted listing of all model parameters (descriptions given below).
+ 
+param cap=0.0035
+param cc1lin=2.6
+param cc2=40.231
+param ck1lin=40
+param ck2=2.412
+param clmax=0.8294
+param cnmax=3.6417
+param ef=7.832
+param gl=15.4267
+param hmc1=1.5965
+param hmc2=7.6415
+param inf=1.4654
+param inhmax=0.98
+param k1=2.2748
+param k2lin=42.0896
+param kI=16.5304
+param kinh=1.3875
+param kinhcng=0.2242
+param n1=5.6384
+param n2=3.4161
+param ninh=8.4067
+param ninhcng=0.6306
+param pd=7.3132
+param r1=9.4574
+param r2=12.5485
+param smax=63.0987
+param vcl=-7.3248
+param vcng=0.4641
+param vl=-69.6653
+
+
+#cap	  #Capacitance of ORN ciliary membrane# nF 										   
+#cc1lin   #Rate at which Ca2+ associates with CaM to form CaCaM # s^-1							   
+#cc2	  #Rate at which CaCaM dissociates to Ca2+ and CaM # s^-1 							   
+#ck1lin   #Rate at which CaCaM activates CaMK	# s^-1								   
+#ck2	  #Rate at which active CaMK deactivates # s^-1										   
+#clmax    #Maximal conductance of ANO2 Cl(Ca) channels # nS								   
+#cnmax    #Maximal conductance of CNG channels # nS							   
+#ef	  #Maximum calcium efflux (assumed sodium &amp; potassium independent) #s^-1				   
+#gl	  #Maximum leak (generic) conductance # nS									   
+#hmc1	  #Concentration of cAMP needed to achieve half-maximal activation (K1/2) of the CNG channel # uM						   
+#hmc2	  #Concentration of Ca2+ needed to achieve half-maximal activation (K1/2) of the Cl(Ca) channel| # uM							   
+#inf	  #Net calcium inward flux via CNG channel # uM*pC^-1								   
+#inhmax   #Maximum inhibition of CNG by CaCAM # unitless								   
+#k1	  #Receptor affinity for ligand # (um*s)^-1								   
+#k2lin    #Rate of G-protein activation per bound receptor complex  # s^-1						   
+#kinh	  #Concentration of aCaMK needed for half-maximal inhibition (IC50) of cAMP production # uM							   
+#kinhcng  #Concentration of CaCaM needed for half-maximal inhibition of the CNG channel # uM							   
+#n1	  #Hill coefficient of the CNG channel activation function #	unitless						   
+#n2	  #Hill coefficient of the Cl(Ca) channel activation function	# unitless							   
+#ninh	  #Steepness of the decreasing sigmoid representing aCaMK-mediated inhibition of cAMP synthesis	 # unitless					   
+#ninhcng  #Steepness of the sigmoid inhcng representing inhibition of CNG channel by CaCaM # unitless				   
+#pd	  #Rate at which a cAMP molecule is degraded by phosphodiesterase # s^-1									   
+#r1	  #Rate of unbinding of odorant from receptor	 # s^-1								   
+#r2	  #Rate at which a G-protein becomes deactivate rate # s^-1								   
+#smax	  #Maximal (uninhibited) rate of cAMP production by adenylyl cyclase per active G-protein # uM*s^-1						   
+#vcl	  #Reversal potential of Cl(Ca) channels  # mV							   
+#vcng	  #Reversal potential of CNG channels # mV								   
+#vl	  #Effective reversal potential for leak current # mV 							   
+
+
+ 
+#Below here are non-physiological parameters related to the experimental design: 
+ 
+#Micromolar concentration of odorant at full concentration
+param ostim=100 
+#Sharpness of odorant plume          
+param SHARPNESS=0.0001    
+
+%hv defines a &quot;heaviside-like&quot; pulse but with adjustable steepness parameter.  
+%Use this to describe a smeared odorant plume reaching the neuron.
+
+hv(x,s)=1/(1+exp(-x/s))
+PULSE(t)=(hv(t-1,SHARPNESS) - hv(t-60,SHARPNESS))			   			   
+OD(t) = ostim*PULSE(t)
+
+#The vertebrate ORN model has 3 compartments i) Cilia, ii) Dendrite, and iii) Soma.
+
+
+#### Cilia Compartment ####
+dbLR/dt       = k1*OD(t)*(1-bLR)-r1*bLR
+daG/dt        = k2lin*bLR*(1-aG) - r2*aG
+dcAMP/dt      = (aG*smax)/(1 + ((CAMK/kinh)^ninh)) - pd*cAMP
+dCa/dt        = inf*Icng(cAMP,Vcilia) - ef*Ca + (-cc1lin*Ca + cc2*CaCAM)
+dCaCAM/dt     = cc1lin*Ca - cc2*CaCAM
+dCAMK/dt      = ck1lin*CaCAM - ck2*CAMK
+dVcilia/dt    = (1/cap)*(Icng(cAMP,Vcilia) + Icacl(Ca,Vcilia) + Il(Vcilia))
+
+inhcng(CaCAM) = 1+(inhmax-1)*((CaCAM^ninhcng)/(CaCAM^ninhcng + kinhcng^ninhcng))
+
+#Current models:
+Icng(cAMP,Vcilia) = ((cnmax*cAMP^n1)/(cAMP^n1 + (inhcng(CaCAM)*hmc1)^n1))*(vcng-Vcilia)
+Icacl(Ca,Vcilia)  = ((clmax*Ca^n2)/(Ca^n2 + hmc2^n2))*(vcl-Vcilia)
+Il(Vcilia)     = gl*(vl-Vcilia)
+
+
+#These auxilliary functions simply model what is actually measured by suction pipette recording
+#from whole cell.
+
+aux Icilia = -(Icng(cAMP,Vcilia) + Icacl(Ca,Vcilia))
+aux WholeCell = -(Icng(cAMP,Vcilia) + Icacl(Ca,Vcilia))
+aux Odorant = 100*PULSE(t)
+
+#The number 100 is used above simply to give the pulses a nice magnitude when plotted in the 
+#same axes as the currrents.  A double y-axis is not possible in XPP apparently.
+
+#Initial conditions.  Note that we actually run the model to steady-state in the absence 
+#of odorant for a second before simulation of the experiment. See T0 option below.
+
+init bLR=1.e-6
+init aG=1.e-6
+init cAMP=1.e-6
+init Ca=1.e-6
+init CaCAM=1.e-6
+init CAMK=1.e-6
+init Vcilia=-70
+
+@ BUT=RunModel:ig,BUT=FitAxes:wf,MAXSTOR=8000000
+@ meth=cvode,T0=-1,DT=0.0001,DTMIN=0.0001, DTMAX=2,NOUT=100000
+@ TOTAL=60.0,BOUND=100000,XLO=0,XHI=60,YLO=-300,YHI=110
+@ NPLOT=2,YP=WholeCell,YP2=Odorant
+
+done
+
+
+
+
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="hv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> s </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> x </ci>
+                    </apply>
+                    <ci> s </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="pulse">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> sharpness </ci>
+            </bvar>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> hv </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <cn type="integer"> 1 </cn>
+                </apply>
+                <ci> sharpness </ci>
+              </apply>
+              <apply>
+                <ci> hv </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <cn type="integer"> 60 </cn>
+                </apply>
+                <ci> sharpness </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="od">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> ostim </ci>
+            </bvar>
+            <bvar>
+              <ci> sharpness </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> ostim </ci>
+              <apply>
+                <ci> pulse </ci>
+                <ci> t </ci>
+                <ci> sharpness </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="inhcng">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> cacam </ci>
+            </bvar>
+            <bvar>
+              <ci> inhmax </ci>
+            </bvar>
+            <bvar>
+              <ci> kinhcng </ci>
+            </bvar>
+            <bvar>
+              <ci> ninhcng </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <ci> inhmax </ci>
+                  <cn type="integer"> 1 </cn>
+                </apply>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <power/>
+                    <ci> cacam </ci>
+                    <ci> ninhcng </ci>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <power/>
+                      <ci> cacam </ci>
+                      <ci> ninhcng </ci>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> kinhcng </ci>
+                      <ci> ninhcng </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="icng">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> camp </ci>
+            </bvar>
+            <bvar>
+              <ci> vcilia </ci>
+            </bvar>
+            <bvar>
+              <ci> cacam </ci>
+            </bvar>
+            <bvar>
+              <ci> cnmax </ci>
+            </bvar>
+            <bvar>
+              <ci> hmc1 </ci>
+            </bvar>
+            <bvar>
+              <ci> inhmax </ci>
+            </bvar>
+            <bvar>
+              <ci> kinhcng </ci>
+            </bvar>
+            <bvar>
+              <ci> n1 </ci>
+            </bvar>
+            <bvar>
+              <ci> ninhcng </ci>
+            </bvar>
+            <bvar>
+              <ci> vcng </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> cnmax </ci>
+                  <apply>
+                    <power/>
+                    <ci> camp </ci>
+                    <ci> n1 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> camp </ci>
+                    <ci> n1 </ci>
+                  </apply>
+                  <apply>
+                    <power/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <ci> inhcng </ci>
+                        <ci> cacam </ci>
+                        <ci> ninhcng </ci>
+                        <ci> inhmax </ci>
+                        <ci> kinhcng </ci>
+                      </apply>
+                      <ci> hmc1 </ci>
+                    </apply>
+                    <ci> n1 </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> vcng </ci>
+                <ci> vcilia </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="icacl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> ca </ci>
+            </bvar>
+            <bvar>
+              <ci> vcilia </ci>
+            </bvar>
+            <bvar>
+              <ci> clmax </ci>
+            </bvar>
+            <bvar>
+              <ci> hmc2 </ci>
+            </bvar>
+            <bvar>
+              <ci> n2 </ci>
+            </bvar>
+            <bvar>
+              <ci> vcl </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> clmax </ci>
+                  <apply>
+                    <power/>
+                    <ci> ca </ci>
+                    <ci> n2 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> ca </ci>
+                    <ci> n2 </ci>
+                  </apply>
+                  <apply>
+                    <power/>
+                    <ci> hmc2 </ci>
+                    <ci> n2 </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> vcl </ci>
+                <ci> vcilia </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="il">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> vcilia </ci>
+            </bvar>
+            <bvar>
+              <ci> gl </ci>
+            </bvar>
+            <bvar>
+              <ci> vl </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gl </ci>
+              <apply>
+                <minus/>
+                <ci> vl </ci>
+                <ci> vcilia </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="cap" name="cap = 0.0035" value="0.0035" constant="false"/>
+      <parameter id="cc1lin" name="cc1lin = 2.6" value="2.6" constant="false"/>
+      <parameter id="cc2" name="cc2 = 40.231" value="40.231" constant="false"/>
+      <parameter id="ck1lin" name="ck1lin = 40" value="40" constant="false"/>
+      <parameter id="ck2" name="ck2 = 2.412" value="2.412" constant="false"/>
+      <parameter id="clmax" name="clmax = 0.8294" value="0.8294" constant="false"/>
+      <parameter id="cnmax" name="cnmax = 3.6417" value="3.6417" constant="false"/>
+      <parameter id="ef" name="ef = 7.832" value="7.832" constant="false"/>
+      <parameter id="gl" name="gl = 15.4267" value="15.4267" constant="false"/>
+      <parameter id="hmc1" name="hmc1 = 1.5965" value="1.5965" constant="false"/>
+      <parameter id="hmc2" name="hmc2 = 7.6415" value="7.6415" constant="false"/>
+      <parameter id="inf" name="inf = 1.4654" value="1.4654" constant="false"/>
+      <parameter id="inhmax" name="inhmax = 0.98" value="0.98" constant="false"/>
+      <parameter id="k1" name="k1 = 2.2748" value="2.2748" constant="false"/>
+      <parameter id="k2lin" name="k2lin = 42.0896" value="42.0896" constant="false"/>
+      <parameter id="ki" name="ki = 16.5304" value="16.5304" constant="false"/>
+      <parameter id="kinh" name="kinh = 1.3875" value="1.3875" constant="false"/>
+      <parameter id="kinhcng" name="kinhcng = 0.2242" value="0.2242" constant="false"/>
+      <parameter id="n1" name="n1 = 5.6384" value="5.6384" constant="false"/>
+      <parameter id="n2" name="n2 = 3.4161" value="3.4161" constant="false"/>
+      <parameter id="ninh" name="ninh = 8.4067" value="8.4067" constant="false"/>
+      <parameter id="ninhcng" name="ninhcng = 0.6306" value="0.6306" constant="false"/>
+      <parameter id="pd" name="pd = 7.3132" value="7.3132" constant="false"/>
+      <parameter id="r1" name="r1 = 9.4574" value="9.4574" constant="false"/>
+      <parameter id="r2" name="r2 = 12.5485" value="12.5485" constant="false"/>
+      <parameter id="smax" name="smax = 63.0987" value="63.0987" constant="false"/>
+      <parameter id="vcl" name="vcl = -7.3248" value="-7.3248" constant="false"/>
+      <parameter id="vcng" name="vcng = 0.4641" value="0.4641" constant="false"/>
+      <parameter id="vl" name="vl = -69.6653" value="-69.6653" constant="false"/>
+      <parameter id="ostim" name="ostim = 100" value="100" constant="false"/>
+      <parameter id="sharpness" name="sharpness = 0.0001" value="0.0001" constant="false"/>
+      <parameter id="blr" name="blr = 1.e-6" value="1e-06" constant="false"/>
+      <parameter id="ag" name="ag = 1.e-6" value="1e-06" constant="false"/>
+      <parameter id="camp" name="camp = 1.e-6" value="1e-06" constant="false"/>
+      <parameter id="ca" name="ca = 1.e-6" value="1e-06" constant="false"/>
+      <parameter id="cacam" name="cacam = 1.e-6" value="1e-06" constant="false"/>
+      <parameter id="camk" name="camk = 1.e-6" value="1e-06" constant="false"/>
+      <parameter id="vcilia" name="vcilia = -70" value="-70" constant="false"/>
+      <parameter id="icilia" value="0" units="dimensionless" constant="false"/>
+      <parameter id="wholecell" value="0" units="dimensionless" constant="false"/>
+      <parameter id="odorant" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="blr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k1 </ci>
+              <apply>
+                <ci> od </ci>
+                <ci> t </ci>
+                <ci> ostim </ci>
+                <ci> sharpness </ci>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <ci> blr </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> r1 </ci>
+              <ci> blr </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ag">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k2lin </ci>
+              <ci> blr </ci>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <ci> ag </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> r2 </ci>
+              <ci> ag </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="camp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> ag </ci>
+                <ci> smax </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <power/>
+                  <apply>
+                    <divide/>
+                    <ci> camk </ci>
+                    <ci> kinh </ci>
+                  </apply>
+                  <ci> ninh </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> pd </ci>
+              <ci> camp </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ca">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> inf </ci>
+                <apply>
+                  <ci> icng </ci>
+                  <ci> camp </ci>
+                  <ci> vcilia </ci>
+                  <ci> cacam </ci>
+                  <ci> cnmax </ci>
+                  <ci> hmc1 </ci>
+                  <ci> inhmax </ci>
+                  <ci> kinhcng </ci>
+                  <ci> n1 </ci>
+                  <ci> ninhcng </ci>
+                  <ci> vcng </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> ef </ci>
+                <ci> ca </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> cc1lin </ci>
+              </apply>
+              <ci> ca </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> cc2 </ci>
+              <ci> cacam </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cacam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> cc1lin </ci>
+              <ci> ca </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> cc2 </ci>
+              <ci> cacam </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="camk">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> ck1lin </ci>
+              <ci> cacam </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> ck2 </ci>
+              <ci> camk </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="vcilia">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <ci> cap </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <apply>
+                <ci> icng </ci>
+                <ci> camp </ci>
+                <ci> vcilia </ci>
+                <ci> cacam </ci>
+                <ci> cnmax </ci>
+                <ci> hmc1 </ci>
+                <ci> inhmax </ci>
+                <ci> kinhcng </ci>
+                <ci> n1 </ci>
+                <ci> ninhcng </ci>
+                <ci> vcng </ci>
+              </apply>
+              <apply>
+                <ci> icacl </ci>
+                <ci> ca </ci>
+                <ci> vcilia </ci>
+                <ci> clmax </ci>
+                <ci> hmc2 </ci>
+                <ci> n2 </ci>
+                <ci> vcl </ci>
+              </apply>
+              <apply>
+                <ci> il </ci>
+                <ci> vcilia </ci>
+                <ci> gl </ci>
+                <ci> vl </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="icilia">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <ci> icng </ci>
+                <ci> camp </ci>
+                <ci> vcilia </ci>
+                <ci> cacam </ci>
+                <ci> cnmax </ci>
+                <ci> hmc1 </ci>
+                <ci> inhmax </ci>
+                <ci> kinhcng </ci>
+                <ci> n1 </ci>
+                <ci> ninhcng </ci>
+                <ci> vcng </ci>
+              </apply>
+              <apply>
+                <ci> icacl </ci>
+                <ci> ca </ci>
+                <ci> vcilia </ci>
+                <ci> clmax </ci>
+                <ci> hmc2 </ci>
+                <ci> n2 </ci>
+                <ci> vcl </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="wholecell">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <ci> icng </ci>
+                <ci> camp </ci>
+                <ci> vcilia </ci>
+                <ci> cacam </ci>
+                <ci> cnmax </ci>
+                <ci> hmc1 </ci>
+                <ci> inhmax </ci>
+                <ci> kinhcng </ci>
+                <ci> n1 </ci>
+                <ci> ninhcng </ci>
+                <ci> vcng </ci>
+              </apply>
+              <apply>
+                <ci> icacl </ci>
+                <ci> ca </ci>
+                <ci> vcilia </ci>
+                <ci> clmax </ci>
+                <ci> hmc2 </ci>
+                <ci> n2 </ci>
+                <ci> vcl </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="odorant">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 100 </cn>
+            <apply>
+              <ci> pulse </ci>
+              <ci> t </ci>
+              <ci> sharpness </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

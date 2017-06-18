@@ -1,0 +1,48 @@
+# Theta neuron network with 50e and 20i cells with all-to-all
+# connectivity and tonic input to both the e- and i-cells in a 
+# batch format varying across the I_i parameters
+#
+# Specifying the low and high values of the range of the parameter
+par I_ilo=-0.25,I_ihi=0.31
+par ind
+# Equation needed to calculate the specific values of the parameter
+# based on the low and high values and the step size for the increments
+!I_i=I_ilo+mod(ind,56)*(I_ihi-I_ilo)/56
+# creating auxiliary variable to see what the actual value is
+aux I_i0=I_i
+# specify what you want to see in the output files in the order
+only t,se,I_i0
+#
+# Parameters
+par I_e=1
+par gei=.4,gii=0.15,gee=0.1, gie=2
+par tauz=50,gz=.2
+par sige=0.5, sigi=.02
+par taue=1, taui=3
+#
+#ODEs for e-cells, i-cells and adaptation
+x[0..49]'=1-cos(x[j])+(1+cos(x[j]))*(I_e-gz*z[j]-gie*si+gee*se+sige*we[j])
+z[0..49]'=sd(x[j])-z[j]/tauz
+y[0..19]'=1-cos(y[j])+(1+cos(y[j]))*(I_i-gii*si+gei*se+sigi*wi[j])
+# Synapses
+se'=sum(0,49)of(sd(shift(x0,i')))/50-se/taue
+si'=sum(0,19)of(sd(shift(y0,i')))/20-si/taui
+global 1 x[0..49]-pi {x[j]=-pi}
+global 1 y[0..19]-pi {y[j]=-pi}
+#
+# Initial Conditions
+x[0..49](0)=ran(1)*2*pi-pi
+y[0..19](0)=ran(1)*2*pi-pi
+wiener we[0..49]
+wiener wi[0..19]
+sd(x)=exp(-b*(1-cos(x-2.5)))*b
+par b=100
+aux swgt=.8*se+.2*si
+@ meth=euler,
+@ total=1400,trans=400,maxstor=1000000
+@ dt=0.02,nOut=10
+@ xp=t,yp=se,xlo=600,xhi=1200,ylo=0,yhi=.5
+# needed for the range set up
+@ range=1,rangeover=ind,rangelow=0,rangehigh=56,rangestep=56
+@ rangereset=yes
+done

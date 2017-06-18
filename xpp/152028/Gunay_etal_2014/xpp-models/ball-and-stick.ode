@@ -1,0 +1,144 @@
+" ball and stick model w 2 comps
+" copied from model_I_long_range_better_offset.ode
+" Na params close enough to accept this as wildtype cocktail model.
+" Can change only 2 out of 3 passive parameters. The last one is dependent to preserve total input resistance.
+#
+# conductances in nS, resistances in GOhm
+# currents in pA  
+# Voltages in mV  
+# time in ms  
+# capacitances in pF  
+
+# Larger soma capacitance, but still low leak
+# 3-steps: 16, 36, 56
+# Params: gaxon=1.8, NaP=0.1, NaT=350, gKs=1, gaKs=550, Cm=15, Ca=10, gL=0.1, gaL=3, eleak=-55, ealeak=-59
+
+# principles:
+# - good for spike height => gaxon, Cm = (3, 20); (1.6, 15)  
+# - gaKs > gNaT makes longer delay
+# - lowering gaL increases first spike voltage offset
+# - high gaKs makes spike asymmetric with slow depolarization
+# - lowering Cm increases spike height
+# - decreasing gaxon makes spikes shorter and more asymmetric, but requires more current to fire
+# - increasing zi increases offset slightly
+
+# firing rate rules:
+# - increasing gl decreases galeak and therefore increases f
+# - increasing gaxon increases f
+# - increasing zi increases f
+# - reducing Ca increases f!
+
+# Params: gaxon=1, NaP=0.14, NaT=350, gKs=1, gaKs=550, Cm=15, Ca=10, gL=0.1, gaL=dep(zi), zi=1.6, eleak=-60, ealeak=-60
+# pros: nice spike height, goes up to >-10mV
+# cons: threshold @ -50mV, spikes a bit too short
+
+# Params: gaxon=1.6, NaP=0.05, NaT=450, gKs=1, gaKs=500, Cm=15, Ca=10, gL=0.1, gaL=dep(zi), zi=1.6, eleak=-60, ealeak=-60
+# pros: nice spike height, goes up to >-10mV, threshold @ -40mV
+# cons: initial rate too high, spike shape not nice, too small
+
+# Params: gaxon=1.6, NaP=0.08, NaT=260, gKs=1, gaKs=1000, Cm=15, Ca=10, gL=0.1, gaL=dep(zi), zi=1.6, eleak=-60, ealeak=-60
+# pros: nice spike height, asymmetric spike shape, initial rate low
+# cons: threshold @ -45mV, offset a bit too small
+
+# Params: NaP=0.08, NaT=300, gKs=1, gaKs=1000, Cm=15, Ca=10, gaxon=1.6, gL=0.1, gaL=dep(zi), zi=1.1, eleak=-60, ealeak=-60
+# pros: nice spike height, asymmetric spike shape, initial rate low, threshold @ -40mV
+# cons: starts firing at 14 pA, must compare f-I curve to recordings
+
+# TODO: make mlab figure and attach to bif.lyx
+  
+#dV/dt=-1/c*(gKs*mKs^4*(V-EK) + gKf*mKf^4*(fh*hKf+(1-fh)*hKf2)*(V-EK) + gNa*mNa^3*hNa*(V-ENa) + gleak*(V-Eleak)-I)  
+
+# soma voltage
+dVm/dt=-1/Cm*(IksVm+IkfVm+gleak*(Vm-Eleak)-I+gaxon*(Vm-Va))
+
+# axon compartment voltage
+dVa/dt=-1/Ca*(IksVa+IkfVa+Ina+Inap+galeak*(Va-Ealeak)+gaxon*(Va-Vm))
+  
+#slow K  
+# orig = 5.1
+par gKs=1 gaKs=700
+minfKs(V) = 1/(1+exp((V+12.85)/(-19.91)))  
+mtauKs(V) = 2.03 + 1.96 /(1+exp((V-29.83)/3.32))  
+dmKsVm/dt=(minfKs(Vm)-mKsVm)/mtauKs(Vm)  
+dmKsVa/dt=(minfKs(Va)-mKsVa)/mtauKs(Va)  
+IksVm=gKs*mKsVm^4*(Vm-EK)  
+IksVa=gaKs*mKsVa^4*(Va-EK)  
+aux IksVm=IksVm
+aux IksVa=IksVa
+
+#fast K with 2 inactivation time constants
+dmKfVm/dt=(minfKf(Vm)-mKfVm)/mtauKf(Vm)  
+dhKfVm/dt=(hinfK(Vm)-hKfVm)/htauK(Vm)  
+dhKf2Vm/dt=(hinfK2(Vm)-hKf2Vm)/116  
+IkfVm=gKf*mKfVm^4*(fh*hKfVm + (1-fh)*hKf2Vm)*(Vm-EK)  
+dmKfVa/dt=(minfKf(Va)-mKfVa)/mtauKf(Va)  
+dhKfVa/dt=(hinfK(Va)-hKfVa)/htauK(Va)  
+dhKf2Va/dt=(hinfK2(Va)-hKf2Va)/116  
+IkfVa=gaKf*mKfVa^4*(fh*hKfVa + (1-fh)*hKf2Va)*(Va-EK)  
+minfKf(V) = 1/(1+exp((V+17.55)/(-7.27)))  
+mtauKf(V) = 1.94+2.66/(1+exp((V-8.12)/7.96))  
+hinfK(V) = 1/(1+exp((V+45)/6))  
+htauK(V) = 1.79+515.8/(1+exp((V+147.4)/(28.66)))  
+# mistake; should be hinfK == hinfK2
+hinfK2(V) = 1/(1+exp((V+44.2)/1.5))
+aux IkfVm=IkfVm
+aux IkfVa=IkfVa
+  
+#na  
+# from O'Dowd and Aldrich (1988)
+dmNa/dt=(minfNa(Va)-mNa)/mtauNa(Va)
+dhNa/dt=(hinfNa(Va)-hNa)/htauNa(Va)
+Ina=gNa*mNa^3*hNa*(Va-ENa)
+# gNa reported as 500 pS/pF, multiply with C=20 pF
+par gNa=180
+minfNa(V) = 1/(1+exp((V+29.13)/(-8.922)))
+mtauNa(V) = 0.1270 + 3.434/(1+exp((V+45.35)/(5.98)))
+hinfNa(V) = 1/(1+exp((V+47)/5))
+htauNa(V) = 0.36 + exp(-(V+20.65)/(10.47))
+aux Ina=Ina
+
+# NaP from DmNav10 of WHL oocyte #1
+dmNaP/dt=(minfNaP(Va)-mNaP)/mtauNaP(Va)
+Inap=(gNaP+modgNaP)*mNaP*(Va-ENa)
+par gNaP=.01
+minfNap(V) = 1/(1+exp((V+48.77)/(-3.68)))
+mtauNap(V) = 1
+aux Inap=Inap
+
+global 1 t {I=Ihold}    
+global 1 t-10 {I=Ipulse}  
+global 1 t-510 {I=Ihold}  
+
+# initial conditions for settled at I=-6.5
+# easiest way is to get this is to save "info" from File menu 
+# after running for a long while and then doing a "run last"
+init VM=-68.81670299025546 VA=-64.34801596094069 MKSVM=0.05673345401938218 MKSVA=0.07000969210752514 MKFVM=0.0008650853390965969 HKFVM=0.9814660312384692 HKF2VM=0.9839995279862832 MKFVA=0.001598416867905559 HKFVA=0.961752460873017 HKF2VA=0.9900602079074428 MNA=0.01894063272630685 HNA=0.9695223296922046 MNAP=0.01429909346846636
+
+@ total=600,bounds=10000000000,meth=euler,dt=.001, nout=100, maxstor=10000000  
+
+# window ranges
+@ xlo=0, xhi=600, ylo=-65, yhi=0
+
+# do a I range from -9 to +51 with 7 steps
+
+# do a I range from 5 to +45 with 2 steps
+
+par Cm=10 Ca=1.8 Ipulse=-6.5
+
+# conserve total input resistance
+par zi=2.1
+
+# connection strength
+par gaxon=1.3 gleak=0.05
+
+# make some parameters dependent to preserve zi
+gad=1/zi-gleak
+galeak=1/(1/gad-1/gaxon)
+
+par eleak=-55 ealeak=-55 Ihold=-6.5 
+
+# unneeded pars at the end
+par gKf=1 gaKf=200
+par ENa=45 EK=-80  I=0 fh=.95 modNaAct=0 modNaInact=0 modgNaP=0
+
+done 

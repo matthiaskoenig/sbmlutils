@@ -1,0 +1,105 @@
+# Traveling waves equations for model CA1 pyramidal cell apical dendrite
+# For simulation in XPPAUT (Bard Ermentrout)
+# Download: http://www.pitt.edu/~phase/
+# Get the book too: Ermentrout B. Simulating, analyzing, and animating dynamical systems: SIAM, 2002.
+
+# Corey Acker
+# Boston University
+# July 16, 2004
+
+# Membrane equations from Migliore et al. (1999) J Comput Neurosci 7: 5-15
+
+# Model parameters, including shooting parameter K
+param Cm=2.0,Ra=150
+param VNa=55.0,VK=-90,VL=-65
+param GNa=32,GKDR=10,GL=0.2,b=0.5
+param d_tau=0.1
+param d_inf=0.1
+param GKA=48
+param diam=1.8
+param Iapp=0.925
+param K=4  # bad initial guess
+# param K=5.010975  # actual value to be found by shooting method
+
+# Wave Speed
+aux c = sqrt((K*diam*10)/(4*Ra*Cm))
+
+# Initial conditions
+init V=-68.1,Vdot=0,m=0.016,h=0.99,i=0.95,nKDR=0.0002,n=0.0005,l=0.8
+
+# Dynamic equations
+V'=Vdot
+Vdot'=K*(Vdot+(fion(V)-Iapp)/Cm)
+m'=1/taum(V)*(minf(V)-m)
+h'=1/tauh(V)*(hinf(V)-h)
+i'=1/taui(V)*(iinf(V)-i)
+nKDR'=1/taunKDR(V)*(nKDRinf(V)-nKDR)
+n'=1/taun(V)*(ninf(V)-n)
+l'=1/taul(V)*(linf(V)-l)
+
+# All other equations
+fion(V)=INa(V)+IKDR(V)+IKA(V)+IL(V)
+INa(V)=GNa*m^3*h*i*(V-VNa)
+IKDR(V)=GKDR*nKDR*(V-VK)
+IKA(V)=GKA*n*l*(V-VK)
+IL(V)=GL*(V-VL)
+
+# Rate equations
+# Sodium activation, m
+minf(V)=alm(V)/(alm(V)+bem(V))
+taum1(V)=0.5/(alm(V)+bem(V))
+taum(V)=if(taum1(V)<0.02)then(0.02)else(taum1(V))
+alm(V)=0.4*(V+30)/(1-exp(-(V+30)/7.2))
+bem(V)=0.124*(V+30)/(exp((V+30)/7.2)-1)
+
+# Sodium inactivation, h
+hinf(V)=1/(1+exp((V+50)/4))
+tauh1(V)=0.5/(alh(V)+beh(V))
+tauh(V)=if(tauh1(V)<0.5)then(0.5)else(tauh1(V))
+alh(V)=0.03*(V+45)/(1-exp(-(V+45)/1.5))
+beh(V)=0.01*(V+45)/(exp((V+45)/1.5)-1)
+
+# Slow Inactivation of INa, i
+iinf(V)=(1+b*exp((V+58)/2))/(1+exp((V+58)/2))
+taui1(V)=3e4*bei(V)/(1+ali(V))
+taui(V)=if(taui1(V)<10)then(10)else(taui1(V))
+ali(V)=exp(0.45*(V+60))
+bei(V)=exp(0.09*(V+60))
+
+# Activation of IKDR
+nKDRinf(V)=1/(1+alnKDR(V))
+taunKDR1(V)=50*benKDR(V)/(1+alnKDR(V))
+taunKDR(V)=if(taunKDR1(V)<2)then(2)else(taunKDR1(V))
+alnKDR(V)=exp(-0.11*(V-13))
+benKDR(V)=exp(-0.08*(V-13))
+
+# Equations for proximal version of IA activation
+ninfprox(V)=1/(1+alnprox(V))
+taunprox1(V)=4*benprox(V)/(1+alnprox(V))
+taunprox(V)=if(taunprox1(V)<0.1)then(0.1)else(taunprox1(V))
+alnprox(V)=exp(-0.038*(1.5+1/(1+exp(V+40)/5))*(V-11))
+benprox(V)=exp(-0.038*(0.825+1/(1+exp(V+40)/5))*(V-11))
+
+# Equations for distal version of IA activation
+ninfdist(V)=1/(1+alndist(V))
+taundist1(V)=2*bendist(V)/(1+alndist(V))
+taundist(V)=if(taundist1(V)<0.1)then(0.1)else(taundist1(V))
+alndist(V)=exp(-0.038*(1.8+1/(1+exp(V+40)/5))*(V+1))
+bendist(V)=exp(-0.038*(0.7+1/(1+exp(V+40)/5))*(V+1))
+
+# Weighted averaging of IA equations
+taun(V)=d_tau*taunprox(V)+(1-d_tau)*taundist(V)
+ninf(V)=d_inf*ninfprox(V)+(1-d_inf)*ninfdist(V)
+
+# IA inactivation, l
+linf(V)=1/(1+all(V))
+taul1(V)=0.26*(V+50)
+taul(V)=if(taul1(V)<2)then(2)else(taul1(V))
+all(V)=exp(0.11*(V+56))
+
+# Setup XPP's numerics, and plotting
+@ xp=V,yp=vdot,xlo=-90,xhi=30,ylo=-1000,yhi=300
+@ dt=0.01,total=20
+@ method=cvode,tol=1e-6,atoler=1e-5,bounds=1e4
+@ jac_eps=1e-5,newt_tol=1e-5,newt_iter=10000
+done

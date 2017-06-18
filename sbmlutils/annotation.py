@@ -312,7 +312,6 @@ class ModelAnnotator(object):
         for e in elements:
             if a.annotation_type == 'RDF':
                 ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.resource)
-                print("Annotating:", e, a.qualifier, a.resource)
                 # write SBO terms based on the SBO RDF
                 if a.collection == 'sbo':
                     e.setSBOTerm(a.entity)

@@ -1,0 +1,170 @@
+# This ODE file reproduces figure 2 from Rempe, Best, Terman J. Math. Biol. 2010
+# Notice that as it is written now the simulation contains noise.  If you want 
+# to reproduce Figure 2 exactly, turn off noise by making gnoise=0 and gnoiserem=0
+
+# To reproduce figure 3, you will need noise and you'll need to modify the code below 
+# to start at different circadian phases.  You'll also probably need MATLAB or some 
+# other computing language to process the output of the XPP runs.  
+
+# The default mode is to plot the wake-active, sleep-active, NREM-active, and 
+# REM-active populations as in figure 2 panel b.  You can also uncomment the 
+# second-to-last line to see the 2-process behavior.  
+
+
+
+# Sleep/wake parameters
+par eps=3,gamma=5.7,ky=0.01,thetay=0
+par epsv=3,gammav=3.77,kv=0.01,thetav=0
+par xcirc=-2.1,ghom=5.5
+par gsynv=2
+par ic0=0,ic1=0
+par hmax=1,alphah=18.2,betah=4.2
+par gscn=1
+par gsyn=5
+par const=100
+
+
+#initialize inp and inpv
+par inpbase=3.3,inpvbase=0.45
+
+
+# ---- REM-NREM stuff ----
+par epsr=0.3,gammar=6.2,kr=0.01
+par epsn=0.3,gamman=6,kn=0.01
+par taur1=1,taur2=2
+par taun1=0.5,taun2=1.7
+par grem=5,gnrem=0.4
+par gevlpo=6.2
+par REMscale=11
+par inpn=1.9,inpr=1.1
+par gA2R=2.5
+
+taur=sinf(xr,kr)*taur2+(1-sinf(xr,kr))*taur1
+taun=sinf(xn,kn)*taun2+(1-sinf(xn,kn))*taun1
+sinf(v,k)=1/(1+exp(-(v)/k))
+
+
+#inhibitory currents
+inhbr=grem*sn
+inhbn=gnrem*sr
+ievlpo=gevlpo*xe
+iA2R=gA2R*s1
+
+#AMIN-to-REM dynamics
+s1'=as1*(1-s1)*sinf(x,0.1)-bs1*s1*(1-sinf(x,0.1))
+par as1=2,bs1=0.55
+
+isyn=gsyn*sv
+isynv=gsynv*s
+
+iscn=gscn*(xc-xcirc)
+par gorx=1
+iorx=gorx*iscn*(1-heav(xv))
+ihom=ghom*h
+
+
+tauv=sinf(xv,kv)*tauv2+(1-sinf(xv,kv))*tauv1
+tau=sinf(x,ky)*taua2+(1-sinf(x,ky))*taua1
+
+par tauv1=1,tauv2=2
+par taua1=1,taua2=2
+
+global 0 t {ic0=gammav-4-inpv}
+global 0 t {ic1=gsynv-inpv}
+
+
+# MonoAminergic group
+x'=(3*x-x^3+2-y-isyn+iorx-ihom+inp)*const
+y'=eps*(gamma*sinf(x,ky)-y)/tau
+s=sinf(x,0.1)
+
+
+# VLPO group
+xv'=(3*xv-xv^3+2-yv-isynv+inpv-iscn+ihom)*const
+yv'=epsv*(gammav*sinf(xv,kv)-yv)/tauv
+sv=sinf(xv,0.1)
+
+
+#eVLPO
+par ke=0.25,a=2,b=1,c=1.82,kxv=1,kx=0.2,cv=-0.3
+xe'=-xe+(c-a*sinf(xv+cv,kxv)-b*sinf(x,kx))
+global 0 t {xe=(c-a*sinf(xv,kxv)-b*sinf(x,kx))}
+
+
+#REM-active population
+par rconst=2
+xr'=rconst*REMscale*(3*xr-xr^3+3-yr-inhbr+inpr-iA2R+inoiserem)
+yr'=REMscale*(epsr*(gammar*sinf(xr,kr)-yr)/taur)
+sr=sinf(xr,krn)
+par krn=1
+
+
+
+#NREM-active population
+xn'=rconst*REMscale*(3*xn-xn^3+3-yn-inhbn+inpn-ievlpo+inoisenrem)
+yn'=REMscale*(epsn*(gamman*sinf(xn,kn)-yn)/taun)
+sn=heav(xn)   
+#sn=sinf(xn,0.1)  #either one works
+
+
+#circadian curve
+tc=t-2.5
+xc=(0.97*sin((pi/12)*tc)+0.22*sin(2*(pi/12)*tc)+0.07*sin(3*(pi/12)*tc)+0.03*sin(4*(pi/12)*tc)+0.001*sin(5*(pi/12)*tc))
+
+
+#homeostat
+h'=(hmax-h)*(sinf(x,kv))/alphah-h*(1-sinf(x,kv))/betah
+#initialize homeostat to what it would normally start at after 
+#a normal night of sleep in normal phase
+global 0 t {h=0.0978}
+
+
+#noise stuff
+par a1=20,w1=0.01,gnoise=5,gnoiserem=5
+ina'=(-ina+a1*normal(0,1))*w1
+inv'=(-inv+a1*normal(0,1))*w1
+inn'=(-inn+a1*normal(0,1))*w1
+inr'=(-inr+a1*normal(0,1))*w1
+inoisea=gnoise*ina
+inoisev=gnoise*inv
+inoiserem=gnoiserem*inr
+inoisenrem=gnoiserem*inn
+
+
+
+# add some noise to the otherwise constant inputs
+inp=inpbase+inoisea
+inpv=inpvbase+inoisev
+
+
+
+#initial conditions
+init x=2,y=6
+init xv=-2,yv=0
+init xr=-1,yr=-2
+init xn=-3,yn=0
+init ina=0
+init inv=0
+init inn=0
+init inr=0
+
+
+#AUXILIARY VARIABLES
+# comment out for faster speed
+aux ic=iscn+ic1
+aux ica=iscn+ic0
+aux ih=ihom
+#aux noise=inoisea
+
+# first one plots 2-process stuff, next one plots rem, nrem, aminergic
+#@ dt=.001,total=48,meth=euler,xp=t,yp=ih,xlo=0,xhi=48,ylo=-3,yhi=3,nplot=3,yp2=ic,yp3=ica,bound=1000000,maxstor=2000001
+@ dt=.001,total=48,meth=euler,xp=t,yp=xn,xlo=0,xhi=48,ylo=-3,yhi=3,nplot=3,yp2=xr,yp3=x,bound=1000000,maxstor=2000001,output=output1.dat
+
+done
+
+
+
+
+
+
+

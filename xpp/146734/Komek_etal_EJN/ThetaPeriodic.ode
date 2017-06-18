@@ -1,0 +1,44 @@
+# Theta neuron model 50e and 20i cells with all-to-all 
+# connectivity and periodic input to both the e- and i-cells
+#
+# Parameters
+par I_e=0.4,I_i=0
+par tauz=50,gz=.5
+par sige=0.5,sigi=.01
+par gie=3,gei=.4,gii=0.15,gee=2,
+par taue=1,taui=3
+#
+# Periodic stimuli description with parameters
+E(t)=heav(t-t_on)*heav(stim+t_on-t)
+PO(t)=heav(d-t)
+P(t)=PO(mod(t,per))
+z'=(-z+p(t))/tau
+I_x(t)=Ampx*z*E(t)
+I_y(t)=Ampy*z*E(t)
+par Ampx=70,Ampy=10,d=1,per=25,tau=20
+par t_on=0,stim=1000
+#
+# ODEs for e-cells(x), i-cells(y) and adaptation(z)
+x[0..49]'=1-cos(x[j])+(1+cos(x[j]))*(I_e+I_x(t)-gz*z[j]-gie*si+gee*se+sige*we[j])
+z[0..49]'=sd(x[j])-z[j]/tauz
+y[0..19]'=1-cos(y[j])+(1+cos(y[j]))*(I_i+I_y(t)-gii*si+gei*se+sigi*wi[j])
+#
+global 1 x[0..49]-pi {x[j]=-pi;out_put=1}
+global 1 y[0..19]-pi {y[j]=-pi;out_put=1}
+# Synapses
+se'=sum(0,49)of(sd(shift(x0,i')))/50-se/taue
+si'=sum(0,19)of(sd(shift(y0,i')))/20-si/taui
+#
+#Initial conditions
+x[0..49](0)=ran(1)*2*pi-pi
+y[0..19](0)=ran(1)*2*pi-pi
+wiener we[0..49]
+wiener wi[0..19]
+sd(x)=exp(-b*(1-cos(x-2.5)))*b
+par b=100
+aux swgt=.8*se+.2*si
+aux per_input=I_x(t)
+@ dt=0.02,nOut=10
+@ meth=euler,total=1400,trans=400,maxstor=1000000
+@ yp=se,xlo=400,xhi=1400,ylo=0,yhi=.5
+done

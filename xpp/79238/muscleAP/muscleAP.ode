@@ -1,0 +1,50 @@
+% Model for action potential of skeletal muscle fiber
+% Adrian RH, Chandler WK, Hodgkin AL. Voltage clamp experiments in striated muscle
+% fibres. J Physiol 208:607-44, 1970.
+% implemented by Dr. Sheng-Nan Wu
+
+% Initial values
+Initial Vm=-95, Vt=-95, m=0.0, h=1.0, n=0.0
+
+% Stimulus
+Param period=200, iStim_mag=3, iStim_beg=1, iStim_dur=0.5
+iStim=  iStim_mag * heav(mod(t,period)-iStim_beg) * heav(iStim_beg+iStim_dur-mod(t,period))
+
+% Values of the model parameters
+Param gNa_max=1.0, gK_max=0.415, gL_max=0.0024
+Param ENa=50.0, EK=-70.0, EL=-95.0, Cm=0.0090, Ct=0.04, Rs=15.0
+Param alpha_m_max=0.208
+Param beta_m_max=2.081
+Param alpha_n_max=0.0229
+Param beta_n_max=0.09616
+Param alpha_h_max=0.0156
+Param beta_h_max=3.382
+Param Em=-42.0, En=-40.0, Eh=-41.0
+Param v_alpha_m=10.0, v_alpha_h=14.7, v_alpha_n=7.0
+Param v_beta_m=18.0, v_beta_h=7.6, v_beta_n=40.0
+
+% Expressions
+
+Ina= (gNa_max * m * m * m * h * (Vm - ENa))
+beta_n= (beta_n_max * exp(((En - Vm) / v_beta_n)))
+beta_m= (beta_m_max * exp(((Em - Vm) / v_beta_m)))
+beta_h= (beta_h_max / (1.0 + exp(((Eh - Vm) / v_beta_h))))
+IT= ((Vm - Vt) / Rs)
+IL= (gL_max * (Vm - EL))
+IK= (gK_max * n * n * n * n * (Vm - EK))
+alpha_n= (alpha_n_max * (Vm - En) / (1.0 - exp(((En - Vm) / v_alpha_n))))
+alpha_m= (alpha_m_max * (Vm - Em) / (1.0 - exp(((Em - Vm) / v_alpha_m))))
+alpha_h= (alpha_h_max * exp(((Eh - Vm) / v_alpha_h)))
+
+% Differential equations 
+dVm/dt= ((iStim - (INa + IK + IL + IT)) / Cm)
+dm/dt= ((alpha_m * (1.0 - m)) - (beta_m * m))
+dh/dt= ((alpha_h * (1.0 - h)) - (beta_h * h))
+dn/dt= ((alpha_n * (1.0 - n)) - (beta_n * n))
+dVt/dt=((Vm - Vt) / (Rs * Ct))
+
+% Numerical and plotting parameters for xpp
+@ meth=Euler, dt=0.01, total=25
+@ yp=v, yhi=50, ylo=-110, xlo=0, xhi=25, bounds=5000
+
+done

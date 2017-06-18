@@ -1,0 +1,679 @@
+#### Implemented by Tim C. Whalen (tim@timcwhalen.com) Mar 2016
+### Conductance-based model of pallidostriatal microcircuit
+### Connects FSI model from Golomb et al 2007, GPe model from
+### Fujita 2011, and MSN model from Mahon 2000, with minor changes
+### Adds GABA synapses, passive excitation (constant or oscillating, line 686)
+
+### TO RUN:
+## In control case, change last table to "conntableF2Mv3.txt"
+##             set DD = 0
+## In DD case, change last table to "conntableF2MDDv3.txt"
+##             set DD = 1
+##
+## Change "v3" to v1 or v2 to use other connectivity tables
+## Table files should be in XPP home directory
+## In command line, execute "xppaut Corbit_2016_basic_PS.ode -silent"
+## Output will be .dat file with filename specified in option at end of file
+## .dat file contains one row for each timestep, with columns "t MV1..40 GV1..8 FV1..8"
+##
+## Note that initial conditions are set randomly near end of file where ODEs appear
+
+### Connectivity Tables ###
+table con_m2m conntableM2Mv3.txt
+table con_g2g conntableG2Gv3.txt
+table con_f2f conntableF2Fv3.txt
+table con_m2g conntableM2Gv3.txt
+table con_g2f conntableG2Fv3.txt
+table con_f2m conntableF2Mv3.txt
+
+p DD = 0
+
+### Global Functions
+# Function for steady states - additional "min" parameter acts as partial inactivation
+INFF(VV,theta,sigma,minx) = minx + (1.0-minx)/(1.0+exp((theta-VV)/sigma))
+
+
+### MSN's ###
+
+## Time constant calculations
+# Inc. 1/tadj_fac as necessary for current to adjust to 37 from exp. temp
+MTADJF(temp0) = Mq10^((Mtemp1-temp0)/10)
+MTAUF_OMP(V,tau0,Vtau,ktau) = tau0/(exp(-(V-Vtau)/ktau)+exp((V-Vtau)/ktau))
+# Constants for temperature adjustment. Temps in C
+p Mq10 = 2.5
+p Mtemp1 = 37
+
+# Capacitance, uF/cm^2
+p MCm = 1
+
+## Current values/functions ##
+# All currents in uA/cm^2
+#     conductances in mS/cm^2
+#     potentials in mV
+#     time in ms
+# Gating IC's rounded to nearest 0.05 to steady state value at given voltage IC, except when noted
+
+## Applied current
+# Values previously used for excitation; now replaced with passive channel
+p MIapp = 0
+
+## Leak Current; passive
+p MV_L = -90
+p Mg_leak = .075
+
+## Na Current (exception; also no temp change)
+p MV_na = 55
+p Mg_na = 35
+
+p MVa_m_na = -28,		MKa_m_na = 1
+p MVb_m_na = -53,   	MKb_m_na = 18
+
+p MVa_h_na = -51,		MKa_h_na = 20
+p MVb_h_na = -21,   	MKb_h_na = 1
+p Mph_h_na = 5
+
+Ma_m_na[1..40] = (-0.1*(MV[j]-MVa_m_na)/MKa_m_na/(exp(-0.1*(MV[j]-MVa_m_na)/MKa_m_na)-1))
+Mb_m_na[1..40] = 4*exp(-(MV[j]-MVb_m_na)/MKb_m_na)
+Ma_h_na[1..40] = 0.07*exp(-(MV[j]-MVa_h_na)/MKa_h_na)
+Mb_h_na[1..40] = 1/(1+exp(-0.1*(MV[j]-MVb_h_na)/MKb_h_na))
+
+Mm_na[1..40] = Ma_m_na[j]/(Ma_m_na[j]+Mb_m_na[j])
+aux Mm_naa[1..40] = Mm_na[j]
+
+Mhnf_na[1..40] = Ma_h_na[j]/(Ma_h_na[j]+Mb_h_na[j])
+Mh_na[1..40](0) = 1
+Mh_na[1..40]' = Mph_h_na*(Ma_h_na[j]*(1-Mh_na[j])-Mb_h_na[j]*Mh_na[j])
+
+## K Current (exception; also no temp change)
+p MV_k = -90
+p Mg_k = 6
+
+p MVa_n_k = -27,	MKa_n_k = 1
+p MVb_n_k = -37,   	MKb_n_k = 80
+p Mph_n_k = 5
+
+Ma_n_k[1..40] = (-0.01*(MV[j]-MVa_n_k)/MKa_n_k/(exp(-0.1*(MV[j]-MVa_n_k)/MKa_n_k)-1))
+Mb_n_k[1..40] = 0.125*exp(-(MV[j]-MVb_n_k)/MKb_n_k)
+Mnnf_k[1..40] = Ma_n_k[j]/(Ma_n_k[j]+Mb_n_k[j])
+Mn_k[1..40](0) = 0
+Mn_k[1..40]'=Mph_n_k*(Ma_n_k[j]*(1-Mn_k[j])-Mb_n_k[j]*Mn_k[j])
+
+## Kir Current
+p MV_kir = -90
+p Mg_kir = 0.15
+
+# activation approximately instantaneous; no temp dependence
+p Mth_m_kir = -100,	Mk_m_kir = -10 
+p MT0_m_kir = .01
+
+MT_m_kir = MT0_m_kir
+Mmnf_kir[1..40] = INFF(MV[j],Mth_m_kir,Mk_m_kir,0)
+Mm_kir[1..40](0) = 0
+Mm_kir[1..40]' = (Mmnf_kir[j] - Mm_kir[j])/MT_m_kir
+
+## Kaf Current
+p MV_kaf = -73
+p Mg_kaf = .09
+p Mtemp_kaf = 22
+
+p Mth_m_kaf = -33.1,	Mk_m_kaf = 7.5
+p MT0_m_kaf = 1.0
+
+p Mth_h_kaf = -70.4,	Mk_h_kaf = -7.6
+p MT0_h_kaf = 25.0
+
+MT_m_kaf = MT0_m_kaf/MTADJF(Mtemp_kaf)
+Mmnf_kaf[1..40] = INFF(MV[j],Mth_m_kaf,Mk_m_kaf,0)
+Mm_kaf[1..40](0) = 0
+Mm_kaf[1..40]' = (Mmnf_kaf[j] - Mm_kaf[j])/MT_m_kaf
+
+MT_h_kaf = MT0_h_kaf/MTADJF(Mtemp_kaf)
+Mhnf_kaf[1..40] = INFF(MV[j],Mth_h_kaf,Mk_h_kaf,0)
+Mh_kaf[1..40](0) = .73
+Mh_kaf[1..40]' = (Mhnf_kaf[j] - Mh_kaf[j])/MT_h_kaf
+
+# Proportionality constant between m_Kaf ove r m_K
+aux MK_o_Kaf[1..40] = Mn_k[j]/Mm_Kaf[j]
+aux MK_m_Kaf[1..40] = Mn_k[j]-Mm_Kaf[j]
+
+## Kas Current
+p MV_kas = -85
+p Mg_kas = .32
+p Mtemp_kas = 22
+
+p Mth_m_kas = -25.6,	Mk_m_kas = 13.3
+p MT0_m_kas = 131.4
+p MvT_m_kas = -37.4,	MkT_m_kas = 27.3
+
+p Mth_h_kas = -78.8,	Mk_h_kas = -10.4
+p MvT_h_kas = -38.2,	MkT_h_kas = 28
+
+MT_m_kas[1..40] = MTAUF_OMP(MV[j],MT0_m_kas,MvT_m_kas,MkT_m_kas)/MTADJF(Mtemp_kas)
+Mmnf_kas[1..40] = INFF(MV[j],Mth_m_kas,Mk_m_kas,0)
+Mm_kas[1..40](0) = 0
+Mm_kas[1..40]' = (Mmnf_kas[j] - Mm_kas[j])/MT_m_kas[j]
+
+# exception for h_kas tau
+MT_h_kas[1..40] = (1790+2930*exp(-((MV[j]-MvT_h_kas)/MkT_h_kas)^2)*((MV[j]-MvT_h_kas)/MkT_h_kas))/MTADJF(Mtemp_kas)
+Mhnf_kas[1..40] = INFF(MV[j],Mth_h_kas,Mk_h_kas,0)
+# IC from Mahon code
+Mh_kas[1..40](0) = .46
+Mh_kas[1..40]' = (Mhnf_kas[j] - Mh_kas[j])/MT_h_kas[j]
+
+## Krp Current
+p MV_krp = -77.5
+p Mg_krp = 0.42
+p Mtemp_krp = 22
+
+p Mth_m_krp = -13.4,	Mk_m_krp = 12.1
+p MT0_m_krp = 206.2
+p MvT_m_krp = -53.9,	MkT_m_krp = 26.5
+
+p Mth_h_krp = -55.0,	Mk_h_krp = -19.0
+p MvT_h_krp = -38.2,	MkT_h_krp = 28
+
+MT_m_krp[1..40] = MTAUF_OMP(MV[j],MT0_m_krp,MvT_m_krp,MkT_m_krp)/MTADJF(Mtemp_krp)
+Mmnf_krp[1..40] = INFF(MV[j],Mth_m_krp,Mk_m_krp,0)
+Mm_krp[1..40](0) = 0
+Mm_krp[1..40]' = (Mmnf_krp[j] - Mm_krp[j])/MT_m_krp[j]
+
+# exception for h_krp tau
+MT_h_krp[1..40] = 3*(1790+2930*exp(-((MV[j]-MvT_h_krp)/MkT_h_krp)^2)*((MV[j]-MvT_h_krp)/MkT_h_krp))/MTADJF(Mtemp_krp)
+Mhnf_krp[1..40] = INFF(MV[j],Mth_h_krp,Mk_h_krp,0)
+# IC from Mahon code
+Mh_krp[1..40](0) = .7647
+Mh_krp[1..40]' = (Mhnf_krp[j] - Mh_krp[j])/MT_h_krp[j]
+
+## NaP Current
+p MV_nap = 45
+p Mg_nap = 0.02
+p Mtemp_nap = 22
+
+p Mth_m_nap = -47.8,	Mk_m_nap = 3.1
+p MT0_m_nap = 1.0
+
+MT_m_nap = MT0_m_nap/MTADJF(Mtemp_nap)
+Mmnf_nap[1..40] = INFF(MV[j],Mth_m_nap,Mk_m_nap,0)
+Mm_nap[1..40](0) = 0
+Mm_nap[1..40]' = (Mmnf_nap[j] - Mm_nap[j])/MT_m_nap
+
+## NaS Current
+p MV_nas = 40
+p Mg_nas = 0.11
+p Mtemp_nas = 21
+
+p Mth_m_nas = -16.0,	Mk_m_nas = 9.4
+p MT0_m_nas = 637.8
+p MvT_m_nas = -33.5,	MkT_m_nas = 26.3
+
+MT_m_nas[1..40] = MTAUF_OMP(MV[j],MT0_m_nas,MvT_m_nas,MkT_m_nas)/MTADJF(Mtemp_nas)
+Mmnf_nas[1..40] = INFF(MV[j],Mth_m_nas,Mk_m_nas,0)
+Mm_nas[1..40](0) = 0
+Mm_nas[1..40]' = (Mmnf_nas[j] - Mm_nas[j])/MT_m_nas[j]
+
+
+### GPe Neurons ###
+
+## Time constant calculations
+# sigma (Fujita) -> s
+GTAUF(VV,tau0,tau1,phi,s0,s1) = tau0 + (tau1-tau0)/(exp((phi-VV)/s0) + exp((phi-VV)/s1))
+# For GPe NaP s gate
+GTAU_SF(VV,A,B,K) = (A*VV+B)/(1-exp((VV+B/A)/K))
+
+# Capacitance, uF/cm^2
+p GCm = 1
+
+## All currents in uA/cm^2
+# Applied current
+# Previously used for excitation, replaced with passive channel
+p GIapp = 0
+
+## Leak Current; passive
+p GV_L = -60
+# All conductances in mS/cm^2
+p Gg_leak = .068 							
+
+# Defaults: mi (min) = 0, ph (phi) = 0, s0,1 = 1
+
+## Na Currents
+p GV_Na = 50
+## NaF Current
+p Gg_naf = 50 								
+
+p Gth_m_naf = -39,		Gk_m_naf = 5.0
+p GT0_m_naf = 0.028,	GT1_m_naf = 0.028
+p Gph_m_naf = 0,		Gmi_m_naf = 0.0
+p Gs0_m_naf = 1,		Gs1_m_naf = 1
+
+p Gth_h_naf = -48,		Gk_h_naf = -2.8
+p GT0_h_naf = 0.25,    GT1_h_naf = 4.0
+p Gph_h_naf = -43,		Gmi_h_naf = 0.0
+p Gs0_h_naf = 10,		Gs1_h_naf = -5.0
+
+p Gth_s_naf = -40,		Gk_s_naf = -5.4
+p GT0_s_naf = 10,		GT1_s_naf = 1000
+p Gph_s_naf = -40,		Gmi_s_naf = 0.15
+p Gs0_s_naf = 18.3,	Gs1_s_naf = -10	
+
+Gmnf_naf[1..8] = INFF(GV[j],Gth_m_naf,Gk_m_naf,Gmi_m_naf)
+Ghnf_naf[1..8] = INFF(GV[j],Gth_h_naf,Gk_h_naf,Gmi_h_naf)
+Gsnf_naf[1..8] = INFF(GV[j],Gth_s_naf,Gk_s_naf,Gmi_s_naf)
+Gm_T_naf[1..8] = GTAUF(GV[j], GT0_m_naf, GT1_m_naf, Gph_m_naf, Gs0_m_naf, Gs1_m_naf)
+Gh_T_naf[1..8] = GTAUF(GV[j], GT0_h_naf, GT1_h_naf, Gph_h_naf, Gs0_h_naf, Gs1_h_naf)
+Gs_T_naf[1..8] = GTAUF(GV[j], GT0_s_naf, GT1_s_naf, Gph_s_naf, Gs0_s_naf, Gs1_s_naf)
+Gm_naf[1..8](0) = 0.02
+Gh_naf[1..8](0) = 0.97
+Gs_naf[1..8](0) = 0.97
+Gm_naf[1..8]' = (Gmnf_naf[j] - Gm_naf[j]) / Gm_T_naf[j]
+Gh_naf[1..8]' = (Ghnf_naf[j] - Gh_naf[j]) / Gh_T_naf[j]
+Gs_naf[1..8]' = (Gsnf_naf[j] - Gs_naf[j]) / Gs_T_naf[j]
+
+## NaP Current
+p Gg_nap = 0.1
+
+p Gth_m_nap = -57.7,	Gk_m_nap = 5.7
+p GT0_m_nap = 0.03,	GT1_m_nap = 0.146
+p Gph_m_nap = -42.6,	Gmi_m_nap = 0.0
+p Gs0_m_nap = 14.4,	Gs1_m_nap = -14.4
+
+p Gth_h_nap = -57,		Gk_h_nap = -4
+p GT0_h_nap = 10,		GT1_h_nap = 17
+p Gph_h_nap = -34,		Gmi_h_nap = 0.154
+p Gs0_h_nap = 26,		Gs1_h_nap = -31.9
+
+# s gate modulated by different eq's;
+# REMOVED in reduced version
+# p Gth_s_nap = -10,			Gk_s_nap = -4.9
+# p Gmi_s_nap = 0
+# p GAa_s_nap = -.00000288	GBa_s_nap = -.000049
+# p GAb_s_nap = .00000694	GBb_s_nap = .000447
+# p GKa_s_nap = 4.63			GKb_s_nap = -2.63
+
+Gmnf_nap[1..8] = INFF(GV[j],Gth_m_nap,Gk_m_nap,Gmi_m_nap)
+Ghnf_nap[1..8] = INFF(GV[j],Gth_h_nap,Gk_h_nap,Gmi_h_nap)
+#Gsnf_nap[1..8] = INFF(GV[j],Gth_s_nap,Gk_s_nap,Gmi_s_nap)
+Gm_T_nap[1..8] = GTAUF(GV[j], GT0_m_nap, GT1_m_nap, Gph_m_nap, Gs0_m_nap, Gs1_m_nap)
+Gh_T_nap[1..8] = GTAUF(GV[j], GT0_h_nap, GT1_h_nap, Gph_h_nap, Gs0_h_nap, Gs1_h_nap)
+#Gs_T_nap[1..8] = 1/(GTAU_SF(GV[j],GAa_s_nap,GBa_s_nap,GKa_s_nap)+GTAU_SF(GV[j],GAb_s_nap,GBb_s_nap,GKb_s_nap))
+Gm_nap[1..8](0) = .48
+Gh_nap[1..8](0) = .68
+#Gs_nap[1..8](0) = .39
+Gm_nap[1..8]' = (Gmnf_nap[j] - Gm_nap[j]) / Gm_T_nap[j]
+Gh_nap[1..8]' = (Ghnf_nap[j] - Gh_nap[j]) / Gh_T_nap[j]
+#Gs_nap[1..8]' = (Gsnf_nap[j] - Gs_nap[j]) / Gs_T_nap[j]
+
+## K Currents
+p GV_K = -90
+
+# Kv2 Current
+p Gg_kv2 = 0.1
+
+p Gth_m_kv2 = -33.2,	Gk_m_kv2 = 9.1
+p GT0_m_kv2 = 0.1,		GT1_m_kv2 = 3.0
+p Gph_m_kv2 = -33.2,	Gmi_m_kv2 = 0.0
+p Gs0_m_kv2 = 21.7,	Gs1_m_kv2 = -13.9
+
+p Gth_h_kv2 = -20,		Gk_h_kv2 = -10
+p GT0_h_kv2 = 3400,	GT1_h_kv2 = 3400
+p Gph_h_kv2 = 0,		Gmi_h_kv2 = 0.2
+p Gs0_h_kv2 = 1,		Gs1_h_kv2 = 1
+
+Gmnf_kv2[1..8] = INFF(GV[j],Gth_m_kv2,Gk_m_kv2,Gmi_m_kv2)
+Ghnf_kv2[1..8] = INFF(GV[j],Gth_h_kv2,Gk_h_kv2,Gmi_h_kv2)
+Gm_T_kv2[1..8] = GTAUF(GV[j], GT0_m_kv2, GT1_m_kv2, Gph_m_kv2, Gs0_m_kv2, Gs1_m_kv2)
+Gh_T_kv2[1..8] = GTAUF(GV[j], GT0_h_kv2, GT1_h_kv2, Gph_h_kv2, Gs0_h_kv2, Gs1_h_kv2)
+Gm_kv2[1..8](0) = 0.06
+Gh_kv2[1..8](0) = 1
+Gm_kv2[1..8]' = (Gmnf_kv2[j] - Gm_kv2[j]) / Gm_T_kv2[j]
+Gh_kv2[1..8]' = (Ghnf_kv2[j] - Gh_kv2[j]) / Gh_T_kv2[j]
+
+# Kv3 Current
+p Gg_kv3 = 10
+
+p Gth_m_kv3 = -26,		Gk_m_kv3 = 7.8
+p GT0_m_kv3 = 0.1,		GT1_m_kv3 = 14
+p Gph_m_kv3 = -26,		Gmi_m_kv3 = 0
+p Gs0_m_kv3 = 13,		Gs1_m_kv3 = -12
+
+p Gth_h_kv3 = -20,		Gk_h_kv3 = -10
+p GT0_h_kv3 = 7.0,		GT1_h_kv3 = 33
+p Gph_h_kv3 = 0,		Gmi_h_kv3 = 0.6
+p Gs0_h_kv3 = 10,		Gs1_h_kv3 = -10
+
+Gmnf_kv3[1..8] = INFF(GV[j],Gth_m_kv3,Gk_m_kv3,Gmi_m_kv3)
+Ghnf_kv3[1..8] = INFF(GV[j],Gth_h_kv3,Gk_h_kv3,Gmi_h_kv3)
+Gm_T_kv3[1..8] = GTAUF(GV[j], GT0_m_kv3, GT1_m_kv3, Gph_m_kv3, Gs0_m_kv3, Gs1_m_kv3)
+Gh_T_kv3[1..8] = GTAUF(GV[j], GT0_h_kv3, GT1_h_kv3, Gph_h_kv3, Gs0_h_kv3, Gs1_h_kv3)
+Gm_kv3[1..8](0) = 0.02
+Gh_kv3[1..8](0) = 0.99
+Gm_kv3[1..8]' = (Gmnf_kv3[j] - Gm_kv3[j]) / Gm_T_kv3[j]
+Gh_kv3[1..8]' = (Ghnf_kv3[j] - Gh_kv3[j]) / Gh_T_kv3[j]
+
+
+# Kv4f Current
+# COMBINED into Kv4s in reduced version
+# p Gg_kvf = 2.0
+
+# p Gth_m_kvf = -49,		Gk_m_kvf = 12.5
+# p GT0_m_kvf = 0.25,		GT1_m_kvf = 7.0
+# p Gph_m_kvf = -49,		Gmi_m_kvf = 0
+# p Gs0_m_kvf = 29,		Gs1_m_kvf = -29
+
+# p Gth_h_kvf = -83,		Gk_h_kvf = -10
+# p GT0_h_kvf = 7.0,		GT1_h_kvf = 21
+# p Gph_h_kvf = -83,		Gmi_h_kvf = 0
+# p Gs0_h_kvf = 10,		Gs1_h_kvf = -10
+
+# Gmnf_kvf[1..8] = INFF(GV[j],Gth_m_kvf,Gk_m_kvf,Gmi_m_kvf)
+# Ghnf_kvf[1..8] = INFF(GV[j],Gth_h_kvf,Gk_h_kvf,Gmi_h_kvf)
+# Gm_T_kvf[1..8] = GTAUF(GV[j], GT0_m_kvf, GT1_m_kvf, Gph_m_kvf, Gs0_m_kvf, Gs1_m_kvf)
+# Gh_T_kvf[1..8] = GTAUF(GV[j], GT0_h_kvf, GT1_h_kvf, Gph_h_kvf, Gs0_h_kvf, Gs1_h_kvf)
+# Gm_kvf[1..8](0) = .32
+# Gh_kvf[1..8](0) = .08
+# Gm_kvf[1..8]' = (Gmnf_kvf[j] - Gm_kvf[j]) / Gm_T_kvf[j]
+# Gh_kvf[1..8]' = (Ghnf_kvf[j] - Gh_kvf[j]) / Gh_T_kvf[j]
+
+# Kv4s Current (before Kv4s added, g = 1.0)
+p Gg_kvs = 3.0
+
+p Gth_m_kvs = -49,		Gk_m_kvs = 12.5
+p GT0_m_kvs = 0.25,		GT1_m_kvs = 7.0
+p Gph_m_kvs = -49,		Gmi_m_kvs = 0
+p Gs0_m_kvs = 29,		Gs1_m_kvs = -29
+
+p Gth_h_kvs = -83,		Gk_h_kvs = -10
+# Combined tau's of Kv4f (7-21) and Kv4 (50-121)
+p GT0_h_kvs = 15,		GT1_h_kvs = 100
+p Gph_h_kvs = -83,		Gmi_h_kvs = 0
+p Gs0_h_kvs = 10,		Gs1_h_kvs = -10
+
+Gmnf_kvs[1..8] = INFF(GV[j],Gth_m_kvs,Gk_m_kvs,Gmi_m_kvs)
+Ghnf_kvs[1..8] = INFF(GV[j],Gth_h_kvs,Gk_h_kvs,Gmi_h_kvs)
+Gm_T_kvs[1..8] = GTAUF(GV[j], GT0_m_kvs, GT1_m_kvs, Gph_m_kvs, Gs0_m_kvs, Gs1_m_kvs)
+Gh_T_kvs[1..8] = GTAUF(GV[j], GT0_h_kvs, GT1_h_kvs, Gph_h_kvs, Gs0_h_kvs, Gs1_h_kvs)
+Gm_kvs[1..8](0) = .32
+Gh_kvs[1..8](0) = .08
+Gm_kvs[1..8]' = (Gmnf_kvs[j] - Gm_kvs[j]) / Gm_T_kvs[j]
+Gh_kvs[1..8]' = (Ghnf_kvs[j] - Gh_kvs[j]) / Gh_T_kvs[j]
+
+# KCNQ Current (g = .2 in Fujita, altered to better match published traces)
+p Gg_kv7 = 0.15
+
+p Gth_m_kv7 = -61,		Gk_m_kv7 = 19.5
+p GT0_m_kv7 = 6.7,		GT1_m_kv7 = 100
+p Gph_m_kv7 = -61,		Gmi_m_kv7 = 0
+p Gs0_m_kv7 = 35,		Gs1_m_kv7 = -25
+
+Gmnf_kv7[1..8] = INFF(GV[j],Gth_m_kv7,Gk_m_kv7,Gmi_m_kv7)
+Gm_T_kv7[1..8] = GTAUF(GV[j], GT0_m_kv7, GT1_m_kv7, Gph_m_kv7, Gs0_m_kv7, Gs1_m_kv7)
+Gm_kv7[1..8](0) = .53
+Gm_kv7[1..8]' = (Gmnf_kv7[j] - Gm_kv7[j]) / Gm_T_kv7[j]
+
+# HCN Current
+p GV_hcn = -30
+p Gg_hcn = 0.1
+
+p Gth_m_hcn = -76.4,	Gk_m_hcn = -3.3
+p GT0_m_hcn = 0,		GT1_m_hcn = 3625
+p Gph_m_hcn = -76.4,	Gmi_m_hcn = 0
+p Gs0_m_hcn = 6.56,	Gs1_m_hcn = -7.48
+
+Gmnf_hcn[1..8] = INFF(GV[j],Gth_m_hcn,Gk_m_hcn,Gmi_m_hcn)
+Gm_T_hcn[1..8] = GTAUF(GV[j], GT0_m_hcn, GT1_m_hcn, Gph_m_hcn, Gs0_m_hcn, Gs1_m_hcn)
+Gm_hcn[1..8](0) = 0
+Gm_hcn[1..8]' = (Gmnf_hcn[j] - Gm_hcn[j]) / Gm_T_hcn[j]
+
+# CAH Current
+p GV_Ca = 130
+p Gg_cah = 0.3
+
+p Gth_m_cah = -20,		Gk_m_cah = 7.0
+p GT0_m_cah = 0.2,		GT1_m_cah = 0.2
+p Gph_m_cah = 0,		Gmi_m_cah = 0
+p Gs0_m_cah = 1,		Gs1_m_cah = 1
+
+Gmnf_cah[1..8] = INFF(GV[j],Gth_m_cah,Gk_m_cah,Gmi_m_cah)
+Gm_T_cah[1..8] = GTAUF(GV[j], GT0_m_cah, GT1_m_cah, Gph_m_cah, Gs0_m_cah, Gs1_m_cah)
+Gm_cah[1..8](0) = 0
+Gm_cah[1..8]' = (Gmnf_cah[j] - Gm_cah[j]) / Gm_T_cah[j]
+
+# Current needed to calculate Ca conc.
+GI_cah[1..8] = (GV[j]-GV_Ca) * Gg_cah * Gm_cah[j]
+
+# Ca Conc. p's
+# cm^-1, surface area / volume, aka gamma
+p Gav = 3000
+# Faraday constant s*A/mol
+p F = 96485
+p Z = 2.0
+# ms^-1
+p Gk_Ca = 0.4
+# All concentrations in uM
+p Gc_Ca0 = .01,	Gc_Ca50 = 0.35
+p Gc_Ca_sat = 5.0
+p Hcoeff = 4.6
+Gcan[1..8] = (Gc_Ca[j]/10^6)^Hcoeff
+!Gcan50 = (Gc_Ca50/10^6)^Hcoeff
+
+Gc_Ca[1..8](0) = .01
+Gc_Ca[1..8]' = -GI_cah[j]*Gav/(Z*F) - Gk_Ca*(Gc_Ca[j] - Gc_Ca0)
+
+## KSK Current (Ca-dependent)
+p Gg_ksk = 0.4
+p Gm_T0_ksk = 4.0,		Gm_T1_ksk = 76
+
+Gmnf_ksk[1..8] = Gcan[j]/(Gcan[j] + Gcan50)
+Gm_T_ksk[1..8] = if(Gc_Ca[j]<Gc_Ca_sat) then(Gm_T1_ksk-(Gm_T1_ksk-Gm_T0_ksk)*Gc_Ca[j]/Gc_Ca_sat) else(Gm_T0_ksk) 
+Gm_ksk[1..8](0) = 0
+Gm_ksk[1..8]' = (Gmnf_ksk[j] - Gm_ksk[j]) / Gm_T_ksk[j]
+
+
+### FS Interneurons ###
+p FC=1.0
+
+## Applied current 
+# Previously used for excitaiton; now replaced with passive channel
+p FIapp = 0
+# Golomb: 3.35
+
+## Leak current
+p FV_L = -70.0
+p Fg_L = 0.25
+
+## Na Current
+p FV_Na = 50.0
+p Fg_na = 112.5
+p Fth_m_na = -24.0,		Fk_m_na = 11.5
+p Fth_h_na = -58.3,		Fk_h_na = -6.7
+# Theta and k for tau
+p FtT_h_na = -60,		FkT_h_na = -12.0
+FT_h_na[1..8] = 0.5+14.0*INFF(FV[j],FtT_h_na,FkT_h_na,0)
+
+Fm_na[1..8] = INFF(FV[j],Fth_m_na,Fk_m_na,0)
+Fhnf_na[1..8] = INFF(FV[j],Fth_h_na,Fk_h_na,0)
+#Fm_na = Fmnf_na
+Fh_na[1..8](0) = 0.8522
+Fh_na[1..8]' = (Fhnf_na[j]-Fh_na[j])/FT_h_na[j]
+
+## K Currents
+p FV_K=-90.0
+## Kv3 Current (delayed rectifier)
+p Fg_kv3 = 225.0
+p Fth_n_kv3 = -12.4,	Fk_n_kv3=6.8
+# Theta and k for tau (a and b sets)
+p FtA_n_kv3 = -14.6,	FkA_n_kv3 = -8.6
+p FtB_n_kv3 = 1.3,		FkB_n_kv3 = 18.7
+FT_n_kv3[1..8] = (0.087+11.4*INFF(FV[j],FtA_n_kv3,FkA_n_kv3,0))*(0.087+11.4*INFF(FV[j],FtB_n_kv3,FkB_n_kv3,0))
+
+Fnnf_kv3[1..8] = INFF(FV[j],Fth_n_kv3,Fk_n_kv3,0)
+Fn_kv3[1..8](0) = 0.000208
+Fn_kv3[1..8]' = (Fnnf_kv3[j]-Fn_kv3[j])/FT_n_kv3[j]
+
+# Kv1 Current (d-type)
+# Conductance chosen to put cell in tonic firing mode (Golomb)
+p Fg_Kv1 = 0.1
+p Fth_m_kv1 = -50,		Fk_m_kv1 = 20
+p Fth_h_kv1 = -70,		Fk_h_kv1 = -6
+p FT_m_kv1 = 2, 		FT_h_kv1 = 150,  
+
+Fmnf_kv1[1..8] = INFF(FV[j],Fth_m_kv1,Fk_m_kv1,0)
+Fhnf_kv1[1..8] = INFF(FV[j],Fth_h_kv1,Fk_h_kv1,0)
+Fm_kv1[1..8](0) = 0.2686
+Fh_kv1[1..8](0) = 0.5016
+Fm_kv1[1..8]' = (Fmnf_kv1[j]-Fm_kv1[j])/FT_m_kv1
+Fh_kv1[1..8]' = (Fhnf_kv1[j]-Fh_kv1[j])/FT_h_kv1
+
+
+### Synapses ###
+
+# Chloride reversal - condensed since all -80
+p V_I = -80
+
+# Heaviside parameters (theta, sigma)
+p th_Hg = -57.8,	s_Hg = 2.0
+
+# Synaptic values (functions from Terman et al. 2002)
+# Assume all GABA synapses have same time course as G->G
+# th_g's adjusted to keep s = 0 pre-spike as desired, with no side-effects
+# a & b in ms^-1
+# From perspective of pre-synaptic cell:
+
+# Gertler 2008
+p g_m2m = .14
+p a_m2m = 2.0,			b_m2m = .13
+p th_g_m2m = 52
+
+# Bugaysen 2013
+p g_g2g = .13
+p a_g2g = 2.0,			b_g2g = .09
+p th_g_g2g = 47
+
+# Gittis 2010
+p g_f2f = .11
+p a_f2f = 2.0,			b_f2f = .18
+p th_g_f2f = 57
+
+# Miguelez 2012
+p g_m2g = .1
+p a_m2g = 2.0,			b_m2g = .09
+p th_g_m2g = 57
+
+# Corbit 2016
+p g_g2f = .13
+p a_g2f = 2.0,			b_g2f = .09
+p th_g_g2f = 47
+
+# Gittis 2010
+p g_f2m = .15
+p a_f2m = 2.0,			b_f2m = .1
+p th_g_f2m = 57
+
+# INFF used for smooth approximation of Heaviside
+s_m2m[1..40]'= a_m2m*INFF(MV[j]-th_g_m2m,th_Hg,s_Hg,0)*(1-s_m2m[j]) - b_m2m*s_m2m[j]
+s_g2g[1..8]' = a_g2g*INFF(GV[j]-th_g_g2g,th_Hg,s_Hg,0)*(1-s_g2g[j]) - b_g2g*s_g2g[j]
+s_f2f[1..8]' = a_f2f*INFF(FV[j]-th_g_f2f,th_Hg,s_Hg,0)*(1-s_f2f[j]) - b_f2f*s_f2f[j]
+s_m2g[1..40]'= a_m2g*INFF(MV[j]-th_g_m2g,th_Hg,s_Hg,0)*(1-s_m2g[j]) - b_m2g*s_m2g[j]
+s_g2f[1..8]' = a_g2f*INFF(GV[j]-th_g_g2f,th_Hg,s_Hg,0)*(1-s_g2f[j]) - b_g2f*s_g2f[j]
+s_f2m[1..8]' = a_f2m*INFF(FV[j]-th_g_f2m,th_Hg,s_Hg,0)*(1-s_f2m[j]) - b_f2m*s_f2m[j]
+
+## Connectivity
+# From perspective of postsynaptic cell, summing synapses from tables at top
+i_m2m[1..40]=g_m2m*(MV[j]-V_I)*(sum(0,13)of(shift(s_m2m1,con_m2m(14*([j]-1)+i')-1)))
+aux i_m2ma[1..40] = i_m2m[j]
+i_g2g[1..8]=g_g2g*(GV[j]-V_I)*(sum(0,1)of(shift(s_g2g1,con_g2g(2*([j]-1)+i')-1)))
+aux i_g2ga[1..8] = i_g2g[j]
+i_f2f[1..8]=g_f2f*(FV[j]-V_I)*(sum(0,4)of(shift(s_f2f1,con_f2f(5*([j]-1)+i')-1)))
+aux i_f2fa[1..8] = i_f2f[j]
+i_m2g[1..8]=g_m2g*(GV[j]-V_I)*(sum(0,14)of(shift(s_m2g1,con_m2g(15*([j]-1)+i')-1)))
+aux i_m2ga[1..8] = i_m2g[j]
+i_g2f[1..8]=g_g2f*(FV[j]-V_I)*(sum(0,2)of(shift(s_g2f1,con_g2f(3*([j]-1)+i')-1)))
+aux i_g2fa[1..8] = i_g2f[j]
+i_f2m[1..40]=g_f2m*(MV[j]-V_I)*(sum(0,3*DD+2)of(shift(s_f2m1,con_f2m(3*(DD+1)*([j]-1)+i')-1)))
+aux i_f2ma[1..40] = i_f2m[j]
+
+### Excitatory Input ###
+
+# x indicates excitatory (cortical or STN)
+p V_X = 0
+
+### Passive excitation
+## Constant
+!g_x2m = .066*(DD==0) + .083*(DD==1)
+p g_x2g = 0.02
+p g_x2f = .095
+
+### Spike counters (cumulative)
+p Mspks[1..40] = 0
+global 1 MV[1..40] {Mspks[j] = Mspks[j]+1}
+aux Mspksa[1..40] = Mspks[j]
+
+p Gspks[1..8] = 0
+global 1 GV[1..8] {Gspks[j] = Gspks[j]+1}
+aux Gspksa[1..8] = Gspks[j]
+
+p Fspks[1..8] = 0
+global 1 FV[1..8] {Fspks[j] = Fspks[j]+1}
+aux Fspksa[1..8] = Fspks[j]
+
+### Population spike counters (cumulative)
+aux Mprate = sum(0,39)of(shift(Mspks1,i'))/40
+aux Gprate = sum(0,7)of(shift(Gspks1,i'))/8
+aux Fprate = sum(0,7)of(shift(Fspks1,i'))/8
+
+### Membrane Potentials ###
+MV[1..40](0)=ran(40)-80
+MV[1..40]'=1/MCm*(MIapp  \
+	-(MV[j]-MV_L)  	* Mg_leak \
+	-(MV[j]-MV_na) 	* Mg_na  * Mm_na[j]^3  * Mh_na[j] \
+	-(MV[j]-MV_k)  	* Mg_k   * Mn_k[j]^4 \
+	-(MV[j]-MV_kir)	* Mg_kir * Mm_kir[j] \
+	-(MV[j]-MV_kaf)	* Mg_kaf * Mm_kaf[j] * Mh_kaf[j] \
+	-(MV[j]-MV_kas)	* Mg_kas * Mm_kas[j] * Mh_kas[j] \
+	-(MV[j]-MV_krp)	* Mg_krp * Mm_krp[j] * Mh_krp[j] \
+	-(MV[j]-MV_nap)	* Mg_nap * Mm_nap[j] \
+	-(MV[j]-MV_nas)	* Mg_nas * Mm_nas[j] \
+	-i_m2m[j] \
+	-i_f2m[j] \
+	-(MV[j]-V_X)  * g_x2m)
+
+GV[1..8](0)=ran(40)-80
+GV[1..8]'= 1/GCm* (GIapp  \
+	-(GV[j]-GV_L)  * Gg_leak \
+	-(GV[j]-GV_Na) * Gg_naf * Gm_naf[j]^3 * Gh_naf[j] * Gs_naf[j] \
+	-(GV[j]-GV_Na) * Gg_nap * Gm_nap[j]^3 * Gh_nap[j] \
+    -(GV[j]-GV_K)  * Gg_kv2 * Gm_kv2[j]^4 * Gh_kv2[j] \
+	-(GV[j]-GV_K)  * Gg_kv3 * Gm_kv3[j]^4 * Gh_kv3[j] \
+	-(GV[j]-GV_K)  * Gg_kvs * Gm_kvs[j]^4 * Gh_kvs[j] \
+	-(GV[j]-GV_K)  * Gg_kv7 * Gm_kv7[j]^4 \
+	-(GV[j]-GV_hcn)* Gg_hcn * Gm_hcn[j] \
+	-GI_cah[j] \
+	-(GV[j]-GV_K)  * Gg_ksk * Gm_ksk[j] \
+	-i_g2g[j] \
+	-i_m2g[j] \
+	-(GV[j]-V_X)  * g_x2g)
+	
+FV[1..8](0)=ran(40)-80
+FV[1..8]' = 1/FC * (FIapp \
+	-(FV[j]-FV_L)	* Fg_L \
+	-(FV[j]-FV_Na)	* Fg_Na  * Fm_na[j]^3  * Fh_na[j] \
+	-(FV[j]-FV_K)	* Fg_Kv3 * Fn_kv3[j]^2 \
+	-(FV[j]-FV_k)	* Fg_kv1 * Fm_kv1[j]^3 * Fh_kv1[j] \
+	-i_f2f[j] \
+	-i_g2f[j] \
+	-(FV[j]-V_X)  * g_x2f)
+	
+# Add more desired output variables here
+only t
+only MV[1..40]
+only GV[1..8]
+only FV[1..8]
+	
+# XPP options for command line run
+@ OUTPUT=tcw031016_basic_all_9_cont_tab3.dat
+@ TOTAL=2000
+@ BOUND=10000
+@ METH=qualrk
+@ MAXSTOR=100000
+@ TRANS=0
+@ DT=.1000
+@ XP=t,YP=MV1,XLO=0,XHI=2000,YLO=-80,YHI=20

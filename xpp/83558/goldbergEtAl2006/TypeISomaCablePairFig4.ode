@@ -1,0 +1,85 @@
+# Ermentrout 1998 type I oscillator
+
+p gl=.2,gkdr=80,gna=80
+p iapp=0.67
+p C=1.
+
+p amphi=.32,amhalf=-54,amwidth=4
+p bmphi=.28,bmhalf=-27,bmwidth=5
+p ahphi=.128,ahhalf=-50,ahwidth=18
+p bhphi=4,bhhalf=-27,bhwidth=5
+p anphi=.032,anhalf=-52,anwidth=5
+p bnphi=.5,bnhalf=-57,bnwidth=40
+
+# functions
+am(v)=amphi*(v-amhalf)/(1-exp(-(v-amhalf)/amwidth))
+bm(v)=bmphi*(v-bmhalf)/(exp((v-bmhalf)/bmwidth)-1)
+ah(v)=ahphi*exp(-(v-ahhalf)/ahwidth)
+bh(v)=bhphi/(1+exp(-(v-bhhalf)/bhwidth))
+an(v)=anphi*(v-anhalf)/(1-exp(-(v-anhalf)/anwidth))
+bn(v)=bnphi*exp(-(v-bnhalf)/bnwidth)
+Isyn(y,V)=gsyn*y*(V-Esyn)
+
+
+#currents
+ina(v,m,h)=gna*m^3*h*(v-Vna)
+ikdr(v,n)=gkdr*n^4*(v-Vk)
+il(v)=gl*(v-Vl)
+
+#diff. equ.
+
+v1'=(iapp-(ina(v1,m1,ha)+ikdr(v1,n1)+il(v1))+eps*(ua1-v1)/dx-p0*Isyn(y2,v1))/C
+v2'=(iapp-(ina(v2,m2,hb)+ikdr(v2,n2)+il(v2))+eps*(ub1-v2)/dx-p0*Isyn(y1,v2))/C
+m1'=am(v1)*(1-m1)-bm(v1)*m1
+m2'=am(v2)*(1-m2)-bm(v2)*m2
+n1'=an(v1)*(1-n1)-bn(v1)*n1
+n2'=an(v2)*(1-n2)-bn(v2)*n2
+ha'=ah(v1)*(1-ha)-bh(v1)*ha
+hb'=ah(v2)*(1-hb)-bh(v2)*hb
+
+## synapse
+par taur=1,taud=3,thresh=-30, gsyn=1 Esyn=0
+x1'=(-x1+.5*(1+tanh((v1-thresh)/3.0)))/taur
+x2'=(-x2+.5*(1+tanh((v2-thresh)/3.0)))/taur
+y1'=(-y1+x1)/taud
+y2'=(-y2+x2)/taud
+init x1=0,y1=0,x2=0,y2=0
+
+
+
+par Vna=50,Vk=-100,Vl=-67,Vh=-65,Vrh=-40,Vsh=6,gld=0.1,gh=0.02,tauh=400
+
+
+
+
+hinf(V)=1/(1+exp((V-Vh)/Vsh))
+Ild(V)=V-Vl
+Ih(V,y)=gh*y*(V-Vrh)/gld
+
+ha[1..50]'=(hinf(ua[j])-ha[j])/tauh
+hb[1..50]'=(hinf(ub[j])-hb[j])/tauh
+
+# cable equation
+
+
+p p[0..50]=0
+
+
+ua1'=((lambda/dx)^2*(ua2-2*ua1+v1)-Ild(ua1)-Ih(ua1,ha1)-p1*Isyn(y2,ua1)/gld)/tau 
+ua[2..50]'= ((lambda/dx)^2*(ua[j+1]-2*ua[j]+ua[j-1])-Ild(ua[j])-Ih(ua[j],ha[j])-p[j]*Isyn(y2,ua[j])/gld)/tau
+ua51=(c1+b1*ua50/dx)/(a1+b1/dx)
+
+ub1'=((lambda/dx)^2*(ub2-2*ub1+v2)-Ild(ub1)-Ih(ub1,hb1)-p1*Isyn(y1,ub1)/gld)/tau 
+ub[2..50]'= ((lambda/dx)^2*(ub[j+1]-2*ub[j]+ub[j-1])-Ild(ub[j])-Ih(ub[j],hb[j])-p[j]*Isyn(y1,ub[j])/gld)/tau
+ub51=(c1+b1*ub50/dx)/(a1+b1/dx)
+
+
+par lambda=1,tau=10,dx=.1,c1=0,a1=0,b1=1,c0=0,a0=0,b0=1,eps=.025
+@ total=1000,dt=.05,xlo=0,xhi=1000,ylo=-100,yhi=50,bounds=1e6
+
+i ua[1..50]=-60
+i ha[1..50]=.1
+i ub[1..50]=-60
+i hb[1..50]=.1
+
+d

@@ -1,0 +1,212 @@
+# RatAPtest01.ode
+# Rat action potential is simulated (bondarenko_model_2004)
+# (cf. Bondarenko et al. Am J Physiol Heart Circ Physiol 2004;287: H1378-H1403)
+# (cf. Wang et al. Toxicol Sci 2008;106:454-463)
+# implemented by Dr. Sheng-Nan Wu
+
+# Constant values
+Number  Temp=298.0, R=8.314, Fara=96.5
+Number  E_CaL=63.0, E_Cl=-40.0
+Number Cm=1.0, Vmyo=2.584E-5, VNSR=2.098E-6, VJSR=1.2E-7
+
+# Initial values
+Initial V=-82.4202, Cai=0.115001
+Initial Nai=14237.1, Ki=143720.0
+Initial C_Na1=2.79132E-4, C_Na2=0.020752, O_Na=7.13483E-7
+Initial IF_Na=1.53176E-4, I1_Na=6.73345E-7, I2_Na=1.55787E-9
+Initial IC_Na2=0.0113879, IC_Na3=0.34278
+Initial ato_f=0.00265563, ito_f=0.999977
+Initial ato_s=4.17069E-4, ito_s=0.998543
+Initial nKs=2.62753E-4, aur=4.17069E-4, iur=0.998543
+Initial aKss=4.17069E-4, iKss=1.0
+Initial C_K1=9.92513E-4, C_K2=6.41229E-4
+Initial O_K=1.75298E-4, I_K=3.19129E-5
+Initial Cass=0.115001, CaJSR=1299.5, CaNSR=1299.5
+Initial P_RyR=0.0
+Initial LTRPN_Ca=11.2684, HTRPN_Ca=125.29
+Initial O=9.30308E-19, O1=1.49102E-5, O2=9.51726E-11
+Initial P_C2=1.6774E-4
+Initial C2=1.24216E-4, C3=5.78679E-9, C4=1.19816E-13
+Initial I1=4.97023E-19, I2=3.45847E-14, I3=1.85106E-14
+
+# Stimulus protocol
+Par r0=1, period=300, pulse=10
+Par tf=0, tp=5, tstart=10
+ts=t-tstart
+rstar = r0 + pulse*(heav(mod(ts,period)-tf)-heav(mod(ts,period)-(tf+tp)))
+
+Par  Nao=140000.0
+Par  LTRPN_tot=70.0
+Par  kf=0.023761
+Par  kb=0.036778
+Par  Km_CSQN=800.0
+Par  i_pCa_max=1.0
+Par  CMDN_tot=50.0
+Par  Kpc_max=0.23324
+Par  Km_CMDN=0.238
+Par  K_mCa=1380.0
+Par  Km_Nai=21.0
+Par  v1=4.5, v2=1.7E-5, v3=0.45
+Par  k_plus_c=0.0090
+Par  k_minus_ltrpn=0.196
+Par  g_Cab=3.67E-4
+Par  k_plus_b=0.00405
+Par  k_plus_a=0.006075
+Par  Km_up=0.5
+Par  K_mNa=87500.0
+Par  Km_Cl=10.0
+Par  CSQN_tot=15000.0
+Par  k_minus_htrpn	=3.2E-5
+Par  Km_pCa=0.5
+Par  k_plus_ltrpn=0.0327
+Par  Acap=1.534E-4
+Par  g_Na=13.0, g_CaL=1.51729, g_Ks=0.000575, g_Kr=0.0078, g_Kur=0.0016
+Par  g_ClCa=10.0
+Par  Vss=1.485E-9
+Par  k_NaCa=992.8
+Par  k_plus_htrpn=0.00237
+Par  Ko=5400.0, Cao=1800.0
+Par  tau_xfer=8.0
+Par  k_sat	=0.1
+Par  n=4.0
+Par  g_Kto_f=0.4067, g_Kto_s=0.01, g_Nab=0.0026
+Par  m=3.0
+Par  Km_Ko=1.5
+Par  g_Kss=0.05
+Par  HTRPN_tot=140.0
+Par  i_NaK_max=0.88
+Par  i_CaL_max=7.0
+Par  tau_tr=20.0
+Par  k_minus_c=8.0E-4
+Par  k_minus_b=0.965
+Par  k_minus_a=0.07125
+Par  Kpc_half=20.0
+Par  eta=0.35
+Par  Kpcb=5.0E-4
+
+ass = (1.0 / (1.0 + exp( - (0.12987012987012986 * (22.5 + V)))))
+E_K = (ln((Ko / Ki)) * R * Temp / Fara)
+i_Ks = (g_Ks * (nKs^2.0) * (V - E_K))
+E_Na = (ln((((0.9 * Nao) + (0.1 * Ko)) / ((0.9 * Nai) + (0.1 * Ki)))) * R * Temp / Fara)
+i_Kr = (g_Kr * O_K * (V - (ln((((0.98 * Ko) + (0.02 * Nao)) / ((0.98 * Ki) + (0.02 * Nai)))) * R * Temp / Fara)))
+i_Kur = (g_Kur * aur * iur * (V - E_K))
+sigma = (0.14285714285714285 * (-1.0 + exp((1.4858841010401188E-5 * Nao))))
+f_NaK = (1.0 / (1.0 + (0.1245 * exp( - (0.1 * V * Fara / (R * Temp)))) + (0.0365 * sigma * exp( - (Fara * V / (R * Temp))))))
+J_leak = (v2 * (CaNSR - Cai))
+i_NaCa =	 (k_NaCa * ((exp((eta * V * Fara / (R * Temp))) * (Nai^3.0) * Cao) - (exp(((-1.0 + eta) * V * Fara / (R * Temp))) * (Nao^3.0) * Cai)) / ((K_mNa^3.0) + (Nao^3.0)) / (K_mCa + Cao) / (1.0 + (k_sat * exp(((-1.0 + eta) * V * Fara / (R * Temp))))))
+O_ClCa = (0.2 / (1.0 + exp( - (0.12820512820512822 * (-46.7 + V)))))
+i_ClCa = (g_ClCa * O_ClCa * (V - E_Cl) * Cai / (Cai + Km_Cl))
+i_Nab = (g_Nab * (V - E_Na))
+tau_Kss = (13.17 + (39.3 * exp( - (0.0862 * V))))
+beta_i1 = (9.5E-4 * exp((0.14285714285714285 * (33.5 + V))) / (1.0 + (0.051335 * exp((0.14285714285714285 * (33.5 + V))))))
+beta = (0.05 * exp( - (0.07692307692307693 * (12.0 + V))))
+i_Kss = (g_Kss * aKss * iKss * (V - E_K))
+i_K1 = (0.2938 * Ko * (V - E_K) / (210.0 + Ko) / (1.0 + exp((0.0896 * (V - E_K)))))
+i_NaK = (i_NaK_max * f_NaK * Ko / (1.0 + ((Km_Nai / Nai)^0.66667)) / (Ko + Km_Ko))
+J_rel = (v1 * (O1 + O2) * (CaJSR - Cass) * P_RyR)
+alpha_n = (4.81333E-6 * (26.5 + V) * (1.0 - exp( - (0.128 * (26.5 + V)))))
+alpha_i=	 (0.090821 * exp((0.023391 * (5.0 + V))))
+alpha_a =	 (0.18064 * exp((0.03577 * (30.0 + V))))
+i_pCa = (i_pCa_max * (Cai^2.0) / ((Km_pCa^2.0) + (Cai^2.0)))
+alpha_i1 = (1.52E-4 * exp( - (0.14285714285714285 * (13.5 + V))) / (1.0 + (0.0067083 * exp( - (0.14285714285714285 * (33.5 + V))))))
+# i_stim =  - (10.0 * (t > 10.0) * (t < 15.0))
+beta_Na13 = (0.22 * exp( - (0.04926108374384236 * (-7.5 + V))))
+beta_Na12 =  (0.2 * exp( - (0.04926108374384236 * (-2.5 + V))))
+beta_Na11 = (0.1917 * exp( - (0.04926108374384236 * (2.5 + V))))
+alpha = (0.4 * exp((0.1 * (12.0 + V))) * (1.0 - (0.75 * exp( - (0.0025 * ((20.0 + V)^2.0)))) + (0.7 * exp( - (0.1 * ((40.0 + V)^2.0))))) / (1.0 + (0.12 * exp((0.1 * (12.0 + V))))))
+Bi = ((1.0 + (CMDN_tot * Km_CMDN / ((Km_CMDN + Cai)^2.0)))^(-1.0))
+gamma =	 (Kpc_max * Cass / (Kpc_half + Cass))
+P_C1= (1.0 - (P_C2 + O1 + O2))
+C1= (1.0 - (O + C2 + C2 + C3 + C4 + I1 + I2 + I3))
+beta_n= (9.53333E-5 * exp( - (0.038 * (26.5 + V))))
+beta_i= (0.006497 * exp( - (0.03268 * (5.0 + V))))
+beta_a= (0.3956 * exp( - (0.06237 * (30.0 + V))))
+i_Kto_s = (g_Kto_s * ato_s * ito_s * (V - E_K))
+i_Kto_f = (g_Kto_f * (ato_f^3.0) * ito_f * (V - E_K))
+alpha_Na3 = (7.0E-7 * exp( - (0.12987012987012986 * (7.0 + V))))
+beta_Na5 = (0.02 * alpha_Na3)
+beta_Na4 = alpha_Na3
+beta_Na3 = (0.0084 + (2.0E-5 * (7.0 + V)))
+alpha_Na13 = (3.802 / ((0.1027 * exp( - (0.08333333333333333 * (2.5 + V)))) + (0.25 * exp( - (0.006666666666666667 * (2.5 + V))))))
+alpha_Na2 = (1.0 / (0.393956 + (0.188495 * exp( - (0.06024096385542168 * (7.0 + V))))))
+beta_Na2 = (alpha_Na13 * alpha_Na2 * alpha_Na3 / (beta_Na13 * beta_Na3))
+BJSR =	((1.0 + (CSQN_tot * Km_CSQN / ((Km_CSQN + CaJSR)^2.0)))^(-1.0))
+tau_iur=	 (1200.0 - (170.0 / (1.0 + exp((0.17543859649122806 * (45.2 + V))))))
+E_CaN=	 (ln((Cao / Cai)) * R * Temp / (2.0 * Fara))
+i_Cab=	 (g_Cab * (V - E_CaN))
+tau_ti_s=	 (270.0 + (1050.0 / (1.0 + exp((0.17543859649122806 * (45.2 + V))))))
+Bss=	 ((1.0 + (CMDN_tot * Km_CMDN / ((Km_CMDN + Cass)^2.0)))^(-1.0))
+alpha_Na12=	 (3.802 / ((0.1027 * exp( - (0.06666666666666667 * (2.5 + V)))) + (0.23 * exp( - (0.006666666666666667 * (2.5 + V))))))
+alpha_Na11=	 (3.802 / ((0.1027 * exp( - (0.058823529411764705 * (2.5 + V)))) + (0.2 * exp( - (0.006666666666666667 * (2.5 + V))))))
+tau_aur=	 (2.058 + (0.493 * exp( - (0.0629 * V))))
+beta_a1=	 (6.89E-5 * exp( - (0.04178 * V)))
+
+beta_a0=	 (0.047002 * exp( - (0.0631 * V)))
+J_xfer=	 ((Cass - Cai) / tau_xfer)
+tau_ta_s=	 (2.058 + (0.493 * exp( - (0.0629 * V))))
+J_up= (v3 * (Cai^2.0) / ((Km_up^2.0) + (Cai^2.0)))
+alpha_Na5 = (1.0526315789473684E-5 * alpha_Na2)
+alpha_Na4 = (0.0010 * alpha_Na2)
+iss = (1.0 / (1.0 + exp((0.17543859649122806 * (45.2 + V)))))
+Kpcf = (13.0 * (1.0 - exp( - (0.01 * ((14.5 + V)^2.0)))))
+C_K0 = (1.0 - (C_K1 + C_K2 + O_K + I_K))
+J_tr = ((CaNSR - CaJSR) / tau_tr)
+alpha_a1= (0.013733 * exp((0.038198 * V)))
+alpha_a0 = (0.022348 * exp((0.01176 * V)))
+J_trpn = ( - ((k_minus_htrpn * HTRPN_Ca) + (k_minus_ltrpn * LTRPN_Ca)) + (k_plus_htrpn * Cai * (HTRPN_tot - HTRPN_Ca)) + (k_plus_ltrpn * Cai * (LTRPN_tot - LTRPN_Ca)))
+C_Na3 = (1.0 - (O_Na + C_Na1 + C_Na2 + IF_Na + I1_Na + I2_Na + IC_Na2 + IC_Na3))
+
+i_Na=	 (g_Na * O_Na * (V - E_Na))
+i_CaL=	 (g_CaL * O * (V - E_CaL))
+
+V'= - ((i_CaL + i_pCa + i_NaCa + i_Cab + i_Na + i_Nab + i_NaK + i_Kto_f + i_Kto_s + i_K1 + i_Ks + i_Kur + i_Kss + i_Kr + i_ClCa - rstar) / Cm)
+Cai'=(Bi * ( - (J_up + J_trpn + (( - (2.0 * i_NaCa) + i_Cab + i_pCa) * Acap * Cm / (2.0 * Vmyo * Fara))) + J_leak + J_xfer))
+Cass'=(Bss * ((J_rel * VJSR / Vss) - ((J_xfer * Vmyo / Vss) + (i_CaL * Acap * Cm / (2.0 * Vss * Fara)))))
+CaJSR'=(BJSR * (J_tr - J_rel))
+CaNSR'=(((J_up - J_leak) * Vmyo / VNSR) - (J_tr * VJSR / VNSR))
+P_RyR'=( - (0.04 * P_RyR) - (0.1 * exp( - (0.0015432098765432098 * ((-5.0 + V)^2.0))) * i_CaL / i_CaL_max))
+LTRPN_Ca'=((k_plus_ltrpn * Cai * (LTRPN_tot - LTRPN_Ca)) - (k_minus_ltrpn * LTRPN_Ca))
+HTRPN_Ca'=((k_plus_htrpn * Cai * (HTRPN_tot - HTRPN_Ca)) - (k_minus_htrpn * HTRPN_Ca))
+O1'=( - ((k_minus_a * O1) + (k_plus_b * (Cass^m) * O1) + (k_plus_c * O1)) + (k_plus_a * (Cass^n) * P_C1) + (k_minus_b * O2) + (k_minus_c * P_C2))
+O2'=((k_plus_b * (Cass^m) * O1) - (k_minus_b * O2))
+P_C2'=((k_plus_c * O1) - (k_minus_c * P_C2))
+O'=( - ((4.0 * beta * O) + (gamma * O)) + (alpha * C4) + (Kpcb * I1) + (0.0010 * ((alpha * I2) - (Kpcf * O))))
+C2'=( - ((beta * C2) + (3.0 * alpha * C2)) + (4.0 * alpha * C1) + (2.0 * beta * C3))
+C3'=( - ((2.0 * beta * C3) + (2.0 * alpha * C3)) + (3.0 * alpha * C2) + (3.0 * beta * C4))
+C4'=( - ((3.0 * beta * C4) + (alpha * C4) + (gamma * Kpcf * C4)) + (2.0 * alpha * C3) + (4.0 * beta * O) + (0.01 * ((4.0 * Kpcb * beta * I1) - (alpha * gamma * C4))) + (0.0020 * ((4.0 * beta * I2) - (Kpcf * C4))) + (4.0 * beta * Kpcb * I3))
+I1'=( - (Kpcb * I1) + (gamma * O) + (0.0010 * ((alpha * I3) - (Kpcf * I1))) + (0.01 * ((alpha * gamma * C4) - (4.0 * beta * Kpcf * I1))))
+I2'=( - (gamma * I2) + (0.0010 * ((Kpcf * O) - (alpha * I2))) + (Kpcb * I3) + (0.0020 * ((Kpcf * C4) - (4.0 * beta * I2))))
+I3'=( - ((4.0 * beta * Kpcb * I3) + (Kpcb * I3)) + (0.0010 * ((Kpcf * I1) - (alpha * I3))) + (gamma * I2) + (gamma * Kpcf * C4))
+Nai'= - (Acap * Cm * (i_Na + i_Nab + (3.0 * i_NaK) + (3.0 * i_NaCa)) / (Vmyo * Fara))
+C_Na2'=( - ((beta_Na11 * C_Na2) + (alpha_Na12 * C_Na2) + (beta_Na3 * C_Na2)) + (alpha_Na11 * C_Na3) + (beta_Na12 * C_Na1) + (alpha_Na3 * IC_Na2))
+C_Na1'=( - ((beta_Na12 * C_Na1) + (alpha_Na13 * C_Na1) + (beta_Na3 * C_Na1)) + (alpha_Na12 * C_Na2) + (beta_Na13 * O_Na) + (alpha_Na3 * IF_Na))
+O_Na'=( - ((beta_Na13 * O_Na) + (alpha_Na2 * O_Na)) + (alpha_Na13 * C_Na1) + (beta_Na2 * IF_Na))
+IF_Na'=( - ((beta_Na2 * IF_Na) + (alpha_Na3 * IF_Na) + (alpha_Na4 * IF_Na) + (beta_Na12 * IF_Na)) + (alpha_Na2 * O_Na) + (beta_Na3 * C_Na1) + (beta_Na4 * I1_Na) + (alpha_Na12 * IC_Na2))
+I1_Na'=( - ((beta_Na4 * I1_Na) + (alpha_Na5 * I1_Na)) + (alpha_Na4 * IF_Na) + (beta_Na5 * I2_Na))
+I2_Na'=((alpha_Na5 * I1_Na) - (beta_Na5 * I2_Na))
+IC_Na2'=( - ((beta_Na11 * IC_Na2) + (alpha_Na12 * IC_Na2) + (alpha_Na3 * IC_Na2)) + (alpha_Na11 * IC_Na3) + (beta_Na12 * IF_Na) + (beta_Na3 * IC_Na2))
+IC_Na3'=( - ((alpha_Na11 * IC_Na3) + (alpha_Na3 * IC_Na3)) + (beta_Na11 * IC_Na2) + (beta_Na3 * C_Na3))
+Ki'= - (Acap * Cm * (i_Kto_f + i_Kto_s + i_K1 + i_Ks + i_Kss + i_Kur + i_Kr + (2.0 * i_NaK)) / (Vmyo * Fara))
+ato_f'=((alpha_a * (1.0 - ato_f)) - (beta_a * ato_f))
+ito_f'=((alpha_i1 * (1.0 - ito_f)) - (beta_i1 * ito_f))
+ato_s' = ((ass - ato_s) / tau_ta_s)
+ito_s' = ((iss - ito_s) / tau_ti_s)
+nKs'=((alpha_n * (1.0 - nKs)) - (beta_n * nKs))
+aur'=((ass - aur) / tau_aur)
+iur'=((iss - iur) / tau_iur)
+aKss'=((ass - aKss) / tau_Kss)
+iKss'=0.0
+C_K2'=( - ((kb * C_K2) + (alpha_a1 * C_K2)) + (kf * C_K1) + (beta_a1 * O_K))
+C_K1'=( - ((beta_a0 * C_K1) + (kf * C_K1)) + (alpha_a0 * C_K0) + (kb * C_K2))
+O_K'=( - ((beta_a1 * O_K) + (alpha_i * O_K)) + (alpha_a1 * C_K2) + (beta_i * I_K))
+I_K'=((alpha_i * O_K) - (beta_i * I_K))
+
+aux ina=i_Na
+aux ical=i_CaL
+aux ikur=i_Kur
+
+# Numerical and plotting parameters for xpp
+@ maxstor=5000000, bounds=10000000, total=1100, xp=t, yp=V, trans=860
+@ meth=Gear, dt=0.05, toler=0.01, xlo=860, xhi=1100, ylo=-100, yhi=60     
+
+done

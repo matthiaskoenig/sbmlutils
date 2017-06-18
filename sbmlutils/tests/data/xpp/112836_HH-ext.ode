@@ -1,0 +1,37 @@
+# HH-ext.ode: an XppAut file for the Hodgkin-Huxley equations
+# + strength of external electrical field
+# time in msec, voltage in mV and frequency in Hz
+
+# initial conditions
+init V=0, m=0.052, h=0.596, n=0.317
+
+# the parameters
+param vext=8, iapp=1, freq=0.3
+param VNa=115,VK=-12,VL=10.599, gNa=120
+param gK=36, gL=0.3, cm=1
+
+# time constants and steady state functions for gating variables
+am(v)=0.1*(25-v)/(exp((25-v)/10)-1)
+bm(v)=4*exp(-v/18)
+ah(v)=0.07*exp(-v/20)
+bh(v)=1/(exp((30-v)/10)+1)
+an(v)=0.01*(10-v)/(exp((10-v)/10)-1)
+bn(v)=0.125*exp(-v/80)
+
+vex(t)=vext*(sin(2*pi*(freq/1000)*t))
+ik=gK*n^4*(v+vex(t)-VK)
+ina=gNa*m^3*h*(v+vex(t)-VNa)
+il=gL*(v+vex(t)-VL)
+
+# the equations
+v'=(-ik-ina-il+iapp)/cm
+m'=(am(v)*(1-m)-bm(v)*m)
+n'=(an(v)*(1-n)-bn(v)*n)
+h'=(ah(v)*(1-h)-bh(v)*h)
+
+aux vexf=vex(t)
+
+# set xpp parameters
+@ total=25000, xp=t, yp=v, xlo=0, xhi=25000, ylo=-20, yhi=120, bounds=10000000, dt=0.01
+@ maxstor=10000000
+done

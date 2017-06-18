@@ -1,0 +1,1505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># Six Subunit Model of CaMKII
+#
+# Graupner, M. and Brunel, N., STDP in a bistable synapse model based on CaMKII and associated signaling pathways, PLoS Comput Biol, 3(11), e221, 2299-2323 (2007). 
+#
+#   Please note that this file allows to compute the steady-states of the CaMKII 
+#   phosphorylation level with respect to calicum. The parameter used here allow 
+#   to reproduce the data shown in Fig.3C by the blue line (p.2303) in the above 
+#	menioned paper. 
+#   The steady-state diagram consits of two separate branches which have to be computed
+#   separately. This is the case since the initial point (specified by &apos;init&apos;) has to 
+#   be a fixed point on the respective branch. This file allows to compute the upper branch 
+#   including the UP state. The computation starts at Ca_0 = 0.2 \mu M.
+#   
+#   Note however that all the dynamic simulations of the model were not done with xppaut. 
+#   The dynamics of the CaMKII-system has been implemented in a C++ code. Please contact
+#   the authors for further informations.
+#
+#  this file is set to run:
+#  1. start xppaut and load file
+#     $ xppaut 
+#  2. lauch auto
+#     click -&gt; File -&gt; AUTO
+#  3. run auto
+#     click -&gt; Run -&gt; Steady State 
+#  and you will get the fix-points of the system with the bistability
+#
+# auto parameters
+@ NPR=400, NMAX=40000, DSMAX=0.01, DS=.01, PARMIN=0, PARMAX=2
+@ AUTOXMIN=0, AUTOXMAX=2, AUTOYMIN=0, AUTOYMAX=210, AUTOVAR=Ta
+#
+# note that total receptor pop is conserved
+# so p0+p1+...+p10 is constant
+# this leads to a zero eigenvalue, so we set the total
+# receptor population to be p0i=20 and eliminate p0
+# this allows AUTO to do its thing without 
+# choking
+#
+# initial conditions to start at Ca=0.2
+# required to compuate the fix-point island including the UP state
+#
+init B1=1.325911,B2=2.146327,B3=0.816472,B4=0.348016
+init B5=3.218889,B6=1.346285,B7=1.380859
+init B8=0.215422,B9=4.942081,B10=2.434134
+init B11=1.284668,B12=8.591719,B13=4.727069
+init PP1=0.00515738, I1P=0.00755588
+init TA=132.3964
+#
+#
+param Ca=0.2
+param b0i=33.3
+param K5=0.1, CaM=0.1
+param L1=0.1, L2=0.025, L3=0.32, L4=0.40
+param k6=6, k7=6
+param PP10=0.2
+param k12=6000
+param KM=0.4
+param k11=500, km11=0.1
+param I10=1
+param Kdcan=0.053, ncan=3, kcan0=0.1, kcan=18
+param Kdpka=0.11, npka=8, kpka0=0.00359, kpka=100
+
+
+# occupied receptors
+rr=sum(0,12)of(shift(B1,i&apos;))
+# p0 is whats left from total
+B0=b0i-rr
+
+# total activated and inactivated subunit concentrations
+tact= B1 + 2*(B2 + B3 + B4) + 3*(B5 + B6 + B7 + B8) + 4*(B9 + B10 + B11) + 5*B12 + 6*B13
+
+# kinetic equations
+phossum=B1 + 2*(B2 + B3 + B4) + 3*(B5 + B6 + B7 + B8) + 4*(B9 + B10 + B11) + 5*B12 + 6*B13
+#PP1=Ca^3/(KL^3 + Ca^3)
+#PP1=base + kpp1*Ca^3/(KL^3 +  Ca^3)*KH^4/(KH^4 + Ca^4)
+k10=k12*PP1/(KM + phossum)
+#
+C=CaM/(1 + L4/Ca + L3*L4/(Ca^2) + L2*L3*L4/(Ca^3) + L1*L2*L3*L4/(Ca^4))
+gamma=C/(K5+C) 
+vPKA=kpka0 + kpka/(1 + (Kdpka/C)^npka)
+vCaN=kcan0 + kcan/(1 + (Kdcan/C)^ncan)
+
+# at last the equations
+
+B1&apos; = 6*k6*gamma^2*B0 - 4*k6*gamma^2*B1 - k7*gamma*B1 - k10*B1 + 2*k10*(B2 + B3 + B4)
+#
+B2&apos; = k7*gamma*B1 + k6*gamma^2*B1 - 3*k6*gamma^2*B2 - k7*gamma*B2 - 2*k10*B2 + k10*(2*B5 + B6 + B7)
+B3&apos; = 2*k6*gamma^2*B1 - 2*k7*gamma*B3 - 2*k6*gamma^2*B3 - 2*k10*B3 + k10*(B5 + B6 + B7 + 3*B8) 
+B4&apos; = k6*gamma^2*B1 - 2*k7*gamma*B4 - 2*k6*gamma^2*B4 - 2*k10*B4 + k10*(B6 + B7)
+#
+B5&apos; = k7*gamma*B2 + k7*gamma*B3 + k6*gamma^2*B2 - k7*gamma*B5 - 2*k6*gamma^2*B5 - 3*k10*B5 + k10*(2*B9 + B10)
+B6&apos; = k6*gamma^2*B2 + k6*gamma^2*B3  + 2*k7*gamma*B4 - k6*gamma^2*B6 - 2*k7*gamma*B6 - 3*k10*B6 + k10*(B9 + B10 + 2*B11)
+B7&apos; = k6*gamma^2*B2 + k7*gamma*B3 + 2*k6*gamma^2*B4 - k6*gamma^2*B7 - 2*k7*gamma*B7 - 3*k10*B7 + k10*(B9 + B10 + 2*B11)
+B8&apos; = k6*gamma^2*B3 - 3*k7*gamma*B8 - 3*k10*B8 + k10*B10
+#
+B9&apos; = k7*gamma*B5 + k6*gamma^2*B5 + k7*gamma*B6 + k7*gamma*B7 - k6*gamma^2*B9 - k7*gamma*B9 - 4*k10*B9 + 2*k10*B12
+B10&apos;= k6*gamma^2*B5 + k6*gamma^2*B6 + k7*gamma*B7 + 3*k7*gamma*B8 - 2*k7*gamma*B10 - 4*k10*B10 + 2*k10*B12
+B11&apos;= k7*gamma*B6 +  k6*gamma^2*B7 - 2*k7*gamma*B11 - 4*k10*B11 + k10*B12
+#
+B12&apos;= k7*gamma*B9 + k6*gamma^2*B9 + 2*k7*gamma*B10 + 2*k7*gamma*B11 - k7*gamma*B12 - 5*k10*B12 + 6*k10*B13
+#
+B13&apos;= k7*gamma*B12 - 6*k10*B13
+#
+PP1&apos;= -k11*I1P*PP1 + km11*(PP10 - PP1)
+I1P&apos;= -k11*I1P*PP1 + km11*(PP10 - PP1) + vPKA*I10 - vCaN*I1P
+
+
+# dummy to get steady-state value of total phosphate - this can be plotted now
+# in AUTO!
+ta&apos;=-ta+tact
+aux act=tact
+#@ total=2000,dt=5,meth=cvode
+#@ total=100,dt=0.001
+@ total=1000,dt=0.001
+@ bound=100000
+@ maxstor=100000
+@ njmp=10
+
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="b1" name="b1 = 1.325911" value="1.325911" constant="false"/>
+      <parameter id="b2" name="b2 = 2.146327" value="2.146327" constant="false"/>
+      <parameter id="b3" name="b3 = 0.816472" value="0.816472" constant="false"/>
+      <parameter id="b4" name="b4 = 0.348016" value="0.348016" constant="false"/>
+      <parameter id="b5" name="b5 = 3.218889" value="3.218889" constant="false"/>
+      <parameter id="b6" name="b6 = 1.346285" value="1.346285" constant="false"/>
+      <parameter id="b7" name="b7 = 1.380859" value="1.380859" constant="false"/>
+      <parameter id="b8" name="b8 = 0.215422" value="0.215422" constant="false"/>
+      <parameter id="b9" name="b9 = 4.942081" value="4.942081" constant="false"/>
+      <parameter id="b10" name="b10 = 2.434134" value="2.434134" constant="false"/>
+      <parameter id="b11" name="b11 = 1.284668" value="1.284668" constant="false"/>
+      <parameter id="b12" name="b12 = 8.591719" value="8.591719" constant="false"/>
+      <parameter id="b13" name="b13 = 4.727069" value="4.727069" constant="false"/>
+      <parameter id="pp1" name="pp1 = 0.00515738" value="0.00515738" constant="false"/>
+      <parameter id="i1p" name="i1p = 0.00755588" value="0.00755588" constant="false"/>
+      <parameter id="ta" name="ta = 132.3964" value="132.3964" constant="false"/>
+      <parameter id="ca" name="ca = 0.2" value="0.2" constant="false"/>
+      <parameter id="b0i" name="b0i = 33.3" value="33.3" constant="false"/>
+      <parameter id="k5" name="k5 = 0.1" value="0.1" constant="false"/>
+      <parameter id="cam" name="cam = 0.1" value="0.1" constant="false"/>
+      <parameter id="l1" name="l1 = 0.1" value="0.1" constant="false"/>
+      <parameter id="l2" name="l2 = 0.025" value="0.025" constant="false"/>
+      <parameter id="l3" name="l3 = 0.32" value="0.32" constant="false"/>
+      <parameter id="l4" name="l4 = 0.40" value="0.4" constant="false"/>
+      <parameter id="k6" name="k6 = 6" value="6" constant="false"/>
+      <parameter id="k7" name="k7 = 6" value="6" constant="false"/>
+      <parameter id="pp10" name="pp10 = 0.2" value="0.2" constant="false"/>
+      <parameter id="k12" name="k12 = 6000" value="6000" constant="false"/>
+      <parameter id="km" name="km = 0.4" value="0.4" constant="false"/>
+      <parameter id="k11" name="k11 = 500" value="500" constant="false"/>
+      <parameter id="km11" name="km11 = 0.1" value="0.1" constant="false"/>
+      <parameter id="i10" name="i10 = 1" value="1" constant="false"/>
+      <parameter id="kdcan" name="kdcan = 0.053" value="0.053" constant="false"/>
+      <parameter id="ncan" name="ncan = 3" value="3" constant="false"/>
+      <parameter id="kcan0" name="kcan0 = 0.1" value="0.1" constant="false"/>
+      <parameter id="kcan" name="kcan = 18" value="18" constant="false"/>
+      <parameter id="kdpka" name="kdpka = 0.11" value="0.11" constant="false"/>
+      <parameter id="npka" name="npka = 8" value="8" constant="false"/>
+      <parameter id="kpka0" name="kpka0 = 0.00359" value="0.00359" constant="false"/>
+      <parameter id="kpka" name="kpka = 100" value="100" constant="false"/>
+      <parameter id="rr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="b0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tact" value="0" units="dimensionless" constant="false"/>
+      <parameter id="phossum" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k10" value="0" units="dimensionless" constant="false"/>
+      <parameter id="c" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gamma" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vpka" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vcan" value="0" units="dimensionless" constant="false"/>
+      <parameter id="act" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="b1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 6 </cn>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b0 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 4 </cn>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b1 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k10 </ci>
+                <ci> b1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <ci> b2 </ci>
+                <ci> b3 </ci>
+                <ci> b4 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b1 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b1 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 3 </cn>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b2 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 2 </cn>
+                <ci> k10 </ci>
+                <ci> b2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> b5 </ci>
+                </apply>
+                <ci> b6 </ci>
+                <ci> b7 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b1 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b3 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k6 </ci>
+                  <apply>
+                    <power/>
+                    <ci> gamma </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <ci> b3 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 2 </cn>
+                <ci> k10 </ci>
+                <ci> b3 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <ci> b5 </ci>
+                <ci> b6 </ci>
+                <ci> b7 </ci>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 3 </cn>
+                  <ci> b8 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b1 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b4 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k6 </ci>
+                  <apply>
+                    <power/>
+                    <ci> gamma </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <ci> b4 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 2 </cn>
+                <ci> k10 </ci>
+                <ci> b4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <ci> b6 </ci>
+                <ci> b7 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b5">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b2 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b3 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b2 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b5 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k6 </ci>
+                  <apply>
+                    <power/>
+                    <ci> gamma </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <ci> b5 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <ci> k10 </ci>
+                <ci> b5 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> b9 </ci>
+                </apply>
+                <ci> b10 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b6">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <times/>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b2 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b3 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <cn type="integer"> 2 </cn>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b4 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b6 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b6 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <ci> k10 </ci>
+                <ci> b6 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <ci> b9 </ci>
+                <ci> b10 </ci>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> b11 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <times/>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b2 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b3 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <cn type="integer"> 2 </cn>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b4 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b7 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b7 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <ci> k10 </ci>
+                <ci> b7 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <apply>
+                <plus/>
+                <ci> b9 </ci>
+                <ci> b10 </ci>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> b11 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b8">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k6 </ci>
+                  <apply>
+                    <power/>
+                    <ci> gamma </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <ci> b3 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 3 </cn>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b8 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <ci> k10 </ci>
+                <ci> b8 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <ci> b10 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b9">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b5 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k6 </ci>
+                      <apply>
+                        <power/>
+                        <ci> gamma </ci>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <ci> b5 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b6 </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k7 </ci>
+                      <ci> gamma </ci>
+                      <ci> b7 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b9 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b9 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 4 </cn>
+                <ci> k10 </ci>
+                <ci> b9 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> k10 </ci>
+              <ci> b12 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b10">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b5 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b6 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b7 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 3 </cn>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b8 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b10 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 4 </cn>
+                <ci> k10 </ci>
+                <ci> b10 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> k10 </ci>
+              <ci> b12 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b11">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b6 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b7 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <cn type="integer"> 2 </cn>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b11 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 4 </cn>
+                <ci> k10 </ci>
+                <ci> b11 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k10 </ci>
+              <ci> b12 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b12">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b9 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k6 </ci>
+                    <apply>
+                      <power/>
+                      <ci> gamma </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <ci> b9 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b10 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> k7 </ci>
+                    <ci> gamma </ci>
+                    <ci> b11 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> gamma </ci>
+                  <ci> b12 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 5 </cn>
+                <ci> k10 </ci>
+                <ci> b12 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 6 </cn>
+              <ci> k10 </ci>
+              <ci> b13 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> k7 </ci>
+              <ci> gamma </ci>
+              <ci> b12 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 6 </cn>
+              <ci> k10 </ci>
+              <ci> b13 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="pp1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> k11 </ci>
+              </apply>
+              <ci> i1p </ci>
+              <ci> pp1 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> km11 </ci>
+              <apply>
+                <minus/>
+                <ci> pp10 </ci>
+                <ci> pp1 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="i1p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <ci> k11 </ci>
+                </apply>
+                <ci> i1p </ci>
+                <ci> pp1 </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> km11 </ci>
+                <apply>
+                  <minus/>
+                  <ci> pp10 </ci>
+                  <ci> pp1 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> vpka </ci>
+                <ci> i10 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> vcan </ci>
+              <ci> i1p </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="ta">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <ci> ta </ci>
+            </apply>
+            <ci> tact </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="rr"/>
+      <assignmentRule variable="b0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> b0i </ci>
+            <ci> rr </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="tact">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> b1 </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <apply>
+                <plus/>
+                <ci> b2 </ci>
+                <ci> b3 </ci>
+                <ci> b4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 3 </cn>
+              <apply>
+                <plus/>
+                <ci> b5 </ci>
+                <ci> b6 </ci>
+                <ci> b7 </ci>
+                <ci> b8 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 4 </cn>
+              <apply>
+                <plus/>
+                <ci> b9 </ci>
+                <ci> b10 </ci>
+                <ci> b11 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 5 </cn>
+              <ci> b12 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 6 </cn>
+              <ci> b13 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="phossum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> b1 </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <apply>
+                <plus/>
+                <ci> b2 </ci>
+                <ci> b3 </ci>
+                <ci> b4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 3 </cn>
+              <apply>
+                <plus/>
+                <ci> b5 </ci>
+                <ci> b6 </ci>
+                <ci> b7 </ci>
+                <ci> b8 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 4 </cn>
+              <apply>
+                <plus/>
+                <ci> b9 </ci>
+                <ci> b10 </ci>
+                <ci> b11 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 5 </cn>
+              <ci> b12 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 6 </cn>
+              <ci> b13 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k10">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> k12 </ci>
+              <ci> pp1 </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <ci> km </ci>
+              <ci> phossum </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> cam </ci>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <divide/>
+                <ci> l4 </ci>
+                <ci> ca </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> l3 </ci>
+                  <ci> l4 </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> ca </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> l2 </ci>
+                  <ci> l3 </ci>
+                  <ci> l4 </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> ca </ci>
+                  <cn type="integer"> 3 </cn>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> l1 </ci>
+                  <ci> l2 </ci>
+                  <ci> l3 </ci>
+                  <ci> l4 </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> ca </ci>
+                  <cn type="integer"> 4 </cn>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="gamma">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> c </ci>
+            <apply>
+              <plus/>
+              <ci> k5 </ci>
+              <ci> c </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vpka">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> kpka0 </ci>
+            <apply>
+              <divide/>
+              <ci> kpka </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <power/>
+                  <apply>
+                    <divide/>
+                    <ci> kdpka </ci>
+                    <ci> c </ci>
+                  </apply>
+                  <ci> npka </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vcan">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> kcan0 </ci>
+            <apply>
+              <divide/>
+              <ci> kcan </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <power/>
+                  <apply>
+                    <divide/>
+                    <ci> kdcan </ci>
+                    <ci> c </ci>
+                  </apply>
+                  <ci> ncan </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="act">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> tact </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

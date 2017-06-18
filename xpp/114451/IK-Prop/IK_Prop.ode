@@ -1,0 +1,48 @@
+# Markovian model for IK(ur) (Kv2.1) in heart-derived H9c2 cells 
+# Liu et al., The mechanisms of propofol-induced block on ion currents in differentiated H9c2
+# cardiac cells. Eur J Pharmacol 2008;590:93-98.
+
+# Initial values
+init c0=1, c1=0, c2=0, c3=0
+init ci0=0, ci1=0, ci2=0, ci3=0
+init o=0, oi=0
+
+# Voltage clamp protocols
+par vhold=-50, vtest_1=50, vtest_2=-50
+par ton=30, toff=330, toff_r=430
+par prop=0.0, propa=2.141e-5, propb=0.00132
+v = vhold+heav(t-ton)*heav(toff-t)*(vtest_1-vhold)+heav(t-toff)*heav(toff_r-t)*(vtest_2-vhold)
+
+# Values of the model parameters
+par aa0=0.06212, aa=0.00912, ba0=0.1243, ba=0.0323, ai0=50.512, ai=4.944e-6, bi0=2.825e-6, bi=4.096e-8
+par f1=2.303, f2=16.4, f3=265.833, f4=259.12, b1=1.1653, b2=1.5137, b3=13.072, b4=529.125
+par scale=1
+
+# Expressions
+Ek=-80.1
+par gkbar=25
+aaa=aa0*exp(aa*v)
+baa=ba0*exp(-ba*v)
+aia=ai0*exp(-ai*v)
+bia=bi0*exp(bi*v)
+
+# Gating functions
+c0' = c1*baa + ci0*aia -c0*(4*aaa + bia)
+c1' = c0*4*aaa + c2*2*baa + ci1*aia/b1 - c1*(baa + 3*aaa + f1*bia)
+c2' = c1*3*aaa +c3*3*baa + ci2*aia/b2  - c2*(2*baa +2*aaa + f2*bia)
+c3' = c2*2*aaa + o*4*baa + ci3*aia/b3 - c3*(3*baa + aaa + f3*bia)
+o' = c3*aaa + oi*aia/b4 - o*(4*baa + f4*bia) + poi*propb - o*prop*propa
+ci0' = c0*bia + ci1*baa/f1 - ci0*(aia + b1*4*aaa)
+ci1' = c1*f1*bia + ci0* b1*4*aaa +ci2*f1*2*baa/f2 - ci1*(baa/f1 + aia/b1 + b2*3*aaa/b1) 
+ci2' = c2*f2*bia + ci1*b2*3*aaa/b1 + ci3*f2*3*baa/f3  - ci2*(f1*2**baa/f2 + aia/b2 +b3*2*aaa/b2) 
+ci3' = c3*f3*bia + ci2*b3*2*aaa/b2 + oi*f3*4*baa/f4 -ci3*(f2*3*baa/f3 + aia/b3 +b4*aaa/b3) 
+oi' = o*f4*bia  - oi*f3*4*baa/f4 + poi*propb - oi*prop*propa
+poi' = oi*prop*propa + o*prop*propa - poi*propb - poi*propb
+
+aux ik = Gkbar*(o+oi)*(v-Ek)/scale
+aux Pro = o+oi
+
+@ meth=Euler, dt=0.03, total=500
+@ yp=ik, yhi=1500, ylo=-100, xlo=0, xhi=500, bound=10000, maxstor=100000
+
+done

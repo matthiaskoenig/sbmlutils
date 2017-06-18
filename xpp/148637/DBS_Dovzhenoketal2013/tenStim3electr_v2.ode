@@ -1,0 +1,179 @@
+#this is the stimulation protocol with three electrodes placed near 5th, 7th and 9th STN neurons
+#with a local (w1=0.3,w2=0) or non-local (w1=0.3,w2=0.1) spread of stimulation signals.
+#Used to generate Figures 6 and 8 in PLos One paper.
+
+#stimulation parameters
+par w1=0.3, w2=0,Kn=60, gsyn=1.4, iapp=8, fr=0.01,t0=1000,Cn=0.04
+
+# stn parameters
+p vl=-60.,vna=55.,vk=-80.,thetam=30,sm=15
+p gl=2.25,gna=50.,gk=40.,tn=1.,th=0.05
+p gahp=9.,gca=.5,vca=140.,k1=15.,eps=5e-05
+p kca=22.5,thetas=39.,ss=2.,xp=1.,i=0.,ssca=8.
+p thetah=-39.,sh=3.1,thetan=-32.,sn=-8.
+p taun0=1.,taun1=100.,thn=80.,sigman=26.
+p tauh0=1.,tauh1=500,thh=57.,sigmah=3.,phi=5.
+p thetat=-63.,kt=-7.8,gt=.5,phir=2.
+p thetar=-67.,kr=2.,taur0=7.1,taur1=17.5,thr=-68,sigmar=2.2
+p alpha=5,beta=1.,ab=-30.,vsyn=-100.
+p rth=.25,rsig=-.07,i1=0.,rho1=.5,a1=.9
+
+# gp parameters
+p gnag=120.,gkg=30.,gahpg=30.,gtg=.5,gcag=.1,glg=.1
+p vnag=55.,vkg=-80.,vcag=120.,vlg=-55.
+p thetasg=-57.,ksg=2.,thetas1g=-35.,ks1g=2.
+p thetarg=-70.,krg=-2.,taurg=30.
+p thetamg=-37.,sigmamg=10.
+p thetang=-50.,sigmang=14.
+p taun0g=.05,taun1g=.27,thng=-40.,sng=-12.
+p thetahg=-58.,sigmahg=-12.
+p tauh0g=.05,tauh1g=.27,thhg=-40.,shg=-12.
+p k1g=30.,kcag=3.,epsg=0.0055
+p phig=1.,deltang=.3,deltahg=.1
+p gsyngg=.0,vsyngg=-80.
+p gsyng=0.4,vsyng=0,alphag=2.,betag=.14,abg=-20
+p ka=.33
+
+# stn functions
+sinf(v)=1./(1.+exp(-(v+thetas)/ss))
+sinfca(v)=1./(1.+exp(-(v+thetas)/ssca))
+minf(v)=1./(1.+exp(-(v+thetam)/sm))
+hinf(v)=1./(1.+exp((v-thetah)/sh))
+ninf(v)=1./(1.+exp((v-thetan)/sn))
+taun(v)=taun0+taun1/(1+exp((v+thn)/sigman))
+tauh(v)=tauh0+tauh1/(1+exp((v+thh)/sigmah))
+rinf(v)=1/(1+exp((v-thetar)/kr))
+taur(v)=taur0+taur1/(1+exp((v+thr)/sigmar))
+tinf(v)=1/(1+exp((v-thetat)/kt))
+rnew(r)=1/(1+exp((r-rth)/rsig))-1/(1+exp(-rth/rsig))
+
+# gp functions
+sinfg(vg)=1/(1+exp(-(vg-thetasg)/ksg))
+sinf1g(vg)=1/(1+exp(-(vg-thetas1g)/ks1g))
+rinfg(vg)=1/(1+exp(-(vg-thetarg)/krg))
+minfg(vg)=1./(1.+exp(-(vg-thetamg)/sigmamg))
+ninfg(vg)=1./(1.+exp(-(vg-thetang)/sigmang))
+taung(vg)=taun0g+taun1g/(1+exp(-(vg-thng)/sng))
+hinfg(vg)=1./(1.+exp(-(vg-thetahg)/sigmahg))
+tauhg(vg)=tauh0g+tauh1g/(1+exp(-(vg-thhg)/shg))
+hv(v)=1./(1.+exp(-v/.001))
+
+# stn currents
+il(v)=gl*(v-vl)
+ina(v,h)=gna*(minf(v))^3*h*(v-vna)
+ik(v,n)=gk*n^4*(v-vk)
+iahp(v,ca)=gahp*(v-vk)*ca/(ca+k1)
+ica(v)=gca*((sinfca(v))^2)*(v-vca)
+it(v,r)=gt*(tinf(v)**3)*(rnew(r)^2)*(v-vca)
+
+###################################################################
+circular structure
+###################################################################
+
+isyn1=gsyn*(sg10+sg1+sg2)*(v1-vsyn)
+isyn[2..9]=gsyn*(sg[j-1]+sg[j]+sg[j+1])*(v[j]-vsyn)
+isyn10=gsyn*(sg9+sg10+sg1)*(v10-vsyn)
+
+###################################################################
+
+# gp currents
+itg(vg,rg)=gtg*(sinfg(vg)^3)*rg*(vg-vcag)
+inag(vg,hg)=gnag*(minfg(vg)^3)*hg*(vg-vnag)
+ikg(vg,ng)=gkg*(ng^4)*(vg-vkg)
+iahpg(vg,cag)=gahpg*(vg-vkg)*cag/(cag+k1g)
+icag(vg)=gcag*((sinf1g(vg))^2)*(vg-vcag)
+ilg(vg)=glg*(vg-vlg)
+
+###########################################
+isyng[1..10]=gsyng*s[j]*(vg[j]-vsyng)
+
+###########################################
+
+#stimulation current
+
+C1=Cn*Heav(t-t0)
+tau=0.5/fr
+tau0=0.5/fr
+
+Istim1=w2*Istim9
+Istim2=0.
+Istim3=w2*Istim5
+Istim4=w1*Istim5
+Istim5=2.*Kn*(1./(1.+exp(-(C1*(delay(x1,tau0+tau)-delay(x1,tau0)))/14.))-0.5)+w2*Istim7
+Istim6=w1*(Istim5+Istim7)
+Istim7=2.*Kn*(1./(1.+exp(-(C1*(delay(x2,tau0+tau)-delay(x2,tau0)))/14.))-0.5)+w2*(Istim5+Istim9)
+Istim8=w1*(Istim7+Istim9)
+istim9=2.*Kn*(1./(1.+exp(-(C1*(delay(x3,tau0+tau)-delay(x3,tau0)))/14.))-0.5)+w2*Istim7
+Istim10=w1*Istim9
+
+aux Stim5=Istim5
+aux Stim7=Istim7
+aux Stim9=Istim9
+
+# LFP of the neuronal population,assumes recording with electrode at 5th STN neuron
+Lfp5=0.1*(-isyn5+Istim5-w1*(isyn6+isyn4)-w2*(isyn7+isyn3))
+Lfp7=0.1*(-isyn7+Istim7-w1*(isyn6+isyn8)-w2*(isyn5+isyn9))
+Lfp9=0.1*(-isyn9+Istim9-w1*(isyn10+isyn8)-w2*(isyn1+isyn7))
+
+aux Muf5=Lfp5
+aux Muf7=Lfp7
+aux Muf9=Lfp9
+
+# stn initial conditions
+i V1=-71.2,V2=-66.2,V3=-55.8,V4=-64.6,V5=-61.2,V6=-69.0,V7=-71.4,V8=-69.3,V9=-68.6,V10=-72.0
+i H1=0.18,H2=0.35,H3=0.26,H4=0.28,H5=0.19,H6=0.31,H7=0.15,H8=0.23,H9=0.22,H10=0.34
+i N1=0.33,N2=0.02,N3=0.1,N4=0.05,N5=0.26,N6=0.05,N7=0.44,N8=0.11,N9=0.11,N10=0.03
+i R1=0.51,R2=0.57,R3=0.3,R4=0.63,R5=0.48,R6=0.54,R7=0.42,R8=0.62,R9=0.5,R10=0.61
+i CA1=0.53,CA2=0.52,CA3=0.51,CA4=0.51,CA5=0.51,CA6=0.51,CA7=0.5,CA8=0.50,CA9=0.45,CA10=0.45
+i S1=0.015,S2=0.,S3=0.,S4=0.,S5=0.003,S6=0.,S7=0.22,S8=0.,S9=0.,S10=0.
+
+# gp initial conditions
+i VG1=-66.42,VG2=-59.05,VG3=32.92,VG4=-59.91,VG5=-62.2,VG6=-59.7,VG7=-77.47,VG8=-61.83,VG9=-42.9,VG10=-74.73
+i NG1=0.24,NG2=0.34,NG3=0.46,NG4=0.33,NG5=0.28,NG6=0.33,NG7=0.62,NG8=0.29,NG9=0.38,NG10=0.34
+i HG1=0.55,HG2=0.52,HG3=0.51,HG4=0.55,HG5=0.58,HG6=0.52,HG7=0.29,HG8=0.59,HG9=0.54,HG10=0.42
+i RG1=0.22,RG2=0.1,RG3=0.16,RG4=0.12,RG5=0.19,RG6=0.12,RG7=0.15,RG8=0.18,RG9=0.16,RG10=0.13
+i CAG1=0.43,CAG2=0.28,CAG3=0.35,CAG4=0.31,CAG5=0.39,CAG6=0.31,CAG7=0.40,CAG8=0.39,CAG9=0.34,CAG10=0.33
+i SG1=0.48,SG2=0.02,SG3=0.33,SG4=0.04,SG5=0.37,SG6=0.04,SG7=0.67,SG8=0.13,SG9=0.29,SG10=0.54
+
+#delay initial conditions
+i x1=0.,x2=0.,x3=0.
+
+p Istn=10.,Igpe=0.
+
+aux Mf5=0.001*delay(x1,tau0)
+aux Mf7=0.001*delay(x2,tau0)
+aux Mf9=0.001*delay(x3,tau0)
+
+om=2.*pi*fr
+
+# harmonic oscillators' equations
+
+x1'=y1
+y1'=-1.*om*y1-(om^2)*x1+Lfp5
+
+x2'=y2
+y2'=-1.*om*y2-(om^2)*x2+Lfp7
+
+x3'=y3
+y3'=-1.*om*y3-(om^2)*x3+Lfp9
+
+# stn equations
+v[1..10]'=-(il(v[j])+ina(v[j],h[j])+ik(v[j],n[j])+iahp(v[j],ca[j])+ica(v[j])+it(v[j],r[j]))-isyn[j]+Istn+Istim[j]
+r[1..10]'=phir*(rinf(v[j])-r[j])/taur(v[j])
+h[1..10]'=phi*( hinf(v[j])-h[j] )/tauh(v[j])
+n[1..10]'=phi*( ninf(v[j])-n[j] )/taun(v[j])
+ca[1..10]'=phi*eps*(-ica(v[j])-it(v[j],r[j]) - kca*ca[j])
+s[1..10]'=alpha*(1-s[j])*sinf(v[j]+ab)-beta*s[j]
+
+# gp equations
+vg[1..10]'= -(itg(vg[j],rg[j])+inag(vg[j],hg[j])+ikg(vg[j],ng[j])+iahpg(vg[j],cag[j])+icag(vg[j])+ilg(vg[j]))+iapp-isyng[j]+Igpe
+ng[1..10]'= deltang*(ninfg(vg[j])-ng[j])/taung(vg[j])
+hg[1..10]'= deltahg*(hinfg(vg[j])-hg[j])/tauhg(vg[j])
+rg[1..10]'= phig*(rinfg(vg[j])-rg[j])/taurg
+cag[1..10]'=epsg*(-icag(vg[j])-itg(vg[j],rg[j]) - kcag*cag[j])
+sg[1..10]'=alphag*(1-sg[j])*sinfg(vg[j]+abg)-betag*sg[j]
+
+
+@ dt=.05,total=6999,meth=qualrk,xp=t,yp=v1,xlo=0,xhi=7000,ylo=-80,yhi=20.,bound=500001,maxstor=500001,delay=100.
+
+done
