@@ -33,11 +33,6 @@ class XPPTestCase(unittest.TestCase):
     def test_SkM_AP_KCa(self):
         self.xpp_check(ode_id="SkM_AP_KCa")
 
-    def test_112836_HH_ext(self):
-        self.xpp_check(ode_id="112836_HH-ext.ode")
-
-
-
 
 if __name__ == "__main__":
     unittest.main()

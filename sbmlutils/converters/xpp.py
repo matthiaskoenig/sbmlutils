@@ -38,7 +38,7 @@ Not supported:
 """
 # FIXME: support global via events
 # FIXME: recursive if than else not supported
-# TODO: rnd via dist
+# TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
 from __future__ import print_function, absolute_import
@@ -477,12 +477,15 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                 # global
                 elif xpp_type == XPP_GLO:
                     '''Global flags are expressions that signal events when they change sign, from less than 
-                    to greater than zero if sign=1 , greater than to less than if sign=-1 or eithet way 
+                    to greater than zero if sign=1 , greater than to less than if sign=-1 or either way 
                     if sign=0. The condition should be delimited by braces {} The events are of the form 
-                    variable=expression , are delimited by braces, and separated by semicolons. When the 
+                    variable=expression, are delimited by braces, and separated by semicolons. When the 
                     condition occurs all the variables in the event set are changed possibly discontinuously.
                     '''
                     warnings.warn("XPP_GLO not supported: XPP line not parsed: '{}'".format(line))
+
+
+
                 # table
                 elif xpp_type == XPP_TAB:
                     ''' The Table declaration allows the user to specify a function of 1 variable in terms 
