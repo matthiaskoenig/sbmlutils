@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 xpp ode to SBML file converter.
 
@@ -250,7 +251,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
     # First iteration to parse relevant lines and get the replacement patterns
     ###########################################################################
     parsed_lines = []
-    with open(xpp_file, encoding="utf-8") as f:
+    # with open(xpp_file, encoding="utf-8") as f:
+    with open(xpp_file) as f:
         lines = f.readlines()
 
         # add info to sbml
