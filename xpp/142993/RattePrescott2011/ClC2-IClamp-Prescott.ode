@@ -1,0 +1,152 @@
+# ClC2-IClamp-Prescott
+# Written by Steve Prescott, 2012
+# from Ratte and Prescott (ClC-2 channels regulate neuronal excitability, not intracellular chloride levels. J Neurosci 2011; 31: 15838-15843)
+# This is the code for Current clamp simulations
+# Designed for XPPAUT 
+
+
+dv/dt = (Idc+I1(t)+I2(t)-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gl*(V-Vl)-(gexc*enorm+gexc_avg)*erect*(0+onexc(t)+offexc(t))*(V-Vexc)-(ginh_avg+ginh*inorm)*irect*(0+oninh(t)+offinh(t))*(V-Vgaba)-gclc*p*(V-Vcl)-gadapt*y*(V-Vk))/cap
+dw/dt = phi*(winf(V)-w)/tauw(V)
+
+V(0)=-70
+w(0)=0.000025
+minf(v)=.5*(1+tanh((v-v1)/v2))
+winf(v)=.5*(1+tanh((v-v3)/v4))
+tauw(v)=1/cosh((v-v3)/(2*v4))
+param vk=-90,vl=-70,vna=45
+param gk=20,gl=1,gna=20
+param v1=-1.2,v2=18
+# v1 and v2 correspond to beta_m and gamma_m in paper
+param v3=-9,v4=10
+# v3 and v4 correspond to beta_w and gamma_w in paper
+param phi=.25,cap=2
+
+
+# ClC-2
+
+# parameters based on Staley 94 J Neurophysiol paper
+# voltage-dependence is relative to Ecl, which is how you get rectification
+dp/dt = (pinf(V)-p)/taup
+pinf(V)=1/(1+exp((vcl-betap-v)/gammap))
+param betap=15, gammap=-14
+# v1/2 (i.e. betap) and vslope (gammaP) taken from Staley 94, tau is an estimate from that same paper.
+param taup=300
+# estimate (slow) tau from Zuniga et al. 2004 J Physiol, at body temp (which is what Staley used in 94)
+p(0)=0
+# instead of using original rectification strategy, you can get simple rectification with the following param
+# betap=0 (centers curve on vcl), gammap=-0.0001 (makes the curve very steep), taup=0.1 (makes activation instantaneous) 
+aux Iclc2 = gclc*p*(V-Vcl)
+param gclc=0
+
+
+# SYNAPTIC EXCITATION
+
+# Here is the first WIENER VARIABLE... gives Ornstein-Uhlenbeck process for synaptic excitation
+wiener nz1
+aux gexc_=(gexc*enorm+gexc_avg)*erect*(0+onexc(t)+offexc(t))
+dgexc/dt=-gexc/tau_exc+scale_exc*nz1
+# enorm makes noise amplitude independent of autocorrelatio time tau_exc
+enorm=sqrt(2/tau_exc)
+# erect prevents negative conductance
+erect=heav((gexc*enorm+gexc_avg)>0)
+par scale_exc=0.1
+par tau_exc=2
+par gexc_avg=0.4
+param vexc=0
+# Next three lines let you turn synaptic excitaion on and off
+onexc(t)=heav(t>=tstart_exc)*1
+offexc(t)=heav(t>(tstart_exc+t_run_exc))*(-1)
+param tstart_exc=0,t_run_exc=100000
+# currently set to be on throughout simulation
+
+# SYNAPTIC INHIBITION
+
+# Here is the second WIENER VARIABLE... gives Ornstein-Uhlenbeck process for synaptic inhibition
+wiener nz2
+aux ginh_=(ginh*inorm+ginh_avg)*irect*(0+oninh(t)+offinh(t))
+dginh/dt=-ginh/tau_inh+scale_inh*nz2
+inorm=sqrt(2/tau_inh)
+irect=heav((ginh*inorm+ginh_avg)>0)
+par scale_inh=0.1
+par tau_inh=10
+par ginh_avg=1
+# See below for reversal potentials associated with chloride
+oninh(t)=heav(t>=tst_oninh)*1
+offinh(t)=heav(t>(tst_oninh+t_r_offinh))*(-1)
+param tst_oninh=0,t_r_offinh=100000
+# currently set to be on throughout simulation
+
+# CURRENT INJECTION
+
+param idc=0
+# if you want time-dependent stim, turn on with I1 and off with I2
+I1(t)=heav(t>=t_start)*I_stim1
+I2(t)=heav(t>(t_start+t_run))*(-I_stim1)
+param I_stim1=0,t_start=0,t_run=100000
+
+
+# CHLORIDE HANDLING
+
+# GHK equation, where 4 is for ratio of Cl to bicarb flux
+Vgaba = 1000*R*Tem/F*ln((4*cli+bicarb*11.8)/(4*clo+bicarb*25))
+# bicarb can be set to 1 or 0 to include or exclude bicarbonate component
+param bicarb=1
+
+# Nernst equations
+vbicarb = 1000*R*Tem/F*ln((bicarb*11.8)/(bicarb*25))
+Vcl = 1000*R*Tem/F*ln(cli/clo)
+aux vcl_=vcl
+aux vgaba_=vgaba
+
+param F=96485, R=8.3, Tem=310
+param clo=120
+cli(0)=6
+
+x = (Vbicarb-Vgaba)/(Vbicarb-Vcl)
+# based on ginh(v-vgaba) = x*ginh(v-vcl) + (1-x)ginh(v-vbicarb), re-arrange to find x, which apportions to current (ion flux) attributable to each ion species
+aux x_ = x
+
+# Next line updates intracellular chloride concentration, but does not include intracellular dialysis from recording pipette (see voltage clamp code for that mechanism)
+dcli/dt = SAvol*((ginh*inorm+ginh_avg)*irect*x*(0+oninh(t)+offinh(t))*(v-Vcl)+gkcc2*(Vk-Vcl)+gclc*p*(V-Vcl))/F
+# note for gaba current that driving force is calculated as v-Vcl and is multiplied by x in order to isolate chloride component of the total current.
+
+param gkcc2=.7
+aux Ikcc2 = gkcc2*(Vk-Vcl)
+# Note that kcc2 does not appear in current balance equation because it is electroneutral (i.e. Cl and K flux cancel each other out)
+# if I wanted to simulate Cl loading, put gkcc2, gna, gk to 0 (blocked) and give strong gexc, could set r and shape to test in "dendrite" - akin to Brumback and Staley 2008 expt method
+
+
+# SHAPE
+
+# for sphere: vol=(4/3)*pi*(ra^3), SA=4*pi*(ra^2), SA/vol=3/ra
+# for a cylinder: vol=pi*h*(ra^2), SA=2*pi*ra*(ra+h), SA/vol=(2/ra)+(2/h) -> Sa/vol=2/ra if you exlclude ends...assume it is connected to adjoining cylinders 
+# Therefore, shape = 3 for sphere; =2 for cylinder without ends
+param shape=3
+!SAvol=shape/(10*ra)
+# note because of units, factor of 10 is applied to denominator (convert mm to cm to get cm^3 for dealing with volumes)
+# Radius now specified in mm, 6.3 microns ->0.0063 mm, 
+param ra=.0063
+# this radius gives surface area (of sphere) of 5x10^-6 cm^2
+# Adjust to simulate cylindrical dendrite
+
+
+# AHP current 
+
+# from Prescott and Sejnowski (J Neurosci 2008)
+# note that adaptation was not included in most simulations
+dy/dt = (1/(1+exp(-(V+betay)/gammay))-y)/tauy
+param betay=0,gammay=5
+param tauy=100
+param gadapt=3
+y(0)=0
+
+
+# PRACTICAL DETAILS FOR XPP
+
+@ total=20000,dt=.1,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=Euler
+# ALWAYS USE EULER METHOD WITH NOISE PROCESSES
+@ dsmin=1e-5,dsmax=.1,parmin=0,parmax=80, autoxmin=0,autoxmax=80,autoymin=-80,autoymax=40
+@ MAXSTOR=1000000
+
+done

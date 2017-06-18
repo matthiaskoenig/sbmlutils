@@ -1,0 +1,60 @@
+# $Id: booth_bose.ode,v 1.29 2004/02/09 21:41:46 billl Exp $
+## booth_bose.ode
+## Pinsky-Rinzel pyramidal cell
+## |||#|||
+# parameter values
+par Isom0=-0.5
+par Iden0=0
+# par gLs=0.1  gLd=0.1  gNa=0  gKdr=0  gCa=0  gKahp=0  gKC=0
+par gLs=0.1  gLd=0.1  gNa=30  gKdr=15  gCa=10  gKahp=0.8  gKC=15  
+par VNa=55
+par VCa=80  VK=-75  VL=-60  Vsyn=0  
+par gc=1.425
+par pp=0.5  Cm=3
+par alphac=2 betac=0.1
+par gnmda=1.75
+# output cols are t, ODEs, AUXs in order, here:
+# t vs vd cad hs ns sd cd qd gqk gkc 
+Vs'=(-gLs*(Vs-VL)-gNa*(Minfs(Vs)^2)*hs*(Vs-VNa)-gKdr*ns*(Vs-VK)+(gc/pp)*(Vd-Vs)+Isom0/pp)/Cm
+Vd'=(-gLd*(Vd-VL)-ICad-gKahp*qd*(Vd-VK)-gKC*cd*chid*(Vd-VK)+(gc*(Vs-Vd))/(1.0-pp)-Inmda/(1-pp)+Iden0/(1-pp))/Cm
+Cad'=  -0.13*ICad-0.075*Cad
+hs'=  alphahs(Vs)-(alphahs(Vs)+betahs(Vs))*hs
+ns'=  alphans(Vs)-(alphans(Vs)+betans(Vs))*ns
+sd'=  alphasd(Vd)-(alphasd(Vd)+betasd(Vd))*sd
+cd'=  alphacd(Vd)-(alphacd(Vd)+betacd(Vd))*cd
+qd'=  alphaqd-(alphaqd+betaqd)*qd
+# pyramidal cell functions
+ICad=     gCa*sd*sd*(Vd-VCa)
+Inmda=gnmda*(Vd-0)/(1+0.28*exp(-0.062*(Vd-0)))
+alphams(v)=  0.32*(-46.9-v)/(exp((-46.9-v)/4.0)-1.0)
+betams(v)=   0.28*(v+19.9)/(exp((v+19.9)/5.0)-1.0)
+Minfs(v)=    alphams(v)/(alphams(v)+betams(v))
+alphans(v)=  0.016*(-24.9-v)/(exp((-24.9-v)/5.0)-1.0)
+betans(v)=   0.25*exp(-1.0-0.025*v)
+alphahs(v)=  0.125*exp((-43.0-v)/18.0)
+betahs(v)=   4/(1.0+exp((-20.0-v)/5.0))
+alphasd(v)=  1.6/(1.0+exp(-0.072*(v-5.0)))
+betasd(v)=   0.02*(v+8.9)/(exp((v+8.9)/5.0)-1.0)
+alphacd(v)=(1.0-heav(v+10.0))*exp((v+50.0)/11-(v+53.5)/27)/18.975+heav(v+10.0)*2.0*exp((-53.5-v)/27.0) 
+betacd(v)=   (1.0-heav(v+10.0))*(2.0*exp((-53.5-v)/27.0)-alphacd(v))
+alphaqd=  min(0.00002*Cad,0.01)
+betaqd=   0.001
+chid=     min(Cad/250.0,1.0)
+# auxiliary eqns
+# aux sdc =  (gc/pp)*(Vd-Vs)
+# aux ICa = ICad
+aux gkq = gKahp*qd
+aux gkc = gKC*cd*chid
+# initial conditions
+init Vs=-62.89223689
+init Vd=-62.98248752
+init Cad=0.21664282
+init hs=0.99806345
+init ns=0.00068604
+init sd=0.01086703
+init qd=0.0811213
+init cd=0.00809387
+# integrator params
+@ maxstor=80000,total=1000,bound=10000,xlo=0,xhi=1.5e3,ylo=-100,yhi=30
+@ meth=cvode,atol=0.0001,toler=0.0001,dt=0.3
+done

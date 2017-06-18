@@ -1,0 +1,86 @@
+#  Komendantov A.0 and Kononenko N.I.
+#  Determenistic chaos in mathematical model of pacemaker activity in bursting neuron, Helix pomatia.
+#  J. theor. Biol: 183, 219-230, 1996
+
+#################################### Control parameters ############################################
+# Example 1. Chaotic activity 
+#p gB=0.1372
+#p gNa=0.0231, gNaV=0.11,  gCa=1.5, gCaCa=0.02, Iapp=0.0
+
+# Example 2. Spiking (beating) activity
+#p gB=0.11
+
+# Example 3. Period-two spiking activity
+# gB=0.124
+
+# Example 4. Period-four spiking activity
+# gB=0.130
+
+# Example 5. Bursting activity 
+# p gB=0.1650
+
+###################################################################################################
+# Example 6. Mode transition from chaotic activity into bursting one evoked by short depolarization)
+p gNa=0.0231,gNaV=0.11,gB=0.1372,gCa=1.5,gCaCa=0.02,Iapp=-0.5
+
+# Example 7. Chaotic bursting mode
+#p gNa=0.02, gNaV=0.13, gB=0.18, gCa=1.0, gCaCa=0.01, Iapp=0.0
+
+############################# Fixed parameter #######################################################
+number Cm=0.02,R=0.1,F=96485
+p gK=0.25,gNaTTX=400.0,gKTEA=10.0
+p VNa=40.0,VK=-70.0,VB=-58.0,VCa=150.0
+p ks=50.0,rho=0.002,kbeta=15000,beta=0.00004
+
+########################### Equations 
+vol=4/3*pi*R*R*R
+Iappx=if((t>=70.0)&(t<=72.0))then(Iapp)else(0.0)
+
+########################### Currents ####################################
+INaV=gNaV*(1/(1+exp(-0.2*(V+45))))*(V-VNa)
+IK=gK*(V-Vk)
+INa=gNa*(V-VNa)
+IB=gB*mB*hB*(V-VB)
+INaTTX=gNaTTX*m*m*m*h*(V-VNa)
+IKTEA=gKTEA *n*n*n*n*(V-VK)
+ICa=gCa*mCa*mCa*(V-VCa)
+ICaCa=gCaCa*(1/(1+exp(-0.06*(V+45))))*(1/(1+exp(kbeta*(Ca-beta))))*(V-VCa)
+
+########################## Differential equations ####################
+V'=-(INaTTX+IKTEA+IK+INa+INaV+IB+ICa+ICaCa+Iappx)/Cm
+Ca'=rho*(-ICa/(2*F*vol)-ks*Ca)
+mB'=(1/(1+exp(0.4*(V+34)))-mB)/0.05
+hB'=(1/(1+exp(-0.55*(V+43)))-hB)/1.5
+m'=(1/(1+exp(-0.4*(V+31)))-m)/0.0005
+h'=(1/(1+exp(0.25*(V+45)))-h)/0.01
+n'=(1/(1+exp(-0.18*(V+25)))-n)/0.015
+mCa'=(1/(1+exp(-0.2*V))-mCa)/0.01
+
+
+####################### Initial conditions ###########################
+# initial conditions: Examples 1-6.
+V(0)=-42
+Ca(0)=6e-05
+mB(0)=0.95
+hB(0)=0.77
+m(0)=0.14
+n(0)=0.048
+mCa(0)=0.0002
+
+# initial conditions: Example 7, chaotic bursting
+#V(0)=-55.56913
+#Ca(0)=3.593358e-05
+#mB(0)=0.0
+#hB(0)=0.0
+#m(0)=0.0
+#n(0)=0.0
+#mCa(0)=0.0
+
+
+@ MAXSTOR=10000000
+@ TOTAL=150.0
+@ DT=0.0001
+
+
+@ XLO=0.0, XHI=150.0, YLO=-65.0, YHI=55.0
+done

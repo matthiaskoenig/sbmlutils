@@ -1,0 +1,73 @@
+# Adoped from Pinsky-Rinzel CA3 pyramidal cell model
+# 
+# Pinsky and Rinzel, J Comput Neurosci 1994;1:39-60.
+# K(ATP) channel was inserted into the model.
+# Parameters for K(ATP) channels were from Koyto model
+# Matsuoka et al. Prog Biophys Mol Biol 2004;85:279-299.
+# 
+# stochastic simulation of flunctuations in intracellular ATP
+
+# initial conditions
+init Vs=-60, Vd=-60, s=0.185
+wiener w
+
+# Parameter values
+par ip0=0.75
+par gLs=0.1  gLd=0.1  gNa=30  gKdr=15  gCa=9  gKahp=0.8  gKC=15
+par VNa=60  VCa=80  VK=-75  VL=-60  Vsyn=0
+par gc=2.1 pp=0.5  Cm=3
+par alphac=2 betac=0.1
+par tstim=4.0e3 n=500
+par gkatp=0.0236*(4^0.24)
+par init_atp=0.1 final_atp=0.5
+par natp=10
+iatp=if(t<tstim)then(init_atp)else(final_atp)
+
+# Pyramidal cell functions
+ICad =  gCa*sd*sd*(Vd-VCa)
+alphams(v) =  0.32*(-46.9-v)/(exp((-46.9-v)/4.0)-1.0)
+betams(v) =  0.28*(v+19.9)/(exp((v+19.9)/5.0)-1.0)
+Minfs(v) =  alphams(v)/(alphams(v)+betams(v))
+alphans(v) =  0.016*(-24.9-v)/(exp((-24.9-v)/5.0)-1.0)
+betans(v) =  0.25*exp(-1.0-0.025*v)
+alphahs(v) =  0.128*exp((-43.0-v)/18.0)
+betahs(v) =  4.0/(1.0+exp((-20.0-v)/5.0))
+alphasd(v) = 1.6/(1.0+exp(-0.072*(v-5.0)))
+betasd(v) =  0.02*(v+8.9)/(exp((v+8.9)/5.0)-1.0)
+alphacd(v) = (1.0-heav(v+10.0))*exp((v+50.0)/11-(v+53.5)/27)/18.975+heav(v+10.0)*2.0*exp((-53.5-v)/27.0) 
+betacd(v) =  (1.0-heav(v+10.0))*(2.0*exp((-53.5-v)/27.0)-alphacd(v))
+alphaqd = min(0.00002*Cad,0.01)
+betaqd = 0.001
+chid = min(Cad/250.0,1.0)
+
+# Level of intracellular ATP concentration
+poatp = 0.8/(1+(iatp*s/0.023)^2)
+
+# Stochastics
+par alphas=1, taus=100, noise=1, s0=0.2
+betas = alphas*(1/s0 - 1)
+varnoise=sqrt((alphas*(1 - s)+betas*s)/(taus*natp))
+
+# Output cols are t, ODEs, AUXs in order, here:
+# t versus vd cad hs ns sd cd qd gqk gkc 
+Vs'=(-gLs*(Vs-VL)-gNa*(Minfs(Vs)^2)*hs*(Vs-VNa)-gKdr*ns*(Vs-VK)-gkatp*natp*poatp*(Vs-VK)+(gc/pp)*(Vd-Vs)+Ip0/pp)/Cm
+Vd'=(-gLd*(Vd-VL)-ICad-gKahp*qd*(Vd-VK)-gKC*cd*chid*(Vd-VK)-gkatp*natp*poatp*(Vd-VK)+(gc*(Vs-Vd))/(1.0-pp))/Cm
+Cad'=  -0.13*ICad-0.075*Cad
+hs'=  alphahs(Vs)-(alphahs(Vs)+betahs(Vs))*hs
+ns'=  alphans(Vs)-(alphans(Vs)+betans(Vs))*ns
+sd'=  alphasd(Vd)-(alphasd(Vd)+betasd(Vd))*sd
+cd'=  alphacd(Vd)-(alphacd(Vd)+betacd(Vd))*cd
+qd'=  alphaqd-(alphaqd+betaqd)*qd
+s' = (alphas*(1-s)-betas*s)/taus + noise*w*varnoise
+
+# auxiliary equationns
+aux Ica=ICad
+aux gkq = gKahp*qd
+aux gkc = gKC*cd*chid
+aux ikatp = gkatp*natp*poatp*(Vs-VK)
+aux iatp=iatp*s
+
+# For stochastics, CVODE can not be used.
+@ maxstor=1000000, total=1.0e4, bounds=10000, xlo=0, xhi=1.0e4, ylo=-90, yhi=60
+@ meth=Euler, atol=1e-10, toler=1e-10, dt=0.05
+done

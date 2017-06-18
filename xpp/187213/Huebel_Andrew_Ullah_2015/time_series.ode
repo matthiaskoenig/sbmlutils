@@ -1,0 +1,165 @@
+###################################################################################################################################
+# Rate equations for AD model used in "Large Extracellular Space Leads to [...] Ischemic Injury [...]" by Hubel, Ullah and Andrew #
+###################################################################################################################################
+# membrane potential                                    'V'       in  [mV]	   #
+# gating variables                                      'n/h'     in  [1]	   #
+# intracellular ion concentrations                      'ki,cli'  in  [mM=mMol/l]  #
+# amount of potassium exchanged with external reservoir 'dnk'     in  [fmol]	   #
+# rates of change                                       'X_DOT'   in  [.../msec]   #
+# (factor 1000. converts to seconds)						   #
+####################################################################################
+V'     = 1000. * V_DOT
+n'     = 1000. * N_DOT
+h'     = 1000. * H_DOT
+
+ki'    = 1000. * KI_DOT
+cli'   = 1000. * CLI_DOT
+dnk'   = 1000. * DNK_DOT
+
+####################################
+# Physiological initial conditions #
+####################################
+init v=-67.056664
+init n=0.070174225
+init h=0.97820824
+
+init ki=128.56937
+init cli=10.061391
+init dnk=0
+
+########################################
+# Extracellular volume 'vle' in [um^3] #
+########################################
+#par vle=720
+par vle=3700
+
+###############################################################################################################
+# Interruption of pumping and diffusive vascular potassium regulation after 50sec and for 'delta_pmp/dif' sec #
+###############################################################################################################
+par delta_pmp=200
+par delta_dif=200
+max_p  = (heav(50-t) + heav(t-50-delta_pmp)) * 6.8
+lambda = (heav(50-t) + heav(t-50-delta_dif)) * 3.0e-5
+
+###################################
+# Hodgkin-Huxley gating functions #
+###################################
+AN  = 0.01 * (v + 34.0) / (1.0 - exp(-0.1 * (v + 34.0))) 
+BN  = 0.125 * exp(-(v + 44.0) / 80.0)
+AM  = 0.1 * (v + 30.0) / (1.0 - exp(-0.1 * (v + 30.0))) 
+BM  = 4.0 * exp(-(v + 55.0) / 18.0) 
+AH  = 0.07 * exp(-(v + 44.0) / 20)
+BH  = 1.0 / (1.0 + exp(-0.1 * (v + 14.0)))
+M   = AM / (AM + BM)
+
+#####################################
+# ion concentrations in [mM=mMol/l] #
+#####################################################################
+# intracellular sodium 'NAI' from electroneutrality                 #
+# extracellular concentrations 'NAE,KE,CLE' from mass conservation  #
+# normal resting values 'ki0,ke0 ...' given                         #
+#####################################################################
+vli    = 2160
+ki0    = 128.56935
+ke0    = 3.9962559
+nai0   = 25.279156
+nae0   = 126.84917
+cli0   = 10.055541
+cle0   = 124.71021
+
+NAI = nai0 +  ki0 - ki - cli0 + cli
+NAE = nae0 + (nai0 - nai) * vli/vle
+KE  = ke0  + (ki0  - ki ) * vli/vle + dnk/vle * 1e3
+CLE = cle0 + (cli0 - cli) * vli/vle
+
+#############################
+# Nernst potentials in [mV] #
+#############################
+EK  = 26.64 * log(ke  / ki)
+ENA = 26.64 * log(nae / nai)
+ECL =-26.64 * log(cle / cli)
+
+############################################################################
+# different types of 'l'eak and 'g'ated currents 'I(ION)_l/g' in [uA/cm^2] #
+# different channel conductances                 'g(ion)_l/g' in [mS/cm^2] #
+# Na/K-exchange pump current                     'IP'         in [uA/cm^2] #                             
+############################################################################
+gna_l  = 0.0175
+gna_g  = 100.
+gk_l   = 0.05
+gk_g   = 40.
+gcl_l  = 0.05
+
+INA_l = gna_l            * (v - ENA)
+INA_g = gna_g * M**3 * h * (v - ENA)
+IK_l  = gk_l             * (v - EK)
+IK_g  = gk_g * n**4      * (v - EK)
+ICL_l = gcl_l            * (v - ECL)
+IP    = max_p / (1.0 + exp((25 - nai)/3.)) / (1. + exp(5.5 - ke))
+
+INA   = INA_l + INA_g + 3. * IP
+IK    = IK_l  + IK_g  - 2. * IP
+
+#######################################################################################
+# Vascular potassium regulation as diffusive coupling to extracellular bath reservoir #
+#######################################################################################
+# baseline potassium concentration       'k_bth'  in [mM]	  #
+# coupling strength                      'lambda' in [mM/msec]	  #
+# factor 1e-3 to convert diffusive flux  'J_diff' to [fMol/msec]  #
+###################################################################
+k_bth  = 4
+J_diff = lambda * vle * (k_bth - ke) * 1e-3
+
+#############################
+# Full list of change rates #
+##########################################################
+# membrane capacitance              'C'    in [uF/cm^2]	 #
+# conversion factor                 'conv' in [XXX]	 #
+# conventional time scale parameter 'phi'  in [1/msec]	 #
+##########################################################
+c       = 1
+conv    = 9.55589e-2
+phi     = 3
+
+V_DOT   = -1. / c * (INA + IK + ICL_l)
+N_DOT   =  phi * (AN * (1 - n) - BN * n)
+H_DOT   =  phi * (AH * (1 - h) - BH * h)
+
+KI_DOT  = -CONV/vli * IK
+CLI_DOT =  CONV/vli * ICL_l
+DNK_DOT =  J_diff
+
+####################################################
+# auxiliary variables for data output and plotting #
+####################################################
+aux _ki	   = ki
+aux _ke	   = KE
+aux _nai   = NAI
+aux _nae   = NAE
+aux _cli   = cli
+aux _cle   = CLE
+
+aux _EK	   = EK
+aux _ENA   = ENA
+aux _ECL   = ECL
+
+aux _MAX_P = max_p
+
+########################
+# Numerical parameters #
+########################
+@ meth=stiff
+@ dt=5e-4
+@ maxstor=10000000, bounds=10000000
+@ total=1000
+@ bell=0
+
+#################
+# Plot settings #
+###########################################################
+# '_MAX_P' as a guide to the eye to see pump interruption #
+###########################################################
+@ xhi=1000
+@ nplot=4, yp1=v, yp2=_EK, yp3=_ENA, yp4=_MAX_P, ylo=-150, yhi=160
+
+done

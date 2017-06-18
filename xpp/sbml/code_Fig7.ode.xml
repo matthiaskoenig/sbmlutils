@@ -1,0 +1,1821 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre>###############################################
+# simulation code for Fig. 7;                 #
+# with &quot;chi=0.2&quot; also Fig. 8b can be produced #
+########################################################
+# t:       time                             in [msec]  #
+# v:       membrane potential               in [mV]    #
+# n,h:     gating variables                 in [1]     #
+# n_ki:    amount of potassium in the ICS   in [fmol]  #
+# n_cli:   amount of chloride in the ICS    in [fmol]  #
+# dnk:     amount of potassium that is                 #
+#          exchanged with glia (negative               #
+#          values when potassium goes into             #
+#          glia cell)                       in [fmol]  #
+# vli,vlg: ICS and glia volume              in [um^3]  #
+########################################################
+
+##################################################
+# rate equations used by solver                  #
+# factor 1000. converts from [x/msec] to [x/sec] #
+##################################################
+v&apos;     = 1000. * V_DOT
+n&apos;     = 1000. * N_DOT
+h&apos;     = 1000. * H_DOT
+n_ki&apos;  = 1000. * N_KI_DOT
+n_cli&apos; = 1000. * N_CLI_DOT
+dnk&apos;   = 1000. * DNK_DOT
+vli&apos;   = 1000. * VLI_DOT
+vlg&apos;   = 1000. * VLG_DOT
+
+############################################
+# initial conditions: normal resting state #
+############################################
+init v=-67.
+init n=0.070
+init h=0.978
+init n_ki=277.7
+init n_cli=21.7
+init dnk=0
+init vli=2160.
+init vlg=2160.
+
+###################################################################
+# by the parameter delta we set the duration of pump interruption #
+# and interruption of glial ion regulation in [sec];              #
+# f_pmp/gl: pump/glia factor in [1]                               #
+###################################################################
+par delta=20
+
+f_pmp = (heav(50-t) + heav(t-50-delta))
+f_gl  = (heav(50-t) + heav(t-50-delta))
+
+################################################################################
+# chi sets the fraction of chloride cotransport with glial potassium buffering #
+################################################################################
+par chi=0.8
+
+########################################
+# Hodgkin-Huxley like gating functions #
+# adiabatic value for &quot;M&quot;              #
+########################################
+AN  = 0.01 * (v + 34.0) / (1.0 - exp(-0.1 * (v + 34.0))) 
+BN  = 0.125 * exp(-(v + 44.0) / 80.0)
+AM  = 0.1 * (v + 30.0) / (1.0 - exp(-0.1 * (v + 30.0))) 
+BM  = 4.0 * exp(-(v + 55.0) / 18.0) 
+AH  = 0.07 * exp(-(v + 44.0) / 20)
+BH  = 1.0 / (1.0 + exp(-0.1 * (v + 14.0)))
+M   = AM / (AM + BM)
+
+#####################################################################
+# - resting state ion and impermeant particle amounts in [fmol]     #
+#   in the ICS (...i0) and the ECS (...e0)                          #
+# - &quot;k,na,cl,imp&quot; means potassium, sodium, chloride and impermeant  #
+#####################################################################
+n_ki0  = 277.7
+n_ke0  = 2.8
+n_nai0 = 54.6
+n_nae0 = 91.3
+n_cli0 = 21.7
+n_cle0 = 89.8
+n_impi = 318.
+n_impe = 40.
+
+############################################################################
+# electroneutrality (first line) and mass conservation (second to fourth)  #
+# conditions to compute ion amounts other than intracellular potassium and #
+# chloride                                                                 #
+############################################################################
+n_nai = n_nai0 + n_ki0  - n_ki - n_cli0 + n_cli
+dnna  =-dnk * (1-chi)
+dncl  = dnk * chi
+n_nae = n_nae0 + n_nai0 - n_nai + dnna
+n_ke  = n_ke0  + n_ki0  - n_ki  + dnk
+n_cle = n_cle0 + n_cli0 - n_cli + dncl
+
+##################################################################################
+# ECS volume &quot;vle&quot; in [um^3]:                                                    #
+# &quot;vle_osm&quot; is the value which follows from the other volumes and from           #
+# conservation of the initial total volume &quot;vl_tot0&quot; - a value based only on     #
+# osmosis. &quot;vle&quot; equals this value as long as &quot;vle_osm&quot; is not too small. For    #
+# very small values of &quot;vle_osm&quot; the below function ensures that &quot;vle &gt; vle_osm&quot; #
+# note: the equation for &quot;vle&quot; can be converted to Eq. (49) in the manuscript by #
+#       substituting &quot;vle_osm&quot; with &quot;vl_tot0*n_e/n_tot&quot;                          # 
+##################################################################################
+# n_i/e/g/tot: amount of particles in ICS/ECS/glia/whole system #
+# vl_tot0: initial total volume                                 #
+#################################################################
+n_i     = n_nai + n_ki + n_cli + n_impi
+n_e     = n_nae + n_ke + n_cle + n_impe
+n_g     = (n_ki0 + n_nai0 + n_cli0 + n_impi) - (dnk + dnna + dncl)
+n_tot   = n_i + n_e + n_g
+vl_tot0 = 5040.
+vle_osm = vl_tot0 - vli - vlg
+
+p1  = 0.2
+p2  = 5
+p3  = 0.93
+p4  = 0.2
+p5  = 0.21
+p6  =-0.095
+vle = 1000. * ((p3 * (vle_osm/1000.-p6) - p4) / (1 + exp((p1-(vle_osm/1000.-p6)) * p2)) + p5)
+
+vli_inf = n_i * vle / n_e
+vlg_inf = n_g * vle / n_e
+
+#################################################
+# equilibrium volume &quot;vli/g_inf&quot; for glia and   #
+# neuron based on osmotic balance of these      #
+# compartments with the ECS                     # 
+#################################################
+
+
+########################################
+# ion concentrations in [mM]=[mMol/l]  #
+########################################
+nai = n_nai / vli * 1000.
+nae = n_nae / vle * 1000.
+ki  = n_ki  / vli * 1000.
+ke  = n_ke  / vle * 1000.
+cli = n_cli / vli * 1000.
+cle = n_cle / vle * 1000.
+
+#####################
+# Nernst potentials #
+#####################
+EK  = 26.64 * log(ke  / ki)
+ENA = 26.64 * log(nae / nai)
+ECL =-26.64 * log(cle / cli)
+
+##############################################################################
+# - different leak and gated currents             &quot;IION_l/g&quot;   in [umA/cm^2] #
+# - leak and gated conductances for each channel  &quot;gion_l/g&quot;   in [mS/cm^2]  #
+# - Na/K-exchange pump current &quot;IP&quot; with maximal turnover rate &quot;max_p&quot;       #
+##############################################################################
+gna_l  = 0.0175
+gna_g  = 100.
+gk_l   = 0.05
+gk_g   = 40.
+gcl_l  = 0.05
+max_p  = 6.8
+
+INA_l = gna_l            * (v - ENA)
+INA_g = gna_g * M**3 * h * (v - ENA)
+IK_l  = gk_l             * (v - EK)
+IK_g  = gk_g * n**4      * (v - EK)
+ICL_l = gcl_l            * (v - ECL)
+IP    = max_p / (1.0 + exp((25 - nai)/3.)) / (1. + exp(5.5 - ke)) * f_pmp
+
+#####################################
+# full sodium and potassium current #
+#####################################
+INA = INA_l + INA_g + 3. * IP
+IK  = IK_l  + IK_g  - 2. * IP
+
+###################
+# glial buffering #
+###################
+k1   = 1.75e-3
+k2   = 6.2e-4
+J_gl = (k2 - k1 / (1.0 + exp((5.5-ke)/2.5))) * f_gl
+
+#############################
+# list of all changes rates #
+#####################################################################
+# c: membrane capacitance                   in [uF/cm^2]            #
+# conv: conversion from currents to fluxes  in [fmol/msec*cm^2/uA]  #
+# phi: gating timescale parameter           in [1/msec]             #
+# t_vl: timescale of volume dynamics        in [msec]               #
+#####################################################################
+c       = 1
+conv    = 9.55589e-05
+phi     = 3
+t_vl    = 250
+
+V_DOT     = -1. / c * (INA + IK + ICL_l)
+N_DOT     =  phi * (AN * (1 - n) - BN * n)
+H_DOT     =  phi * (AH * (1 - h) - BH * h)
+N_KI_DOT  = -CONV * IK
+N_CLI_DOT =  CONV * ICL_l
+DNK_DOT   =  J_gl
+VLI_DOT   =  1. / t_vl * (vli_inf - vli)
+VLG_DOT   =  1. / t_vl * (vlg_inf - vlg)
+
+####################################
+# auxiliary variables for plotting #
+####################################
+aux _ki	 = ki
+aux _ke	 = ke
+aux _nai = nai
+aux _nae = nae
+aux _cli = cli
+aux _cle = cle
+aux _EK	 = EK
+aux _ENA = ENA
+aux _ECL = ECL
+
+vli0         =  2160.
+vlg0         =  2160.
+vle0         =  vl_tot0 - vli0 - vlg0
+aux vli_line =  vli         
+aux vle_line = (vli+vle)    
+aux vlg_line = (vli+vle+vlg)
+aux dvli     = (vli - vli0) / vli0 * 100
+aux dvle     = (vle - vle0) / vle0 * 100
+aux dvlg     = (vlg - vlg0) / vlg0 * 100
+
+############
+# numerics #
+############
+@ meth=cvode
+@ dt=1e-4
+@ maxstor=10000000, bounds=10000000
+@ total=500
+@ bell=0
+
+#############################################
+# plot options corresponding to Fig. 7a/b/c #
+#############################################
+@ xhi=500
+@ nplot=4, yp1=v,  yp2=_EK, yp3=_ENA, yp4=_ECL, ylo=-150, yhi=160
+#@ nplot=3, yp1=vli_line, yp2=vle_line, yp3=vlg_line, ylo=0, yhi=6000
+#@ nplot=3, yp1=dvli, yp2=dvle, yp3=dvlg,  ylo=-90, yhi=50
+
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="v" name="v = -67." value="-67" constant="false"/>
+      <parameter id="n" name="n = 0.070" value="0.07" constant="false"/>
+      <parameter id="h" name="h = 0.978" value="0.978" constant="false"/>
+      <parameter id="n_ki" name="n_ki = 277.7" value="277.7" constant="false"/>
+      <parameter id="n_cli" name="n_cli = 21.7" value="21.7" constant="false"/>
+      <parameter id="dnk" name="dnk = 0" value="0" constant="false"/>
+      <parameter id="vli" name="vli = 2160." value="2160" constant="false"/>
+      <parameter id="vlg" name="vlg = 2160." value="2160" constant="false"/>
+      <parameter id="delta" name="delta = 20" value="20" constant="false"/>
+      <parameter id="chi" name="chi = 0.8" value="0.8" constant="false"/>
+      <parameter id="f_pmp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="f_gl" value="0" units="dimensionless" constant="false"/>
+      <parameter id="an" value="0" units="dimensionless" constant="false"/>
+      <parameter id="bn" value="0" units="dimensionless" constant="false"/>
+      <parameter id="am" value="0" units="dimensionless" constant="false"/>
+      <parameter id="bm" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ah" value="0" units="dimensionless" constant="false"/>
+      <parameter id="bh" value="0" units="dimensionless" constant="false"/>
+      <parameter id="m" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_ki0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_ke0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_nai0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_nae0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_cli0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_cle0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_impi" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_impe" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_nai" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dnna" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dncl" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_nae" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_ke" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_cle" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_i" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_e" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_g" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_tot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vl_tot0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vle_osm" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p3" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p4" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p5" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p6" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vle" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vli_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vlg_inf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="nai" value="0" units="dimensionless" constant="false"/>
+      <parameter id="nae" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ki" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ke" value="0" units="dimensionless" constant="false"/>
+      <parameter id="cli" value="0" units="dimensionless" constant="false"/>
+      <parameter id="cle" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ek" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ena" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ecl" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gna_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gna_g" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gk_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gk_g" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gcl_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="max_p" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ina_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ina_g" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ik_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ik_g" value="0" units="dimensionless" constant="false"/>
+      <parameter id="icl_l" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ip" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ina" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ik" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="j_gl" value="0" units="dimensionless" constant="false"/>
+      <parameter id="c" value="0" units="dimensionless" constant="false"/>
+      <parameter id="conv" value="0" units="dimensionless" constant="false"/>
+      <parameter id="phi" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t_vl" value="0" units="dimensionless" constant="false"/>
+      <parameter id="v_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="h_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_ki_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="n_cli_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dnk_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vli_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vlg_dot" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_ki" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_ke" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_nai" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_nae" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_cli" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_cle" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_ek" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_ena" value="0" units="dimensionless" constant="false"/>
+      <parameter id="_ecl" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vli0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vlg0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vle0" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vli_line" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vle_line" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vlg_line" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dvli" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dvle" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dvlg" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="v">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> v_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> n_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> h_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="n_ki">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> n_ki_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="n_cli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> n_cli_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="dnk">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> dnk_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="vli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> vli_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="vlg">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <ci> vlg_dot </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="f_pmp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <cn type="integer"> 50 </cn>
+                <ci> t </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <cn type="integer"> 50 </cn>
+                </apply>
+                <ci> delta </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="f_gl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <cn type="integer"> 50 </cn>
+                <ci> t </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <cn type="integer"> 50 </cn>
+                </apply>
+                <ci> delta </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="an">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <cn> 0.01 </cn>
+              <apply>
+                <plus/>
+                <ci> v </ci>
+                <cn> 34 </cn>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <cn> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.1 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn> 34 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="bn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.125 </cn>
+            <apply>
+              <exp/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn> 44 </cn>
+                  </apply>
+                </apply>
+                <cn> 80 </cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="am">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <cn> 0.1 </cn>
+              <apply>
+                <plus/>
+                <ci> v </ci>
+                <cn> 30 </cn>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <cn> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.1 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn> 30 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="bm">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 4 </cn>
+            <apply>
+              <exp/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn> 55 </cn>
+                  </apply>
+                </apply>
+                <cn> 18 </cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ah">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.07 </cn>
+            <apply>
+              <exp/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn> 44 </cn>
+                  </apply>
+                </apply>
+                <cn type="integer"> 20 </cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="bh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn> 1 </cn>
+            <apply>
+              <plus/>
+              <cn> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <cn> 0.1 </cn>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> v </ci>
+                    <cn> 14 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="m">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> am </ci>
+            <apply>
+              <plus/>
+              <ci> am </ci>
+              <ci> bm </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_ki0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 277.7 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_ke0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 2.8 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_nai0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 54.6 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_nae0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 91.3 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_cli0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 21.7 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_cle0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 89.8 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_impi">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 318 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_impe">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 40 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_nai">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <ci> n_nai0 </ci>
+                  <ci> n_ki0 </ci>
+                </apply>
+                <ci> n_ki </ci>
+              </apply>
+              <ci> n_cli0 </ci>
+            </apply>
+            <ci> n_cli </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dnna">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> dnk </ci>
+            </apply>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <ci> chi </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dncl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> dnk </ci>
+            <ci> chi </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_nae">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <plus/>
+                <ci> n_nae0 </ci>
+                <ci> n_nai0 </ci>
+              </apply>
+              <ci> n_nai </ci>
+            </apply>
+            <ci> dnna </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_ke">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <plus/>
+                <ci> n_ke0 </ci>
+                <ci> n_ki0 </ci>
+              </apply>
+              <ci> n_ki </ci>
+            </apply>
+            <ci> dnk </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_cle">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <plus/>
+                <ci> n_cle0 </ci>
+                <ci> n_cli0 </ci>
+              </apply>
+              <ci> n_cli </ci>
+            </apply>
+            <ci> dncl </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_i">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> n_nai </ci>
+            <ci> n_ki </ci>
+            <ci> n_cli </ci>
+            <ci> n_impi </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_e">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> n_nae </ci>
+            <ci> n_ke </ci>
+            <ci> n_cle </ci>
+            <ci> n_impe </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <ci> n_ki0 </ci>
+              <ci> n_nai0 </ci>
+              <ci> n_cli0 </ci>
+              <ci> n_impi </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <ci> dnk </ci>
+              <ci> dnna </ci>
+              <ci> dncl </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_tot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> n_i </ci>
+            <ci> n_e </ci>
+            <ci> n_g </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vl_tot0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 5040 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vle_osm">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <ci> vl_tot0 </ci>
+              <ci> vli </ci>
+            </apply>
+            <ci> vlg </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.2 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 5 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.93 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.2 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p5">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.21 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p6">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <cn> 0.095 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vle">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1000 </cn>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> p3 </ci>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <divide/>
+                        <ci> vle_osm </ci>
+                        <cn> 1000 </cn>
+                      </apply>
+                      <ci> p6 </ci>
+                    </apply>
+                  </apply>
+                  <ci> p4 </ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <ci> p1 </ci>
+                        <apply>
+                          <minus/>
+                          <apply>
+                            <divide/>
+                            <ci> vle_osm </ci>
+                            <cn> 1000 </cn>
+                          </apply>
+                          <ci> p6 </ci>
+                        </apply>
+                      </apply>
+                      <ci> p2 </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> p5 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vli_inf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> n_i </ci>
+              <ci> vle </ci>
+            </apply>
+            <ci> n_e </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vlg_inf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> n_g </ci>
+              <ci> vle </ci>
+            </apply>
+            <ci> n_e </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="nai">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> n_nai </ci>
+              <ci> vli </ci>
+            </apply>
+            <cn> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="nae">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> n_nae </ci>
+              <ci> vle </ci>
+            </apply>
+            <cn> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ki">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> n_ki </ci>
+              <ci> vli </ci>
+            </apply>
+            <cn> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ke">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> n_ke </ci>
+              <ci> vle </ci>
+            </apply>
+            <cn> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="cli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> n_cli </ci>
+              <ci> vli </ci>
+            </apply>
+            <cn> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="cle">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> n_cle </ci>
+              <ci> vle </ci>
+            </apply>
+            <cn> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ek">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 26.64 </cn>
+            <apply>
+              <log/>
+              <logbase>
+                <cn type="integer"> 10 </cn>
+              </logbase>
+              <apply>
+                <divide/>
+                <ci> ke </ci>
+                <ci> ki </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ena">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 26.64 </cn>
+            <apply>
+              <log/>
+              <logbase>
+                <cn type="integer"> 10 </cn>
+              </logbase>
+              <apply>
+                <divide/>
+                <ci> nae </ci>
+                <ci> nai </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ecl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <cn> 26.64 </cn>
+            </apply>
+            <apply>
+              <log/>
+              <logbase>
+                <cn type="integer"> 10 </cn>
+              </logbase>
+              <apply>
+                <divide/>
+                <ci> cle </ci>
+                <ci> cli </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="gna_l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.0175 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="gna_g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 100 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="gk_l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.05 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="gk_g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 40 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="gcl_l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.05 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="max_p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 6.8 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ina_l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gna_l </ci>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+              <ci> ena </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ina_g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gna_g </ci>
+            <apply>
+              <power/>
+              <ci> m </ci>
+              <cn type="integer"> 3 </cn>
+            </apply>
+            <ci> h </ci>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+              <ci> ena </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ik_l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gk_l </ci>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+              <ci> ek </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ik_g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gk_g </ci>
+            <apply>
+              <power/>
+              <ci> n </ci>
+              <cn type="integer"> 4 </cn>
+            </apply>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+              <ci> ek </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="icl_l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gcl_l </ci>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+              <ci> ecl </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ip">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <divide/>
+                <ci> max_p </ci>
+                <apply>
+                  <plus/>
+                  <cn> 1 </cn>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 25 </cn>
+                        <ci> nai </ci>
+                      </apply>
+                      <cn> 3 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <minus/>
+                    <cn> 5.5 </cn>
+                    <ci> ke </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> f_pmp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ina">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> ina_l </ci>
+            <ci> ina_g </ci>
+            <apply>
+              <times/>
+              <cn> 3 </cn>
+              <ci> ip </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ik">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <ci> ik_l </ci>
+              <ci> ik_g </ci>
+            </apply>
+            <apply>
+              <times/>
+              <cn> 2 </cn>
+              <ci> ip </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="e-notation"> 1.75 <sep/> -3 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="e-notation"> 6.2 <sep/> -4 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="j_gl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> k2 </ci>
+              <apply>
+                <divide/>
+                <ci> k1 </ci>
+                <apply>
+                  <plus/>
+                  <cn> 1 </cn>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <minus/>
+                        <cn> 5.5 </cn>
+                        <ci> ke </ci>
+                      </apply>
+                      <cn> 2.5 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> f_gl </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 1 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="conv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="e-notation"> 9.55589 <sep/> -5 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="phi">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 3 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t_vl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 250 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="v_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <cn> 1 </cn>
+              </apply>
+              <ci> c </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <ci> ina </ci>
+              <ci> ik </ci>
+              <ci> icl_l </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> phi </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> an </ci>
+                <apply>
+                  <minus/>
+                  <cn type="integer"> 1 </cn>
+                  <ci> n </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> bn </ci>
+                <ci> n </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="h_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> phi </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> ah </ci>
+                <apply>
+                  <minus/>
+                  <cn type="integer"> 1 </cn>
+                  <ci> h </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> bh </ci>
+                <ci> h </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_ki_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> conv </ci>
+            </apply>
+            <ci> ik </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="n_cli_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> conv </ci>
+            <ci> icl_l </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dnk_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> j_gl </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vli_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <ci> t_vl </ci>
+            </apply>
+            <apply>
+              <minus/>
+              <ci> vli_inf </ci>
+              <ci> vli </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vlg_dot">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <ci> t_vl </ci>
+            </apply>
+            <apply>
+              <minus/>
+              <ci> vlg_inf </ci>
+              <ci> vlg </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_ki">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> ki </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_ke">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> ke </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_nai">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> nai </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_nae">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> nae </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_cli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> cli </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_cle">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> cle </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_ek">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> ek </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_ena">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> ena </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="_ecl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> ecl </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vli0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 2160 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vlg0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 2160 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vle0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <ci> vl_tot0 </ci>
+              <ci> vli0 </ci>
+            </apply>
+            <ci> vlg0 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vli_line">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> vli </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vle_line">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> vli </ci>
+            <ci> vle </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vlg_line">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> vli </ci>
+            <ci> vle </ci>
+            <ci> vlg </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dvli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> vli </ci>
+                <ci> vli0 </ci>
+              </apply>
+              <ci> vli0 </ci>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dvle">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> vle </ci>
+                <ci> vle0 </ci>
+              </apply>
+              <ci> vle0 </ci>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dvlg">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <ci> vlg </ci>
+                <ci> vlg0 </ci>
+              </apply>
+              <ci> vlg0 </ci>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

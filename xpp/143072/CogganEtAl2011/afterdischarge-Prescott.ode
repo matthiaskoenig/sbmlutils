@@ -1,0 +1,82 @@
+# modified Steve Prescott, Aug 29, 2011
+# For Coggan et al. (Explaining pathological changes in axonal excitability through dynamical analysis of conductance-based models. J Neural Eng 2011; 8: 065002)
+# Incorporates Na influx and simple decay. No pumps yet implemented in this code.
+# Nai dynamically varies and is used to update Ena based on Nernst equation.
+
+# DIFFERENTIAL EQUATIONS
+
+dv/dt = (I1(t)+I2(t)+Idc-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gl*(V-Vl)-gnap*z*(V-Vna))/cap
+
+dw/dt = phi*(winf(V)-w)/tauw(V)
+
+dz/dt = phi_z*(zinf(V)-z)/tauz(V)
+
+dnai/dt = (-SAvol*(gna*minf(v)*(V-Vna)+gnap*z*(V-Vna)))/F-(nai-17.5)/tau_na
+# if you don't want Nai to vary, comment out above line and define Nai as a fixed parameter,
+# Either that, or just define Vna as a parameter rather than using the Nernst equation to calculate it (see ### below)
+
+param tau_na=100
+
+
+# PARAMETERS AND FUNCTIONS
+
+minf(v)=.5*(1+tanh((v-v1)/v2))
+winf(v)=.5*(1+tanh((v-v3)/v4))
+zinf(v)=.5*(1+tanh((v-v5)/v6))
+tauw(v)=1/cosh((v-v3)/(2*v4))
+tauz(v)=1/cosh((v-v5)/(2*v6))
+
+# v5 and v6 correspond to beta_z and gamma_z - checked, these parameters match PNAS paper
+
+Vna=25*ln(nao/nai)
+### see note above.
+
+# param Vna=50
+param vk=-100,vl=-70
+param gk=20,gl=2,gna=30
+param v1=-1.2,v2=18,v3=-10,v4=10
+param gnap=0.8
+param v5=-45,v6=10
+param F=96485
+param phi=.15,phi_z=0.05,cap=2
+param nao=138
+
+#nao and nai(0) adjusted to set Vna(0)=50mV, differences from 150 & 15 (resp) divided between them
+
+param r=.005
+# param h=.01
+
+# !vol=(4/3)*pi*(r^3)
+# !SA=4*pi*(r^2)
+!SAvol=2/r
+# SA:vol ratio for cylinder without ends
+# note because of units, set r to 0.005 to get radius of 0.5 microns. The decimal place is not wrong.
+
+# spherical soma r=7.5 um, cylindrical node r=.5 um, h=1 um
+# for a cylinder: vol=pi*h*(r^2), SA=2*pi*r*(r+h), SA/vol=(2/r)+(2/h) 
+
+aux vna_=vna
+aux vk_=vk
+aux gna_=gna*minf(V)
+
+# INITIAL CONDITIONS
+z(0)=0
+nai(0)=18.67
+V(0)=0
+w(0)=0.000025
+
+#STIMULUS PARAMETERS
+
+# stimulus, set I_stims to 0 if you want to use noisy stim, slope to control ramp
+param idc=0
+I1(t)=heav(t>=t_start)*I_stim1
+# Control stimulus offset or two-stage step, slope to control ramp
+I2(t)=heav(t>(t_start+t_run))*I_stim1*(-1)
+param I_stim1=50,t_start=300,t_run=0
+
+# ALWAYS USE EULER when using noise, but no noise processes are implemented here
+@ total=150,dt=.05,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=euler
+@ MAXSTOR=1000000,bounds=10000
+
+done
