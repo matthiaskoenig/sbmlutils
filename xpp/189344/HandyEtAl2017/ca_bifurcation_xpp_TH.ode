@@ -1,0 +1,70 @@
+# XPP code to recreate bifurcation diagrams
+# Copyright: Marsa Taheri and Gregory Handy, 2016
+
+# ODEs
+c' = (j_ip3r(c)-j_serca(c)+j_leak(c)+(j_in-j_out-j_pmca+j_soc(c,c_t))*delta)
+c_t' = ((j_in-j_out-j_pmca+j_soc(c,c_t))*delta)
+h'=((h_inf(c)-h)/tau_h(c))
+
+aux ca_er=(c_t-c)*gamma
+
+# Terms on ER
+m_inf = ip/(ip+d_1)
+n_inf(c) = c/(c+d_5)
+h_inf(c) = q_2/(q_2+c)
+
+q_2 = d_2 *(ip+d_1)/(ip+d_3)
+tau_h(c) = 1/(a_2*(q_2+c))
+
+j_ip3r(c) = v_ip3r*m_inf^3*n_inf(c)^3*h^3*((c_t-c)*gamma-c)
+
+j_leak(c) = v_leak*((c_t-c)*gamma-c)
+
+j_serca(c) = v_serca*c^1.75/(c^1.75+k_serca^1.75)
+
+# Terms on plasma membrane
+j_in = v_in
+j_out = k_out*c
+
+j_pmca=v_pmca*c^2/(k_pmca^2 + c^2)
+
+j_soc(c,c_t) = v_soc*k_soc^4/(k_soc^4+((c_t-c)*gamma)^4)
+
+# Initial Conditions
+init c=0.0865415,h=0.6255124
+init c_t=36.49084
+
+param ip=0
+
+param gamma=5.4054
+
+# Leak for ER
+param v_leak=0.002
+
+# Leak across plasma membrane
+param v_in=0.05, k_out=1.2
+
+# IP3R Parameters
+param v_ip3r=0.222
+param d_1=.13,d_2=1.049,d_3=.9434,d_5=.08234
+param a_2=0.04
+
+# PMCA Terms
+param v_pmca=10,k_pmca=2.5
+
+# SOC Terms
+param v_soc=1.57,k_soc=90
+
+# SERCA Terms
+param v_serca=0.9, k_serca=0.1
+
+# Sneyd Parameter
+param delta=0.2
+
+@ ylo=0,ds=0.005,dsmin=0.001,dsmax=0.01,nmax=700,npr=700
+@ autoymin=0,autoymax=.708,parmax=100,autoxmin=0,autoxmax=.5
+@ total=1000,xhi=100,ylo=0,yhi=1.5,nmesh=100
+
+@ bounds=1000
+
+done

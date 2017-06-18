@@ -1,0 +1,79 @@
+# NG108_Acon.ode
+# 
+# IK(erg) was incorporated into the model.
+# Ref: Lin et al., Neuropharmacology 2008;
+# 
+
+# Initial values of the variables
+initial V=-63, A_na=0.2, inhibitedA=1.0, D=0.1, inhibitedD=0.2, m1=0.0, m=0.0, h=0.0, n1=0.0, h1=0.0, n=0.0
+init nIR=0.003, rIR=0.282, h2=0.9
+
+# Values of the model parameters: kio=k-1; koi=k+1 shown in the article
+param  g_Na=60.0, g_Ca_L=1.1, g_Ca_T=0.94, g_K_dr=20.0, g_M=4.0,  g_ir=1.71, g_d=0.0277
+param kio=0.00132, koi=0.00111
+param ACO=0.001
+param V_K=-75
+number  V_Na=60.0, V_Ca=100.0, Vh=-40.0
+number k1=0.3, k1_=0.03, k3=0.001, k3_=0.01
+param  tau_h=22.0, tau_h1=1000.0, Cm=14.0
+param girbar=50
+
+# Kinetic equations
+alpha= (10.0 / (1.0 + exp( - (0.1 * (6.0 + V)))))
+beta= (10.0 / (1.0 + exp((0.2173913043478261 * (54.4 + V)))))
+m_inf= (1.0 / (1.0 + exp( - (0.1 * (-56.1 + V)))))
+m_inf1= (1.0 / (1.0 + exp( - (0.08333333333333333 * (V - Vh)))))
+h_inf= (1.0 / (1.0 + exp((0.2127659574468085 * (86.4 + V)))))
+n_inf= (1.0 / (1.0 + exp( - (0.25 * (37.0 + V)))))
+n_inf1= (0.2 + (0.8 / (1.0 + exp((0.08333333333333333 * (80.0 + V))))))
+n_inf2= (1.0 / (1.0 + exp( - (0.06666666666666667 * (25.0 + V)))))
+h_inf1= (0.3 + (0.7 / (1.0 + exp( - (0.1 * (35.0 + V))))))
+alphaIRn = 0.09/(1+exp(0.11*(V+50)))
+betaIRn = 0.00035*exp(0.07*(V+25))
+nIRinf = 1/(1+alphaIRn/betaIRn)
+tauIRn = 1/(alphaIRn + betaIRn)
+alphaIRr = 30/(1+exp(0.04*(V+245)))
+betaIRr = 0.15/(1+exp(-0.05*(V+120)))
+rIRinf = 1/(1+betaIRr/alphaIRr)
+tauIRr = 1/(alphaIRr + betaIRr)
+tau_n= (80.0 / (exp((0.06666666666666667 * (30.0 + V))) + exp( - (0.06666666666666667 * (30.0 + V)))))
+tau_m= (0.8 + (7.0 / (exp((0.1111111111111111 * (50.0 + V))) + exp( - (0.1111111111111111 * (50.0 + V))))))
+tau_n1= (1.0 + (15.0 / (exp((0.06666666666666667 * (30.0 + V))) + exp( - (0.06666666666666667 * (30.0 + V))))))
+tau_m1= (5.0 / (exp((0.04 * (15.0 + V))) + exp( - (0.04 * (15.0 + V)))))
+a= (k1 * k3_ / (k1_ * k3))^0.5
+O= A_na^3
+
+i_Na= (g_Na * O * (V - V_Na))
+i_Ca_L= (g_Ca_L * m1^2 * (V - V_Ca))
+i_Ca_T= (g_Ca_T * m^2 * h * (V - V_Ca))
+i_K_dr= (g_K_dr * n1^4 * h1 * h2 * (V - V_K))
+i_M= (g_M * n * (V - V_K))
+iir=(g_ir)*n_inf1*(V-V_K)
+i_d= (g_d * (V - V_Ca))
+iKir=girbar*nIR*rIR*(V - V_K)
+
+# Differential equations
+V'=(-(i_Na + i_Ca_L + i_Ca_T + i_K_dr + i_M + iir + i_d + iKir) / Cm)
+A_na'= D*alpha+inhibitedA*k1_-A_na*(beta+k1)
+inhibitedA'=A_na*k1+inhibitedD*alpha*a-inhibitedA*(k1_+beta*a)
+inhibitedD'=inhibitedA*beta*a+D*k3-inhibitedD*(alpha*a+k3_)
+D'=A_na*beta+inhibitedD*k3_-D*(alpha+k3)
+m1'=((m_inf1 - m1) / tau_m1)
+m'=((m_inf - m) / tau_m)
+h'=((h_inf - h) / tau_h)
+n1'=((n_inf2 - n1) / tau_n1)
+h1'=((h_inf1 - h1) / tau_h1)
+n'=((n_inf - n) / tau_n)
+nIR' = (nIRinf - nIR)/tauIRn
+rIR' = (rIRinf - rIR)/tauIRr
+h2'= kio*(1-h2)-koi*ACO*n^4*h2
+
+aux ina=i_Na
+aux iKdr=i_K_dr
+
+# Numerical and plotting parameters for xpp
+@ maxstor=800000, total=10000, bound=100000, dt=0.1
+@ xlo=0, xhi=10000, ylo=-80, yhi=45
+@ method=cvode, atol=0.0001, toler=0.0001
+
+done

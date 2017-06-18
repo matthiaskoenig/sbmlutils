@@ -1,0 +1,25 @@
+# Simplified 2D HH model
+# formatted for use with XPPAUT
+
+# Parameters as in the model of Figure 8, Lundstrom et al, J Comp Neurosci
+# Note: the z variable introduces stimulus noise and must be removed for bifurcation analysis
+
+wiener nz
+v' = -(Gl*(v - El) + Gk*n^4*(v - Ek) + Gna*minf^3*h*(v - Ena))/cm + i/cm + z
+n' = (ninf - n) / ntau  
+z'=-z/tau + nsig*sqrt(2/tau)*nz
+par tau=1
+
+par i=0, mVh=-40,mk=7,nVh=-45,nk=15, Gna=50,Gk=36,Gl=5,Ena=50,Ek=-77,El=-54,cm=1
+par nsig=0
+
+par Cbase=3,Camp=50,Vmax=-50,sig=1
+
+ntau = Cbase + Camp*exp(-(Vmax - V)^2/sig^2)
+ninf = 1.0 / (1+exp( (nVh - v)/nk) )
+minf = 1.0 / (1+exp( (mVh - v)/mk) )
+h = .89 - 1.1*n
+
+init v=-65,n=0.3
+
+@ meth=euler,total=20ee0,dt=.005,nout=50

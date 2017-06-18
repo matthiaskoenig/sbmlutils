@@ -1,0 +1,96 @@
+# Modified Morris-Lecar model 
+# based on model used in Prescott et al. Pyramidal neurons switch from integrators in vitro to resonators under in vivo-like conditions. J. Neurophysiol. 2008
+# this version of the model does not include cumulative sodium channel inactivation controlled by h (see notes in code)
+
+dV/dt = (i_dc+i_noise-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gshunt*(V-Vshunt)-gM*zM*(v-vk)-gAHP*zAHP*(v-vk))/c
+# dv/dt = (i_dc+i_noise-gna*h*minf(V)*(V-Vna)-gk*w*(V-VK)-gshunt*(V-Vshunt)-gM*zM*(v-vk)-gAHP*zAHP*(v-vk))/c
+
+dw/dt = phi_w*(winf(V)-w)/tauw(V)
+dzAHP/dt = (zinfAHP(v)-zAHP)/tauzAHP
+dzM/dt = (zinfM(v)-zM)/tauzM
+param c=2
+
+# HERE IS EVERYTHING YOU NEED TO KNOW ABOUT THE STIMULuS
+
+# DC OFFSET 
+# this is controlled by i_dc
+param i_dc=0
+
+# NOISE
+# This is modeled as an Ornstein-Uhlenbeck process, gives new noise on each trial
+# Here is the Wiener variable
+wiener nz
+# With scale=0 you get no noise 
+# effects of changing dt are automatically controlled for in XPP
+# However, variance of i_noise also depends on tau_inoise (variance = sigma^2*tau/2) 
+# Therefore, if you want to keep the same variance, you must manually change sigma_inoise if you change tau_inoise 
+di_noise/dt=-1/tau_inoise*(i_noise-i_avg)+sigma*nz
+param sigma=0, tau_inoise=5, i_avg=0
+# increase sigma to include noise; sigma=0.1 in paper
+
+## frozen noise can be repeated on multiple trials by saving i_noise to a .tab file and playing it back
+## see xpp documentation about tables
+
+# HERE IS EVERYTHING YOU NEED TO KNOW ABOUT INTRINSIC CURRENTS
+# Initial conditions
+V(0)=-70
+w(0)=0.000025
+zAHP(0)=0
+zM(0)=0
+# if you want to make sure initial conditions are at steady state
+# run trial with no stim, then select "initial conditions/last" from main menu... this will start you at the conditions at the end of your previous trial
+
+# FAST INWARD CURRENT (INa or activation variable)
+# This is assumed to activate instantaneously with changes in voltage
+# voltage-dependent activation curve is described by m
+minf(V)=.5*(1+tanh((V-beta_m)/gamma_m))
+# maximal conductance and reversal potential
+param beta_m=-1.2, gamma_m=18
+param gna=20, vna=50
+# to implement sodium channel inactivation at steady state, simply reduce gna
+# to implement sodium channel inactivation dynamically, comment out line 3 and uncomment line 4, and uncomment the following four lines
+# dh/dt = (hinf(v)-h)/tau_h
+# hinf(v)=1-alpha_h/(1+exp((beta_h-v)/gamma_h))
+# param tau_h=1000,alpha_h=0.67,beta_h=-40,gamma_h=8
+# h(0)=1 
+# Following parameters should also be changed (see Fig. 9 in paper): gna=24, gk=30, gamma_w=8, betazM=-29, gammazM=2, tauzM=400, gM=2
+
+# DELAYED RECTIFIER CURRENT (IKdr or recovery variable)
+# this current activates more slowly than INa, but is still faster than Isub or Iadapt (not included here)
+# In this code, activation of IKdr is controlled by w (equivalent to y in 3D model)
+winf(V)=.5*(1+tanh((V-beta_w)/gamma_w))
+tauw(V)=1/cosh((V-beta_w)/(2*gamma_w))
+# in the 2D model, varying beta_w shifts the w activation curve (w=y here) and can convert the neuron between class 1, 2, and 3 
+param beta_w=-9, gamma_w=10
+# maximal conductance and reversal potential
+param gk=20, vk=-100, phi_w=0.25
+
+# SHUNT CURRENT (Ishunt)
+# just a passive leak conductance
+# gshunt = 2 for low conductance.  Increase to 4 for high conductance, i.e. shunting
+param gshunt=2, vshunt=-70
+
+# ADAPTATION
+# This actually comprises two current, voltage-activated M-type current and calcium-activated AHP current
+# The latter is not modelled as calcium-dependent, but with betayAHP = 0, this current is only activated during spikes... roughtly the same conditions under which calcium influx occurs to activate this current
+# Because IAHP does not activate at subthreshold voltages, it does not influence subthreshold voltage dynamics.
+# Focus on inserting or removing M current by adjusting gM
+param tauzM=200
+# latter in the paper, tauzM was changed to 400 to get theta-frequency oscillations
+zinfM(v)=1/(1+exp((betazM-V)/gammazM))
+param betazM=-30,gammazM=5
+param gM=2
+
+param tauzAHP=200
+zinfAHP(v)=1/(1+exp((betazAHP-V)/gammazAHP))
+param betazAHP=0,gammazAHP=5
+param gAHP=1
+
+
+
+# following parameters control duration of simulation and axes of default plot
+@ total=100000,dt=.1,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=euler
+@ MAXSTOR=1000000
+
+done

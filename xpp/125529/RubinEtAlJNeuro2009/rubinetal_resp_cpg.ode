@@ -1,0 +1,77 @@
+# RESPIRATORY RHYTHM MODEL
+# J. Rubin, N. Shevtsova, B. Ermentrout, J. Smith, I. Rybak
+# J. Neurophysiol. 101:2146-2165, 2009
+
+# parameters/initial conditions set to give 3-phase rhythm
+
+# general parameters
+p C=20
+p gL=2.8
+p Eleak=-60
+p gsynE=10
+p EsynE=0
+p gsynI=60
+p EsynI=-75
+p EK=-85
+p ENa=50
+
+# parameters of NaP and Kdr currents 
+p V12n=-29,kn=-4,gKdr=5,V12mp=-40,kmp=-6
+p V12hp=-48,khp=6,tauhp=6000,gNaP=5
+
+# parameters of adaptive neurons
+p gAD=10,Tad2=2000,Tad3=1000,Tad4=2000
+p Kad2=0.9,Kad3=1.3,Kad4=0.9
+
+# parameters of output function
+p V12outpute=-30,Koutpute=-8
+p V12outputi=-30,Koutputi=-4
+
+foute(v)=1./(1+exp((v-V12outpute)/Koutpute))
+fouti(v)=1./(1+exp((v-V12outputi)/Koutputi))
+
+# between neurons
+p a12=0.4,b23=0.25,b24=0.35,b31=0.3,b32=0.05,b34=0.35
+p b41=0.2,b42=0.35,b43=0.1
+p Drive1=1,Drive2=1,Drive3=1
+p c11=0.115,c12=0.3,c13=0.63,c14=0.33
+p c21=0.07,c22=0.3,c24=0.4,c31=0.025
+p nf=1
+p sdum1=0,sdum2=0,sdum3=0,sdum4=0,edum=0
+
+init v1=-60,v2=-60,v3=-60,v4=-60
+init h=0.35,m2=0,m3=0,m4=0
+
+# functions
+ninf(v)=1./(1+exp((v-V12n)/kn))
+mpinf(v)=1./(1+exp((v-V12mp)/kmp))
+hpinf(v)=1./(1+exp((v-V12hp)/khp))
+tauinf(v)=tauhp/cosh((v-V12hp)/(2*khp))
+
+# currents
+Inap(v,h)=gNaP*mpinf(v)*h*(v-ENa)
+Ikdr(v)=gKdr*ninf(v)^4*(v-EK)
+Iad(v,m)=gAD*m*(v-EK)
+Il(v)=gL*(v-Eleak)
+
+# ODEs
+v1'=(-Inap(v1,h)-Ikdr(v1)-Il(v1)-gsynI*(b31*fouti(v3)+b41*fouti(v4)+sdum1)*(v1-EsynI)-gsynE*(c11*Drive1+c21*Drive2+c31*Drive3)*(v1-EsynE))/C
+v2'=(-Iad(v2,m2)-Il(v2)-gsynI*(b32*fouti(v3)+b42*fouti(v4)+sdum2)*(v2-EsynI)-gsynE*(a12*foute(v1)+c22*Drive2+c12*Drive1+edum)*(v2-EsynE))/C
+v3'=(-Iad(v3,m3)-Il(v3)-gsynI*(b23*fouti(v2)+b43*fouti(v4)+sdum3)*(v3-EsynI)-gsynE*(c13*Drive1)*(v3-EsynE))/C
+v4'=(-Iad(v4,m4)-Il(v4)-gsynI*(b24*fouti(v2)+b34*fouti(v3)+sdum4)*(v4-EsynI)-gsynE*(c14*Drive1+c24*Drive2)*(v4-EsynE))/C
+h'=(hpinf(v1)-h)/tauinf(v1)
+m2'=(-m2+Kad2*fouti(v2))/Tad2
+m3'=(-m3+Kad3*fouti(v3))/Tad3
+m4'=(-m4+Kad4*fouti(v4))/Tad4
+
+aux inh1=b31*fouti(v3)+b41*fouti(v4)
+aux inh2=b32*fouti(v3)+b42*fouti(v4)
+aux inh3=b23*fouti(v2)+b43*fouti(v4)
+aux inh4=b24*fouti(v2)+b34*fouti(v3)
+
+aux exc2=a12*foute(v1)
+
+@ dt=0.1,total=10000,meth=qualrk,xp=t,yp=v1,xlow=0,xhi=1000,ylo=-80,yhi=20.,bound=5000,maxstor=10000001
+
+done
+

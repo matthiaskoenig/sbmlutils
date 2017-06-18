@@ -1,0 +1,28 @@
+# Kuznetsova and Deth, JCN, 2007
+# Model E cell
+init V1=-0.70  R1=0.24  CA1=0.15 H1=0.37
+par Ie=0.6
+
+par GCA=0.1, GH=4.0
+par GK=26.0
+par TR1=4.2
+par TS=14.0
+par TH=45.0
+
+ 
+V1'=-MB(V1)*(V1-0.5)-GK*R1*(V1+0.95)-GCA*CA1*(V1-1.2)-GH*H1*(V1+0.95)+Ie
+R1'=(1./TR1)*(-R1+RB(V1))
+CA1'=(1./TS)*(-CA1+CAB(V1))
+H1'=(1./TH)*(-H1+3.*CA1)
+
+CAB(V)=8.*(V+0.725)^2
+MB(V)=17.8+47.6*V+33.8*V*V
+RB(V)=1.24+3.7*V+3.2*V*V
+
+@ METHOD=stiff, TOLERANCE=.00001
+@ dt=.01, total=400, xplot=V1,yplot=CA1
+@ xmin=-0.8,xmax=0.4,ymin=0.0,ymax=0.4
+@ xlo=-0.8,ylo=0.0,xhi=0.4,yhi=0.4,bound=30000,MAXSTOR=400000
+
+
+done

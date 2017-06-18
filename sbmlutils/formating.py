@@ -6,33 +6,58 @@ import libsbml
 import sbmlutils.annotation as annotation
 
 
-class AnnotationHTML():
-    """ Annotation to HTML converter. """
+def annotation_to_html(item):
+    """ Renders HTML representation of given annotation.
 
-    @classmethod
-    def annotation_to_html(cls, item):
-        """ Renders HTML representation of given annotation.
+    :param item: SBO item
+    """
+    lines = []
+    for kcv in range(item.getNumCVTerms()):
+        cv = item.getCVTerm(kcv)
+        q_type = cv.getQualifierType()
+        if q_type == 0:
+            qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
+        elif q_type == 1:
+            qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
+        lines.append(''.join(['<span class="collection">', qualifier, '</span>']))
 
-        :param item: SBO item
-        """
         items = []
-        for kcv in range(item.getNumCVTerms()):
-            cv = item.getCVTerm(kcv)
-            q_type = cv.getQualifierType()
-            if q_type == 0:
-                qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
-            elif q_type == 1:
-                qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-            items.append(''.join(['<b>', qualifier, '</b>']))
+        for k in range(cv.getNumResources()):
+            uri = cv.getResourceURI(k)
+            tokens = uri.split('/')
+            resource_id = tokens[-1]
+            link = ''.join(['<a href="', uri, '" target="_blank">', resource_id, '</a>'])
+            items.append(link)
+        lines.append("; ".join(items))
+    res = "<br />".join(lines)
+    return res
 
-            for k in range(cv.getNumResources()):
-                uri = cv.getResourceURI(k)
-                tokens = uri.split('/')
-                resource_id = tokens[-1]
-                link = ''.join(['<a href="', uri, '" target="_blank">', resource_id, '</a>'])
-                items.append(link)
-        res = "<br />".join(items)
-        return res
+
+# noinspection PyCompatibility
+def notesToString(sbase):
+    notes = sbase.getNotesString()
+
+    # only decode in python 2, already utf8 str in python 3
+    if hasattr(notes, "decode"):
+        notes = notes.decode('utf-8')
+
+    return notes
+
+# ------------------------------
+# Math and formulas
+# ------------------------------
+def stringToMathML(string):
+    """Parses formula string. """
+    astnode = libsbml.parseL3Formula(str(string))
+    mathml = libsbml.writeMathMLToString(astnode)
+    return mathml
+
+def astnodeToString(astnode):
+    return libsbml.formulaToString(astnode)
+
+def astnodeToMathML(astnode):
+    mathml = libsbml.writeMathMLToString(astnode)
+    return mathml
 
 
 # ------------------------------
@@ -72,13 +97,56 @@ def _halfEquation(speciesList):
             sd = '{}'.format(species)
         elif abs(stoichiometry + 1.0) < 1E-8:
             sd = '-{}'.format(species)
-        elif stoichiometry > 0:
+        elif stoichiometry >= 0:
             sd = '{} {}'.format(stoichiometry, species)
         elif stoichiometry < 0:
             sd = '-{} {}'.format(stoichiometry, species)
         items.append(sd)
     return ' + '.join(items)
 
+
+# ------------------------------
+# FBC
+# ------------------------------
+def boundsStringFromReaction(reaction, model):
+    bounds = ''
+    rfbc = reaction.getPlugin("fbc")
+    if rfbc is not None:
+        # get values for bounds
+        lb_id, ub_id = None, None
+        lb_value, ub_value = None, None
+        if rfbc.isSetLowerFluxBound():
+            lb_id = rfbc.getLowerFluxBound()
+            lb_p = model.getParameter(lb_id)
+            if lb_p.isSetValue():
+                lb_value = lb_p.getValue()
+        if rfbc.isSetUpperFluxBound():
+            ub_id = rfbc.getUpperFluxBound()
+            ub_p = model.getParameter(ub_id)
+            if ub_p.isSetValue():
+                ub_value = ub_p.getValue()
+        if (lb_value is not None) or (ub_value is not None):
+            bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(lb_value, ub_value)
+    return bounds
+
+def geneProductAssociationStringFromReaction(reaction):
+    """ String representation of the GeneProductAssociation for given reaction.
+
+    :param reaction:
+    :return:
+    """
+    info = ''
+    rfbc = reaction.getPlugin('fbc')
+
+    if rfbc and rfbc.isSetGeneProductAssociation():
+        gpa = rfbc.getGeneProductAssociation()
+        association = gpa.getAssociation()
+        info = association.toInfix()
+    return info
+
+# ------------------------------
+# ModelHistory
+# ------------------------------
 
 def modelHistoryToString(mhistory):
     """ Renders HTML representation of the model history. """
@@ -127,30 +195,6 @@ def ruleVariableToString(rule):
         return 'd {}/dt'.format(rule.variable)
     else:
         raise TypeError(rule)
-
-
-def formulaChargeStringFromSpecies(species):
-    """ Get the formula and charge string from species.
-    Using the FBC v2.
-
-    :param species:
-    :type species:
-    :return:
-    :rtype:
-    """
-    sfbc = species.getPlugin("fbc")
-    if (sfbc):
-        formula = ''
-        if sfbc.isSetChemicalFormula():
-            formula = sfbc.getChemicalFormula()
-        charge = ''
-        if sfbc.isSetCharge():
-            c = sfbc.getCharge()
-            if c is not 0:
-                charge = ' ({})'.format(sfbc.getCharge())
-        return '{}{}'.format(formula, charge)
-    else:
-        return ''
 
 
 # ------------------------------

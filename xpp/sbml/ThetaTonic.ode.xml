@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># Theta neuron network with 50e and 20i cells with all-to-all
+# connectivity and tonic input to both the e- and i-cells
+#
+# Parameters
+par I_e=1, I_i=0
+par gei=.4,gii=0.15,gee=0.1, gie=2
+par tauz=50,gz=.2
+par sige=0.5, sigi=.02
+par taue=1, taui=3
+#
+#ODEs for e-cells, i-cells and adaptation
+x[0..49]&apos;=1-cos(x[j])+(1+cos(x[j]))*(I_e-gz*z[j]-gie*si+gee*se+sige*we[j])
+z[0..49]&apos;=sd(x[j])-z[j]/tauz
+y[0..19]&apos;=1-cos(y[j])+(1+cos(y[j]))*(I_i-gii*si+gei*se+sigi*wi[j])
+# Synapses
+se&apos;=sum(0,49)of(sd(shift(x0,i&apos;)))/50-se/taue
+si&apos;=sum(0,19)of(sd(shift(y0,i&apos;)))/20-si/taui
+global 1 x[0..49]-pi {x[j]=-pi}
+global 1 y[0..19]-pi {y[j]=-pi}
+#
+# Initial Conditions
+x[0..49](0)=ran(1)*2*pi-pi
+y[0..19](0)=ran(1)*2*pi-pi
+wiener we[0..49]
+wiener wi[0..19]
+sd(x)=exp(-b*(1-cos(x-2.5)))*b
+par b=100
+aux swgt=.8*se+.2*si
+@ meth=euler,
+@ total=1400,trans=400,maxstor=1000000
+@ dt=0.02,nOut=10
+@ xp=t,yp=se,xlo=600,xhi=1200,ylo=0,yhi=.5
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="sd">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> b </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <exp/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <ci> b </ci>
+                  </apply>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 1 </cn>
+                    <apply>
+                      <cos/>
+                      <apply>
+                        <minus/>
+                        <ci> x </ci>
+                        <cn> 2.5 </cn>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> b </ci>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="i_e" name="i_e = 1" value="1" constant="false"/>
+      <parameter id="i_i" name="i_i = 0" value="0" constant="false"/>
+      <parameter id="gei" name="gei = .4" value="0.4" constant="false"/>
+      <parameter id="gii" name="gii = 0.15" value="0.15" constant="false"/>
+      <parameter id="gee" name="gee = 0.1" value="0.1" constant="false"/>
+      <parameter id="gie" name="gie = 2" value="2" constant="false"/>
+      <parameter id="tauz" name="tauz = 50" value="50" constant="false"/>
+      <parameter id="gz" name="gz = .2" value="0.2" constant="false"/>
+      <parameter id="sige" name="sige = 0.5" value="0.5" constant="false"/>
+      <parameter id="sigi" name="sigi = .02" value="0.02" constant="false"/>
+      <parameter id="taue" name="taue = 1" value="1" constant="false"/>
+      <parameter id="taui" name="taui = 3" value="3" constant="false"/>
+      <parameter name="x[0..49]" value="0" constant="false"/>
+      <parameter name="y[0..19]" value="0" constant="false"/>
+      <parameter value="0" constant="true"/>
+      <parameter value="0" constant="true"/>
+      <parameter id="b" name="b = 100" value="100" constant="false"/>
+      <parameter name="x[0..49] = ran(1)*2*pi-pi" value="0" units="dimensionless" constant="true"/>
+      <parameter name="y[0..19] = ran(1)*2*pi-pi" value="0" units="dimensionless" constant="true"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter id="se" value="0" units="dimensionless" constant="false"/>
+      <parameter id="si" value="0" units="dimensionless" constant="false"/>
+      <parameter id="swgt" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <ci> ran </ci>
+                <cn type="integer"> 1 </cn>
+              </apply>
+              <cn type="integer"> 2 </cn>
+              <pi/>
+            </apply>
+            <pi/>
+          </apply>
+        </math>
+      </initialAssignment>
+      <initialAssignment>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <ci> ran </ci>
+                <cn type="integer"> 1 </cn>
+              </apply>
+              <cn type="integer"> 2 </cn>
+              <pi/>
+            </apply>
+            <pi/>
+          </apply>
+        </math>
+      </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule variable="se"/>
+      <rateRule variable="si"/>
+      <assignmentRule variable="swgt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <cn> 0.8 </cn>
+              <ci> se </ci>
+            </apply>
+            <apply>
+              <times/>
+              <cn> 0.2 </cn>
+              <ci> si </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfEvents>
+      <event id="e0" useValuesFromTriggerTime="true">
+        <trigger initialValue="false" persistent="true"/>
+        <listOfEventAssignments>
+          <eventAssignment>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <minus/>
+                <pi/>
+              </apply>
+            </math>
+          </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+      <event id="e1" useValuesFromTriggerTime="true">
+        <trigger initialValue="false" persistent="true"/>
+        <listOfEventAssignments>
+          <eventAssignment>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <apply>
+                <minus/>
+                <pi/>
+              </apply>
+            </math>
+          </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>

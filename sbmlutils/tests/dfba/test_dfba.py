@@ -8,9 +8,13 @@ import tempfile
 
 from sbmlutils.dfba.utils import versioned_directory
 
-from sbmlutils.dfba.toy import settings
-from sbmlutils.dfba.toy import model_factory as toyfactory
-from sbmlutils.dfba.toy import simulate as toysimulate
+from sbmlutils.dfba.toy_wholecell import settings
+from sbmlutils.dfba.toy_wholecell import model_factory as toyfactory
+from sbmlutils.dfba.toy_wholecell import simulate as toysimulate
+
+from sbmlutils.dfba.toy_atp import settings as atpsettings
+from sbmlutils.dfba.toy_atp import model_factory as atpfactory
+from sbmlutils.dfba.toy_atp import simulate as atpsimulate
 
 from sbmlutils.dfba.diauxic_growth import dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
@@ -61,13 +65,24 @@ class DFBATestCase(unittest.TestCase):
         self.file_exists(directory, dgsettings.top_file)
         self.file_exists(directory, dgsettings.flattened_file)
 
-    def test_toy_simulation(self):
+    def test_toy_wholecell_simulation(self):
 
         toyfactory.create_model(self.test_dir)
         sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.version),
                                  settings.top_file)
         print(sbml_path)
         toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0], figures=False)
+
+        # self.file_exists("reactions.png")
+        # self.file_exists("species.png")
+        # self.file_exists("simulation.csv")
+
+    def test_toy_atp_simulation(self):
+        atpfactory.create_model(self.test_dir)
+        sbml_path = os.path.join(versioned_directory(self.test_dir, atpfactory.version),
+                                 atpsettings.top_file)
+        print(sbml_path)
+        atpsimulate.simulate_toy_atp(sbml_path, self.test_dir, dts=[1.0], figures=False)
 
         # self.file_exists("reactions.png")
         # self.file_exists("species.png")

@@ -1,0 +1,63 @@
+# Soma is Hodgkin-Huxley
+p Ek=-77,Ena=50, El=-54.4
+p gl=.3,gkdr=36,gna=120
+p i=11
+p C=1.
+
+p amphi=.1,amhalf=-40,amwidth=10
+p bmphi=4,bmhalf=-65,bmwidth=18
+p ahphi=0.07,ahhalf=-65,ahwidth=20
+p bhphi=1,bhhalf=-35,bhwidth=10
+p anphi=.01,anhalf=-55,anwidth=10
+p bnphi=.125,bnhalf=-65,bnwidth=80
+
+
+# functions
+am(v)=amphi*(v-amhalf)/(1-exp(-(v-amhalf)/amwidth))
+bm(v)=bmphi*exp(-(v-bmhalf)/bmwidth)
+ah(v)=ahphi*exp(-(v-ahhalf)/ahwidth)
+bh(v)=bhphi/(1+exp(-(v-bhhalf)/bhwidth))
+an(v)=anphi*(v-anhalf)/(1-exp(-(v-anhalf)/anwidth))
+bn(v)=bnphi*exp(-(v-bnhalf)/bnwidth)
+
+#currents
+ina(v,m,h)=gna*m^3*h*(v-Ena)
+ikdr(v,n)=gkdr*n^4*(v-Ek)
+il(v)=gl*(v-El)
+
+#diff. equ.
+
+v'=(i-(ina(v,m,h)+ikdr(v,n)+il(v))+p0*pulse(t-taup)+eps*(u1-v)/dx)/C
+m'=am(v)*(1-m)-bm(v)*m
+n'=an(v)*(1-n)-bn(v)*n
+h'=ah(v)*(1-h)-bh(v)*h
+
+## synapse
+parameter taur=1,taud=3,thresh=-30
+x'=(-x+.5*(1+tanh((v-thresh)/3.0)))/taur
+y'=(-y+x)/taud
+init x=.001, y=.001
+
+
+Ild(V)=V-El
+
+
+# cable equation
+
+u1'=((lambda/dx)^2*(u2-2*u1+v)-Ild(u1))/tau+p1*pulse(t-taup)
+u[2..50]'= ((lambda/dx)^2*(u[j+1]-2*u[j]+u[j-1])-Ild(u[j]))/tau +p[j]*pulse(t-taup)
+u51=(c1+b1*u50/dx)/(a1+b1/dx)
+
+par lambda=1,tau=10,dx=.1,c1=0,a1=0,b1=1,c0=0,a0=0,b0=1,eps=.025
+
+pulse(t)=heav(t)*heav(sigma-t)
+par sigma=.05
+par t0=14.45
+aux prc=t0-t
+taup'=0
+
+p p[0..50]=0
+
+@ total=300,xlo=0,xhi=300,ylo=-100,yhi=60,dt=0.05,bounds=10000000
+
+d

@@ -1,0 +1,525 @@
+# mdl_modif.ode
+
+# Internal settings
+
+@ maxstore=1000000,toler=1e-6,dtmax=0.01,t0=10000,total=10000,trans=15000,meth=qualrk,xp=t,yp=vthl1,xlo=15000,xhi=20000,ylo=-80,yhi=20,bound=1000,output='hfs.dat'
+
+# Parkinsonian control
+parameter tpark=5000
+parameter ggpe2gpen=1
+parameter ggpe2gpep=0
+ggpe2gpe(t)=ggpe2gpen+(ggpe2gpep-ggpe2gpen)*heav(t-tpark)
+parameter iappgpen=-0.5
+parameter iappgpep=-2.3
+iappgpe(t)=iappgpen+(iappgpep-iappgpen)*heav(t-tpark)
+
+# HFS control
+parameter thfs=10000
+parameter imhfsstn=171.4
+parameter tmhfs=6
+parameter whfs=0.3
+ihfsstn(t)=imhfsstn*ym(sin(2*pi*t/tmhfs))*(1-ym(sin(2*pi*(t+whfs)/tmhfs)))*heav(t-thfs)
+
+# sensorimotor control
+parameter imsmthl=8
+parameter tmsmthl=25
+parameter wsmthl=5
+parameter dsmthl=80
+ismthl(t)=imsmthl*ym(sin(2*pi*(t-dsmthl)/tmsmthl))*(1-ym(sin(2*pi*(t-dsmthl+wsmthl)/tmsmthl)))
+
+# STN parameters
+
+parameter cmstn=1
+
+parameter glstn=2.25
+parameter vlstn=-60
+
+parameter gnastn=37.5
+parameter vnastn=55
+parameter thtmstn=-30
+parameter sigmstn=15
+parameter ththstn=-39
+parameter sighstn=3.1
+parameter tauh0stn=1
+parameter tauh1stn=500
+parameter ththtaustn=-57
+parameter sightaustn=3
+parameter phihstn=0.75
+
+parameter gkstn=45
+parameter vkstn=-80
+parameter thtnstn=-32
+parameter signstn=8
+parameter taun0stn=1
+parameter taun1stn=100
+parameter thtntaustn=-80
+parameter signtaustn=26
+parameter phinstn=0.75
+
+parameter gcastn=0.5
+parameter vcastn=140
+parameter thtsstn=-39
+parameter sigsstn=8
+
+parameter gtstn=0.5
+parameter thtastn=-63
+parameter sigastn=7.8
+parameter thtbstn=0.25
+parameter sigbstn=0.07
+parameter thtrstn=-67
+parameter sigrstn=2
+parameter taur0stn=7.1
+parameter taur1stn=17.5
+parameter thtrtaustn=68
+parameter sigrtaustn=2.2
+parameter phirstn=0.5
+
+parameter gahpstn=9
+parameter k1stn=15
+parameter kcastn=22.5
+parameter phixcastn=0.75
+parameter epsxcastn=5e-5
+
+parameter alphastn=5
+parameter betastn=1
+parameter thtgstn=30
+parameter thtghmstn=-39
+parameter sigghmstn=8
+
+parameter ggpe2stn=0.9
+parameter vgpe2stn=-100
+
+parameter im0stn=2
+
+# GPe and GPi shared parameters
+
+parameter cmgp=1
+
+parameter glgp=0.1
+parameter vlgp=-55
+
+parameter gnagp=120
+parameter vnagp=55
+parameter thtmgp=-37
+parameter sigmgp=10
+parameter ththgp=-58
+parameter sighgp=12
+parameter tauh0gp=0.05
+parameter tauh1gp=0.27
+parameter ththtaugp=-40
+parameter sightaugp=12
+parameter phihgp=0.05
+
+parameter gkgp=30
+parameter vkgp=-80
+parameter thtngp=-50
+parameter signgp=14
+parameter taun0gp=0.05
+parameter taun1gp=0.27
+parameter thtntaugp=-40
+parameter signtaugp=12
+parameter phingp=0.05
+
+parameter gcagp=0.1
+parameter vcagp=120
+parameter thtsgp=-35
+parameter sigsgp=2
+
+parameter gtgp=0.5
+parameter thtagp=-57
+parameter sigagp=2
+parameter thtrgp=-70
+parameter sigrgp=2
+parameter taurggp=30
+parameter phirgp=1
+
+parameter gahpgp=30
+parameter k1gp=30
+parameter kcagp=20
+epsxcagp=1e-4
+
+parameter alphagp=2
+parameter thtggp=20
+parameter thtghmgp=-57
+parameter sigghmgp=2
+
+# GPe non-shared parameters
+
+parameter betagpe=0.04
+
+parameter gstn2gpe=0.3
+parameter vstn2gpe=0
+
+parameter vgpe2gpe=-80
+
+parameter im0gpe=0.3
+
+# GPi non-shared parameters
+
+parameter betagpi=0.08
+
+parameter gstn2gpi=1
+parameter vstn2gpi=0
+
+parameter thtstn2gpi=0
+
+parameter iappgpi=-1.2
+
+# Thl parameters
+
+parameter cmthl=1
+
+parameter glthl=0.05
+parameter vlthl=-70
+
+parameter gnathl=3
+parameter vnathl=50
+parameter thtmthl=-37
+parameter sigmthl=7
+parameter thththl=-41
+parameter sighthl=4
+parameter ah0thl=0.128
+parameter thtahthl=-46
+parameter sigahthl=18
+parameter bh0thl=4
+parameter thtbhthl=-23
+parameter sigbhthl=5
+parameter phihthl=1
+
+parameter gkthl=5
+parameter vkthl=-90
+
+parameter gtthl=5
+parameter vtthl=0
+parameter thtpthl=-60
+parameter sigpthl=6.2
+parameter thtrthl=-84
+parameter sigrthl=4
+parameter taur0thl=28
+# For 'fast' T-current: taur0thl=5
+parameter taur1thl=1
+parameter thtrtauthl=-25
+parameter sigrtauthl=10.5
+# For 'fast' T-current: sigrtauthl=15
+parameter phirthl=2.5
+
+parameter ggpi2thl=0.15
+parameter vgpi2thl=-85
+
+# Auxiliary parameters
+
+parameter sigym=0.001
+
+# STN functions
+
+minfstn(v)=1/(1+exp(-(v-thtmstn)/sigmstn))
+hinfstn(v)=1/(1+exp((v-ththstn)/sighstn))
+ninfstn(v)=1/(1+exp(-(v-thtnstn)/signstn))
+sinfstn(v)=1/(1+exp(-(v-thtsstn)/sigsstn))
+ainfstn(v)=1/(1+exp(-(v-thtastn)/sigastn))
+binfstn(r)=1/(1+exp(-(r-thtbstn)/sigbstn))-1/(1+exp(thtbstn/sigbstn))
+rinfstn(v)=1/(1+exp((v-thtrstn)/sigrstn))
+tauhstn(v)=tauh0stn+tauh1stn/(1+exp((v-ththtaustn)/sightaustn))
+taunstn(v)=taun0stn+taun1stn/(1+exp((v-thtntaustn)/signtaustn))
+taurstn(v)=taur0stn+taur1stn/(1+exp((v-thtrtaustn)/sigrtaustn))
+hminfstn(v)=1/(1+exp(-(v-thtghmstn)/sigghmstn))
+
+# GPe and GPi shared functions
+
+minfgp(vg)=1/(1+exp(-(vg-thtmgp)/sigmgp))
+hinfgp(vg)=1/(1+exp((vg-ththgp)/sighgp))
+ninfgp(vg)=1/(1+exp(-(vg-thtngp)/signgp))
+sinfgp(vg)=1/(1+exp(-(vg-thtsgp)/sigsgp))
+ainfgp(vg)=1/(1+exp(-(vg-thtagp)/sigagp))
+rinfgp(vg)=1/(1+exp((vg-thtrgp)/sigrgp))
+tauhgp(vg)=tauh0gp+tauh1gp/(1+exp((vg-ththtaugp)/sightaugp))
+taungp(vg)=taun0gp+taun1gp/(1+exp((vg-thtntaugp)/signtaugp))
+hminfgp(vg)=1/(1+exp(-(vg-thtghmgp)/sigghmgp))
+
+# Thl functions
+
+minfthl(v)=1/(1+exp(-(v-thtmthl)/sigmthl))
+hinfthl(v)  =  1/(1+exp((v-thththl)/sighthl))
+pinfthl(v)  = 1/(1+exp(-(v-thtpthl)/sigpthl))
+rinfthl(v)  = 1/(1+exp((v-thtrthl)/sigrthl))
+ahthl(v) =  ah0thl*exp(-(v-thtahthl)/sigahthl)
+bhthl(v) =  bh0thl/(1+exp(-(v-thtbhthl)/sigbhthl))
+tauhthl(v)  =  1/(ahthl(v)+bhthl(v))
+taurthl(v)=taur0thl+taur1thl*exp(-(v-thtrtauthl)/sigrtauthl)
+
+# Auxiliary functions
+
+ym(v)=1/(1+exp(-v/sigym))
+
+# STN currents
+
+ilstn(v)=glstn*(v-vlstn)
+inastn(v,h)=gnastn*((minfstn(v))^3)*h*(v-vnastn)
+ikstn(v,n)=gkstn*n^4*(v-vkstn)
+iahpstn(v,xca)=gahpstn*(v-vkstn)*xca/(xca+k1stn)
+icastn(v)=gcastn*((sinfstn(v))^2)*(v-vcastn)
+itstn(v,r)=gtstn*((ainfstn(v))^3)*((binfstn(r))^2)*(v-vcastn)
+
+sgpe2stn1=sgpe5+sgpe2
+sgpe2stn2=sgpe6+sgpe1
+sgpe2stn3=sgpe8+sgpe4
+sgpe2stn4=sgpe7+sgpe3
+sgpe2stn5=sgpe2+sgpe6
+sgpe2stn6=sgpe1+sgpe5
+sgpe2stn7=sgpe3+sgpe8
+sgpe2stn8=sgpe4+sgpe7
+igpe2stn[1..8]=ggpe2stn*sgpe2stn[j]*(vstn[j]-vgpe2stn)
+
+# GPe and GPi shared currents
+
+ilgp(v)=glgp*(v-vlgp)
+inagp(v,h)=gnagp*((minfgp(v))^3)*h*(v-vnagp)
+ikgp(v,n)=gkgp*(n^4)*(v-vkgp)
+iahpgp(v,xcag)=gahpgp*(v-vkgp)*xcag/(xcag+k1gp)
+icagp(v)=gcagp*((sinfgp(v))^2)*(v-vcagp)
+itgp(v,r)=gtgp*((ainfgp(v))^3)*r*(v-vcagp)
+
+# GPe non-shared currents
+
+sgpe2gpe1=sgpe2+sgpe3
+sgpe2gpe2=sgpe1+sgpe5
+sgpe2gpe3=sgpe4+sgpe8
+sgpe2gpe4=sgpe3+sgpe1
+sgpe2gpe5=sgpe6+sgpe7
+sgpe2gpe6=sgpe5+sgpe2
+sgpe2gpe7=sgpe8+sgpe3
+sgpe2gpe8=sgpe7+sgpe4
+igpe2gpe[1..8]=ggpe2gpe(t)*sgpe2gpe[j]*(vgpe[j]-vgpe2gpe)
+
+sstn2gpe1=sstn8+sstn4
+sstn2gpe2=sstn7+sstn3
+sstn2gpe3=sstn1+sstn5
+sstn2gpe4=sstn2+sstn6
+sstn2gpe5=sstn4+sstn8
+sstn2gpe6=sstn3+sstn7
+sstn2gpe7=sstn5+sstn2
+sstn2gpe8=sstn6+sstn1
+istn2gpe[1..8]=gstn2gpe*sstn2gpe[j]*(vgpe[j]-vstn2gpe)
+
+# GPi non-shared currents
+
+sstn2gpi[1..8]=sstn[j]
+istn2gpi[1..8]=gstn2gpi*sstn2gpi[j]*(vgpi[j]-vstn2gpi)
+
+# Thl currents
+
+ilthl(v)=glthl*(v-vlthl)
+inathl(v,h)=gnathl*((minfthl(v))^3)*h*(v-vnathl)
+ikthl(v,h)=gkthl*((0.75*(1-h))^4)*(v-vkthl)
+itthl(v,r)=gtthl*((pinfthl(v))^2)*r*(v-vtthl)
+
+sgpi2thl1=sgpi1+sgpi2+sgpi5+sgpi6
+sgpi2thl2=sgpi3+sgpi4+sgpi7+sgpi8
+igpi2thl[1..2]=ggpi2thl*sgpi2thl[j]*(vthl[j]-vgpi2thl)
+
+# STN equations
+
+vstn[1..8]'=(-ilstn(vstn[j])-inastn(vstn[j],hstn[j])-ikstn(vstn[j],nstn[j])-iahpstn(vstn[j],xcastn[j])-icastn(vstn[j])-itstn(vstn[j],rstn[j])-igpe2stn[j]+ihfsstn(t)+[j]*im0stn)/cmstn
+hstn[1..8]'=phihstn*(hinfstn(vstn[j])-hstn[j])/tauhstn(vstn[j])
+nstn[1..8]'=phinstn*(ninfstn(vstn[j])-nstn[j])/taunstn(vstn[j])
+rstn[1..8]'=phirstn*(rinfstn(vstn[j])-rstn[j])/taurstn(vstn[j])
+xcastn[1..8]'=phixcastn*epsxcastn*(-icastn(vstn[j])-itstn(vstn[j],rstn[j])-kcastn*xcastn[j])
+sstn[1..8]'=alphastn*(1-sstn[j])*hminfstn(vstn[j]-thtgstn)-betastn*sstn[j]
+
+# GPe equations
+
+vgpe[1..8]'=(-itgp(vgpe[j],rgpe[j])-inagp(vgpe[j],hgpe[j])-ikgp(vgpe[j],ngpe[j])-iahpgp(vgpe[j],xcagpe[j])-icagp(vgpe[j])-ilgp(vgpe[j])+iappgpe(t)-igpe2gpe[j]-istn2gpe[j]+[j]*im0gpe)/cmgp
+ngpe[1..8]'=phingp*(ninfgp(vgpe[j])-ngpe[j])/taungp(vgpe[j])
+hgpe[1..8]'=phihgp*(hinfgp(vgpe[j])-hgpe[j])/tauhgp(vgpe[j])
+rgpe[1..8]'=phirgp*(rinfgp(vgpe[j])-rgpe[j])/taurggp
+xcagpe[1..8]'=epsxcagp*(-icagp(vgpe[j])-itgp(vgpe[j],rgpe[j])-kcagp*xcagpe[j])
+sgpe[1..8]'=alphagp*(1-sgpe[j])*hminfgp(vgpe[j]-thtggp)-betagpe*sgpe[j]
+
+# GPi equations
+
+vgpi[1..8]'=(-itgp(vgpi[j],rgpi[j])-inagp(vgpi[j],hgpi[j])-ikgp(vgpi[j],ngpi[j])-iahpgp(vgpi[j],xcagpi[j])-icagp(vgpi[j])-ilgp(vgpi[j])+iappgpi-istn2gpi[j])/cmgp
+ngpi[1..8]'=phingp*(ninfgp(vgpi[j])-ngpi[j])/taungp(vgpi[j])
+hgpi[1..8]'=phihgp*(hinfgp(vgpi[j])-hgpi[j])/tauhgp(vgpi[j])
+rgpi[1..8]'=phirgp*(rinfgp(vgpi[j])-rgpi[j])/taurggp
+xcagpi[1..8]'=epsxcagp*(-icagp(vgpi[j])-itgp(vgpi[j],rgpi[j])-kcagp*xcagpi[j])
+sgpi[1..8]'=alphagp*(1-sgpi[j])*hminfgp(vgpi[j]-thtggp)-betagpi*sgpi[j]
+
+# Thl equations
+
+vthl1'=(-ilthl(vthl1)-inathl(vthl1,hthl1)-ikthl(vthl1,hthl1)-itthl(vthl1,rthl1)+ismthl(t)-igpi2thl1)/cmthl
+rthl1'=phirthl*(rinfthl(vthl1)-rthl1)/taurthl(vthl1)
+hthl1'=phihthl*(hinfthl(vthl1)-hthl1)/tauhthl(vthl1)
+
+vthl2'=(-ilthl(vthl2)-inathl(vthl2,hthl2)-ikthl(vthl2,hthl2)-itthl(vthl2,rthl2)+ismthl(t)-igpi2thl2)/cmthl
+rthl2'=phirthl*(rinfthl(vthl2)-rthl2)/taurthl(vthl2)
+hthl2'=phihthl*(hinfthl(vthl2)-hthl2)/tauhthl(vthl2)
+
+# Make visible some variables
+
+aux aismthl=ismthl(t)
+aux asgpi2thl1=sgpi2thl1
+aux asgpi2thl2=sgpi2thl2
+aux aigpi2thl1=igpi2thl1
+aux aigpi2thl2=igpi2thl2
+aux aihfsstn=ihfsstn(t)
+
+# in silent mode save only the following variables
+only t,vthl1,vthl2,aismthl,aihfsstn,asgpi2thl1,asgpi2thl2,aigpi2thl1,aigpi2thl2,rthl1,rthl2
+
+# Initial conditions
+
+# ICs
+init VSTN1=-70.2963328357186
+init VSTN2=-69.45626520384715
+init VSTN3=-61.57227419701998
+init VSTN4=-57.42949551593134
+init VSTN5=-68.26142227528348
+init VSTN6=-64.847564080094
+init VSTN7=-59.94034019769452
+init VSTN8=-36.13846030480007
+init HSTN1=0.1455501900899287
+init HSTN2=0.1634553791482899
+init HSTN3=0.3189732573009864
+init HSTN4=0.2876195347465059
+init HSTN5=0.2674565491228242
+init HSTN6=0.3201323707767232
+init HSTN7=0.117124130113879
+init HSTN8=0.18070385940658
+init NSTN1=0.1942106271083542
+init NSTN2=0.1764180020310163
+init NSTN3=0.03080545474027171
+init NSTN4=0.03668644696345393
+init NSTN5=0.07368970365024322
+init NSTN6=0.1170103020715659
+init NSTN7=0.2621068537744238
+init NSTN8=0.2646853464952902
+init RSTN1=0.5363725059416923
+init RSTN2=0.5205023602660154
+init RSTN3=0.6790553865510595
+init RSTN4=0.6508979574661953
+init RSTN5=0.3383845200833131
+init RSTN6=0.38886607918034
+init RSTN7=0.4963060109029069
+init RSTN8=0.4755783001814112
+init XCASTN1=0.5177936071017125
+init XCASTN2=0.5224422746885499
+init XCASTN3=0.4659124978796718
+init XCASTN4=0.4834243501718455
+init XCASTN5=0.4930421214390157
+init XCASTN6=0.5106314709099659
+init XCASTN7=0.4850441148250232
+init XCASTN8=0.4895303851515876
+init SSTN1=0.002245373527316081
+init SSTN2=0.002486476184693662
+init SSTN3=0.006067133597593091
+init SSTN4=0.008571570634603693
+init SSTN5=0.002867892282545885
+init SSTN6=0.004333174583764654
+init SSTN7=0.007248711928891034
+init SSTN8=0.04207015249036755
+init VGPE1=-76.19857159170789
+init VGPE2=-75.65246053889084
+init VGPE3=-74.04179520509994
+init VGPE4=-72.27320500821767
+init VGPE5=-69.65751754691165
+init VGPE6=-69.46272243280967
+init VGPE7=-68.66741425393707
+init VGPE8=-67.96771029101726
+init NGPE1=0.145251986872227
+init NGPE2=0.1728304298020422
+init NGPE3=0.1525161379651593
+init NGPE4=0.1685687719329369
+init NGPE5=0.186758331810659
+init NGPE6=0.2021607997643594
+init NGPE7=0.2017487143200761
+init NGPE8=0.2095548657387559
+init HGPE1=0.8135660530566688
+init HGPE2=0.7855059316951624
+init HGPE3=0.7918179591614027
+init HGPE4=0.7677816026825283
+init HGPE5=0.7502933467823444
+init HGPE6=0.7384552729573229
+init HGPE7=0.732192517801176
+init HGPE8=0.7233501296509451
+init RGPE1=0.9283635817280316
+init RGPE2=0.8850705143963882
+init RGPE3=0.8673773015303538
+init RGPE4=0.7705147624134699
+init RGPE5=0.6443720392593262
+init RGPE6=0.4549492249119116
+init RGPE7=0.6313447593781805
+init RGPE8=0.5978520124911044
+init XCAGPE1=0.1155293318957297
+init XCAGPE2=0.08083423662681917
+init XCAGPE3=0.112042386034417
+init XCAGPE4=0.1059864484219792
+init XCAGPE5=0.08031613671143878
+init XCAGPE6=0.05163743209969612
+init XCAGPE7=0.08484564353640682
+init XCAGPE8=0.091861332731073
+init SGPE1=0.4048566949169946
+init SGPE2=0.4900731585990308
+init SGPE3=0.167682474891889
+init SGPE4=0.1393118840432917
+init SGPE5=0.3943391430262136
+init SGPE6=0.4751887852059297
+init SGPE7=0.4343978957529472
+init SGPE8=0.4544787000220082
+init VGPI1=-71.0735806020549
+init VGPI2=-71.13894227176741
+init VGPI3=-68.89169863654296
+init VGPI4=-68.68689945861436
+init VGPI5=-70.3278171289078
+init VGPI6=-70.7183277377132
+init VGPI7=-72.01985112819415
+init VGPI8=-69.35944753853504
+init NGPI1=0.1807224619490668
+init NGPI2=0.1815411655176497
+init NGPI3=0.2007876437843322
+init NGPI4=0.20054981826503
+init NGPI5=0.1917481812334788
+init NGPI6=0.1830641813588005
+init NGPI7=0.185903583816399
+init NGPI8=0.181076350074299
+init HGPI1=0.7498771842909363
+init HGPI2=0.7485532036160857
+init HGPI3=0.7200997299023243
+init HGPI4=0.7204512667525099
+init HGPI5=0.7334360975944675
+init HGPI6=0.7464640821502111
+init HGPI7=0.7623101380383253
+init HGPI8=0.7581093481557878
+init RGPI1=0.6919372043192852
+init RGPI2=0.6407996804061891
+init RGPI3=0.4723880865027284
+init RGPI4=0.4859896983733851
+init RGPI5=0.3553717797071263
+init RGPI6=0.6306022018499258
+init RGPI7=0.6515225437217268
+init RGPI8=0.7107016809011143
+init XCAGPI1=0.06887945823533427
+init XCAGPI2=0.06918924408699446
+init XCAGPI3=0.04945241023724238
+init XCAGPI4=0.05188611755485018
+init XCAGPI5=0.0507360244899742
+init XCAGPI6=0.07210273121350474
+init XCAGPI7=0.05487279159617815
+init XCAGPI8=0.07028769419721714
+init SGPI1=0.02660290323807734
+init SGPI2=0.01858086252885182
+init SGPI3=4.316933115972264e-06
+init SGPI4=7.47216684299879e-06
+init SGPI5=0.0004124633413807342
+init SGPI6=0.02944439096173522
+init SGPI7=0.2285896386723639
+init SGPI8=0.1536664992109558
+init VTHL1=-61.58326124327281
+init RTHL1=0.0520748163465005
+init HTHL1=0.952264959828637
+init VTHL2=-74.57228901203139
+init RTHL2=0.02767653618328546
+init HTHL2=0.9581509776467813
+
+done
+
+

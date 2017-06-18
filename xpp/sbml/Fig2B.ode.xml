@@ -1,0 +1,1612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># XPP scripts for Figure 2B of 
+# Maex R, Grinevich VP, Grinevich V, Budygin E, Bencherif M, Gutkin B (2014)
+# Understanding the role a7 nicotinic receptors play in dopamine efflux
+# in nucleus accumbens. ACS Chemical Neuroscience 5, 1032-1040.
+#
+# Implementation of the so-called desensitization model (drop in dopamine efflux
+# after TC-7020 administration is caused by desensitization of the a7 receptors).
+
+# Output is accumbal dopamine concentration in microM.
+
+# Naming conventions 
+#
+# V_      = membrane voltage of (neuron or neuron population)
+# R_      = release of (transmitter)
+# C_      = concentration of (transmitter)
+# I_      = membrane current of (channel or receptor)
+# P_      = presynatic membrane current of (receptor)
+# tau_    = time-constant of
+# tmin_ = minimum value of time-constant of
+# tmax_ = maximum value of time-constant of
+# inf_    = steady-state value of
+# act_    = level of activation of (receptor)
+# des_    = level of desensitisation of (receptor)
+# w_      = weight of
+# EC50_   = halfmax concentration of steady-state response
+# Ktau_   = halfmax concentration of time-constant
+# stim_   = stimulation by
+
+# glu  = glutamate or glu-ergic neuron (population)
+# dop  = dopamine or dopamine-ergic neuron (population)
+# gab  = gaba or gaba-ergic neuron (population)
+# ach  = acetylcholine
+# nic  = nicotine
+# a7   = alpha7-type nicACh receptor
+# a4b2 = alpha4-beta2-type nicACh receptor
+# bas  = basal
+#
+
+
+# Units 
+# time seconds
+# concentration microMolar (nanoMolar in printed figures)
+
+
+# Transfer functions (input-output) 
+# sigmoid
+f(x) = 1/(1 + exp(-x)) 
+# halfwave rectification
+hwr(x) = heav(x) * x    
+# clipped at 0 and 1
+clip(x) = (1 + (x-1) * (heav (1-x))) * heav(x) 
+# Hill equation
+# Hill(x,K,n) = 1 / (1 + (K/x)^n)
+Hill(x,K,n) = x^n / (x^n + K^n) 
+# competitive Hill ---THIS IS NEW and allows for competitive inhibition between up to three compounds --- 
+compHill(x,y,z,wx,wy,wz,Kx,Ky,Kz,n) = \
+  (wx * x^n/(x^n + Kx^n * (1 + (y/Ky)^n + (z/Kz)^n))) + \
+  (wy * y^n/(y^n + Ky^n * (1 + (x/Kx)^n + (z/Kz)^n))) + \
+  (wz * z^n/(z^n + Kz^n * (1 + (x/Kx)^n + (y/Ky)^n)))
+# rectangular pulse
+rect_pulse(t,from,to,amp) = amp * (heav (t-from) - heav (t-to))
+
+
+
+# THE MODEL (some of this code is based on Graupner &amp; Gutkin)
+
+# We now have two neuron populations sharing inputs from
+# glu neurons (mostly a7-driven) and through a4b2 receptors.
+# The parameter coefficients r and s specify the balance 
+# between these inputs.
+
+   par s=0.8,r=0.8
+
+
+# the dynamics of the dopaminergic neuron population V_dop
+
+   V_dop&apos; = (-V_dop - I_gab + hwr (I_basDop + s*I_glu + r*I_b2)) / tau_Vdop
+
+   par tau_Vdop=0.02,I_basDop=0.1
+   aux aux_hwr=hwr (I_basDop + s*I_glu + r*I_b2)
+
+
+# the dynamics of the gaba-ergic neuron population V_gab
+
+   V_gab&apos; = (-V_gab + hwr ((1-s)*I_glu + (1-r)*I_b2)) / tau_Vgab
+
+   par tau_Vgab=0.02
+
+
+# the (stationary) glutamatergic input I_glu to dopamine (and GABA) neurons
+
+   I_glu = w_glu * clip (V_glu + P_glu)
+
+   par w_glu=1,V_glu=0.1
+
+
+# the (varying) gaba-ergic input I_gab to dopamine neurons
+
+   I_gab = w_gab * clip (V_gab + I_basGab)
+
+   aux auxI_gab=I_gab
+   par w_gab=1.5 
+   par I_basGab=-0.05
+   aux auxI_gab=I_gab
+
+# the presynaptic facilitation of glu input to dopamine (and GABA) neurons
+
+   P_glu = P_a7
+
+
+# the dynamics of presynaptic a7 receptors (same single variable for 
+# glu inputs to dopamine cells in VTA and medium spiny neurons in striatum)
+
+   P_a7 = act_a7 * (1 - des_a7)
+   aux auxP_a7=P_a7
+   aux auxact_a7=act_a7
+   aux auxsen_a7=1-des_a7
+
+
+#   /* activation of alpha7 */
+
+   act_a7&apos; = (- act_a7 + inf_actA7) / tau_actA7
+
+   inf_actA7 = compHill(C_ach,    C_nic,        C_agA7, \
+                            1, w_actNicA7,   w_actAgA7, \
+                   EC50_A7ach, EC50_A7nic,   EC50_A7ag, Hill_actA7)
+
+
+   par EC50_A7=80
+   par EC50_A7ach=68
+   par EC50_A7nic=13
+   par Hill_actA7=1.73
+   par EC50_A7ag=0.03 
+   par w_actNicA7=0.8 
+   par w_actAgA7=0.3
+   par tau_actA7=0.005
+
+
+#   /* desensitisation of alpha7 */
+
+   des_a7&apos; = (- des_a7 + inf_desA7) / tau_desA7
+
+   inf_desA7 = compHill(    0,      C_nic,      C_agA7, \
+                            1,          1,           1, \
+                            1, IC50_A7nic,   IC50_A7ag, Hill_desA7)
+
+   par IC50_A7nic=1.3
+   par IC50_A7ag=0.002
+   par Hill_desA7=2
+
+   tau_desA7 = tmin_desA7 + \ 
+               tmax_desA7 * (1 - inf_desA7)
+   aux aux_tdA7=tau_desA7
+
+   par tmin_desA7=0.05
+   par tmax_desA7=120
+
+
+# the dynamics of somatic a4b2 receptors on the soma/dendrite of dopamine neurons
+
+   I_b2 = act_b2 * (1 - des_b2)
+
+   aux auxI_b2=I_b2
+   aux auxact_b2=act_b2
+   aux auxsen_b2=1-des_b2
+
+
+#   /* activation of alpha4beta2 */
+
+   act_b2&apos; = (- act_b2 + inf_actB2) / tau_actB2
+
+   inf_actB2 = compHill(C_ach,      C_nic,        C_agB2, \
+                            1, w_actNicB2,   w_actAgB2, \
+                   EC50_B2ach, EC50_B2nic,   EC50_B2ag, Hill_actB2)
+
+
+   par EC50_actB2=30
+   par EC50_B2ach=30
+   par EC50_B2ag=30
+   par EC50_B2nic=0.23
+   par Hill_actB2=1.05
+   par w_actNicB2=2
+   par w_actAgB2=1
+   par tau_actB2=0.005
+
+
+#   /* desensitisation */
+
+   des_b2&apos; = (- des_b2 + inf_desB2) / tau_desB2
+
+   inf_desB2 = Hill (C_nic + C_agB2, EC50_desB2, Hill_desB2)
+
+   tau_desB2 = tmin_desB2 + \ 
+               tmax_desB2 * Hill (Ktau_desB2, C_nic + C_agB2, Htau_desB2)
+
+   aux aux_tdB2=tau_desB2
+
+   par EC50_desB2=0.061
+   par Hill_desB2=0.5
+   par tmin_desB2=0.5
+   par tmax_desB2=600
+   par Ktau_desB2=0.11
+   par Htau_desB2=3
+
+
+# the dynamics of dopamine release AND RE-UPTAKE
+# This is a bit complicated because for a fair comparison, all dopamine levels
+# are normalized to the same fixed baseline (about 50 nanoMolar). Hence we assume
+# that homeostatic mechanisms are at work that keep the baseline fixed under variable
+# parameter conditions (mostly varying cholinergic tones).
+
+   R_dop&apos; = (C_basDop * (1 + (V_dop-ss_Vdop) / ss_Vdop) - R_dop) / tau_Rdop - R_dop * Vmax_Rdop / (R_dop + EC50_Rdop)
+
+   par tau_Rdop=0.2,P_a7bas=0.01
+   par C_basDop=0.1
+# the following values are from Chen and Budygin 2007
+   par Vmax_Rdop=1.3
+   par EC50_Rdop=0.2
+
+
+# the physiological (ach) and pharmacological (nic, specific a7 and a4b2 agonists) stimuli
+
+#  /* acetylcoline */
+#  THIS IS THE PARAMETER VARIED IN THE PLOT
+#   par C_ach=0
+#   par C_ach=10
+    par C_ach=20
+#   par C_ach=30
+
+#   /* nicotine */
+    stim_nic = bas_nic + rect_pulse (t, 66, 67, dose_Nic)
+    par dose_Nic=5
+
+# we now simulate an alpha function as a second-order ode
+# the alpha-function is area normalized
+# to calculate its peak, take amplitude and divide by 10*e
+
+    C_nic_nic&apos; = (-C_nic_nic + stim_nic)/tau1_nic
+    C_nic&apos; = (-C_nic + C_nic_nic)/tau2_nic
+
+    par tau1_nic=10,tau2_nic=10,bas_nic=0 
+
+
+#   /* alpha7 agonist */
+
+   stim_a7 = rect_pulse (t, 36, 37, dose_Aga7)
+   par dose_Aga7=0.3
+
+   C_agA7A7&apos; = (-C_agA7A7 + stim_a7) / tau1_agA7
+   C_agA7&apos; = (-C_agA7 + C_agA7A7) / tau2_agA7
+
+   par tau1_agA7=10,tau2_agA7=10 
+
+
+#   /* alpha4 beta2 agonist */
+
+   stim_b2 = rect_pulse (t, 60, 61, 0)
+   C_agB2&apos; = (-C_agB2 + stim_b2) / tau_agB2
+
+   par tau_agB2=10
+
+
+# /* calculating the steady-states (in reverse order) */
+    ss_Ib2 = compHill(   C_ach,          0,           0, \
+                            1, w_actNicB2,   w_actAgB2, \
+                   EC50_B2ach, EC50_B2nic,   EC50_B2ag, Hill_actB2)
+    ss_Pa7 = compHill(   C_ach,          0,           0, \
+                            1, w_actNicA7,   w_actAgA7, \
+                   EC50_A7ach, EC50_A7nic,   EC50_A7ag, Hill_actA7)
+    ss_Pglu = ss_Pa7
+    ss_Iglu = w_glu * clip (V_glu + ss_Pglu)
+    ss_Vgab = hwr ((1-s)*ss_Iglu + (1-r)*ss_Ib2)
+    ss_Igab = w_gab * clip (ss_Vgab + I_basGab)
+    ss_Vdop = - ss_Igab + hwr (I_basDop + s*ss_Iglu + r*ss_Ib2)
+# aux auxss_Vdop=ss_Vdop
+
+
+# the initial conditions
+act_a7(0)=0
+des_a7(0)=0
+act_b2(0)=0
+des_b2(0)=0
+V_dop(0)=0
+V_gab(0)=0
+C_nic(0)=bas_nic
+C_nic_nic(0)=bas_nic
+
+
+# the numerical parameters
+@ MAXSTOR=500000
+@ BOUNDS=1e+8
+@ DT=0.005
+@ TOTAL=150
+@ xlo=20
+@ xhi=120
+@ ylo=0
+@ yhi=0.12
+@ METHOD=rk
+@ NJMP=20
+@ YP=r_dop
+done
+
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="f">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <minus/>
+                    <ci> x </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="hwr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <ci> heav </ci>
+                <ci> x </ci>
+              </apply>
+              <ci> x </ci>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="clip">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <apply>
+                    <minus/>
+                    <ci> x </ci>
+                    <cn type="integer"> 1 </cn>
+                  </apply>
+                  <apply>
+                    <ci> heav </ci>
+                    <apply>
+                      <minus/>
+                      <cn type="integer"> 1 </cn>
+                      <ci> x </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <ci> x </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="hill">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> k </ci>
+            </bvar>
+            <bvar>
+              <ci> n </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <power/>
+                <ci> x </ci>
+                <ci> n </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <apply>
+                  <power/>
+                  <ci> x </ci>
+                  <ci> n </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> k </ci>
+                  <ci> n </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="comphill">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <bvar>
+              <ci> z </ci>
+            </bvar>
+            <bvar>
+              <ci> wx </ci>
+            </bvar>
+            <bvar>
+              <ci> wy </ci>
+            </bvar>
+            <bvar>
+              <ci> wz </ci>
+            </bvar>
+            <bvar>
+              <ci> kx </ci>
+            </bvar>
+            <bvar>
+              <ci> ky </ci>
+            </bvar>
+            <bvar>
+              <ci> kz </ci>
+            </bvar>
+            <bvar>
+              <ci> n </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> wx </ci>
+                  <apply>
+                    <power/>
+                    <ci> x </ci>
+                    <ci> n </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> x </ci>
+                    <ci> n </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <power/>
+                      <ci> kx </ci>
+                      <ci> n </ci>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <cn type="integer"> 1 </cn>
+                      <apply>
+                        <power/>
+                        <apply>
+                          <divide/>
+                          <ci> y </ci>
+                          <ci> ky </ci>
+                        </apply>
+                        <ci> n </ci>
+                      </apply>
+                      <apply>
+                        <power/>
+                        <apply>
+                          <divide/>
+                          <ci> z </ci>
+                          <ci> kz </ci>
+                        </apply>
+                        <ci> n </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> wy </ci>
+                  <apply>
+                    <power/>
+                    <ci> y </ci>
+                    <ci> n </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> y </ci>
+                    <ci> n </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <power/>
+                      <ci> ky </ci>
+                      <ci> n </ci>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <cn type="integer"> 1 </cn>
+                      <apply>
+                        <power/>
+                        <apply>
+                          <divide/>
+                          <ci> x </ci>
+                          <ci> kx </ci>
+                        </apply>
+                        <ci> n </ci>
+                      </apply>
+                      <apply>
+                        <power/>
+                        <apply>
+                          <divide/>
+                          <ci> z </ci>
+                          <ci> kz </ci>
+                        </apply>
+                        <ci> n </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> wz </ci>
+                  <apply>
+                    <power/>
+                    <ci> z </ci>
+                    <ci> n </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> z </ci>
+                    <ci> n </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <power/>
+                      <ci> kz </ci>
+                      <ci> n </ci>
+                    </apply>
+                    <apply>
+                      <plus/>
+                      <cn type="integer"> 1 </cn>
+                      <apply>
+                        <power/>
+                        <apply>
+                          <divide/>
+                          <ci> x </ci>
+                          <ci> kx </ci>
+                        </apply>
+                        <ci> n </ci>
+                      </apply>
+                      <apply>
+                        <power/>
+                        <apply>
+                          <divide/>
+                          <ci> y </ci>
+                          <ci> ky </ci>
+                        </apply>
+                        <ci> n </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="rect_pulse">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> from </ci>
+            </bvar>
+            <bvar>
+              <ci> to </ci>
+            </bvar>
+            <bvar>
+              <ci> amp </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> amp </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> t </ci>
+                    <ci> from </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> t </ci>
+                    <ci> to </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="s" name="s = 0.8" value="0.8" constant="false"/>
+      <parameter id="r" name="r = 0.8" value="0.8" constant="false"/>
+      <parameter id="tau_vdop" name="tau_vdop = 0.02" value="0.02" constant="false"/>
+      <parameter id="i_basdop" name="i_basdop = 0.1" value="0.1" constant="false"/>
+      <parameter id="tau_vgab" name="tau_vgab = 0.02" value="0.02" constant="false"/>
+      <parameter id="w_glu" name="w_glu = 1" value="1" constant="false"/>
+      <parameter id="v_glu" name="v_glu = 0.1" value="0.1" constant="false"/>
+      <parameter id="w_gab" name="w_gab = 1.5" value="1.5" constant="false"/>
+      <parameter id="i_basgab" name="i_basgab = -0.05" value="-0.05" constant="false"/>
+      <parameter id="ec50_a7" name="ec50_a7 = 80" value="80" constant="false"/>
+      <parameter id="ec50_a7ach" name="ec50_a7ach = 68" value="68" constant="false"/>
+      <parameter id="ec50_a7nic" name="ec50_a7nic = 13" value="13" constant="false"/>
+      <parameter id="hill_acta7" name="hill_acta7 = 1.73" value="1.73" constant="false"/>
+      <parameter id="ec50_a7ag" name="ec50_a7ag = 0.03" value="0.03" constant="false"/>
+      <parameter id="w_actnica7" name="w_actnica7 = 0.8" value="0.8" constant="false"/>
+      <parameter id="w_actaga7" name="w_actaga7 = 0.3" value="0.3" constant="false"/>
+      <parameter id="tau_acta7" name="tau_acta7 = 0.005" value="0.005" constant="false"/>
+      <parameter id="ic50_a7nic" name="ic50_a7nic = 1.3" value="1.3" constant="false"/>
+      <parameter id="ic50_a7ag" name="ic50_a7ag = 0.002" value="0.002" constant="false"/>
+      <parameter id="hill_desa7" name="hill_desa7 = 2" value="2" constant="false"/>
+      <parameter id="tmin_desa7" name="tmin_desa7 = 0.05" value="0.05" constant="false"/>
+      <parameter id="tmax_desa7" name="tmax_desa7 = 120" value="120" constant="false"/>
+      <parameter id="ec50_actb2" name="ec50_actb2 = 30" value="30" constant="false"/>
+      <parameter id="ec50_b2ach" name="ec50_b2ach = 30" value="30" constant="false"/>
+      <parameter id="ec50_b2ag" name="ec50_b2ag = 30" value="30" constant="false"/>
+      <parameter id="ec50_b2nic" name="ec50_b2nic = 0.23" value="0.23" constant="false"/>
+      <parameter id="hill_actb2" name="hill_actb2 = 1.05" value="1.05" constant="false"/>
+      <parameter id="w_actnicb2" name="w_actnicb2 = 2" value="2" constant="false"/>
+      <parameter id="w_actagb2" name="w_actagb2 = 1" value="1" constant="false"/>
+      <parameter id="tau_actb2" name="tau_actb2 = 0.005" value="0.005" constant="false"/>
+      <parameter id="ec50_desb2" name="ec50_desb2 = 0.061" value="0.061" constant="false"/>
+      <parameter id="hill_desb2" name="hill_desb2 = 0.5" value="0.5" constant="false"/>
+      <parameter id="tmin_desb2" name="tmin_desb2 = 0.5" value="0.5" constant="false"/>
+      <parameter id="tmax_desb2" name="tmax_desb2 = 600" value="600" constant="false"/>
+      <parameter id="ktau_desb2" name="ktau_desb2 = 0.11" value="0.11" constant="false"/>
+      <parameter id="htau_desb2" name="htau_desb2 = 3" value="3" constant="false"/>
+      <parameter id="tau_rdop" name="tau_rdop = 0.2" value="0.2" constant="false"/>
+      <parameter id="p_a7bas" name="p_a7bas = 0.01" value="0.01" constant="false"/>
+      <parameter id="c_basdop" name="c_basdop = 0.1" value="0.1" constant="false"/>
+      <parameter id="vmax_rdop" name="vmax_rdop = 1.3" value="1.3" constant="false"/>
+      <parameter id="ec50_rdop" name="ec50_rdop = 0.2" value="0.2" constant="false"/>
+      <parameter id="c_ach" name="c_ach = 20" value="20" constant="false"/>
+      <parameter id="dose_nic" name="dose_nic = 5" value="5" constant="false"/>
+      <parameter id="tau1_nic" name="tau1_nic = 10" value="10" constant="false"/>
+      <parameter id="tau2_nic" name="tau2_nic = 10" value="10" constant="false"/>
+      <parameter id="bas_nic" name="bas_nic = 0" value="0" constant="false"/>
+      <parameter id="dose_aga7" name="dose_aga7 = 0.3" value="0.3" constant="false"/>
+      <parameter id="tau1_aga7" name="tau1_aga7 = 10" value="10" constant="false"/>
+      <parameter id="tau2_aga7" name="tau2_aga7 = 10" value="10" constant="false"/>
+      <parameter id="tau_agb2" name="tau_agb2 = 10" value="10" constant="false"/>
+      <parameter id="act_a7" name="act_a7 = 0" value="0" constant="false"/>
+      <parameter id="des_a7" name="des_a7 = 0" value="0" constant="false"/>
+      <parameter id="act_b2" name="act_b2 = 0" value="0" constant="false"/>
+      <parameter id="des_b2" name="des_b2 = 0" value="0" constant="false"/>
+      <parameter id="v_dop" name="v_dop = 0" value="0" constant="false"/>
+      <parameter id="v_gab" name="v_gab = 0" value="0" constant="false"/>
+      <parameter id="c_nic" name="c_nic" value="0" constant="false"/>
+      <parameter id="c_nic_nic" name="c_nic_nic" value="0" constant="false"/>
+      <parameter id="r_dop" value="0" units="dimensionless" constant="false"/>
+      <parameter id="c_aga7a7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="c_aga7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="c_agb2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="aux_hwr" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_glu" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_gab" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxi_gab" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p_glu" value="0" units="dimensionless" constant="false"/>
+      <parameter id="p_a7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxp_a7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxact_a7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxsen_a7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="inf_acta7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="inf_desa7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tau_desa7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="aux_tda7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i_b2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxi_b2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxact_b2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="auxsen_b2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="inf_actb2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="inf_desb2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="tau_desb2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="aux_tdb2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="stim_nic" value="0" units="dimensionless" constant="false"/>
+      <parameter id="stim_a7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="stim_b2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_ib2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_pa7" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_pglu" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_iglu" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_vgab" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_igab" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ss_vdop" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment symbol="c_nic">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> bas_nic </ci>
+        </math>
+      </initialAssignment>
+      <initialAssignment symbol="c_nic_nic">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> bas_nic </ci>
+        </math>
+      </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <rateRule variable="v_dop">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <ci> v_dop </ci>
+                </apply>
+                <ci> i_gab </ci>
+              </apply>
+              <apply>
+                <ci> hwr </ci>
+                <apply>
+                  <plus/>
+                  <ci> i_basdop </ci>
+                  <apply>
+                    <times/>
+                    <ci> s </ci>
+                    <ci> i_glu </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> r </ci>
+                    <ci> i_b2 </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau_vdop </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="v_gab">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> v_gab </ci>
+              </apply>
+              <apply>
+                <ci> hwr </ci>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <minus/>
+                      <cn type="integer"> 1 </cn>
+                      <ci> s </ci>
+                    </apply>
+                    <ci> i_glu </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <minus/>
+                      <cn type="integer"> 1 </cn>
+                      <ci> r </ci>
+                    </apply>
+                    <ci> i_b2 </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau_vgab </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="act_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> act_a7 </ci>
+              </apply>
+              <ci> inf_acta7 </ci>
+            </apply>
+            <ci> tau_acta7 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="des_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> des_a7 </ci>
+              </apply>
+              <ci> inf_desa7 </ci>
+            </apply>
+            <ci> tau_desa7 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="act_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> act_b2 </ci>
+              </apply>
+              <ci> inf_actb2 </ci>
+            </apply>
+            <ci> tau_actb2 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="des_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> des_b2 </ci>
+              </apply>
+              <ci> inf_desb2 </ci>
+            </apply>
+            <ci> tau_desb2 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r_dop">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> c_basdop </ci>
+                  <apply>
+                    <plus/>
+                    <cn type="integer"> 1 </cn>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <minus/>
+                        <ci> v_dop </ci>
+                        <ci> ss_vdop </ci>
+                      </apply>
+                      <ci> ss_vdop </ci>
+                    </apply>
+                  </apply>
+                </apply>
+                <ci> r_dop </ci>
+              </apply>
+              <ci> tau_rdop </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> r_dop </ci>
+                <ci> vmax_rdop </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> r_dop </ci>
+                <ci> ec50_rdop </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="c_nic_nic">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> c_nic_nic </ci>
+              </apply>
+              <ci> stim_nic </ci>
+            </apply>
+            <ci> tau1_nic </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="c_nic">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> c_nic </ci>
+              </apply>
+              <ci> c_nic_nic </ci>
+            </apply>
+            <ci> tau2_nic </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="c_aga7a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> c_aga7a7 </ci>
+              </apply>
+              <ci> stim_a7 </ci>
+            </apply>
+            <ci> tau1_aga7 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="c_aga7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> c_aga7 </ci>
+              </apply>
+              <ci> c_aga7a7 </ci>
+            </apply>
+            <ci> tau2_aga7 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="c_agb2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> c_agb2 </ci>
+              </apply>
+              <ci> stim_b2 </ci>
+            </apply>
+            <ci> tau_agb2 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="aux_hwr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> hwr </ci>
+            <apply>
+              <plus/>
+              <ci> i_basdop </ci>
+              <apply>
+                <times/>
+                <ci> s </ci>
+                <ci> i_glu </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> r </ci>
+                <ci> i_b2 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i_glu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> w_glu </ci>
+            <apply>
+              <ci> clip </ci>
+              <apply>
+                <plus/>
+                <ci> v_glu </ci>
+                <ci> p_glu </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i_gab">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> w_gab </ci>
+            <apply>
+              <ci> clip </ci>
+              <apply>
+                <plus/>
+                <ci> v_gab </ci>
+                <ci> i_basgab </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxi_gab">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> i_gab </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p_glu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> p_a7 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="p_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> act_a7 </ci>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <ci> des_a7 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxp_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> p_a7 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxact_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> act_a7 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxsen_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <cn type="integer"> 1 </cn>
+            <ci> des_a7 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="inf_acta7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> comphill </ci>
+            <ci> c_ach </ci>
+            <ci> c_nic </ci>
+            <ci> c_aga7 </ci>
+            <cn type="integer"> 1 </cn>
+            <ci> w_actnica7 </ci>
+            <ci> w_actaga7 </ci>
+            <ci> ec50_a7ach </ci>
+            <ci> ec50_a7nic </ci>
+            <ci> ec50_a7ag </ci>
+            <ci> hill_acta7 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="inf_desa7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> comphill </ci>
+            <cn type="integer"> 0 </cn>
+            <ci> c_nic </ci>
+            <ci> c_aga7 </ci>
+            <cn type="integer"> 1 </cn>
+            <cn type="integer"> 1 </cn>
+            <cn type="integer"> 1 </cn>
+            <cn type="integer"> 1 </cn>
+            <ci> ic50_a7nic </ci>
+            <ci> ic50_a7ag </ci>
+            <ci> hill_desa7 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="tau_desa7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> tmin_desa7 </ci>
+            <apply>
+              <times/>
+              <ci> tmax_desa7 </ci>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <ci> inf_desa7 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="aux_tda7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> tau_desa7 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> act_b2 </ci>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <ci> des_b2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxi_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> i_b2 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxact_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> act_b2 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="auxsen_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <cn type="integer"> 1 </cn>
+            <ci> des_b2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="inf_actb2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> comphill </ci>
+            <ci> c_ach </ci>
+            <ci> c_nic </ci>
+            <ci> c_agb2 </ci>
+            <cn type="integer"> 1 </cn>
+            <ci> w_actnicb2 </ci>
+            <ci> w_actagb2 </ci>
+            <ci> ec50_b2ach </ci>
+            <ci> ec50_b2nic </ci>
+            <ci> ec50_b2ag </ci>
+            <ci> hill_actb2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="inf_desb2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> hill </ci>
+            <apply>
+              <plus/>
+              <ci> c_nic </ci>
+              <ci> c_agb2 </ci>
+            </apply>
+            <ci> ec50_desb2 </ci>
+            <ci> hill_desb2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="tau_desb2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> tmin_desb2 </ci>
+            <apply>
+              <times/>
+              <ci> tmax_desb2 </ci>
+              <apply>
+                <ci> hill </ci>
+                <ci> ktau_desb2 </ci>
+                <apply>
+                  <plus/>
+                  <ci> c_nic </ci>
+                  <ci> c_agb2 </ci>
+                </apply>
+                <ci> htau_desb2 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="aux_tdb2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> tau_desb2 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="stim_nic">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> bas_nic </ci>
+            <apply>
+              <ci> rect_pulse </ci>
+              <ci> t </ci>
+              <cn type="integer"> 66 </cn>
+              <cn type="integer"> 67 </cn>
+              <ci> dose_nic </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="stim_a7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> rect_pulse </ci>
+            <ci> t </ci>
+            <cn type="integer"> 36 </cn>
+            <cn type="integer"> 37 </cn>
+            <ci> dose_aga7 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="stim_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> rect_pulse </ci>
+            <ci> t </ci>
+            <cn type="integer"> 60 </cn>
+            <cn type="integer"> 61 </cn>
+            <cn type="integer"> 0 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_ib2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> comphill </ci>
+            <ci> c_ach </ci>
+            <cn type="integer"> 0 </cn>
+            <cn type="integer"> 0 </cn>
+            <cn type="integer"> 1 </cn>
+            <ci> w_actnicb2 </ci>
+            <ci> w_actagb2 </ci>
+            <ci> ec50_b2ach </ci>
+            <ci> ec50_b2nic </ci>
+            <ci> ec50_b2ag </ci>
+            <ci> hill_actb2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_pa7">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> comphill </ci>
+            <ci> c_ach </ci>
+            <cn type="integer"> 0 </cn>
+            <cn type="integer"> 0 </cn>
+            <cn type="integer"> 1 </cn>
+            <ci> w_actnica7 </ci>
+            <ci> w_actaga7 </ci>
+            <ci> ec50_a7ach </ci>
+            <ci> ec50_a7nic </ci>
+            <ci> ec50_a7ag </ci>
+            <ci> hill_acta7 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_pglu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> ss_pa7 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_iglu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> w_glu </ci>
+            <apply>
+              <ci> clip </ci>
+              <apply>
+                <plus/>
+                <ci> v_glu </ci>
+                <ci> ss_pglu </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_vgab">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> hwr </ci>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <cn type="integer"> 1 </cn>
+                  <ci> s </ci>
+                </apply>
+                <ci> ss_iglu </ci>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <cn type="integer"> 1 </cn>
+                  <ci> r </ci>
+                </apply>
+                <ci> ss_ib2 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_igab">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> w_gab </ci>
+            <apply>
+              <ci> clip </ci>
+              <apply>
+                <plus/>
+                <ci> ss_vgab </ci>
+                <ci> i_basgab </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ss_vdop">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <ci> ss_igab </ci>
+            </apply>
+            <apply>
+              <ci> hwr </ci>
+              <apply>
+                <plus/>
+                <ci> i_basdop </ci>
+                <apply>
+                  <times/>
+                  <ci> s </ci>
+                  <ci> ss_iglu </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> r </ci>
+                  <ci> ss_ib2 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

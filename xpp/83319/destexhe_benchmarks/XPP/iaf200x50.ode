@@ -1,0 +1,41 @@
+# 200 e and 50 I integrate & fire
+# random applied current, random conductances
+# 
+# prevent tables from being recomputed each time params change
+@ autoeval=0
+table wee % 40000 0 39999 ran(1)/100
+table wei % 10000 0 9999  ran(1)/100
+table wie % 10000 0 9999  ran(1)/25
+table wii % 2500 0 2499  ran(1)/25
+# multiply by the synapses
+special see=mmult(200,200,wee,se0)
+special sei=mmult(200,50,wei,se0)
+special sie=mmult(50,200,wie,si0)
+special sii=mmult(50,50,wii,si0)
+# random currents
+table r_e % 200 0 199  ran(1)-.5
+table r_i % 50 0 49 ran(1)-.5
+# parameters
+par tau_e=20,tau_i=20,ele=-65,eli=-65
+par vte=-50,vti=-50
+par ver=-60,vir=-70
+par taue=4,taui=10
+# ODEs
+ve[0..199]'=(-(ve[j]-ele) + ie0+ie1*r_e([j])-gee*see([j])*(ve[j]-eex)-gie*sie([j])*(ve[j]-ein))/tau_e
+vi[0..49]'=(-(vi[j]-eli) + ii0+ii1*r_i([j])-gei*sei([j])*(vi[j]-eex)-gii*sii([j])*(ve[j]-ein))/tau_i
+se[0..199]'=-se[j]/taue
+si[0..49]'=-si[j]/taui
+# each time votlage crosses threshold, reset and set synapse to 1
+global 1 ve[0..199]-vte {se[j]=1;ve[j]=ver}
+global 1 vi[0..49]-vti {si[j]=1;vi[j]=vir}
+# more parameters
+par ie0=10,ie1=.5
+par ii0=10,ii1=.5
+par gee=.02,gie=.05,gii=.02,gei=.02
+par eex=0,ein=-75
+# initial data
+init ve[0..199]=-65
+init vi[0..49]=-65
+# numerical stuff
+@ total=200,meth=euler,nout=10,dt=.01
+done

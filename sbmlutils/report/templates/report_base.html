@@ -13,28 +13,44 @@
     <link rel="icon" href="_report/images/sbml.ico">
     <title>{{ model.id }}</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/bs/jq-2.2.0,dt-1.10.11/datatables.min.css"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="_report/css/dashboard.css"/>
-    <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
 
-    <!-- JS -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/t/bs/jq-2.2.0,dt-1.10.11/datatables.min.js"></script>
-    <script type="text/javascript" async
-      src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
-    </script>
+    {% if offline %}
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
 
-    <!--
-    <link rel="stylesheet" href="_report/css/bootstrap.min.css">
-    <link rel="stylesheet" href="_report/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="_report/css/datatables.min.css">
-    <script type="text/javascript" src="_report/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_report/js/datatables.min.js"></script>
-    <script type="text/javascript" src="_report/js/MathJax.js"></script>
-    -->
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+    {% else %}
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css"/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <link rel="stylesheet" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/dashboard.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+        <!-- JS -->
+        <script src="_report/js/bootstrap-3.3.7.min.js"></script>
+    <script
+			  src="https://code.jquery.com/jquery-2.2.4.min.js"
+			  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+			  crossorigin="anonymous"></script>
+
+        <script type="text/javascript" src="https://cdn.datatables.net/t/bs/jq-2.2.0,dt-1.10.11/datatables.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    {% endif %}
 
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
@@ -51,6 +67,32 @@
                 "ordering": true
             } );
 
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
 
             var t_functions = $('#table_functions').dataTable({
                 "bPaginate": false,
@@ -88,6 +130,15 @@
                 t_species.fnFilter($(this).val());
             });
 
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
             var t_parameters = $('#table_parameters').dataTable({
                "bPaginate": false,
                 "bInfo": false,
@@ -115,6 +166,25 @@
                 t_rules.fnFilter($(this).val());
             });
 
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
             var t_constraints = $('#table_constraints').dataTable({
                "bPaginate": false,
                 "bInfo": false,
@@ -124,14 +194,6 @@
                 t_constraints.fnFilter($(this).val());
             });
 
-            var t_reactions = $('#table_reactions').dataTable({
-               "bPaginate": false,
-                "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
-            });
-            $('#searchField').keyup(function(){
-                t_reactions.fnFilter($(this).val());
-            });
 
             var t_events = $('#table_events').dataTable({
                "bPaginate": false,
@@ -150,87 +212,79 @@
 </head>
 
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#top">{{ model.id }}</a>
-        </div>
-
-        <form class="navbar-form navbar-left">
-            <input id="searchField" type="text" class="form-control" placeholder="Search...">
-        </form>
-    </div>
-</nav>
 
 <!-- CONTAINER -->
 <div class="container-fluid">
+
     <!-- ROW -->
     <div class="row">
         <!-- LEFT -->
         <div class="col-sm-3 col-md-2 sidebar">
+
             <ul class="nav nav-sidebar">
-                <li><a href="#top">Model</a></li>
-                {% if units %}
-                    <li><a href="#UnitDefinitions">UnitDefinitions</a></li>
+                <li><a href="#doc"><b>SBMLDocument</b></a></li>
+                <li><a href="#model">Model</a></li>
+                {% if modeldefs %}
+                    <li><a href="#table_modeldefs">comp:ModelDefinitions</a></li>
+                {% endif %}
+                {% if submodels %}
+                    <li><a href="#table_submodels">comp:Submodels</a></li>
+                {% endif %}
+                {% if ports %}
+                    <li><a href="#table_ports">comp:Ports</a></li>
                 {% endif %}
                 {% if functions %}
-                    <li><a href="#FunctionDefinitions">FunctionDefinitions</a></li>
+                    <li><a href="#table_functions">FunctionDefinitions</a></li>
                 {% endif %}
-                {% if unitDefinitions %}
-                    <li><a href="#UnitDefinitions">UnitDefinitions</a></li>
+                {% if units %}
+                    <li><a href="#table_units">UnitDefinitions</a></li>
                 {% endif %}
                 {% if compartments %}
-                    <li><a href="#Compartments">Compartments</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
                 {% endif %}
                 {% if species %}
-                    <li><a href="#Species">Species</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                {% endif %}
+                {% if geneproducts %}
+                    <li><a href="#table_geneproducts">GeneProducts</a></li>
                 {% endif %}
                 {% if parameters %}
-                    <li><a href="#Parameters">Parameters</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
                 {% endif %}
                 {% if assignments %}
-                    <li><a href="#InitialAssignments">InitialAssignments</a></li>
+                    <li><a href="#table_assignments">InitialAssignments</a></li>
                 {% endif %}
                 {% if rules %}
-                    <li><a href="#Rules">Rules</a></li>
-                {% endif %}
-                {% if constraints %}
-                    <li><a href="#Constraints">Constraints</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
                 {% endif %}
                 {% if reactions %}
-                    <li><a href="#Reactions">Reactions</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                {% endif %}
+                {% if objectives %}
+                    <li><a href="#table_objectives">fbc:Objectives</a></li>
+                {% endif %}
+                {% if constraints %}
+                    <li><a href="#table_constraints">Constraints</a></li>
                 {% endif %}
                 {% if events %}
-                    <li><a href="#Events">Events</a></li>
+                    <li><a href="#table_events">Events</a></li>
                 {% endif %}
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
             </ul>
         </div>
         <!-- END LEFT -->
 
         <!-- RIGHT -->
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div class="col-lg-8 col-lg-offset-2 main">
 
             <!-- CONTENT -->
             <div class="content">
                 {% block content %}
-                    <span id="Model"></span>
-                    <span id="UnitDefinitions"></span>
-                    <span id="FunctionDefinitions"></span>
-                    <span id="Compartments"></span>
-                    <span id="Species"></span>
-                    <span id="Parameters"></span>
-                    <span id="InitialAssignments"></span>
-                    <span id="Rules"></span>
-                    <span id="Constraints"></span>
-                    <span id="Reactions"></span>
-                    <span id="Events"></span>
                 {% endblock %}
             </div>
             <!-- END CONTENT -->
@@ -239,10 +293,9 @@
             <div class="footer">
                 <hr/>
                 <p>&copy; 2017 Matthias Koenig.
-                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img
-                            alt="Creative Commons License"
-                            style="border-width:0"
-                            src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"/></a><br/>This
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
                     work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
                                property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
                     under a <a

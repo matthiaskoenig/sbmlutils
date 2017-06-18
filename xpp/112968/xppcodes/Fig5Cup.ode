@@ -1,0 +1,135 @@
+# Kuznetsova and Deth, JCN, 2007
+# 10-cell model:  8 E cells (Ve1, Ve2, ...Ve8) and 2 I (Vi1, Vi2) cells
+# only EE neighbours are  connected, all E to I 
+# variables: V-voltage, R-K channel, C-Ca channel, H- Ca dependent K chanel, S,F - synapse 
+# different init condit
+
+init Ve1=-0.75 Ve2=-0.745 Ve3=-0.73 Ve4=-0.74 Ve5=-0.72 Ve6=-0.735 Ve7=-0.71 Ve8=-0.715
+init Vi1=-0.75 Vi1=-0.71
+init Re[1...8]=0.26
+init Ce[1...8]=0.1
+init He[1...8]=0.1
+init Ri[1...2]=0.26
+init Ci[1...2]=0.1
+
+
+par Ie=0.6
+#continuos input in all E cells, canceled in I cells
+par GCe=0.1, GCi=0.25
+par GHe=4.0
+
+par TRe[1]=4.0
+par TRe[2]=4.1
+par TRe[3]=4.3
+par TRe[4]=4.1
+par TRe[5]=4.2
+par TRe[6]=4.35
+par TRe[7]=4.4
+par TRe[8]=4.05
+ 
+# this is time constant for K channel in E cells, it is varied from 6 to 2
+
+par GSee=3.
+#6/2, 3
+par GSei=1.5
+#6/4
+par GSi=3.
+#from I to E and I to I
+par TRi[1..2]=1.5
+# the same for in I cells, usualy it is not varied 
+
+par TSe=2., TSi=8.
+#par ESe=0, ESi=-0.75
+#excit=0  inhib=-0.75
+par W=-0.1
+
+AlE=Se1+Se2+Se3+Se4+Se5+Se6+Se7+Se8
+Fe1'=(1./TSe)*(-Fe1+heav(Ve1-W))
+Se1'=(1./TSe)*(-Se1+Fe1)
+Fe2'=(1./TSe)*(-Fe2+heav(Ve2-W))
+Se2'=(1./TSe)*(-Se2+Fe2)
+Fe3'=(1./TSe)*(-Fe3+heav(Ve3-W))
+Se3'=(1./TSe)*(-Se3+Fe3)
+Fe4'=(1./TSe)*(-Fe4+heav(Ve4-W))
+Se4'=(1./TSe)*(-Se4+Fe4)
+Fe5'=(1./TSe)*(-Fe5+heav(Ve5-W))
+Se5'=(1./TSe)*(-Se5+Fe5)
+Fe6'=(1./TSe)*(-Fe6+heav(Ve6-W))
+Se6'=(1./TSe)*(-Se6+Fe6)
+Fe7'=(1./TSe)*(-Fe7+heav(Ve7-W))
+Se7'=(1./TSe)*(-Se7+Fe7)
+Fe8'=(1./TSe)*(-Fe8+heav(Ve8-W))
+Se8'=(1./TSe)*(-Se8+Fe8)
+
+AlI=Si1+Si2
+Fi1'=(1./TSi)*(-Fi1+heav(Vi1-W))
+Si1'=(1./TSi)*(-Si1+Fi1)
+Fi2'=(1./TSi)*(-Fi2+heav(Vi2-W))
+Si2'=(1./TSi)*(-Si2+Fi2)
+ 
+Ve1'=-Minf(Ve1)*(Ve1-0.5)-26.*Re1*(Ve1+0.95)-GCe*Ce1*(Ve1-1.2)-GHe*He1*(Ve1+0.95)-GSi*(Ve1+0.75)*AlI-GSee*(Ve1+0.0)*Se2+Ie
+Re1'=(1./TRe1)*(-Re1+Rinf(Ve1))
+Ce1'=(1./14.)*(-Ce1+Cinf(Ve1))
+He1'=(1./45.)*(-He1+3.*Ce1)
+
+Ve2'=-Minf(Ve2)*(Ve2-0.5)-26.*Re2*(Ve2+0.95)-GCe*Ce2*(Ve2-1.2)-GHe*He2*(Ve2+0.95)-GSi*(Ve2+0.75)*AlI-GSee*(Ve2+0.0)*(Se1+Se3)+Ie
+Re2'=(1./TRe2)*(-Re2+Rinf(Ve2))
+Ce2'=(1./14.)*(-Ce2+Cinf(Ve2))
+He2'=(1./45.)*(-He2+3.*Ce2)
+
+Ve3'=-Minf(Ve3)*(Ve3-0.5)-26.*Re3*(Ve3+0.95)-GCe*Ce3*(Ve3-1.2)-GHe*He3*(Ve3+0.95)-GSi*(Ve3+0.75)*AlI-GSee*(Ve3+0.0)*(Se2+Se4)+Ie
+Re3'=(1./TRe3)*(-Re3+Rinf(Ve3))
+Ce3'=(1./14.)*(-Ce3+Cinf(Ve3))
+He3'=(1./45.)*(-He3+3.*Ce3)
+
+Ve4'=-Minf(Ve4)*(Ve4-0.5)-26.*Re4*(Ve4+0.95)-GCe*Ce4*(Ve4-1.2)-GHe*He4*(Ve4+0.95)-GSi*(Ve4+0.75)*AlI-GSee*(Ve4+0.0)*(Se3+Se5)+Ie
+Re4'=(1./TRe4)*(-Re4+Rinf(Ve4))
+Ce4'=(1./14.)*(-Ce4+Cinf(Ve4))
+He4'=(1./45.)*(-He4+3.*Ce4)
+
+Ve5'=-Minf(Ve5)*(Ve5-0.5)-26.*Re5*(Ve5+0.95)-GCe*Ce5*(Ve5-1.2)-GHe*He5*(Ve5+0.95)-GSi*(Ve5+0.75)*AlI-GSee*(Ve5+0.0)*(Se4+Se6)+Ie
+Re5'=(1./TRe5)*(-Re5+Rinf(Ve5))
+Ce5'=(1./14.)*(-Ce5+Cinf(Ve5))
+He5'=(1./45.)*(-He5+3.*Ce5)
+
+Ve6'=-Minf(Ve6)*(Ve6-0.5)-26.*Re6*(Ve6+0.95)-GCe*Ce6*(Ve6-1.2)-GHe*He6*(Ve6+0.95)-GSi*(Ve6+0.75)*AlI-GSee*(Ve6+0.0)*(Se5+Se7)+Ie
+Re6'=(1./TRe6)*(-Re6+Rinf(Ve6))
+Ce6'=(1./14.)*(-Ce6+Cinf(Ve6))
+He6'=(1./45.)*(-He6+3.*Ce6)
+
+Ve7'=-Minf(Ve7)*(Ve7-0.5)-26.*Re7*(Ve7+0.95)-GCe*Ce7*(Ve7-1.2)-GHe*He7*(Ve7+0.95)-GSi*(Ve7+0.75)*AlI-GSee*(Ve7+0.0)*(Se6+Se8)+Ie
+Re7'=(1./TRe7)*(-Re7+Rinf(Ve7))
+Ce7'=(1./14.)*(-Ce7+Cinf(Ve7))
+He7'=(1./45.)*(-He7+3.*Ce7)
+
+Ve8'=-Minf(Ve8)*(Ve8-0.5)-26.*Re8*(Ve8+0.95)-GCe*Ce8*(Ve8-1.2)-GHe*He8*(Ve8+0.95)-GSi*(Ve8+0.75)*AlI-GSee*(Ve8+0.0)*Se7+Ie
+Re8'=(1./TRe8)*(-Re8+Rinf(Ve8))
+Ce8'=(1./14.)*(-Ce8+Cinf(Ve8))
+He8'=(1./45.)*(-He8+3.*Ce8)
+
+Vi1'=-Minf(Vi1)*(Vi1-0.5)-26.*Ri1*(Vi1+0.95)-GCi*Ci1*(Vi1-1.2)-GSi*(Vi1+0.75)*Si2-GSei*(Vi1-0.0)*AlE
+Ri1'=(1./TRi1)*(-Ri1+Rinf(Vi1))
+Ci1'=(1./14.)*(-Ci1+Cinf(Vi1))
+
+Vi2'=-Minf(Vi2)*(Vi2-0.5)-26.*Ri2*(Vi2+0.95)-GCi*Ci2*(Vi2-1.2)-GSi*(Vi2+0.75)*Si1-GSei*(Vi2-0.0)*AlE
+Ri2'=(1./TRi2)*(-Ri2+Rinf(Vi2))
+Ci2'=(1./14.)*(-Ci2+Cinf(Vi2))
+
+Cinf(V)=8.*(V+0.725)^2
+Minf(V)=17.8+47.6*V+33.8*V*V
+Rinf(V)=1.24+3.7*V+3.2*V*V
+
+aux n=(Ve1+Ve2+Ve3+Ve4+Ve5+Ve6+Ve7+Ve8)/8.
+
+#if(Ve1-W>0)then(Q(Ve1-W)=1)else(Q(Ve1-W)=0)
+
+@ METHOD=stiff, TOLERANCE=.00001
+@ MAXSTOR=400000, TOTAL=1000, XP=t,YP=n, BELL=0
+@ xmin=0.0,xmax=1000,ymin=-1,ymax=0.5
+@ DT=0.01, xlo=0.0,ylo=-1.0,xhi=1000,yhi=0.5,bound=30000
+ 
+done
+
+
+
+
