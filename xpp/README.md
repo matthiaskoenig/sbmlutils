@@ -237,3 +237,15 @@ Extracting: 84606
 	 Neuron_ZNS/Neuron_ZNS.ode
 ```
 
+## Results
+![Conversion Results][xpp_results.png]
+
+Main issues are 
+* case sensitivity of xpp format
+* arrays used in models
+* tables (lookup tables)
+* incorrect xpp encoding (circular assignments, wrong symbols, bad numbers, id clashes)
+
+Minor issues
+* sign of globals (events depending on crossing of condition)
+

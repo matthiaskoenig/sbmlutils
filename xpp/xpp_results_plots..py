@@ -9,11 +9,10 @@ failures = {
     'table': [27, 65, 66, 67, 68, 97, 129],
     'shift': [17, 18],
     'sum': [17, 18],
-    'global': [23, 53, 54, 71, 77, 97, 112],
     'dist': [73],
     'set': [48],
     'utf8_encoding': [139],
-    'bad xpp encoding': [40, 85,
+    'xpp_encoding': [40, 85,
                          '41 (id clash function definition & parameter)',
                          '45 (false encoded as 0, unknown control character !)',
                          '46 (false encoded as 0, unknown control character !)',
@@ -30,7 +29,6 @@ failures = {
                          ],
     'boundary': [70],
     'bug': [26, 31, 32, 69],
-    'unknown': [138],
 }
 
 def make_plot():
@@ -44,12 +42,15 @@ def make_plot():
         ax.bar(2, np.nansum(df.valid), label="SBML valid")
         ax.bar(3, np.nansum(df.simulates), label="SBML simulates (roadrunner)")
 
+        ax.set_xticks([0,1,2,3])
+        ax.set_xticklabels(('All', 'SBML generated', 'SBML valid', 'SBML simulates'))
+
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(20, 7))
 
     ax1.set_title('Case sensitive')
     barplot(ax1, df_normal)
 
-    ax2.set_title('xpp lowercase')
+    ax2.set_title('XPP.lower()')
     barplot(ax2, df_lower)
 
     for ax in (ax1, ax2):
@@ -57,11 +58,10 @@ def make_plot():
         ax.set_ylabel('Model count')
         ax.legend()
 
-    ax3.set_title('Problem')
+    ax3.set_title('Conversion Issues')
     for k, key in enumerate(sorted(failures.keys())):
         ax3.bar(k, len(failures[key]), label=key)
     ax3.legend()
-    ax3.set_xlim(-1, 20)
 
     # plt.show()
     fig.savefig("xpp_results.png", bbox_inches='tight')

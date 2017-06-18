@@ -16,7 +16,6 @@ file, but this is optional.
 
 Only supports subset of features.
 Not supported:
-- global
 - table
 - sum,
 - shift
@@ -36,7 +35,6 @@ Not supported:
  will be evaluated to 55. Another example combines the sum with the shift operator. sum(0,4)of(shift(u0,i')) will
  sum up u0 and the next four variables that were defined after it.
 """
-# FIXME: support global via events
 # FIXME: recursive if than else not supported
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
@@ -201,6 +199,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         fac.Function('mod', 'lambda(x,y, x % y)', name='modulo'),
     ]
     function_definitions = []
+    events = []
 
     def replace_fdef():
         """ Replace all arguments within the formula definitions."""
@@ -474,17 +473,6 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                     for part in parts:
                         sid, value = sid_value_from_part(part)
                         create_initial_assignment(sid, value)
-                # global
-                elif xpp_type == XPP_GLO:
-                    '''Global flags are expressions that signal events when they change sign, from less than 
-                    to greater than zero if sign=1 , greater than to less than if sign=-1 or either way 
-                    if sign=0. The condition should be delimited by braces {} The events are of the form 
-                    variable=expression, are delimited by braces, and separated by semicolons. When the 
-                    condition occurs all the variables in the event set are changed possibly discontinuously.
-                    '''
-                    warnings.warn("XPP_GLO not supported: XPP line not parsed: '{}'".format(line))
-
-
 
                 # table
                 elif xpp_type == XPP_TAB:
@@ -493,6 +481,48 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                     declaration and this is followed by (i) a filename (ii) or a function of "t".'''
                     warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
 
+                else:
+                    warnings.warn("XPP line not parsed: '{}'".format(line))
+
+            elif len(items) >= 2:
+                xid = items[0]
+                xpp_type = parse_keyword(xid)
+                # global
+                if xpp_type == XPP_GLO:
+                    '''Global flags are expressions that signal events when they change sign, from less than 
+                    to greater than zero if sign=1 , greater than to less than if sign=-1 or either way 
+                    if sign=0. The condition should be delimited by braces {} The events are of the form 
+                    variable=expression, are delimited by braces, and separated by semicolons. When the 
+                    condition occurs all the variables in the event set are changed possibly discontinuously.
+                    '''
+
+                    # global sign {condition} {name1 = form1; ...}
+                    pattern_global = re.compile('([+,-]{0,1}\d{1})\s+\{{0,1}(.*)\{{0,1}\s+\{(.*)\}')
+                    groups = re.findall(pattern_global, line)
+                    if groups:
+                        g = groups[0]
+                        sign = int(g[0])
+                        trigger = g[1]
+                        # FIXME: handle sign=-1, sign=0, sign=+1
+                        if sign == -1:
+                            trigger = g[1] + ">= 0"
+                        elif sign == 1:
+                            trigger = g[1] + ">= 0"
+                        elif sign == 0:
+                            trigger = g[1] + ">= 0"
+
+                        assignment_parts = [t.strip() for t in g[2].split(';')]
+                        assignments = {}
+                        for p in assignment_parts:
+                            key, value = p.split("=")
+                            assignments[key] = value
+
+                        events.append(
+                            fac.Event(sid="e{}".format(len(events)), trigger=trigger, assignments=assignments)
+                        )
+
+                    else:
+                        warnings.warn("global expression could not be parsed: {}".format(line))
                 else:
                     warnings.warn("XPP line not parsed: '{}'".format(line))
 
@@ -534,7 +564,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
     )
 
     # create SBML objects
-    objects = parameters + initial_assignments + functions + rate_rules + assignment_rules
+    objects = parameters + initial_assignments + functions + rate_rules + assignment_rules + events
     fac.create_objects(model, objects, debug=False)
 
     '''

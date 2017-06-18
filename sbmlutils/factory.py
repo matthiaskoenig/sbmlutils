@@ -554,6 +554,10 @@ class Event(Sbase):
         super(Event, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
 
         self.trigger = trigger
+
+        # assignments
+        if type(assignments) is not dict:
+            warnings.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
         self.assignments = assignments
 
         self.trigger_persistent = trigger_persistent
@@ -594,7 +598,6 @@ class Event(Sbase):
             ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
             event.setDelay(ast_delay)
 
-        # assignments
         for key, math in iteritems(self.assignments):
             ast_assign = libsbml.parseL3FormulaWithModel(str(math), model)
             ea = obj.createEventAssignment()
