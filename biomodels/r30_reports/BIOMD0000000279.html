@@ -1,0 +1,1609 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>Komarova2005_PTHaction_OsteoclastOsteoblastCoupling</title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p>
+      This a model from the article:
+      <br/>
+    <strong> Mathematical model of paracrine interactions between osteoclasts and osteoblasts predicts anabolic action of parathyroid hormone on bone.
+</strong>
+    <br/>
+Komarova SV.
+      <em>Endocrinology.</em>2005 Aug;146(8):3589-95.
+      <a href="http://www.ncbi.nlm.nih.gov/pubmed/15860557">15860557</a>,
+      <br/>
+    <strong>Abstract:</strong>
+    <br/>
+To restore falling plasma calcium levels, PTH promotes calcium liberation from bone. PTH targets bone-forming cells, osteoblasts, to increase expression of the cytokine receptor activator of nuclear factor kappaB ligand (RANKL), which then stimulates osteoclastic bone resorption. Intriguingly, whereas continuous administration of PTH decreases bone mass, intermittent PTH has an anabolic effect on bone, which was proposed to arise from direct effects of PTH on osteoblastic bone formation. However, antiresorptive therapies impair the ability of PTH to increase bone mass, indicating a complex role for osteoclasts in the process. We developed a mathematical model that describes the actions of PTH at a single site of bone remodeling, where osteoclasts and osteoblasts are regulated by local autocrine and paracrine factors. It was assumed that PTH acts only to increase the production of RANKL by osteoblasts. As a result, PTH stimulated osteoclasts upon application, followed by compensatory osteoblast activation due to the coupling of osteoblasts to osteoclasts through local paracrine factors. Continuous PTH administration resulted in net bone loss, because bone resorption preceded bone formation at all times. In contrast, over a wide range of model parameters, short application of PTH resulted in a net increase in bone mass, because osteoclasts were rapidly removed upon PTH withdrawal, enabling osteoblasts to rebuild the bone. In excellent agreement with experimental findings, increase in the rate of osteoclast death abolished the anabolic effect of PTH on bone. This study presents an original concept for the regulation of bone remodeling by PTH, currently the only approved anabolic treatment for osteoporosis.
+   </p>
+    <p> The model reproduces Figures 1B and 2A of the reference publication. To obtain the figures 1B, the parameter g21 needs changes. To obtain the figures 1A, the parameters g21, g12 and k2 need to changed. For details look at the curation tab.</p>
+    <p> The initial concentration of Osteoclasts (x1) is corrected to 1.06066 from 10.06066.</p>
+    <p>
+This model was taken from the
+      <a href="http://www.cellml.org/models">CellML repository</a> and automatically converted to SBML.
+      <br/>
+The original model was:
+      <a href="http://www.cellml.org/models/CellMLname">
+      <strong>CellMLdetails</strong>
+    </a>
+    <br/>
+The original CellML model was created by:
+      <br/>
+    <strong>Lloyd, Catherine, May</strong>
+    <br/>
+c.lloyd@auckland.ac.nz
+      <br/>
+The University of Auckland
+      <br/>
+The Bioengineering Institute
+      <br/></p>
+    <p>This model originates from BioModels Database: A Database of Annotated Published Models (http://www.ebi.ac.uk/biomodels/). It is copyright (c) 2005-2011 The BioModels.net Team.<br/>
+For more information see the <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>.<br/>
+To cite BioModels Database, please use: <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Novère N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+  </p>
+</body>
+</notes><hr />
+    <h1>Model : Komarova2005_PTHaction_OsteoclastOsteoblastCoupling</h1>
+    <b>Creator</b><br />Catherine, Lloyd, University of Auckland, <a href="mailto:c.lloyd@auckland.ac.nz" target="_blank">c.lloyd@auckland.ac.nz</a><br />Vijayalakshmi, Chelliah, EMBL-EBI, <a href="mailto:viji@ebi.ac.uk" target="_blank">viji@ebi.ac.uk</a><br />Svetlana V, Komarova, McGill University, Montreal, Canada H3A 2B2., <a href="mailto:svetlana.komarova@mcgill.ca" target="_blank">svetlana.komarova@mcgill.ca</a><br /><b>Created:</b> 2010-11-23 10:56<br /><b>Modified:</b> 2014-10-09 16:33<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="Komarova2005_PTHaction_OsteoclastOsteoblastCoupling" class="active"><span class="package">Komarova2005_PTHaction_OsteoclastOsteoblastCoupling</span> <code>metaid_0000002</code></td></tr>
+                <tr><td class="active">name</td><td>Komarova2005_PTHaction_OsteoclastOsteoblastCoupling</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000279.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L2V4</span> <span class="package">layout-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL1011230000" target="_blank">MODEL1011230000</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000279" target="_blank">BIOMD0000000279</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/15860557" target="_blank">15860557</a><br /><span class="collection">BQM_IS_DERIVED_FROM</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000148" target="_blank">BIOMD0000000148</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0046850" target="_blank">GO:0046850</a>; <a href="http://identifiers.org/go/GO:0071107" target="_blank">GO:0071107</a><br /><span class="collection">BQB_OCCURS_IN</span><br /><a href="http://identifiers.org/taxonomy/7711" target="_blank">7711</a><br /><span class="collection">BQB_HAS_PROPERTY</span><br /><a href="http://identifiers.org/doid/DOID:14080" target="_blank">DOID:14080</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="Compartment" class="active"><span class="package">Compartment</span> <code>metaid_0000022</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Compartment"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Compartment" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Compartment</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="metaid_0000022" sboTerm="SBO:0000290" id="Compartment" size="1">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000022">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/bto/BTO:0000140"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/bto/BTO:0000140" target="_blank">BTO:0000140</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [3]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x1" class="active"><span class="package">x1</span> <code>metaid_0000004</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000004" id="x1" name="Osteoclasts" compartment="Compartment" initialConcentration="1.06066">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000004">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/bto/BTO:0000968"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Osteoclasts</td>
+	<td>Compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.06066</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/bto/BTO:0000968" target="_blank">BTO:0000968</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="x2" class="active"><span class="package">x2</span> <code>metaid_0000005</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000005" id="x2" name="Osteoblasts" compartment="Compartment" initialConcentration="212.132">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000005">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/bto/BTO:0001593"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Osteoblasts</td>
+	<td>Compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>212.132</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/bto/BTO:0001593" target="_blank">BTO:0001593</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="z" class="active"><span class="package">z</span> <code>metaid_0000006</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-z"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-z" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">z</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000006" id="z" name="BoneMass" compartment="Compartment" initialConcentration="100">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000006">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/pato/PATO:0000125"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>BoneMass</td>
+	<td>Compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>100.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/pato/PATO:0000125" target="_blank">PATO:0000125</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [15]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="y1" class="active"><span class="package">y1</span> <code>metaid_0000007</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-y1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-y1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">y1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000007" id="y1" name="y1" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>y1</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <piecewise>
+    <piece>
+      <apply>
+        <minus/>
+        <ci> x1 </ci>
+        <ci> x1_bar </ci>
+      </apply>
+      <apply>
+        <gt/>
+        <ci> x1 </ci>
+        <ci> x1_bar </ci>
+      </apply>
+    </piece>
+    <otherwise>
+      <cn> 0 </cn>
+    </otherwise>
+  </piecewise>
+</math></td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="y2" class="active"><span class="package">y2</span> <code>metaid_0000008</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-y2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-y2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">y2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000008" id="y2" name="y2" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>y2</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <piecewise>
+    <piece>
+      <apply>
+        <minus/>
+        <ci> x2 </ci>
+        <ci> x2_bar </ci>
+      </apply>
+      <apply>
+        <gt/>
+        <ci> x2 </ci>
+        <ci> x2_bar </ci>
+      </apply>
+    </piece>
+    <otherwise>
+      <cn> 0 </cn>
+    </otherwise>
+  </piecewise>
+</math></td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="x1_bar" class="active"><span class="package">x1_bar</span> <code>metaid_0000009</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x1_bar"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x1_bar" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x1_bar</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000009" id="x1_bar" name="x1_bar" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>x1_bar</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta1 </ci>
+        <ci> alpha1 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <ci> g22 </ci>
+        </apply>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta2 </ci>
+        <ci> alpha2 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> g21 </ci>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="x2_bar" class="active"><span class="package">x2_bar</span> <code>metaid_0000010</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x2_bar"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x2_bar" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x2_bar</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000010" id="x2_bar" name="x2_bar" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>x2_bar</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta1 </ci>
+        <ci> alpha1 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> g12 </ci>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta2 </ci>
+        <ci> alpha2 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <ci> g11 </ci>
+        </apply>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="alpha1" class="active"><span class="package">alpha1</span> <code>metaid_0000011</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-alpha1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-alpha1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">alpha1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000011" sboTerm="SBO:0000009" id="alpha1" name="alpha1" value="3"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>alpha1</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="beta1" class="active"><span class="package">beta1</span> <code>metaid_0000012</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-beta1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-beta1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">beta1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000012" sboTerm="SBO:0000009" id="beta1" name="beta1" value="0.2"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>beta1</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.2</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="alpha2" class="active"><span class="package">alpha2</span> <code>metaid_0000013</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-alpha2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-alpha2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">alpha2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000013" sboTerm="SBO:0000009" id="alpha2" name="alpha2" value="4"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>alpha2</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>4.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="beta2" class="active"><span class="package">beta2</span> <code>metaid_0000014</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-beta2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-beta2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">beta2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000014" sboTerm="SBO:0000009" id="beta2" name="beta2" value="0.02"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>beta2</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.02</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="k1" class="active"><span class="package">k1</span> <code>metaid_0000015</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000015" sboTerm="SBO:0000009" id="k1" name="k1" value="0.24"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>k1</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.24</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="k2" class="active"><span class="package">k2</span> <code>metaid_0000016</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000016" sboTerm="SBO:0000009" id="k2" name="k2" value="0.0017"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>k2</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.0017</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="g11" class="active"><span class="package">g11</span> <code>metaid_0000017</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-g11"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-g11" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">g11</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000017" sboTerm="SBO:0000009" id="g11" name="g11" value="0.5"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>g11</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.5</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="g21" class="active"><span class="package">g21</span> <code>metaid_0000018</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-g21"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-g21" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">g21</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000018" sboTerm="SBO:0000009" id="g21" name="g21" value="-0.5"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>g21</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>-0.5</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="g12" class="active"><span class="package">g12</span> <code>metaid_0000019</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-g12"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-g12" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">g12</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000019" sboTerm="SBO:0000009" id="g12" name="g12" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>g12</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="g22" class="active"><span class="package">g22</span> <code>metaid_0000020</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-g22"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-g22" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">g22</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000020" sboTerm="SBO:0000009" id="g22" name="g22" value="0"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>g22</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="gamma" class="active"><span class="package">gamma</span> <code>metaid_0000021</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-gamma"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-gamma" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">gamma</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000021" sboTerm="SBO:0000009" id="gamma" name="gamma" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>gamma</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> g12 </ci>
+      <ci> g21 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <minus/>
+        <cn> 1 </cn>
+        <ci> g11 </ci>
+      </apply>
+      <apply>
+        <minus/>
+        <cn> 1 </cn>
+        <ci> g22 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [8]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">name</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="x1" class="active"><span class="package">x1</span> <code>metaid_0000029</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="metaid_0000029" variable="x1">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> alpha1 </ci>
+        <apply>
+          <power/>
+          <ci> x1 </ci>
+          <ci> g11 </ci>
+        </apply>
+        <apply>
+          <power/>
+          <ci> x2 </ci>
+          <ci> g21 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> beta1 </ci>
+        <ci> x1 </ci>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> alpha1 </ci>
+      <apply>
+        <power/>
+        <ci> x1 </ci>
+        <ci> g11 </ci>
+      </apply>
+      <apply>
+        <power/>
+        <ci> x2 </ci>
+        <ci> g21 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> beta1 </ci>
+      <ci> x1 </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="x2" class="active"><span class="package">x2</span> <code>metaid_0000030</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="metaid_0000030" variable="x2">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> alpha2 </ci>
+        <apply>
+          <power/>
+          <ci> x1 </ci>
+          <ci> g12 </ci>
+        </apply>
+        <apply>
+          <power/>
+          <ci> x2 </ci>
+          <ci> g22 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> beta2 </ci>
+        <ci> x2 </ci>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> alpha2 </ci>
+      <apply>
+        <power/>
+        <ci> x1 </ci>
+        <ci> g12 </ci>
+      </apply>
+      <apply>
+        <power/>
+        <ci> x2 </ci>
+        <ci> g22 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> beta2 </ci>
+      <ci> x2 </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="z" class="active"><span class="package">z</span> <code>metaid_0000031</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-z"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-z" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">z</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="metaid_0000031" variable="z">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> k2 </ci>
+        <ci> y2 </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> k1 </ci>
+        <ci> y1 </ci>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> k2 </ci>
+      <ci> y2 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> k1 </ci>
+      <ci> y1 </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="y1" class="active"><span class="package">y1</span> <code>metaid_0000023</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-y1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-y1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">y1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000023" variable="y1">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <piecewise>
+      <piece>
+        <apply>
+          <minus/>
+          <ci> x1 </ci>
+          <ci> x1_bar </ci>
+        </apply>
+        <apply>
+          <gt/>
+          <ci> x1 </ci>
+          <ci> x1_bar </ci>
+        </apply>
+      </piece>
+      <otherwise>
+        <cn> 0 </cn>
+      </otherwise>
+    </piecewise>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <piecewise>
+    <piece>
+      <apply>
+        <minus/>
+        <ci> x1 </ci>
+        <ci> x1_bar </ci>
+      </apply>
+      <apply>
+        <gt/>
+        <ci> x1 </ci>
+        <ci> x1_bar </ci>
+      </apply>
+    </piece>
+    <otherwise>
+      <cn> 0 </cn>
+    </otherwise>
+  </piecewise>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="y2" class="active"><span class="package">y2</span> <code>metaid_0000024</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-y2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-y2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">y2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000024" variable="y2">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <piecewise>
+      <piece>
+        <apply>
+          <minus/>
+          <ci> x2 </ci>
+          <ci> x2_bar </ci>
+        </apply>
+        <apply>
+          <gt/>
+          <ci> x2 </ci>
+          <ci> x2_bar </ci>
+        </apply>
+      </piece>
+      <otherwise>
+        <cn> 0 </cn>
+      </otherwise>
+    </piecewise>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <piecewise>
+    <piece>
+      <apply>
+        <minus/>
+        <ci> x2 </ci>
+        <ci> x2_bar </ci>
+      </apply>
+      <apply>
+        <gt/>
+        <ci> x2 </ci>
+        <ci> x2_bar </ci>
+      </apply>
+    </piece>
+    <otherwise>
+      <cn> 0 </cn>
+    </otherwise>
+  </piecewise>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="x1_bar" class="active"><span class="package">x1_bar</span> <code>metaid_0000025</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x1_bar"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x1_bar" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x1_bar</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000025" variable="x1_bar">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <apply>
+          <divide/>
+          <ci> beta1 </ci>
+          <ci> alpha1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <cn> 1 </cn>
+            <ci> g22 </ci>
+          </apply>
+          <ci> gamma </ci>
+        </apply>
+      </apply>
+      <apply>
+        <power/>
+        <apply>
+          <divide/>
+          <ci> beta2 </ci>
+          <ci> alpha2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> g21 </ci>
+          <ci> gamma </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta1 </ci>
+        <ci> alpha1 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <ci> g22 </ci>
+        </apply>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta2 </ci>
+        <ci> alpha2 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> g21 </ci>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="x2_bar" class="active"><span class="package">x2_bar</span> <code>metaid_0000026</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x2_bar"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x2_bar" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x2_bar</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000026" variable="x2_bar">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <apply>
+          <divide/>
+          <ci> beta1 </ci>
+          <ci> alpha1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> g12 </ci>
+          <ci> gamma </ci>
+        </apply>
+      </apply>
+      <apply>
+        <power/>
+        <apply>
+          <divide/>
+          <ci> beta2 </ci>
+          <ci> alpha2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <minus/>
+            <cn> 1 </cn>
+            <ci> g11 </ci>
+          </apply>
+          <ci> gamma </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta1 </ci>
+        <ci> alpha1 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> g12 </ci>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+    <apply>
+      <power/>
+      <apply>
+        <divide/>
+        <ci> beta2 </ci>
+        <ci> alpha2 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <ci> g11 </ci>
+        </apply>
+        <ci> gamma </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="gamma" class="active"><span class="package">gamma</span> <code>metaid_0000027</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-gamma"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-gamma" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">gamma</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000027" variable="gamma">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> g12 </ci>
+        <ci> g21 </ci>
+      </apply>
+      <apply>
+        <times/>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <ci> g11 </ci>
+        </apply>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <ci> g22 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> g12 </ci>
+      <ci> g21 </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <minus/>
+        <cn> 1 </cn>
+        <ci> g11 </ci>
+      </apply>
+      <apply>
+        <minus/>
+        <cn> 1 </cn>
+        <ci> g22 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

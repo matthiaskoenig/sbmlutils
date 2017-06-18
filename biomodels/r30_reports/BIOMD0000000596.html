@@ -1,0 +1,4314 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>MODEL1508180000</title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_units">UnitDefinitions</a></li>
+                    <li><a href="#table_functions">FunctionDefinitions</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+
+    <h1>Model : MODEL1508180000</h1>
+    <b>Creator</b><br />Casandra, Philipson, Nutritional Immunology and Molecular Medicine Laboratory, Virginia Tech, <a href="mailto:cwash@vt.edu" target="_blank">cwash@vt.edu</a><br />Vijayalakshmi, Chelliah, EMBL-EBI, <a href="mailto:viji@ebi.ac.uk" target="_blank">viji@ebi.ac.uk</a><br /><b>Created:</b> 2014-09-25 14:31<br /><b>Modified:</b> 2016-03-30 15:13<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="MODEL1508180000" class="active"><span class="package">MODEL1508180000</span> <code>COPASI0</code></td></tr>
+                <tr><td class="active">name</td><td>Philipson2015 - Innate immune response modulated by NLRX1</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000596.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L2V4</span> <span class="package">layout-V1</span> <span class="package">layout_L2-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL1508180000" target="_blank">MODEL1508180000</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000596" target="_blank">BIOMD0000000596</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/26367386" target="_blank">26367386</a><br /><span class="collection">BQB_HAS_TAXON</span><br /><a href="http://identifiers.org/taxonomy/10090" target="_blank">10090</a>; <a href="http://identifiers.org/taxonomy/210" target="_blank">210</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0044403" target="_blank">GO:0044403</a>; <a href="http://identifiers.org/go/GO:0009617" target="_blank">GO:0009617</a>; <a href="http://identifiers.org/go/GO:0045087" target="_blank">GO:0045087</a><br /><span class="collection">BQB_OCCURS_IN</span><br /><a href="http://identifiers.org/bto/BTO:0000141" target="_blank">BTO:0000141</a><br /><span class="collection">BQB_HAS_PROPERTY</span><br /><a href="http://identifiers.org/doid/DOID:3686" target="_blank">DOID:3686</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_functions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">FunctionDefinitions [4]</th>
+	<th scope="col">name</th>
+	<th scope="col">math</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="CWP_Logistic" class="active"><span class="package">CWP_Logistic</span> <code>COPASI58</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CWP_Logistic"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CWP_Logistic" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CWP_Logistic</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI58" id="CWP_Logistic" name="CWP Logistic">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI58">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-21T14:05:59Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> k </ci>
+      </bvar>
+      <bvar>
+        <ci> r </ci>
+      </bvar>
+      <bvar>
+        <ci> s </ci>
+      </bvar>
+      <apply>
+        <times/>
+        <ci> r </ci>
+        <ci> s </ci>
+        <apply>
+          <minus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> s </ci>
+            <ci> k </ci>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>CWP Logistic</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> k </ci>
+    </bvar>
+    <bvar>
+      <ci> r </ci>
+    </bvar>
+    <bvar>
+      <ci> s </ci>
+    </bvar>
+    <apply>
+      <times/>
+      <ci> r </ci>
+      <ci> s </ci>
+      <apply>
+        <minus/>
+        <cn> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> s </ci>
+          <ci> k </ci>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="CWP_hill" class="active"><span class="package">CWP_hill</span> <code>COPASI59</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CWP_hill"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CWP_hill" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CWP_hill</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI59" id="CWP_hill" name="CWP hill">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI59">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-01-21T10:57:19Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> vmax </ci>
+      </bvar>
+      <bvar>
+        <ci> s </ci>
+      </bvar>
+      <bvar>
+        <ci> shalve </ci>
+      </bvar>
+      <bvar>
+        <ci> n </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> vmax </ci>
+          <apply>
+            <power/>
+            <ci> s </ci>
+            <ci> n </ci>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <apply>
+            <power/>
+            <ci> shalve </ci>
+            <ci> n </ci>
+          </apply>
+          <apply>
+            <power/>
+            <ci> s </ci>
+            <ci> n </ci>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>CWP hill</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> vmax </ci>
+    </bvar>
+    <bvar>
+      <ci> s </ci>
+    </bvar>
+    <bvar>
+      <ci> shalve </ci>
+    </bvar>
+    <bvar>
+      <ci> n </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> vmax </ci>
+        <apply>
+          <power/>
+          <ci> s </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <apply>
+          <power/>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+        <apply>
+          <power/>
+          <ci> s </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="CWP_Hill_Inhibitor" class="active"><span class="package">CWP_Hill_Inhibitor</span> <code>COPASI60</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CWP_Hill_Inhibitor"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CWP_Hill_Inhibitor" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CWP_Hill_Inhibitor</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI60" id="CWP_Hill_Inhibitor" name="CWP Hill Inhibitor">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI60">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-01-21T15:37:30Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> n </ci>
+      </bvar>
+      <bvar>
+        <ci> i </ci>
+      </bvar>
+      <bvar>
+        <ci> ki </ci>
+      </bvar>
+      <bvar>
+        <ci> ka </ci>
+      </bvar>
+      <bvar>
+        <ci> a </ci>
+      </bvar>
+      <apply>
+        <times/>
+        <ci> ka </ci>
+        <ci> a </ci>
+        <apply>
+          <divide/>
+          <cn> 1 </cn>
+          <apply>
+            <plus/>
+            <cn> 1 </cn>
+            <apply>
+              <power/>
+              <apply>
+                <divide/>
+                <ci> i </ci>
+                <ci> ki </ci>
+              </apply>
+              <ci> n </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>CWP Hill Inhibitor</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> n </ci>
+    </bvar>
+    <bvar>
+      <ci> i </ci>
+    </bvar>
+    <bvar>
+      <ci> ki </ci>
+    </bvar>
+    <bvar>
+      <ci> ka </ci>
+    </bvar>
+    <bvar>
+      <ci> a </ci>
+    </bvar>
+    <apply>
+      <times/>
+      <ci> ka </ci>
+      <ci> a </ci>
+      <apply>
+        <divide/>
+        <cn> 1 </cn>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <power/>
+            <apply>
+              <divide/>
+              <ci> i </ci>
+              <ci> ki </ci>
+            </apply>
+            <ci> n </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="_1_2_MA" class="active"><span class="package">_1_2_MA</span> <code>COPASI61</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-_1_2_MA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-_1_2_MA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">_1_2_MA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI61" id="_1_2_MA" name="1/2 MA">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI61">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-05-26T10:26:16Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> k </ci>
+      </bvar>
+      <bvar>
+        <ci> A </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> k </ci>
+          <ci> A </ci>
+        </apply>
+        <cn> 2 </cn>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>1/2 MA</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> k </ci>
+    </bvar>
+    <bvar>
+      <ci> A </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> k </ci>
+        <ci> A </ci>
+      </apply>
+      <cn> 2 </cn>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">UnitDefinitions [2]</th>
+	<th scope="col">name</th>
+	<th scope="col">units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td id="time" class="active"><span class="package">time</span> <code>_6bc7e887-4d22-4141-87b6-f2f3cfd71e14</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-time"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-time" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">time</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="_6bc7e887-4d22-4141-87b6-f2f3cfd71e14" id="time" name="time">
+  <listOfUnits>
+    <unit metaid="_9fc586e4-957d-4232-9f65-f55986c1083a" kind="second" exponent="1" scale="0" multiplier="60"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>time</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 60 </cn>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td id="substance" class="active"><span class="package">substance</span> <code>b3162164-daa7-40d9-9164-b1ff73fc6651</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-substance"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-substance" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">substance</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="b3162164-daa7-40d9-9164-b1ff73fc6651" id="substance" name="substance">
+  <listOfUnits>
+    <unit metaid="_785ac9ad-3eb6-4287-b95f-fbfd11425e2e" kind="dimensionless" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>substance</td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="default" class="active"><span class="package">default</span> <code>COPASI1</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-default"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-default" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">default</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="COPASI1" id="default" name="default" spatialDimensions="3" size="1" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI1">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T15:48:49Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>default</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [15]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s18" class="active"><span class="package">s18</span> <code>COPASI2</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s18"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s18" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s18</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI2" id="s18" name="HP" compartment="default" initialConcentration="4.4" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <celldesigner:extension xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner">
+      <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+      <celldesigner:speciesIdentity>
+        <celldesigner:class>SIMPLE_MOLECULE</celldesigner:class>
+        <celldesigner:name>Hpylori</celldesigner:name>
+      </celldesigner:speciesIdentity>
+      <celldesigner:listOfCatalyzedReactions>
+        <celldesigner:catalyzed reaction="re31"/>
+        <celldesigner:catalyzed reaction="re32"/>
+        <celldesigner:catalyzed reaction="re33"/>
+        <celldesigner:catalyzed reaction="re34"/>
+      </celldesigner:listOfCatalyzedReactions>
+    </celldesigner:extension>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI2">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T14:32:40Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>HP</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>4.4</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s49" class="active"><span class="package">s49</span> <code>COPASI3</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s49"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s49" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s49</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI3" id="s49" name="NLRX1" compartment="default" initialConcentration="0.9" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <celldesigner:extension xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner">
+      <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+      <celldesigner:speciesIdentity>
+        <celldesigner:class>UNKNOWN</celldesigner:class>
+        <celldesigner:name>NLRX1</celldesigner:name>
+      </celldesigner:speciesIdentity>
+      <celldesigner:listOfCatalyzedReactions>
+        <celldesigner:catalyzed reaction="re2"/>
+        <celldesigner:catalyzed reaction="re17"/>
+        <celldesigner:catalyzed reaction="re27"/>
+        <celldesigner:catalyzed reaction="re30"/>
+      </celldesigner:listOfCatalyzedReactions>
+    </celldesigner:extension>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI3">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T14:40:15Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>NLRX1</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.9</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s34" class="active"><span class="package">s34</span> <code>COPASI4</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s34"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s34" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s34</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI4" id="s34" name="CytoL" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <celldesigner:extension xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner">
+      <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+      <celldesigner:speciesIdentity>
+        <celldesigner:class>UNKNOWN</celldesigner:class>
+        <celldesigner:name>TNF</celldesigner:name>
+      </celldesigner:speciesIdentity>
+    </celldesigner:extension>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI4">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T14:58:19Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>CytoL</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s51" class="active"><span class="package">s51</span> <code>COPASI5</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s51"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s51" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s51</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI5" id="s51" name="MyD88" compartment="default" initialConcentration="0.9" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <celldesigner:extension xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner">
+      <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+      <celldesigner:speciesIdentity>
+        <celldesigner:class>UNKNOWN</celldesigner:class>
+        <celldesigner:name>MyD88_R</celldesigner:name>
+      </celldesigner:speciesIdentity>
+      <celldesigner:listOfCatalyzedReactions>
+        <celldesigner:catalyzed reaction="re2"/>
+      </celldesigner:listOfCatalyzedReactions>
+    </celldesigner:extension>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI5">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T14:40:02Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>MyD88</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.9</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s7" class="active"><span class="package">s7</span> <code>COPASI6</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI6" id="s7" name="TRAF6" compartment="default" initialConcentration="0.9" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <celldesigner:extension xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner">
+      <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+      <celldesigner:speciesIdentity>
+        <celldesigner:class>UNKNOWN</celldesigner:class>
+        <celldesigner:name>TRAF6_R</celldesigner:name>
+      </celldesigner:speciesIdentity>
+      <celldesigner:listOfCatalyzedReactions>
+        <celldesigner:catalyzed reaction="re4"/>
+      </celldesigner:listOfCatalyzedReactions>
+    </celldesigner:extension>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI6">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T14:59:59Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>TRAF6</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.9</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="s4" class="active"><span class="package">s4</span> <code>COPASI7</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI7" id="s4" name="NFkB" compartment="default" initialConcentration="0.9" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <celldesigner:extension xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner">
+      <celldesigner:positionToCompartment>inside</celldesigner:positionToCompartment>
+      <celldesigner:speciesIdentity>
+        <celldesigner:class>UNKNOWN</celldesigner:class>
+        <celldesigner:name>p65p50_R</celldesigner:name>
+      </celldesigner:speciesIdentity>
+      <celldesigner:listOfCatalyzedReactions>
+        <celldesigner:catalyzed reaction="re14"/>
+        <celldesigner:catalyzed reaction="re15"/>
+        <celldesigner:catalyzed reaction="re18"/>
+      </celldesigner:listOfCatalyzedReactions>
+    </celldesigner:extension>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI7">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-09-25T14:40:29Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>NFkB</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.9</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="IFN" class="active"><span class="package">IFN</span> <code>COPASI8</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IFN"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IFN" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IFN</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI8" id="IFN" name="IFN" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI8">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:57:30Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>IFN</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="NOD1" class="active"><span class="package">NOD1</span> <code>COPASI9</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NOD1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NOD1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NOD1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI9" id="NOD1" name="NOD1" compartment="default" initialConcentration="0.9" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI9">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:24:55Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>NOD1</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.9</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="RIG" class="active"><span class="package">RIG</span> <code>COPASI10</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-RIG"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-RIG" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">RIG</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI10" id="RIG" name="RIG" compartment="default" initialConcentration="0.9" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI10">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:24:57Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>RIG</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.9</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="MAVS" class="active"><span class="package">MAVS</span> <code>COPASI11</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-MAVS"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-MAVS" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">MAVS</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI11" id="MAVS" name="MAVS" compartment="default" initialConcentration="0.6" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI11">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:25:05Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>MAVS</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.6</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="IRF" class="active"><span class="package">IRF</span> <code>COPASI12</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IRF"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IRF" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IRF</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI12" id="IRF" name="IRF" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI12">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:24:39Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>IRF</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="TFa" class="active"><span class="package">TFa</span> <code>COPASI13</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TFa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TFa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TFa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI13" id="TFa" name="TFa" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI13">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:07:10Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>TFa</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="CytoE" class="active"><span class="package">CytoE</span> <code>COPASI14</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CytoE"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CytoE" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CytoE</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI14" id="CytoE" name="CytoE" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI14">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T14:58:33Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>CytoE</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="TFi" class="active"><span class="package">TFi</span> <code>COPASI15</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TFi"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TFi" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TFi</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI15" id="TFi" name="TFi" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI15">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-05-27T11:24:44Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>TFi</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="X" class="active"><span class="package">X</span> <code>COPASI16</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-X"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-X" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">X</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI16" id="X" name="X" compartment="default" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI16">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:52:05Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>X</td>
+	<td>default</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="n" class="active"><span class="package">n</span> <code>COPASI17</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-n"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-n" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">n</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI17" id="n" name="n" value="1" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI17">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T15:34:13Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>n</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [36]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="MyD88_a_HP" class="active"><span class="package">MyD88_a_HP</span> <code>COPASI18</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-MyD88_a_HP"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-MyD88_a_HP" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">MyD88_a_HP</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI18" id="MyD88_a_HP" name="MyD88_a_HP" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI18">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:35:35Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_8c1341b4-926e-4b8f-9c40-231c31d6e392" species="s51" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_7de5738a-da95-49d4-8ea8-b450452d7fcd" species="s18"/>
+    <modifierSpeciesReference metaid="bd94755e-8882-44a9-99e6-a1e7c8fcacec" species="s18"/>
+    <modifierSpeciesReference metaid="_26bee2cf-9d77-452d-9ad5-52e67ec603e5" species="s18"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_1a304239-780f-4793-bc53-d28a50433839">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s18 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_77ad7803-e2d5-438e-a4ed-817f735cefce" id="vmax" name="vmax" value="0.00211822327180341"/>
+      <parameter metaid="_0e74146b-7c99-46e3-8f09-6bd96777a26e" id="shalve" name="shalve" value="0.00167453984032407"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>MyD88_a_HP<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s51</td>
+	<td>s18<br />s18<br />s18</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s18 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="MyD88_d" class="active"><span class="package">MyD88_d</span> <code>COPASI19</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-MyD88_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-MyD88_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">MyD88_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI19" id="MyD88_d" name="MyD88_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI19">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:36:44Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_1f806ee8-c521-4bbf-8900-eefbd50ad0d8" species="s51" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="d647a055-66e4-443d-8c58-c05fa651e4fd" species="s51"/>
+    <modifierSpeciesReference metaid="_939dfaf6-cc55-487c-ab5e-184e6d350531" species="s51"/>
+  </listOfModifiers>
+  <kineticLaw metaid="a19c8f73-9dd7-4b7d-a143-d9dc71f2133a">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> s51 </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_6e140d34-aa97-4add-a4b9-7b726e7169b0" id="k1" name="k1" value="0.00123453"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>MyD88_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s51 &#10142; </td>
+	<td>s51<br />s51</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> s51 </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="TRAF_d" class="active"><span class="package">TRAF_d</span> <code>COPASI20</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TRAF_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TRAF_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TRAF_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI20" id="TRAF_d" name="TRAF_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI20">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:38:12Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_0fe01e11-6958-4e1d-8e1c-05c41782565f" species="s7" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="c1fae8b9-f7ee-479f-acdb-ed02418748e4" species="s7"/>
+    <modifierSpeciesReference metaid="_9be4270e-bc51-4d13-87af-c7fc07a2a174" species="s7"/>
+  </listOfModifiers>
+  <kineticLaw metaid="da1f935d-e7a2-48c6-8056-cca06d6f2115">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> s7 </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_17481294-569f-4bb6-b7d0-071ec0f469c5" id="k1" name="k1" value="0.0103771276"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>TRAF_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s7 &#10142; </td>
+	<td>s7<br />s7</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> s7 </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NFkB_a1" class="active"><span class="package">NFkB_a1</span> <code>COPASI21</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NFkB_a1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NFkB_a1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NFkB_a1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI21" id="NFkB_a1" name="NFkB_a1" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI21">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:41:28Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_4d52e40b-696e-40c1-80b5-43e28f23e049" species="s4" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_44c2444d-c336-4e4e-9a5b-d4afbe9c3fa2" species="s49"/>
+    <modifierSpeciesReference metaid="_94b40570-160b-4921-a2e7-f3f192c5c685" species="s7"/>
+    <modifierSpeciesReference metaid="ca8c7fea-085c-40a8-b18a-5ada4460551d" species="s49"/>
+    <modifierSpeciesReference metaid="_73bd9a41-f87e-48e2-b147-95381378df82" species="s7"/>
+    <modifierSpeciesReference metaid="ba8488f4-ca61-40c0-9aa5-dbe9fa12c4dc" species="s49"/>
+    <modifierSpeciesReference metaid="_68df0031-fa94-40bd-8ff1-379534b1778c" species="s7"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_48df8ce5-6a75-48da-8f4d-698ab0dddf6a">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_Hill_Inhibitor </ci>
+          <ci> n </ci>
+          <ci> s49 </ci>
+          <ci> ki </ci>
+          <ci> ka </ci>
+          <ci> s7 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="beb8959f-0180-41c2-a28a-0f731f2dae7e" id="ki" name="ki" value="0.04779118"/>
+      <parameter metaid="_317f64c5-f7fd-4777-bd63-c0ef7620b8da" id="ka" name="ka" value="1.1676376672"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NFkB_a1<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s4</td>
+	<td>s49<br />s7<br />s49<br />s7<br />s49<br />s7</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_Hill_Inhibitor </ci>
+      <ci> n </ci>
+      <ci> s49 </ci>
+      <ci> ki </ci>
+      <ci> ka </ci>
+      <ci> s7 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NFkB_d" class="active"><span class="package">NFkB_d</span> <code>COPASI22</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NFkB_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NFkB_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NFkB_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI22" id="NFkB_d" name="NFkB_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI22">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:43:14Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_9e828b56-1a39-4f65-bbf1-637aaa27c27e" species="s4" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_6526fb2a-4617-4584-b9f6-1090807d6892" species="s4"/>
+    <modifierSpeciesReference metaid="_34a536e7-d700-4710-a6f1-b1e127f1e347" species="s4"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_544bc7b7-01a2-4797-9062-a99cae5d5711">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> s4 </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_7039a076-1742-441e-a631-d686fe331c0b" id="k1" name="k1" value="0.07507042903"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NFkB_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s4 &#10142; </td>
+	<td>s4<br />s4</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> s4 </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="CytoL_a" class="active"><span class="package">CytoL_a</span> <code>COPASI23</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CytoL_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CytoL_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CytoL_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI23" id="CytoL_a" name="CytoL_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI23">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:43:00Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_6046dc8e-4fda-40f7-a4b3-c327f23afbdb" species="s34" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="d56c355d-6cd1-4a1f-854b-2b5629a09290" species="s4"/>
+    <modifierSpeciesReference metaid="ecf3b2a2-ae2d-4cd3-a885-3bf0a7a5017a" species="s4"/>
+    <modifierSpeciesReference metaid="_1fd97c3e-63b3-48ad-97d9-449c88347d90" species="s4"/>
+  </listOfModifiers>
+  <kineticLaw metaid="b995b873-c22a-4918-9b85-a116e0ee2b9f">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s4 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="ff471290-6bb1-4f32-a040-a9d81a5aefca" id="vmax" name="vmax" value="0.096005"/>
+      <parameter metaid="b6fdf746-cfc9-4ad4-855e-914b818a3ef0" id="shalve" name="shalve" value="0.00405"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>CytoL_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s34</td>
+	<td>s4<br />s4<br />s4</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s4 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="CytoL_d" class="active"><span class="package">CytoL_d</span> <code>COPASI24</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CytoL_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CytoL_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CytoL_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI24" id="CytoL_d" name="CytoL_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI24">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:55:00Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_75c3a298-a9ae-4402-926c-843f09b5c3e6" species="s34" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="dd8650ae-c671-4b2d-9d5d-aa6df0834246" species="s34"/>
+    <modifierSpeciesReference metaid="_38af0fce-dd6d-4382-8e17-a73b08d1e3ff" species="s34"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_1afe745e-01fd-4eab-bbd1-1577bcc04d11">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> s34 </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="d75600d6-688e-4b7c-83e5-cf3356d1c0a7" id="k1" name="k1" value="0.00608"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>CytoL_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s34 &#10142; </td>
+	<td>s34<br />s34</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> s34 </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NLRX1_d" class="active"><span class="package">NLRX1_d</span> <code>COPASI25</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NLRX1_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NLRX1_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NLRX1_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI25" id="NLRX1_d" name="NLRX1_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI25">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:44:59Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_630ea651-7e4d-4bdb-8342-222f79d49fa4" species="s49" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="ec0e3315-db0c-482f-9e9a-487c290b40f7" species="s49"/>
+    <modifierSpeciesReference metaid="_2d9c40a6-48e0-4c3a-aeff-79e6e2b1edd5" species="s49"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_7d1c767b-f05b-44ac-9caf-a2fef1377f92">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> s49 </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_46c015eb-9f88-4b6a-8117-f6a0f2cbaff4" id="k1" name="k1" value="0.00593"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NLRX1_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s49 &#10142; </td>
+	<td>s49<br />s49</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> s49 </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="MyD88_a" class="active"><span class="package">MyD88_a</span> <code>COPASI26</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-MyD88_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-MyD88_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">MyD88_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI26" id="MyD88_a" name="MyD88_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI26">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T18:06:34Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="ac08614f-efe7-40e0-b643-c44c564d1856" species="s51" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="b84f75be-f78e-419b-a519-4d7eb247b988" species="s34"/>
+    <modifierSpeciesReference metaid="_7176d34c-469d-4fb2-bad1-fe42de64a6ed" species="s34"/>
+    <modifierSpeciesReference metaid="_693a27b5-04cf-42b0-8c64-d6750314fa62" species="s34"/>
+  </listOfModifiers>
+  <kineticLaw metaid="f338445e-f3ed-4697-82ac-c20a011e7b65">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s34 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="c2d509e2-e3dd-4a97-a2a9-3757fd041898" id="vmax" name="vmax" value="0.00283798482417334"/>
+      <parameter metaid="_5f35ae2f-4fa5-4d7c-ac07-3fdb90b13a18" id="shalve" name="shalve" value="0.00154976502305966"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>MyD88_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s51</td>
+	<td>s34<br />s34<br />s34</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s34 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="HP_a" class="active"><span class="package">HP_a</span> <code>COPASI27</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-HP_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-HP_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">HP_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI27" id="HP_a" name="HP_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI27">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-21T11:22:00Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="fd3a64bc-086b-4bec-9fa7-717e69cbf830" species="s18" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_281de14a-e6cb-4a6d-a56c-1f560ffd0f59" species="s18"/>
+    <modifierSpeciesReference metaid="fbd3c250-2884-467a-8af4-30af6cf73135" species="s18"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_62741e48-defa-4ddc-9b28-263ad8182b28">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_Logistic </ci>
+          <ci> k </ci>
+          <ci> r </ci>
+          <ci> s18 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_36450921-92d7-4c98-ab1c-d0f103238717" id="k" name="k" value="6.47754122346905"/>
+      <parameter metaid="_55ec8b68-f081-4669-85e4-b73472988e81" id="r" name="r" value="0.0231262309"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>HP_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s18</td>
+	<td>s18<br />s18</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_Logistic </ci>
+      <ci> k </ci>
+      <ci> r </ci>
+      <ci> s18 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="HP_CytoL" class="active"><span class="package">HP_CytoL</span> <code>COPASI28</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-HP_CytoL"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-HP_CytoL" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">HP_CytoL</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI28" id="HP_CytoL" name="HP_CytoL" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI28">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-21T16:23:03Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="ddadd0cb-9ac6-4fb4-a44b-a59e13769fdc" species="s18" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_9ee3c468-44f0-465d-94fd-3b0d9722df7f" species="s34"/>
+    <modifierSpeciesReference metaid="_2e66ac7b-ccc3-4737-b4ff-008324f15474" species="s34"/>
+    <modifierSpeciesReference metaid="_6ed7d4c7-4d91-40ee-adc2-df459db0e514" species="s34"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_08a6a8ae-6402-4fdc-b21e-6554cc440a4a">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> _1_2_MA </ci>
+          <ci> k </ci>
+          <ci> s34 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_6ecdd3b2-0932-4ce6-8829-30e16ef29429" id="k" name="k" value="0.00457696687976"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>HP_CytoL<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s18 &#10142; </td>
+	<td>s34<br />s34<br />s34</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> _1_2_MA </ci>
+      <ci> k </ci>
+      <ci> s34 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NLRX1_TF" class="active"><span class="package">NLRX1_TF</span> <code>COPASI29</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NLRX1_TF"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NLRX1_TF" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NLRX1_TF</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI29" id="NLRX1_TF" name="NLRX1_TF" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI29">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-25T16:42:01Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_7daace9a-6f0d-4476-9cdd-4beec8d38543" species="s49" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_99893375-c6f0-48c1-9f26-8db815393ed8" species="TFi"/>
+    <modifierSpeciesReference metaid="_89feab83-2c00-4b2c-8641-71ef8d838e65" species="TFa"/>
+    <modifierSpeciesReference metaid="_1150ca8e-5700-4c5f-a563-ea237693f194" species="TFi"/>
+    <modifierSpeciesReference metaid="_210f7c21-0fc5-4872-8a70-1b236e26ed4c" species="TFa"/>
+    <modifierSpeciesReference metaid="d8182a59-cc04-45bf-b741-6858eb584eac" species="TFi"/>
+    <modifierSpeciesReference metaid="ed9e216d-8e50-4a7a-b8c6-f4cdf2cdd977" species="TFa"/>
+  </listOfModifiers>
+  <kineticLaw metaid="d06c5898-5fd6-429e-a7d5-c5eb86c6b85b">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_Hill_Inhibitor </ci>
+          <ci> n </ci>
+          <ci> TFi </ci>
+          <ci> ki </ci>
+          <ci> ka </ci>
+          <ci> TFa </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="a15d2fa9-7807-48fa-a02b-3dad855d9dc1" id="ki" name="ki" value="0.008882000955"/>
+      <parameter metaid="_82427d7b-8b2b-4752-a720-517cd6013341" id="ka" name="ka" value="0.42313"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NLRX1_TF<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s49</td>
+	<td>TFi<br />TFa<br />TFi<br />TFa<br />TFi<br />TFa</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_Hill_Inhibitor </ci>
+      <ci> n </ci>
+      <ci> TFi </ci>
+      <ci> ki </ci>
+      <ci> ka </ci>
+      <ci> TFa </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NFkB_a2" class="active"><span class="package">NFkB_a2</span> <code>COPASI30</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NFkB_a2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NFkB_a2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NFkB_a2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI30" id="NFkB_a2" name="NFkB_a2" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI30">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-20T13:41:28Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_064741a2-0ca7-41e8-811a-b48533ad1f03" species="s4" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="d0d03d14-07d9-4d86-b00e-3ceb39de90d5" species="NOD1"/>
+    <modifierSpeciesReference metaid="_0791934d-7c05-4a12-ae76-91786c31a0ff" species="NOD1"/>
+    <modifierSpeciesReference metaid="_4475c529-a469-47d2-ba04-de893a1e5ae7" species="NOD1"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_49e9e7aa-7312-4827-9bd4-6c2e8bb75005">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> NOD1 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_7fbd9c4a-ba99-4c2c-aed6-2acbb4fa685c" id="vmax" name="vmax" value="0.6347384122"/>
+      <parameter metaid="a1d3059d-d994-41da-8ce7-3e7187d4a198" id="shalve" name="shalve" value="1.8846156538"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NFkB_a2<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s4</td>
+	<td>NOD1<br />NOD1<br />NOD1</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> NOD1 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="RIG_a_HP" class="active"><span class="package">RIG_a_HP</span> <code>COPASI31</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-RIG_a_HP"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-RIG_a_HP" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">RIG_a_HP</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI31" id="RIG_a_HP" name="RIG_a_HP" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI31">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:14:43Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="ca4b7980-6c2c-4be2-bb0b-2bf5847f6462" species="RIG" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_23e4df32-7ad9-42f1-96a9-0593bbb69730" species="s18"/>
+    <modifierSpeciesReference metaid="_30095f0a-8478-42c9-bf3c-131d66da5b4c" species="s18"/>
+    <modifierSpeciesReference metaid="_973219b1-4547-493c-aded-b9363264b0fe" species="s18"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_4113f2f5-3dc4-42ca-b1cb-22fa05327e79">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s18 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_9eb2935d-b272-4c5f-80eb-9462c4d5de34" id="vmax" name="vmax" value="0.0118173887503611"/>
+      <parameter metaid="e8018de8-e75e-4093-ab79-a31f1531d30f" id="shalve" name="shalve" value="0.00143140224694888"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>RIG_a_HP<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; RIG</td>
+	<td>s18<br />s18<br />s18</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s18 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="RIG_d" class="active"><span class="package">RIG_d</span> <code>COPASI32</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-RIG_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-RIG_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">RIG_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI32" id="RIG_d" name="RIG_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI32">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:26:26Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="ee19ae72-a561-41e8-a63e-641504c91f91" species="RIG" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_2f4f1042-f35c-4df4-87a1-7774e25fedf8" species="RIG"/>
+    <modifierSpeciesReference metaid="e943123d-9aad-4d22-a921-888ef06a6503" species="RIG"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_00987715-6d52-4375-b9eb-b31d4c8a8ecb">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> RIG </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_56070e09-483b-47e6-8948-a2853a75839d" id="k1" name="k1" value="0.0010377234048545"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>RIG_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>RIG &#10142; </td>
+	<td>RIG<br />RIG</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> RIG </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="MAVS_a" class="active"><span class="package">MAVS_a</span> <code>COPASI33</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-MAVS_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-MAVS_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">MAVS_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI33" id="MAVS_a" name="MAVS_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI33">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:15:47Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="c9583696-5db0-4ca8-af0f-23856a249e71" species="MAVS" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="af901af4-effc-4e18-82bd-4780621aac6c" species="s49"/>
+    <modifierSpeciesReference metaid="_25246ba5-2062-49c4-9b4c-ce31f5247992" species="RIG"/>
+    <modifierSpeciesReference metaid="e4487446-0293-4b4f-a61e-e7892256ef0b" species="s49"/>
+    <modifierSpeciesReference metaid="_90f38d41-dcce-47dd-ab13-061716020efb" species="RIG"/>
+    <modifierSpeciesReference metaid="_45e34e1e-c783-4e0c-b60a-4979493c4900" species="s49"/>
+    <modifierSpeciesReference metaid="c60758dc-5727-434a-b574-b9edff22ec0d" species="RIG"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_067dbd6d-63b1-49cd-be00-29021d886cb7">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_Hill_Inhibitor </ci>
+          <ci> n </ci>
+          <ci> s49 </ci>
+          <ci> ki </ci>
+          <ci> ka </ci>
+          <ci> RIG </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_85308f52-3e50-445b-963c-34cbd83d9724" id="ki" name="ki" value="0.033496867888"/>
+      <parameter metaid="a8053371-20d9-41d7-98ef-de8200665422" id="ka" name="ka" value="0.007477722639"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>MAVS_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; MAVS</td>
+	<td>s49<br />RIG<br />s49<br />RIG<br />s49<br />RIG</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_Hill_Inhibitor </ci>
+      <ci> n </ci>
+      <ci> s49 </ci>
+      <ci> ki </ci>
+      <ci> ka </ci>
+      <ci> RIG </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="MAVS_d" class="active"><span class="package">MAVS_d</span> <code>COPASI34</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-MAVS_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-MAVS_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">MAVS_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI34" id="MAVS_d" name="MAVS_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI34">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:26:54Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_0ae53f11-e2f4-407f-88e4-9f377615961e" species="MAVS" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_671264f7-097e-4d8f-b685-64565ba9165f" species="MAVS"/>
+    <modifierSpeciesReference metaid="_662cdbb8-e99b-45da-ad13-bccbd6e9fae6" species="MAVS"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_01774556-6ec7-4489-856a-956428eae549">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> MAVS </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_729fac73-9403-4b84-80f1-3b65080e3027" id="k1" name="k1" value="0.001592"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>MAVS_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>MAVS &#10142; </td>
+	<td>MAVS<br />MAVS</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> MAVS </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="IRF_a1" class="active"><span class="package">IRF_a1</span> <code>COPASI35</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IRF_a1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IRF_a1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IRF_a1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI35" id="IRF_a1" name="IRF_a1" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI35">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:17:42Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="f6af3acc-ab35-4b36-a572-9b0d3b74e28d" species="IRF" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="d054389e-8db8-4091-860a-2c9a91d42fc0" species="MAVS"/>
+    <modifierSpeciesReference metaid="_2d478d17-7fba-484c-8f3b-b86ef4841003" species="MAVS"/>
+    <modifierSpeciesReference metaid="bdc93ae0-05f1-4890-bc8e-7c13ec734bd0" species="MAVS"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_0cb7762a-b4c2-46b5-b916-0b20d9c00bd3">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> MAVS </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_81c412f0-3a64-457a-b7aa-72157f18b380" id="vmax" name="vmax" value="0.0062174"/>
+      <parameter metaid="c693289a-9bdf-461e-a45c-843a925b11a8" id="shalve" name="shalve" value="1.44358"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>IRF_a1<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; IRF</td>
+	<td>MAVS<br />MAVS<br />MAVS</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> MAVS </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="IRF_a2" class="active"><span class="package">IRF_a2</span> <code>COPASI36</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IRF_a2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IRF_a2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IRF_a2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI36" id="IRF_a2" name="IRF_a2" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI36">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:18:06Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_0bbbf024-b3d3-4429-9522-544ef16bca97" species="IRF" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_054b472a-2237-46ec-b9cd-8894ad02b33f" species="NOD1"/>
+    <modifierSpeciesReference metaid="f63c43e9-da29-452c-8d6d-ba0bd6fc5f52" species="NOD1"/>
+    <modifierSpeciesReference metaid="_8cd1c0fc-e2a0-489f-a631-20cb3eb95c1f" species="NOD1"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_8ddc68b3-df26-4bac-afd3-4ded6edbd7e3">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> NOD1 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_5bc375d3-2b85-47cb-bd92-3f3e038ba0a9" id="vmax" name="vmax" value="0.0980062665"/>
+      <parameter metaid="_92f794e6-460a-4973-beb7-2e2d0086ff96" id="shalve" name="shalve" value="9.64990135143775"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>IRF_a2<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; IRF</td>
+	<td>NOD1<br />NOD1<br />NOD1</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> NOD1 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="IRF_a3" class="active"><span class="package">IRF_a3</span> <code>COPASI37</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IRF_a3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IRF_a3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IRF_a3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI37" id="IRF_a3" name="IRF_a3" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI37">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:19:13Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_06c60238-1b31-4cc3-8ac6-952e5cb15e85" species="IRF" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_991a6f09-a28d-430d-a9de-28e50ade3fa1" species="IFN"/>
+    <modifierSpeciesReference metaid="_428386a7-4270-4197-960d-c1bdb870ce80" species="IFN"/>
+    <modifierSpeciesReference metaid="cba578be-4c02-433d-9a5b-42e6134e83f0" species="IFN"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_831c05d6-021b-4b51-bed9-b91b28660217">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> IFN </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_95e17340-a742-4a21-802c-10c963b87896" id="vmax" name="vmax" value="0.30137407572"/>
+      <parameter metaid="cf93139d-110b-464e-a252-8d47936d405b" id="shalve" name="shalve" value="44.7674128755764"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>IRF_a3<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; IRF</td>
+	<td>IFN<br />IFN<br />IFN</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> IFN </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="IRF_d" class="active"><span class="package">IRF_d</span> <code>COPASI38</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IRF_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IRF_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IRF_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI38" id="IRF_d" name="IRF_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI38">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:34:59Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_72d43701-ea19-4756-8965-ef3081cd6600" species="IRF" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="cb961202-4106-4f38-b347-ea6118cdd863" species="IRF"/>
+    <modifierSpeciesReference metaid="_2a65bc09-09f2-41bc-86e5-60a1eb64b90e" species="IRF"/>
+  </listOfModifiers>
+  <kineticLaw metaid="bf4c1063-7423-404f-b3c9-01a95452965c">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> IRF </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="e8969fb4-e4f1-470d-b3d1-50c6e6759629" id="k1" name="k1" value="0.004789221404"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>IRF_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>IRF &#10142; </td>
+	<td>IRF<br />IRF</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> IRF </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="IFN_a" class="active"><span class="package">IFN_a</span> <code>COPASI39</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IFN_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IFN_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IFN_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI39" id="IFN_a" name="IFN_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI39">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:27:39Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_1ed3b0b9-3a90-497d-9366-e035e8760b54" species="IFN" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_9ec23fee-500d-4e87-8238-cca300d3e821" species="IRF"/>
+    <modifierSpeciesReference metaid="ca76f214-e3b6-47e2-93ba-e411946a8147" species="IRF"/>
+    <modifierSpeciesReference metaid="_6eebcb6d-b403-43ef-95b7-5ca28ff8791f" species="IRF"/>
+  </listOfModifiers>
+  <kineticLaw metaid="bc6b59ff-2456-411c-9556-3a81cf03c4bb">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> IRF </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="c3150b73-69d5-4273-b11c-157613568f47" id="vmax" name="vmax" value="0.4898378115082"/>
+      <parameter metaid="_74ba845f-3b70-433e-8211-3c8a03e16399" id="shalve" name="shalve" value="49.92877782"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>IFN_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; IFN</td>
+	<td>IRF<br />IRF<br />IRF</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> IRF </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="IFN_d" class="active"><span class="package">IFN_d</span> <code>COPASI40</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IFN_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IFN_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IFN_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI40" id="IFN_d" name="IFN_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI40">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:34:38Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_175da5e0-f79f-47b9-b8ac-94a7421eda9d" species="IFN" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_635bac32-ecb9-47e3-aa89-d212edef9e1e" species="IFN"/>
+    <modifierSpeciesReference metaid="_0a3821b4-f48b-48c0-b45f-4841eddb4ffe" species="IFN"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_39b3d74f-4ecc-4e98-88ae-43f522f11cab">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> IFN </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="df0defdf-8bfd-44b5-ba7f-c59a7252f01e" id="k1" name="k1" value="0.00523855748474113"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>IFN_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>IFN &#10142; </td>
+	<td>IFN<br />IFN</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> IFN </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NOD_a" class="active"><span class="package">NOD_a</span> <code>COPASI41</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NOD_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NOD_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NOD_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI41" id="NOD_a" name="NOD_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI41">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:28:50Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="e6c4f555-cfdf-4773-b6cc-44f2be452be0" species="NOD1" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="ab09aa9c-3f7b-4256-829a-3a1090856b8c" species="s18"/>
+    <modifierSpeciesReference metaid="ffcc9f6e-d7e6-4b9e-9f96-79c93be8df87" species="s18"/>
+    <modifierSpeciesReference metaid="dc45f838-8415-490a-b1ee-3a376c08a347" species="s18"/>
+  </listOfModifiers>
+  <kineticLaw metaid="cd6e7e99-f1d9-4b04-af5c-e9c880d8d766">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s18 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_6656afd1-dc10-4d81-b803-6672b1d5e25f" id="vmax" name="vmax" value="0.006623396018441"/>
+      <parameter metaid="_51ac80f2-1658-4db1-acf7-833afd6067f5" id="shalve" name="shalve" value="0.00178530769571592"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NOD_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; NOD1</td>
+	<td>s18<br />s18<br />s18</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s18 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="NOD_d" class="active"><span class="package">NOD_d</span> <code>COPASI42</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NOD_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NOD_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NOD_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI42" id="NOD_d" name="NOD_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI42">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:29:17Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_3db7f567-8830-4966-9df7-4c65ce602d19" species="NOD1" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_23315835-667d-4936-beb9-f791b2e0936b" species="NOD1"/>
+    <modifierSpeciesReference metaid="_2fc109c7-9dc0-4eb3-8014-82cbf7882679" species="NOD1"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_72f7b6bf-2955-4400-a331-79d25194d4fa">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> NOD1 </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_5937ecaf-cc59-4c48-a6d4-830f5077843b" id="k1" name="k1" value="0.00122637229001114"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>NOD_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NOD1 &#10142; </td>
+	<td>NOD1<br />NOD1</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> NOD1 </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="HP_IFN" class="active"><span class="package">HP_IFN</span> <code>COPASI43</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-HP_IFN"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-HP_IFN" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">HP_IFN</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI43" id="HP_IFN" name="HP_IFN" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI43">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-12-29T16:30:01Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_6020478f-c3f8-438f-a925-38f69cbed074" species="s18" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_12893812-9195-41d6-b1db-314c055eb32c" species="IFN"/>
+    <modifierSpeciesReference metaid="db93075b-db1e-4fd1-b3d3-424e3aec93f7" species="IFN"/>
+    <modifierSpeciesReference metaid="_9d176170-5186-4bde-aef8-57075f4db2d1" species="IFN"/>
+  </listOfModifiers>
+  <kineticLaw metaid="d0a5b5b6-d630-4f77-9a0f-5003624e103f">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> _1_2_MA </ci>
+          <ci> k </ci>
+          <ci> IFN </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_4c84b22b-0e21-4834-afc9-829c4fb8e345" id="k" name="k" value="1e-05"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>HP_IFN<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s18 &#10142; </td>
+	<td>IFN<br />IFN<br />IFN</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> _1_2_MA </ci>
+      <ci> k </ci>
+      <ci> IFN </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="TRAF_a" class="active"><span class="package">TRAF_a</span> <code>COPASI44</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TRAF_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TRAF_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TRAF_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI44" id="TRAF_a" name="TRAF_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI44">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-01-21T15:33:49Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="e0b4601f-6a49-4792-8b2b-b216624364f0" species="s7" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="bd3b1199-fa95-4508-926f-283ff74be9a9" species="X"/>
+    <modifierSpeciesReference metaid="_0dd56a91-11e6-4014-aa2c-2f73f0600fdc" species="s51"/>
+    <modifierSpeciesReference metaid="_5afed765-8efa-4928-ad38-106678f7a148" species="X"/>
+    <modifierSpeciesReference metaid="_9e757c4b-c6e6-4230-89df-ff752d95c734" species="s51"/>
+    <modifierSpeciesReference metaid="_5c46b086-e97b-44c6-b138-7b919ec891f1" species="X"/>
+    <modifierSpeciesReference metaid="_10c9e016-406d-4738-bc80-49f5ed92c985" species="s51"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_2db1ae80-2fc3-4713-9d77-a476ca7fb103">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_Hill_Inhibitor </ci>
+          <ci> n </ci>
+          <ci> X </ci>
+          <ci> ki </ci>
+          <ci> ka </ci>
+          <ci> s51 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_8c848cd5-1aff-41d3-bc9a-f43392010ce7" id="ki" name="ki" value="0.08812845453"/>
+      <parameter metaid="abdf5682-14c0-4636-a47e-f58fdebc07fa" id="ka" name="ka" value="0.739178470625"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>TRAF_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; s7</td>
+	<td>X<br />s51<br />X<br />s51<br />X<br />s51</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_Hill_Inhibitor </ci>
+      <ci> n </ci>
+      <ci> X </ci>
+      <ci> ki </ci>
+      <ci> ka </ci>
+      <ci> s51 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="TFa_a" class="active"><span class="package">TFa_a</span> <code>COPASI45</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TFa_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TFa_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TFa_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI45" id="TFa_a" name="TFa_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI45">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T14:56:07Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_0a92af73-7341-4fae-965d-d35008c92c34" species="TFa" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_54e1a693-5118-4f94-a9e0-d4162605179e" species="s34"/>
+    <modifierSpeciesReference metaid="_23d15192-417d-4350-ba76-2bfaf20ea594" species="s34"/>
+    <modifierSpeciesReference metaid="_9236748c-2180-4be6-a8da-f3909669ba9e" species="s34"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_52c2c2fb-8e6a-42e8-8f62-eb1cc5dea6bb">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s34 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="d34e9cbf-1976-466c-8487-89c8878f9df0" id="vmax" name="vmax" value="0.0205163346419065"/>
+      <parameter metaid="af37a159-55e4-4b78-a06a-f6c17ded9703" id="shalve" name="shalve" value="0.79845410165576"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>TFa_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; TFa</td>
+	<td>s34<br />s34<br />s34</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s34 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="TFa_d" class="active"><span class="package">TFa_d</span> <code>COPASI46</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TFa_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TFa_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TFa_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI46" id="TFa_d" name="TFa_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI46">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:11:14Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_1f606d9d-3d5f-499d-b891-d6eead34b0e4" species="TFa" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_1025fbb0-76c7-4e65-bab6-5387cb09079a" species="TFa"/>
+    <modifierSpeciesReference metaid="_7cb941ee-a400-433e-b117-a5181361d8ba" species="TFa"/>
+  </listOfModifiers>
+  <kineticLaw metaid="f8fbdf99-3da8-4659-be30-26e90326fcbd">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> TFa </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_14cd5a22-2d9d-4c01-9d8e-93d881ae86e2" id="k1" name="k1" value="0.00830409028"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>TFa_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>TFa &#10142; </td>
+	<td>TFa<br />TFa</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> TFa </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="TFi_a" class="active"><span class="package">TFi_a</span> <code>COPASI47</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TFi_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TFi_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TFi_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI47" id="TFi_a" name="TFi_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI47">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T14:57:55Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_937f1cb5-06f7-4d39-9152-283a07d0a038" species="TFi" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_9eb5148c-f5cb-4c4a-bbbc-975a6509eba3" species="CytoE"/>
+    <modifierSpeciesReference metaid="cd4ee482-0c10-4c60-aee8-ec7d782b2d13" species="CytoE"/>
+    <modifierSpeciesReference metaid="_06b289bf-dec5-4b18-ba5e-993fccf644e9" species="CytoE"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_71782a72-3146-4a54-8630-d5a80e33a07f">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> CytoE </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_5d4e4ef8-fd9b-44b9-b44d-fcdca7d65c5d" id="vmax" name="vmax" value="0.0902778190945806"/>
+      <parameter metaid="d497378e-ece7-4d97-9e8a-a28f46be9cfa" id="shalve" name="shalve" value="3.083541152"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>TFi_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; TFi</td>
+	<td>CytoE<br />CytoE<br />CytoE</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> CytoE </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="TFi_d" class="active"><span class="package">TFi_d</span> <code>COPASI48</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-TFi_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-TFi_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">TFi_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI48" id="TFi_d" name="TFi_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI48">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:11:20Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="b271c83c-e58d-4939-beb9-97ea7b3f877a" species="TFi" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_4ef26bf0-64c2-4670-8808-44b1bdbea3a4" species="TFi"/>
+    <modifierSpeciesReference metaid="_5c73b01b-50cd-4e55-ba32-1ac790cd6e91" species="TFi"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_4397f08f-d3cf-42bb-8765-941ed5991c41">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> TFi </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_3b265dab-23d2-454f-bf74-682f771227fd" id="k1" name="k1" value="0.0324619644365822"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>TFi_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>TFi &#10142; </td>
+	<td>TFi<br />TFi</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> TFi </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="CytoE_a" class="active"><span class="package">CytoE_a</span> <code>COPASI49</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CytoE_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CytoE_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CytoE_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI49" id="CytoE_a" name="CytoE_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI49">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:01:22Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="e31270b5-0438-435f-8c88-ed74b58935d8" species="CytoE" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_2af515e7-194c-437e-aeec-9db2f7402b49" species="X"/>
+    <modifierSpeciesReference metaid="ce1ba3c3-00d6-46d7-89ed-4855a3584aa1" species="s4"/>
+    <modifierSpeciesReference metaid="_82379733-348e-432a-8049-9b1b24cca23b" species="X"/>
+    <modifierSpeciesReference metaid="_8ffd8846-d570-442c-9c96-39e84f445dd5" species="s4"/>
+    <modifierSpeciesReference metaid="e57ce6c9-40a3-4983-b6d3-64464166324e" species="X"/>
+    <modifierSpeciesReference metaid="_51930898-8b68-499d-b9c3-d4c1bd6d1a44" species="s4"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_212267e5-2a71-429d-933f-28a958bc00ea">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_Hill_Inhibitor </ci>
+          <ci> n </ci>
+          <ci> X </ci>
+          <ci> ki </ci>
+          <ci> ka </ci>
+          <ci> s4 </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_2740b232-878f-4738-8608-699b5e6a78be" id="ki" name="ki" value="0.04806833192"/>
+      <parameter metaid="_5381dcb6-e572-4413-9fd6-d4179e3d511e" id="ka" name="ka" value="12.20282"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>CytoE_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; CytoE</td>
+	<td>X<br />s4<br />X<br />s4<br />X<br />s4</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_Hill_Inhibitor </ci>
+      <ci> n </ci>
+      <ci> X </ci>
+      <ci> ki </ci>
+      <ci> ka </ci>
+      <ci> s4 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="CytoE_d" class="active"><span class="package">CytoE_d</span> <code>COPASI50</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CytoE_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CytoE_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CytoE_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI50" id="CytoE_d" name="CytoE_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI50">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:08:58Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_665f3a11-a938-40df-95ae-a54c18cdd05d" species="CytoE" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_5292b4f1-fff0-4345-aa3a-80583f5d89fc" species="CytoE"/>
+    <modifierSpeciesReference metaid="_52029582-57f4-4f01-83f0-29dfa1ad5528" species="CytoE"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_1edf6017-66e2-43f6-9646-03dbae941ca8">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> CytoE </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_5ecf5a84-9e4f-4650-b818-f6da0847280a" id="k1" name="k1" value="0.03676294"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>CytoE_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>CytoE &#10142; </td>
+	<td>CytoE<br />CytoE</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> CytoE </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="X_a" class="active"><span class="package">X_a</span> <code>COPASI51</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-X_a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-X_a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">X_a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI51" id="X_a" name="X_a" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI51">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:51:41Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_16355d16-97c8-4f04-8fab-d5556a5ca5c6" species="X" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_3dd7578a-8013-41a6-83e5-39809298a47f" species="s4"/>
+    <modifierSpeciesReference metaid="d85772b1-c9f7-4887-a655-cefb66311fb5" species="s4"/>
+    <modifierSpeciesReference metaid="f295afd7-8e67-48d4-af76-a39dc3bfff8b" species="s4"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_6776fa5d-1d77-4665-9fec-847b717ea93c">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> CWP_hill </ci>
+          <ci> vmax </ci>
+          <ci> s4 </ci>
+          <ci> shalve </ci>
+          <ci> n </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="f2a39472-a9da-4760-a991-aa3cab5de02c" id="vmax" name="vmax" value="0.046393325"/>
+      <parameter metaid="_8cf7f1eb-2f63-480b-a531-6f2f5abcbc78" id="shalve" name="shalve" value="0.003976"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>X_a<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; X</td>
+	<td>s4<br />s4<br />s4</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> CWP_hill </ci>
+      <ci> vmax </ci>
+      <ci> s4 </ci>
+      <ci> shalve </ci>
+      <ci> n </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="X_d" class="active"><span class="package">X_d</span> <code>COPASI52</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-X_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-X_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">X_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI52" id="X_d" name="X_d" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI52">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-02-04T15:52:44Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="b0d6dc10-d5f4-4db5-af07-0d3fbaef1790" species="X" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_0849dda4-ff3a-44b0-a592-dd74eb7d303b" species="X"/>
+    <modifierSpeciesReference metaid="a4b90878-0cb4-444d-a4de-825d3994ad22" species="X"/>
+  </listOfModifiers>
+  <kineticLaw metaid="a7d909d6-0093-4340-97a8-8e075482535a">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <ci> k1 </ci>
+        <ci> X </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_0ced0d0d-895e-459c-9c49-2b08962d730e" id="k1" name="k1" value="0.002227925238504"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>X_d<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>X &#10142; </td>
+	<td>X<br />X</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <ci> k1 </ci>
+    <ci> X </ci>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="HP_CytoE" class="active"><span class="package">HP_CytoE</span> <code>COPASI53</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-HP_CytoE"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-HP_CytoE" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">HP_CytoE</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI53" id="HP_CytoE" name="HP_CytoE" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI53">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2015-04-02T13:07:53Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_40004a78-1abb-4eb7-a371-4c5a376685a7" species="s18" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="cbd5dcca-3cf4-4467-9784-85da50e03252" species="CytoE"/>
+    <modifierSpeciesReference metaid="_61c250f9-0bea-406d-a5ea-f8003fe90a8d" species="CytoE"/>
+    <modifierSpeciesReference metaid="_509b67ba-45a7-4bb2-ae5c-117b810f4b3b" species="CytoE"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_35bc9075-3e67-4721-848e-d25f480df233">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> default </ci>
+        <apply>
+          <ci> _1_2_MA </ci>
+          <ci> k </ci>
+          <ci> CytoE </ci>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_0e5c0f34-4135-4357-bc9d-bd431134a5ca" id="k" name="k" value="0.00015"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>HP_CytoE<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>s18 &#10142; </td>
+	<td>CytoE<br />CytoE<br />CytoE</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> default </ci>
+    <apply>
+      <ci> _1_2_MA </ci>
+      <ci> k </ci>
+      <ci> CytoE </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

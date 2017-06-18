@@ -12,6 +12,8 @@ import time
 import libsbml
 
 
+VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
+
 def check(value, message):
     """
     Checks the libsbml return value and prints message if something happened.
@@ -37,7 +39,7 @@ def check(value, message):
         return
 
 
-def check_sbml(filepath, name=None, ucheck=True):
+def check_sbml(filepath, name=None, ucheck=True, show_errors=True):
     """ Checks the given SBML file path or String for validation errors.
 
     :param filepath: path of SBML file
@@ -52,10 +54,10 @@ def check_sbml(filepath, name=None, ucheck=True):
             name = filepath[0:99] + '...'
 
     doc = libsbml.readSBML(filepath)
-    return check_doc(doc, name=name, ucheck=ucheck)
+    return check_doc(doc, name=name, ucheck=ucheck, show_errors=show_errors)
 
 
-def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
+def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors=True):
     """
         Checks the given SBML document and prints errors of the given severity.
 
@@ -78,10 +80,10 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
 
     # all, error, warn
     if internalConsistency:
-        Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internalConsistency=True)
+        Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internalConsistency=True, show_errors=show_errors)
     else:
         Nall_in, Nerr_in, Nwarn_in = (0, 0, 0)
-    Nall_noin, Nerr_noin, Nwarn_noin = _check_consistency(doc, internalConsistency=False)
+    Nall_noin, Nerr_noin, Nwarn_noin = _check_consistency(doc, internalConsistency=False, show_errors=show_errors)
 
     # sum up
     Nall = Nall_in + Nall_noin
@@ -92,7 +94,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
     lines = [
         '-' * 80,
         name,
-        "{:<25}: <{}>".format("valid", str(valid_status).upper()),
+        "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
     if Nall > 0:
         lines += [
@@ -100,23 +102,26 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True):
             "{:<25}: {}".format("validation warnings(s)", Nwarn),
         ]
     lines += [
-        "{:<25}: {}".format("check time (ms)", str(time.clock() - current)),
+        "{:<25}: {:.3f}".format("check time (ms)", time.clock() - current),
         '-' * 80,
     ]
     info = "\n".join(lines)
 
     if Nall > 0:
         if Nerr > 0:
-            logging.error(info)
+            # logging.error(info)
+            logging.debug(info)
         else:
-            logging.warn(info)
+            # logging.warning(info)
+            logging.debug(info)
     else:
         logging.debug(info)
+    print(info)
 
     return Nall, Nerr, Nwarn
 
 
-def _check_consistency(doc, internalConsistency=False):
+def _check_consistency(doc, internalConsistency=False, show_errors=True):
     Nerr = 0  # error count
     Nwarn = 0  # warning count
     if internalConsistency:
@@ -132,9 +137,10 @@ def _check_consistency(doc, internalConsistency=False):
             else:
                 Nwarn += 1
 
-        # FIXME: print to logging
-        print(doc)
-        print_errors(doc)
+        # FIXME: print to logging & make optional
+        if show_errors:
+            pass
+            print_errors(doc)
 
     return Nall, Nerr, Nwarn
 

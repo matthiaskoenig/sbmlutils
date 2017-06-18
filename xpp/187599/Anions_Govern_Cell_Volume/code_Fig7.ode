@@ -1,0 +1,243 @@
+###############################################
+# simulation code for Fig. 7;                 #
+# with "chi=0.2" also Fig. 8b can be produced #
+########################################################
+# t:       time                             in [msec]  #
+# v:       membrane potential               in [mV]    #
+# n,h:     gating variables                 in [1]     #
+# n_ki:    amount of potassium in the ICS   in [fmol]  #
+# n_cli:   amount of chloride in the ICS    in [fmol]  #
+# dnk:     amount of potassium that is                 #
+#          exchanged with glia (negative               #
+#          values when potassium goes into             #
+#          glia cell)                       in [fmol]  #
+# vli,vlg: ICS and glia volume              in [um^3]  #
+########################################################
+
+##################################################
+# rate equations used by solver                  #
+# factor 1000. converts from [x/msec] to [x/sec] #
+##################################################
+v'     = 1000. * V_DOT
+n'     = 1000. * N_DOT
+h'     = 1000. * H_DOT
+n_ki'  = 1000. * N_KI_DOT
+n_cli' = 1000. * N_CLI_DOT
+dnk'   = 1000. * DNK_DOT
+vli'   = 1000. * VLI_DOT
+vlg'   = 1000. * VLG_DOT
+
+############################################
+# initial conditions: normal resting state #
+############################################
+init v=-67.
+init n=0.070
+init h=0.978
+init n_ki=277.7
+init n_cli=21.7
+init dnk=0
+init vli=2160.
+init vlg=2160.
+
+###################################################################
+# by the parameter delta we set the duration of pump interruption #
+# and interruption of glial ion regulation in [sec];              #
+# f_pmp/gl: pump/glia factor in [1]                               #
+###################################################################
+par delta=20
+
+f_pmp = (heav(50-t) + heav(t-50-delta))
+f_gl  = (heav(50-t) + heav(t-50-delta))
+
+################################################################################
+# chi sets the fraction of chloride cotransport with glial potassium buffering #
+################################################################################
+par chi=0.8
+
+########################################
+# Hodgkin-Huxley like gating functions #
+# adiabatic value for "M"              #
+########################################
+AN  = 0.01 * (v + 34.0) / (1.0 - exp(-0.1 * (v + 34.0))) 
+BN  = 0.125 * exp(-(v + 44.0) / 80.0)
+AM  = 0.1 * (v + 30.0) / (1.0 - exp(-0.1 * (v + 30.0))) 
+BM  = 4.0 * exp(-(v + 55.0) / 18.0) 
+AH  = 0.07 * exp(-(v + 44.0) / 20)
+BH  = 1.0 / (1.0 + exp(-0.1 * (v + 14.0)))
+M   = AM / (AM + BM)
+
+#####################################################################
+# - resting state ion and impermeant particle amounts in [fmol]     #
+#   in the ICS (...i0) and the ECS (...e0)                          #
+# - "k,na,cl,imp" means potassium, sodium, chloride and impermeant  #
+#####################################################################
+n_ki0  = 277.7
+n_ke0  = 2.8
+n_nai0 = 54.6
+n_nae0 = 91.3
+n_cli0 = 21.7
+n_cle0 = 89.8
+n_impi = 318.
+n_impe = 40.
+
+############################################################################
+# electroneutrality (first line) and mass conservation (second to fourth)  #
+# conditions to compute ion amounts other than intracellular potassium and #
+# chloride                                                                 #
+############################################################################
+n_nai = n_nai0 + n_ki0  - n_ki - n_cli0 + n_cli
+dnna  =-dnk * (1-chi)
+dncl  = dnk * chi
+n_nae = n_nae0 + n_nai0 - n_nai + dnna
+n_ke  = n_ke0  + n_ki0  - n_ki  + dnk
+n_cle = n_cle0 + n_cli0 - n_cli + dncl
+
+##################################################################################
+# ECS volume "vle" in [um^3]:                                                    #
+# "vle_osm" is the value which follows from the other volumes and from           #
+# conservation of the initial total volume "vl_tot0" - a value based only on     #
+# osmosis. "vle" equals this value as long as "vle_osm" is not too small. For    #
+# very small values of "vle_osm" the below function ensures that "vle > vle_osm" #
+# note: the equation for "vle" can be converted to Eq. (49) in the manuscript by #
+#       substituting "vle_osm" with "vl_tot0*n_e/n_tot"                          # 
+##################################################################################
+# n_i/e/g/tot: amount of particles in ICS/ECS/glia/whole system #
+# vl_tot0: initial total volume                                 #
+#################################################################
+n_i     = n_nai + n_ki + n_cli + n_impi
+n_e     = n_nae + n_ke + n_cle + n_impe
+n_g     = (n_ki0 + n_nai0 + n_cli0 + n_impi) - (dnk + dnna + dncl)
+n_tot   = n_i + n_e + n_g
+vl_tot0 = 5040.
+vle_osm = vl_tot0 - vli - vlg
+
+p1  = 0.2
+p2  = 5
+p3  = 0.93
+p4  = 0.2
+p5  = 0.21
+p6  =-0.095
+vle = 1000. * ((p3 * (vle_osm/1000.-p6) - p4) / (1 + exp((p1-(vle_osm/1000.-p6)) * p2)) + p5)
+
+vli_inf = n_i * vle / n_e
+vlg_inf = n_g * vle / n_e
+
+#################################################
+# equilibrium volume "vli/g_inf" for glia and   #
+# neuron based on osmotic balance of these      #
+# compartments with the ECS                     # 
+#################################################
+
+
+########################################
+# ion concentrations in [mM]=[mMol/l]  #
+########################################
+nai = n_nai / vli * 1000.
+nae = n_nae / vle * 1000.
+ki  = n_ki  / vli * 1000.
+ke  = n_ke  / vle * 1000.
+cli = n_cli / vli * 1000.
+cle = n_cle / vle * 1000.
+
+#####################
+# Nernst potentials #
+#####################
+EK  = 26.64 * log(ke  / ki)
+ENA = 26.64 * log(nae / nai)
+ECL =-26.64 * log(cle / cli)
+
+##############################################################################
+# - different leak and gated currents             "IION_l/g"   in [umA/cm^2] #
+# - leak and gated conductances for each channel  "gion_l/g"   in [mS/cm^2]  #
+# - Na/K-exchange pump current "IP" with maximal turnover rate "max_p"       #
+##############################################################################
+gna_l  = 0.0175
+gna_g  = 100.
+gk_l   = 0.05
+gk_g   = 40.
+gcl_l  = 0.05
+max_p  = 6.8
+
+INA_l = gna_l            * (v - ENA)
+INA_g = gna_g * M**3 * h * (v - ENA)
+IK_l  = gk_l             * (v - EK)
+IK_g  = gk_g * n**4      * (v - EK)
+ICL_l = gcl_l            * (v - ECL)
+IP    = max_p / (1.0 + exp((25 - nai)/3.)) / (1. + exp(5.5 - ke)) * f_pmp
+
+#####################################
+# full sodium and potassium current #
+#####################################
+INA = INA_l + INA_g + 3. * IP
+IK  = IK_l  + IK_g  - 2. * IP
+
+###################
+# glial buffering #
+###################
+k1   = 1.75e-3
+k2   = 6.2e-4
+J_gl = (k2 - k1 / (1.0 + exp((5.5-ke)/2.5))) * f_gl
+
+#############################
+# list of all changes rates #
+#####################################################################
+# c: membrane capacitance                   in [uF/cm^2]            #
+# conv: conversion from currents to fluxes  in [fmol/msec*cm^2/uA]  #
+# phi: gating timescale parameter           in [1/msec]             #
+# t_vl: timescale of volume dynamics        in [msec]               #
+#####################################################################
+c       = 1
+conv    = 9.55589e-05
+phi     = 3
+t_vl    = 250
+
+V_DOT     = -1. / c * (INA + IK + ICL_l)
+N_DOT     =  phi * (AN * (1 - n) - BN * n)
+H_DOT     =  phi * (AH * (1 - h) - BH * h)
+N_KI_DOT  = -CONV * IK
+N_CLI_DOT =  CONV * ICL_l
+DNK_DOT   =  J_gl
+VLI_DOT   =  1. / t_vl * (vli_inf - vli)
+VLG_DOT   =  1. / t_vl * (vlg_inf - vlg)
+
+####################################
+# auxiliary variables for plotting #
+####################################
+aux _ki	 = ki
+aux _ke	 = ke
+aux _nai = nai
+aux _nae = nae
+aux _cli = cli
+aux _cle = cle
+aux _EK	 = EK
+aux _ENA = ENA
+aux _ECL = ECL
+
+vli0         =  2160.
+vlg0         =  2160.
+vle0         =  vl_tot0 - vli0 - vlg0
+aux vli_line =  vli         
+aux vle_line = (vli+vle)    
+aux vlg_line = (vli+vle+vlg)
+aux dvli     = (vli - vli0) / vli0 * 100
+aux dvle     = (vle - vle0) / vle0 * 100
+aux dvlg     = (vlg - vlg0) / vlg0 * 100
+
+############
+# numerics #
+############
+@ meth=cvode
+@ dt=1e-4
+@ maxstor=10000000, bounds=10000000
+@ total=500
+@ bell=0
+
+#############################################
+# plot options corresponding to Fig. 7a/b/c #
+#############################################
+@ xhi=500
+@ nplot=4, yp1=v,  yp2=_EK, yp3=_ENA, yp4=_ECL, ylo=-150, yhi=160
+#@ nplot=3, yp1=vli_line, yp2=vle_line, yp3=vlg_line, ylo=0, yhi=6000
+#@ nplot=3, yp1=dvli, yp2=dvle, yp3=dvlg,  ylo=-90, yhi=50
+
+done

@@ -218,7 +218,7 @@ def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port
     """
     objects = [
         fac.Compartment(sid=compartment_id, value=1.0, unit=unit_volume, constant=True, name=compartment_id,
-                        spatialDimension=3),
+                        spatialDimensions=3),
     ]
     c = fac.create_objects(model, objects)
     if create_port:
@@ -400,7 +400,7 @@ def update_exchange_reactions(model, flux_unit):
         rid = r.getId()
         if rid != EXCHANGE_REACTION_PREFIX + sid:
             r.setId(EXCHANGE_REACTION_PREFIX + sid)
-            logging.warn("Exchange reaction fixd id: {} -> {}".format(rid, EXCHANGE_REACTION_PREFIX + sid))
+            logging.warning("Exchange reaction fixd id: {} -> {}".format(rid, EXCHANGE_REACTION_PREFIX + sid))
 
     # new lookup necessary, due to possible changed ids
     ex_rids = utils.find_exchange_reactions(model)
@@ -479,7 +479,7 @@ def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
 
     # format the formula
     formula = formula.format(FLUX_PARAMETER_PREFIX + sid)
-    fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_PREFIX,
+    fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_SBO,
                        reactants={sid: 1}, modifiers=modifiers,
                        formula=formula)
 
@@ -561,7 +561,6 @@ def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits
                         ])
 
 
-
 def create_dummy_reactions(model, model_fba, unit_flux=None):
     """ Creates the dummy reactions.
     This also creates the corresponding flux parameters and flux assignments.
@@ -589,7 +588,7 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
 
         # flux assignment rule
         objects.append(
-            fac.AssignmentRule(pid_flux, value=rid_flux),
+            fac.AssignmentRule(pid_flux, value=rid_flux, sboTerm=FLUX_ASSIGNMENTRULE_SBO),
         )
     fac.create_objects(model, objects)
 

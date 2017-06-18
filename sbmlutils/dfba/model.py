@@ -31,37 +31,41 @@ class DFBAModel(object):
         The models are resolved to their respective simulation framework.
         The top level network must be an ode network.
 
-        :param sbml_path: absolute path of top level SBML file
+        :param sbml_path: path to top level SBML file
         """
 
         # necessary to change the working directory to the sbml file directory
         # to resolve relative links to external model definitions.
         working_dir = os.getcwd()
-        sbml_dir = os.path.dirname(sbml_path)
-        os.chdir(sbml_dir)
+        sbml_path = os.path.abspath(sbml_path)
+        try:
+            sbml_dir = os.path.dirname(sbml_path)
+            os.chdir(sbml_dir)
 
-        self.sbml_top = sbml_path
-        self.sbml_dir = os.path.dirname(sbml_path)
+            self.sbml_top = sbml_path
+            self.sbml_dir = os.path.dirname(sbml_path)
 
-        # read top level model
-        self.doc_top = None
-        self.model_top = None
-        self.framework_top = None
-        self.submodels = defaultdict(list)
-        self.rr_comp = None
-        self.fba_models = []
-        self.flux_rules = {}
-        self.dt = None
+            # read top level model
+            self.doc_top = None
+            self.model_top = None
+            self.framework_top = None
+            self.submodels = defaultdict(list)
+            self.rr_comp = None
+            self.fba_models = []
+            self.flux_rules = {}
+            self.dt = None
 
-        self._process_top()
-        self._process_models()
-        self._process_dt()
+            self._process_top()
+            self._process_models()
+            self._process_dt()
 
-        # log model information
-        logging.info(self)
+            # log model information
+            logging.info(self)
 
-        # change back the working dir
-        os.chdir(working_dir)
+        finally:
+            # change back the working dir
+            os.chdir(working_dir)
+
 
     @property
     def fba_model(self):

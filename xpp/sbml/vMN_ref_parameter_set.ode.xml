@@ -1,0 +1,1296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># PARAMETERS
+p i0=2.5,is=0.0,ton=100,toff=900,A=0.0,f=0.0,B=0.0
+p gm=1
+p gnap=0.04,gh=0.05
+p gna=100.0,gkdr=20.0,gahp=10.0,gl=0.12
+p Cm=1,Vna=55.0,Vk=-90,Vh=-27.4,Vl=-70
+p Vsyn=0
+p THm=-28.0,Km=-7.8,THh=-50.0,Kh=7.0
+p THn=-23.0,Kn=-15.0
+p THp=-53.0,Kp=-5.0
+p THu=-25.0,Ku=-3,tauu=75.0
+p THz=-45.0,Kz=-4.25,tauz=75.0
+p THr=-83.9,Kr=7.4
+#
+#
+# INITIAL CONDITIONS
+V(0)=-67.231830
+h(0)=0.92141213
+n(0)=0.0497938
+z(0)=0.00040176
+u(0)=0.00040176 
+r(0)=0.095137881
+#
+#
+# FUNCTIONS
+Ina(V,h)=gna*(minf(V)^3)*h*(V-Vna)
+minf(V)=1.0/(1.0+exp((V-THm)/Km))
+hinf(V)=1.0/(1.0+exp((V-THh)/Kh))
+tauh(V)=30.0/(exp((V+50.0)/15.0)+exp(-(V+50.0)/16.0))
+#
+Ikdr(V,n)=gkdr*(n^4)*(V-Vk)
+ninf(V)=1.0/(1.0+exp((V-THn)/Kn))
+taun(V)=7.0/(exp((V+40.0)/40.0)+exp(-(V+40.0)/50.0))
+#
+Inap(V)=gnap*pinf(V)*(V-Vna)
+pinf(V)=1.0/(1+exp((V-THp)/Kp))
+#
+Im(V,z)=gm*z*(V-Vk)
+zinf(V)=1.0/(1+exp((V-THz)/Kz))
+#
+Iahp(V,u)=gahp*u*(V-Vk)
+uinf(V)=1.0/(1+exp((V-THu)/Ku))
+#
+Ih(V,r)=gh*r*(V-Vh)
+rinf(V)=1.0/(1+exp((V-THr)/Kr))
+taur(V)=6000.0/(exp((V+140.0)/21.6)+exp(-(V+40.0)/22.7))
+#
+Il(V)=gl*(V-Vl) 
+#
+Istep(t)=is*heav(t-ton)*heav(toff-t)
+Icos(t)=i0+A*cos(2*Pi*f*t)
+Iapp(t)=Istep(t)+Icos(t)
+aux I = Iapp(t)
+#
+#
+Isyn(V,t)=B*(1+cos(2*Pi*f*t))*(V-Vsyn)
+#
+#
+#
+# EQUATIONS
+V&apos;=(-Ina(V,h)-Ikdr(V,n)-Iahp(V,u)-Im(V,z)-Inap(V)-Ih(V,r)-Isyn(V,t)-Il(V)+Iapp(t))/Cm
+h&apos;=(hinf(v)-h)/tauh(v)
+n&apos;=(ninf(v)-n)/taun(v)
+z&apos;=(zinf(v)-z)/tauz
+u&apos;=(uinf(v)-u)/tauu
+r&apos;=(rinf(v)-r)/taur(v)
+#
+#
+#
+#
+#
+# xpp formatting
+@ XP=t
+@ YP=vs
+@ TOTAL=3000,DT=0.01
+@ MAXSTOR=8000000,BOUNDS=10000,method=runge-kutta
+@ xlo=0,xhi=3000,ylo=-92,yhi=53
+#
+@ NTST=250,NMAX=55000,NPR=50
+@ DS=0.2,DSMIN=0.001,DSMAX=0.3
+@ PARMIN=-30,PARMAX=400,NORMMIN=0.0,NORMMAX=10000.0
+@ AUTOVAR=vs,AUTOXMIN=-25.0,AUTOXMAX=400.0,AUTOYMIN=-80.0,AUTOYMAX=55.0
+
+
+
+done  
+
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="ina">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> h </ci>
+            </bvar>
+            <bvar>
+              <ci> gna </ci>
+            </bvar>
+            <bvar>
+              <ci> km </ci>
+            </bvar>
+            <bvar>
+              <ci> thm </ci>
+            </bvar>
+            <bvar>
+              <ci> vna </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gna </ci>
+              <apply>
+                <power/>
+                <apply>
+                  <ci> minf </ci>
+                  <ci> v </ci>
+                  <ci> thm </ci>
+                  <ci> km </ci>
+                </apply>
+                <cn type="integer"> 3 </cn>
+              </apply>
+              <ci> h </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vna </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="minf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> km </ci>
+            </bvar>
+            <bvar>
+              <ci> thm </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thm </ci>
+                    </apply>
+                    <ci> km </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="hinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> kh </ci>
+            </bvar>
+            <bvar>
+              <ci> thh </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thh </ci>
+                    </apply>
+                    <ci> kh </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 30 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn> 50 </cn>
+                    </apply>
+                    <cn> 15 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <plus/>
+                        <ci> v </ci>
+                        <cn> 50 </cn>
+                      </apply>
+                    </apply>
+                    <cn> 16 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="ikdr">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> n </ci>
+            </bvar>
+            <bvar>
+              <ci> gkdr </ci>
+            </bvar>
+            <bvar>
+              <ci> vk </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gkdr </ci>
+              <apply>
+                <power/>
+                <ci> n </ci>
+                <cn type="integer"> 4 </cn>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vk </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="ninf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> kn </ci>
+            </bvar>
+            <bvar>
+              <ci> thn </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thn </ci>
+                    </apply>
+                    <ci> kn </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="taun">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 7 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn> 40 </cn>
+                    </apply>
+                    <cn> 40 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <plus/>
+                        <ci> v </ci>
+                        <cn> 40 </cn>
+                      </apply>
+                    </apply>
+                    <cn> 50 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="inap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> gnap </ci>
+            </bvar>
+            <bvar>
+              <ci> kp </ci>
+            </bvar>
+            <bvar>
+              <ci> thp </ci>
+            </bvar>
+            <bvar>
+              <ci> vna </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gnap </ci>
+              <apply>
+                <ci> pinf </ci>
+                <ci> v </ci>
+                <ci> kp </ci>
+                <ci> thp </ci>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vna </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="pinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> kp </ci>
+            </bvar>
+            <bvar>
+              <ci> thp </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thp </ci>
+                    </apply>
+                    <ci> kp </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="im">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> z </ci>
+            </bvar>
+            <bvar>
+              <ci> gm </ci>
+            </bvar>
+            <bvar>
+              <ci> vk </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gm </ci>
+              <ci> z </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vk </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="zinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> kz </ci>
+            </bvar>
+            <bvar>
+              <ci> thz </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thz </ci>
+                    </apply>
+                    <ci> kz </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="iahp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> u </ci>
+            </bvar>
+            <bvar>
+              <ci> gahp </ci>
+            </bvar>
+            <bvar>
+              <ci> vk </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gahp </ci>
+              <ci> u </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vk </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="uinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> ku </ci>
+            </bvar>
+            <bvar>
+              <ci> thu </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thu </ci>
+                    </apply>
+                    <ci> ku </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="ih">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> r </ci>
+            </bvar>
+            <bvar>
+              <ci> gh </ci>
+            </bvar>
+            <bvar>
+              <ci> vh </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gh </ci>
+              <ci> r </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vh </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="rinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> kr </ci>
+            </bvar>
+            <bvar>
+              <ci> thr </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> thr </ci>
+                    </apply>
+                    <ci> kr </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="taur">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn> 6000 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <plus/>
+                      <ci> v </ci>
+                      <cn> 140 </cn>
+                    </apply>
+                    <cn> 21.6 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <plus/>
+                        <ci> v </ci>
+                        <cn> 40 </cn>
+                      </apply>
+                    </apply>
+                    <cn> 22.7 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="il">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> gl </ci>
+            </bvar>
+            <bvar>
+              <ci> vl </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> gl </ci>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vl </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="istep">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> is </ci>
+            </bvar>
+            <bvar>
+              <ci> toff </ci>
+            </bvar>
+            <bvar>
+              <ci> ton </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> is </ci>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> ton </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> toff </ci>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="icos">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> a </ci>
+            </bvar>
+            <bvar>
+              <ci> f </ci>
+            </bvar>
+            <bvar>
+              <ci> i0 </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <ci> i0 </ci>
+              <apply>
+                <times/>
+                <ci> a </ci>
+                <apply>
+                  <cos/>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <pi/>
+                    <ci> f </ci>
+                    <ci> t </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="iapp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> a </ci>
+            </bvar>
+            <bvar>
+              <ci> f </ci>
+            </bvar>
+            <bvar>
+              <ci> i0 </ci>
+            </bvar>
+            <bvar>
+              <ci> is </ci>
+            </bvar>
+            <bvar>
+              <ci> toff </ci>
+            </bvar>
+            <bvar>
+              <ci> ton </ci>
+            </bvar>
+            <apply>
+              <plus/>
+              <apply>
+                <ci> istep </ci>
+                <ci> t </ci>
+                <ci> toff </ci>
+                <ci> is </ci>
+                <ci> ton </ci>
+              </apply>
+              <apply>
+                <ci> icos </ci>
+                <ci> t </ci>
+                <ci> i0 </ci>
+                <ci> a </ci>
+                <ci> f </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="isyn">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> t </ci>
+            </bvar>
+            <bvar>
+              <ci> b </ci>
+            </bvar>
+            <bvar>
+              <ci> f </ci>
+            </bvar>
+            <bvar>
+              <ci> vsyn </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> b </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <cos/>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <pi/>
+                    <ci> f </ci>
+                    <ci> t </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> v </ci>
+                <ci> vsyn </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="i0" name="i0 = 2.5" value="2.5" constant="false"/>
+      <parameter id="is" name="is = 0.0" value="0" constant="false"/>
+      <parameter id="ton" name="ton = 100" value="100" constant="false"/>
+      <parameter id="toff" name="toff = 900" value="900" constant="false"/>
+      <parameter id="a" name="a = 0.0" value="0" constant="false"/>
+      <parameter id="f" name="f = 0.0" value="0" constant="false"/>
+      <parameter id="b" name="b = 0.0" value="0" constant="false"/>
+      <parameter id="gm" name="gm = 1" value="1" constant="false"/>
+      <parameter id="gnap" name="gnap = 0.04" value="0.04" constant="false"/>
+      <parameter id="gh" name="gh = 0.05" value="0.05" constant="false"/>
+      <parameter id="gna" name="gna = 100.0" value="100" constant="false"/>
+      <parameter id="gkdr" name="gkdr = 20.0" value="20" constant="false"/>
+      <parameter id="gahp" name="gahp = 10.0" value="10" constant="false"/>
+      <parameter id="gl" name="gl = 0.12" value="0.12" constant="false"/>
+      <parameter id="cm" name="cm = 1" value="1" constant="false"/>
+      <parameter id="vna" name="vna = 55.0" value="55" constant="false"/>
+      <parameter id="vk" name="vk = -90" value="-90" constant="false"/>
+      <parameter id="vh" name="vh = -27.4" value="-27.4" constant="false"/>
+      <parameter id="vl" name="vl = -70" value="-70" constant="false"/>
+      <parameter id="vsyn" name="vsyn = 0" value="0" constant="false"/>
+      <parameter id="thm" name="thm = -28.0" value="-28" constant="false"/>
+      <parameter id="km" name="km = -7.8" value="-7.8" constant="false"/>
+      <parameter id="thh" name="thh = -50.0" value="-50" constant="false"/>
+      <parameter id="kh" name="kh = 7.0" value="7" constant="false"/>
+      <parameter id="thn" name="thn = -23.0" value="-23" constant="false"/>
+      <parameter id="kn" name="kn = -15.0" value="-15" constant="false"/>
+      <parameter id="thp" name="thp = -53.0" value="-53" constant="false"/>
+      <parameter id="kp" name="kp = -5.0" value="-5" constant="false"/>
+      <parameter id="thu" name="thu = -25.0" value="-25" constant="false"/>
+      <parameter id="ku" name="ku = -3" value="-3" constant="false"/>
+      <parameter id="tauu" name="tauu = 75.0" value="75" constant="false"/>
+      <parameter id="thz" name="thz = -45.0" value="-45" constant="false"/>
+      <parameter id="kz" name="kz = -4.25" value="-4.25" constant="false"/>
+      <parameter id="tauz" name="tauz = 75.0" value="75" constant="false"/>
+      <parameter id="thr" name="thr = -83.9" value="-83.9" constant="false"/>
+      <parameter id="kr" name="kr = 7.4" value="7.4" constant="false"/>
+      <parameter id="v" name="v = -67.231830" value="-67.23183" constant="false"/>
+      <parameter id="h" name="h = 0.92141213" value="0.92141213" constant="false"/>
+      <parameter id="n" name="n = 0.0497938" value="0.0497938" constant="false"/>
+      <parameter id="z" name="z = 0.00040176" value="0.00040176" constant="false"/>
+      <parameter id="u" name="u = 0.00040176" value="0.00040176" constant="false"/>
+      <parameter id="r" name="r = 0.095137881" value="0.095137881" constant="false"/>
+      <parameter id="i" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="v">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <minus/>
+                          <apply>
+                            <minus/>
+                            <apply>
+                              <minus/>
+                              <apply>
+                                <ci> ina </ci>
+                                <ci> v </ci>
+                                <ci> h </ci>
+                                <ci> gna </ci>
+                                <ci> km </ci>
+                                <ci> thm </ci>
+                                <ci> vna </ci>
+                              </apply>
+                            </apply>
+                            <apply>
+                              <ci> ikdr </ci>
+                              <ci> v </ci>
+                              <ci> n </ci>
+                              <ci> gkdr </ci>
+                              <ci> vk </ci>
+                            </apply>
+                          </apply>
+                          <apply>
+                            <ci> iahp </ci>
+                            <ci> v </ci>
+                            <ci> u </ci>
+                            <ci> gahp </ci>
+                            <ci> vk </ci>
+                          </apply>
+                        </apply>
+                        <apply>
+                          <ci> im </ci>
+                          <ci> v </ci>
+                          <ci> z </ci>
+                          <ci> gm </ci>
+                          <ci> vk </ci>
+                        </apply>
+                      </apply>
+                      <apply>
+                        <ci> inap </ci>
+                        <ci> v </ci>
+                        <ci> gnap </ci>
+                        <ci> kp </ci>
+                        <ci> thp </ci>
+                        <ci> vna </ci>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <ci> ih </ci>
+                      <ci> v </ci>
+                      <ci> r </ci>
+                      <ci> gh </ci>
+                      <ci> vh </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <ci> isyn </ci>
+                    <ci> v </ci>
+                    <ci> t </ci>
+                    <ci> b </ci>
+                    <ci> f </ci>
+                    <ci> vsyn </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> il </ci>
+                  <ci> v </ci>
+                  <ci> gl </ci>
+                  <ci> vl </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> iapp </ci>
+                <ci> t </ci>
+                <ci> a </ci>
+                <ci> f </ci>
+                <ci> i0 </ci>
+                <ci> is </ci>
+                <ci> toff </ci>
+                <ci> ton </ci>
+              </apply>
+            </apply>
+            <ci> cm </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> hinf </ci>
+                <ci> v </ci>
+                <ci> kh </ci>
+                <ci> thh </ci>
+              </apply>
+              <ci> h </ci>
+            </apply>
+            <apply>
+              <ci> tauh </ci>
+              <ci> v </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> ninf </ci>
+                <ci> v </ci>
+                <ci> kn </ci>
+                <ci> thn </ci>
+              </apply>
+              <ci> n </ci>
+            </apply>
+            <apply>
+              <ci> taun </ci>
+              <ci> v </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="z">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> zinf </ci>
+                <ci> v </ci>
+                <ci> kz </ci>
+                <ci> thz </ci>
+              </apply>
+              <ci> z </ci>
+            </apply>
+            <ci> tauz </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="u">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> uinf </ci>
+                <ci> v </ci>
+                <ci> ku </ci>
+                <ci> thu </ci>
+              </apply>
+              <ci> u </ci>
+            </apply>
+            <ci> tauu </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> rinf </ci>
+                <ci> v </ci>
+                <ci> kr </ci>
+                <ci> thr </ci>
+              </apply>
+              <ci> r </ci>
+            </apply>
+            <apply>
+              <ci> taur </ci>
+              <ci> v </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="i">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> iapp </ci>
+            <ci> t </ci>
+            <ci> a </ci>
+            <ci> f </ci>
+            <ci> i0 </ci>
+            <ci> is </ci>
+            <ci> toff </ci>
+            <ci> ton </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

@@ -21,6 +21,7 @@ import warnings
 from six import iteritems
 
 import sbmlutils.annotation as annotation
+import sbmlutils.history as history
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
 from libsbml import SBMLDocument, SBMLNamespaces
@@ -65,16 +66,19 @@ class Factory(object):
 
 
 def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, mid=None):
-    """ Create SBML model from given information.
+    """ Create SBML model from module information.
 
     This is the entry point for creating models.
     The model information is provided as a list of importable python modules.
 
-    An annotation file can be provided.
+    Additional model annotations can be provided.
 
-    :param target_dir: where to create the SBML files
     :param modules: iteratable of strings of python modules
-    :param f_annotations: csv annotation file
+    :param target_dir: directory in which to create SBML files
+    :param annotations: list of annotations for SBML
+    :param suffix: Suffix for SBML filename
+    :param create_report: boolean switch to create SBML report
+    :param mid: model id to use for saving file
     :return:
     """
     # preprocess
@@ -176,7 +180,7 @@ class Preprocess(object):
                 d[key] = info
             else:
                 # key does not exist in module
-                logging.warn(" ".join(['missing:', key]))
+                logging.warning(" ".join(['missing:', key]))
         return d
 
 
@@ -291,7 +295,7 @@ class CoreModel(object):
             check(self.model.setNotes(self.notes), 'set notes')
         # history
         if hasattr(self, 'creators'):
-            annotation.set_model_history(self.model, self.creators)
+            history.set_model_history(self.model, self.creators)
 
         # main units
         if hasattr(self, 'main_units'):

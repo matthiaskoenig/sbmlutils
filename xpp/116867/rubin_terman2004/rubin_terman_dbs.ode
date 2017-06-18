@@ -1,0 +1,282 @@
+# rubin_terman_dbs.ode :  For Rubin & Terman, JCNS, 2004
+
+# identical to rubin_terman_pd.ode but with
+# periodic DBS stimulation applied
+
+# turn off stimulation by changing the initial condition
+# for i1 to il=0
+
+# note that there may be some numerical issues after 1000 msec so we
+#  avoided long time simulations in the paper
+
+# stn parameters
+p vl=-60,vna=55.,vk=-80.,thetam=30,sm=15
+p gl=2.25,gna=37.5,gk=45,tn=1.,th=0.05
+p gahp=9.,gca=.5,vca=140.,k1=15.,eps=5e-05
+p kca=22.5,thetas=39.,ss=8.,xp=1.,i=0.
+p thetah=-39,sh=3.1,thetan=-32.,sn=-8.
+p taun0=1,taun1=100.,thn=80.,sigman=26.
+p tauh0=1,tauh1=500,thh=57.,sigmah=3.,phi=.75
+p thetat=-63.,kt=-7.8,gt=.5,phir=.5
+p thetar=-67,kr=2.,taur0=7.1,taur1=17.5,thr=-68,sigmar=2.2
+p alpha=5,beta=1.,ab=-30.,gsyn=0.9,vsyn=-100
+p rth=.25,rsig=-.07,rho1=.5,a1=.9,hets=0,inp=25
+p alphai=1,betai=.05
+
+# gp parameters
+p gnag=120.,gkg=30.,gahpg=30.,gtg=.5,gcag=.1,glg=.1
+p vnag=55.,vkg=-80.,vcag=120.,vlg=-55.
+p thetasg=-57.,ksg=2.,thetas1g=-35.,ks1g=2.
+p thetarg=-70.,krg=-2.,taurg=30.
+p thetamg=-37.,sigmamg=10.
+p thetang=-50.,sigmang=14.
+p taun0g=.05,taun1g=.27,thng=-40,sng=-12
+p thetahg=-58,sigmahg=-12
+p tauh0g=.05,tauh1g=.27,thhg=-40,shg=-12
+p k1g=30.,kcag=15.,epsg=0.0001
+p phig=1.,deltang=.1,deltahg=.05
+p iapp=2,gsyngg=.3,vsyngg=-80.
+p gsyng=0.3,vsyng=0,alphag=2,betag=.04,abg=-20
+p iappi=5,igl=1.,thresg=0.0,hetg=0.,betagi=.08,kcagi=15
+p gsyngi=.3,gsynggi=1.5,alphaggi=1,betaggi=.1
+
+# TC parameters
+p vsyntc=-85,gsyntc=.08,asg=200,bsg=.4
+p itc=6,shi=-80,shi2=-90,dur=5,dur2=10,period=25
+p gnabar=3,gkbar=5,glbar=.05,ena=50,ek=-90,eleak=-70
+p gtbar=5,qht=2.5,tadj=1,apr=4,apt=1
+
+# stn functions
+sinf(v)=1./(1.+exp(-(v+thetas)/ss))
+minf(v)=1./(1.+exp(-(v+thetam)/sm))
+hinf(v)=1./(1.+exp((v-thetah)/sh))
+ninf(v)=1./(1.+exp((v-thetan)/sn))
+taun(v)=taun0+taun1/(1+exp((v+thn)/sigman))
+tauh(v)=tauh0+tauh1/(1+exp((v+thh)/sigmah))
+rinf(v)=1/(1+exp((v-thetar)/kr))
+taur(v)=taur0+taur1/(1+exp((v+thr)/sigmar))
+tinf(v)=1/(1+exp((v-thetat)/kt))
+rnew(r)=1/(1+exp((r-rth)/rsig))-1/(1+exp(-rth/rsig))
+
+# gp functions
+sinfg(vg)=1/(1+exp(-(vg-thetasg)/ksg))
+sinf1g(vg)=1/(1+exp(-(vg-thetas1g)/ks1g))
+rinfg(vg)=1/(1+exp(-(vg-thetarg)/krg))
+minfg(vg)=1./(1.+exp(-(vg-thetamg)/sigmamg))
+ninfg(vg)=1./(1.+exp(-(vg-thetang)/sigmang))
+taung(vg)=taun0g+taun1g/(1+exp(-(vg-thng)/sng))
+hinfg(vg)=1./(1.+exp(-(vg-thetahg)/sigmahg))
+tauhg(vg)=tauh0g+tauh1g/(1+exp(-(vg-thhg)/shg))
+hv(v)=1./(1.+exp(-v/.001))
+
+# TC functions
+inaf(v,m,h)=gnabar*m^3*h*(v-ena)
+ikf(v,n)=gkbar*n^4*(v-ek)
+ilf(v)=glbar*(v-eleak)
+itf(v,mt,ht)=gtbar*mt^2*ht*v
+minftc(v)  =  1/(1+exp(-(v+37)/7))
+mtinf(v)  = 1/(1+exp(-(v+60)/6.2))
+ah(v) =  0.128*exp(-(46+v)/18)
+bh(v) =  apr/(1+exp(-(23+v)/5))
+tauhtc(v)  =  1/(ah(v)+bh(v))
+hinftc(v)  =  1/(1+exp((v+41)/4))
+htinf(v)  = 1/(1+exp((v+84)/4))
+tauht(v)=(28+apt*exp((v+25)/(-10.5)))
+
+# function for cortical inputs, periodic case:
+ftc(t)=itc*hv(sin(6.2831853*(t+shi)/period))*(1-hv(sin(6.2831853*(t+shi+dur)/period)))
+
+# function used to set up windows for calculation of error index:
+ftc2(t)=hv(sin(6.2831853*(t+shi2)/period))*(1-hv(sin(6.2831853*(t+shi2+dur2)/period)))
+
+# stn currents
+il(v)=gl*(v-vl)
+ina(v,h)=gna*(minf(v))^3*h*(v-vna)
+ik(v,n)=gk*n^4*(v-vk)
+iahp(v,ca)=gahp*(v-vk)*ca/(ca+k1)
+ica(v)=gca*((sinf(v))^2)*(v-vca)
+it(v,r)=gt*(tinf(v)**3)*(rnew(r)^2)*(v-vca)
+
+isyn1=gsyn*(sg5+sg2)*(v1-vsyn)
+isyn2=gsyn*(sg6+sg1)*(v2-vsyn)
+isyn3=gsyn*(sg8+sg4)*(v3-vsyn)
+isyn4=gsyn*(sg7+sg3)*(v4-vsyn)
+isyn5=gsyn*(sg2+sg6)*(v5-vsyn)
+isyn6=gsyn*(sg1+sg5)*(v6-vsyn)
+isyn7=gsyn*(sg3+sg8)*(v7-vsyn)
+isyn8=gsyn*(sg4+sg7)*(v8-vsyn)
+isyn9=gsyn*(sg13+sg10)*(v9-vsyn)
+isyn10=gsyn*(sg14+sg9)*(v10-vsyn)
+isyn11=gsyn*(sg16+sg12)*(v11-vsyn)
+isyn12=gsyn*(sg15+sg11)*(v12-vsyn)
+isyn13=gsyn*(sg10+sg14)*(v13-vsyn)
+isyn14=gsyn*(sg9+sg13)*(v14-vsyn)
+isyn15=gsyn*(sg11+sg16)*(v15-vsyn)
+isyn16=gsyn*(sg12+sg15)*(v16-vsyn)
+
+
+# gp currents
+itg(vg,rg)=gtg*(sinfg(vg)^3)*rg*(vg-vcag)
+inag(vg,hg)=gnag*(minfg(vg)^3)*hg*(vg-vnag)
+ikg(vg,ng)=gkg*(ng^4)*(vg-vkg)
+iahpg(vg,cag)=gahpg*(vg-vkg)*cag/(cag+k1g)
+icag(vg)=gcag*((sinf1g(vg))^2)*(vg-vcag)
+ilg(vg)=glg*(vg-vlg)
+
+isyng1=gsyng*(s8+s4+.2*s16)*(vg1-vsyng)
+isyng2=gsyng*(s7+s3+.2*s15)*(vg2-vsyng)
+isyng3=gsyng*(s1+s5+.2*s9)*(vg3-vsyng)
+isyng4=gsyng*(s2+s6+.2*s10)*(vg4-vsyng)
+isyng5=gsyng*(s4+s8+.2*s12)*(vg5-vsyng)
+isyng6=gsyng*(s3+s7+.2*s11)*(vg6-vsyng)
+isyng7=gsyng*(s5+s2+.2*s13)*(vg7-vsyng)
+isyng8=gsyng*(s6+s1+.2*s14)*(vg8-vsyng)
+
+isyng9=gsyng*(s16+s12+.2*s8)*(vg9-vsyng)
+isyng10=gsyng*(s15+s11+.2*s7)*(vg10-vsyng)
+isyng11=gsyng*(s9+s13+.2*s1)*(vg11-vsyng)
+isyng12=gsyng*(s10+s14+.2*s2)*(vg12-vsyng)
+isyng13=gsyng*(s12+s16+.2*s4)*(vg13-vsyng)
+isyng14=gsyng*(s11+s15+.2*s3)*(vg14-vsyng)
+isyng15=gsyng*(s13+s10+.2*s5)*(vg15-vsyng)
+isyng16=gsyng*(s14+s9+.2*s6)*(vg16-vsyng)
+
+
+isyngg1=gsyngg*(sg2+sg3)*(vg1-vsyngg)
+isyngg2=gsyngg*(sg1+sg5)*(vg2-vsyngg)
+isyngg3=gsyngg*(sg4+sg8)*(vg3-vsyngg)
+isyngg4=gsyngg*(sg3+sg1)*(vg4-vsyngg)
+isyngg5=gsyngg*(sg6+sg7)*(vg5-vsyngg)
+isyngg6=gsyngg*(sg5+sg2)*(vg6-vsyngg)
+isyngg7=gsyngg*(sg8+sg3)*(vg7-vsyngg)
+isyngg8=gsyngg*(sg7+sg4)*(vg8-vsyngg)
+isyngg9=gsyngg*(sg10+sg11)*(vg9-vsyngg)
+isyngg10=gsyngg*(sg9+sg13)*(vg10-vsyngg)
+isyngg11=gsyngg*(sg12+sg16)*(vg11-vsyngg)
+isyngg12=gsyngg*(sg11+sg9)*(vg12-vsyngg)
+isyngg13=gsyngg*(sg14+sg15)*(vg13-vsyngg)
+isyngg14=gsyngg*(sg13+sg10)*(vg14-vsyngg)
+isyngg15=gsyngg*(sg16+sg11)*(vg15-vsyngg)
+isyngg16=gsyngg*(sg15+sg12)*(vg16-vsyngg)
+
+
+isyngi[1..16]=gsyngi*si[j]*(vgi[j]-vsyng)
+
+isynggi[1..16]=gsynggi*sggi[j]*(vgi[j]-vsyn)
+
+i V1=-78.,V2=-55.,V3=-78.,V4=-52.
+i V5=-78.,V6=-78.,H1=0.2,H2=0.08
+i H3=0.2,H4=0.08,H5=0.2,H6=0.2
+i N1=0.08,N2=0.4,N3=0.08,N4=0.43
+i N5=0.08,N6=0.08,R1=0.67,R2=0.38
+i R3=0.67,R4=0.38,R5=0.67,R6=0.67
+i CA1=0.44,CA2=0.47,CA3=0.4,CA4=0.4
+i CA5=0.44,CA6=0.44,S1=0.001,S2=0.3
+i S3=0.001,S4=0.35,S5=0.001,S6=0.31
+i VG1=-16.,VG2=-69.,VG3=-6.8,VG4=-69.
+i VG5=-8.,VG6=-69.,NG1=0.84,NG2=0.2
+i NG3=0.8,NG4=0.2,NG5=0.83,NG6=0.2
+i HG1=0.1,HG2=0.7,HG3=0.14,HG4=0.7
+i HG5=0.15,HG6=0.7,RG1=0.6,RG2=0.47
+i RG3=0.66,RG4=0.47,RG5=0.66,RG6=0.47
+i CAG1=0.068,CAG2=0.06,CAG3=0.067,CAG4=0.05
+i CAG5=0.067,CAG6=0.05,SG1=0.025,SG2=0.025
+i SG3=0.06,SG4=0.025,SG5=0.025,SG6=0.025
+
+i V10=-78.,V9=-512.,V11=-78.,V13=-129.
+i V12=-78.,V15=-78.,H10=0.9,H9=0.08
+i H11=0.9,H13=0.08,H12=0.9,H15=0.9
+i N10=0.08,N9=0.13,N11=0.08,N13=0.1311
+i N12=0.08,N15=0.08,R10=0.157,R9=0.118
+i R11=0.157,R13=0.118,R12=0.157,R15=0.157
+i CA10=0.1313,CA9=0.137,CA11=0.13,CA13=0.13
+i CA12=0.1313,CA15=0.1313,S10=0.0010,S9=0.11
+i S11=0.0010,S13=0.1112,S12=0.0010,S15=0.1110
+i VG10=-1015.,VG9=-159.,VG11=-15.8,VG13=-159.
+i VG12=-8.,VG15=-159.,NG10=0.813,NG9=0.9
+i NG11=0.8,NG13=0.9,NG12=0.811,NG15=0.9
+i HG10=0.10,HG9=0.7,HG11=0.1013,HG13=0.7
+i HG12=0.1012,HG15=0.7,RG10=0.15,RG9=0.137
+i RG11=0.1515,RG13=0.137,RG12=0.1515,RG15=0.137
+i CAG10=0.0158,CAG9=0.015,CAG11=0.0157,CAG13=0.012
+i CAG12=0.0157,CAG15=0.012,SG10=0.0912,SG9=0.0912
+i SG11=0.015,SG13=0.0912,SG12=0.0912,SG15=0.0912
+
+i vt1=-65.7,ht1=.008577
+
+# stn equations
+v[1..16]'=-(il(v[j])+ina(v[j],h[j])+ik(v[j],n[j])+iahp(v[j],ca[j])+ica(v[j])+it(v[j],r[j]))-isyn[j]+hets*[j]+inp+dbs(t)
+h[1..16]'=phi*( hinf(v[j])-h[j] )/tauh(v[j])
+n[1..16]'=phi*( ninf(v[j])-n[j] )/taun(v[j])
+r[1..16]'=phir*(rinf(v[j])-r[j])/taur(v[j])
+ca[1..16]'=phi*eps*(-ica(v[j])-it(v[j],r[j]) - kca*ca[j])
+s[1..16]'=alpha*(1-s[j])*sinf(v[j]+ab)-beta*s[j]
+si[1..16]'=alphai*(1-si[j])*sinf(v[j]+ab)-betai*si[j]
+
+# gp equations
+vg[1..16]'= -(itg(vg[j],rg[j])+inag(vg[j],hg[j])+ikg(vg[j],ng[j])+iahpg(vg[j],cag[j])+icag(vg[j])+ilg(vg[j]))+iapp-isyngg[j]-isyng[j]+hetg*[j]
+ng[1..16]'= deltang*(ninfg(vg[j])-ng[j])/taung(vg[j])
+hg[1..16]'= deltahg*(hinfg(vg[j])-hg[j])/tauhg(vg[j])
+rg[1..16]'= phig*(rinfg(vg[j])-rg[j])/taurg
+cag[1..16]'=epsg*(-icag(vg[j])-itg(vg[j],rg[j]) - kcag*cag[j])
+sg[1..16]'=alphag*(1-sg[j])*sinfg(vg[j]+abg)-betag*sg[j]
+sggi[1..16]'=alphaggi*(1-sggi[j])*sinfg(vg[j]+abg)-betaggi*sggi[j]
+
+# gpi equations
+vgi[1..16]'= -(itg(vgi[j],rgi[j])+inag(vgi[j],hgi[j])+ikg(vgi[j],ngi[j])+iahpg(vgi[j],cagi[j])+icag(vgi[j])+ilg(vgi[j]))+iappi-isyngi[j]-isynggi[j]
+ngi[1..16]'= deltang*(ninfg(vgi[j])-ngi[j])/taung(vgi[j])
+hgi[1..16]'= deltahg*(hinfg(vgi[j])-hgi[j])/tauhg(vgi[j])
+rgi[1..16]'= phig*(rinfg(vgi[j])-rgi[j])/taurg
+cagi[1..16]'=epsg*(-icag(vgi[j])-itg(vgi[j],rgi[j]) - kcagi*cagi[j])
+sgi[1..16]'=alphag*(1-sgi[j])*sinfg(vgi[j]+abg)-betagi*sgi[j]
+
+# TC equations
+vt1'=-(ilf(vt1)+inaf(vt1,minftc(vt1),ht1)+ikf(vt1,.75*(1-ht1))+itf(vt1,mtinf(vt1),htt1))+ftc(t)-gsyntc*sga*(vt1-vsyntc)
+htt1'=qht*(htinf(vt1)-htt1)/tauht(vt1)
+ht1'=tadj*(hinftc(vt1)-ht1)/tauhtc(vt1)
+
+vt2'=-(ilf(vt2)+inaf(vt2,minftc(vt2),ht2)+ikf(vt2,.75*(1-ht2))+itf(vt2,mtinf(vt2),htt2))+ftc(t)-gsyntc*sgb*(vt2-vsyntc)
+htt2'=qht*(htinf(vt2)-htt2)/tauht(vt2)
+ht2'=tadj*(hinftc(vt2)-ht2)/tauhtc(vt2)
+
+# additional variables used for error index calculations and DBS
+# note that i1 is amplitude of DBS:
+#  with i1'=0, signal turns on or off
+#  il'=f(t) can be used to specify form of signal while on
+# pdbs is period of DBS
+# ddbs is on duration of each DBS pulse
+# both of these are constant by default but can be made time-dependent
+
+coun1'=0
+coun2'=0
+pdbs'=0
+ddbs'=0
+i1'=0
+z[1..2]'=1-hv(z[j]-50)
+good[1..2]'=0
+
+p thr0=20
+i z1=50,z2=50
+i good1=0,good2=0
+
+global 1 {(vt1+thr0)*hv(t-25)*hv(ftc2(t)-0.5)} {coun1=coun1+1}
+global 1 {(vt2+thr0)*hv(t-25)*hv(ftc2(t)-0.5)} {coun2=coun2+1}
+global 1 {(vt1+10)*hv(t-25)*hv(ftc2(t)-0.5)*hv(z1-40)} {z1=0;good1=good1+1}
+global 1 {(vt2+10)*hv(t-25)*hv(ftc2(t)-0.5)*hv(z2-40)} {z2=0;good2=good2+1}
+dbs(t)=i1*hv(sin(6.2831853*t/pdbs))*(1-hv(sin(6.2831853*(t+ddbs)/pdbs)))
+
+sga=sgi1+sgi2+sgi5+sgi6+sgi9+sgi10+sgi13+sgi14
+sgb=sgi3+sgi4+sgi7+sgi8+sgi11+sgi12+sgi15+sgi16
+
+aux sg=ftc(t)
+aux sgt=ftc2(t)
+
+aux sa=sga
+aux sb=sgb
+
+
+@ maxstor=100001,dt=.1,total=1000,meth=qualrk,xp=t,yp=v1,xlo=0,xhi=1000,ylo=-80,yhi=20.,bound=50000
+
+done
+
+

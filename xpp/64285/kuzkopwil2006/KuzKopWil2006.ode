@@ -1,0 +1,59 @@
+#this is the two compartment model with a brief NMDA activation
+
+alphan(V)=-0.0032*tk*(V+5.)/(exp(-(V+5.)/10.) - 1.)
+betan(V)=0.05*tk*exp(-((V+10.)/16.))
+
+alpham(V)=-0.32*(V+31.)/(exp(-(V+31.)/4.) - 1.)
+betam(V)=0.28*(V+4.)/(exp((V+4.)/5.) - 1.)
+minf(v)=alpham(v)/(alpham(v)+betam(v))
+alphah(V)=0.2*th*exp(-((V+47.)/18.))
+betah(V)=25.*th/(1.+(exp(-(V+24.)/5.)))
+
+gNa1(v,h)=gbarNa1*(minf(v)**3)*h
+gK2(n)=gbarK2*(n**4)
+gK1(x)=gbarK1/(1. + exp(-(x-vHk)/vSk))
+
+
+v1'=i1+gCa1(v1)*(ECa-v1)+(gKCa1(u1)+gk1(v1)+gK2(n1))*(EK-v1)+gL1*(EL1-v1)+gNa1(v1,h1)*(ENa-v1)+nd*gc*(v2-v1)*r1*r2*r2/(r1*r1+r2*r2)
+u1'= 2.*buf1*(gCa1(v1)*(ECa - v1)/H - u1/tC1)/r1
+n1'= alphan(v1)*(1.-n1)-betan(v1)*n1
+h1'= alphah(v1)*(1.-h1)-betah(v1)*h1
+
+v2'=gCa1(v2)*(ECa-v2)+(gKCa1(u2)+gK1(v2)+gK2(n2))*(EK-v2)+gL1*(EL1-v2)+gNa1(v2,h2)*(ENa-v2)+gc*(v1-v2)*r1*r1*r2/(r1*r1+r2*r2)+gnmda(v2)*(eNMDA-v2)+gampa*tnmda*(eAMPA-v2)+gGABA*(eGABA-v2)
+u2'= 2.*buf1*(gCa1(v2)*(ECa - v2)/H - u2/tC1)/r2
+n2'= alphan(v2)*(1.-n2)-betan(v2)*n2
+h2'= alphah(v2)*(1.-h2)-betah(v2)*h2
+
+alphac1(V,tsc)=if (abs(V+50)>0.00001) then (-0.0032*tsc*(V+50.)/(exp(-(V+50.)/5.) - 1.)) else (0.016*tsc)
+betac1(V,tsc)=0.05*tsc*exp(-(V+55.)/40.)
+csinf(V)=alphac1(V,1)/(alphac1(V,1)+betac1(V,1))
+
+# NMDA receptor activation
+tnmda=heav(t-idel)-heav(t-idur-idel)
+gnmda(v)=(tnmda*gbarNMDA+gbarNMDAc)/(1+0.28*Mg*exp(-me*v))
+aux nmda=gnmda(v2)
+aux ilong=(v1-v2)*gc
+
+gCa1(V)=gbarCa1*(csinf(V)**4)
+gKCa1(x)=gbarKCa1*(x**4)/((x**4) + (k1**4))
+
+par idel=600, idur=500
+par gL1=0.05, EL1=-50, buf1=0.05, gbarKCa1=0.3, k1=250., r1=10., r2=0.5,tC1=4
+par gbarCa1=0.15,  gbarK2=4
+par gbarK1=0.4,vHk=-10, vSk=7
+par i1=0., gc=0.3
+par ENa=55., ECa=100., EK=-90.
+par H=.019298,tk=1
+par gbarNMDA=0.4,  gbarNMDAc=0, Mg=0.5, me=0.08, eNMDA=0
+par nd=10
+par gbarNa1=150, th=0.05
+par gGABA=0,eGABA=-50
+par gAMPA=0,eAMPA=0
+
+
+init v1=-54.4, u1=91.6, n1=0.17, h1=0.13, v2=-60, u2=149, n2=0.0025, h2=1
+
+@ MAXSTOR=40000,TOTAL=2000,bell=off,XP=t,YP=v1
+@ BOUND=10000,DT=0.1,METH=stiff,XHI=2000,YLO=-60,YHI=60
+
+done

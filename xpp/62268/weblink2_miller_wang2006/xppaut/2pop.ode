@@ -1,0 +1,39 @@
+# Rate-based model of coupled neuron populations to 
+# perform discrimination using integral feedback control.
+# Continuous attractor version.
+par w1_2=1.0 w2_1=-1.0 i0=0.5 tau=0.05 di=0.001 
+par tstim=0.5 t1=5.0 t2=10.0 tauapp=0.005 dtapp=0.001
+par f1=20 f2=16 
+
+init r1=0.0 r2=0.0 
+# init sapp1=0.0 sapp2=0.0 
+init s1=0.0 s2=0.0
+
+sapp1=f1/((1+exp(-2*(t-t1)/dtapp))*(1+exp(-2*(t1+tstim-t)/dtapp)))
+sapp2=f2/((1+exp(-2*(t-t2)/dtapp))*(1+exp(-2*(t2+tstim-t)/dtapp)))
+
+ds1/dt=(sapp1-s1)/tauapp
+ds2/dt=(sapp2-s2)/tauapp
+
+dr2/dt=w1_2*r1/tau
+i1=w2_1*r2+s1+s2-i0
+dr1/dt=(-r1+i1/(1+exp(-2*i1/di)))/tau
+# dsapp1/dt=(s1-sapp1)/tauapp
+# dsapp2/dt=(s2-sapp2)/tauapp
+# ds1/dt=0.0
+# ds2/dt=0.0
+
+# global 1 {t-t1} {s1=f1}
+# global 2 {t-t1-tstim} {s1=0.0}
+# global 3 {t-t2} {s2=f2}
+# global 4 {t-t2-tstim} {s2=0}
+
+@total=15,bound=100,dt=.001,dtmin=1e-5,dtmax=10,atoler=1e-4
+@toler=1e-5,xhi=15,yhi=2,ylo=0 njmp=50,bell=0
+@bell=off,nout=50                                                             
+done
+
+
+
+
+

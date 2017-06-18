@@ -1,0 +1,51 @@
+# Markovian model for human hKv4.3-2 in heart cells which is responsible for the early phase of cardiac repolarization
+# Greenstein JL et al., Role of the calcium-independent tranisent outward current Ito1 in shaping action 
+#  potential morphology and duration.  Circ Res 2000;87:1026-1033
+# The results are similar to figure 3A of the paper.
+# Notably, current traces shown in figure 2A were displaced for the the sake of clarity. 
+# Model parameters appears in http://circres.ahajournals.org/cgi/data/87/11/1026/DC1/1.
+# The model was implemented by Dr. Sheng-Nan Wu, Dr. Ruey J. Sung, Ya-Jean Wang and Jiun-Shian Wu
+
+# Initial values
+init c0=1, c1=0, c2=0, c3=0
+init ci0=0, ci1=0, ci2=0, ci3=0
+init o=0, oi=0
+
+# Voltage clamp protocols (double-pulse protocol)
+par vhold=-80, vtest_1=20, vtest_2=-80
+par ton=10, toff=160, toff_r=170
+v = vhold+heav(t-ton)*heav(toff-t)*(vtest_1-vhold)+heav(t-toff)*heav(toff_r-t)*(vtest_2-vhold)
+
+# Values of the model parameters
+par aa0=0.6347, aa=0.02912, ba0=0.1243, ba=0.0323, ai0=0.05388, ai=4.944e-6, bi0=2.825e-4, bi=4.096e-8
+par f1=2.303, f2=16.4, f3=265.833, f4=259.12, b1=1.1653, b2=1.5137, b3=13.072, b4=529.125
+par scale=1
+
+# Expressions
+Ek=-80.0
+par gkbar=0.0075
+aaa = aa0*exp(aa*v)
+baa = ba0*exp(-ba*v)
+aia = ai0*exp(-ai*v)
+bia = bi0*exp(bi*v)
+
+# Gating functions
+c0' = c1*baa + ci0*aia -c0*(4*aaa + bia)
+c1' = c0*4*aaa + c2*2*baa + ci1*aia/b1 - c1*(baa + 3*aaa + f1*bia)
+c2' = c1*3*aaa +c3*3*baa + ci2*aia/b2  - c2*(2*baa +2*aaa + f2*bia)
+c3' = c2*2*aaa + o*4*baa + ci3*aia/b3 - c3*(3*baa + aaa + f3*bia)
+o' = c3*aaa + oi*aia/b4 - o*(4*baa + f4*bia)
+ci0' = c0*bia + ci1*baa/f1 - ci0*(aia + b1*4*aaa)
+ci1' = c1*f1*bia + ci0* b1*4*aaa +ci2*f1*2*baa/f2 - ci1*(baa/f1 + aia/b1 + b2*3*aaa/b1)
+ci2' = c2*f2*bia + ci1*b2*3*aaa/b1 + ci3*f2*3*baa/f3  - ci2*(f1*2**baa/f2 + aia/b2 +b3*2*aaa/b2) 
+ci3' = c3*f3*bia + ci2*b3*2*aaa/b2 + oi*f3*4*baa/f4 -ci3*(f2*3*baa/f3 + aia/b3 +b4*aaa/b3)
+oi' = o*f4*bia  - oi*f3*4*baa/f4
+
+aux ika = gkbar*(o+oi)*(v-Ek)/scale
+aux prop = o+oi
+
+# XPP parameters
+@ meth=Euler, dt=.01, total=170
+@ xplot=t, yplot=ika, yhi=1.1, ylo=-0.1, xlo=-0, xhi=170, bound=500
+
+done

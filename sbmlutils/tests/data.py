@@ -29,13 +29,13 @@ BASIC_SBML = pjoin(data_dir, 'models/basic/basic_7.xml')
 # demo -----------------------
 DEMO_SBML = pjoin(data_dir, 'models/demo/Koenig_demo_12.xml')
 DEMO_SBML_NO_ANNOTATIONS = pjoin(data_dir, 'models/demo/Koenig_demo_12_no_annotations.xml')
-DEMO_ANNOTATIONS = pjoin(data_dir, 'models/demo/demo_annotations.xlsx.csv')
+DEMO_ANNOTATIONS = pjoin(data_dir, 'models/demo/demo_annotations.xlsx')
 
 # galactose ------------------
 GALACTOSE_SINGLECELL_SBML = pjoin(data_dir, 'models/galactose/galactose_30.xml')
 GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS = pjoin(data_dir, 'models/galactose/galactose_30_no_annotations.xml')
 GALACTOSE_TISSUE_SBML = pjoin(data_dir, 'models/galactose/Galactose_v128_Nc20_dilution.xml')
-GALACTOSE_ANNOTATIONS = pjoin(data_dir, 'models/galactose/galactose_annotations.xlsx.csv')
+GALACTOSE_ANNOTATIONS = pjoin(data_dir, 'models/galactose/galactose_annotations.xlsx')
 
 # glucose ------------------
 GLUCOSE_SBML = pjoin(data_dir, 'models/glucose/Hepatic_glucose_3.xml')

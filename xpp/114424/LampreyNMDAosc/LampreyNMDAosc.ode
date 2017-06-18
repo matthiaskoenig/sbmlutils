@@ -1,0 +1,43 @@
+# A simplified model of NMDA oscillations in lamprey locomotor network neurons
+# Mikael Huss 070315
+
+# Components: NMDA, KCa, Kv, leak, Cav, KCa channels
+# KCa gets activated by both NMDA-Ca and Cav.
+
+# Voltage equation (the factor 1000 is to get the time in seconds)
+
+dv/dt= 1000 * (p(v)*gnmda*(enmda-v) + gkca*act_kca(C)*(ek-v) + gk*act_k(v)*(ek-v) + gleak*(eleak-v) + gcav*act_cav(v)*(eca-v) + ibias)
+
+dc/dt= inmda*p(v)*gnmda*(enmda-v) + icav*gcav*act_cav(v)*(eca-v) - C/tau
+
+param gnmda=0.005, gkca=20, gk=8, gcav=0.005, gleak=0.001
+param tc=0.02, tau=1, inmda=0.2, icav=0.3, ibias=0
+param enmda=0, eleak=-70,   ek=-80, eca=150, 
+param vmhalf=-60, vkhalf=-1, vcahalf=-45
+param sm=.3, sk=-7, sca=-5
+
+# Magnesium block equation
+p(v)=exp(sm*(v-vmhalf))/(1+exp(sm*(v-vmhalf)))
+
+# Kv current (assumed to be a combination of delayed rectifier and A-current)
+act_k(v) = 1/(1+exp((v-vkhalf)/sk))
+
+# Assume that we have a calcium component with half-activation at -45 mV
+# (Corresponding to the component which "starts to activate between
+# -60 and -50 mV"; El Manira and Bussieres 1997)
+act_cav(v) = 1/(1+exp((v-vcahalf)/sca))
+
+act_kca(C)=tc*C
+aux act=act_kca(C)
+
+init v=-70
+param v(0)=-70
+c(0)=0
+
+@ METH=cvode, ATOLER=1e-6, TOLER=1e-6, DT=0.02
+@ TOTAL=30, XP=t, YP=v, MAXSTOR=500000, BOUND=50000, BELL=0
+@ XLO=0, XHI=30, YLO=-80, YHI=0
+@ ntst=400, nmax=20000, dsmin=1e-15, dsmax=.1, ds=1e-4
+@ epsl=1e-7, epsu=1e-7, epss=1e-5
+@ parmin=0, parmax=0.8
+@ autoxmin=0, autoxmax=0.8, autoymin=-80, autoymax=0, autovar=v

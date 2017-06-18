@@ -1,0 +1,3343 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title></title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_functions">FunctionDefinitions</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <h1>XPP model</h1>
+    <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+    <pre># Markovian model for human hKv4.3-2 in heart cells which is responsible for the early phase of cardiac repolarization
+# Greenstein JL et al., Role of the calcium-independent tranisent outward current Ito1 in shaping action 
+#  potential morphology and duration.  Circ Res 2000;87:1026-1033
+# The results are similar to figure 3A of the paper.
+# Notably, current traces shown in figure 2A were displaced for the the sake of clarity. 
+# Model parameters appears in http://circres.ahajournals.org/cgi/data/87/11/1026/DC1/1.
+# The model was implemented by Dr. Sheng-Nan Wu, Dr. Ruey J. Sung, Ya-Jean Wang and Jiun-Shian Wu
+
+# Initial values
+init c0=1, c1=0, c2=0, c3=0
+init ci0=0, ci1=0, ci2=0, ci3=0
+init o=0, oi=0
+
+# Voltage clamp protocols (double-pulse protocol)
+par vhold=-80, vtest_1=20, vtest_2=-80
+par ton=10, toff=160, toff_r=170
+v = vhold+heav(t-ton)*heav(toff-t)*(vtest_1-vhold)+heav(t-toff)*heav(toff_r-t)*(vtest_2-vhold)
+
+# Values of the model parameters
+par aa0=0.6347, aa=0.02912, ba0=0.1243, ba=0.0323, ai0=0.05388, ai=4.944e-6, bi0=2.825e-4, bi=4.096e-8
+par f1=2.303, f2=16.4, f3=265.833, f4=259.12, b1=1.1653, b2=1.5137, b3=13.072, b4=529.125
+par scale=1
+
+# Expressions
+Ek=-80.0
+par gkbar=0.0075
+aaa = aa0*exp(aa*v)
+baa = ba0*exp(-ba*v)
+aia = ai0*exp(-ai*v)
+bia = bi0*exp(bi*v)
+
+# Gating functions
+c0&apos; = c1*baa + ci0*aia -c0*(4*aaa + bia)
+c1&apos; = c0*4*aaa + c2*2*baa + ci1*aia/b1 - c1*(baa + 3*aaa + f1*bia)
+c2&apos; = c1*3*aaa +c3*3*baa + ci2*aia/b2  - c2*(2*baa +2*aaa + f2*bia)
+c3&apos; = c2*2*aaa + o*4*baa + ci3*aia/b3 - c3*(3*baa + aaa + f3*bia)
+o&apos; = c3*aaa + oi*aia/b4 - o*(4*baa + f4*bia)
+ci0&apos; = c0*bia + ci1*baa/f1 - ci0*(aia + b1*4*aaa)
+ci1&apos; = c1*f1*bia + ci0* b1*4*aaa +ci2*f1*2*baa/f2 - ci1*(baa/f1 + aia/b1 + b2*3*aaa/b1)
+ci2&apos; = c2*f2*bia + ci1*b2*3*aaa/b1 + ci3*f2*3*baa/f3  - ci2*(f1*2**baa/f2 + aia/b2 +b3*2*aaa/b2) 
+ci3&apos; = c3*f3*bia + ci2*b3*2*aaa/b2 + oi*f3*4*baa/f4 -ci3*(f2*3*baa/f3 + aia/b3 +b4*aaa/b3)
+oi&apos; = o*f4*bia  - oi*f3*4*baa/f4
+
+aux ika = gkbar*(o+oi)*(v-Ek)/scale
+aux prop = o+oi
+
+# XPP parameters
+@ meth=Euler, dt=.01, total=170
+@ xplot=t, yplot=ika, yhi=1.1, ylo=-0.1, xlo=-0, xhi=170, bound=500
+
+done
+</pre>
+    <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+    <h2>Terms of use</h2>
+    <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+    <div class="dc:license">
+      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+        <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+        <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+      </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+    </div>
+  </body>
+</notes><hr />
+    <h1>Model : </h1>
+    
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td class="active"><i class="fa fa-ban gray"></i></td></tr>
+                <tr><td class="active">name</td><td><i class="fa fa-ban gray"></i></td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="hKv4x.ode.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="Access SBML model" title="SBML model"/></a>&nbsp;
+                <span class="package">L3V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_functions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">FunctionDefinitions [4]</th>
+	<th scope="col">name</th>
+	<th scope="col">math</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="max" class="active"><span class="package">max</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-max"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-max" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">max</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="max" name="minimum">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> x </ci>
+      </bvar>
+      <bvar>
+        <ci> y </ci>
+      </bvar>
+      <piecewise>
+        <piece>
+          <ci> x </ci>
+          <apply>
+            <gt/>
+            <ci> x </ci>
+            <ci> y </ci>
+          </apply>
+        </piece>
+        <otherwise>
+          <ci> y </ci>
+        </otherwise>
+      </piecewise>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>minimum</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <bvar>
+      <ci> y </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <ci> x </ci>
+        <apply>
+          <gt/>
+          <ci> x </ci>
+          <ci> y </ci>
+        </apply>
+      </piece>
+      <otherwise>
+        <ci> y </ci>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="min" class="active"><span class="package">min</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-min"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-min" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">min</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="min" name="maximum">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> x </ci>
+      </bvar>
+      <bvar>
+        <ci> y </ci>
+      </bvar>
+      <piecewise>
+        <piece>
+          <ci> x </ci>
+          <apply>
+            <lt/>
+            <ci> x </ci>
+            <ci> y </ci>
+          </apply>
+        </piece>
+        <otherwise>
+          <ci> y </ci>
+        </otherwise>
+      </piecewise>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>maximum</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <bvar>
+      <ci> y </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <ci> x </ci>
+        <apply>
+          <lt/>
+          <ci> x </ci>
+          <ci> y </ci>
+        </apply>
+      </piece>
+      <otherwise>
+        <ci> y </ci>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="heav" class="active"><span class="package">heav</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-heav"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-heav" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">heav</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="heav" name="heavyside">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> x </ci>
+      </bvar>
+      <piecewise>
+        <piece>
+          <cn type="integer"> 0 </cn>
+          <apply>
+            <lt/>
+            <ci> x </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+        </piece>
+        <piece>
+          <cn> 0.5 </cn>
+          <apply>
+            <eq/>
+            <ci> x </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+        </piece>
+        <piece>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <gt/>
+            <ci> x </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+        </piece>
+        <otherwise>
+          <cn type="integer"> 0 </cn>
+        </otherwise>
+      </piecewise>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>heavyside</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <cn type="integer"> 0 </cn>
+        <apply>
+          <lt/>
+          <ci> x </ci>
+          <cn type="integer"> 0 </cn>
+        </apply>
+      </piece>
+      <piece>
+        <cn> 0.5 </cn>
+        <apply>
+          <eq/>
+          <ci> x </ci>
+          <cn type="integer"> 0 </cn>
+        </apply>
+      </piece>
+      <piece>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <gt/>
+          <ci> x </ci>
+          <cn type="integer"> 0 </cn>
+        </apply>
+      </piece>
+      <otherwise>
+        <cn type="integer"> 0 </cn>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	<td id="mod" class="active"><span class="package">mod</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mod"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mod" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mod</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition id="mod" name="modulo">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> x </ci>
+      </bvar>
+      <bvar>
+        <ci> y </ci>
+      </bvar>
+      <piecewise>
+        <piece>
+          <apply>
+            <minus/>
+            <ci> x </ci>
+            <apply>
+              <times/>
+              <ci> y </ci>
+              <apply>
+                <ceiling/>
+                <apply>
+                  <divide/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+          <apply>
+            <xor/>
+            <apply>
+              <lt/>
+              <ci> x </ci>
+              <cn type="integer"> 0 </cn>
+            </apply>
+            <apply>
+              <lt/>
+              <ci> y </ci>
+              <cn type="integer"> 0 </cn>
+            </apply>
+          </apply>
+        </piece>
+        <otherwise>
+          <apply>
+            <minus/>
+            <ci> x </ci>
+            <apply>
+              <times/>
+              <ci> y </ci>
+              <apply>
+                <floor/>
+                <apply>
+                  <divide/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </otherwise>
+      </piecewise>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>modulo</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> x </ci>
+    </bvar>
+    <bvar>
+      <ci> y </ci>
+    </bvar>
+    <piecewise>
+      <piece>
+        <apply>
+          <minus/>
+          <ci> x </ci>
+          <apply>
+            <times/>
+            <ci> y </ci>
+            <apply>
+              <ceiling/>
+              <apply>
+                <divide/>
+                <ci> x </ci>
+                <ci> y </ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <xor/>
+          <apply>
+            <lt/>
+            <ci> x </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+          <apply>
+            <lt/>
+            <ci> y </ci>
+            <cn type="integer"> 0 </cn>
+          </apply>
+        </apply>
+      </piece>
+      <otherwise>
+        <apply>
+          <minus/>
+          <ci> x </ci>
+          <apply>
+            <times/>
+            <ci> y </ci>
+            <apply>
+              <floor/>
+              <apply>
+                <divide/>
+                <ci> x </ci>
+                <ci> y </ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+      </otherwise>
+    </piecewise>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [43]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="c0" class="active"><span class="package">c0</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="c0" name="c0 = 1" value="1" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>c0 = 1</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="c1" class="active"><span class="package">c1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="c1" name="c1 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>c1 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="c2" class="active"><span class="package">c2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="c2" name="c2 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>c2 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="c3" class="active"><span class="package">c3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="c3" name="c3 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>c3 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ci0" class="active"><span class="package">ci0</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ci0" name="ci0 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ci0 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ci1" class="active"><span class="package">ci1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ci1" name="ci1 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ci1 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ci2" class="active"><span class="package">ci2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ci2" name="ci2 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ci2 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ci3" class="active"><span class="package">ci3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ci3" name="ci3 = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ci3 = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="o" class="active"><span class="package">o</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-o"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-o" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">o</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="o" name="o = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>o = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="oi" class="active"><span class="package">oi</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-oi"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-oi" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">oi</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="oi" name="oi = 0" value="0" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>oi = 0</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="vhold" class="active"><span class="package">vhold</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vhold"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vhold" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vhold</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vhold" name="vhold = -80" value="-80" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>vhold = -80</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-80.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="vtest_1" class="active"><span class="package">vtest_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vtest_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vtest_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vtest_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vtest_1" name="vtest_1 = 20" value="20" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>vtest_1 = 20</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>20.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="vtest_2" class="active"><span class="package">vtest_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vtest_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vtest_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vtest_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="vtest_2" name="vtest_2 = -80" value="-80" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>vtest_2 = -80</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-80.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ton" class="active"><span class="package">ton</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ton"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ton" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ton</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ton" name="ton = 10" value="10" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ton = 10</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="toff" class="active"><span class="package">toff</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-toff"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-toff" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">toff</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="toff" name="toff = 160" value="160" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>toff = 160</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>160.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="toff_r" class="active"><span class="package">toff_r</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-toff_r"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-toff_r" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">toff_r</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="toff_r" name="toff_r = 170" value="170" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>toff_r = 170</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>170.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="aa0" class="active"><span class="package">aa0</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aa0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aa0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aa0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="aa0" name="aa0 = 0.6347" value="0.6347" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>aa0 = 0.6347</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.6347</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="aa" class="active"><span class="package">aa</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="aa" name="aa = 0.02912" value="0.02912" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>aa = 0.02912</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.02912</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ba0" class="active"><span class="package">ba0</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ba0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ba0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ba0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ba0" name="ba0 = 0.1243" value="0.1243" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ba0 = 0.1243</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.1243</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ba" class="active"><span class="package">ba</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ba"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ba" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ba</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ba" name="ba = 0.0323" value="0.0323" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ba = 0.0323</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0323</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ai0" class="active"><span class="package">ai0</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ai0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ai0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ai0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ai0" name="ai0 = 0.05388" value="0.05388" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ai0 = 0.05388</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.05388</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ai" class="active"><span class="package">ai</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ai"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ai" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ai</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ai" name="ai = 4.944e-6" value="4.944e-06" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ai = 4.944e-6</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>4.944e-06</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="bi0" class="active"><span class="package">bi0</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bi0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bi0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bi0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bi0" name="bi0 = 2.825e-4" value="0.0002825" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>bi0 = 2.825e-4</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0002825</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="bi" class="active"><span class="package">bi</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bi"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bi" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bi</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bi" name="bi = 4.096e-8" value="4.096e-08" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>bi = 4.096e-8</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>4.096e-08</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="f1" class="active"><span class="package">f1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="f1" name="f1 = 2.303" value="2.303" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>f1 = 2.303</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>2.303</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="f2" class="active"><span class="package">f2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="f2" name="f2 = 16.4" value="16.4" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>f2 = 16.4</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>16.4</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="f3" class="active"><span class="package">f3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="f3" name="f3 = 265.833" value="265.833" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>f3 = 265.833</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>265.833</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="f4" class="active"><span class="package">f4</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="f4" name="f4 = 259.12" value="259.12" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>f4 = 259.12</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>259.12</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="b1" class="active"><span class="package">b1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-b1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-b1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">b1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="b1" name="b1 = 1.1653" value="1.1653" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>b1 = 1.1653</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.1653</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="b2" class="active"><span class="package">b2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-b2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-b2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">b2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="b2" name="b2 = 1.5137" value="1.5137" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>b2 = 1.5137</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.5137</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="b3" class="active"><span class="package">b3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-b3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-b3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">b3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="b3" name="b3 = 13.072" value="13.072" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>b3 = 13.072</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>13.072</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="b4" class="active"><span class="package">b4</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-b4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-b4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">b4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="b4" name="b4 = 529.125" value="529.125" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>b4 = 529.125</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>529.125</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="scale" class="active"><span class="package">scale</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-scale"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-scale" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">scale</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="scale" name="scale = 1" value="1" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>scale = 1</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="gkbar" class="active"><span class="package">gkbar</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-gkbar"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-gkbar" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">gkbar</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="gkbar" name="gkbar = 0.0075" value="0.0075" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>gkbar = 0.0075</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0075</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="v" class="active"><span class="package">v</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="v" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ek" class="active"><span class="package">ek</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ek"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ek" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ek</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ek" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="aaa" class="active"><span class="package">aaa</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aaa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aaa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aaa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="aaa" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="baa" class="active"><span class="package">baa</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-baa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-baa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">baa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="baa" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="aia" class="active"><span class="package">aia</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aia"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aia" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aia</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="aia" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="bia" class="active"><span class="package">bia</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bia"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bia" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bia</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bia" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="ika" class="active"><span class="package">ika</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ika"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ika" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ika</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="ika" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="prop" class="active"><span class="package">prop</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-prop"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-prop" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">prop</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="prop" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="t" class="active"><span class="package">t</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-t"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-t" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">t</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>model time</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [19]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">name</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="c0" class="active"><span class="package">d c0/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="c0">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c1 </ci>
+          <ci> baa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> ci0 </ci>
+          <ci> aia </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> c0 </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <times/>
+            <cn type="integer"> 4 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <ci> bia </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c1 </ci>
+        <ci> baa </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> ci0 </ci>
+        <ci> aia </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> c0 </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <cn type="integer"> 4 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <ci> bia </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="c1" class="active"><span class="package">d c1/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="c1">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c0 </ci>
+          <cn type="integer"> 4 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> c2 </ci>
+          <cn type="integer"> 2 </cn>
+          <ci> baa </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci1 </ci>
+            <ci> aia </ci>
+          </apply>
+          <ci> b1 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> c1 </ci>
+        <apply>
+          <plus/>
+          <ci> baa </ci>
+          <apply>
+            <times/>
+            <cn type="integer"> 3 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <apply>
+            <times/>
+            <ci> f1 </ci>
+            <ci> bia </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c0 </ci>
+        <cn type="integer"> 4 </cn>
+        <ci> aaa </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> c2 </ci>
+        <cn type="integer"> 2 </cn>
+        <ci> baa </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci1 </ci>
+          <ci> aia </ci>
+        </apply>
+        <ci> b1 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> c1 </ci>
+      <apply>
+        <plus/>
+        <ci> baa </ci>
+        <apply>
+          <times/>
+          <cn type="integer"> 3 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> f1 </ci>
+          <ci> bia </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="c2" class="active"><span class="package">d c2/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="c2">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c1 </ci>
+          <cn type="integer"> 3 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> c3 </ci>
+          <cn type="integer"> 3 </cn>
+          <ci> baa </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci2 </ci>
+            <ci> aia </ci>
+          </apply>
+          <ci> b2 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> c2 </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <times/>
+            <cn type="integer"> 2 </cn>
+            <ci> baa </ci>
+          </apply>
+          <apply>
+            <times/>
+            <cn type="integer"> 2 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <apply>
+            <times/>
+            <ci> f2 </ci>
+            <ci> bia </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c1 </ci>
+        <cn type="integer"> 3 </cn>
+        <ci> aaa </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> c3 </ci>
+        <cn type="integer"> 3 </cn>
+        <ci> baa </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci2 </ci>
+          <ci> aia </ci>
+        </apply>
+        <ci> b2 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> c2 </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <cn type="integer"> 2 </cn>
+          <ci> baa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <cn type="integer"> 2 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> f2 </ci>
+          <ci> bia </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="c3" class="active"><span class="package">d c3/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="c3">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c2 </ci>
+          <cn type="integer"> 2 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> o </ci>
+          <cn type="integer"> 4 </cn>
+          <ci> baa </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci3 </ci>
+            <ci> aia </ci>
+          </apply>
+          <ci> b3 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> c3 </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <times/>
+            <cn type="integer"> 3 </cn>
+            <ci> baa </ci>
+          </apply>
+          <ci> aaa </ci>
+          <apply>
+            <times/>
+            <ci> f3 </ci>
+            <ci> bia </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c2 </ci>
+        <cn type="integer"> 2 </cn>
+        <ci> aaa </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> o </ci>
+        <cn type="integer"> 4 </cn>
+        <ci> baa </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci3 </ci>
+          <ci> aia </ci>
+        </apply>
+        <ci> b3 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> c3 </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <cn type="integer"> 3 </cn>
+          <ci> baa </ci>
+        </apply>
+        <ci> aaa </ci>
+        <apply>
+          <times/>
+          <ci> f3 </ci>
+          <ci> bia </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="o" class="active"><span class="package">d o/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-o"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-o" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">o</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="o">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c3 </ci>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> oi </ci>
+            <ci> aia </ci>
+          </apply>
+          <ci> b4 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> o </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <times/>
+            <cn type="integer"> 4 </cn>
+            <ci> baa </ci>
+          </apply>
+          <apply>
+            <times/>
+            <ci> f4 </ci>
+            <ci> bia </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c3 </ci>
+        <ci> aaa </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> oi </ci>
+          <ci> aia </ci>
+        </apply>
+        <ci> b4 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> o </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <cn type="integer"> 4 </cn>
+          <ci> baa </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> f4 </ci>
+          <ci> bia </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="ci0" class="active"><span class="package">d ci0/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="ci0">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c0 </ci>
+          <ci> bia </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci1 </ci>
+            <ci> baa </ci>
+          </apply>
+          <ci> f1 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> ci0 </ci>
+        <apply>
+          <plus/>
+          <ci> aia </ci>
+          <apply>
+            <times/>
+            <ci> b1 </ci>
+            <cn type="integer"> 4 </cn>
+            <ci> aaa </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c0 </ci>
+        <ci> bia </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci1 </ci>
+          <ci> baa </ci>
+        </apply>
+        <ci> f1 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> ci0 </ci>
+      <apply>
+        <plus/>
+        <ci> aia </ci>
+        <apply>
+          <times/>
+          <ci> b1 </ci>
+          <cn type="integer"> 4 </cn>
+          <ci> aaa </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="ci1" class="active"><span class="package">d ci1/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="ci1">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c1 </ci>
+          <ci> f1 </ci>
+          <ci> bia </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> ci0 </ci>
+          <ci> b1 </ci>
+          <cn type="integer"> 4 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci2 </ci>
+            <ci> f1 </ci>
+            <cn type="integer"> 2 </cn>
+            <ci> baa </ci>
+          </apply>
+          <ci> f2 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> ci1 </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <divide/>
+            <ci> baa </ci>
+            <ci> f1 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> aia </ci>
+            <ci> b1 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> b2 </ci>
+              <cn type="integer"> 3 </cn>
+              <ci> aaa </ci>
+            </apply>
+            <ci> b1 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c1 </ci>
+        <ci> f1 </ci>
+        <ci> bia </ci>
+      </apply>
+      <apply>
+        <times/>
+        <ci> ci0 </ci>
+        <ci> b1 </ci>
+        <cn type="integer"> 4 </cn>
+        <ci> aaa </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci2 </ci>
+          <ci> f1 </ci>
+          <cn type="integer"> 2 </cn>
+          <ci> baa </ci>
+        </apply>
+        <ci> f2 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> ci1 </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <divide/>
+          <ci> baa </ci>
+          <ci> f1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> aia </ci>
+          <ci> b1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> b2 </ci>
+            <cn type="integer"> 3 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <ci> b1 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="ci2" class="active"><span class="package">d ci2/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="ci2">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c2 </ci>
+          <ci> f2 </ci>
+          <ci> bia </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci1 </ci>
+            <ci> b2 </ci>
+            <cn type="integer"> 3 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <ci> b1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci3 </ci>
+            <ci> f2 </ci>
+            <cn type="integer"> 3 </cn>
+            <ci> baa </ci>
+          </apply>
+          <ci> f3 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> ci2 </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> f1 </ci>
+              <apply>
+                <power/>
+                <cn type="integer"> 2 </cn>
+                <ci> baa </ci>
+              </apply>
+            </apply>
+            <ci> f2 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> aia </ci>
+            <ci> b2 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> b3 </ci>
+              <cn type="integer"> 2 </cn>
+              <ci> aaa </ci>
+            </apply>
+            <ci> b2 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c2 </ci>
+        <ci> f2 </ci>
+        <ci> bia </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci1 </ci>
+          <ci> b2 </ci>
+          <cn type="integer"> 3 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <ci> b1 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci3 </ci>
+          <ci> f2 </ci>
+          <cn type="integer"> 3 </cn>
+          <ci> baa </ci>
+        </apply>
+        <ci> f3 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> ci2 </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> f1 </ci>
+            <apply>
+              <power/>
+              <cn type="integer"> 2 </cn>
+              <ci> baa </ci>
+            </apply>
+          </apply>
+          <ci> f2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> aia </ci>
+          <ci> b2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> b3 </ci>
+            <cn type="integer"> 2 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <ci> b2 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="ci3" class="active"><span class="package">d ci3/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ci3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ci3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ci3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="ci3">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> c3 </ci>
+          <ci> f3 </ci>
+          <ci> bia </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> ci2 </ci>
+            <ci> b3 </ci>
+            <cn type="integer"> 2 </cn>
+            <ci> aaa </ci>
+          </apply>
+          <ci> b2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> oi </ci>
+            <ci> f3 </ci>
+            <cn type="integer"> 4 </cn>
+            <ci> baa </ci>
+          </apply>
+          <ci> f4 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <ci> ci3 </ci>
+        <apply>
+          <plus/>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> f2 </ci>
+              <cn type="integer"> 3 </cn>
+              <ci> baa </ci>
+            </apply>
+            <ci> f3 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> aia </ci>
+            <ci> b3 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> b4 </ci>
+              <ci> aaa </ci>
+            </apply>
+            <ci> b3 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <apply>
+        <times/>
+        <ci> c3 </ci>
+        <ci> f3 </ci>
+        <ci> bia </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> ci2 </ci>
+          <ci> b3 </ci>
+          <cn type="integer"> 2 </cn>
+          <ci> aaa </ci>
+        </apply>
+        <ci> b2 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> oi </ci>
+          <ci> f3 </ci>
+          <cn type="integer"> 4 </cn>
+          <ci> baa </ci>
+        </apply>
+        <ci> f4 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <ci> ci3 </ci>
+      <apply>
+        <plus/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> f2 </ci>
+            <cn type="integer"> 3 </cn>
+            <ci> baa </ci>
+          </apply>
+          <ci> f3 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> aia </ci>
+          <ci> b3 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> b4 </ci>
+            <ci> aaa </ci>
+          </apply>
+          <ci> b3 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="oi" class="active"><span class="package">d oi/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-oi"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-oi" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">oi</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="oi">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <times/>
+        <ci> o </ci>
+        <ci> f4 </ci>
+        <ci> bia </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> oi </ci>
+          <ci> f3 </ci>
+          <cn type="integer"> 4 </cn>
+          <ci> baa </ci>
+        </apply>
+        <ci> f4 </ci>
+      </apply>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> o </ci>
+      <ci> f4 </ci>
+      <ci> bia </ci>
+    </apply>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> oi </ci>
+        <ci> f3 </ci>
+        <cn type="integer"> 4 </cn>
+        <ci> baa </ci>
+      </apply>
+      <ci> f4 </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="v" class="active"><span class="package">v</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="v">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <plus/>
+      <ci> vhold </ci>
+      <apply>
+        <times/>
+        <apply>
+          <ci> heav </ci>
+          <apply>
+            <minus/>
+            <ci> t </ci>
+            <ci> ton </ci>
+          </apply>
+        </apply>
+        <apply>
+          <ci> heav </ci>
+          <apply>
+            <minus/>
+            <ci> toff </ci>
+            <ci> t </ci>
+          </apply>
+        </apply>
+        <apply>
+          <minus/>
+          <ci> vtest_1 </ci>
+          <ci> vhold </ci>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <apply>
+          <ci> heav </ci>
+          <apply>
+            <minus/>
+            <ci> t </ci>
+            <ci> toff </ci>
+          </apply>
+        </apply>
+        <apply>
+          <ci> heav </ci>
+          <apply>
+            <minus/>
+            <ci> toff_r </ci>
+            <ci> t </ci>
+          </apply>
+        </apply>
+        <apply>
+          <minus/>
+          <ci> vtest_2 </ci>
+          <ci> vhold </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <plus/>
+    <ci> vhold </ci>
+    <apply>
+      <times/>
+      <apply>
+        <ci> heav </ci>
+        <apply>
+          <minus/>
+          <ci> t </ci>
+          <ci> ton </ci>
+        </apply>
+      </apply>
+      <apply>
+        <ci> heav </ci>
+        <apply>
+          <minus/>
+          <ci> toff </ci>
+          <ci> t </ci>
+        </apply>
+      </apply>
+      <apply>
+        <minus/>
+        <ci> vtest_1 </ci>
+        <ci> vhold </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <ci> heav </ci>
+        <apply>
+          <minus/>
+          <ci> t </ci>
+          <ci> toff </ci>
+        </apply>
+      </apply>
+      <apply>
+        <ci> heav </ci>
+        <apply>
+          <minus/>
+          <ci> toff_r </ci>
+          <ci> t </ci>
+        </apply>
+      </apply>
+      <apply>
+        <minus/>
+        <ci> vtest_2 </ci>
+        <ci> vhold </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="ek" class="active"><span class="package">ek</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ek"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ek" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ek</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="ek">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <cn> 80 </cn>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <cn> 80 </cn>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="aaa" class="active"><span class="package">aaa</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aaa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aaa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aaa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="aaa">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> aa0 </ci>
+      <apply>
+        <exp/>
+        <apply>
+          <times/>
+          <ci> aa </ci>
+          <ci> v </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> aa0 </ci>
+    <apply>
+      <exp/>
+      <apply>
+        <times/>
+        <ci> aa </ci>
+        <ci> v </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="baa" class="active"><span class="package">baa</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-baa"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-baa" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">baa</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="baa">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> ba0 </ci>
+      <apply>
+        <exp/>
+        <apply>
+          <times/>
+          <apply>
+            <minus/>
+            <ci> ba </ci>
+          </apply>
+          <ci> v </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> ba0 </ci>
+    <apply>
+      <exp/>
+      <apply>
+        <times/>
+        <apply>
+          <minus/>
+          <ci> ba </ci>
+        </apply>
+        <ci> v </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="aia" class="active"><span class="package">aia</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aia"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aia" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aia</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="aia">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> ai0 </ci>
+      <apply>
+        <exp/>
+        <apply>
+          <times/>
+          <apply>
+            <minus/>
+            <ci> ai </ci>
+          </apply>
+          <ci> v </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> ai0 </ci>
+    <apply>
+      <exp/>
+      <apply>
+        <times/>
+        <apply>
+          <minus/>
+          <ci> ai </ci>
+        </apply>
+        <ci> v </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="bia" class="active"><span class="package">bia</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bia"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bia" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bia</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="bia">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> bi0 </ci>
+      <apply>
+        <exp/>
+        <apply>
+          <times/>
+          <ci> bi </ci>
+          <ci> v </ci>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> bi0 </ci>
+    <apply>
+      <exp/>
+      <apply>
+        <times/>
+        <ci> bi </ci>
+        <ci> v </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="ika" class="active"><span class="package">ika</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ika"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ika" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ika</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="ika">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> gkbar </ci>
+        <apply>
+          <plus/>
+          <ci> o </ci>
+          <ci> oi </ci>
+        </apply>
+        <apply>
+          <minus/>
+          <ci> v </ci>
+          <ci> ek </ci>
+        </apply>
+      </apply>
+      <ci> scale </ci>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> gkbar </ci>
+      <apply>
+        <plus/>
+        <ci> o </ci>
+        <ci> oi </ci>
+      </apply>
+      <apply>
+        <minus/>
+        <ci> v </ci>
+        <ci> ek </ci>
+      </apply>
+    </apply>
+    <ci> scale </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="prop" class="active"><span class="package">prop</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-prop"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-prop" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">prop</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="prop">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <plus/>
+      <ci> o </ci>
+      <ci> oi </ci>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <plus/>
+    <ci> o </ci>
+    <ci> oi </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="t" class="active"><span class="package">t</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-t"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-t" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">t</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="t">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

@@ -1,0 +1,192 @@
+#  Code for article by N. Huebel and M. A. Dahlem: 
+# "Dynamics from seconds to hours in Hodgkin–Huxley model with 
+#  time-dependent ion concentrations and buffer reservoirs" 
+#  PLoS Comp Biol (2014)
+#  email: niklas.huebel@gmail.com
+#  Oct. 7, 2014
+#
+#
+# README
+#
+# This code computes time series like in Fig. 5. SD is 
+# triggered either by current stimulation (dynamics of variable
+# "stim") or by pump interruption (dynamics of pump coefficient
+# "z"). Two regulation schemes for potassium are implemented:
+# glial buffering and diffusive coupling to the vascular system
+# (with a switch parameter "s", see below). For diffusive 
+# coupling with elevated "k_bath" values the time series of Fig. 7
+# can be simulated.
+#
+
+##################################
+# RATE EQUATIONS FOR 5D SD MODEL #
+##################################
+v'   = 1000. * v_DOT
+n'   = 1000. * n_DOT
+ki'  = 1000. * ki_DOT
+cli' = 1000. * cli_DOT
+dk'  = 1000. * dk_DOT
+
+#########################################################
+# STIMULATE MEMBRANE WITH A 0.5sec DEPOLARIZING CURRENT #
+#########################################################
+stim' = 0
+global 1 1.000000000001*t -  20.0        {stim=Amp}
+global 1 1.000000000001*t - (20.0 + 0.5) {stim=0}
+par Amp=0.
+#par Amp=100.
+
+#####################################
+# SWITCH PUMP OFF FOR delta SECONDS #
+#####################################
+z' = 0
+global 1 1.000000000001*t -  20.0          {z=0.0}
+global 1 1.000000000001*t - (20.0 + delta) {z=1.0}
+#par delta=0.
+par delta=9.5
+
+
+######################
+# INITIAL CONDITIONS #
+######################
+init v=-67.193253
+init n=0.069410823
+init ki=129.25764
+init cli=9.900239
+init dk=0
+
+init stim=0
+init z=1
+
+#########################
+# REGULATION PARAMETERS #
+#########################
+# s=0: glial buffering
+# s=1: diffusive coupling
+# k_bath is the bath concentration
+par k_bath=4
+par s=0
+
+##########
+# GATING #
+##########
+A_N = 0.01 * (v + 34.0) / (1.0 - exp(-0.1 * (v + 34.0))) 
+B_N = 0.125 * exp(-(v + 44.0) / 80.0)
+A_M = 0.1 * (v + 30.0) / (1.0 - exp(-0.1 * (v + 30.0))) 
+B_M = 4.0 * exp(-(v + 55.0) / 18.0) 
+m   = A_M / (A_M + B_M)
+h   = 1 - 1. / (1 + exp(-6.5*(n-0.35)))
+	   
+######################
+# ION CONCENTRATIONS #
+######################
+par vol_i=2.16
+par vol_e=0.72
+par ki0=129.25764
+par nai0=25.231485
+par cli0=9.900239
+par ke0=4.
+par nae0=125.30555
+par cle0=123.2716
+nai =  nai0 + ki0 - ki - cli0 + cli
+nae = (nai0 * Vol_i + nae0 * vol_e - nai * vol_i) / vol_e
+cle = (cli0 * Vol_i + cle0 * vol_e - cli * vol_i) / vol_e
+ke  = (ki0  * Vol_i + ke0  * vol_e - ki  * vol_i) / vol_e + dk
+
+#####################
+# NERNST POTENTIALS #
+#####################
+EK  = 26.64 * log(ke /ki)	      
+ENA = 26.64 * log(nae/nai)
+ECL =-26.64 * log(cle/cli)
+
+############
+# CURRENTS #
+############
+par G_NA_L=0.0175
+par G_NA_G=100.
+par G_K_L=0.05
+par G_K_G=40.
+par G_CL_L=0.02
+
+par NA_PUMP=25
+par K_PUMP=5.5
+par MAX_PUMP=6.8
+
+I_NA_L = G_NA_L * (v - ENA)
+I_NA_G = G_NA_G * m**3 * h * (v - ENA)
+I_K_L  = G_K_L             * (v - EK)
+I_K_G  = G_K_G * n**4      * (v - EK)
+I_CL_L = G_CL_L            * (v - ECL)
+IPUMP  = MAX_PUMP / (1.0 + exp((NA_PUMP - NAI)/3.)) / (1. + exp(K_PUMP - ke)) * z
+
+#################
+# FULL CURRENTS #
+#################
+I_NA   = I_NA_L + I_NA_G + 3. * IPUMP
+I_K    = I_K_L  + I_K_G  - 2. * IPUMP
+
+########################
+# POTASSIUM REGULATION #
+########################
+par lambda=3.0e-05
+par b0=500
+par K_cr=15.
+par k1=5.e-8
+
+J_DIFF   = lambda * (k_bath - ke)
+dk_DOT_1 = J_DIFF
+k2       = k1 / (1 + exp((K_cr - ke) / 1.09))
+dk_DOT_0 = -k1 * dk - k2 * ke * (B0 + dk)
+
+#############################
+# RATE FUNCTIONS FOR SOLVER #
+#############################
+par PHI=3
+par C=1
+par CONV=9.55589e-05
+
+v_DOT    = -1. / C * (I_CL_L + I_NA + I_K - stim)
+n_DOT    =  PHI * (A_N * (1 - n) - B_N * n)
+ki_DOT   = -1. / Vol_i * CONV * I_K
+cli_DOT  =  1. / Vol_i * CONV * I_CL_L
+dk_DOT   = (1 - s) * dk_DOT_0 + s * dk_DOT_1
+
+###############
+# AUXILIARIES #
+###############
+aux _nai = nai
+aux _nae = nae
+aux _cle = cle
+aux _ke	 = ke
+
+aux _EK	 = EK
+aux _ENA = ENA
+aux _ECL = ECL
+
+aux _I_NA_L = I_NA_L
+aux _I_NA_G = I_NA_G
+aux _I_K_L  = I_K_L
+aux _I_K_G  = I_K_G
+aux _I_CL_L = I_CL_L
+aux _IPUMP  = IPUMP
+
+aux _I_NA   = I_NA
+aux _I_K    = I_K
+
+########################
+# INTEGRATION NUMERICS #
+########################
+@ meth=stiff
+@ dt=5e-2
+@ maxstor=10000000, bounds=10000000
+@ total=500
+@ bell=0
+
+################
+# PLOT OPTIONS #
+################
+@ xhi=500
+@ nplot=4, yp1=v, yp2=_EK, yp3=_ENA, yp4=_ECL, ylo=-150, yhi=160
+
+done

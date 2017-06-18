@@ -1,0 +1,58 @@
+# Allosteric model for large-conductance calcium-activated potassium channel
+# Horrigan, Cui, Aldrich, J Gen Physiol 1999;114:277-304.
+# Scheme IX
+
+# Constant:
+R=8.14
+Fara=96.485
+Temp=310
+
+# Initial values
+ini c0=1, c1=0, c2=0, c3=0, c4=0, o0=0, o1=0, o2=0, o3=0, o4=0
+
+# Values of the model parameters
+par a_0=.257, b_0=7.129, d0_0=.00384e-3, d1_0=.0653e-3, d2_0=1.11e-3, d3_0=6.99e-3, d4_0=44.0e-3
+par r0_0=1.923, r1_0=1.923, r2_0=1.923, r3_0=.712, r4_0=.294
+par ko=140
+par ki=140
+par vhold=0, vtest=220
+par za=.275, zb=-.275 , zd=.262, zr=-.138, D=17
+par scale=5
+par GKbar=0.200
+par ton=5, toff=35
+v=vhold+heav(t-ton)*heav(toff-t)*(vtest-vhold)
+
+# Expressions:
+Ek=((R*Temp)/F)*ln(ko/ki)
+a=a_0*exp((v)*(za*Fara/(R*Temp)))
+b=b_0*exp((v)*(zb*Fara/(R*Temp)))
+d0=d0_0*exp((v)*(zd*Fara/(R*Temp)))
+d1=d1_0*exp((v)*(zd*Fara/(R*Temp)))
+d2=d2_0*exp((v)*(zd*Fara/(R*Temp)))
+d3=d3_0*exp((v)*(zd*Fara/(R*Temp)))
+d4=d4_0*exp((v)*(zd*Fara/(R*Temp)))
+r0=r0_0*exp((v)*(zr*Fara/(R*Temp)))
+r1=r1_0*exp((v)*(zr*Fara/(R*Temp)))
+r2=r2_0*exp((v)*(zr*Fara/(R*Temp)))
+r3=r3_0*exp((v)*(zr*Fara/(R*Temp)))
+r4=r4_0*exp((v)*(zr*Fara/(R*Temp)))
+f=17^0.5
+
+# Gating functions
+c0'=c1*b+o0*r0-c0*(4*a+d0)
+c1'=c0*4*a+c2*2*b+o1*r1-c1*(b+3*a+d1)
+c2'=c1*3*a+c3*3*b+o2*r2-c2*(2*b+2*a+d2)
+c3'=c2*2*a+c4*4*b+o3*r3-c3*(3*b+a+d3)
+c4'=c3*a+o4*r4-c4*(4*b+d4)
+o0'=o1*4*b/f+c0*d0-o0*(4*a*f+r0)
+o1'=o0*4*a*f+o2*2*b/f+c1*d1-o1*(b/f+3*a*f+r1)
+o2'=o1*3*a*f+o3*3*b/f+c2*d2-o2*(2*b/f+2*a*f+r2)
+o3'=o2*2*a*f+o4*4*b/f+c3*d3-o3*(3*b/f+a*f+r3)
+o4'=o3*a*f+c4*d4-o4*(4*b/f+r4)
+
+aux ik=Gkbar*(o0+o1+o2+o3+o4)/(c0+c1+c2+c3+c4+o0+o1+o2+o3+o4)*(v-Ek)/scale
+
+@ meth=Euler, dt=.01, total=50
+@ yp=ik, yhi=15, ylo=-3, xlo=0, xhi=50, bound=100
+
+done

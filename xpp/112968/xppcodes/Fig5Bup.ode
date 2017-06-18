@@ -1,0 +1,130 @@
+# Kuznetsova and Deth, JCN, 2007
+# 100-cell model:  80 E cells (Ve1, Ve2, ...Ve8) and 20 I (Vi1, Vi2) cells 
+# all to all reciprocally connected 
+# variables: V-voltage, R-K channel, C-Ca channel, H- Ca dependent K chanel, S,F - synapse 
+
+init Ve[1...5]=-0.75
+init Ve[6...10]=-0.71
+init Ve[11...15]=-0.73
+init Ve[16...25]=-0.72
+init Ve[26...30]=-0.735
+init Ve[31...40]=-0.715
+init Ve[41...45]=-0.737
+init Ve[46...50]=-0.718
+init Ve[51...60]=-0.728
+init Ve[61...70]=-0.74
+init Ve[71...75]=-0.726
+init Ve[76...80]=-0.713
+init Vi[1...6]=-0.742
+init Vi[7...12]=-0.714
+init Vi[13...20]=-0.728
+init Re[1...80]=0.26
+init Ce[1...80]=0.1
+init He[1...80]=0.1
+init Ri[1...20]=0.26
+init Ci[1...20]=0.1
+
+par Ie=0.6
+#continuos input in all E cells, canceled in I cells
+par GCe=0.1, GCi=0.25
+par GHe=4.0
+
+par TRe[1...2]=4
+par TRe[3...4]=4.1
+par TRe[5...6]=4.3
+par TRe[7...8]=4.1
+par TRe[9...10]=4.2
+par TRe[11...12]=4.35
+par TRe[13...14]=4.4
+par TRe[15...16]=4.05
+par TRe[17...18]=4.1
+par TRe[19...20]=4.2
+par TRe[21...22]=4.4
+par TRe[23...24]=4.35
+par TRe[25...26]=4.25
+par TRe[27...28]=4.15
+par TRe[29...30]=4.05
+par TRe[31...32]=4.08
+par TRe[33...34]=4.18
+par TRe[35...36]=4.28
+par TRe[37...38]=4.38
+par TRe[39...40]=4.33
+par TRe[41...42]=4.23
+par TRe[43...44]=4.22
+par TRe[45...46]=4.13
+par TRe[47...48]=4.03
+par TRe[49...50]=4.14
+par TRe[51...52]=4.24
+par TRe[53...54]=4.34
+par TRe[55...56]=4.37
+par TRe[57...58]=4.27
+par TRe[59...60]=4.17
+par TRe[61...62]=4.07
+par TRe[63...64]=4.08
+par TRe[65...66]=4.38
+par TRe[67...68]=4.205
+par TRe[69...70]=4.26
+par TRe[71...72]=4.36
+par TRe[73...74]=4.16
+par TRe[75...76]=4.12
+par TRe[77...78]=4.26
+par TRe[79...80]=4.18
+
+
+# this is time constant for K channel in E cells, it is varied from 6 to 2
+
+par GSee=0.07595
+#6/79
+par GSei=0.15
+#6/40
+par GSi=0.15789
+#3/19=0.15789
+#from I to E and I to I
+
+par TRi[1..20]=1.5
+# the same for in I cells, usualy it is not varied 
+
+par TSe=2., TSi=8.
+#par ESe=0, ESi=-0.75
+#excit=0  inhib=-0.75
+par W=-0.1
+
+AlE=Se1+Se2+Se3+Se4+Se5+Se6+Se7+Se8+Se9+Se10+Se11+Se12+Se13+Se14+Se15+Se16+Se17+Se18+Se19+Se20 \\
++Se21+Se22+Se23+Se24+Se25+Se26+Se27+Se28+Se29+Se30+Se31+Se32+Se33+Se34+Se35+Se36+Se37+Se38+Se39+Se40 \\
++Se41+Se42+Se43+Se44+Se45+Se46+Se47+Se48+Se49+Se50+Se51+Se52+Se53+Se54+Se55+Se56+Se57+Se58+Se59+Se60 \\
++Se61+Se62+Se63+Se64+Se65+Se66+Se67+Se68+Se69+Se70+Se71+Se72+Se73+Se74+Se75+Se76+Se77+Se78+Se79+Se80
+
+AlI=Si1+Si2+Si3+Si4+Si5+Si6+Si7+Si8+Si9+Si10+Si11+Si12+Si13+Si14+Si15+Si16+Si17+Si18+Si19+Si20
+
+Fe[1..80]'=(1./TSe)*(-Fe[j]+heav(Ve[j]-W))
+Se[1..80]'=(1./TSe)*(-Se[j]+Fe[j])
+
+Fi[1..20]'=(1./TSi)*(-Fi[j]+heav(Vi[j]-W))
+Si[1..20]'=(1./TSi)*(-Si[j]+Fi[j])
+
+Ve[1..80]'=-Minf(Ve[j])*(Ve[j]-0.5)-26.*Re[j]*(Ve[j]+0.95)-GCe*Ce[j]*(Ve[j]-1.2)-GHe*He[j]*(Ve[j]+0.95)-GSi*(Ve[j]+0.75)*AlI-GSee*(Ve[j]+0.0)*(AlE-Se[j])+Ie
+Re[1..80]'=(1./TRe[j])*(-Re[j]+Rinf(Ve[j]))
+Ce[1..80]'=(1./14.)*(-Ce[j]+Cinf(Ve[j]))
+He[1..80]'=(1./45.)*(-He[j]+3.*Ce[j])
+
+Vi[1..20]'=-Minf(Vi[j])*(Vi[j]-0.5)-26.*Ri[j]*(Vi[j]+0.95)-GCi*Ci[j]*(Vi[j]-1.2)-GSi*(Vi[j]+0.75)*(AlI-Si[j])-GSei*(Vi[j]+0.0)*AlE
+Ri[1..20]'=(1./TRi[j])*(-Ri[j]+Rinf(Vi[j]))
+Ci[1..20]'=(1./14.)*(-Ci[j]+Cinf(Vi[j]))
+
+Cinf(V)=8.*(V+0.725)^2
+Minf(V)=17.8+47.6*V+33.8*V*V
+Rinf(V)=1.24+3.7*V+3.2*V*V
+
+aux n=(Ve1+Ve2+Ve3+Ve4+Ve5+Ve6+Ve7+Ve8+Ve9+Ve10+Ve11+Ve12+Ve13+Ve14+Ve15+Ve16+Ve17+Ve18+Ve19+Ve20\\
++Ve21+Ve22+Ve23+Ve24+Ve25+Ve26+Ve27+Ve28+Ve29+Ve30+Ve31+Ve32+Ve33+Ve34+Ve35+Ve36+Ve37+Ve38+Ve39+Ve40\\
++Ve41+Ve42+Ve43+Ve44+Ve45+Ve46+Ve47+Ve48+Ve49+Ve50+Ve51+Ve52+Ve53+Ve54+Ve55+Ve56+Ve57+Ve58+Ve59+Ve60\\
++Ve61+Ve62+Ve63+Ve64+Ve65+Ve66+Ve67+Ve68+Ve69+Ve70+Ve71+Ve72+Ve73+Ve74+Ve75+Ve76+Ve77+Ve78+Ve79+Ve80)/80.
+
+#if(Ve1-W>0)then(Q(Ve1-W)=1)else(Q(Ve1-W)=0)
+
+@ METHOD=stiff, TOLERANCE=.00001
+@ MAXSTOR=400000, TOTAL=1000, XP=t,YP=n, BELL=0
+@ xmin=0.0,xmax=1000,ymin=-1,ymax=0.5
+@ DT=0.01, xlo=0.0,ylo=-1.0,xhi=1000,yhi=0.5,bound=30000
+
+done

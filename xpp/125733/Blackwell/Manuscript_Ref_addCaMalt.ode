@@ -1,0 +1,450 @@
+#Kim et al. PLoS Comp Biol 2010
+####Models of Second Messenger Pathways in CA1 pyramidal cell.
+#
+## ALL Units in nM for concentration and second for time.
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+# CaMCa4 binding Partner's affinities: (1) PP2B(28 pM); (2) PDE1B(10 nM); 
+#                                      (3) CaMKII(80 nM); (4) AC1(150 nM)
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#
+#### This version based on rebased with Cab=70 nM, CaMtot=15 uM, CK_tot=20 uM, Ca_max=10 uM
+
+param t_rise=0.01
+#300 sec inter-train interval:
+#param Ca_max=10000, t_dur=0.009,tau=0.01,train_len=1, t1=100, t2=400, t3=700, t4=1000, Cab=70
+#3 sec inter-tr
+param Ca_max=10000, t_dur=0.009,tau=0.01,train_len=1, t1=100, t2=103, t3=106, t4=109, Cab=70
+
+tm=mod(t, tau)
+t_pulse=t_dur-tm
+
+param t_tau=0.01
+
+Ca_pre =Cab+(Ca_max-Cab)*heav(t-t1)*heav(t1+train_len-t)*heav(t_pulse)+(Ca_max-Cab)*heav(t-t2)*heav(t2+train_len-t)*heav(t_pulse)+(Ca_max-Cab)*heav(t-t3)*heav(t3+train_len-t)*heav(t_pulse)+(Ca_max-Cab)*heav(t-t4)*heav(t4+train_len-t)*heav(t_pulse)
+
+dCa/dt=(Ca_pre-Ca)/t_tau
+#aux Ca=Ca
+
+#cam_rate - approximates additional calmodulin diffusing into spine or dissociating from neurogranin as calmodulin decreases
+#make cam_rate = 0 to see how CaMKII activation changes consequent to depletion of calmodulin (figure S4A).
+Par cam_rate=0.1
+cam_a=cam_rate*(7924-cam)
+aux cam_a=cam_a
+
+##L##
+param Lb=10, L_max=1000, tauL=2
+
+
+L=Lb+(L_max-Lb)*heav(t-t1)*heav(t1+train_len-t)+(L_max-Lb)*heav(t-t2)*heav(t2+train_len-t)+(L_max-Lb)*heav(t-t3)*heav(t3+train_len-t)+(L_max-Lb)*heav(t-t4)*heav(t4+train_len-t)
+#aux L=L
+
+#param Cab=70, Lb=10
+
+#Ca=Cab
+#L=Lb
+
+####G_protein part####################################
+#
+#L + R <--> LR (k1, k_1), Kd=9000
+#LR + G <--> LRG (k2, k_2), Kd=1.666667
+#G + R <--> GR (k1a, k_1a), Kd=5
+#GR + L <--> LRG (k2a, k_2a), Kd=3000
+#LRG -->LR + GaGTP + Gbg (k3)
+# or maybe: LRG -->L + R + GaGTP + Gbg (k3)
+#GaGTP -->GaGDP (k4)
+#GaGDP + Gbg --> G (k5)
+#
+######################################################
+
+par k2a=0.00333333 k_2a=10
+par k1a=0.00006 k_1a=0.0003
+par k_1=10 k1=0.0011111
+par k2=0.0006 k_2=0.001
+parameters k3=20
+parameters k4=10
+parameters k5=100
+
+dLR/dt=k1*R*L-k_1*LR-k2*LR*G+k_2*LRG+k3*LRG
+init LR=0.9886277
+
+dLRG/dt=k2*LR*G-k_2*LRG-k3*LRG+k2a*GR*L-k_2a*LRG
+init  LRG=0.5300418
+
+dGaGTP/dt=k3*LRG-k4*GaGTP+E*k_6-GaGTP*AC1*k6
+init  GaGTP=1.060084
+
+dGaGDP/dt=k4*GaGTP-k5*GaGDP*Gbg
+init  GaGDP=143.092094
+
+dGR/dt=k1a*G*R-k_1a*GR-k2a*GR*L+k_2a*LRG
+init  GR=434.160416
+
+dGbg/dt=k3*LRG-k5*GaGDP*Gbg
+init  Gbg=0.000739
+
+
+G=Gtot-(LRG+GaGTP+GaGDP+E+ECam+ECamATP+GR)
+#Aux G=G
+
+
+par Gtot=3000
+Galfa=GaGTP+GaGDP
+#Aux Galfa=Galfa
+R=Rtot-LR-LRG-GR
+par Rtot=500
+#aux R=R
+
+##### AC part: AC1 & AC8 activation thr Ca4CaM ###########################
+#
+#GaGTP + AC1 <--> E (K6, K_6) : Kd=260 nM from Dessaur paper(AC5?)
+#E+ CaMCa4 <---> ECam(k7, k_7): Kd=100 nM
+#ECam + ATP <---> ECamATP(k8,k_8)--->ECam + cAMP(v8): Km=162 uM
+#
+# Synergic effect: v8 increase X10 or X100(see JNeuroscience2003_Wang et al., 23(30)9710_9718)
+#
+#AC1 + CaMCa4 <---> AC1Cam (k9,k_9): Kd=150 nM
+#AC1Cam + ATP <--->AC1CamATP(k10,k_10)--->AC1Cam + cAMP(v10):Km=162 uM
+#
+#AC8 + CaMCa4 <--->AC8Cam(k11,k_11):Kd=800 nM
+#AC8Cam + ATP <--->AC8CamATP(k12, k_12)--->AC8Cam + cAMP(v12):Km=162 uM
+#
+#k10=0.01------> cAMP_basal=56 nM
+#
+##########################################################################
+
+par k6=0.0385,k_6=10
+par k7=0.009,k_7=0.9
+
+
+par k8=0.01, k_8=2273, v8=28.42
+par k9=0.006,k_9=0.9
+ 
+
+par k10=0.01, k_10=2273, v10=2.842
+par k11=0.00125,k_11=1
+par k12=0.01,k_12=2273,v12=2.842
+
+par AC1tot=2500, AC8tot=2500
+
+dE/dt=k6*GaGTP*AC1-K_6*E+k_7*ECam-k7*E*CaMCa4
+dECam/dt=k7*E*CaMCa4-K_7*ECam+(k_8+v8)*ECamATP-k8*ECam*ATP
+dECamATP/dt=k8*ECam*ATP-(k_8+v8)*ECamATP
+
+dAC1Cam/dt=k9*AC1*CaMCa4-k_9*AC1Cam-k10*AC1Cam*ATP+(k_10+v10)*AC1CamATP
+dAC1CamATP/dt=k10*AC1Cam*ATP-(k_10+v10)*AC1CamATP
+
+dAC8Cam/dt=k11*AC8*CaMCa4-k_11*AC8Cam+(k_12+v12)*AC8CamATP-k12*AC8Cam*ATP
+dAC8CamATP/dt=k12*AC8Cam*ATP-(k_12+v12)*AC8CamATP
+  
+dCAMP/dt=ECamATP*v8+AC1CamATP*v10+AC8CamATP*v12\
+-KfPde1*PDE1cam*cAMP+KbPde1*PDE1cAMP-KfPde4*PDE4*cAMP+KbPde4*PDE4cAMP\
+-2*kfhigh*camp*pka+2*kbhigh*PKAcamp1-2*kflow*camp*pkacamp1+2*kblow*pkacamp2
+
+
+par ATPtot=2e6
+par katp=10
+
+
+ATP=ATPtot-cAMP-ECamATP-AC1CamATP-AC8CamATP-AMP-PDE1cAMP-PDE4cAMP\
+-2*PKAcamp1-4*PKAcamp2-4*PKAr
+
+
+ACCam=ECam + AC1Cam+AC8Cam+AC1CamATP+AC8CamATP
+aux ACCam=ACCam
+
+init  CAMP=135.9675
+init  E=8.714253
+init  ECam=0.221507627
+init  ECamATP=1.923882
+init  AC1Cam=36.38592
+init  AC1CamATP=319.7911
+init  AC8Cam=7.760417
+init  AC8CamATP=68.15126
+
+
+AC1=AC1tot-(E+ECam+ECamATP+AC1CamATP+AC1Cam)
+AC8=AC8tot-(AC8Cam+AC8CamATP)
+
+#Aux AC1=AC1
+#Aux AC8=AC8
+#Aux ATP=ATP
+
+### PDE part ###########################################################################
+#
+# PDE1 + CaMca4 <=> PDECam (KbpdeCam, KfpdeCam :Kd=10 nM)
+# PDE1cam + cAMP<=>PDE1-cAMP -> PDE1 + AMP : Km (K_PDE1) Vmax=V_PDE1 (KfPde1, KbPde1)
+# PDE4 + cAMP<=>PDE4-cAMP -> PDE4 + AMP : Km (K_PDE4) Vmax=V_PDE4 (KfPde4, KbPde4)
+#
+########################################################################################
+
+par K_Pde4=4000 V_Pde4=18 KfPde4=0.02 KbPde4=72
+par K_Pde1=12000 V_Pde1=11 KfPde1=0.0046 KbPde1=44
+
+par Pde1Tot=4000, Pde4Tot=2000
+
+par speedpde=0.1
+KbpdeCam=10*speedpde
+KfpdeCam=1*speedpde
+
+
+init  PDE1cAMP=9.2542541
+init  PDE4cAMP=58.653095
+init  AMP=115.76139
+
+PDE1=Pde1Tot-PDE1cAMP-PDE1Cam
+PDE4=Pde4Tot-PDE4cAMP
+aux PDE1=PDE1
+aux PDE4=PDE4
+
+
+dPDE1cAMP/dt = KfPde1*PDE1Cam*cAMP - KbPde1*PDE1cAMP - V_Pde1*PDE1cAMP
+dPDE4cAMP/dt = KfPde4*PDE4*cAMP - KbPde4*PDE4cAMP - V_Pde4*PDE4cAMP
+dAMP/dt = V_Pde1*PDE1cAMP + V_Pde4*PDE4cAMP - katp*amp
+
+dPDE1Cam/dt=KfpdeCam*PDE1*CaMCa4-KbpdeCam*PDE1Cam-KfPde1*PDE1Cam*cAMP+(KbPde1+V_Pde1)*PDE1cAMP
+init  PDE1CaM=813.6621
+
+### CaM,CaMCa4 & PP2B Binding ##############################################################
+#
+#CaM+2Ca <-> CaMCa2_C  (KfC, KbC; Kd=1.5 uM )
+#CaMCa2_C + 2Ca <-> Ca4CaM (KfN, KbN; Kd=10 uM)
+#CaM + PP2(2B) <-> PP2CaM (K33a, K_33a)
+#CaMCa2 + PP2(2B) <-> PP2CaMCa2 (K33c, K_33c)
+#CamCa4 + PP2(2B) <-> PP2B (K32, K_32) :: New rate constants from waxham 2006 paper!!!
+#PP2CaM + 2Ca <-> PP2CaMCa2 (KfC, KbCP - old 34a; KbCP is ~10x slower than KbC)
+#PP2CaMCa2 + 2 Ca <-> PP2B(= PP2CaMCa4) (KfN, KbNP - old 34c; KbNP is ~10x slower than KbN)
+#
+############################################################################################
+
+Par KfN=0.1 KbN=1000 KbNP=10
+Par KfC=6e-3 KbC=9.1 KbCP=0.91
+
+par k33c=1 k_33c=0.3
+par k33a=1 k_33a=3
+par k32=0.046 k_32=0.0012
+
+init  CaMCa2=365.7787
+init  CaMCa4=2.561034
+init  PP2B=720.91025
+init  PP2cam=2236.603
+init  PP2camc2=1029.996
+
+#Par CaMtot=15000
+Par PP2Btot=4000
+
+#CaMtot=15000+cam_a
+dCaMtot/dt=cam_a
+init CaMtot=15000
+
+dCaMCa2/dt=kfC*Ca*CaM-kbC*CaMCa2+kbN*CaMCa4-kfN*Ca*CaMCa2\
++k_33c*PP2camc2-k33c*CaMCa2*2B
+
+
+#3rd line has been added into CaMCa4 & CaM eqns..
+dCaMCa4/dt=kfN*Ca*CaMCa2-kbN*CaMCa4-k32*CaMCa4*2B+k_32*PP2B\
+-k51*CaMCa4*CK+k_51*CKCam-KfpdeCam*PDE1*CaMCa4+KbpdeCam*PDE1Cam\
+-k7*E*CaMCa4+k_7*ECam-k9*AC1*CaMCa4+k_9*AC1Cam-k11*AC8*CaMCa4+k_11*AC8Cam
+
+
+
+
+CaM=CaMtot-(CaMca2+CaMca4+AC1Cam+AC8Cam+PP2cam+PP2camc2+PP2B+Ip35p1p2+Ip35pp2b\
++CKCam+CKpCam+PDE1cam+PDE1camp\
++ECam+ECamATP+AC1Cam+AC1CamATP+AC8Cam+AC8CamATP)
+aux CaM=CaM
+
+
+camc4bnd=PP2B+Ip35PP2B+Ip35p1p2+CKCam+CKpCam+pde1cam+pde1camp\
++ECam+ECamATP+AC1Cam+AC1CamATP+AC8Cam+AC8CamATP
+aux camc4bnd=camc4bnd
+
+totCaM=caM+caMca2+caMca4+PP2cam+PP2camc2+camc4bnd
+
+
+dPP2B/dt=k32*CaMCa4*2B-k_32*PP2B+kfN*PP2camc2*Ca-KbNP*PP2B\
+-k22*Ip35*PP2B+(k_22+v22)*Ip35pp2b-k23*Ip35pp1*PP2B+(k_23+v23)*Ip35p1p2
+
+
+dPP2cam/dt=k33a*CaM*2B-k_33a*PP2cam-kfC*PP2cam*Ca+kbCP*PP2camc2
+
+
+dPP2camc2/dt=k33c*CaMCa2*2B-k_33c*PP2camc2-kfN*PP2camc2*Ca+kbNP*PP2B\
++kfC*PP2Cam*Ca-kbCP*PP2camc2
+
+
+
+2B=PP2Btot-(PP2B+PP2camc2+PP2cam+Ip35pp2B+Ip35p1p2)
+
+
+#2B=2Btot-PP2B-PP2camc2-PP2cam-Ip35pp2B-Ip35p1p2
+#PAR 2Btot=4000
+aux 2B=2B
+
+PP2Bact=PP2B+Ip35pp2B+Ip35p1p2
+
+####CaMKII Part:modified from Dupont's Model:#######################################
+#
+#  Dec.2006: convert to qantitative model from Dupont's code
+#  April,2007: eliminate CKpC form --> combined CKpCam & CKpC
+#  June_2007 : simplified Va form to match De Koninck's Exp. data
+#
+## Chemical Reactions: CaMCa4 + CK <-> CKCam (k51, k_51): bounded form(kd=80 nM)
+#                      CKCam --> CKpCam (Va : Autophoshorylation)
+#                      CKpCam <--> CKp + CaMCa4 ( k52, k_52):trapped form(kd=10e-12)
+#                                  K_52: 1/3 of K_51(0.26667)suggested by Meyer et al.(1992)
+#                      Ckp + PP1 <-->CKpPP1 --> PP1 + CK :Dephoshop(k54,k_54,k54cat)
+#                           ; Km=5.1 uM  from foulkes et. al.,  et al., Eur. JBiochem.1983 132(309-313))
+#                           ; Vmax=5.7 umol/min --> kcat=3.5 sec-1 & kb=14 sec-1
+#                           ; Simonelli 1984(Grad Thesis,CUNY) showed that other substrate are about 1/10
+#                           ; rate of phosphorylase a so, reduce kf,kb,kcat by 10
+#                           ; Schulman's Exp. data taken
+########################################################################################
+
+
+param CK_ini=20000
+
+
+CK=CK_ini-CKCam-CkpCam-CKp-CKpPP1 
+aux CK=CK
+
+dCKCam/dt = k51*CaMCa4*CK - K_51*CKCam-Va*CK_ini
+init CKCam=594.4366
+
+
+dCKpCam/dt = Va*CK_ini + k_52*CKp*CaMCa4-k52*CKpCam
+init CKpCam=812.7395
+
+
+dCKp/dt =k52*CKpCam - k_52*CKp*CaMCa4 + k_54*CKpPP1-k54*CKp*PP1
+init CKp=10.63496
+
+
+dCKpPP1/dt =k54*CKp*PP1-(k_54+k54cat)*CKpPP1
+init CKpPP1=3.341977
+
+Va=Ka1*((qb*CKCam)^3/(CK_ini^3)+((qb*CKCam)^2*qp*CKpCam)/(CK_ini^3))
+
+param k51=0.01,k_51=0.8,k52=0.0008,k_52=0.0133,Kd=1000,Ka1=0.46
+param k54=0.000039,k_54=0.34,k54cat=0.086
+param qb=0.75, qp=1, qt=0.8, qa=0.8, qpt=1.0
+
+par pp1tot=3500
+PP1= PP1tot-CKpPP1-Ip35PP1-Ip35P1P2
+aux pp1=pp1
+
+
+
+QActi=qpt*CKpCam+qa*CKp
+Acti=QActi/CK_ini
+
+aux QActi=QActi
+#aux Acti=Acti
+
+
+### PKA part:#############################
+#
+#PKA+2cAMP<->PKAcAMP1; Kdhigh, slow
+#PKAcAMP1+2cAMP<->PKAcAMP2; Kdlow
+#PKAcAMP2<->PKAr+2PKAc; Kd_diss, slow
+#
+##########################################
+
+par speedpka=10.0
+kbhigh=0.002*speedpka
+kfhigh=4.3478e-06*speedpka*2
+kblow=0.02*speedpka
+kflow=5.7703e-6*speedpka*2
+kasrc=0.00017*speedpka
+kdisrc=0.0016*speedpka
+
+par PKAtot=1200
+
+dPKAcAMP1/dt=kfhigh*cAMP*PKA-kbhigh*PKAcAMP1-kflow*cAMP*PKAcAMP1+kblow*PKAcAMP2
+dPKAcAMP2/dt=kflow*cAMP*PKAcAMP1-kblow*PKAcAMP2-kdisrc*PKAcAMP2+kasrc*PKAc*PKAr
+dPKAc/dt=2*kdisrc*PKAcamp2-2*kasrc*PKAc*PKAr-k20*I1*PKAc+k_20*I1PKAc+v20*I1PKAc
+
+
+
+Pka=PKAtot-PKAcAMP1-PKAcAMP2-0.5*(PKAc+I1PKAc)
+PKAr=0.5*(PKAc+I1PKAc)
+
+
+
+
+
+init  PKAcAMP1=428.0043
+init  PKAcAMP2=33.5732
+init  PKAc=22.17636
+
+PKAact=PKAc+I1PKAc
+
+
+totPKA=PKA+PKAcAMP1+PKAcAMP2+0.5*(PKAc+I1PKAc)
+
+
+
+
+####Inhibitor 1 Phospho & Dephosphorylation ################
+##
+##  I1+PKAc <--> I1PKAc --> Ip35 + PKAc (20)
+##  Ip35 + PP1 <--> Ip35pp1 (21)
+##  Ip35 + PP2B <--> Ip35pp2b --> I1 + PP2B (22)
+##  Ip35pp1 + PP2B <--> Ip35p1p2 --> I1 + PP1 + PP2B (23)
+##
+############################################################
+
+par I1tot=1500
+
+I1=I1tot-I1PKAc-Ip35-Ip35pp1-Ip35pp2b-Ip35p1p2
+aux I1=I1
+
+par k20=0.0014 k_20=5.6 v20=1.4
+dI1PKAc/dt=k20*I1*PKAc-k_20*I1PKAc-v20*I1PKAc
+
+init  I1PKAc=6.32017
+
+
+dIp35/dt=v20*I1PKAc+k_22*Ip35pp2b-k22*Ip35*PP2B-k21*Ip35*PP1+k_21*Ip35pp1
+
+init  Ip35=2.169742
+
+#### Ip35 + PP1 <--> Ip35pp1 (21) #####
+
+par  k21=0.001 k_21=0.0011
+dIp35pp1/dt=k21*Ip35*PP1-k_21*Ip35pp1-k23*Ip35pp1*pp2b+k_23*Ip35p1p2
+
+init  Ip35pp1=51.23495
+#### Ip35 + PP2B <--> Ip35pp2b --> I1 + PP2B (22) #############
+
+par  k22=0.00467 k_22=11.2 v22=2.8
+dIp35pp2b/dt=k22*Ip35*PP2B-k_22*Ip35pp2b-v22*Ip35pp2b
+
+init  Ip35pp2b=0.5217763
+
+#### Ip35pp1 + PP2B <--> Ip35p1p2 --> I1 + PP1 + PP2B (23) #####
+
+par k23_a=1.0
+k23=0.001*k23_a
+k_23=2*k23_a
+v23=0.5*k23_a
+
+dIp35p1p2/dt=k23*Ip35pp1*PP2B-k_23*Ip35p1p2-v23*Ip35p1p2
+
+init  Ip35p1p2=14.77453
+
+###########################################################
+
+
+dPKAauc/dt=PKAc
+init PKAauc=0
+
+
+@ Total=1400 dt=0.1 method=stiff xlo=0 xhi=3000 ylo=0 yhi=1 maxstor=6000000 \
+  bounds=10000000000 BACK=black nOutput=10000
+d
+
+
+
+

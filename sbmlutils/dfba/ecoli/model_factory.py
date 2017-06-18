@@ -34,7 +34,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 6
+version = 7
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -407,8 +407,15 @@ def create_model(output_dir):
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
+def create_reports(output_dir):
+    directory = utils.versioned_directory(output_dir, version=version)
+
+    sbml_paths = [pjoin(directory, fname) for fname in
+                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
 if __name__ == "__main__":
 
     from sbmlutils.dfba.ecoli.settings import out_dir
-    create_model(output_dir=out_dir)
+    # create_model(output_dir=out_dir)
+    create_reports(output_dir=out_dir)

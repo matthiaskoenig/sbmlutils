@@ -1,0 +1,40 @@
+% ikca_Mocz.ode
+% simplified mode for calcium-activated K+ current 
+% (Ref: From Moczydlowski and Latorre (1983)  J. Gen. Physiol. 82:511-542.)
+% Model 3. (Scheme R1 page 523)
+% (Ref: From Wang et al (2008) J. Membr. Biol. 213:175-185.)
+% Model has been briefly described in Computational Cell Biology (pp 88-90)
+% Results are similar to those in 'cagk' in NEURON
+% Equation was incorporated to model skeletal muscle cell (Wang et al., 2008)
+
+% Initial values of the variables
+init o=0.0
+
+% Values of the model parameters; Units= mM, ms(-1), mV
+% k1 and k2 are zero-voltage dissociation constants.
+% d1 and d2 are fractional distances of the electric field.
+% bbar is alpha in originanl paper (1983) (p 524)
+par d1=0.84, d2=1.0, k1=0.18, k2=0.011, bbar=0.28, abar=0.48, celsius=20
+par gkbar=0.01, cai=0.1
+number fara=96.485
+par ko=5.4, ki=140
+par vhold=-65, vtest=20
+par ton=2, toff=12
+v = vhold + heav(t-ton)*heav(toff-t)*(vtest-vhold)
+
+% Gating functions
+ek = (8.313424*(273.15+celsius)/fara)*ln(ko/ki)
+alp(v) = abar/(1+k1*exp(-2*d1*fara*v/8.313424/(273.15+celsius))/cai)
+beta(v) = bbar/(1+cai/(k2*exp(-2*d2*fara*v/8.313424/(273.15+celsius))))
+tau(v) = 1/(alp(v)+beta(v))
+oinf(v) = alp(v)*tau(v)
+
+% Differential equation
+o' = (oinf(v)-o)/tau(v)
+aux ikca = gkbar*o*(v-ek)
+aux vm=v
+
+% Numerical and plotting parameters for xpp
+@ yp=ikca, xlo=0, xhi=18 ylo=-.04, yhi=1.0, total=18, dt=0.01, method=Euler, LT=1
+
+done

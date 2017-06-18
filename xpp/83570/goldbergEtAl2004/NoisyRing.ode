@@ -1,0 +1,54 @@
+# This is an XPP realization of the noisy ring model that appears in 
+# Goldberg JA, Rokni U and Sompolinsky H. Patterns of Ongoing Activity and the
+# Functional Architecture of the Primary Visual Cortex. Neuron, 42:489-500 (2004).
+
+# must have the file CosIntCol20.tab in the same directory as NoisyRing.ode
+
+# In order to see the population activity do
+# Viewaxes, Array and then fill out 
+# *Column 1:m11
+# NCols:20
+# Row 1:0
+# NRows:4000
+# RowSkip:5
+# Zmin:0
+# and adjust Zmax according to your simulation
+
+# The phase diagram of this model is shown in fig. 3A of the above paper. In order to 
+# get a noisy "hill" of activity lambda must be larger than 1 and mu must be positive.
+
+
+# parameters (gain and mean of Gaussian noise)
+p lambda=1.8, mu=1
+# mu here is equivalent to T/Sigma_n in the figure in the paper.
+# note lambda=1.1, mu=5 are other possible defaults
+
+# threshold linear gain function
+sl(x)=max(x,0)
+
+# stochastic integration, w is local uncorrelated Gaussian white noise
+weiner w[11..30]
+
+#the model
+m[11..30]'=-m[j]+sl(2*lambda*h([j-11])+w[j]+mu)
+
+#Coupling Matrix
+table coscol CosIntCol20.tab
+# this table is cosine coupling divided by 20
+# recurrent feedback is given by h
+special h=mmult(20,20,coscol,m11);
+
+# order parameters of model
+rnull=sum(0,19) of (shift(m11,i'))/20
+rfundc=sum(0,19) of (shift(m11,i')*cos(2*pi*i'/20))/20
+rfunds=sum(0,19) of (shift(m11,i')*sin(2*pi*i'/20))/20
+aux r0=rnull
+aux r1=sqrt(rfundc^2+rfunds^2)
+aux phiang=atan(rfunds/rfundc)
+
+# r1 is order 1 for a "hill of activity" and is order 1/sqrt(20) otherwise
+
+@ total=1000,xlo=0,xhi=1000,ylo=0,yhi=10,dt=0.05,bounds=10000,meth=euler
+
+
+d

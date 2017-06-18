@@ -1,0 +1,67 @@
+#
+# This is the one-cell model with dynamic ion concentrations used in
+#
+# E. Barreto and J.R. Cressman, "Ion Concentration Dynamics as a Mechanism for Neuronal Bursting",
+# Journal of Biological Physics 37, 361-373 (2011).
+#
+# Link to the paper: http://www.springerlink.com/content/v52215p195159211/
+# Author-generated version available at: http://arxiv.org/abs/1012.3124
+#
+# The variables are:
+#	V=y[1]=V, the membrane voltage
+#	n=y[2]=n, gating variable
+#	h=y[3]=h, gating variable
+#	Ko=y[4]=[K]_o, the extracellular potassium concentration
+#	Nai=y[5]=[Na]_i, the intracellular sodium concentration
+#
+# The parameters of interest are
+#	rho = strength of pumps
+#	epsilon = diffusion constant for potassium diffusion from the extracellular space to the bath
+# 	kbath = bath potassium concentration
+#	glia = strength of glia
+#	beta = ratio of intra- to extra-cellular volume
+#
+# The remaining parameter is
+#	gamma = unit conversion factor
+
+par rho=1.25, epsilon=1.333333333, kbath=4.0, glia=66.666666666, beta=7.0
+par gamma=0.044494542, tau=1000
+par E_cl=-81.93864549, E_ca=120.0
+par Cm=1.0, g_na=100.0, g_naL=0.0175, g_k=40.0, g_kL=0.05
+par g_clL=0.05, g_ca=0.1, phi=3.0, I=0.0
+
+########
+
+alpha_n=0.01*(V+34.0)/(1.0-exp(-0.1*(V+34.0)))
+beta_n=0.125*exp(-(V+44.0)/80.0)
+alpha_m=0.1*(V+30.0)/(1.0-exp(-0.1*(V+30.0)))
+beta_m=4.0*exp(-(V+55.0)/18.0)
+alpha_h=0.07*exp(-(V+44.0)/20.0)
+beta_h=1.0/(1.0+exp(-0.1*(V+14.0)))
+
+m_inf=alpha_m/(alpha_m+beta_m)
+Kin=158.0-Nai
+Naout=144.0-beta*(Nai-18.0)
+E_k=26.64*log((Ko/Kin))
+E_na=26.64*log((Naout/Nai))
+Ina=g_na*(m_inf*m_inf*m_inf)*h*(V-E_na)+g_naL*(V-E_na)
+Ik=g_k*n*n*n*n*(V-E_k)+g_kL*(V-E_k)
+Icl=g_clL*(V-E_cl)
+Itildepump=(rho/(1.0+exp((25.0-Nai)/3.0)))*(1/(1+exp(5.5-Ko)))
+Itildeglia=(glia/(1.0+exp((18.0-Ko)/2.5)))
+Itildediff=epsilon*(Ko-kbath)
+
+# differential equations
+
+V'=(1.0/Cm)*(-Ina-Ik-Icl+I)
+n'=phi*(alpha_n*(1-n)-beta_n*n)
+h'=phi*(alpha_h*(1-h)-beta_h*h)
+Ko'=(1/tau)*(gamma*beta*Ik-2.0*beta*Itildepump-Itildeglia-Itildediff)
+Nai'=(1/tau)*(-gamma*Ina-3.0*Itildepump)
+
+####
+
+init V=-50,n=0.08553,h=0.96859,Ko=7.8,Nai=15.5
+@ TOTAL=10000,BOUND=10000
+done
+

@@ -1,0 +1,78 @@
+#CA3_cell_fastslow_q.ode
+#Atherton et al., 2016
+
+#
+#
+#Declare parameters
+param q=0.0001
+param Is=0.3, Id=0.0, gCa_h=10.0, gKCa_h=15
+param p=0.5, C_h=3, gL=0.1
+param VL=-60, gNa_h=30, VNa_h=60
+param gK_h=15, VK_h=-75
+param VCa_h=80, gKAHP_h=0.8, gsd=2.1
+param tau_AMPA=2
+param gAMPA_PP_h=1e-0.6, VAMPA=0, tau_GABA_IP=7
+param gGABA_IP_h=1e-06, VGABA=-75
+
+#
+# Define some functions
+alpham=0.32*(-46.9-Vs)/(exp((-46.9-Vs)/4)-1)
+betam=0.28*(Vs+19.9)/(exp((Vs+19.9)/5)-1)
+m_inf=alpham/(alpham + betam)
+alphah=0.128*exp((-43-Vs)/18)
+betah=4./(1+exp((-20-Vs)/5))
+alphan=0.016*(-24.9-Vs)/(exp((-24.9-Vs)/5)-1)
+betan=0.25*exp(-1-0.025*Vs)
+alphas=1.6 / (exp(-0.072*(Vd-5))+1)
+betas=0.02*(Vd+8.9)/(exp((Vd+8.9)/5)-1)
+qinf=(0.7894*exp(0.0002726*Ca))-(0.7292*exp(-0.01672*Ca))
+tauq=(657.9*exp(-0.02023*Ca))+(301.8*exp(-0.002381*Ca))
+cinf=(1.0/(1.0+exp((-10.1-Vd)/0.1016)))^0.00925
+tauc=3.627*exp(0.03704*Vd)
+
+#
+# Define the fixed variables
+I_Ls=gL*(Vs-VL)
+I_Na=gNa_h*(m_inf^2)*h*(Vs-VNa_h)
+I_K=gK_h*n*(Vs-VK_h)
+I_sd=gsd*(Vs-Vd)
+I_Ld=gL*(Vd-VL)
+I_Ca=gCa_h*(s^2)*(Vd-VCa_h)
+I_KAHP=gKAHP_h*q*(Vd-VK_h)
+I_KCa=gKCa_h*c*(1.073*sin(0.003453*Ca+0.08095) + 0.08408*sin(0.01634*Ca-2.34) + 0.01811*sin(0.0348*Ca-0.9918))*(Vd-VK_h)
+
+
+# Define the right-hand sides
+Vs'=(-(I_Ls + I_Na + I_K) - I_sd/p + Is/p)/C_h
+Vd'=(-( I_Ld + I_Ca + I_KAHP + I_KCa ) + I_sd/(1-p) + Id/(1-p))/C_h
+Ca'=(-0.13*I_Ca - 0.075*Ca)
+h'=(alphah - h*(alphah + betah))
+n'=(alphan - n*(alphan + betan))
+s'=(alphas - s*(alphas + betas))
+#q'=(qinf-q)/tauq
+c'=(cinf-c)/tauc
+
+
+# Initial conditions
+init Vs= -62.89223689
+init Vd= -62.98248752
+init Ca=0.21664282
+init h=0.99806345
+init n=0.00068604
+init s=0.01086703
+#init q=0.0811213
+init c=0.00809387
+
+#init sAMPA_PP=0
+#init sGABA_IP=0
+
+#
+@ meth=cvode, toler=1.0e-10, atoler=1.0e-10, dt=0.05, total=10000
+@ maxstore=10000000, bounds=10000000, noutput=10
+@ xp=t, yp=vs, xlo=0, xhi=10000, ylo=-120, yhi=40
+
+@ ntst=100.,nmax=2000000.,npr=2000000.,dsmin=0.00001,dsmax=0.5,ds=0.1,parmin=-500,parmax=500.
+@ epsl=1e-08, epsu=1e-08, epss=1e-06, normmax=1000000
+@ autoxmin=-100.,autoxmax=100,autoymin=-120.,autoymax=40.
+
+done

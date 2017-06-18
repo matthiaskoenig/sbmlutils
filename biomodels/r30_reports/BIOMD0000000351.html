@@ -1,0 +1,2464 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>Vernoux2011_AuxinSignalling_AuxinSingleStepInput</title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p>This model is from the article:      <br/>
+    <strong>The auxin signalling network translates dynamic input into robust patterning at the shoo
+t apex.</strong>
+    <br/>
+          Vernoux T, Brunoud G, Farcot E, Morin V, Van den Daele H, Legrand J, Oliva M, Das P, Larrieu A, Wells D
+, Guédon Y, Armitage L, Picard F, Guyomarc&apos;h S, Cellier C, Parry G, Koumproglou R, Doonan JH, Estelle M
+, Godin C, Kepinski S, Bennett M, De Veylder L, Traas J.      <em>Mol Syst Biol.</em>
+          2011 Jul 5;7:508.      <a href="http://www.ncbi.nlm.nih.gov/pubmed/21734647">21734647</a>
+          ,      <br/>
+    <strong>Abstract:</strong>
+    <br/>
+          The plant hormone auxin is thought to provide positional information for patterning during development.
+ It is still unclear, however, precisely how auxin is distributed across tissues and how the hormone is
+ sensed in space and time. The control of gene expression in response to auxin involves a complex netwo
+rk of over 50 potentially interacting transcriptional activators and repressors, the auxin response fac
+tors (ARFs) and Aux/IAAs. Here, we perform a large-scale analysis of the Aux/IAA-ARF pathway in the sho
+ot apex of Arabidopsis, where dynamic auxin-based patterning controls organogenesis. A comprehensive ex
+pression map and full interactome uncovered an unexpectedly simple distribution and structure of this p
+athway in the shoot apex. A mathematical model of the Aux/IAA-ARF network predicted a strong buffering
+capacity along with spatial differences in auxin sensitivity. We then tested and confirmed these predic
+tions using a novel auxin signalling sensor that reports input into the signalling pathway, in conjunct
+ion with the published DR5 transcriptional output reporter. Our results provide evidence that the auxin
+ signalling network is essential to create robust patterns at the shoot apex.      <p>
+      <b>Note:</b>
+    </p>
+    <p>Figure 3 of the supplementary material of the reference article has been reproduced here. Time evolution of all the variables in the model are plotted, under the influence of a step input of auxin level (auxin=5, when time&gt;1000; 0.11, otherwise). pi_A is varied between 0 and 2 by steps of 0.1.</p>
+  </p>
+  <p>This model originates from BioModels Database: A Database of Annotated Published Models (http://www.ebi.ac.uk/biomodels/). It is copyright (c) 2005-2011 The BioModels.net Team.      <br/>
+          For more information see the      <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>
+          .      <br/>
+          To cite BioModels Database, please use:      <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Novère N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+</p>
+</body>
+</notes><hr />
+    <h1>Model : Vernoux2011_AuxinSignalling_AuxinSingleStepInput</h1>
+    <b>Creator</b><br />Vijayalakshmi, Chelliah, EMBL-EBI, <a href="mailto:viji@ebi.ac.uk" target="_blank">viji@ebi.ac.uk</a><br />Farcot, Etienne, INRIA, <a href="mailto:etienne.farcot@inria.fr" target="_blank">etienne.farcot@inria.fr</a><br />Teva, Vernoux, CNRS, <a href="mailto:teva.vernoux@ens-lyon.fr" target="_blank">teva.vernoux@ens-lyon.fr</a><br /><b>Created:</b> 2011-04-01 10:17<br /><b>Modified:</b> 2011-08-23 14:13<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="Vernoux2011_AuxinSignalling_AuxinSingleStepInput" class="active"><span class="package">Vernoux2011_AuxinSignalling_AuxinSingleStepInput</span> <code>metaid_0000002</code></td></tr>
+                <tr><td class="active">name</td><td>Vernoux2011_AuxinSignaling_AuxinSingleStepInput</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000351.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L2V4</span> <span class="package">layout-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL1105290000" target="_blank">MODEL1105290000</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000351" target="_blank">BIOMD0000000351</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/21734647" target="_blank">21734647</a><br /><span class="collection">BQB_OCCURS_IN</span><br /><a href="http://identifiers.org/taxonomy/3701" target="_blank">3701</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009734" target="_blank">GO:0009734</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="compartment_0000001" class="active"><span class="package">compartment_0000001</span> <code>metaid_0000018</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-compartment_0000001"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-compartment_0000001" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">compartment_0000001</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="metaid_0000018" sboTerm="SBO:0000290" id="compartment_0000001" name="c_1" size="1">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000018">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005623"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>c_1</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0005623" target="_blank">GO:0005623</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [6]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	<td id="I" class="active"><span class="package">I</span> <code>metaid_0000019</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-I"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-I" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">I</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000019" sboTerm="SBO:0000252" id="I" name="Aux/IAA" compartment="compartment_0000001" initialConcentration="10">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000019">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P49677"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Aux/IAA</td>
+	<td>compartment_0000001</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>10.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000252" target="_blank">SBO:0000252</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P49677" target="_blank">P49677</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="A" class="active"><span class="package">A</span> <code>metaid_0000020</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000020" sboTerm="SBO:0000252" id="A" name="ARF" compartment="compartment_0000001" initialConcentration="10">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000020">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q94JM3"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>ARF</td>
+	<td>compartment_0000001</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>10.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000252" target="_blank">SBO:0000252</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q94JM3" target="_blank">Q94JM3</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="D_II" class="active"><span class="package">D_II</span> <code>metaid_0000021</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-D_II"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-D_II" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">D_II</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000021" sboTerm="SBO:0000286" id="D_II" name="Aux/IAA:Aux/IAA" compartment="compartment_0000001" initialConcentration="10">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000021">
+        <bqbiol:hasPart>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P49677"/>
+          </rdf:Bag>
+        </bqbiol:hasPart>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Aux/IAA:Aux/IAA</td>
+	<td>compartment_0000001</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>10.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000286" target="_blank">SBO:0000286</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_HAS_PART</span><br /><a href="http://identifiers.org/uniprot/P49677" target="_blank">P49677</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="D_IA" class="active"><span class="package">D_IA</span> <code>metaid_0000022</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-D_IA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-D_IA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">D_IA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000022" sboTerm="SBO:0000297" id="D_IA" name="Aux/IAA:ARF" compartment="compartment_0000001" initialConcentration="10">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000022">
+        <bqbiol:hasPart>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q94JM3"/>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P49677"/>
+          </rdf:Bag>
+        </bqbiol:hasPart>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>Aux/IAA:ARF</td>
+	<td>compartment_0000001</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>10.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000297" target="_blank">SBO:0000297</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_HAS_PART</span><br /><a href="http://identifiers.org/uniprot/Q94JM3" target="_blank">Q94JM3</a>; <a href="http://identifiers.org/uniprot/P49677" target="_blank">P49677</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="R" class="active"><span class="package">R</span> <code>metaid_0000023</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000023" sboTerm="SBO:0000278" id="R" name="mRNA" compartment="compartment_0000001" initialConcentration="1">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000023">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:33699"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>mRNA</td>
+	<td>compartment_0000001</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000278" target="_blank">SBO:0000278</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.chebi/CHEBI:33699" target="_blank">CHEBI:33699</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="aux" class="active"><span class="package">aux</span> <code>metaid_0000036</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aux"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aux" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aux</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000036" sboTerm="SBO:0000252" id="aux" name="auxin" compartment="compartment_0000001" initialConcentration="0.11">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000036">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/Q96247"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>auxin</td>
+	<td>compartment_0000001</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.11</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000252" target="_blank">SBO:0000252</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/Q96247" target="_blank">Q96247</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [23]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="pi_I" class="active"><span class="package">pi_I</span> <code>metaid_0000005</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pi_I"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pi_I" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pi_I</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000005" sboTerm="SBO:0000153" id="pi_I" name="pi_I" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>pi_I</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000153" target="_blank">SBO:0000153</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="d_r" class="active"><span class="package">d_r</span> <code>metaid_0000006</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-d_r"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-d_r" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">d_r</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000006" sboTerm="SBO:0000356" id="d_r" name="d_r" value="0.007">
+  <notes>
+    <p xmlns="http://www.w3.org/1999/xhtml">
+        Auxin target gene mRNA degradation rate. Computed from the mean half life of Aux/IAA mRNA in Narsai et al. The Plant Cell 2007.</p>
+  </notes>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>d_r</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.007</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000356" target="_blank">SBO:0000356</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="d_A" class="active"><span class="package">d_A</span> <code>metaid_0000007</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-d_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-d_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">d_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000007" sboTerm="SBO:0000356" id="d_A" name="d_A" value="0.003">
+  <notes>
+    <p xmlns="http://www.w3.org/1999/xhtml">
+        ARF degradation rate, based on the value for ARF1, cf. Salmon et al. The Plant Journal (2008)</p>
+  </notes>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>d_A</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.003</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000356" target="_blank">SBO:0000356</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="d_II" class="active"><span class="package">d_II</span> <code>metaid_0000008</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-d_II"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-d_II" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">d_II</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000008" sboTerm="SBO:0000356" id="d_II" name="d_II" value="0.003"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>d_II</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.003</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000356" target="_blank">SBO:0000356</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="d_IA" class="active"><span class="package">d_IA</span> <code>metaid_0000009</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-d_IA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-d_IA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">d_IA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000009" sboTerm="SBO:0000356" id="d_IA" name="d_IA" value="0.003"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>d_IA</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.003</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000356" target="_blank">SBO:0000356</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="k_II" class="active"><span class="package">k_II</span> <code>metaid_0000010</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k_II"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k_II" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k_II</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000010" sboTerm="SBO:0000341" id="k_II" name="k_II" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>k_II</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000341" target="_blank">SBO:0000341</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="k_IA" class="active"><span class="package">k_IA</span> <code>metaid_0000011</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k_IA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k_IA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k_IA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000011" sboTerm="SBO:0000341" id="k_IA" name="k_IA" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>k_IA</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000341" target="_blank">SBO:0000341</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="B_d" class="active"><span class="package">B_d</span> <code>metaid_0000012</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-B_d"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-B_d" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">B_d</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000012" sboTerm="SBO:0000282" id="B_d" name="B_d" value="100"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>B_d</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>100.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000282" target="_blank">SBO:0000282</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="f_A" class="active"><span class="package">f_A</span> <code>metaid_0000013</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000013" sboTerm="SBO:0000009" id="f_A" name="f_A" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>f_A</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="gamma_I" class="active"><span class="package">gamma_I</span> <code>metaid_0000014</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-gamma_I"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-gamma_I" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">gamma_I</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000014" sboTerm="SBO:0000009" id="gamma_I" name="gamma_I" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>gamma_I</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="K_aux" class="active"><span class="package">K_aux</span> <code>metaid_0000015</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-K_aux"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-K_aux" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">K_aux</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000015" sboTerm="SBO:0000282" id="K_aux" name="K_aux" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>K_aux</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000282" target="_blank">SBO:0000282</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="K_II" class="active"><span class="package">K_II</span> <code>metaid_0000016</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-K_II"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-K_II" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">K_II</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000016" sboTerm="SBO:0000282" id="K_II" name="K_II" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>K_II</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000282" target="_blank">SBO:0000282</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="K_IA" class="active"><span class="package">K_IA</span> <code>metaid_0000017</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-K_IA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-K_IA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">K_IA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000017" sboTerm="SBO:0000282" id="K_IA" name="K_IA" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>K_IA</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000282" target="_blank">SBO:0000282</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="f_c" class="active"><span class="package">f_c</span> <code>metaid_0000024</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f_c"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f_c" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f_c</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000024" sboTerm="SBO:0000009" id="f_c" name="f_c" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>f_c</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="w_A" class="active"><span class="package">w_A</span> <code>metaid_0000025</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-w_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-w_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">w_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000025" sboTerm="SBO:0000481" id="w_A" name="w_A" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>w_A</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000481" target="_blank">SBO:0000481</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="w_I" class="active"><span class="package">w_I</span> <code>metaid_0000026</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-w_I"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-w_I" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">w_I</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000026" sboTerm="SBO:0000481" id="w_I" name="w_I" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>w_I</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000481" target="_blank">SBO:0000481</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="w_D" class="active"><span class="package">w_D</span> <code>metaid_0000027</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-w_D"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-w_D" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">w_D</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000027" sboTerm="SBO:0000481" id="w_D" name="w_D" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>w_D</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000481" target="_blank">SBO:0000481</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="d_I" class="active"><span class="package">d_I</span> <code>metaid_0000028</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-d_I"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-d_I" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">d_I</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000028" sboTerm="SBO:0000356" id="d_I" name="d_I" value="0.05">
+  <notes>
+    <p xmlns="http://www.w3.org/1999/xhtml">
+        Aux/IAA basal degradation rate (without auxin), based on half-lifes measured in Dreher et al. The Plant Cell 2006.</p>
+  </notes>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>d_I</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.05</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000356" target="_blank">SBO:0000356</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="pi_A" class="active"><span class="package">pi_A</span> <code>metaid_0000029</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pi_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pi_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pi_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000029" sboTerm="SBO:0000153" id="pi_A" name="pi_A" value="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>pi_A</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000153" target="_blank">SBO:0000153</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="k_Am" class="active"><span class="package">k_Am</span> <code>metaid_0000030</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k_Am"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k_Am" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k_Am</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000030" sboTerm="SBO:0000009" id="k_Am" name="k_Am" value="10"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>k_Am</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kprime_IA" class="active"><span class="package">kprime_IA</span> <code>metaid_0000042</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kprime_IA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kprime_IA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kprime_IA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000042" sboTerm="SBO:0000338" id="kprime_IA" name="kprime_IA" value="10" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>kprime_IA</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000338" target="_blank">SBO:0000338</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="kprime_II" class="active"><span class="package">kprime_II</span> <code>metaid_0000044</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kprime_II"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kprime_II" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kprime_II</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000044" sboTerm="SBO:0000338" id="kprime_II" name="kprime_II" value="10" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>kprime_II</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>10.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000338" target="_blank">SBO:0000338</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	<td id="aux_basal" class="active"><span class="package">aux_basal</span> <code>metaid_0000045</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aux_basal"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aux_basal" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aux_basal</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="metaid_0000045" sboTerm="SBO:0000009" id="aux_basal" name="aux_basal" value="0.11" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>aux_basal</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.11</td>
+	<td></td>
+	<td>None</td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [4]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">name</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="aux" class="active"><span class="package">aux</span> <code>metaid_0000066</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aux"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aux" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aux</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000066" variable="aux">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <piecewise>
+      <piece>
+        <cn type="integer"> 5 </cn>
+        <apply>
+          <gt/>
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+          <cn type="integer"> 1000 </cn>
+        </apply>
+      </piece>
+      <otherwise>
+        <cn type="integer"> 0 </cn>
+      </otherwise>
+    </piecewise>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <piecewise>
+    <piece>
+      <cn type="integer"> 5 </cn>
+      <apply>
+        <gt/>
+        <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        <cn type="integer"> 1000 </cn>
+      </apply>
+    </piece>
+    <otherwise>
+      <cn type="integer"> 0 </cn>
+    </otherwise>
+  </piecewise>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="kprime_IA" class="active"><span class="package">kprime_IA</span> <code>metaid_0000055</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kprime_IA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kprime_IA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kprime_IA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000055" variable="kprime_IA">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> K_IA </ci>
+      <ci> k_IA </ci>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> K_IA </ci>
+    <ci> k_IA </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="kprime_II" class="active"><span class="package">kprime_II</span> <code>metaid_0000056</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kprime_II"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kprime_II" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kprime_II</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000056" variable="kprime_II">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> K_II </ci>
+      <ci> k_II </ci>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> K_II </ci>
+    <ci> k_II </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	<td id="aux_basal" class="active"><span class="package">aux_basal</span> <code>metaid_0000057</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-aux_basal"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-aux_basal" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">aux_basal</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="metaid_0000057" variable="aux_basal">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <cn> 1 </cn>
+      <apply>
+        <times/>
+        <ci> K_aux </ci>
+        <apply>
+          <minus/>
+          <ci> gamma_I </ci>
+          <cn> 1 </cn>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn> 1 </cn>
+    <apply>
+      <times/>
+      <ci> K_aux </ci>
+      <apply>
+        <minus/>
+        <ci> gamma_I </ci>
+        <cn> 1 </cn>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [12]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_DIA" class="active"><span class="package">reac_DIA</span> <code>metaid_0000031</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_DIA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_DIA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_DIA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000031" sboTerm="SBO:0000526" id="reac_DIA" name="reac_DIA" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000031">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006461"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469312" species="A"/>
+    <speciesReference metaid="_469324" species="I"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_469336" species="D_IA"/>
+  </listOfProducts>
+  <kineticLaw metaid="_469348">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> k_IA </ci>
+          <ci> I </ci>
+          <ci> A </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kprime_IA </ci>
+          <ci> D_IA </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_DIA<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>A + I &#8646; D_IA</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> k_IA </ci>
+      <ci> I </ci>
+      <ci> A </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kprime_IA </ci>
+      <ci> D_IA </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000526" target="_blank">SBO:0000526</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0006461" target="_blank">GO:0006461</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_DII" class="active"><span class="package">reac_DII</span> <code>metaid_0000032</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_DII"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_DII" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_DII</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000032" sboTerm="SBO:0000526" id="reac_DII" name="reac_DII" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000032">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006461"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469360" species="I"/>
+    <speciesReference metaid="_469372" species="I"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_469384" species="D_II"/>
+  </listOfProducts>
+  <kineticLaw metaid="_469396">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <apply>
+          <times/>
+          <ci> k_II </ci>
+          <ci> I </ci>
+          <ci> I </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> kprime_II </ci>
+          <ci> D_II </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_DII<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>I + I &#8646; D_II</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <times/>
+      <ci> k_II </ci>
+      <ci> I </ci>
+      <ci> I </ci>
+    </apply>
+    <apply>
+      <times/>
+      <ci> kprime_II </ci>
+      <ci> D_II </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000526" target="_blank">SBO:0000526</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0006461" target="_blank">GO:0006461</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_degrI" class="active"><span class="package">reac_degrI</span> <code>metaid_0000033</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_degrI"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_degrI" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_degrI</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000033" sboTerm="SBO:0000179" id="reac_degrI" name="reac_degrI" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000033">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009056"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469408" species="I"/>
+  </listOfReactants>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_469420" species="aux"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_469432">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> gamma_I </ci>
+            <ci> d_I </ci>
+            <ci> K_aux </ci>
+            <ci> aux </ci>
+          </apply>
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <ci> K_aux </ci>
+              <ci> aux </ci>
+            </apply>
+            <cn> 1 </cn>
+          </apply>
+        </apply>
+        <ci> I </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_degrI<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>I &#10142; </td>
+	<td>aux</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> gamma_I </ci>
+        <ci> d_I </ci>
+        <ci> K_aux </ci>
+        <ci> aux </ci>
+      </apply>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> K_aux </ci>
+          <ci> aux </ci>
+        </apply>
+        <cn> 1 </cn>
+      </apply>
+    </apply>
+    <ci> I </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000179" target="_blank">SBO:0000179</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009056" target="_blank">GO:0009056</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_degrA" class="active"><span class="package">reac_degrA</span> <code>metaid_0000034</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_degrA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_degrA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_degrA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000034" sboTerm="SBO:0000179" id="reac_degrA" name="reac_degrA" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000034">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009056"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469444" species="A"/>
+  </listOfReactants>
+  <kineticLaw metaid="_469456">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> d_A </ci>
+        <ci> A </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_degrA<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>A &#10142; </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> d_A </ci>
+    <ci> A </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000179" target="_blank">SBO:0000179</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009056" target="_blank">GO:0009056</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_degrDIA" class="active"><span class="package">reac_degrDIA</span> <code>metaid_0000047</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_degrDIA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_degrDIA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_degrDIA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000047" sboTerm="SBO:0000179" id="reac_degrDIA" name="reac_degrDIA" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000047">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009056"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469468" species="D_IA"/>
+  </listOfReactants>
+  <kineticLaw metaid="_469480">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> d_IA </ci>
+        <ci> D_IA </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_degrDIA<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>D_IA &#10142; </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> d_IA </ci>
+    <ci> D_IA </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000179" target="_blank">SBO:0000179</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009056" target="_blank">GO:0009056</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_degrDII" class="active"><span class="package">reac_degrDII</span> <code>metaid_0000048</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_degrDII"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_degrDII" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_degrDII</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000048" sboTerm="SBO:0000179" id="reac_degrDII" name="reac_degrDII" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000048">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009056"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469492" species="D_II"/>
+  </listOfReactants>
+  <kineticLaw metaid="_469504">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> d_II </ci>
+        <ci> D_II </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_degrDII<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>D_II &#10142; </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> d_II </ci>
+    <ci> D_II </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000179" target="_blank">SBO:0000179</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009056" target="_blank">GO:0009056</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_DIAxA" class="active"><span class="package">reac_DIAxA</span> <code>metaid_0000049</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_DIAxA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_DIAxA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_DIAxA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000049" sboTerm="SBO:0000180" id="reac_DIAxA" name="reac_DIAxA" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000049">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043241"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469516" species="D_IA"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_469529" species="A"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_469541" species="aux"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_469553">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> gamma_I </ci>
+            <ci> d_I </ci>
+            <ci> K_aux </ci>
+            <ci> aux </ci>
+          </apply>
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <ci> K_aux </ci>
+              <ci> aux </ci>
+            </apply>
+            <cn> 1 </cn>
+          </apply>
+        </apply>
+        <ci> D_IA </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_DIAxA<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>D_IA &#10142; A</td>
+	<td>aux</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> gamma_I </ci>
+        <ci> d_I </ci>
+        <ci> K_aux </ci>
+        <ci> aux </ci>
+      </apply>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> K_aux </ci>
+          <ci> aux </ci>
+        </apply>
+        <cn> 1 </cn>
+      </apply>
+    </apply>
+    <ci> D_IA </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000180" target="_blank">SBO:0000180</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0043241" target="_blank">GO:0043241</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_DIIxI" class="active"><span class="package">reac_DIIxI</span> <code>metaid_0000050</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_DIIxI"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_DIIxI" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_DIIxI</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000050" sboTerm="SBO:0000180" id="reac_DIIxI" name="reac_DIIxI" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000050">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043241"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469565" species="D_II"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_469577" species="I"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_469589" species="aux"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_469601">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> gamma_I </ci>
+            <ci> d_I </ci>
+            <ci> K_aux </ci>
+            <ci> aux </ci>
+          </apply>
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <ci> K_aux </ci>
+              <ci> aux </ci>
+            </apply>
+            <cn> 1 </cn>
+          </apply>
+        </apply>
+        <ci> D_II </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_DIIxI<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>D_II &#10142; I</td>
+	<td>aux</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <divide/>
+      <apply>
+        <times/>
+        <ci> gamma_I </ci>
+        <ci> d_I </ci>
+        <ci> K_aux </ci>
+        <ci> aux </ci>
+      </apply>
+      <apply>
+        <plus/>
+        <apply>
+          <times/>
+          <ci> K_aux </ci>
+          <ci> aux </ci>
+        </apply>
+        <cn> 1 </cn>
+      </apply>
+    </apply>
+    <ci> D_II </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000180" target="_blank">SBO:0000180</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0043241" target="_blank">GO:0043241</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_degrR" class="active"><span class="package">reac_degrR</span> <code>metaid_0000051</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_degrR"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_degrR" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_degrR</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000051" sboTerm="SBO:0000179" id="reac_degrR" name="reac_degrR" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000051">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009056"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_469613" species="R"/>
+  </listOfReactants>
+  <kineticLaw metaid="_469625">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> d_r </ci>
+        <ci> R </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_degrR<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>R &#10142; </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> d_r </ci>
+    <ci> R </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000179" target="_blank">SBO:0000179</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009056" target="_blank">GO:0009056</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_prodI" class="active"><span class="package">reac_prodI</span> <code>metaid_0000052</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_prodI"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_prodI" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_prodI</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000052" sboTerm="SBO:0000393" id="reac_prodI" name="reac_prodI" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000052">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009058"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_469637" species="I"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_469649" species="R"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_469661">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> pi_I </ci>
+        <ci> R </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_prodI<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; I</td>
+	<td>R</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> pi_I </ci>
+    <ci> R </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000393" target="_blank">SBO:0000393</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009058" target="_blank">GO:0009058</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_prodA" class="active"><span class="package">reac_prodA</span> <code>metaid_0000053</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_prodA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_prodA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_prodA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000053" sboTerm="SBO:0000393" id="reac_prodA" name="reac_prodA" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000053">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009058"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_469673" species="A"/>
+  </listOfProducts>
+  <kineticLaw metaid="_469685">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <ci> pi_A </ci>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_prodA<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; A</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> pi_A </ci>
+</math></td>
+    <td>None</td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000393" target="_blank">SBO:0000393</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009058" target="_blank">GO:0009058</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="reac_prodR" class="active"><span class="package">reac_prodR</span> <code>metaid_0000054</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-reac_prodR"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-reac_prodR" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">reac_prodR</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="metaid_0000054" sboTerm="SBO:0000393" id="reac_prodR" name="reac_prodR" reversible="false" fast="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000054">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0009299"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_469697" species="R"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_469709" species="A"/>
+    <modifierSpeciesReference metaid="_469721" species="D_IA"/>
+    <modifierSpeciesReference metaid="_469733" species="I"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_469745">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> f_c </ci>
+              <ci> B_d </ci>
+            </apply>
+            <ci> A </ci>
+            <apply>
+              <plus/>
+              <cn> 1 </cn>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> w_A </ci>
+                  <ci> f_A </ci>
+                  <ci> A </ci>
+                </apply>
+                <ci> B_d </ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> A </ci>
+              <ci> B_d </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <cn> 1 </cn>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> w_A </ci>
+                  <ci> A </ci>
+                </apply>
+                <ci> B_d </ci>
+              </apply>
+            </apply>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> w_I </ci>
+              <ci> A </ci>
+              <ci> I </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> K_IA </ci>
+              <ci> B_d </ci>
+            </apply>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> w_D </ci>
+              <ci> D_IA </ci>
+            </apply>
+            <ci> B_d </ci>
+          </apply>
+          <ci> k_Am </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td>reac_prodR<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; R</td>
+	<td>A<br />D_IA<br />I</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <plus/>
+      <cn> 1 </cn>
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <ci> f_c </ci>
+          <ci> B_d </ci>
+        </apply>
+        <ci> A </ci>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> w_A </ci>
+              <ci> f_A </ci>
+              <ci> A </ci>
+            </apply>
+            <ci> B_d </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn> 1 </cn>
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <ci> A </ci>
+          <ci> B_d </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> w_A </ci>
+              <ci> A </ci>
+            </apply>
+            <ci> B_d </ci>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> w_I </ci>
+          <ci> A </ci>
+          <ci> I </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> K_IA </ci>
+          <ci> B_d </ci>
+        </apply>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> w_D </ci>
+          <ci> D_IA </ci>
+        </apply>
+        <ci> B_d </ci>
+      </apply>
+      <ci> k_Am </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <power/>
+      <ci> mole </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+    <apply>
+      <power/>
+      <ci> litre </ci>
+      <cn type="integer"> 2 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000393" target="_blank">SBO:0000393</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/obo.go/GO:0009299" target="_blank">GO:0009299</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+# 200 e and 50 I HH equations
+# random applied current, random conductances
+# to get it started, just set the excitatory synapses
+# to some random values between 0 and 1
+# you will get persistent activity.
+# here are the HH functions
+am(v)=phi*.1*(v+40)/(1-exp(-(v+40)/10))
+bm(v)=phi*4*exp(-(v+65)/18)
+ah(v)=phi*.07*exp(-(v+65)/20)
+bh(v)=phi*1/(1+exp(-(v+35)/10))
+an(v)=phi*.01*(v+55)/(1-exp(-(v+55)/10))
+bn(v)=phi*.125*exp(-(v+65)/80)
+par phi=1
+# this is the current for each cell
+ihh(v,m,h,n)=gna*h*(v-vna)*m^3+gk*(v-vk)*n^4+gl*(v-vl)
+# synaptic onset parameters
+# s' = a(vpre)(1-s)-s/tau
+ae(x)=ae0/(1+exp(-x/5))
+ai(x)=ai0/(1+exp(-x/5))
+par ae0=4,ai0=1
+# dont recompute the random tables every time a parameter is changed
+@ autoeval=0
+# random synapses - 20 % connectivity
+table wee % 40000 0 39999 ran(1)<.02
+table wei % 10000 0 9999 ran(1)<.02
+table wie % 10000 0 9999 ran(1)<.02
+table wii % 2500 0 2499  ran(1)<.02
+# multiply synapses by weights
+special see=mmult(200,200,wee,se0)
+special sei=mmult(200,50,wei,se0)
+special sie=mmult(50,200,wie,si0)
+special sii=mmult(50,50,wii,si0)
+# random currents applied to each cell
+table r_e % 200 0 199  ran(1)-.5
+table r_i % 50 0 49 ran(1)-.5
+# parameters
+par taue=4,taui=10
+par vna=50  vk=-77  vl=-54.4  gna=120  gk=36  gl=0.3
+par ie0=10,ie1=0
+par ii0=10,ii1=0
+par gee=0,gie=0,gii=0,gei=0
+par eex=0,ein=-75
+# finally the ODEs
+ve[0..199]'=ie0+ie1*r_e([j])-ihh(ve[j],me[j],he[j],ne[j])-gee*see([j])*(ve[j]-eex)-gie*sie([j])*(ve[j]-ein)
+vi[0..49]'=ii0+ii1*r_i([j])-ihh(vi[j],mi[j],hi[j],ni[j])-gei*sei([j])*(vi[j]-eex)-gii*sii([j])*(vi[j]-ein)
+# synapses...
+se[0..199]'=-se[j]/taue+ae(ve[j])*(1-se[j])
+si[0..49]'=-si[j]/taui+ai(vi[j])*(1-si[j])
+# gating variables
+me[0..199]'=am(ve[j])*(1-me[j])-bm(ve[j])*me[j]
+he[0..199]'=ah(ve[j])*(1-he[j])-bh(ve[j])*he[j]
+ne[0..199]'=an(ve[j])*(1-ne[j])-bn(ve[j])*ne[j]
+mi[0..49]'=am(vi[j])*(1-mi[j])-bm(vi[j])*mi[j]
+hi[0..49]'=ah(vi[j])*(1-hi[j])-bh(vi[j])*hi[j]
+ni[0..49]'=an(vi[j])*(1-ni[j])-bn(vi[j])*ni[j]
+# initial data
+init ve[0..199]=-65
+init vi[0..49]=-65
+# some numerical settings
+@ total=200,meth=euler,nout=10,dt=.01
+done

@@ -1,0 +1,59 @@
+% Spike adaptation by erg-like K+ current.  If girbar is altered (0.5->0), 
+% spike discharge will be changed.  
+% Written by Dr. Sheng-Nan Wu, Dept Physiol, Natl Cheng Kung U Med Coll.
+% Ref: Chiesa et al., J Physiol 1997;501:313-318
+
+% Initial values of the variables
+init v=-72.0, nK=0.288, hK=0.367, mNa=0.041,  hNa=0.844, nIR=0.003, rIR=0.282
+
+% Values of the model parameters
+params iapp=1.2, cm=1, gnabar=15, gkbar=2.5, girbar=0.5, gl=0.05, vna=50, vk=-80, vir=-80, vl=-80
+
+% Gating functions
+alphaNam(v) = 0.1*(v+40)/( 1 - exp(-0.09*(v+40)))
+betaNam(v) =  4*exp(-0.055*(v+70))
+mNainf(v) = 1/(1+betaNam(v)/alphaNam(v))
+tauNam(v) = 1/(alphaNam(v) + betaNam(v))
+
+alphaNah(v) =  0.07*exp(-0.05*(v+70))
+betaNah(v) = 1/( 1 + exp(-0.09*(v+25)) )
+hNainf(v) = 1/(1+betaNah(v)/alphaNah(v))
+tauNah(v) = 1/(alphaNah(v) + betaNah(v))
+
+alphaKn(v) = 0.01*(v + 60)/(1 - exp(-0.1*(V + 60)))
+betaKn(v) = 0.125*exp(-0.0125*(V + 70))
+nKinf(v) = 1/(1+betaKn(v)/alphaKn(v))
+tauKn(v) = 1/(alphaKn(v) + betaKn(v))
+
+alphaKh(v) = 0.001*exp(-0.04*(v+70))
+betaKh(v) = 0.001*exp(-0.0195*(v+40))
+hKinf(v) = 1/(1+betaKh(v)/alphaKh(v))
+tauKh(v) = 1/(alphaKh(v) + betaKh(v))
+
+alphaIRn(v) = 0.09/(1+exp(0.11*(v+100)))
+betaIRn(v) = 0.00035*exp(0.07*(v+25))
+nIRinf(v) = 1/(1+betaIRn(v)/alphaIRn(v))
+tauIRn(v) = 1/(alphaIRn(v) + betaIRn(v))
+
+alphaIRr(v) = 30/(1+exp(0.04*(v+230)))
+betaIRr(v) = 0.15/(1+exp(-0.05*(v+120)))
+rIRinf(v) = 1/(1+betaIRr(v)/alphaIRr(v))
+tauIRr(v) = 1/(alphaIRr(v) + betaIRr(v))
+
+% Apply current injection
+par tpulse=610
+par tfirst=10
+istim = iapp*(heav(t-tfirst)-heav(t-tpulse))
+
+% The differential equations
+v' =  -(gnabar*mNa^3*hNa*(v-vna) + gkbar*nK^4*hK*(v-vk) + girbar*nIR*rIR*(v-vir) + gl*(v-vl) - istim)/cm
+mNa' =  (mNainf(v) - mNa)/tauNam(v)
+hNa' =  (hNainf(v) - hNa)/tauNah(v)
+nK' =  (nKinf(v) - nK)/tauKn(v)
+hK' = (hKinf(v) - hK)/tauKh(v)
+nIR' = (nIRinf(v) - nIR)/tauIRn(v)
+rIR' = (rIRinf(v) - rIR)/tauIRr(v)
+
+% Numerical and plotting parameters for xpp
+@xlo=0, xhi=700, ylo=-90, yhi=+60, total=700, dt=0.05, method=Euler, LT=1
+d
