@@ -234,17 +234,17 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         try:
             f_value = float(value)
             parameters.append(
-                fac.Parameter(sid=sid, value=f_value, constant=False)
+                fac.Parameter(sid=sid, value=f_value, name="{} = {}".format(sid, value), constant=False)
             )
         except ValueError:
             '''
             Initial data are optional, XPP sets them to zero by default (many xpp model don't write the p(0)=0.
             '''
             parameters.append(
-                fac.Parameter(sid=sid, value=0.0, constant=False)
+                fac.Parameter(sid=sid, value=0.0, name=sid, constant=False)
             )
             initial_assignments.append(
-                fac.InitialAssignment(sid=sid, value=value)
+                fac.InitialAssignment(sid=sid, value=value, name="{} = {}".format(sid, value))
             )
 
     ###########################################################################
@@ -330,13 +330,17 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                 old_args = [t.strip() for t in args.split(',')]
                 new_args = [a for a in names if a not in old_args]
 
-                # store functions with additional arguments
-                function_definitions.append(
-                    {'fid': fid,
-                     'old_args': old_args,
-                     'new_args': new_args,
-                     'formula': formula}
-                )
+                # handle special functions
+                if fid == 'power':
+                    warnings.warn("power function cannot be added to model, rename function.")
+                else:
+                    # store functions with additional arguments
+                    function_definitions.append(
+                        {'fid': fid,
+                         'old_args': old_args,
+                         'new_args': new_args,
+                         'formula': formula}
+                    )
                 # don't append line, function definition has been handeled
                 continue
 
