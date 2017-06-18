@@ -1,0 +1,97 @@
+#Simulation of pituitary GH(3) cells, firing of action potentials with three slow variable
+#IK(erg) was incorporated.  gkatp channels were regulated.
+# Wu SN and Chang HD, Diethyl pyrocarbonate, a histidine-modifying agent,
+# directly stimulate activity of ATP-sensitive potassium channels in pituitary GH(3) cells.
+# Biochem Pharmacol 2005 Dec 19; [Epub ahead of print].
+
+#units: V=mV; t=ms; g=pS; I=fA
+#Reference:  Bertram and Sherman. 
+#Calcium-based model for pituitary GH3 cells
+#
+#Ica- calcium current
+#Ik- delayed rectifier K+ current
+#Ik(Ca)- Ca2+ dependent K+ current
+#Ik(ATP)- nucleotide-sensitive K+ current
+#Iir- erg-like K+ current
+#c - cytosolic free Ca2+ concentration
+#cer - ER Ca2+ concentration
+
+#initial conditions
+init v=-60.0, c=0.10, n=0.01, cer=100, a=0.46, nIR=0.008, rIR=0.282
+
+#parameters
+par gca=1000, gkca=900, gk=1400, gir=5
+par vca=50, vk=-75, vir=-75, cm=5300
+par taun=16, alpha=4.5e-6
+par fcyt=0.01, kpmca=0.2, kd=0.3
+par vn=-16, vm=-20, sn=5, sm=12
+par kserca=0.4, dact=0.35, dinact=0.4
+par fer=0.01, pleak=0.0005, dip3=0.5, vcytver=5
+par ip3=0, sa=0.1, r=0.14 taua=300000
+par tstim=3e4
+
+gkatp=if(t<tstim)then(500)else(530)
+
+# Iir parameters
+alphaIRn(v) = 0.09/(1+exp(0.11*(v+100)))
+betaIRn(v) = 0.00035*exp(0.07*(v+25))
+nIRinf(v) = 1/(1+betaIRn(v)/alphaIRn(v))
+tauIRn(v) = 1/(alphaIRn(v) + betaIRn(v))
+
+alphaIRr(v) = 30/(1+exp(0.04*(v+230)))
+betaIRr(v) = 0.15/(1+exp(-0.05*(v+120)))
+rIRinf(v) = 1/(1+betaIRr(v)/alphaIRr(v))
+tauIRr(v) = 1/(alphaIRr(v) + betaIRr(v))
+
+#Iir activation and inactivation functions
+nIR' = (nIRinf(v) - nIR)/tauIRn(v)
+rIR' = (rIRinf(v) - rIR)/tauIRr(v)
+
+# ionic currents
+ica(v)=gca*minf(v)*(v-vca)
+ik(v)=gk*n*(v-vk)
+ikca(v)=gkca*w*(v-vk)
+ikatp(v)=gkatp*a*(v-vk)
+iir(v)=gir*nIR*rIR*(v-vir)
+
+#activation functions
+minf(v)=1.0/(1.0+exp((vm-v)/sm))
+ninf(v)=1.0/(1.0+exp((vn-v)/sn))
+ainf(c)=1.0/(1.0+exp((r-c)/sa))
+
+#fraction of K(Ca) channels activated by cytosolic Ca2+
+w=c^5/(c^5+kd^5)
+
+#flux of Ca2+ through the membrane
+jmem=-(alpha*Ica(v)+kpmca*c)
+
+#Ca2+ influx into the ER via SERCA 
+jserca=kserca*c
+
+#efflux out of the ER has two components
+# 1. Ca2+ leak is proportional to gradient between Ca2+ and ER
+jleak=pleak*(cer-c)
+
+# 2. Ca2+ efflux through the IP3R
+jip3=oinf*(cer-c)
+
+#fraction of open channels
+oinf=(c/(dact+c))*(ip3/(dip3+ip3))*(dinact/(dinact+c))
+
+#net Ca2+ efflux from the ER
+jer=jleak+jip3-jserca
+
+#differential equations
+v'=-(ica(v)+ik(v)+ikca(v)+ikatp(v)+iir(v))/cm
+n'=(ninf(v)-n)/taun
+c'=fcyt*(jmem+jer)
+cer'=-fer*(vcytver)*jer
+a'=(ainf(c)-a)/taua
+
+aux tsec=t/1000.0
+
+@ meth=cvode, dtmax=1, dt=2, total=8e4, maxstor=80000
+@ bounds=1000, xp=tsec,  yp=v, toler=1.0e-7, atoler=1.0e-7
+@ xlo=0, xhi=80, ylo=-80, yhi=5
+
+done

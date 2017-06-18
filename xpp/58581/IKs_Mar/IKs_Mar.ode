@@ -1,0 +1,62 @@
+# Markovian model for Human I(Ks) in heart cells which is responsible for cardiac repolarization
+# Mutations in this channel will be susceptible to induction of early after-depolarizations
+# Silva J, Rudy Y. Circulation 2005;112:1384-1391
+
+# Constants
+Rk=8314
+Fara=96485
+Temp=310
+
+# Initial values
+init c1=1, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0
+init c8=0, c9=0, c10=0, c11=0, c12=0, c13=0, c14=0, c15=0
+init o1=0, o2=0
+
+# Values of the model parameters
+par ko=4.5, ki=136.89149
+par nao=140, nai=15
+par vhold=-80, vtest_1=40, vtest_2=-50
+par cai=7.9e-5
+par scale=120
+
+# Voltage clamp protocols
+par ton=100, toff=4100, toff_r=5000
+v = vhold+heav(t-ton)*heav(toff-t)*(vtest_1-vhold)+heav(t-toff)*heav(toff_r-t)*(vtest_2-vhold)
+
+# Expressions
+Eks = ((Rk*Temp)/Fara)*log((ko+0.01833*nao)/(ki+0.01833*nai))
+gksbar = 0.779*(1+0.6/(1+(3.8e-5/cai)^1.4))
+a = 3.98e-4*exp(3.61e-1*v*Fara/(Rk*Temp))
+b = 5.74e-5*exp(-9.23e-2*v*Fara/(Rk*Temp))
+r = 3.41e-3*exp(8.68e-1*v*Fara/(Rk*Temp))
+d = 1.2e-3*exp(-3.3e-1*v*Fara/(Rk*Temp))
+theta = 6.47e-3
+eta = 1.25e-2*exp(-4.81e-1*v*Fara/(Rk*Temp))
+psi = 6.33e-3*exp(1.27*v*Fara/(Rk*Temp))
+omega = 4.91e-3*exp(-6.79e-1*Fara/(Rk*Temp))
+
+# Gating functions
+c1' = c2*b - c1*4*a
+c2' = c1*4*a + c3*2*b + c6*d - c2*(b + 3*a + r)
+c3' = c2*3*a +c4*3*b + c7*d  - c3*(2*b + a + 2*r)
+c4' = c3*2*a + c5*4*b + c8*d - c4*(3*b + a + 3*r)
+c5' = c4*a + c9*d - c5*(4*b + 4*r)
+c6' = c2*r + c7*2*b - c6*(d + 3*a)
+c7' = c6*3*a + c8* 3*b + c3*2*r  + c10*2*d- c7*(2*b + 2*a + d + r)
+c8' = c7*2*a + c9*4*b + c4*3*r + c11*2*d - c8*(3*b + a + d + 2*r) 
+c9' = c8*a + c5*4*r + c12*2*d - c9*(4*b + d + 3*r)
+c10' = c11*3*b + c7*r - c10*(2*a + 2*d) 
+c11' = c10*2*a + c12*4*b + c8*2*r + c13*3*d - c11*(3*b + a + 2*d + r)
+c12' = c11*a + c9**3*r + c14*3*d - c12*(4*b + 2*d + 3*d)
+c13' = c14*4*b + c11*r - c13*(a + 3*d)
+c14' = c13*a + c12*2*r + c15*4*d - c14*(4*b + 3*d + r)
+c15' = c14*r + o1*eta - c15*(4*d + theta)
+o1' = c15*theta + o2*omega - o1*(eta + psi)
+o2' = o1*psi - o2*omega
+
+aux iks = Gksbar*(o1+o2)/(c1+c2+c3+c4+c5+c6+c7+c8+c9+c10+c11+c12+c13+c14+c15+o1+o2)*(v-Eks)/scale
+
+@ meth=Euler, dt=.5, total=4550
+@ yp=iks, yhi=1.1, ylo=-.1, xlo=0, xhi=4550
+
+done

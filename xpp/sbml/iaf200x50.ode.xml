@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># 200 e and 50 I integrate &amp; fire
+# random applied current, random conductances
+# 
+# prevent tables from being recomputed each time params change
+@ autoeval=0
+table wee % 40000 0 39999 ran(1)/100
+table wei % 10000 0 9999  ran(1)/100
+table wie % 10000 0 9999  ran(1)/25
+table wii % 2500 0 2499  ran(1)/25
+# multiply by the synapses
+special see=mmult(200,200,wee,se0)
+special sei=mmult(200,50,wei,se0)
+special sie=mmult(50,200,wie,si0)
+special sii=mmult(50,50,wii,si0)
+# random currents
+table r_e % 200 0 199  ran(1)-.5
+table r_i % 50 0 49 ran(1)-.5
+# parameters
+par tau_e=20,tau_i=20,ele=-65,eli=-65
+par vte=-50,vti=-50
+par ver=-60,vir=-70
+par taue=4,taui=10
+# ODEs
+ve[0..199]&apos;=(-(ve[j]-ele) + ie0+ie1*r_e([j])-gee*see([j])*(ve[j]-eex)-gie*sie([j])*(ve[j]-ein))/tau_e
+vi[0..49]&apos;=(-(vi[j]-eli) + ii0+ii1*r_i([j])-gei*sei([j])*(vi[j]-eex)-gii*sii([j])*(ve[j]-ein))/tau_i
+se[0..199]&apos;=-se[j]/taue
+si[0..49]&apos;=-si[j]/taui
+# each time votlage crosses threshold, reset and set synapse to 1
+global 1 ve[0..199]-vte {se[j]=1;ve[j]=ver}
+global 1 vi[0..49]-vti {si[j]=1;vi[j]=vir}
+# more parameters
+par ie0=10,ie1=.5
+par ii0=10,ii1=.5
+par gee=.02,gie=.05,gii=.02,gei=.02
+par eex=0,ein=-75
+# initial data
+init ve[0..199]=-65
+init vi[0..49]=-65
+# numerical stuff
+@ total=200,meth=euler,nout=10,dt=.01
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="tau_e" name="tau_e = 20" value="20" constant="false"/>
+      <parameter id="tau_i" name="tau_i = 20" value="20" constant="false"/>
+      <parameter id="ele" name="ele = -65" value="-65" constant="false"/>
+      <parameter id="eli" name="eli = -65" value="-65" constant="false"/>
+      <parameter id="vte" name="vte = -50" value="-50" constant="false"/>
+      <parameter id="vti" name="vti = -50" value="-50" constant="false"/>
+      <parameter id="ver" name="ver = -60" value="-60" constant="false"/>
+      <parameter id="vir" name="vir = -70" value="-70" constant="false"/>
+      <parameter id="taue" name="taue = 4" value="4" constant="false"/>
+      <parameter id="taui" name="taui = 10" value="10" constant="false"/>
+      <parameter id="ie0" name="ie0 = 10" value="10" constant="false"/>
+      <parameter id="ie1" name="ie1 = .5" value="0.5" constant="false"/>
+      <parameter id="ii0" name="ii0 = 10" value="10" constant="false"/>
+      <parameter id="ii1" name="ii1 = .5" value="0.5" constant="false"/>
+      <parameter id="gee" name="gee = .02" value="0.02" constant="false"/>
+      <parameter id="gie" name="gie = .05" value="0.05" constant="false"/>
+      <parameter id="gii" name="gii = .02" value="0.02" constant="false"/>
+      <parameter id="gei" name="gei = .02" value="0.02" constant="false"/>
+      <parameter id="eex" name="eex = 0" value="0" constant="false"/>
+      <parameter id="ein" name="ein = -75" value="-75" constant="false"/>
+      <parameter name="ve[0..199] = -65" value="-65" constant="false"/>
+      <parameter name="vi[0..49] = -65" value="-65" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <rateRule/>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfEvents>
+      <event id="e0" useValuesFromTriggerTime="true">
+        <trigger initialValue="false" persistent="true"/>
+        <listOfEventAssignments>
+          <eventAssignment>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <cn type="integer"> 1 </cn>
+            </math>
+          </eventAssignment>
+          <eventAssignment>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <ci> ver </ci>
+            </math>
+          </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+      <event id="e1" useValuesFromTriggerTime="true">
+        <trigger initialValue="false" persistent="true"/>
+        <listOfEventAssignments>
+          <eventAssignment>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <cn type="integer"> 1 </cn>
+            </math>
+          </eventAssignment>
+          <eventAssignment>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+              <ci> vir </ci>
+            </math>
+          </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>

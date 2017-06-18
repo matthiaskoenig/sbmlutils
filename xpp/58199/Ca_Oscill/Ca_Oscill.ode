@@ -1,0 +1,23 @@
+% Signal-induced Ca(2+) oscillations
+% Dupont G, Berridge MJ, Goldbeter A. Signal-induced Ca(2+) oscillations: properties of a model based 
+% on Ca(2+)-induced Ca(2+) release. Cell calcium 1991;12:73-85
+% The result was shown on Figure 4A in the paper.
+
+init z=0.1, y=1.4
+
+par v0=1.0, v1=7.3, VM2=65, VM3=500, KR=2, KA=0.9, K2=1, kf=1, k=10, n=2, m=2, p=4
+par tstim=4.0
+beta=if(t<tstim)then(0)else(0.7671*exp(-0.2*(t-tstim)))
+
+v2 = VM2 * z^n / (K2^n + z^n)
+v3 = VM3 * (y^m/(KR^m + y^m)) *(z^p/(KA^p + z^p))
+
+z' = v0 + v1*beta -v2 + v3 + kf*y - k*z
+y' =  v2 -v3 - kf*y
+
+aux b=beta
+
+% Numerical and plotting parameters for xpp
+@ meth=Euler, dt=.005, total=20
+@ yp=z, yhi=1.6, ylo=-0.0, xlo=0, xhi=20, bound=100
+done

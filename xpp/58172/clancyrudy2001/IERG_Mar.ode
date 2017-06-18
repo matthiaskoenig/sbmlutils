@@ -1,0 +1,50 @@
+% Markovian model for wild-type cardiac KERG K+ current.  Written by Dr. Sheng-Nan Wu, Han-Dong Chang and Jiun-Shian Wu
+%Clancy CE and Rudy Y. Cellular consequences of HERG mutations in the long QT syndrome:
+% precursors to sudden cardiac death. Cardiovasc Res 2001;50:301-313.
+% Simulations (i.e., macroscopic erg current) can reproduce the result shown at Fig. 4B in this paper.
+
+% Constants
+R=8.314
+F=96.485
+Temp=310
+
+% Initial values
+ini c3=1
+ini c2=0
+ini c1=0
+ini o=0.06
+ini i=0
+
+% Values of the model parameters
+par ko=5.4
+par ki=140
+par vhold=-40, vtest=0
+par ton=50, toff=300
+v=vhold+heav(t-ton)*heav(toff-t)*(vtest-vhold)
+
+% Activation  functions
+vk=((R*Temp)/F)*ln(ko/ki)
+Gk=1.35e-2*ko^0.59
+a=5.55e-2* exp(0.05547153*(v-12)) 
+b=2.357e-3* exp(-0.036588*(v))
+ain=2.172
+bin=1.077
+aa=6.55e-2* exp(0.05547153*(v-36))
+bb=2.9357e-3* exp(-0.02158*(v))
+ai=0.439*exp(-0.02352*(v+25))*4.5/ko
+bi=0.656*exp(0.000942*(v))*(4.5/ko)^0.3 
+u=(ai*bb*aa)/(aa*bin)
+
+% Gating functions
+dc3/dt=b*c2-a*c3
+dc2/dt=bin*c1+a*c3-(ain+b)*c2
+dc1/dt=ain*c2+bb*o+u*i-(bin+2*aa)*c1
+do/dt=ai*i+aa*c1-(bi+bb)*o
+di/dt=aa*c1+bi*o-(u+ai)*i
+
+aux ik=Gk*o*(v-vk)
+
+% Numerical and plotting parameters for xpp
+@ meth=Euler, dt=.1, total=800
+@ yp=ik, yhi=1.0, ylo=-0.1, xlo=0, xhi=800, bound=100
+done

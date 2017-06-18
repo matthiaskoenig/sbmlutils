@@ -1,0 +1,3784 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>Hoefnagel2002_PyruvateBranches</title>
+
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#top">Model</a></li>
+                    <li><a href="#table_units">UnitDefinitions</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="model"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p>
+      This a model from the article:
+      <br/>
+    <strong> Metabolic engineering of lactic acid bacteria, the combined approach: kinetic modelling, metabolic control and experimental analysis.
+</strong>
+    <br/>
+Hoefnagel MH,  Starrenburg MJ,  Martens DE,  Hugenholtz J,  Kleerebezem M,  Van Swam II,  Bongers R,  Westerhoff HV,  Snoep JL 
+      <em>Microbiology</em>2002 Apr; 148(4):1003-13 
+      <a href="http://www.ncbi.nlm.nih.gov/pubmed/11932446">11932446</a>,
+      <br/>
+    <strong>Abstract:</strong>
+    <br/>
+Everyone who has ever tried to radically change metabolic fluxes knows that it is often harder to determine which enzymes have to be modified than it is to actually implement these changes. In the more traditional genetic engineering approaches ’bottle-necks’ are pinpointed using qualitative, intuitive approaches, but the alleviation of suspected ’rate-limiting’ steps has not often been successful. Here the authors demonstrate that a model of pyruvate distribution in Lactococcus lactis based on enzyme kinetics in combination with metabolic control analysis clearly indicates the key control points in the flux to acetoin and diacetyl, important flavour compounds. The model presented here (available at http://jjj.biochem.sun.ac.za/wcfs.html) showed that the enzymes with the greatest effect on this flux resided outside the acetolactate synthase branch itself. Experiments confirmed the predictions of the model, i.e. knocking out lactate dehydrogenase and overexpressing NADH oxidase increased the flux through the acetolactate synthase branch from 0 to 75% of measured product formation rates.
+   </p>
+    <p> The paper does not have any figure to be put as a curation figure in the BioModels database. The model does reproduce the fluxes and control-coefficients given in Figure 2 and Table 4. To reproduce the results, the model was changed from the description in the article according to the model on JWS: the parameter Kmpyr was changed to 2.5 from 25. The equillibrium constant for PTA reaction (R4) was changed from 0.0281 to 0.0065. The Km for oxygen in the NOX reaction (R13) was changed from 0.01 to 0.2. Slight deviations between the values in the article and the model results may stem from different algorithms used for finding the steady state.   
+</p>
+    <p>This model originates from BioModels Database: A Database of Annotated Published Models (http://www.ebi.ac.uk/biomodels/). It is copyright (c) 2005-2010 The BioModels.net Team.<br/>For more information see the <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>.<br/>To cite BioModels Database, please use: <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Novère N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+  </p>
+</body>
+</notes><hr />
+    <h1>Model : Hoefnagel2002_PyruvateBranches</h1>
+    <b>Creator</b><br />Nicolas, Le Novère, EMBL-EBI, <a href="mailto:lenov@ebi.ac.uk" target="_blank">lenov@ebi.ac.uk</a><br />Maria, Schilstra, SBML Team - Science and Technology Research Institute - University of Hertfordshire, <a href="mailto:m.j.1.schilstra@herts.ac.uk" target="_blank">m.j.1.schilstra@herts.ac.uk</a><br /><b>Created:</b> 2005-03-06 20:03<br /><b>Modified:</b> 2016-04-08 14:25<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="Hoefnagel2002_PyruvateBranches" class="active"><span class="package">Hoefnagel2002_PyruvateBranches</span> <code>_000001</code></td></tr>
+                <tr><td class="active">name</td><td>Hoefnagel2002_PyruvateBranches</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000017.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <span class="package">L2V4</span> <span class="package">layout-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL6617235316" target="_blank">MODEL6617235316</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000017" target="_blank">BIOMD0000000017</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/11932446" target="_blank">11932446</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0006090" target="_blank">GO:0006090</a>; <a href="http://identifiers.org/go/GO:0006089" target="_blank">GO:0006089</a><br /><span class="collection">BQB_IS_PART_OF</span><br /><a href="http://identifiers.org/kegg.pathway/map00620" target="_blank">map00620</a>; <a href="http://identifiers.org/kegg.pathway/map00650" target="_blank">map00650</a><br /><span class="collection">BQB_HAS_TAXON</span><br /><a href="http://identifiers.org/taxonomy/1358" target="_blank">1358</a><br /><span class="collection">BQB_HAS_PROPERTY</span><br /><a href="http://identifiers.org/mamo/MAMO_0000046" target="_blank">MAMO_0000046</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">UnitDefinitions [2]</th>
+	<th scope="col">name</th>
+	<th scope="col">units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td id="substance" class="active"><span class="package">substance</span> <code>metaid_1000029</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-substance"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-substance" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">substance</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="metaid_1000029" id="substance" name="millimole (default)">
+  <listOfUnits>
+    <unit metaid="f8d17410-7cc7-4c0f-929b-0745e8c024ee" kind="mole" scale="-3"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>millimole (default)</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	<td id="time" class="active"><span class="package">time</span> <code>metaid_1000030</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-time"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-time" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">time</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="metaid_1000030" id="time" name="minute (default)">
+  <listOfUnits>
+    <unit metaid="_70929023-b73d-4c61-845d-73e085879476" kind="second" multiplier="60"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td>minute (default)</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 60 </cn>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	<td id="compartment" class="active"><span class="package">compartment</span> <code>_681847</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-compartment"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-compartment" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">compartment</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="_681847" id="compartment" size="1"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> litre </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [19]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	<td id="ADP" class="active"><span class="package">ADP</span> <code>_681867</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ADP"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ADP" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ADP</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681867" id="ADP" compartment="compartment" initialAmount="4.9" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681867">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16761"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00008"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>4.9</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:16761" target="_blank">CHEBI:16761</a>; <a href="http://identifiers.org/kegg.compound/C00008" target="_blank">C00008</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="NAD" class="active"><span class="package">NAD</span> <code>_681887</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NAD"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NAD" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NAD</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681887" id="NAD" compartment="compartment" initialAmount="6.33" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681887">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15846"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00003"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>6.33</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15846" target="_blank">CHEBI:15846</a>; <a href="http://identifiers.org/kegg.compound/C00003" target="_blank">C00003</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="ATP" class="active"><span class="package">ATP</span> <code>_681908</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ATP"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ATP" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ATP</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681908" id="ATP" compartment="compartment" initialAmount="0.1" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681908">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15422"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00002"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.1</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15422" target="_blank">CHEBI:15422</a>; <a href="http://identifiers.org/kegg.compound/C00002" target="_blank">C00002</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="NADH" class="active"><span class="package">NADH</span> <code>_681927</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-NADH"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-NADH" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">NADH</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681927" id="NADH" compartment="compartment" initialAmount="3.67" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681927">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16908"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00004"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>3.67</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:16908" target="_blank">CHEBI:16908</a>; <a href="http://identifiers.org/kegg.compound/C00004" target="_blank">C00004</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="pyruvate" class="active"><span class="package">pyruvate</span> <code>_681947</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pyruvate"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pyruvate" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pyruvate</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681947" id="pyruvate" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681947">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15361"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00022"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15361" target="_blank">CHEBI:15361</a>; <a href="http://identifiers.org/kegg.compound/C00022" target="_blank">C00022</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="lactate" class="active"><span class="package">lactate</span> <code>_681968</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lactate"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lactate" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">lactate</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681968" id="lactate" compartment="compartment" initialAmount="0.1" hasOnlySubstanceUnits="true" boundaryCondition="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681968">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:24996"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00186"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.1</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:24996" target="_blank">CHEBI:24996</a>; <a href="http://identifiers.org/kegg.compound/C00186" target="_blank">C00186</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="CoA" class="active"><span class="package">CoA</span> <code>_681987</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-CoA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-CoA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">CoA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_681987" id="CoA" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_681987">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15346"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00010"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15346" target="_blank">CHEBI:15346</a>; <a href="http://identifiers.org/kegg.compound/C00010" target="_blank">C00010</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="halfglucose" class="active"><span class="package">halfglucose</span> <code>_682008</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-halfglucose"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-halfglucose" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">halfglucose</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682008" id="halfglucose" compartment="compartment" initialAmount="30" hasOnlySubstanceUnits="true" boundaryCondition="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>30.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="AcCoA" class="active"><span class="package">AcCoA</span> <code>_682028</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AcCoA"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AcCoA" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AcCoA</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682028" id="AcCoA" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682028">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15351"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00024"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15351" target="_blank">CHEBI:15351</a>; <a href="http://identifiers.org/kegg.compound/C00024" target="_blank">C00024</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="AcP" class="active"><span class="package">AcP</span> <code>_682067</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AcP"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AcP" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AcP</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682067" id="AcP" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682067">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15350"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00227"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15350" target="_blank">CHEBI:15350</a>; <a href="http://identifiers.org/kegg.compound/C00227" target="_blank">C00227</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="Ac" class="active"><span class="package">Ac</span> <code>_682088</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Ac"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Ac" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Ac</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682088" id="Ac" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true" boundaryCondition="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682088">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:30089"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00033"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:30089" target="_blank">CHEBI:30089</a>; <a href="http://identifiers.org/kegg.compound/C00033" target="_blank">C00033</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="AcO" class="active"><span class="package">AcO</span> <code>_682107</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AcO"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AcO" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AcO</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682107" id="AcO" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682107">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15343"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00084"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15343" target="_blank">CHEBI:15343</a>; <a href="http://identifiers.org/kegg.compound/C00084" target="_blank">C00084</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="EtOH" class="active"><span class="package">EtOH</span> <code>_682127</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EtOH"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-EtOH" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">EtOH</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682127" id="EtOH" compartment="compartment" initialAmount="1" hasOnlySubstanceUnits="true" boundaryCondition="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682127">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16236"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00469"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:16236" target="_blank">CHEBI:16236</a>; <a href="http://identifiers.org/kegg.compound/C00469" target="_blank">C00469</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="AcLac" class="active"><span class="package">AcLac</span> <code>_682148</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AcLac"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AcLac" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AcLac</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682148" id="AcLac" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682148">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16444"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00900"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:16444" target="_blank">CHEBI:16444</a>; <a href="http://identifiers.org/kegg.compound/C00900" target="_blank">C00900</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="AcetoinIn" class="active"><span class="package">AcetoinIn</span> <code>_682168</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AcetoinIn"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AcetoinIn" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AcetoinIn</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682168" id="AcetoinIn" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682168">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15688"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00466"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15688" target="_blank">CHEBI:15688</a>; <a href="http://identifiers.org/kegg.compound/C00466" target="_blank">C00466</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="AcetoinOut" class="active"><span class="package">AcetoinOut</span> <code>_682187</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AcetoinOut"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AcetoinOut" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AcetoinOut</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682187" id="AcetoinOut" compartment="compartment" initialAmount="0" hasOnlySubstanceUnits="true" boundaryCondition="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682187">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15688"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00466"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15688" target="_blank">CHEBI:15688</a>; <a href="http://identifiers.org/kegg.compound/C00466" target="_blank">C00466</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="Butanediol" class="active"><span class="package">Butanediol</span> <code>_682208</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Butanediol"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Butanediol" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Butanediol</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682208" id="Butanediol" compartment="compartment" initialAmount="0.01" hasOnlySubstanceUnits="true" boundaryCondition="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682208">
+        <bqbiol:hasVersion>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16812"/>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:16982"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C03046"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C03044"/>
+          </rdf:Bag>
+        </bqbiol:hasVersion>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.01</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_HAS_VERSION</span><br /><a href="http://identifiers.org/chebi/CHEBI:16812" target="_blank">CHEBI:16812</a>; <a href="http://identifiers.org/chebi/CHEBI:16982" target="_blank">CHEBI:16982</a>; <a href="http://identifiers.org/kegg.compound/C03046" target="_blank">C03046</a>; <a href="http://identifiers.org/kegg.compound/C03044" target="_blank">C03044</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="O2" class="active"><span class="package">O2</span> <code>_682227</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-O2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-O2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">O2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="_682227" id="O2" compartment="compartment" initialAmount="0.2" hasOnlySubstanceUnits="true" boundaryCondition="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682227">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15379"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00007"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.2</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:15379" target="_blank">CHEBI:15379</a>; <a href="http://identifiers.org/kegg.compound/C00007" target="_blank">C00007</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	<td id="PO4" class="active"><span class="package">PO4</span> <code>metaid_0000037</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-PO4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-PO4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">PO4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="metaid_0000037" id="PO4" compartment="compartment" initialAmount="10" boundaryCondition="true" constant="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#metaid_0000037">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:18367"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00009"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>compartment</td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>10.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chebi/CHEBI:18367" target="_blank">CHEBI:18367</a>; <a href="http://identifiers.org/kegg.compound/C00009" target="_blank">C00009</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [14]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R1" class="active"><span class="package">R1</span> <code>_682269</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682269" id="R1" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682269">
+        <bqbiol:isPartOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.pathway/map00010"/>
+          </rdf:Bag>
+        </bqbiol:isPartOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="d6ba676e-3e62-4a50-8796-8afe780fd5e2" species="ADP"/>
+    <speciesReference metaid="b69c39f3-22cc-4065-b058-6c0afb8ae8d5" species="NAD"/>
+    <speciesReference metaid="ecfe0493-2153-4889-835f-b0c920ada0f7" species="halfglucose"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_4f2d725f-7f07-471d-95f3-3b3885a50995" species="ATP"/>
+    <speciesReference metaid="fcc2efa1-8765-4b71-a1be-d740e3305e17" species="NADH"/>
+    <speciesReference metaid="_7946bbbd-1aac-4d61-858b-360d977e7e1c" species="pyruvate"/>
+  </listOfProducts>
+  <kineticLaw metaid="_984266c0-cdd0-4b74-8551-fb21e8c9655a">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <cn> 2 </cn>
+          <ci> V_1 </ci>
+          <apply>
+            <divide/>
+            <ci> halfglucose </ci>
+            <apply>
+              <times/>
+              <cn> 2 </cn>
+              <ci> Kglc_1 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> NAD </ci>
+            <ci> Knad_1 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> ADP </ci>
+            <ci> Kadp_1 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> halfglucose </ci>
+              <apply>
+                <times/>
+                <cn> 2 </cn>
+                <ci> Kglc_1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> pyruvate </ci>
+              <ci> Kpyr_1 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_1 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_1 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> ADP </ci>
+              <ci> Kadp_1 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> ATP </ci>
+              <ci> Katp_1 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070863" id="V_1" value="2397"/>
+      <parameter metaid="_070864" id="Kglc_1" value="0.1"/>
+      <parameter metaid="_070865" id="Knad_1" value="0.1412"/>
+      <parameter metaid="_070866" id="Kadp_1" value="0.04699"/>
+      <parameter metaid="_070868" id="Kpyr_1" value="2.5"/>
+      <parameter metaid="_070870" id="Knadh_1" value="0.08999"/>
+      <parameter metaid="_070872" id="Katp_1" value="0.01867"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>ADP + NAD + halfglucose &#10142; ATP + NADH + pyruvate</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <cn> 2 </cn>
+      <ci> V_1 </ci>
+      <apply>
+        <divide/>
+        <ci> halfglucose </ci>
+        <apply>
+          <times/>
+          <cn> 2 </cn>
+          <ci> Kglc_1 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> NAD </ci>
+        <ci> Knad_1 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> ADP </ci>
+        <ci> Kadp_1 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> halfglucose </ci>
+          <apply>
+            <times/>
+            <cn> 2 </cn>
+            <ci> Kglc_1 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> pyruvate </ci>
+          <ci> Kpyr_1 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_1 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> ADP </ci>
+          <ci> Kadp_1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> ATP </ci>
+          <ci> Katp_1 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_PART_OF</span><br /><a href="http://identifiers.org/kegg.pathway/map00010" target="_blank">map00010</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R2" class="active"><span class="package">R2</span> <code>_682298</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682298" id="R2" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682298">
+        <bqbiol:hasVersion>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.1.1.27"/>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.1.1.28"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00703"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00704"/>
+            <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_178"/>
+          </rdf:Bag>
+        </bqbiol:hasVersion>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="a1c3b36b-d140-4d16-ae46-45161fad9822" species="NADH"/>
+    <speciesReference metaid="_7a11d0a3-8d40-495c-8cc4-b37a43291e33" species="pyruvate"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="f7137222-c30b-40c0-97b3-a4cd743bdbcf" species="NAD"/>
+    <speciesReference metaid="d2c741a5-84df-46bb-b06f-792b402dbc93" species="lactate"/>
+  </listOfProducts>
+  <kineticLaw metaid="_036f13c4-a153-48bb-aa25-09a2bff4ef32">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_2 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> pyruvate </ci>
+                <ci> NADH </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> lactate </ci>
+                  <ci> NAD </ci>
+                </apply>
+                <ci> Keq_2 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kpyr_2 </ci>
+              <ci> Knadh_2 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> pyruvate </ci>
+              <ci> Kpyr_2 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> lactate </ci>
+              <ci> Klac_2 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_2 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_2 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070873" id="V_2" value="5118"/>
+      <parameter metaid="_070874" id="Keq_2" value="21120.69"/>
+      <parameter metaid="_070875" id="Kpyr_2" value="1.5"/>
+      <parameter metaid="_070876" id="Knadh_2" value="0.08"/>
+      <parameter metaid="_070877" id="Klac_2" value="100"/>
+      <parameter metaid="_070879" id="Knad_2" value="2.4"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NADH + pyruvate &#10142; NAD + lactate</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_2 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> pyruvate </ci>
+            <ci> NADH </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> lactate </ci>
+              <ci> NAD </ci>
+            </apply>
+            <ci> Keq_2 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kpyr_2 </ci>
+          <ci> Knadh_2 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> pyruvate </ci>
+          <ci> Kpyr_2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> lactate </ci>
+          <ci> Klac_2 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_2 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_2 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_HAS_VERSION</span><br /><a href="http://identifiers.org/ec-code/1.1.1.27" target="_blank">1.1.1.27</a>; <a href="http://identifiers.org/ec-code/1.1.1.28" target="_blank">1.1.1.28</a>; <a href="http://identifiers.org/kegg.reaction/R00703" target="_blank">R00703</a>; <a href="http://identifiers.org/kegg.reaction/R00704" target="_blank">R00704</a>; <a href="http://identifiers.org/reactome/REACT_178" target="_blank">REACT_178</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R3" class="active"><span class="package">R3</span> <code>_682324</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682324" id="R3" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682324">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.2.1.51"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00209"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="d9e815ab-f691-45d9-98d8-101950d2cef1" species="NAD"/>
+    <speciesReference metaid="_4ddf4890-b33d-4f97-a588-c2b0796237e4" species="pyruvate"/>
+    <speciesReference metaid="_3ad5db66-0ce9-4af2-ae2e-c64aeb145f89" species="CoA"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_1a7b888d-118c-4591-9e4a-d82dc468d223" species="NADH"/>
+    <speciesReference metaid="_4d1cd0da-587d-44fd-9acb-2e2686c580da" species="AcCoA"/>
+  </listOfProducts>
+  <kineticLaw metaid="_7f3611f7-f293-4d15-a3b4-9ae0159f0c41">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_3 </ci>
+          <apply>
+            <divide/>
+            <ci> pyruvate </ci>
+            <ci> Kpyr_3 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> NAD </ci>
+            <ci> Knad_3 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> CoA </ci>
+            <ci> Kcoa_3 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> NAD </ci>
+            <apply>
+              <plus/>
+              <ci> NAD </ci>
+              <apply>
+                <times/>
+                <ci> Ki_3 </ci>
+                <ci> NADH </ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> pyruvate </ci>
+              <ci> Kpyr_3 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_3 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_3 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> CoA </ci>
+              <ci> Kcoa_3 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> AcCoA </ci>
+              <ci> Kaccoa_3 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070880" id="V_3" value="259"/>
+      <parameter metaid="_070881" id="Kpyr_3" value="1"/>
+      <parameter metaid="_070882" id="Knad_3" value="0.4"/>
+      <parameter metaid="_070883" id="Kcoa_3" value="0.014"/>
+      <parameter metaid="_070886" id="Ki_3" value="46.4159"/>
+      <parameter metaid="_070888" id="Knadh_3" value="0.1"/>
+      <parameter metaid="_070890" id="Kaccoa_3" value="0.008"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NAD + pyruvate + CoA &#10142; NADH + AcCoA</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_3 </ci>
+      <apply>
+        <divide/>
+        <ci> pyruvate </ci>
+        <ci> Kpyr_3 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> NAD </ci>
+        <ci> Knad_3 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> CoA </ci>
+        <ci> Kcoa_3 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> NAD </ci>
+        <apply>
+          <plus/>
+          <ci> NAD </ci>
+          <apply>
+            <times/>
+            <ci> Ki_3 </ci>
+            <ci> NADH </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> pyruvate </ci>
+          <ci> Kpyr_3 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_3 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_3 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> CoA </ci>
+          <ci> Kcoa_3 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> AcCoA </ci>
+          <ci> Kaccoa_3 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/1.2.1.51" target="_blank">1.2.1.51</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R00209" target="_blank">R00209</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R4" class="active"><span class="package">R4</span> <code>_682346</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682346" id="R4" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682346">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/2.3.1.8"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00230"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="b4c936d0-acda-44fd-8689-78a55c7dfdd1" species="AcCoA"/>
+    <speciesReference metaid="ad179af4-e181-480f-8525-6d3c54003d30" species="PO4"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_80dbacab-7969-4e53-9448-e30e3d852459" species="CoA"/>
+    <speciesReference metaid="_75f3d44f-f934-43b3-8c0d-ad3b171c5ef2" species="AcP"/>
+  </listOfProducts>
+  <kineticLaw metaid="_4b9ce809-530e-4e46-8174-5310237fdff9">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_4 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> AcCoA </ci>
+                <ci> PO4 </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> AcP </ci>
+                  <ci> CoA </ci>
+                </apply>
+                <ci> Keq_4 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kiaccoa_4 </ci>
+              <ci> Kpi_4 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> AcCoA </ci>
+            <ci> Kiaccoa_4 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> PO4 </ci>
+            <ci> Kipi_4 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> AcP </ci>
+            <ci> Kiacp_4 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> CoA </ci>
+            <ci> Kicoa_4 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> AcCoA </ci>
+              <ci> PO4 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kiaccoa_4 </ci>
+              <ci> Kpi_4 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> AcP </ci>
+              <ci> CoA </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kacp_4 </ci>
+              <ci> Kicoa_4 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070891" id="V_4" value="42"/>
+      <parameter metaid="_070892" id="Keq_4" value="0.0065"/>
+      <parameter metaid="_070893" id="Kiaccoa_4" value="0.2"/>
+      <parameter metaid="_070894" id="Kpi_4" value="2.6"/>
+      <parameter metaid="_070897" id="Kipi_4" value="2.6"/>
+      <parameter metaid="_070899" id="Kiacp_4" value="0.2"/>
+      <parameter metaid="_070901" id="Kicoa_4" value="0.029"/>
+      <parameter metaid="_070903" id="Kacp_4" value="0.7"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>AcCoA + PO4 &#10142; CoA + AcP</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_4 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> AcCoA </ci>
+            <ci> PO4 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> AcP </ci>
+              <ci> CoA </ci>
+            </apply>
+            <ci> Keq_4 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kiaccoa_4 </ci>
+          <ci> Kpi_4 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <divide/>
+        <ci> AcCoA </ci>
+        <ci> Kiaccoa_4 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> PO4 </ci>
+        <ci> Kipi_4 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> AcP </ci>
+        <ci> Kiacp_4 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> CoA </ci>
+        <ci> Kicoa_4 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> AcCoA </ci>
+          <ci> PO4 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kiaccoa_4 </ci>
+          <ci> Kpi_4 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> AcP </ci>
+          <ci> CoA </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kacp_4 </ci>
+          <ci> Kicoa_4 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/2.3.1.8" target="_blank">2.3.1.8</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R00230" target="_blank">R00230</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R5" class="active"><span class="package">R5</span> <code>_682374</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682374" id="R5" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682374">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.2.1"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00315"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_72ca903a-56ba-418f-93f9-d3912604d0e9" species="ADP"/>
+    <speciesReference metaid="d26460d5-1ff5-443a-8c53-920a981c640a" species="AcP"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_090e383c-5c1a-469c-a624-b9ebb8612b0f" species="ATP"/>
+    <speciesReference metaid="f9dcafde-6dbc-4b21-ae07-cb4214160fab" species="Ac"/>
+  </listOfProducts>
+  <kineticLaw metaid="ab271479-76af-4bdd-abb5-0be20d081b08">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_5 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> AcP </ci>
+                <ci> ADP </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Ac </ci>
+                  <ci> ATP </ci>
+                </apply>
+                <ci> Keq_5 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kadp_5 </ci>
+              <ci> Kacp_5 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> AcP </ci>
+              <ci> Kacp_5 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> Ac </ci>
+              <ci> Kac_5 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> ADP </ci>
+              <ci> Kadp_5 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> ATP </ci>
+              <ci> Katp_5 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070904" id="V_5" value="2700"/>
+      <parameter metaid="_070905" id="Keq_5" value="174.217"/>
+      <parameter metaid="_070906" id="Kadp_5" value="0.5"/>
+      <parameter metaid="_070907" id="Kacp_5" value="0.16"/>
+      <parameter metaid="_070909" id="Kac_5" value="7"/>
+      <parameter metaid="_070911" id="Katp_5" value="0.07"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>ADP + AcP &#10142; ATP + Ac</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_5 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> AcP </ci>
+            <ci> ADP </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> Ac </ci>
+              <ci> ATP </ci>
+            </apply>
+            <ci> Keq_5 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kadp_5 </ci>
+          <ci> Kacp_5 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> AcP </ci>
+          <ci> Kacp_5 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> Ac </ci>
+          <ci> Kac_5 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> ADP </ci>
+          <ci> Kadp_5 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> ATP </ci>
+          <ci> Katp_5 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/2.7.2.1" target="_blank">2.7.2.1</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R00315" target="_blank">R00315</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R6" class="active"><span class="package">R6</span> <code>_682394</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R6"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R6" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R6</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682394" id="R6" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682394">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.2.1.10"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00228"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_8c832b6c-49d8-4008-b356-db01744d0d92" species="NADH"/>
+    <speciesReference metaid="d454a96e-94a4-4ad3-aaa7-a1e4bf5dfd69" species="AcCoA"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_1ccffe5d-9cd7-4146-b516-8b5bf1630b65" species="NAD"/>
+    <speciesReference metaid="e74f54e5-6a9d-4266-a6d5-692f0a6bf688" species="CoA"/>
+    <speciesReference metaid="b1593d2f-ee84-45b9-b136-2915e87eabec" species="AcO"/>
+  </listOfProducts>
+  <kineticLaw metaid="_745bb023-e8e0-4c4f-9313-54ed7d041cac">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_6 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> AcCoA </ci>
+                <ci> NADH </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> CoA </ci>
+                  <ci> NAD </ci>
+                  <ci> AcO </ci>
+                </apply>
+                <ci> Keq_6 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kaccoa_6 </ci>
+              <ci> Knadh_6 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_6 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_6 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> AcCoA </ci>
+              <ci> Kaccoa_6 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> CoA </ci>
+              <ci> Kcoa_6 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> AcO </ci>
+              <ci> Kaco_6 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070912" id="V_6" value="97"/>
+      <parameter metaid="_070913" id="Keq_6" value="1"/>
+      <parameter metaid="_070914" id="Kaccoa_6" value="0.007"/>
+      <parameter metaid="_070915" id="Knadh_6" value="0.025"/>
+      <parameter metaid="_070917" id="Knad_6" value="0.08"/>
+      <parameter metaid="_070919" id="Kcoa_6" value="0.008"/>
+      <parameter metaid="_070921" id="Kaco_6" value="10"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NADH + AcCoA &#10142; NAD + CoA + AcO</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_6 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> AcCoA </ci>
+            <ci> NADH </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> CoA </ci>
+              <ci> NAD </ci>
+              <ci> AcO </ci>
+            </apply>
+            <ci> Keq_6 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kaccoa_6 </ci>
+          <ci> Knadh_6 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_6 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_6 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> AcCoA </ci>
+          <ci> Kaccoa_6 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> CoA </ci>
+          <ci> Kcoa_6 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> AcO </ci>
+          <ci> Kaco_6 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/1.2.1.10" target="_blank">1.2.1.10</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R00228" target="_blank">R00228</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R7" class="active"><span class="package">R7</span> <code>_682416</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682416" id="R7" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682416">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.1.1.1"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00754"/>
+            <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_799"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_08a08b96-9233-449b-bda1-bec71a709606" species="NADH"/>
+    <speciesReference metaid="_8349e3f0-f396-43f3-8305-cd7d7581ee09" species="AcO"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="bc29f2a6-d303-4beb-85fe-5ec3f21d583d" species="NAD"/>
+    <speciesReference metaid="_5eba7169-9db3-49af-b610-d754ab86e027" species="EtOH"/>
+  </listOfProducts>
+  <kineticLaw metaid="c4e2929d-c8f4-4ab7-a608-976addb73c50">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_7 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> AcO </ci>
+                <ci> NADH </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> EtOH </ci>
+                  <ci> NAD </ci>
+                </apply>
+                <ci> Keq_7 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kaco_7 </ci>
+              <ci> Knadh_7 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_7 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_7 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> AcO </ci>
+              <ci> Kaco_7 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> EtOH </ci>
+              <ci> Ketoh_7 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070922" id="V_7" value="162"/>
+      <parameter metaid="_070923" id="Keq_7" value="12354.9"/>
+      <parameter metaid="_070924" id="Kaco_7" value="0.03"/>
+      <parameter metaid="_070925" id="Knadh_7" value="0.05"/>
+      <parameter metaid="_070927" id="Knad_7" value="0.08"/>
+      <parameter metaid="_070929" id="Ketoh_7" value="1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NADH + AcO &#10142; NAD + EtOH</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_7 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> AcO </ci>
+            <ci> NADH </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> EtOH </ci>
+              <ci> NAD </ci>
+            </apply>
+            <ci> Keq_7 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kaco_7 </ci>
+          <ci> Knadh_7 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_7 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_7 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> AcO </ci>
+          <ci> Kaco_7 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> EtOH </ci>
+          <ci> Ketoh_7 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/1.1.1.1" target="_blank">1.1.1.1</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R00754" target="_blank">R00754</a>; <a href="http://identifiers.org/reactome/REACT_799" target="_blank">REACT_799</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R8" class="active"><span class="package">R8</span> <code>_682444</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R8"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R8" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R8</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682444" id="R8" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682444">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/2.2.1.6"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R00006"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="fedc70cc-3eeb-4fe8-b355-98eaecdfc59a" species="pyruvate" stoichiometry="2"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="e3a30f49-3e35-4668-b050-89ca7b1356ac" species="AcLac"/>
+  </listOfProducts>
+  <kineticLaw metaid="_5c172a42-8200-46a3-b87b-6cf245b00818">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_8 </ci>
+          <apply>
+            <divide/>
+            <ci> pyruvate </ci>
+            <ci> Kpyr_8 </ci>
+          </apply>
+          <apply>
+            <minus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> AcLac </ci>
+              <apply>
+                <times/>
+                <ci> pyruvate </ci>
+                <ci> Keq_8 </ci>
+              </apply>
+            </apply>
+          </apply>
+          <apply>
+            <power/>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <ci> pyruvate </ci>
+                <ci> Kpyr_8 </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> AcLac </ci>
+                <ci> Kaclac_8 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <ci> n_8 </ci>
+              <cn type="integer"> 1 </cn>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <power/>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <ci> pyruvate </ci>
+                <ci> Kpyr_8 </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> AcLac </ci>
+                <ci> Kaclac_8 </ci>
+              </apply>
+            </apply>
+            <ci> n_8 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070930" id="V_8" value="600"/>
+      <parameter metaid="_070931" id="Kpyr_8" value="50"/>
+      <parameter metaid="_070932" id="Keq_8" value="9000000000000"/>
+      <parameter metaid="_070933" id="Kaclac_8" value="100"/>
+      <parameter metaid="_070935" id="n_8" value="2.4"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>2.0 pyruvate &#10142; AcLac</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_8 </ci>
+      <apply>
+        <divide/>
+        <ci> pyruvate </ci>
+        <ci> Kpyr_8 </ci>
+      </apply>
+      <apply>
+        <minus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> AcLac </ci>
+          <apply>
+            <times/>
+            <ci> pyruvate </ci>
+            <ci> Keq_8 </ci>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <power/>
+        <apply>
+          <plus/>
+          <apply>
+            <divide/>
+            <ci> pyruvate </ci>
+            <ci> Kpyr_8 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> AcLac </ci>
+            <ci> Kaclac_8 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <minus/>
+          <ci> n_8 </ci>
+          <cn type="integer"> 1 </cn>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <power/>
+        <apply>
+          <plus/>
+          <apply>
+            <divide/>
+            <ci> pyruvate </ci>
+            <ci> Kpyr_8 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> AcLac </ci>
+            <ci> Kaclac_8 </ci>
+          </apply>
+        </apply>
+        <ci> n_8 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/2.2.1.6" target="_blank">2.2.1.6</a><br /><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R00006" target="_blank">R00006</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R9" class="active"><span class="package">R9</span> <code>_682460</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R9"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R9" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R9</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682460" id="R9" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682460">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R02947"/>
+          </rdf:Bag>
+        </bqbiol:is>
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/4.1.1.5"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_88ec4362-c94a-487a-a1d3-0c444f618107" species="AcLac"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_87690e47-be02-47e8-b3a3-d3057ca946a7" species="AcetoinIn"/>
+  </listOfProducts>
+  <kineticLaw metaid="_73bb5c88-847e-41e3-834b-2e2066151776">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_9 </ci>
+          <apply>
+            <divide/>
+            <ci> AcLac </ci>
+            <ci> Kaclac_9 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> AcLac </ci>
+            <ci> Kaclac_9 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> AcetoinIn </ci>
+            <ci> Kacet_9 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070936" id="V_9" value="106"/>
+      <parameter metaid="_070937" id="Kaclac_9" value="10"/>
+      <parameter metaid="_070938" id="Kacet_9" value="100"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>AcLac &#10142; AcetoinIn</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_9 </ci>
+      <apply>
+        <divide/>
+        <ci> AcLac </ci>
+        <ci> Kaclac_9 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <divide/>
+        <ci> AcLac </ci>
+        <ci> Kaclac_9 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> AcetoinIn </ci>
+        <ci> Kacet_9 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/kegg.reaction/R02947" target="_blank">R02947</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/ec-code/4.1.1.5" target="_blank">4.1.1.5</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R10" class="active"><span class="package">R10</span> <code>_682480</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R10"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R10" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R10</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682480" id="R10" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682480">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0015562"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="af878e7e-22cb-4d41-bb92-f7d24f799c6a" species="AcetoinIn"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_838ffd68-b00f-4bd3-bec7-bcfad70bb50d" species="AcetoinOut"/>
+  </listOfProducts>
+  <kineticLaw metaid="_3bc9a36f-ff03-4107-9b68-125baeee5fbe">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_10 </ci>
+          <apply>
+            <divide/>
+            <ci> AcetoinIn </ci>
+            <ci> Kacet_10 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> AcetoinIn </ci>
+            <ci> Kacet_10 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070939" id="V_10" value="200"/>
+      <parameter metaid="_070940" id="Kacet_10" value="5"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>AcetoinIn &#10142; AcetoinOut</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_10 </ci>
+      <apply>
+        <divide/>
+        <ci> AcetoinIn </ci>
+        <ci> Kacet_10 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <divide/>
+        <ci> AcetoinIn </ci>
+        <ci> Kacet_10 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0015562" target="_blank">GO:0015562</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R11" class="active"><span class="package">R11</span> <code>_682500</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R11"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R11" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R11</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682500" id="R11" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682500">
+        <bqbiol:hasVersion>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.1.1.4"/>
+            <rdf:li rdf:resource="http://identifiers.org/ec-code/1.1.1.76"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R02344"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R02946"/>
+          </rdf:Bag>
+        </bqbiol:hasVersion>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_6bc63c05-642a-4f86-9048-01e88e80e71d" species="NADH"/>
+    <speciesReference metaid="d26a2979-bfa7-40a0-bed8-738f206692a4" species="AcetoinIn"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="adf0b740-4d8f-4cb9-9b23-a9599e83c6d9" species="NAD"/>
+    <speciesReference metaid="ba90add9-0e97-4e2c-93b3-67958962070b" species="Butanediol"/>
+  </listOfProducts>
+  <kineticLaw metaid="_29b9b747-214a-4129-8715-1c4733d2e1fa">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_11 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> AcetoinIn </ci>
+                <ci> NADH </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Butanediol </ci>
+                  <ci> NAD </ci>
+                </apply>
+                <ci> Keq_11 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Kacet_11 </ci>
+              <ci> Knadh_11 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> AcetoinIn </ci>
+              <ci> Kacet_11 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> Butanediol </ci>
+              <ci> Kbut_11 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_11 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_11 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070942" id="V_11" value="105"/>
+      <parameter metaid="_070943" id="Keq_11" value="1400"/>
+      <parameter metaid="_070945" id="Kacet_11" value="0.06"/>
+      <parameter metaid="_070947" id="Knadh_11" value="0.02"/>
+      <parameter metaid="_070949" id="Kbut_11" value="2.6"/>
+      <parameter metaid="_070952" id="Knad_11" value="0.16"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NADH + AcetoinIn &#10142; NAD + Butanediol</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_11 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <minus/>
+          <apply>
+            <times/>
+            <ci> AcetoinIn </ci>
+            <ci> NADH </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> Butanediol </ci>
+              <ci> NAD </ci>
+            </apply>
+            <ci> Keq_11 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Kacet_11 </ci>
+          <ci> Knadh_11 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> AcetoinIn </ci>
+          <ci> Kacet_11 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> Butanediol </ci>
+          <ci> Kbut_11 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_11 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_11 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_HAS_VERSION</span><br /><a href="http://identifiers.org/ec-code/1.1.1.4" target="_blank">1.1.1.4</a>; <a href="http://identifiers.org/ec-code/1.1.1.76" target="_blank">1.1.1.76</a>; <a href="http://identifiers.org/kegg.reaction/R02344" target="_blank">R02344</a>; <a href="http://identifiers.org/kegg.reaction/R02946" target="_blank">R02946</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R12" class="active"><span class="package">R12</span> <code>_682524</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R12"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R12" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R12</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682524" id="R12" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682524">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0016887"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_1238092f-5331-4fac-b004-3ea4875a6fbc" species="ATP"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="dec1b59f-5e65-49ee-9f91-1ea569e0a0e0" species="ADP"/>
+  </listOfProducts>
+  <kineticLaw metaid="_7f96be9e-ec6e-41d2-9800-8a6affee52d2">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_12 </ci>
+          <apply>
+            <power/>
+            <apply>
+              <divide/>
+              <ci> ATP </ci>
+              <apply>
+                <times/>
+                <ci> ADP </ci>
+                <ci> Katp_12 </ci>
+              </apply>
+            </apply>
+            <ci> n_12 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn type="integer"> 1 </cn>
+          <apply>
+            <power/>
+            <apply>
+              <divide/>
+              <ci> ATP </ci>
+              <apply>
+                <times/>
+                <ci> ADP </ci>
+                <ci> Katp_12 </ci>
+              </apply>
+            </apply>
+            <ci> n_12 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070953" id="V_12" value="900"/>
+      <parameter metaid="_070954" id="Katp_12" value="6.196"/>
+      <parameter metaid="_070955" id="n_12" value="2.58"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>ATP &#10142; ADP</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_12 </ci>
+      <apply>
+        <power/>
+        <apply>
+          <divide/>
+          <ci> ATP </ci>
+          <apply>
+            <times/>
+            <ci> ADP </ci>
+            <ci> Katp_12 </ci>
+          </apply>
+        </apply>
+        <ci> n_12 </ci>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn type="integer"> 1 </cn>
+      <apply>
+        <power/>
+        <apply>
+          <divide/>
+          <ci> ATP </ci>
+          <apply>
+            <times/>
+            <ci> ADP </ci>
+            <ci> Katp_12 </ci>
+          </apply>
+        </apply>
+        <ci> n_12 </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0016887" target="_blank">GO:0016887</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R13" class="active"><span class="package">R13</span> <code>_682540</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R13"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R13" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R13</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682540" id="R13" reversible="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_682540">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0006116"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_9e708d3d-748e-4676-92df-ad024121e816" species="NADH"/>
+    <speciesReference metaid="e6d0dbac-a720-4aaf-b3c5-13df157a6299" species="O2"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="b0950e62-f22e-49dd-9030-ef5eabdf46e0" species="NAD"/>
+  </listOfProducts>
+  <kineticLaw metaid="a4cb0bd9-151e-4b72-879f-3f838485b9af">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> V_13 </ci>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> NADH </ci>
+              <ci> O2 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> Knadh_13 </ci>
+              <ci> Ko_13 </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> NADH </ci>
+              <ci> Knadh_13 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> NAD </ci>
+              <ci> Knad_13 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> O2 </ci>
+              <ci> Ko_13 </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070956" id="V_13" value="118"/>
+      <parameter metaid="_070957" id="Knadh_13" value="0.041"/>
+      <parameter metaid="_070958" id="Ko_13" value="0.2"/>
+      <parameter metaid="_070959" id="Knad_13" value="1"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>NADH + O2 &#10142; NAD</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> V_13 </ci>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> NADH </ci>
+          <ci> O2 </ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci> Knadh_13 </ci>
+          <ci> Ko_13 </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> NADH </ci>
+          <ci> Knadh_13 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> NAD </ci>
+          <ci> Knad_13 </ci>
+        </apply>
+      </apply>
+      <apply>
+        <plus/>
+        <cn type="integer"> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> O2 </ci>
+          <ci> Ko_13 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td>None</td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0006116" target="_blank">GO:0006116</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	<td id="R14" class="active"><span class="package">R14</span> <code>_682562</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R14"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R14" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R14</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="_682562" id="R14" reversible="false">
+  <listOfReactants>
+    <speciesReference metaid="b1004302-fe32-4125-913b-b7b248f62694" species="AcLac"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_0cfcb199-e152-4186-860d-bf05230269a5" species="AcetoinIn"/>
+  </listOfProducts>
+  <kineticLaw metaid="e0efde06-267b-432e-ace2-a7eadbe973f8">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> k_14 </ci>
+        <ci> AcLac </ci>
+      </apply>
+    </math>
+    <listOfParameters>
+      <parameter metaid="_070960" id="k_14" value="0.0003"/>
+    </listOfParameters>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    </td>
+         </td>
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>AcLac &#10142; AcetoinIn</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> k_14 </ci>
+    <ci> AcLac </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

@@ -1,0 +1,1104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># Rate-based model of coupled neuron populations to 
+# perform discrimination using integral feedback control.
+# Discrete attractor version, so r2 is determined by 
+# the sum of 20 units, r2a to r2t.
+par w1_2=0.065 w2_1=-0.7 tau=0.005 di=0.001 i2l=0
+par tstim=1 t1=4.0 t2=10.0 tauapp=0.005 dtapp=0.001
+par rsp=20 tauNMDA=0.03
+par f1=20 f2=24 
+
+init r1=0.0 r2=0.0 
+init r2a=0.0 r2b=0.0 r2c=0.0 r2d=0.0 r2e=0.0 
+init r2f=0.0 r2g=0.0 r2h=0.0 r2i=0.0 r2j=0.0 
+init r2k=0.0 r2l=0.0 r2m=0.0 r2n=0.0 r2o=0.0 
+init r2p=0.0 r2q=0.0 r2r=0.0 r2s=0.0 r2t=0.0 
+# init sapp1=0.0 sapp2=0.0 
+init s1=0.0 s2=0.0
+
+sapp1=f1/((1+exp(-2*(t-t1)/dtapp))*(1+exp(-2*(t1+tstim-t)/dtapp)))
+sapp2=f2/((1+exp(-2*(t-t2)/dtapp))*(1+exp(-2*(t2+tstim-t)/dtapp)))
+
+ds1/dt=(sapp1-s1)/tauapp
+ds2/dt=(sapp2-s2)/tauapp
+
+i2=w1_2*r1*heav(r1)+r2a+r2b+r2c+r2d+r2e+r2f+r2g+r2h+r2i+r2j+r2k+r2l+r2m+r2n+r2o+r2p+r2q+r2r+r2s+r2t-i2l
+dr2/dt=(-r2+i2*heav(i2))/tauNMDA
+i1=rsp+w2_1*r2+s1+s2
+dr1/dt=(-r1+i1)/tau
+dr2a/dt=(-r2a+2*heav(r2-1))/tau
+dr2b/dt=(-r2b+3*heav(r2-4))/tau
+dr2c/dt=(-r2c+3*heav(r2-7))/tau
+dr2d/dt=(-r2d+3*heav(r2-10))/tau
+dr2e/dt=(-r2e+3*heav(r2-13))/tau
+dr2f/dt=(-r2f+3*heav(r2-16))/tau
+dr2g/dt=(-r2g+3*heav(r2-19))/tau
+dr2h/dt=(-r2h+3*heav(r2-22))/tau
+dr2i/dt=(-r2i+3*heav(r2-25))/tau
+dr2j/dt=(-r2j+3*heav(r2-28))/tau
+dr2k/dt=(-r2k+3*heav(r2-31))/tau
+dr2l/dt=(-r2l+3*heav(r2-34))/tau
+dr2m/dt=(-r2m+3*heav(r2-37))/tau
+dr2n/dt=(-r2n+3*heav(r2-40))/tau
+dr2o/dt=(-r2o+3*heav(r2-43))/tau
+dr2p/dt=(-r2p+3*heav(r2-46))/tau
+dr2q/dt=(-r2q+3*heav(r2-49))/tau
+dr2r/dt=(-r2r+3*heav(r2-52))/tau
+dr2s/dt=(-r2s+3*heav(r2-55))/tau
+dr2t/dt=(-r2t+3*heav(r2-58))/tau
+
+# dsapp1/dt=(s1-sapp1)/tauapp
+# dsapp2/dt=(s2-sapp2)/tauapp
+# ds1/dt=0.0
+# ds2/dt=0.0
+aux i2out=i2
+aux di2=-r2+i2
+# global 1 {t-t1} {s1=f1}
+# global 2 {t-t1-tstim} {s1=0.0}
+# global 3 {t-t2} {s2=f2}
+# global 4 {t-t2-tstim} {s2=0}
+
+@total=12,bound=100,dt=.001,dtmin=1e-5,dtmax=10,atoler=1e-4
+@toler=1e-5,xhi=12,yhi=50,ylo=0 njmp=50,bell=0
+@bell=off,nout=50                                                             
+done
+
+
+
+
+
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="w1_2" name="w1_2 = 0.065" value="0.065" constant="false"/>
+      <parameter id="w2_1" name="w2_1 = -0.7" value="-0.7" constant="false"/>
+      <parameter id="tau" name="tau = 0.005" value="0.005" constant="false"/>
+      <parameter id="di" name="di = 0.001" value="0.001" constant="false"/>
+      <parameter id="i2l" name="i2l = 0" value="0" constant="false"/>
+      <parameter id="tstim" name="tstim = 1" value="1" constant="false"/>
+      <parameter id="t1" name="t1 = 4.0" value="4" constant="false"/>
+      <parameter id="t2" name="t2 = 10.0" value="10" constant="false"/>
+      <parameter id="tauapp" name="tauapp = 0.005" value="0.005" constant="false"/>
+      <parameter id="dtapp" name="dtapp = 0.001" value="0.001" constant="false"/>
+      <parameter id="rsp" name="rsp = 20" value="20" constant="false"/>
+      <parameter id="taunmda" name="taunmda = 0.03" value="0.03" constant="false"/>
+      <parameter id="f1" name="f1 = 20" value="20" constant="false"/>
+      <parameter id="f2" name="f2 = 24" value="24" constant="false"/>
+      <parameter id="r1" name="r1 = 0.0" value="0" constant="false"/>
+      <parameter id="r2" name="r2 = 0.0" value="0" constant="false"/>
+      <parameter id="r2a" name="r2a = 0.0" value="0" constant="false"/>
+      <parameter id="r2b" name="r2b = 0.0" value="0" constant="false"/>
+      <parameter id="r2c" name="r2c = 0.0" value="0" constant="false"/>
+      <parameter id="r2d" name="r2d = 0.0" value="0" constant="false"/>
+      <parameter id="r2e" name="r2e = 0.0" value="0" constant="false"/>
+      <parameter id="r2f" name="r2f = 0.0" value="0" constant="false"/>
+      <parameter id="r2g" name="r2g = 0.0" value="0" constant="false"/>
+      <parameter id="r2h" name="r2h = 0.0" value="0" constant="false"/>
+      <parameter id="r2i" name="r2i = 0.0" value="0" constant="false"/>
+      <parameter id="r2j" name="r2j = 0.0" value="0" constant="false"/>
+      <parameter id="r2k" name="r2k = 0.0" value="0" constant="false"/>
+      <parameter id="r2l" name="r2l = 0.0" value="0" constant="false"/>
+      <parameter id="r2m" name="r2m = 0.0" value="0" constant="false"/>
+      <parameter id="r2n" name="r2n = 0.0" value="0" constant="false"/>
+      <parameter id="r2o" name="r2o = 0.0" value="0" constant="false"/>
+      <parameter id="r2p" name="r2p = 0.0" value="0" constant="false"/>
+      <parameter id="r2q" name="r2q = 0.0" value="0" constant="false"/>
+      <parameter id="r2r" name="r2r = 0.0" value="0" constant="false"/>
+      <parameter id="r2s" name="r2s = 0.0" value="0" constant="false"/>
+      <parameter id="r2t" name="r2t = 0.0" value="0" constant="false"/>
+      <parameter id="s1" name="s1 = 0.0" value="0" constant="false"/>
+      <parameter id="s2" name="s2 = 0.0" value="0" constant="false"/>
+      <parameter id="sapp1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="sapp2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i2out" value="0" units="dimensionless" constant="false"/>
+      <parameter id="di2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="s1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> sapp1 </ci>
+              <ci> s1 </ci>
+            </apply>
+            <ci> tauapp </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="s2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> sapp2 </ci>
+              <ci> s2 </ci>
+            </apply>
+            <ci> tauapp </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2 </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> i2 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <ci> i2 </ci>
+                </apply>
+              </apply>
+            </apply>
+            <ci> taunmda </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r1 </ci>
+              </apply>
+              <ci> i1 </ci>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2a">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2a </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 2 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 1 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2b">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2b </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 4 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2c </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 7 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2d">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2d </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 10 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2e">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2e </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 13 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2f">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2f </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 16 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2g </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 19 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2h">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2h </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 22 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2i">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2i </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 25 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2j">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2j </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 28 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2k">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2k </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 31 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2l">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2l </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 34 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2m">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2m </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 37 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2n </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 40 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2o">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2o </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 43 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2p </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 46 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2q">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2q </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 49 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2r">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2r </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 52 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2s">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2s </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 55 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r2t </ci>
+              </apply>
+              <apply>
+                <times/>
+                <cn type="integer"> 3 </cn>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> r2 </ci>
+                    <cn type="integer"> 58 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="sapp1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> f1 </ci>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <ci> t </ci>
+                        <ci> t1 </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <plus/>
+                          <ci> t1 </ci>
+                          <ci> tstim </ci>
+                        </apply>
+                        <ci> t </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="sapp2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> f2 </ci>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <ci> t </ci>
+                        <ci> t2 </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <plus/>
+                          <ci> t2 </ci>
+                          <ci> tstim </ci>
+                        </apply>
+                        <ci> t </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> w1_2 </ci>
+                <ci> r1 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <ci> r1 </ci>
+                </apply>
+              </apply>
+              <ci> r2a </ci>
+              <ci> r2b </ci>
+              <ci> r2c </ci>
+              <ci> r2d </ci>
+              <ci> r2e </ci>
+              <ci> r2f </ci>
+              <ci> r2g </ci>
+              <ci> r2h </ci>
+              <ci> r2i </ci>
+              <ci> r2j </ci>
+              <ci> r2k </ci>
+              <ci> r2l </ci>
+              <ci> r2m </ci>
+              <ci> r2n </ci>
+              <ci> r2o </ci>
+              <ci> r2p </ci>
+              <ci> r2q </ci>
+              <ci> r2r </ci>
+              <ci> r2s </ci>
+              <ci> r2t </ci>
+            </apply>
+            <ci> i2l </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> rsp </ci>
+            <apply>
+              <times/>
+              <ci> w2_1 </ci>
+              <ci> r2 </ci>
+            </apply>
+            <ci> s1 </ci>
+            <ci> s2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i2out">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> i2 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="di2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <ci> r2 </ci>
+            </apply>
+            <ci> i2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" metaid="_71bd2dae-96a8-490b-9482-7dabb6382a7a" level="2" version="4">
+  <model metaid="_580083" id="Raia2010_IL13_MedB1" name="Raia2010_IL13_Signalling_MedB1">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <p>This is the model of IL13 induced signalling in MedB-1 cell described in the article:<br/>
+        <b>Dynamic Mathematical Modeling of IL13-Induced Signaling in Hodgkin and Primary Mediastinal B-Cell Lymphoma Allows Prediction of Therapeutic Targets.</b>
+        <br/>
+Raia V, Schilling M, Böhm M, Hahn B, Kowarsch A, Raue A, Sticht C, Bohl S, Saile M, Möller P, Gretz N, Timmer J, Theis F, Lehmann WD, Lichter P and Klingmüller U. Cancer Res. 2011 Feb 1;71(3):693-704. PubmedID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/21127196">21127196</a>; DOI:<a href="http://dx.doi.org/10.1158/0008-5472.CAN-10-2987">10.1158/0008-5472.CAN-10-2987</a>
+        <br/>
+Abstract:<br/>
+Primary mediastinal B-cell lymphoma (PMBL) and classical Hodgkin lymphoma (cHL) share a frequent constitutive activation of JAK (Janus kinase)/STAT signaling pathway. Because of complex, nonlinear relations within the pathway, key dynamic properties remained to be identified to predict possible strategies for intervention. We report the development of dynamic pathway models based on quantitative data collected on signaling components of JAK/STAT pathway in two lymphoma-derived cell lines, MedB-1 and L1236, representative of PMBL and cHL, respectively. We show that the amounts of STAT5 and STAT6 are higher whereas those of SHP1 are lower in the two lymphoma cell lines than in normal B cells. Distinctively, L1236 cells harbor more JAK2 and less SHP1 molecules per cell than MedB-1 or control cells. In both lymphoma cell lines, we observe interleukin-13 (IL13)-induced activation of IL4 receptor α, JAK2, and STAT5, but not of STAT6. Genome-wide, 11 early and 16 sustained genes are upregulated by IL13 in both lymphoma cell lines. Specifically, the known STAT-inducible negative regulators CISH and SOCS3 are upregulated within 2 hours in MedB-1 but not in L1236 cells. On the basis of this detailed quantitative information, we established two mathematical models, MedB-1 and L1236 model, able to describe the respective experimental data. Most of the model parameters are identifiable and therefore the models are predictive. Sensitivity analysis of the model identifies six possible therapeutic targets able to reduce gene expression levels in L1236 cells and three in MedB-1. We experimentally confirm reduction in target gene expression in response to inhibition of STAT5 phosphorylation, thereby validating one of the predicted targets.
+</p>
+        <p>All concentrations in the model, apart from IL13, are in molecules/cell. IL13 is given in ng/ml. As the cell volume is not explicitely given in the article, it is just approximately derived from the MW of IL13 () and the conversion factor 2.265 molecules IL13/cell = 1 ng/ml   to be around 60 fl.</p>
+        <p>SBML model exported from PottersWheel on 2010-08-10 12:14:57.<br/>
+Inline follows the original matlab code:</p>
+        <pre>
+% PottersWheel model definition file
+
+function m = Raia2010_IL13_MedB1()
+
+m             = pwGetEmptyModel();
+
+%% Meta information
+
+m.ID          = &apos;Raia2010_IL13_MedB1&apos;;
+m.name        = &apos;Raia2010_IL13_MedB1&apos;;
+m.description = &apos;&apos;;
+m.authors     = {&apos;Raia et al&apos;};
+m.dates       = {&apos;2010&apos;};
+m.type        = &apos;PW-2-0-47&apos;;
+
+%% X: Dynamic variables
+% m = pwAddX(m, ID, startValue, type, minValue, maxValue, unit, compartment, name, description, typeOfStartValue)
+
+m = pwAddX(m, &apos;Rec&apos;         ,              1.3, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;Rec_i&apos;       , 113.193916718733, &apos;global&apos;,  0.001, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;IL13_Rec&apos;    ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;p_IL13_Rec&apos;  ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;p_IL13_Rec_i&apos;,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;JAK2&apos;        ,              2.8, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;pJAK2&apos;       ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;SHP1&apos;        ,               91, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;STAT5&apos;       ,              165, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;pSTAT5&apos;      ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;SOCS3mRNA&apos;   ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;DecoyR&apos;      ,             0.34, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;IL13_DecoyR&apos; ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;SOCS3&apos;       ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+m = pwAddX(m, &apos;CD274mRNA&apos;   ,                0, &apos;fix&apos;   , 1e-006, 10000, &apos;molecules/cell (x 1000)&apos;, &apos;cell&apos;, []  , []  , []             , []  , &apos;protein.generic&apos;);
+
+
+%% R: Reactions
+% m = pwAddR(m, reactants, products, modifiers, type, options, rateSignature, parameters, description, ID, name, fast, compartments, parameterTrunks, designerPropsR, stoichiometry, reversible)
+
+m = pwAddR(m, {&apos;Rec&apos;         }, {&apos;IL13_Rec&apos;    }, {&apos;IL13stimulation&apos;   }, &apos;C&apos; , [] , &apos;k1 * m1 * r1 * 2.265&apos;        , {&apos;Kon_IL13Rec&apos;                             });
+m = pwAddR(m, {&apos;Rec&apos;         }, {&apos;Rec_i&apos;       }, {                    }, &apos;MA&apos;, [] , []                            , {&apos;Rec_intern&apos;                              });
+m = pwAddR(m, {&apos;Rec_i&apos;       }, {&apos;Rec&apos;         }, {                    }, &apos;MA&apos;, [] , []                            , {&apos;Rec_recycle&apos;                             });
+m = pwAddR(m, {&apos;IL13_Rec&apos;    }, {&apos;p_IL13_Rec&apos;  }, {&apos;pJAK2&apos;             }, &apos;E&apos; , [] , []                            , {&apos;Rec_phosphorylation&apos;                     });
+m = pwAddR(m, {&apos;JAK2&apos;        }, {&apos;pJAK2&apos;       }, {&apos;IL13_Rec&apos;,&apos;SOCS3&apos;  }, &apos;C&apos; , [] , &apos;k1 * m1 * r1 / (1 + k2 * m2)&apos;, {&apos;JAK2_phosphorylation&apos;,&apos;JAK2_p_inhibition&apos;});
+m = pwAddR(m, {&apos;JAK2&apos;        }, {&apos;pJAK2&apos;       }, {&apos;p_IL13_Rec&apos;,&apos;SOCS3&apos;}, &apos;C&apos; , [] , &apos;k1 * m1 * r1 / (1 + k2 * m2)&apos;, {&apos;JAK2_phosphorylation&apos;,&apos;JAK2_p_inhibition&apos;});
+m = pwAddR(m, {&apos;p_IL13_Rec&apos;  }, {&apos;p_IL13_Rec_i&apos;}, {                    }, &apos;MA&apos;, [] , []                            , {&apos;pRec_intern&apos;                             });
+m = pwAddR(m, {&apos;p_IL13_Rec_i&apos;}, {              }, {                    }, &apos;MA&apos;, [] , []                            , {&apos;pRec_degradation&apos;                        });
+m = pwAddR(m, {&apos;pJAK2&apos;       }, {&apos;JAK2&apos;        }, {&apos;SHP1&apos;              }, &apos;E&apos; , [] , []                            , {&apos;pJAK2_dephosphorylation&apos;                 });
+m = pwAddR(m, {&apos;STAT5&apos;       }, {&apos;pSTAT5&apos;      }, {&apos;pJAK2&apos;             }, &apos;E&apos; , [] , []                            , {&apos;STAT5_phosphorylation&apos;                   });
+m = pwAddR(m, {&apos;pSTAT5&apos;      }, {&apos;STAT5&apos;       }, {&apos;SHP1&apos;              }, &apos;E&apos; , [] , []                            , {&apos;pSTAT5_dephosphorylation&apos;                });
+m = pwAddR(m, {&apos;DecoyR&apos;      }, {&apos;IL13_DecoyR&apos; }, {&apos;IL13stimulation&apos;   }, &apos;C&apos; , [] , &apos;k1 * m1 * r1 * 2.265&apos;        , {&apos;DecoyR_binding&apos;                          });
+m = pwAddR(m, {              }, {&apos;SOCS3mRNA&apos;   }, {&apos;pSTAT5&apos;            }, &apos;C&apos; , [] , &apos;m1*k1&apos;                       , {&apos;SOCS3mRNA_production&apos;                    });
+m = pwAddR(m, {              }, {&apos;SOCS3&apos;       }, {&apos;SOCS3mRNA&apos;         }, &apos;C&apos; , [] , &apos;m1*k1/(k2+m1)&apos;               , {&apos;SOCS3_translation&apos;,&apos;SOCS3_accumulation&apos;  });
+m = pwAddR(m, {&apos;SOCS3&apos;       }, {              }, {                    }, &apos;MA&apos;, [] , []                            , {&apos;SOCS3_degradation&apos;                       });
+m = pwAddR(m, {              }, {&apos;CD274mRNA&apos;   }, {&apos;pSTAT5&apos;            }, &apos;C&apos; , [] , &apos;m1*k1&apos;                       , {&apos;CD274mRNA_production&apos;                    });
+
+
+
+%% C: Compartments
+% m = pwAddC(m, ID, size,  outside, spatialDimensions, name, unit, constant)
+
+m = pwAddC(m, &apos;cell&apos;, 1);
+
+
+%% K: Dynamical parameters
+% m = pwAddK(m, ID, value, type, minValue, maxValue, unit, name, description)
+
+m = pwAddK(m, &apos;Kon_IL13Rec&apos;             , 0.00341992477561527  , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;Rec_phosphorylation&apos;     , 999.630699390459     , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;pRec_intern&apos;             , 0.152540135862128    , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;pRec_degradation&apos;        , 0.17292753960894     , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;Rec_intern&apos;              , 0.103345784175639    , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;Rec_recycle&apos;             , 0.00135598001330518  , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;JAK2_phosphorylation&apos;    , 0.157057142470047    , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;pJAK2_dephosphorylation&apos; , 0.000621906059346898 , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;STAT5_phosphorylation&apos;   , 0.0382596267705733   , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;pSTAT5_dephosphorylation&apos;, 0.000343391620492938 , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;SOCS3mRNA_production&apos;    , 0.00215826062955433  , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;DecoyR_binding&apos;          , 0.000124391087466499 , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;JAK2_p_inhibition&apos;       , 0.0168267797836881   , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;SOCS3_translation&apos;       , 11.9086462945188     , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;SOCS3_accumulation&apos;      , 3.70803336415341     , &apos;global&apos;, 1     , 1000);
+m = pwAddK(m, &apos;SOCS3_degradation&apos;       , 0.0429185935645562   , &apos;global&apos;, 1e-009, 1000);
+m = pwAddK(m, &apos;CD274mRNA_production&apos;    , 8.21752278733562e-005, &apos;global&apos;, 1e-009, 1000);
+
+
+%% U: Driving input
+% m = pwAddU(m, ID, uType, uTimes, uValues, compartment, name, description, u2Values, alternativeIDs, designerProps)
+
+m = pwAddU(m, &apos;IL13stimulation&apos;, &apos;steps&apos;, [-100 0]  , [0 1]  , [], [], [], [], {}, [], &apos;protein.generic&apos;);
+
+
+%% Default sampling time points
+m.t = 0:1:120;
+
+
+%% Y: Observables
+% m = pwAddY(m, rhs, ID, scalingParameter, errorModel, noiseType, unit, name, description, alternativeIDs, designerProps)
+
+m = pwAddY(m, &apos;Rec + IL13_Rec + p_IL13_Rec&apos;                       , &apos;RecSurf_obs&apos;  , &apos;scale_RecSurf&apos;  , &apos;0.10 * y + 0.1 * max(y)&apos;);
+m = pwAddY(m, &apos;IL13_Rec + p_IL13_Rec + p_IL13_Rec_i + IL13_DecoyR&apos;, &apos;IL13-cell_obs&apos;, &apos;scale_IL13-cell&apos;, &apos;0.15 * y + 0.05 * max(y)&apos;);
+m = pwAddY(m, &apos;p_IL13_Rec + p_IL13_Rec_i&apos;                         , &apos;pIL4Ra_obs&apos;   , &apos;scale_pIL4Ra&apos;   , &apos;0.1 * y + 0.15 * max(y)&apos;);
+m = pwAddY(m, &apos;pJAK2&apos;                                             , &apos;pJAK2_obs&apos;    , &apos;scale_pJAK2&apos;    , &apos;0.15 * y + 0.1 * max(y)&apos;);
+m = pwAddY(m, &apos;SOCS3mRNA&apos;                                         , &apos;SOCS3mRNA_obs&apos;, &apos;scale_SOCS3mRNA&apos;, &apos;0.1 * y + 0.1 * max(y)&apos;);
+m = pwAddY(m, &apos;CD274mRNA&apos;                                         , &apos;CD274mRNA_obs&apos;, &apos;scale_CD274mRNA&apos;, &apos;0.1 * y + 0.1 * max(y)&apos;);
+m = pwAddY(m, &apos;SOCS3&apos;                                             , &apos;SOCS3_obs&apos;    , &apos;scale_SOCS3&apos;    , &apos;0.1 * y + 0.15 * max(y)&apos;);
+m = pwAddY(m, &apos;pSTAT5&apos;                                            , &apos;pSTAT5_obs&apos;   , &apos;scale_pSTAT5&apos;   , &apos;0.15 * y + 0.1 * max(y)&apos;);
+
+
+%% S: Scaling parameters
+% m = pwAddS(m, ID, value, type, minValue, maxValue, unit, name, description)
+
+m = pwAddS(m, &apos;scale_pJAK2&apos;    , 1.39039557075997, &apos;global&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_pIL4Ra&apos;   , 1.88700484471494, &apos;global&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_RecSurf&apos;  ,                1,    &apos;fix&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_IL13-cell&apos;, 5.56750251420935, &apos;global&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_SOCS3mRNA&apos;, 17.6699101927908, &apos;global&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_CD274mRNA&apos;, 2.48547378765387, &apos;global&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_pSTAT5&apos;   ,                1,    &apos;fix&apos;, 0.001, 10000);
+m = pwAddS(m, &apos;scale_SOCS3&apos;    ,                1,    &apos;fix&apos;, 0.001, 10000);
+
+
+%% Designer properties (do not modify)
+m.designerPropsM = [1 1 1 0 0 0 400 250 600 400 1 1 1 0 0 0 0];
+</pre>
+        <p>This model originates from BioModels Database: A Database of Annotated Published Models (http://www.ebi.ac.uk/biomodels/). It is copyright (c) 2005-2011 The BioModels.net Team.<br/>
+For more information see the <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>.<br/>
+To cite BioModels Database, please use: <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Nov��re N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+      </p>
+    </body>
+  </notes>
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#_580083">
+        <dc:creator>
+          <rdf:Bag>
+            <rdf:li rdf:parseType="Resource">
+              <vCard:N rdf:parseType="Resource">
+                <vCard:Family>Endler</vCard:Family>
+                <vCard:Given>Lukas</vCard:Given>
+              </vCard:N>
+              <vCard:EMAIL>lukas@ebi.ac.uk</vCard:EMAIL>
+              <vCard:ORG rdf:parseType="Resource">
+                <vCard:Orgname>EMBL-EBI</vCard:Orgname>
+              </vCard:ORG>
+            </rdf:li>
+            <rdf:li rdf:parseType="Resource">
+              <vCard:N rdf:parseType="Resource">
+                <vCard:Family>Schilling</vCard:Family>
+                <vCard:Given>Marcel</vCard:Given>
+              </vCard:N>
+              <vCard:EMAIL>m.schilling@dkfz.de</vCard:EMAIL>
+              <vCard:ORG rdf:parseType="Resource">
+                <vCard:Orgname>German Cancer Research Center</vCard:Orgname>
+              </vCard:ORG>
+            </rdf:li>
+          </rdf:Bag>
+        </dc:creator>
+        <dcterms:created rdf:parseType="Resource">
+          <dcterms:W3CDTF>2011-02-14T03:36:22Z</dcterms:W3CDTF>
+        </dcterms:created>
+        <dcterms:modified rdf:parseType="Resource">
+          <dcterms:W3CDTF>2014-10-09T17:36:40Z</dcterms:W3CDTF>
+        </dcterms:modified>
+        <bqmodel:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1102020001"/>
+          </rdf:Bag>
+        </bqmodel:is>
+        <bqmodel:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000313"/>
+          </rdf:Bag>
+        </bqmodel:is>
+        <bqmodel:isDescribedBy>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/pubmed/21127196"/>
+          </rdf:Bag>
+        </bqmodel:isDescribedBy>
+        <bqbiol:occursIn>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/icd/C84"/>
+          </rdf:Bag>
+        </bqbiol:occursIn>
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_22232"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:occursIn>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/taxonomy/9606"/>
+            <rdf:li rdf:resource="http://identifiers.org/bto/BTO:0001518"/>
+          </rdf:Bag>
+        </bqbiol:occursIn>
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.pathway/hsa04630"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/go/GO:0046425"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnitDefinitions>
+    <unitDefinition metaid="_17c58e83-d8c7-411a-a0df-a6984996933f" id="substance" name="molecules">
+      <listOfUnits>
+        <unit metaid="c897fe12-a81a-4548-89c0-d6f94ce36752" kind="item"/>
+      </listOfUnits>
+    </unitDefinition>
+    <unitDefinition metaid="e462c77a-e008-4f2a-b1f4-d4fefaa9837d" id="time" name="minutes">
+      <listOfUnits>
+        <unit metaid="eb044835-ad23-4b90-a2c0-a7675a13c2f3" kind="second" multiplier="60"/>
+      </listOfUnits>
+    </unitDefinition>
+    <unitDefinition metaid="b781fdff-848b-4365-ac1a-930920841ff6" id="volume" name="cell_volumes">
+      <listOfUnits>
+        <unit metaid="_33ffc869-e0f1-4f1c-88d8-3842ed9a6dab" kind="litre" scale="-15" multiplier="60"/>
+      </listOfUnits>
+    </unitDefinition>
+    <unitDefinition metaid="_9eb4d19a-639e-4c47-a4f6-bb22236d1853" id="ng_per_ml" name="ng_per_ml">
+      <listOfUnits>
+        <unit metaid="_453af12d-607f-4f1f-b742-7cf061b9f6c6" kind="gram" scale="-9"/>
+        <unit metaid="_196a4da3-582b-4c79-9b2d-6d19d9302d80" kind="litre" scale="-3"/>
+      </listOfUnits>
+    </unitDefinition>
+  </listOfUnitDefinitions>
+  <listOfCompartments>
+    <compartment metaid="_580085" sboTerm="SBO:0000290" id="cell" name="cell" size="1">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580085">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0005623"/>
+                <rdf:li rdf:resource="http://identifiers.org/bto/BTO:0001518"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </compartment>
+  </listOfCompartments>
+  <listOfSpecies>
+    <species metaid="_580086" sboTerm="SBO:0000297" id="Rec" name="Rec" compartment="cell" initialConcentration="1.3">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580086">
+            <bqbiol:is>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0016516"/>
+              </rdf:Bag>
+            </bqbiol:is>
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P29597"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P24394"/>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P78552"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+            <bqbiol:hasProperty>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0019973"/>
+              </rdf:Bag>
+            </bqbiol:hasProperty>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580087" sboTerm="SBO:0000297" id="Rec_i" name="Rec_i" compartment="cell" initialConcentration="113.194">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580087">
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P29597"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0016516"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P78552"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+            <bqbiol:hasProperty>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0031623"/>
+              </rdf:Bag>
+            </bqbiol:hasProperty>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P24394"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580088" sboTerm="SBO:0000297" id="IL13_Rec" name="IL13_Rec" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580088">
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P35225"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P78552"/>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P24394"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P29597"/>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0016516"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580089" sboTerm="SBO:0000297" id="p_IL13_Rec" name="p_IL13_Rec" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580089">
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P35225"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P24394"/>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P78552"/>
+                <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P29597"/>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0016516"/>
+                <rdf:li rdf:resource="http://identifiers.org/psimod/MOD:00048"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580091" sboTerm="SBO:0000297" id="p_IL13_Rec_i" name="p_IL13_Rec_i" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580091">
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P35225"/>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P29597"/>
+                <rdf:li rdf:resource="http://identifiers.org/psimod/MOD:00048"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0016516"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P24394"/>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P78552"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+            <bqbiol:hasProperty>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0031623"/>
+              </rdf:Bag>
+            </bqbiol:hasProperty>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580092" sboTerm="SBO:0000252" id="JAK2" name="JAK2" compartment="cell" initialConcentration="2.8">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580092">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/O60674"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580093" sboTerm="SBO:0000252" id="pJAK2" name="pJAK2" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580093">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/O60674"/>
+                <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/psimod/MOD:00048"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580094" sboTerm="SBO:0000252" id="SHP1" name="SHP1" compartment="cell" initialConcentration="91">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580094">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P29350"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580096" sboTerm="SBO:0000252" id="STAT5" name="STAT5" compartment="cell" initialConcentration="165">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580096">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P42229"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P51692"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580097" sboTerm="SBO:0000252" id="pSTAT5" name="pSTAT5" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580097">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P51692"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/psimod/MOD:00048"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P42229"/>
+                <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580098" sboTerm="SBO:0000250" id="SOCS3mRNA" name="SOCS3mRNA" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580098">
+            <bqbiol:is>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:33699"/>
+              </rdf:Bag>
+            </bqbiol:is>
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00046"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:encodes>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/O14543"/>
+              </rdf:Bag>
+            </bqbiol:encodes>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580099" sboTerm="SBO:0000297" id="DecoyR" name="DecoyR" compartment="cell" initialConcentration="0.34">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580099">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/Q14627"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580101" sboTerm="SBO:0000297" id="IL13_DecoyR" name="IL13_DecoyR" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580101">
+            <bqbiol:hasPart>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P35225"/>
+              </rdf:Bag>
+            </bqbiol:hasPart>
+            <bqbiol:hasVersion>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/Q14627"/>
+              </rdf:Bag>
+            </bqbiol:hasVersion>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580102" sboTerm="SBO:0000252" id="SOCS3" name="SOCS3" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580102">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/O14543"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580103" sboTerm="SBO:0000250" id="CD274mRNA" name="CD274mRNA" compartment="cell" initialConcentration="0">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580103">
+            <bqbiol:is>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:33699"/>
+              </rdf:Bag>
+            </bqbiol:is>
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00046"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:encodes>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P20963"/>
+              </rdf:Bag>
+            </bqbiol:encodes>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+    <species metaid="_580104" sboTerm="SBO:0000252" id="IL13" name="IL13" compartment="cell" boundaryCondition="true">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580104">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P35225"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+            <bqbiol:hasProperty>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/go/GO:0005144"/>
+              </rdf:Bag>
+            </bqbiol:hasProperty>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </species>
+  </listOfSpecies>
+  <listOfParameters>
+    <parameter metaid="_580140" sboTerm="SBO:0000228" id="IL13stimulation" name="IL13stimulation" value="1" units="ng_per_ml">
+      <annotation>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+          <rdf:Description rdf:about="#_580140">
+            <bqbiol:isVersionOf>
+              <rdf:Bag>
+                <rdf:li rdf:resource="http://identifiers.org/uniprot/P35225"/>
+              </rdf:Bag>
+            </bqbiol:isVersionOf>
+          </rdf:Description>
+        </rdf:RDF>
+      </annotation>
+    </parameter>
+    <parameter metaid="_580141" sboTerm="SBO:0000339" id="Kon_IL13Rec" value="0.00341992"/>
+    <parameter metaid="_580143" sboTerm="SBO:0000036" id="Rec_phosphorylation" value="999.631"/>
+    <parameter metaid="_580144" sboTerm="SBO:0000035" id="pRec_intern" value="0.15254"/>
+    <parameter metaid="_580145" sboTerm="SBO:0000356" id="pRec_degradation" value="0.172928"/>
+    <parameter metaid="_580146" sboTerm="SBO:0000035" id="Rec_intern" value="0.103346"/>
+    <parameter metaid="_580148" sboTerm="SBO:0000035" id="Rec_recycle" value="0.00135598"/>
+    <parameter metaid="_580149" sboTerm="SBO:0000036" id="JAK2_phosphorylation" value="0.157057"/>
+    <parameter metaid="_580150" sboTerm="SBO:0000036" id="pJAK2_dephosphorylation" value="0.000621906"/>
+    <parameter metaid="_580151" sboTerm="SBO:0000036" id="STAT5_phosphorylation" value="0.0382596"/>
+    <parameter metaid="_580153" sboTerm="SBO:0000036" id="pSTAT5_dephosphorylation" value="0.000343392"/>
+    <parameter metaid="_580154" sboTerm="SBO:0000035" id="SOCS3mRNA_production" value="0.00215826"/>
+    <parameter metaid="_580155" sboTerm="SBO:0000339" id="DecoyR_binding" value="0.000124391"/>
+    <parameter metaid="_580156" sboTerm="SBO:0000308" id="JAK2_p_inhibition" value="0.0168268"/>
+    <parameter metaid="_580158" sboTerm="SBO:0000324" id="SOCS3_translation" value="11.9086"/>
+    <parameter metaid="_580159" sboTerm="SBO:0000027" id="SOCS3_accumulation" value="3.70803"/>
+    <parameter metaid="_580160" sboTerm="SBO:0000356" id="SOCS3_degradation" value="0.0429186"/>
+    <parameter metaid="_580161" sboTerm="SBO:0000035" id="CD274mRNA_production" value="8.21752e-05"/>
+  </listOfParameters>
+  <listOfRules>
+    <assignmentRule metaid="_580138" variable="IL13">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <times/>
+          <cn> 2.265 </cn>
+          <ci> IL13stimulation </ci>
+        </apply>
+      </math>
+    </assignmentRule>
+  </listOfRules>
+  <listOfReactions>
+    <reaction metaid="_580105" sboTerm="SBO:0000177" id="reaction_1" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_4050df90-d361-4749-9a1f-5b07990f26c7" species="Rec"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="ff55c61b-43d3-49eb-9c29-a2659ce3ab8c" species="IL13_Rec"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="_0749ed0a-488c-4c2a-b45c-02f84ae64d19" sboTerm="SBO:0000461" species="IL13"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_5d87ede7-6926-4131-b4f3-60711c3c3318">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Kon_IL13Rec </ci>
+            <ci> IL13 </ci>
+            <ci> Rec </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580106" sboTerm="SBO:0000185" id="reaction_2" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_11cd065b-da50-454b-ae83-44342e13124e" species="Rec"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="_4fae49a8-0404-4005-8c2b-140a5377e564" species="Rec_i"/>
+      </listOfProducts>
+      <kineticLaw metaid="_02e54c89-8100-49ea-8e66-c60375868962">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Rec_intern </ci>
+            <ci> Rec </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580108" sboTerm="SBO:0000185" id="reaction_3" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_1f301f56-c7eb-479a-94ef-1448eb45982a" species="Rec_i"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="dbf6a84b-2720-4f5f-9209-3bf4db1e8665" species="Rec"/>
+      </listOfProducts>
+      <kineticLaw metaid="_57df245f-5904-4e48-a204-f4d9dcccdb12">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Rec_recycle </ci>
+            <ci> Rec_i </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580109" sboTerm="SBO:0000216" id="reaction_4" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_1442d4c2-8fbd-4cae-91f4-01e22a759e6c" species="IL13_Rec"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="_572c9ae0-ffb8-4474-83cc-da81cff327d5" species="p_IL13_Rec"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="_0e99ec5a-29a2-4676-9bf8-06a6bf534136" species="pJAK2"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_0b843eb9-d04b-4d4f-8de3-e11283b39bc8">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Rec_phosphorylation </ci>
+            <ci> IL13_Rec </ci>
+            <ci> pJAK2 </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580110" sboTerm="SBO:0000216" id="reaction_5" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_13332d25-edc7-444d-a316-943751c27297" species="JAK2"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="feee4a6b-e708-4e0d-9279-992393aff828" species="pJAK2"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="d782facb-17b5-4634-8186-005046955684" species="IL13_Rec"/>
+        <modifierSpeciesReference metaid="_33fecae5-f6dd-44c2-8516-9d899156c053" species="SOCS3"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_07585c5f-33bc-4808-8154-3c0bbfdf02c1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> JAK2_phosphorylation </ci>
+                <ci> IL13_Rec </ci>
+                <ci> JAK2 </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> JAK2_p_inhibition </ci>
+                  <ci> SOCS3 </ci>
+                </apply>
+              </apply>
+            </apply>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580111" sboTerm="SBO:0000216" id="reaction_6" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_34232da6-1feb-47b7-addf-9e870b96653d" species="JAK2"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="e9e8920a-f49a-4b84-9576-ff35a5018f39" species="pJAK2"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="b75a6543-069c-4fdb-b1d0-7a71232bcb1b" species="p_IL13_Rec"/>
+        <modifierSpeciesReference metaid="defa27e8-c910-4944-a1d9-647ee57c4f81" species="SOCS3"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_2f68d4ae-4140-40ab-8bc5-4b6d06dae822">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> JAK2_phosphorylation </ci>
+                <ci> p_IL13_Rec </ci>
+                <ci> JAK2 </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> JAK2_p_inhibition </ci>
+                  <ci> SOCS3 </ci>
+                </apply>
+              </apply>
+            </apply>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580113" sboTerm="SBO:0000185" id="reaction_7" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="c1018c16-8ca3-4962-afc0-2b2c001ef502" species="p_IL13_Rec"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="_09faf073-1d06-4c07-81eb-851f4664e96c" species="p_IL13_Rec_i"/>
+      </listOfProducts>
+      <kineticLaw metaid="_48c6ae8b-ebb4-49f0-8e12-6d2ee7828d87">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> pRec_intern </ci>
+            <ci> p_IL13_Rec </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580114" sboTerm="SBO:0000179" id="reaction_8" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="e1b1e29c-975e-4c32-a74d-67528bdcb7de" species="p_IL13_Rec_i"/>
+      </listOfReactants>
+      <kineticLaw metaid="a1fb4c12-cfe1-4fed-8c5d-409f0588203d">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> pRec_degradation </ci>
+            <ci> p_IL13_Rec_i </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580115" sboTerm="SBO:0000330" id="reaction_9" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="b97c17bb-33f0-4c98-8d12-8ff1d65ed955" species="pJAK2"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="e1f80dd5-0f10-4d14-8800-62d3ae8af3cd" species="JAK2"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="e85ccccb-231f-4964-8bf4-58896d759e73" species="SHP1"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_1ad43171-3fb3-4678-95b3-61725d609933">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> pJAK2_dephosphorylation </ci>
+            <ci> pJAK2 </ci>
+            <ci> SHP1 </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580116" sboTerm="SBO:0000216" id="reaction_10" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_93c67883-96cc-456f-9dad-7198d4044fe0" species="STAT5"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="f487455a-b75e-490e-acfc-f91a98de708f" species="pSTAT5"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="_54211cdc-512f-4542-a000-e162b0ff5e60" species="pJAK2"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_96e7d34a-dddd-422a-a13d-9d93b5830ef5">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> STAT5_phosphorylation </ci>
+            <ci> STAT5 </ci>
+            <ci> pJAK2 </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580118" sboTerm="SBO:0000330" id="reaction_11" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="d84ab976-d9a3-49eb-b654-0334a28adfd2" species="pSTAT5"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="cf6bad31-fc12-401a-8ef0-ee1dd26f2172" species="STAT5"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="_986bb1dd-bf0b-4e07-95c5-1af42b7d638a" species="SHP1"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_42dfa247-1cbf-4504-a03d-e5ffb227bdae">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> pSTAT5_dephosphorylation </ci>
+            <ci> pSTAT5 </ci>
+            <ci> SHP1 </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580119" sboTerm="SBO:0000177" id="reaction_12" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="b5460d83-9f93-4267-b6e4-12dc8199ff77" species="DecoyR"/>
+      </listOfReactants>
+      <listOfProducts>
+        <speciesReference metaid="_0cbe2351-84e6-4865-ba49-9fff5790598b" species="IL13_DecoyR"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="_537cc1fa-3eaa-4693-98cb-84f79a670427" species="IL13"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_74e5d5f5-debf-4ebe-ad75-8357bacd58c5">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> DecoyR_binding </ci>
+            <ci> IL13 </ci>
+            <ci> DecoyR </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580120" sboTerm="SBO:0000183" id="reaction_13" reversible="false">
+      <listOfProducts>
+        <speciesReference metaid="_6b17778c-6ebf-4dee-b9e1-0159bc73c433" species="SOCS3mRNA"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="dcb9dcc9-9b3e-4e7c-be8c-0c5ebac42a06" species="pSTAT5"/>
+      </listOfModifiers>
+      <kineticLaw metaid="b42f4ee3-832f-436a-9a2d-4652f2189955">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> pSTAT5 </ci>
+            <ci> SOCS3mRNA_production </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580121" sboTerm="SBO:0000181" id="reaction_14" reversible="false">
+      <listOfProducts>
+        <speciesReference metaid="_3f8e0d05-cdf2-48ad-b2a9-77917a79ec2a" species="SOCS3"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="_3eb989a8-74f1-4634-a07e-e4ddc2b06455" species="SOCS3mRNA"/>
+      </listOfModifiers>
+      <kineticLaw metaid="f2859868-6c5c-4fd2-aa7d-5a38cd48a034">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> SOCS3mRNA </ci>
+                <ci> SOCS3_translation </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> SOCS3_accumulation </ci>
+                <ci> SOCS3mRNA </ci>
+              </apply>
+            </apply>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580123" sboTerm="SBO:0000179" id="reaction_15" reversible="false">
+      <listOfReactants>
+        <speciesReference metaid="_4d90f0d2-a3a8-4069-8013-1d707d63b968" species="SOCS3"/>
+      </listOfReactants>
+      <kineticLaw metaid="_7037195f-be85-44b8-b447-5d7ad736de28">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> SOCS3_degradation </ci>
+            <ci> SOCS3 </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+    <reaction metaid="_580124" sboTerm="SBO:0000183" id="reaction_16" reversible="false">
+      <listOfProducts>
+        <speciesReference metaid="_0950f959-c4ef-4dc6-95f8-cf6c6c5cbec6" species="CD274mRNA"/>
+      </listOfProducts>
+      <listOfModifiers>
+        <modifierSpeciesReference metaid="a6fa6d1d-1b24-4db6-912f-2490b1f188fe" species="pSTAT5"/>
+      </listOfModifiers>
+      <kineticLaw metaid="_7cbf3d2d-9a83-4206-b1ef-64c04c04878c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> pSTAT5 </ci>
+            <ci> CD274mRNA_production </ci>
+            <ci> cell </ci>
+          </apply>
+        </math>
+      </kineticLaw>
+    </reaction>
+  </listOfReactions>
+</model>
+</sbml>
