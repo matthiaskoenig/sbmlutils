@@ -45,6 +45,15 @@
                 "ordering": true
             } );
 
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
             var t_submodels = $('#table_submodels').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
@@ -191,7 +200,8 @@
         <div class="col-sm-3 col-md-2 sidebar">
 
             <ul class="nav nav-sidebar">
-                <li><a href="#top">Model</a></li>
+                <li><a href="#doc"><b>SBMLDocument</b></a></li>
+                <li><a href="#model">Model</a></li>
                     <li><a href="#table_functions">FunctionDefinitions</a></li>
                     <li><a href="#table_units">UnitDefinitions</a></li>
                     <li><a href="#table_compartments">Compartments</a></li>
@@ -199,7 +209,7 @@
                     <li><a href="#table_parameters">Parameters</a></li>
                     <li><a href="#table_rules">Rules</a></li>
                     <li><a href="#table_reactions">Reactions</a></li>
-                    <li><a href="#table_objectives">Objectives</a></li>
+                    <li><a href="#table_objectives">fbc:Objectives</a></li>
                 <li>
                 <form class="navbar-form navbar-left">
                     <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
@@ -216,9 +226,9 @@
             <!-- CONTENT -->
             <div class="content">
     <!--------------------------------------------------->
-    <!-- Model                                         -->
+    <!-- SBMLDocument                                  -->
     <!--------------------------------------------------->
-    <a class="anchor" id="model"></a>
+    <a class="anchor" id="doc"></a>
 <notes>
   <body xmlns="http://www.w3.org/1999/xhtml">
     <h1>ATP Toy Model</h1>
@@ -250,14 +260,17 @@
     </div>
   </body>
 </notes><hr />
-    <h1>Model : toy_atp_top_flat</h1>
-    <b>Creator</b><br />Matthias, Koenig, Humboldt University Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-06-13 19:56<br /><b>Modified:</b> 2017-06-13 19:56<br /><br />
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <h1 id="model">Model : toy_atp_top_flat</h1>
+    <b>Creator</b><br />Matthias, König, Humboldt University Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-06-18 23:16<br /><b>Modified:</b> 2017-06-18 23:16<br /><br />
     <table id="table_model" class="table table-condensed table-nonfluid">
         <tr>
         <td>
                 <table class="table table-condensed table-nonfluid table-hover">
                 <tbody>
-                <tr><td class="active">id</td> <td id="toy_atp_top_flat" class="active"><span class="package">toy_atp_top_flat</span> <code>meta_toy_atp_top</code></td></tr>
+                <tr><td class="active">id</td> <td id="toy_atp_top_flat" class="active"><span class="package">toy_atp_top_flat</span> <code>meta_toy_atp_top</code></tr>
                 <tr><td class="active">name</td><td>toy_atp (TOP)_flat</td></tr>
                 <tr><td class="active">time</td><td>h</td></tr>
                 <tr><td class="active">substance</td><td>mole</td></tr>
@@ -269,13 +282,17 @@
                 </table>
             </td>
             <td>
-                <a href="toy_atp_flattened.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a>
+                <a href="toy_atp_flattened.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="Access SBML model" title="SBML model"/></a>&nbsp;
                 <span class="package">L3V1</span> <span class="package">fbc-V2</span><br />
                 <div class="cvterm"></div><br />
                 <div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000293" target="_blank">SBO:0000293</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/pw/PW:0000640" target="_blank">PW:0000640</a>; <a href="http://identifiers.org/kegg.pathway/map00010" target="_blank">map00010</a>; <a href="http://identifiers.org/go/GO:0006007" target="_blank">GO:0006007</a></div>
             </td>
         </tr>
     </table>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
 
     <!--------------------------------------------------->
     <!-- Submodels -->
@@ -300,7 +317,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">FunctionDefinition</td>
-	<td id="bounds__max" class="active"><span class="package">bounds__max</span> 
+	    <td id="bounds__max" class="active"><span class="package">bounds__max</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__max"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-bounds__max" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -334,7 +351,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>min</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -364,7 +383,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">FunctionDefinition</td>
-	<td id="bounds__min" class="active"><span class="package">bounds__min</span> 
+	    <td id="bounds__min" class="active"><span class="package">bounds__min</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__min"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-bounds__min" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -398,7 +417,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>max</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -446,7 +467,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="h" class="active"><span class="package">h</span> <code>meta_h</code>
+	    <td id="h" class="active"><span class="package">h</span> <code>meta_h</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-h"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-h" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -471,7 +492,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>hour</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -485,7 +508,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000032" target="_blank">UO:0000032</a></div></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="kg" class="active"><span class="package">kg</span> <code>meta_kg</code>
+	    <td id="kg" class="active"><span class="package">kg</span> <code>meta_kg</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kg"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-kg" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -510,7 +533,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>kilogram</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -520,7 +545,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000009" target="_blank">UO:0000009</a></div></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="m" class="active"><span class="package">m</span> <code>meta_m</code>
+	    <td id="m" class="active"><span class="package">m</span> <code>meta_m</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-m" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -545,7 +570,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>meter</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -555,7 +582,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000008" target="_blank">UO:0000008</a></div></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="m2" class="active"><span class="package">m2</span> <code>meta_m2</code>
+	    <td id="m2" class="active"><span class="package">m2</span> <code>meta_m2</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m2"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-m2" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -580,7 +607,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>square meter</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -594,7 +623,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000080" target="_blank">UO:0000080</a></div></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="m3" class="active"><span class="package">m3</span> <code>meta_m3</code>
+	    <td id="m3" class="active"><span class="package">m3</span> <code>meta_m3</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m3"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-m3" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -619,7 +648,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>cubic meter</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -633,7 +664,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000096" target="_blank">UO:0000096</a></div></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="mM" class="active"><span class="package">mM</span> <code>meta_mM</code>
+	    <td id="mM" class="active"><span class="package">mM</span> <code>meta_mM</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mM"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-mM" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -659,7 +690,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>millimolar</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -677,7 +710,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000063" target="_blank">UO:0000063</a></div></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td id="mole_per_h" class="active"><span class="package">mole_per_h</span> 
+	    <td id="mole_per_h" class="active"><span class="package">mole_per_h</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mole_per_h"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-mole_per_h" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -692,7 +725,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -732,7 +767,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Compartment</td>
-	<td id="cell" class="active"><span class="package">cell</span> <code>meta_cell</code>
+	    <td id="cell" class="active"><span class="package">cell</span> <code>meta_cell</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-cell"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-cell" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -756,7 +791,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>cell</td>
 	<td>1.0</td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
@@ -774,7 +811,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000290" target="_blank">SBO:0000290</a>; <a href="http://identifiers.org/go/GO:0005623" target="_blank">GO:0005623</a>; <a href="http://identifiers.org/fma/FMA:68646" target="_blank">FMA:68646</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Compartment</td>
-	<td id="fba__cell" class="active"><span class="package">fba__cell</span> <code>fba__meta_cell</code>
+	    <td id="fba__cell" class="active"><span class="package">fba__cell</span> <code>fba__meta_cell</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__cell"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__cell" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -798,7 +835,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>cell</td>
 	<td>1.0</td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
@@ -840,155 +879,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Species</td>
-	<td id="pyr" class="active"><span class="package">pyr</span> <code>meta_pyr</code>
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pyr" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_pyr" sboTerm="SBO:0000247" id="pyr" name="Pyruvate" compartment="cell" initialConcentration="0" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
-  <annotation>
-    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-      <rdf:Description rdf:about="#meta_pyr">
-        <bqbiol:is>
-          <rdf:Bag>
-            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
-            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:32816"/>
-            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00022"/>
-          </rdf:Bag>
-        </bqbiol:is>
-      </rdf:Description>
-    </rdf:RDF>
-  </annotation>
-</species></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>Pyruvate</td>
-	<td>cell</td>
-    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td>0.0</td>
-	<td>mole</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <power/>
-      <ci> m </ci>
-      <cn type="integer"> 3 </cn>
-    </apply>
-  </apply>
-</math></td>
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
-	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:32816" target="_blank">CHEBI:32816</a>; <a href="http://identifiers.org/kegg.compound/C00022" target="_blank">C00022</a></div></td>
-</tr>
-                <tr>    <td class="hidden">Species</td>
-	<td id="adp" class="active"><span class="package">adp</span> <code>meta_adp</code>
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-adp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-adp" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">adp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_adp" sboTerm="SBO:0000247" id="adp" name="ADP" compartment="cell" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
-  <annotation>
-    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-      <rdf:Description rdf:about="#meta_adp">
-        <bqbiol:is>
-          <rdf:Bag>
-            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
-            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:456216"/>
-          </rdf:Bag>
-        </bqbiol:is>
-        <bqbiol:isVersionOf>
-          <rdf:Bag>
-            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00008"/>
-          </rdf:Bag>
-        </bqbiol:isVersionOf>
-      </rdf:Description>
-    </rdf:RDF>
-  </annotation>
-</species></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>ADP</td>
-	<td>cell</td>
-    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td>1.0</td>
-	<td>mole</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <power/>
-      <ci> m </ci>
-      <cn type="integer"> 3 </cn>
-    </apply>
-  </apply>
-</math></td>
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
-	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:456216" target="_blank">CHEBI:456216</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/kegg.compound/C00008" target="_blank">C00008</a></div></td>
-</tr>
-                <tr>    <td class="hidden">Species</td>
-	<td id="glc" class="active"><span class="package">glc</span> <code>meta_glc</code>
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-glc"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-glc" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">glc</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_glc" sboTerm="SBO:0000247" id="glc" name="Glucose" compartment="cell" initialConcentration="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
-  <annotation>
-    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-      <rdf:Description rdf:about="#meta_glc">
-        <bqbiol:is>
-          <rdf:Bag>
-            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
-            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:4167"/>
-            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00031"/>
-          </rdf:Bag>
-        </bqbiol:is>
-      </rdf:Description>
-    </rdf:RDF>
-  </annotation>
-</species></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>Glucose</td>
-	<td>cell</td>
-    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td>5.0</td>
-	<td>mole</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <power/>
-      <ci> m </ci>
-      <cn type="integer"> 3 </cn>
-    </apply>
-  </apply>
-</math></td>
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
-	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:4167" target="_blank">CHEBI:4167</a>; <a href="http://identifiers.org/kegg.compound/C00031" target="_blank">C00031</a></div></td>
-</tr>
-                <tr>    <td class="hidden">Species</td>
-	<td id="atp" class="active"><span class="package">atp</span> <code>meta_atp</code>
+	    <td id="atp" class="active"><span class="package">atp</span> <code>meta_atp</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1016,7 +907,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>ATP</td>
 	<td>cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1040,7 +933,161 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:30616" target="_blank">CHEBI:30616</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/kegg.compound/C00002" target="_blank">C00002</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="dummy_S" class="active"><span class="package">dummy_S</span> 
+	    <td id="adp" class="active"><span class="package">adp</span> <code>meta_adp</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-adp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-adp" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">adp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_adp" sboTerm="SBO:0000247" id="adp" name="ADP" compartment="cell" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_adp">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:456216"/>
+          </rdf:Bag>
+        </bqbiol:is>
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00008"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>ADP</td>
+	<td>cell</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:456216" target="_blank">CHEBI:456216</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/kegg.compound/C00008" target="_blank">C00008</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="glc" class="active"><span class="package">glc</span> <code>meta_glc</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-glc"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-glc" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">glc</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_glc" sboTerm="SBO:0000247" id="glc" name="Glucose" compartment="cell" initialConcentration="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_glc">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:4167"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00031"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>Glucose</td>
+	<td>cell</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>5.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:4167" target="_blank">CHEBI:4167</a>; <a href="http://identifiers.org/kegg.compound/C00031" target="_blank">C00031</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="pyr" class="active"><span class="package">pyr</span> <code>meta_pyr</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pyr" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_pyr" sboTerm="SBO:0000247" id="pyr" name="Pyruvate" compartment="cell" initialConcentration="0" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_pyr">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
+            <rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:32816"/>
+            <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00022"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>Pyruvate</td>
+	<td>cell</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:32816" target="_blank">CHEBI:32816</a>; <a href="http://identifiers.org/kegg.compound/C00022" target="_blank">C00022</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="dummy_S" class="active"><span class="package">dummy_S</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-dummy_S"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-dummy_S" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1050,7 +1097,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>dummy_S</td>
 	<td>cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1074,7 +1123,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="fba__atp" class="active"><span class="package">fba__atp</span> <code>fba__meta_atp</code>
+	    <td id="fba__atp" class="active"><span class="package">fba__atp</span> <code>fba__meta_atp</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1102,7 +1151,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>ATP<br /><code>C10H12N5O13P3 (-4)</code></td>
 	<td>fba__cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1126,7 +1177,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:30616" target="_blank">CHEBI:30616</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/kegg.compound/C00002" target="_blank">C00002</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="fba__adp" class="active"><span class="package">fba__adp</span> <code>fba__meta_adp</code>
+	    <td id="fba__adp" class="active"><span class="package">fba__adp</span> <code>fba__meta_adp</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__adp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__adp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1154,7 +1205,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>ADP<br /><code>C10H12N5O10P2 (-3)</code></td>
 	<td>fba__cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1178,7 +1231,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:456216" target="_blank">CHEBI:456216</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/kegg.compound/C00008" target="_blank">C00008</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="fba__glc" class="active"><span class="package">fba__glc</span> <code>fba__meta_glc</code>
+	    <td id="fba__glc" class="active"><span class="package">fba__glc</span> <code>fba__meta_glc</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__glc"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__glc" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1202,7 +1255,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>Glucose<br /><code>C6H12O6 </code></td>
 	<td>fba__cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1226,7 +1281,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:4167" target="_blank">CHEBI:4167</a>; <a href="http://identifiers.org/kegg.compound/C00031" target="_blank">C00031</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="fba__pyr" class="active"><span class="package">fba__pyr</span> <code>fba__meta_pyr</code>
+	    <td id="fba__pyr" class="active"><span class="package">fba__pyr</span> <code>fba__meta_pyr</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__pyr"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__pyr" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1250,7 +1305,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>Pyruvate<br /><code>C3H4O3 </code></td>
 	<td>fba__cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1274,7 +1331,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:32816" target="_blank">CHEBI:32816</a>; <a href="http://identifiers.org/kegg.compound/C00022" target="_blank">C00022</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="fba__fru16bp" class="active"><span class="package">fba__fru16bp</span> <code>fba__meta_fru16bp</code>
+	    <td id="fba__fru16bp" class="active"><span class="package">fba__fru16bp</span> <code>fba__meta_fru16bp</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__fru16bp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__fru16bp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1298,7 +1355,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>Fructose 1,6-bisphospate<br /><code>C6H14O12P2 </code></td>
 	<td>fba__cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1322,7 +1381,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a>; <a href="http://identifiers.org/chebi/CHEBI:37736" target="_blank">CHEBI:37736</a>; <a href="http://identifiers.org/kegg.compound/C00354" target="_blank">C00354</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Species</td>
-	<td id="fba__pg2" class="active"><span class="package">fba__pg2</span> <code>fba__meta_pg2</code>
+	    <td id="fba__pg2" class="active"><span class="package">fba__pg2</span> <code>fba__meta_pg2</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__pg2"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__pg2" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1346,7 +1405,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>2-Phosphoglycerate<br /><code>C3H7O7P </code></td>
 	<td>fba__cell</td>
     <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
@@ -1395,7 +1456,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="dt" class="active"><span class="package">dt</span> 
+	    <td id="dt" class="active"><span class="package">dt</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-dt"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-dt" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1405,7 +1466,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>0.1</td>
@@ -1423,199 +1486,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="lb_EX_pyr" class="active"><span class="package">lb_EX_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-lb_EX_pyr" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">lb_EX_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_pyr" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>-1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="ub_EX_pyr" class="active"><span class="package">ub_EX_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-ub_EX_pyr" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">ub_EX_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_pyr" value="1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="lb_EX_adp" class="active"><span class="package">lb_EX_adp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_adp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-lb_EX_adp" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">lb_EX_adp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_adp" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>-1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="ub_EX_adp" class="active"><span class="package">ub_EX_adp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_adp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-ub_EX_adp" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">ub_EX_adp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_adp" value="1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="lb_EX_glc" class="active"><span class="package">lb_EX_glc</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_glc"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-lb_EX_glc" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">lb_EX_glc</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_glc" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>-1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="ub_EX_glc" class="active"><span class="package">ub_EX_glc</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_glc"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-ub_EX_glc" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">ub_EX_glc</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_glc" value="1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="lb_EX_atp" class="active"><span class="package">lb_EX_atp</span> 
+	    <td id="lb_EX_atp" class="active"><span class="package">lb_EX_atp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-lb_EX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1625,7 +1496,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 	<td>-1000.0</td>
@@ -1647,7 +1520,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="ub_EX_atp" class="active"><span class="package">ub_EX_atp</span> 
+	    <td id="ub_EX_atp" class="active"><span class="package">ub_EX_atp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-ub_EX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1657,7 +1530,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 	<td>1000.0</td>
@@ -1679,20 +1554,22 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="pEX_pyr" class="active"><span class="package">pEX_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pEX_pyr" role="dialog">
+	    <td id="lb_EX_adp" class="active"><span class="package">lb_EX_adp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_adp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_adp" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pEX_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_pyr" value="1" units="mole_per_h" constant="false"/></textarea></div>
+            <div class="modal-header"><h4 class="modal-title">lb_EX_adp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_adp" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>1.0</td>
+	<td>-1000.0</td>
 	<td>mole_per_h</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1707,24 +1584,26 @@
   </apply>
 </math></td>
 
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="pEX_adp" class="active"><span class="package">pEX_adp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_adp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pEX_adp" role="dialog">
+	    <td id="ub_EX_adp" class="active"><span class="package">ub_EX_adp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_adp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ub_EX_adp" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pEX_adp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_adp" value="1" units="mole_per_h" constant="false"/></textarea></div>
+            <div class="modal-header"><h4 class="modal-title">ub_EX_adp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_adp" value="1000" units="mole_per_h" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>1.0</td>
+	<td>1000.0</td>
 	<td>mole_per_h</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1739,24 +1618,26 @@
   </apply>
 </math></td>
 
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="pEX_glc" class="active"><span class="package">pEX_glc</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_glc"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pEX_glc" role="dialog">
+	    <td id="lb_EX_glc" class="active"><span class="package">lb_EX_glc</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_glc"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_glc" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pEX_glc</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_glc" value="1" units="mole_per_h" constant="false"/></textarea></div>
+            <div class="modal-header"><h4 class="modal-title">lb_EX_glc</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_glc" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>1.0</td>
+	<td>-1000.0</td>
 	<td>mole_per_h</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1771,11 +1652,113 @@
   </apply>
 </math></td>
 
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="pEX_atp" class="active"><span class="package">pEX_atp</span> 
+	    <td id="ub_EX_glc" class="active"><span class="package">ub_EX_glc</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_glc"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ub_EX_glc" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ub_EX_glc</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_glc" value="1000" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1000.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="lb_EX_pyr" class="active"><span class="package">lb_EX_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_pyr" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">lb_EX_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_pyr" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-1000.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="ub_EX_pyr" class="active"><span class="package">ub_EX_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ub_EX_pyr" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ub_EX_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_pyr" value="1000" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1000.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="pEX_atp" class="active"><span class="package">pEX_atp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-pEX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1785,7 +1768,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 	<td>1.0</td>
@@ -1807,7 +1792,109 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="Vmax_RATP" class="active"><span class="package">Vmax_RATP</span> <code>meta_Vmax_RATP</code>
+	    <td id="pEX_adp" class="active"><span class="package">pEX_adp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_adp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_adp" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_adp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_adp" value="1" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="pEX_glc" class="active"><span class="package">pEX_glc</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_glc"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_glc" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_glc</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_glc" value="1" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="pEX_pyr" class="active"><span class="package">pEX_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_pyr" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_pyr" value="1" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="Vmax_RATP" class="active"><span class="package">Vmax_RATP</span> <code>meta_Vmax_RATP</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Vmax_RATP"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-Vmax_RATP" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1829,7 +1916,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>1.0</td>
@@ -1851,7 +1940,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000025" target="_blank">SBO:0000025</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="k_RATP" class="active"><span class="package">k_RATP</span> <code>meta_k_RATP</code>
+	    <td id="k_RATP" class="active"><span class="package">k_RATP</span> <code>meta_k_RATP</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k_RATP"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-k_RATP" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1873,7 +1962,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>0.1</td>
@@ -1895,7 +1986,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000027" target="_blank">SBO:0000027</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="atp_tot" class="active"><span class="package">atp_tot</span> 
+	    <td id="atp_tot" class="active"><span class="package">atp_tot</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-atp_tot"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-atp_tot" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1905,7 +1996,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
@@ -1934,7 +2027,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="c3_tot" class="active"><span class="package">c3_tot</span> 
+	    <td id="c3_tot" class="active"><span class="package">c3_tot</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c3_tot"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-c3_tot" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1944,7 +2037,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
@@ -1977,7 +2072,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="fba__ub_R3" class="active"><span class="package">fba__ub_R3</span> 
+	    <td id="fba__ub_R3" class="active"><span class="package">fba__ub_R3</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__ub_R3"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__ub_R3" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -1987,7 +2082,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>1.0</td>
@@ -2009,7 +2106,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="fba__zero" class="active"><span class="package">fba__zero</span> 
+	    <td id="fba__zero" class="active"><span class="package">fba__zero</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__zero"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__zero" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2019,7 +2116,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>0.0</td>
@@ -2041,7 +2140,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="fba__ub_default" class="active"><span class="package">fba__ub_default</span> 
+	    <td id="fba__ub_default" class="active"><span class="package">fba__ub_default</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__ub_default"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__ub_default" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2051,7 +2150,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
 	<td>1000.0</td>
@@ -2073,103 +2174,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td id="bounds__fbalb_EX_pyr" class="active"><span class="package">bounds__fbalb_EX_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-bounds__fbalb_EX_pyr" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">bounds__fbalb_EX_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bounds__fbalb_EX_pyr" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>-1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="bounds__fbalb_EX_adp" class="active"><span class="package">bounds__fbalb_EX_adp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_adp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-bounds__fbalb_EX_adp" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">bounds__fbalb_EX_adp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bounds__fbalb_EX_adp" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>-1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="bounds__fbalb_EX_glc" class="active"><span class="package">bounds__fbalb_EX_glc</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_glc"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-bounds__fbalb_EX_glc" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">bounds__fbalb_EX_glc</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bounds__fbalb_EX_glc" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td><i class="fa fa-ban gray"></i></td>
-	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
-	<td>-1000.0</td>
-	<td>mole_per_h</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Parameter</td>
-	<td id="bounds__fbalb_EX_atp" class="active"><span class="package">bounds__fbalb_EX_atp</span> 
+	    <td id="bounds__fbalb_EX_atp" class="active"><span class="package">bounds__fbalb_EX_atp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-bounds__fbalb_EX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2179,7 +2184,111 @@
           </div>
         </div>
       </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-1000.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="bounds__fbalb_EX_adp" class="active"><span class="package">bounds__fbalb_EX_adp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_adp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bounds__fbalb_EX_adp" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bounds__fbalb_EX_adp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bounds__fbalb_EX_adp" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-1000.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="bounds__fbalb_EX_glc" class="active"><span class="package">bounds__fbalb_EX_glc</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_glc"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bounds__fbalb_EX_glc" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bounds__fbalb_EX_glc</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bounds__fbalb_EX_glc" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-1000.0</td>
+	<td>mole_per_h</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="bounds__fbalb_EX_pyr" class="active"><span class="package">bounds__fbalb_EX_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds__fbalb_EX_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bounds__fbalb_EX_pyr" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bounds__fbalb_EX_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="bounds__fbalb_EX_pyr" value="-1000" units="mole_per_h" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
 	<td>-1000.0</td>
@@ -2225,118 +2334,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="pEX_pyr" class="active"><span class="package">pEX_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pEX_pyr" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pEX_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_pyr">
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <ci> EX_pyr </ci>
-  </math>
-</assignmentRule></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> EX_pyr </ci>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td id="pEX_adp" class="active"><span class="package">pEX_adp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_adp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pEX_adp" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pEX_adp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_adp">
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <ci> EX_adp </ci>
-  </math>
-</assignmentRule></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> EX_adp </ci>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td id="pEX_glc" class="active"><span class="package">pEX_glc</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_glc"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-pEX_glc" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">pEX_glc</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_glc">
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <ci> EX_glc </ci>
-  </math>
-</assignmentRule></textarea></div>
-          </div>
-        </div>
-      </div>
-    </td>
-	<td>=</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> EX_glc </ci>
-</math></td>
-	<td><i class="fa fa-ban gray"></i>
-    <td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <divide/>
-    <ci> mole </ci>
-    <apply>
-      <times/>
-      <cn> 3600 </cn>
-      <ci> s </ci>
-    </apply>
-  </apply>
-</math></td>
-	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">Rule</td>
-	<td id="pEX_atp" class="active"><span class="package">pEX_atp</span> 
+	    <td id="pEX_atp" class="active"><span class="package">pEX_atp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-pEX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2350,7 +2348,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -2373,7 +2373,124 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="atp_tot" class="active"><span class="package">atp_tot</span> <code>meta_atp_tot</code>
+	    <td id="pEX_adp" class="active"><span class="package">pEX_adp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_adp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_adp" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_adp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_adp">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> EX_adp </ci>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> EX_adp </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="pEX_glc" class="active"><span class="package">pEX_glc</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_glc"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_glc" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_glc</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_glc">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> EX_glc </ci>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> EX_glc </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="pEX_pyr" class="active"><span class="package">pEX_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_pyr" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_pyr">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> EX_pyr </ci>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> EX_pyr </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <times/>
+      <cn> 3600 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="atp_tot" class="active"><span class="package">atp_tot</span> <code>meta_atp_tot</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-atp_tot"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-atp_tot" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2402,7 +2519,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -2429,7 +2548,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000362" target="_blank">SBO:0000362</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="c3_tot" class="active"><span class="package">c3_tot</span> <code>meta_c3_tot</code>
+	    <td id="c3_tot" class="active"><span class="package">c3_tot</span> <code>meta_c3_tot</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c3_tot"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-c3_tot" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2462,7 +2581,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
@@ -2493,17 +2614,17 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000362" target="_blank">SBO:0000362</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="lb_EX_pyr" class="active"><span class="package">lb_EX_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-lb_EX_pyr" role="dialog">
+	    <td id="lb_EX_atp" class="active"><span class="package">lb_EX_atp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_atp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">lb_EX_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="lb_EX_pyr">
+            <div class="modal-header"><h4 class="modal-title">lb_EX_atp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="lb_EX_atp">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <ci> bounds__max </ci>
-      <ci> bounds__fbalb_EX_pyr </ci>
+      <ci> bounds__fbalb_EX_atp </ci>
       <apply>
         <divide/>
         <apply>
@@ -2512,7 +2633,7 @@
             <minus/>
             <ci> cell </ci>
           </apply>
-          <ci> pyr </ci>
+          <ci> atp </ci>
         </apply>
         <ci> dt </ci>
       </apply>
@@ -2522,13 +2643,15 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <ci> bounds__max </ci>
-    <ci> bounds__fbalb_EX_pyr </ci>
+    <ci> bounds__fbalb_EX_atp </ci>
     <apply>
       <divide/>
       <apply>
@@ -2537,7 +2660,7 @@
           <minus/>
           <ci> cell </ci>
         </apply>
-        <ci> pyr </ci>
+        <ci> atp </ci>
       </apply>
       <ci> dt </ci>
     </apply>
@@ -2560,7 +2683,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="lb_EX_adp" class="active"><span class="package">lb_EX_adp</span> 
+	    <td id="lb_EX_adp" class="active"><span class="package">lb_EX_adp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_adp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-lb_EX_adp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2589,7 +2712,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -2627,7 +2752,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="lb_EX_glc" class="active"><span class="package">lb_EX_glc</span> 
+	    <td id="lb_EX_glc" class="active"><span class="package">lb_EX_glc</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_glc"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-lb_EX_glc" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2656,7 +2781,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -2694,17 +2821,17 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td id="lb_EX_atp" class="active"><span class="package">lb_EX_atp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_atp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-lb_EX_atp" role="dialog">
+	    <td id="lb_EX_pyr" class="active"><span class="package">lb_EX_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_pyr" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">lb_EX_atp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="lb_EX_atp">
+            <div class="modal-header"><h4 class="modal-title">lb_EX_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="lb_EX_pyr">
   <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <ci> bounds__max </ci>
-      <ci> bounds__fbalb_EX_atp </ci>
+      <ci> bounds__fbalb_EX_pyr </ci>
       <apply>
         <divide/>
         <apply>
@@ -2713,7 +2840,7 @@
             <minus/>
             <ci> cell </ci>
           </apply>
-          <ci> atp </ci>
+          <ci> pyr </ci>
         </apply>
         <ci> dt </ci>
       </apply>
@@ -2723,13 +2850,15 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td>=</td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <ci> bounds__max </ci>
-    <ci> bounds__fbalb_EX_atp </ci>
+    <ci> bounds__fbalb_EX_pyr </ci>
     <apply>
       <divide/>
       <apply>
@@ -2738,7 +2867,7 @@
           <minus/>
           <ci> cell </ci>
         </apply>
-        <ci> atp </ci>
+        <ci> pyr </ci>
       </apply>
       <ci> dt </ci>
     </apply>
@@ -2771,7 +2900,6 @@
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Reactions [12]</th>
-	<th scope="col">id</th>
 	<th scope="col">name</th>
 	<th scope="col"></th>
 	<th scope="col">equation</th>
@@ -2784,8 +2912,7 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="RATP" class="active"><span class="package">RATP</span> <code>meta_RATP</code>
+	    <td id="RATP" class="active"><span class="package">RATP</span> <code>meta_RATP</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-RATP"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-RATP" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2831,8 +2958,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td>atp -> adp<br />
 	</td>
 	<td class ="danger">&#10142;</td>
@@ -2870,8 +2998,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000176" target="_blank">SBO:0000176</a>; <a href="http://identifiers.org/go/GO:0046034" target="_blank">GO:0046034</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="fba__R1" class="active"><span class="package">fba__R1</span> <code>fba__meta_R1</code>
+	    <td id="fba__R1" class="active"><span class="package">fba__R1</span> <code>fba__meta_R1</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__R1"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__R1" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2891,8 +3018,8 @@
     </rdf:RDF>
   </annotation>
   <listOfReactants>
-    <speciesReference species="fba__atp" stoichiometry="2" constant="true"/>
     <speciesReference species="fba__glc" stoichiometry="1" constant="true"/>
+    <speciesReference species="fba__atp" stoichiometry="2" constant="true"/>
   </listOfReactants>
   <listOfProducts>
     <speciesReference species="fba__fru16bp" stoichiometry="1" constant="true"/>
@@ -2902,12 +3029,13 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td>glu + 2 atp -> fru16bp + 2 adp<br />
 <code>[0.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1000.0]</code><br />	</td>
 	<td class ="danger">&#10142;</td>
-	<td>2.0 fba__atp + fba__glc &#10142; fba__fru16bp + 2.0 fba__adp</td>
+	<td>fba__glc + 2.0 fba__atp &#10142; fba__fru16bp + 2.0 fba__adp</td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><i class="fa fa-ban gray"></i></td>
     <td></td>
@@ -2915,8 +3043,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000176" target="_blank">SBO:0000176</a>; <a href="http://identifiers.org/go/GO:0006007" target="_blank">GO:0006007</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="fba__R2" class="active"><span class="package">fba__R2</span> <code>fba__meta_R2</code>
+	    <td id="fba__R2" class="active"><span class="package">fba__R2</span> <code>fba__meta_R2</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__R2"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__R2" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2945,8 +3072,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td>fru16bp -> 2 pg2<br />
 <code>[0.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1000.0]</code><br />	</td>
 	<td class ="danger">&#10142;</td>
@@ -2958,8 +3086,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000176" target="_blank">SBO:0000176</a>; <a href="http://identifiers.org/go/GO:0006007" target="_blank">GO:0006007</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="fba__R3" class="active"><span class="package">fba__R3</span> <code>fba__meta_R3</code>
+	    <td id="fba__R3" class="active"><span class="package">fba__R3</span> <code>fba__meta_R3</code>
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__R3"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__R3" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -2983,19 +3110,20 @@
     <speciesReference species="fba__adp" stoichiometry="2" constant="true"/>
   </listOfReactants>
   <listOfProducts>
-    <speciesReference species="fba__atp" stoichiometry="2" constant="true"/>
     <speciesReference species="fba__pyr" stoichiometry="1" constant="true"/>
+    <speciesReference species="fba__atp" stoichiometry="2" constant="true"/>
   </listOfProducts>
 </reaction></textarea></div>
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td>pg2 + adp -> pyr + atp<br />
 <code>[0.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1.0]</code><br />	</td>
 	<td class ="danger">&#10142;</td>
-	<td>fba__pg2 + 2.0 fba__adp &#10142; 2.0 fba__atp + fba__pyr</td>
+	<td>fba__pg2 + 2.0 fba__adp &#10142; fba__pyr + 2.0 fba__atp</td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><i class="fa fa-ban gray"></i></td>
     <td></td>
@@ -3003,8 +3131,7 @@
 	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000176" target="_blank">SBO:0000176</a>; <a href="http://identifiers.org/go/GO:0006007" target="_blank">GO:0006007</a></div></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="EX_atp" class="active"><span class="package">EX_atp</span> 
+	    <td id="EX_atp" class="active"><span class="package">EX_atp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EX_atp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-EX_atp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3018,8 +3145,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 <code>[-1000.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1000.0]</code><br />	</td>
 	<td class ="success">&#8646;</td>
@@ -3031,8 +3159,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="EX_adp" class="active"><span class="package">EX_adp</span> 
+	    <td id="EX_adp" class="active"><span class="package">EX_adp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EX_adp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-EX_adp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3046,8 +3173,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 <code>[-1000.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1000.0]</code><br />	</td>
 	<td class ="success">&#8646;</td>
@@ -3059,8 +3187,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="EX_glc" class="active"><span class="package">EX_glc</span> 
+	    <td id="EX_glc" class="active"><span class="package">EX_glc</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EX_glc"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-EX_glc" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3074,8 +3201,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 <code>[-1000.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1000.0]</code><br />	</td>
 	<td class ="success">&#8646;</td>
@@ -3087,8 +3215,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="EX_pyr" class="active"><span class="package">EX_pyr</span> 
+	    <td id="EX_pyr" class="active"><span class="package">EX_pyr</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EX_pyr"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-EX_pyr" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3102,8 +3229,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 <code>[-1000.0 <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> 1000.0]</code><br />	</td>
 	<td class ="success">&#8646;</td>
@@ -3115,22 +3243,21 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="update__update_pyr" class="active"><span class="package">update__update_pyr</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update__update_pyr"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-update__update_pyr" role="dialog">
+	    <td id="update__update_atp" class="active"><span class="package">update__update_atp</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update__update_atp"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-update__update_atp" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">update__update_pyr</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction sboTerm="SBO:0000631" id="update__update_pyr" reversible="true" fast="false">
+            <div class="modal-header"><h4 class="modal-title">update__update_atp</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction sboTerm="SBO:0000631" id="update__update_atp" reversible="true" fast="false">
   <listOfReactants>
-    <speciesReference species="pyr" stoichiometry="1" constant="true"/>
+    <speciesReference species="atp" stoichiometry="1" constant="true"/>
   </listOfReactants>
   <kineticLaw>
     <math xmlns="http://www.w3.org/1998/Math/MathML">
       <apply>
         <minus/>
-        <ci> pEX_pyr </ci>
+        <ci> pEX_atp </ci>
       </apply>
     </math>
   </kineticLaw>
@@ -3138,18 +3265,19 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 	</td>
 	<td class ="success">&#8646;</td>
-	<td>pyr &#8646; </td>
+	<td>atp &#8646; </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <minus/>
-    <ci> pEX_pyr </ci>
+    <ci> pEX_atp </ci>
   </apply>
 </math></td>
     <td><?xml version="1.0" encoding="UTF-8"?>
@@ -3168,8 +3296,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="update__update_adp" class="active"><span class="package">update__update_adp</span> 
+	    <td id="update__update_adp" class="active"><span class="package">update__update_adp</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update__update_adp"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-update__update_adp" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3191,8 +3318,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 	</td>
 	<td class ="success">&#8646;</td>
@@ -3221,8 +3349,7 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="update__update_glc" class="active"><span class="package">update__update_glc</span> 
+	    <td id="update__update_glc" class="active"><span class="package">update__update_glc</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update__update_glc"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-update__update_glc" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3244,8 +3371,9 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 	</td>
 	<td class ="success">&#8646;</td>
@@ -3274,22 +3402,21 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Reaction</td>
-	<td></td>
-	<td id="update__update_atp" class="active"><span class="package">update__update_atp</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update__update_atp"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-update__update_atp" role="dialog">
+	    <td id="update__update_pyr" class="active"><span class="package">update__update_pyr</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update__update_pyr"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-update__update_pyr" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">update__update_atp</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction sboTerm="SBO:0000631" id="update__update_atp" reversible="true" fast="false">
+            <div class="modal-header"><h4 class="modal-title">update__update_pyr</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction sboTerm="SBO:0000631" id="update__update_pyr" reversible="true" fast="false">
   <listOfReactants>
-    <speciesReference species="atp" stoichiometry="1" constant="true"/>
+    <speciesReference species="pyr" stoichiometry="1" constant="true"/>
   </listOfReactants>
   <kineticLaw>
     <math xmlns="http://www.w3.org/1998/Math/MathML">
       <apply>
         <minus/>
-        <ci> pEX_atp </ci>
+        <ci> pEX_pyr </ci>
       </apply>
     </math>
   </kineticLaw>
@@ -3297,18 +3424,19 @@
           </div>
         </div>
       </div>
+    
     </td>
-         </td>
+
 	<td><i class="fa fa-ban gray"></i><br />
 	</td>
 	<td class ="success">&#8646;</td>
-	<td>atp &#8646; </td>
+	<td>pyr &#8646; </td>
 	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <minus/>
-    <ci> pEX_atp </ci>
+    <ci> pEX_pyr </ci>
   </apply>
 </math></td>
     <td><?xml version="1.0" encoding="UTF-8"?>
@@ -3345,8 +3473,8 @@
 </tr>
         </thead>
         <tbody>
-            <tr>    <td class="hidden">Reaction</td>
-	<td id="fba__RATP_maximize" class="active"><span class="package">fba__RATP_maximize</span> 
+            <tr>    <td class="hidden">Objective</td>
+	    <td id="fba__RATP_maximize" class="active"><span class="package">fba__RATP_maximize</span> 
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba__RATP_maximize"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-fba__RATP_maximize" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -3360,7 +3488,9 @@
           </div>
         </div>
       </div>
+    
     </td>
+
 	<td><i class="fa fa-ban gray"></i></td>
 	<td>maximize</td>
 	<td>+1.0*fba__R3</td>

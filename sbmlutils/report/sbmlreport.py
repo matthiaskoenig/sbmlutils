@@ -156,6 +156,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
             'values': values,
 
             'doc': document_dict(doc),
+            'modeldefs': listOfModelDefinitions_dict(doc),
             'model': model_dict(model),
             'submodels': listOfSubmodels_dict(model),
             'ports': listOfPorts_dict(model),
@@ -223,15 +224,24 @@ def infoSbase(item):
     # comp
     item_comp = item.getPlugin('comp')
     if item_comp and type(item_comp) == libsbml.CompSBasePlugin:
-        print(item_comp)
-        # from libsbml import CompSBasePlugin, CompRe
-        # CompSBasePlugin.isSetReplacedBy()
-        # CompSBasePlugin.getReplacedBy()
+        # ReplacedBy
         if item_comp.isSetReplacedBy():
             replaced_by = item_comp.getReplacedBy()
             submodel_ref = replaced_by.getSubmodelRef()
+            info['replaced_by'] = '<br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>ReplacedBy {}:{}</code>'.format(submodel_ref, sbaseref(replaced_by))
 
-            info['replaced_by'] = '<i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>{}:{}</code>'.format(submodel_ref, sbaseref(replaced_by))
+        # ListOfReplacedElements
+        libsbml.CompSBasePlugin
+        if item_comp.getNumReplacedElements() > 0:
+            replaced_elements = []
+            for rep_el in item_comp.getListOfReplacedElements():
+                submodel_ref = rep_el.getSubmodelRef()
+                replaced_elements.append('<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement {}:{}</code>'.format(submodel_ref, sbaseref(rep_el)))
+            if len(replaced_elements) == 0:
+                replaced_elements = ''
+            else:
+                replaced_elements = ''.join(replaced_elements)
+            info['replaced_elements'] = replaced_elements
 
     return info
 
@@ -253,6 +263,23 @@ def model_dict(model):
     info['history'] = formating.modelHistoryToString(model.getModelHistory())
 
     return info
+
+
+def listOfModelDefinitions_dict(doc):
+    """ Information dicts for ExternalModelDefinitions and ModelDefinitions"""
+    items = []
+    doc_comp = doc.getPlugin('comp')
+    if doc_comp:
+        for item in doc_comp.getListOfModelDefinitions():
+            info = infoSbase(item)
+            info['type'] = type(item).__name__
+            items.append(info)
+        for item in doc_comp.getListOfExternalModelDefinitions():
+            info = infoSbase(item)
+            info['type'] = type(item).__name__ + " (<code>source={}</code>)".format(item.getSource())
+            items.append(info)
+    return items
+
 
 def listOfSubmodels_dict(model):
     items = []
@@ -282,28 +309,41 @@ def listOfSubmodels_dict(model):
             items.append(info)
     return items
 
+
+def sbase_ref_dict(item):
+    """ Information dictionary of SbaseRef
+    
+    :param sbase_ref: 
+    :return: 
+    """
+    info = infoSbase(item)
+    port_ref = ''
+    if item.isSetPortRef():
+        port_ref = item.getPortRef()
+    info['port_ref'] = port_ref
+    id_ref = ''
+    if item.isSetIdRef():
+        id_ref = item.getIdRef()
+    info['id_ref'] = id_ref
+    unit_ref = ''
+    if item.isSetUnitRef():
+        unit_ref = item.getUnitRef()
+    info['unit_ref'] = unit_ref
+    metaid_ref = ''
+    if item.isSetMetaIdRef():
+        metaid_ref = item.getMetaIdRef()
+    info['metaid_ref'] = metaid_ref
+    element = item.getReferencedElement()
+    info['referenced_element'] = '<code>{}: {}</code>'.format(type(element).__name__, element.getId())
+    return info
+
+
 def listOfPorts_dict(model):
     items = []
     model_comp = model.getPlugin('comp')
     if model_comp:
         for item in model_comp.getListOfPorts():
-            info = infoSbase(item)
-            port_ref = ''
-            if item.isSetPortRef():
-                port_ref = item.getPortRef()
-            info['port_ref'] = port_ref
-            id_ref = ''
-            if item.isSetIdRef():
-                id_ref = item.getIdRef()
-            info['id_ref'] = id_ref
-            unit_ref = ''
-            if item.isSetUnitRef():
-                unit_ref = item.getUnitRef()
-            info['unit_ref'] = unit_ref
-            metaid_ref = ''
-            if item.isSetMetaIdRef():
-                metaid_ref = item.getMetaIdRef()
-            info['metaid_ref'] = metaid_ref
+            info = sbase_ref_dict(item)
             items.append(info)
     return items
 
@@ -567,6 +607,7 @@ def metaId(item):
         return "<code>{}</code>".format(item.getMetaId())
     return ''
 
+
 def id_html(item):
     """ Create info from id and metaid
 
@@ -580,16 +621,17 @@ def id_html(item):
             full_id = 'd {}/dt'.format(id)
         else:
             full_id = id
+
         info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, full_id, meta)
         if id is not None and (type(item) is not libsbml.Model):
             info += xml_modal(item)
-        info += "</td>"
     else:
         if meta:
-            info = '<td class="active">{}</td>'.format(meta)
+            info = '<td class="active">{}'.format(meta)
         else:
-            info = '<td class="active">{}</td>'.format(empty_html())
+            info = '<td class="active">{}'.format(empty_html())
     return info
+
 
 def annotation(item):
     info = '<div class="cvterm">'

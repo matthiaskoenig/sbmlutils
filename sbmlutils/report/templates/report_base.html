@@ -67,6 +67,15 @@
                 "ordering": true
             } );
 
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
             var t_submodels = $('#table_submodels').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
@@ -213,12 +222,16 @@
         <div class="col-sm-3 col-md-2 sidebar">
 
             <ul class="nav nav-sidebar">
-                <li><a href="#top">Model</a></li>
+                <li><a href="#doc"><b>SBMLDocument</b></a></li>
+                <li><a href="#model">Model</a></li>
+                {% if modeldefs %}
+                    <li><a href="#table_modeldefs">comp:ModelDefinitions</a></li>
+                {% endif %}
                 {% if submodels %}
-                    <li><a href="#table_submodels">Submodels</a></li>
+                    <li><a href="#table_submodels">comp:Submodels</a></li>
                 {% endif %}
                 {% if ports %}
-                    <li><a href="#table_ports">Ports</a></li>
+                    <li><a href="#table_ports">comp:Ports</a></li>
                 {% endif %}
                 {% if functions %}
                     <li><a href="#table_functions">FunctionDefinitions</a></li>
@@ -248,7 +261,7 @@
                     <li><a href="#table_reactions">Reactions</a></li>
                 {% endif %}
                 {% if objectives %}
-                    <li><a href="#table_objectives">Objectives</a></li>
+                    <li><a href="#table_objectives">fbc:Objectives</a></li>
                 {% endif %}
                 {% if constraints %}
                     <li><a href="#table_constraints">Constraints</a></li>
@@ -272,17 +285,6 @@
             <!-- CONTENT -->
             <div class="content">
                 {% block content %}
-                    <span id="Model"></span>
-                    <span id="UnitDefinitions"></span>
-                    <span id="FunctionDefinitions"></span>
-                    <span id="Compartments"></span>
-                    <span id="Species"></span>
-                    <span id="Parameters"></span>
-                    <span id="InitialAssignments"></span>
-                    <span id="Rules"></span>
-                    <span id="Constraints"></span>
-                    <span id="Reactions"></span>
-                    <span id="Events"></span>
                 {% endblock %}
             </div>
             <!-- END CONTENT -->
