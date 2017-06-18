@@ -544,10 +544,71 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
 ##########################################################################
 # Events
 ##########################################################################
-# Deficiency Events (Galactosemias)
+class Event(Sbase):
+    """ InitialAssignments. """
 
-# TODO: Event class
-# TODO: implement more general
+    def __init__(self, sid, trigger, assignments={},
+                 trigger_persistent=True, trigger_initialValue=False, useValuesFromTriggerTime=True,
+                 priority=None, delay=None,
+                 name=None, sboTerm=None, metaId=None):
+        super(Event, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+
+        self.trigger = trigger
+        self.assignments = assignments
+
+        self.trigger_persistent = trigger_persistent
+        self.trigger_initialValue = trigger_initialValue
+        self.useValuesFromTriggerTime = useValuesFromTriggerTime
+
+        self.priority = priority
+        self.delay = delay
+
+    def create_sbml(self, model):
+        """ Create libsbml InitialAssignment.
+
+        Creates a required parameter if not existing.
+
+        :param model:
+        :return:
+        """
+        event = model.createEvent()
+        self.set_fields(event, model)
+
+        return event
+
+    def set_fields(self, obj, model):
+        super(Event, self).set_fields(obj)
+
+        obj.setUseValuesFromTriggerTime(True)
+        t = obj.createTrigger()
+        t.setInitialValue(self.trigger_initialValue)  # False ! not supported by Copasi -> lame fix via time
+        t.setPersistent(self.trigger_persistent)  # True ! not supported by Copasi -> careful with usage
+
+        ast_trigger = libsbml.parseL3FormulaWithModel(self.trigger, model)
+        t.setMath(ast_trigger)
+
+        if self.priority is not None:
+            ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
+            event.setPriority(ast_priority)
+        if self.delay is not None:
+            ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
+            event.setDelay(ast_delay)
+
+        # assignments
+        for key, math in iteritems(self.assignments):
+            ast_assign = libsbml.parseL3FormulaWithModel(str(math), model)
+            ea = obj.createEventAssignment()
+            ea.setVariable(key)
+            ea.setMath(ast_assign)
+
+    @staticmethod
+    def _trigger_from_time(t):
+        return '(time >= {})'.format(t)
+
+    @staticmethod
+    def _assignments_dict(species, values):
+        return dict(zip(species, values))
+
 
 def getDeficiencyEventId(deficiency):
     return 'EDEF_{:0>2d}'.format(deficiency)
@@ -583,12 +644,7 @@ def createEventFromEventData(model, edata):
     t.setPersistent(True)
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
-    # assignments
-    for key, value in iteritems(edata.assignments):
-        astnode = libsbml.parseL3FormulaWithModel(value, model)
-        ea = e.createEventAssignment()
-        ea.setVariable(key)
-        ea.setMath(astnode)
+
 
 
 ##########################################################################

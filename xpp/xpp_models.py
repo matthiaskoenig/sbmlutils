@@ -169,8 +169,8 @@ if __name__ == "__main__":
     debug, show_errors = False, False
 
     # test single model
-    # ode_all = ["./87762/Neuron_KATP/NeuronKATP_Stoch.ode"]
-    # debug, show_errors = True, True
+    ode_all = ["./152028/Gunay_etal_2014/xpp-models/ball-and-stick.ode"]
+    debug, show_errors = True, True
 
     for k, xpp_file in enumerate(sorted(ode_all)):
 
