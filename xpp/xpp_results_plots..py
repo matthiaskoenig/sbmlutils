@@ -13,12 +13,14 @@ failures = {
     'dist': [73],
     'set': [48],
     'utf8_encoding': [139],
-    'bad xpp encoding': [40, 85],
+    'bad xpp encoding': [40, 85,
+                         '41 (id clash function definition & parameter)',
+                         '45 (false encoded as 0)',
+                         '46 (false encoded as 0, unknown control character !)'],
     'difference equation': [],
     'boundary': [70],
-
     'bug': [26, 31, 32, 69],
-    'unknown': [39, 41, 45, 46, 47, 49, 50, 51, 52, 55, 61, 62, 63, 64,
+    'unknown': [47, 49, 50, 51, 52, 55, 61, 62, 63, 64,
                 66, 67, 68, 86, 87, 88, 89, 95, 96, 111, 116, 124, 125, 137, 138],
 }
 

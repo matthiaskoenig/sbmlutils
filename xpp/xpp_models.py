@@ -12,6 +12,14 @@ import requests
 import urllib.request
 import shutil
 import warnings
+import traceback
+import sys
+from sbmlutils import validation
+from sbmlutils.report import sbmlreport
+from sbmlutils.converters import xpp
+import roadrunner
+import numpy as np
+from matplotlib import pyplot as plt
 
 URL_ZIP = "https://senselab.med.yale.edu/modeldb/eavBinDown.cshtml?o={}&a=23&mime=application/zip"
 
@@ -138,14 +146,7 @@ def simulate(sbml_file):
 
 
 if __name__ == "__main__":
-    import traceback
-    import sys
-    from sbmlutils import validation
-    from sbmlutils.report import sbmlreport
-    from sbmlutils.converters import xpp
-    import roadrunner
-    import numpy as np
-    from matplotlib import pyplot as plt
+
 
     # download and unzip all sbml files
     # ode_all = get_models(download=True)
@@ -165,8 +166,12 @@ if __name__ == "__main__":
     Nfail = 0
     force_lower = True
     results = []
+    debug, show_errors = False, False
 
-    # ode_all = ["./136097/mouse_ORN_multiscale/mouse_ORN_whole_cell_ModelDB.ode"]
+    # test single model
+    ode_all = ["./142993/RattePrescott2011/ClC2-VClamp-Prescott.ode"]
+    debug, show_errors = True, True
+
     for k, xpp_file in enumerate(sorted(ode_all)):
 
         # convert xpp to sbml
@@ -174,10 +179,10 @@ if __name__ == "__main__":
         sbml_file = os.path.join(out_dir, "{}.xml".format(basename))
         try:
             print('[{}]'.format(k))
-            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, validate=False, debug=False)
+            xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, validate=False, debug=debug)
             success = True
             sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
-            Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, show_errors=False)
+            Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, show_errors=True)
             valid = (Nerr == 0)
             simulates = False
             if valid:
