@@ -3,13 +3,16 @@
 
 {% block content %}
     <!--------------------------------------------------->
-    <!-- Model                                         -->
+    <!-- SBMLDocument                                  -->
     <!--------------------------------------------------->
-    <a class="anchor" id="model"></a>
+    <a class="anchor" id="doc"></a>
     {% if doc.notes %}{{ doc.notes }}<hr />{% endif %}
     {% if model.notes %}{{ model.notes }}<hr />{% endif %}
 
-    <h1>Model : {{ model.id }}</h1>
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <h1 id="model">Model : {{ model.id }}</h1>
     {{ model.history }}
     <table id="table_model" class="table table-condensed table-nonfluid">
         <tr>
@@ -35,6 +38,23 @@
             </td>
         </tr>
     </table>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
+    {% if modeldefs %}
+        <table id="table_modeldefs" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>{{ macros.modeldef_header(modeldefs|length) }}</tr>
+            </thead>
+            <tbody>
+            {% for item in modeldefs %}
+                <tr>{{ macros.modeldef_content(item) }}</tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr/>
+    {% endif %}
 
     <!--------------------------------------------------->
     <!-- Submodels -->

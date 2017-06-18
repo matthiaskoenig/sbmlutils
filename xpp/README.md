@@ -238,7 +238,7 @@ Extracting: 84606
 ```
 
 ## Results
-![Conversion Results][xpp_results.png]
+![xpp results](./xpp_results.png)
 
 Main issues are 
 * case sensitivity of xpp format

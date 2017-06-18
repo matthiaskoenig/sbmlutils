@@ -1,3 +1,34 @@
+
+{% macro id_info(item) %}
+    {{ item.id_html }}
+    {% if item.replaced_by %}{{ item.replaced_by }}<br />{% endif %}
+    {% if item.replaced_elements %}{{ item.replaced_elements }}<br />{% endif %}
+    </td>
+{% endmacro %}
+
+
+<!------------------------------------------------------->
+<!--  MODELDEFINITIONS  	   						   -->
+<!------------------------------------------------------->
+{% macro modeldef_header(size) %}
+    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">ModelDefinitions [{{ size }}]</th>
+	<th scope="col">name</th>
+    <th scope="col">type</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+{% endmacro %}
+
+{% macro modeldef_content(item) %}
+    <td class="hidden">ModelDefinition</td>
+	{{ id_info(item) }}
+	<td>{{ item.name }}</td>
+    <td>{{ item.type }}</td>
+	<td>{{ item.sbo }}</td>
+	<td>{{ item.cvterm }}</td>
+{% endmacro %}
+
+
 <!------------------------------------------------------->
 <!--  SUBMODELS				   						   -->
 <!------------------------------------------------------->
@@ -15,7 +46,7 @@
 
 {% macro submodel_content(item) %}
     <td class="hidden">Submodel</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.model_ref }}</td>
 	<td>{{ item.deletions }}</td>
@@ -33,6 +64,7 @@
     <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Ports [{{ size }}]</th>
 	<th scope="col">name</th>
+    <th scope="col">referenced element</th>
 	<th scope="col">port ref</th>
 	<th scope="col">id ref</th>
 	<th scope="col">unit ref</th>
@@ -42,9 +74,10 @@
 {% endmacro %}
 
 {% macro port_content(item) %}
-    <td class="hidden">FunctionDefinition</td>
-	{{ item.id_html }}
+    <td class="hidden">Port</td>
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
+    <td>{{ item.referenced_element }}</td>
 	<td>{{ item.port_ref }}</td>
 	<td>{{ item.id_ref }}</td>
 	<td>{{ item.unit_ref }}</td>
@@ -67,7 +100,7 @@
 
 {% macro function_content(item) %}
     <td class="hidden">FunctionDefinition</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.math }}</td>
 	<td>{{ item.sbo }}</td>
@@ -88,7 +121,7 @@
 
 {% macro unit_content(item) %}
     <td class="hidden">UnitDefinition</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.units }}</td>
 	<td>{{ item.sbo }}</td>
@@ -113,7 +146,7 @@
 
 {% macro compartment_content(item, values) %}
     <td class="hidden">Compartment</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.size }}</td>
 	{{ item.constant }}
@@ -144,7 +177,7 @@
 
 {% macro species_content(item) %}
     <td class="hidden">Species</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}{{item.fbc}}</td>
 	<td>{{ item.compartment }}</td>
     {{ item.boundary_condition }}
@@ -172,7 +205,7 @@
 
 {% macro geneproduct_content(item) %}
     <td class="hidden">GeneProduct</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.label }}</td>
 	<td>{{ item.associated_species }}</td>
@@ -197,7 +230,7 @@
 
 {% macro parameter_content(item, values) %}
     <td class="hidden">Parameter</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	{{ item.constant }}
 	<td>{{ item.value }}</td>
@@ -249,7 +282,7 @@
 
 {% macro rule_content(item) %}
     <td class="hidden">Rule</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>=</td>
 	<td>{{ item.assignment }}</td>
 	<td>{{ item.name }}
@@ -264,7 +297,6 @@
 {% macro reaction_header(size) %}
     <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Reactions [{{ size }}]</th>
-	<th scope="col">id</th>
 	<th scope="col">name</th>
 	<th scope="col"></th>
 	<th scope="col">equation</th>
@@ -277,9 +309,7 @@
 
 {% macro reaction_content(item) %}
     <td class="hidden">Reaction</td>
-	<td>{% if item.replaced_by %}{{ item.replaced_by }}{% endif %}</td>
-	{{ item.id_html }}
-         {{ item.gpa|e }}</td>
+	{{ id_info(item) }}
 	<td>{{ item.name }}<br />
 		{% if item.fbc_bounds %}{{ item.fbc_bounds }}<br />{% endif %}
 		{% if item.fbc_gpa %}{{ item.fbc_gpa }}{% endif %}
@@ -307,8 +337,8 @@
 {% endmacro %}
 
 {% macro objective_content(item) %}
-    <td class="hidden">Reaction</td>
-	{{ item.id_html }}
+    <td class="hidden">Objective</td>
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.type }}</td>
 	<td>{{ item.flux_objectives }}</td>
@@ -329,7 +359,7 @@
 
 {% macro constraint_content(item) %}
     <td class="hidden">Constraint</td>
-    {{ item.id_html }}
+    {{ id_info(item) }}
 	<td>{{ item.constraint }}</td>
 	<td>{{ item.sbo }}</td>
 	<td>{{ item.cvterm }}</td>
@@ -352,7 +382,7 @@
 
 {% macro event_content(item) %}
     <td class="hidden">Event</td>
-	{{ item.id_html }}
+	{{ id_info(item) }}
 	<td>{{ item.name }}</td>
 	<td>{{ item.trigger }}</td>
 	<td>{{ item.priority }}</td>
