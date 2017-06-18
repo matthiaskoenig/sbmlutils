@@ -69,6 +69,13 @@ apt-get install python3-tk
 ```
 
 ## Release notes
+
+### 0.1.6
+* update SBML reports (fbc & comp support)
+* modelcreator fixes
+* DFBA examples updated & annotated
+* annotation fixes
+
 ### 0.1.4
 * documentation update
 * DFBA update & bug fixes
