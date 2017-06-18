@@ -1,0 +1,808 @@
+
+#Unfortunately there were some mistakes in the tables in the original article 
+#(Lindskog et al (2006) Transient calcium and dopamine increase PKA activity and 
+#DARPP-32 phosphorylation PLoS Computational Biology, 2(9):e119) as outlined below:
+
+#Tab 1, reaction 3, the right side should be the same as line 4 left side
+
+#Tab 1, last reaction, the kf and kb should be in the other order
+#(kf corresponds to the dissociation and kb to association rate).
+
+#Tab 2, typos in reaction 4 and 5. Also those kf values, 
+#that includes 2*Ca should have been defined to half their values
+#(since in the eq in the ode-file the factor 2 is skipped, 
+#compare the PKA eq where the 
+#factor 2 is included explicitly).
+
+#Tab 3, kf for reaction 6 and 8 should be 1e-4 (not 1e-3). Also we 
+#are slighthly inconsistent, and in table 3 we use PP2B as the active form (in
+#contrast to Tab 2).
+
+#Thus, please look into the ode file to verify all parameters that were used.
+#The model code reproduces fig 5 (if plotting the variables "PKAc", "p34", "PP1", "ratio", "p75" and 2*"PKAr")
+
+
+
+
+############################# ODE CODE ############################
+
+### with parameters that were used for the paper 2006 ##########
+# units in nM, per sec, in some XPP versions variables must be at most 8 characters long
+# comments left in the code might be of help, but might also be outdated and should be rechecked in all cases the information is used
+
+
+############# parameters for activation of Da and Ca inputs ##############
+# below used this info: DA baseline 5-20 nM, see Gonon F, et al (2000), Progress in Brain Res, vol 125, ch 16, that has given detailed quantitative data about DA signal, basal levels, pulses and bursts.
+#additional info: Schultz: a pulse gives 0.5-3 micromolar in the synapse, halftime 40 microsec in a synapse, 200ms in the area,  5-600 ms following a burst. Baseline 5-10 nM
+#and also see: Rice ME and Cragg SJ 2004: peak~1 uM, duration~1 s
+
+
+# five pulses of DA 20s in between 
+parameters ampl0=1000 tstart0=500 tau0=0.2  Lb=10
+parameters ampl1=1000 tstart1=520 tau1=0.2
+parameters ampl2=1000 tstart2=540 tau2=0.2
+parameters ampl3=1000 tstart3=560 tau3=0.2
+parameters ampl4=1000 tstart4=580 tau4=0.2
+parameters ampl5=1000 tstart5=600 tau5=0.2
+parameters ampl6=1000 tstart6=620 tau6=0.2
+parameters ampl7=1000 tstart7=640 tau7=0.2
+
+# control of dopamine input
+par dapulses=1
+par manypuls=1
+
+L=Lb\
++dapulses*((ampl0-Lb)*heav(t-tstart0)*(t-tstart0)^2*(exp(2)/(tau0*tau0*4))*exp(-(heav(t-tstart0)*(t-tstart0))/tau0)\
++manypuls*(ampl1-Lb)*heav(t-tstart1)*(t-tstart1)^2*(exp(2)/(tau1*tau1*4))*exp(-(heav(t-tstart1)*(t-tstart1))/tau1)\
++manypuls*(ampl2-Lb)*heav(t-tstart2)*(t-tstart2)^2*(exp(2)/(tau2*tau2*4))*exp(-(heav(t-tstart2)*(t-tstart2))/tau2)\
++manypuls*(ampl3-Lb)*heav(t-tstart3)*(t-tstart3)^2*(exp(2)/(tau3*tau3*4))*exp(-(heav(t-tstart3)*(t-tstart3))/tau3)\
++manypuls*(ampl4-Lb)*heav(t-tstart4)*(t-tstart4)^2*(exp(2)/(tau4*tau4*4))*exp(-(heav(t-tstart4)*(t-tstart4))/tau4)\
++manypuls*(ampl5-Lb)*heav(t-tstart5)*(t-tstart5)^2*(exp(2)/(tau5*tau5*4))*exp(-(heav(t-tstart5)*(t-tstart5))/tau5)\
++manypuls*(ampl6-Lb)*heav(t-tstart6)*(t-tstart6)^2*(exp(2)/(tau6*tau6*4))*exp(-(heav(t-tstart6)*(t-tstart6))/tau6)\
++manypuls*(ampl7-Lb)*heav(t-tstart7)*(t-tstart7)^2*(exp(2)/(tau7*tau7*4))*exp(-(heav(t-tstart7)*(t-tstart7))/tau7))
+
+aux L=L
+
+# five Ca bursts, 20s in between, simultaneously
+parameters ampl00=2000 tstart00=500 tau00=0.1 Cab=60
+parameters ampl11=2000 tstart11=520 tau11=0.1
+parameters ampl22=2000 tstart22=540 tau22=0.1
+parameters ampl33=2000 tstart33=560 tau33=0.1
+parameters ampl44=2000 tstart44=580 tau44=0.1
+parameters ampl55=2000 tstart55=600 tau55=0.1
+parameters ampl66=2000 tstart66=620 tau66=0.1
+parameters ampl77=2000 tstart77=640 tau77=0.1
+
+# control of Ca pulses
+par capulses=1
+Ca=Cab\
++capulses*((ampl00-Cab)*heav(t-tstart00)*(t-tstart00)*exp(1)/tau00*exp(-(heav(t-tstart00)*(t-tstart00))/tau00)\
++manypuls*(ampl11-Cab)*heav(t-tstart11)*(t-tstart11)*exp(1)/tau11*exp(-(heav(t-tstart11)*(t-tstart11))/tau11)\
++manypuls*(ampl22-Cab)*heav(t-tstart22)*(t-tstart22)*exp(1)/tau22*exp(-(heav(t-tstart22)*(t-tstart22))/tau22)\
++manypuls*(ampl33-Cab)*heav(t-tstart33)*(t-tstart33)*exp(1)/tau33*exp(-(heav(t-tstart33)*(t-tstart33))/tau33)\
++manypuls*(ampl44-Cab)*heav(t-tstart44)*(t-tstart44)*exp(1)/tau44*exp(-(heav(t-tstart44)*(t-tstart44))/tau44)\
++manypuls*(ampl55-Cab)*heav(t-tstart55)*(t-tstart55)*exp(1)/tau55*exp(-(heav(t-tstart55)*(t-tstart55))/tau55)\
++manypuls*(ampl66-Cab)*heav(t-tstart66)*(t-tstart66)*exp(1)/tau66*exp(-(heav(t-tstart66)*(t-tstart66))/tau66)\
++manypuls*(ampl77-Cab)*heav(t-tstart77)*(t-tstart77)*exp(1)/tau77*exp(-(heav(t-tstart77)*(t-tstart77))/tau77))
+
+aux Ca=Ca
+
+
+########## Receptor binding and G-protein activation ######
+
+#L + R <--> LR (k1, k_1), Kd=9000
+#LR + G <--> LRG (k2, k_2), Kd=1.666667
+#G + R <--> GR (k1a, k_1a), Kd=5
+#GR + L <--> LRG (k2a, k_2a), Kd=3000
+#LRG -->LR + GaGTP + Gbg (k3)
+# or maybe: LRG -->L + R + GaGTP + Gbg (k3)
+#GaGTP -->GaGDP (k4)
+#GaGDP + Gbg --> G (k5)
+
+# thermodynamical constraint: (k_1/k1)*(k_2/k2) = (k_1a/k1a)*(k_2a/k2a)
+# Kd(L,R)=9000 (k1, k_1), see Zhuang et al 2000, J Neurosci 20:RC91,1-5
+# Kd(L,GR)=3000 (k2a, k_2a), see Zhung above, and also Sunahara RK, et al 1991, Nature 350: 614-619,
+# and also e.g. Gerlach et al, J Neural Transm 110:1119-1127 (2003) (Gerlauch has concentrations 
+# of everything, however, Gerlach et al and Zheung et al have different estimations of e.g. bromocriptine!)
+# Liu et al 2001, J Neuroschem 78:325-338, has info on Golf vs Gs (Golf has higher Kd for AC and shorter lifetime of active GaGTP)
+
+
+par k2a=0.00333333 k_2a=10
+par k1a=0.00006 k_1a=0.0003
+par k_1=10 k1=0.0011111
+par k2=0.0006 k_2=0.001
+parameters k3=20
+parameters k4=10
+parameters k5=100
+
+##### ODEs for G cycle, Gtot, Rtot values #####
+dLR/dt=k1*R*L-k_1*LR-k2*LR*G+k_2*LRG+k3*LRG
+             init  LR=0.9893665
+
+dLRG/dt=k2*LR*G-k_2*LRG-k3*LRG+k2a*GR*L-k_2a*LRG
+             init  LRG=0.536074
+
+dGaGTP/dt=k3*LRG-k4*GaGTP+E*k_6-GaGTP*AC*k6
+             init  GaGTP=1.072148
+
+dGaGDP/dt=k4*GaGTP-k5*GaGDP*Gbg
+             init  GaGDP=0.005353927
+
+dGR/dt=k1a*G*R-k_1a*GR-k2a*GR*L+k_2a*LRG
+             init  GR=437.2119
+
+
+Gbgtest=GaGTP+GaGDP+E+EATP+ECa
+aux Gbgtest=Gbgtest
+
+dGbg/dt=k3*LRG-k5*GaGDP*Gbg
+             init  Gbg=20.02545
+
+G=Gtot-LRG-GaGTP-GaGDP-E-EATP-ECa-GR
+Aux G=G
+par Gtot=3000
+Galfa=GaGTP+GaGDP
+Aux Galfa=Galfa
+R=Rtot-LR-LRG-GR
+par Rtot=500
+aux R=R
+
+############ adenylate cyclase ######################################
+
+#GaGTP+AC <--> E (K6 K_6)
+#E+ATP<-->EATP (K7 K_7)
+#EATP<-->E+CAMP (k8 k_8)
+#AC+Ca<-->ACCA (k9, k_9)
+#E+Ca<-->ECa (k9, k_9)
+
+
+# Golf is active in striatum and activates AC5: see Zhuang et al 2000, J Neurosci 20:RC91 1-5.
+# AC parameters and Eqn are based on Dessauer et al. 1997 J Biol Chem, but simplified to give the same cAMP production
+# Kd=260nM of AC for GaGTP from email by Carmen Dessauer, also in Sunahara et al 1997, J Biol Chem 272:22265-71
+# !!! assume Kd higher for Golf than for Gs, see Liu et al above 
+parameters k6=38461.5e-6 k_6=50
+parameters k7=127600e-9  k_7=0.2612
+parameters k8=28.46    k_8=259200e-9
+par speedCa=1.0
+k9=0.001*speedCa
+k_9=0.9*speedCa
+
+#AC bound to Ca functions as AC but has 50% max activity
+par deadend=1
+k6_2=38461.5e-6/2*deadend
+k_6_2=50/2*deadend
+k7_2=127600e-9/2*deadend
+k_7_2=0.2612/2*deadend
+k8_2=28.46/2*deadend
+k_8_2=259200e-9/2*deadend
+
+parameters ACtot=2500
+
+dEATP/dt=E*ATP*k7-EATP*k_7-EATP*k8+E*CAMP*K_8
+
+dEcaATP/dt=Eca*ATP*k7_2-EcaATP*k_7_2-EcaATP*k8_2+Eca*CAMP*K_8_2
+  
+dCAMP/dt=EATP*k8-CAMP*E*k_8\
++EcaATP*k8_2-camp*Eca*k_8_2\
+-KfPde1*PDE1cam*cAMP+KbPde1*PDE1cAMP-KfPde4*PDE4*cAMP+KbPde4*PDE4cAMP\
+-2*kfhigh*2*camp*pka+2*kbhigh*PKAcamp1-2*kflow*2*camp*pkacamp1+2*kblow*pkacamp2
+
+#regeneration of ATP allows for steady state in absence of stim                                                                       
+par ATPtot=2e6
+par katp=10
+#dATP/dt = -E*ATP*k7+EATP*k_7 + kATP*AMP
+ATP=ATPtot-cAMP-EATP-AMP-PDE1cAMP-PDE4cAMP\
+-2*PKAcamp1-4*PKAcamp2-4*PKAr
+
+
+             init  CAMP=59.96392
+             init  E=1.91733
+             init  EATP=17.03062
+             init  ECa=0.127822
+             init  ACCa=154.9868
+             init  ecaatp=1.135375
+
+#Inhibition of AC by calcium is from Guillou (1999) J Biol Chem.
+#Affinity = 900 nM, activity ~50% of non-calcium bound form
+
+AC=ACtot-E-EATP-ACCa-ECa-ecaatp
+
+dACCa/dt=AC*Ca*k9-ACCa*k_9-GaGTP*ACca*k6_2+eca*k_6_2
+
+dE/dt=GaGTP*AC*k6-E*k_6-E*ATP*k7+EATP*k_7+EATP*K8-E*CAMP*K_8
+
+dECa/dt=GaGTP*ACca*k6_2-Eca*k_6_2-Eca*ATP*k7_2+EcaATP*k_7_2+EcaATP*K8_2-Eca*CAMP*K_8_2
+
+
+Aux AC=AC
+Aux ATP=ATP
+
+# part of ACtot bound to Ca
+Cainh=(ACCA+ECa+ECaATP)/(AC+E+EATP+ACCA+ECa+ECaATP)
+aux Cainh=Cainh
+
+testAC=AC+E+EATP+ACCA+ECa+ecaatp
+aux testAC=testAC
+############ Phosphodiesterase ######################################
+
+# PDE Hydrolyzes cAMP as follows:
+# PDE1 + Camca4 <=> PDECam (KbpdeCam, KfpdeCam)
+# PDE1cam + cAMP<=>PDE1-cAMP -> PDE1 + AMP : Km (K_PDE1) Vmax=V_PDE1 (KfPde1, KbPde1)
+# PDE4 + cAMP<=>PDE4-cAMP -> PDE4 + AMP : Km (K_PDE4) Vmax=V_PDE4 (KfPde4, KbPde4)
+#
+# PDE Parameters:
+# PDE1:
+# Jacobitz et al. 1997 Mol. Pharm. 51:999-1006
+# Km = 4e3 nM, Vmax = 23 nmol/min/ml => 383 nM/s
+## Clapham and Wilderspin 2001 Gene 268:165-171
+## Km=2.82 uM, Vmax=1698 nmol/min/mg; Calmodulin affinity=0.28 nM
+## MW(PDE) = 61 KDa, produces 1726 nmol/min/nmol
+# PDE4:
+# Herman et al. 2000 Mol. Pharm. 57:991-999
+# PDE04D3: Km=5.8e3nM, Vmax= 9.7e3 nmol/min/mg, MW=91 kDa
+# PDE04B1: Km=3.2e3nM, Vmax=14.0e3 nmol/min/mg, MW=83 kDa
+# later, may include phosphorylation by PKA increases activity up to 4-fold
+
+par K_Pde4=4000 V_Pde4=18 KfPde4=0.02 KbPde4=72
+#old par K_Pde1=2820 V_Pde1=1.726 KfPde1=0.0031 KbPde1=6.9
+# PDE1B1: Sharma and Kalra, Biochem J 299:97-100, 1994
+par K_Pde1=12000 V_Pde1=11 KfPde1=0.0046 KbPde1=44
+par Pde1Tot=4000 Pde4Tot=2000
+par speedpde=0.1
+KbpdeCam=10*speedpde
+KfpdeCam=1*speedpde
+
+             init  PDE1cAMP=2.492167
+             init  PDE4cAMP=26.30017
+             init  AMP=50.0817
+
+PDE1=Pde1Tot-PDE1cAMP-PDE1Cam
+PDE4=Pde4Tot-PDE4cAMP
+aux PDE1=PDE1
+aux PDE4=PDE4
+
+
+dPDE1cAMP/dt = KfPde1*PDE1Cam*cAMP - KbPde1*PDE1cAMP - V_Pde1*PDE1cAMP
+dPDE4cAMP/dt = KfPde4*PDE4*cAMP - KbPde4*PDE4cAMP - V_Pde4*PDE4cAMP
+dAMP/dt = V_Pde1*PDE1cAMP + V_Pde4*PDE4cAMP - katp*amp
+
+# CamCa4 binding to PDE1.  Affinity=0.28 nM from Herman et al. 2000 Mol. Pharm. 57:991-999
+
+dPDE1Cam/dt=KfpdeCam*PDE1*CamCa4-KbpdeCam*PDE1Cam-KfPde1*PDE1Cam*cAMP+(KbPde1+V_Pde1)*PDE1cAMP
+             init  PDE1CaM=496.9264
+
+######################### ca/cam, PP2B  ##################################
+#calmodulin binding to Ca: Waxham Lab (Gaertner JBC 2004, Putkey JBC 2003)
+# Putkey: KbN=1000 KfN=100e-3 KbC=8.5 KfC=4e-3
+# fast (N terminal) site has Kd=11 uM, slow (Cterminal) site has Kd=2 uM
+# Brown JBC 1997: KbN=700 KbC=8.5
+# Gaertner:KbN=500 KbC=9.1 KfC=6e-3
+# Calcium ions bind in pairs; N site binds faster, unbinds first
+# Ca dissociation is >= 10x slower if Cam is bound to peptide
+# Km for calmodulin to calcineurin ca 5 nM (Holmes 2000)
+# 0.3 nM according to Persechini, JBC 89.  90 uM acccording to Jiang JBC 99.
+# Assume PP2B affinity is higher to CamCa4 than Cam.
+#
+#Cam+2Ca <-> CamCa2_C  (KfC, KbC)
+#CamCa2_C + 2Ca <-> CamCa4 (KfN, KbN)
+#Cam + PP2 <-> PP2Cam (K33a, K_33a)
+#CamCa2 + PP2 <-> PP2CamCa2 (K33c, K_33c)
+#CamCa4 + PP2 <-> PP2B (K32, K_32)
+#PP2Cam + 2Ca <-> PP2CamCa2 (KfC, KbCP - old 34a; KbCP is ~10x slower than KbC)
+#PP2CamCa2 + 2 Ca <-> PP2B (KfN, KbNP - old 34c; KbNP is ~10x slower than KbN)
+
+#Par KfN=0.1 KbN=1000 KbNP=100, affinity increased, see Stemmer and Klee, 1994, Biochemistry 33:6859-6866
+Par KfN=0.1 KbN=1000 KbNP=10
+Par KfC=6e-3 KbC=9.1 KbCP=0.91
+
+par k33c=1 k_33c=0.3
+par k33a=1 k_33a=3
+par k32=1 k_32=0.3
+
+dCamCa2/dt=kfC*Ca*Cam-kbC*CamCa2+kbN*CamCa4-kfN*Ca*CamCa2\
++k_33c*PP2camc2-k33c*CamCa2*2B
+           init  CamCa2=211.1457
+
+dCamCa4/dt=kfN*Ca*CamCa2-kbN*CamCa4-k32*CamCa4*2B+k_32*PP2B\
+-k51*CamCa4*CamK+k_51*CamKb\
+-KfpdeCam*PDE1*CamCa4+KbpdeCam*PDE1Cam
+           init  CamCa4=1.419554
+
+# (compare Quadroni et al 1998, Biochemistry
+# reasonable with 3-10mikroM CaM according to Patel et al 1997, PNAS)
+# for effective concentrations of cam (=9000nM) see Rakhilin et al, Science 2004, 306:698-701
+Par Camtot=10000
+Cam=Camtot-(camca2+camca4+PP2cam+PP2camc2+PP2B+Dp34pp2B+Dp34p1p2+camkb+camkPC+PDE1cam+PDE1camp+0*(PP2Ac+Dp75PPac+pkaiPPaC+Dp34PPaC+D34P1P2C))
+camc4bnd=pp2b+dp34pp2b+dp34p1p2+camkb+camkPc+pde1cam+pde1camp+0*(pp2ac+pkaippac+dp75ppac+Dp34PPaC+D34P1P2C)
+aux Cam=cam
+aux camc4bnd=camc4bnd
+
+totCam=cam+camca2+camca4+PP2cam+PP2camc2+camc4bnd
+aux totcam=totcam
+
+dPP2B/dt=k32*CamCa4*2B-k_32*PP2B+kfN*PP2camc2*Ca-KbNP*PP2B\
+-k22*D32p34*pp2b+(k_22+v22)*Dp34pp2b-k36*Dp34pp1*pp2b+(k_36+v36)*Dp34p1p2
+           init  PP2B=516.0786
+
+dPP2cam/dt=k33a*Cam*2B-k_33a*PP2cam-kfC*PP2cam*Ca+kbCP*PP2camc2
+           init  PP2cam=2514.8
+
+dPP2camc2/dt=k33c*CamCa2*2B-k_33c*PP2camc2-kfN*PP2camc2*Ca+kbNP*PP2B\
++kfC*PP2Cam*Ca-kbCP*PP2camc2
+           init  PP2camc2=885.5775
+
+2B=PP2Btot-PP2B-PP2camc2-PP2cam-Dp34pp2B-Dp34p1p2
+PP2Bact=PP2B+Dp34pp2B+Dp34p1p2
+aux pp2bact=pp2bact
+aux 2B=2B
+
+PAR PP2Btot=4000
+
+################  CamKII - only CamCa4 and PP1 involved  ##################
+
+# NOTE that CamKII is very simplified, but it's used just 
+# for comparison and Alcantara et al, Eur J Neurosci. 2003 Jun;17(12):2521-8
+# gives simple and reasonable behavior
+# CamKII conc see references in Strack et al, JBC 272:13467-13470, 1997
+
+# idea: CamCa4 + CamK <-> CamKb (k51, k_51)
+# CamKb  -> CamKPc  (k52) (autophosphorylation)
+# CamKPc + PP1<->  CamKb + PP1  (k_52) (from Alcantara et al, no real dephosphorylation eq)
+# CamKPc + PP1 <-> CamKPcPP1 ->  CamKb + PP1  (k53, k_53, v53) PP1 activity from Bhalla 1999 
+
+#directly from Alcantara et al
+dCamKb/dt=k51*CamCa4*CamK+k_52*CamKPc*PP1-(k_51+k52)*CamKb
+dCamKpc/dt=k52*CamKb-k_52*CamKpC*PP1
+        init CamKb=210.5004
+        init CamkPc=17.98914
+
+par camkmax=20000
+CamK=camkmax-CamKb-CamkPc
+aux CamK=CamK
+totcamk=CamK+camkb+camkpc
+aux totcamk=totcamk
+CamKA=CamKb+CamKPc
+aux CamKA=CamKA
+
+k51=7.5000e-04
+k_51=0.1
+k52=0.005
+k_52=0.000003
+
+
+#############################  PKA  #####################################
+
+# Assumes cAMP binds in pairs to low affinity and high affinity sites.
+# Zawadzki and Taylor J Biol Chem (2004)279:7029
+# Herberg et al. Biochemistry (1996) 35:2934
+
+par speedpka=3.0
+kbhigh=0.002*speedpka
+kfhigh=4.3478e-06*speedpka
+kblow=0.02*speedpka
+kflow=5.7703e-6*speedpka
+kasrc=0.00017*speedpka
+kdisrc=0.0016*speedpka
+
+par PKAtot=1200
+
+dPKAcamp1/dt=2*kfhigh*camp*pka-kbhigh*PKAcamp1-2*kflow*camp*pkacamp1+kblow*pkacamp2
+dPKAcamp2/dt=2*kflow*camp*pkacamp1-kblow*pkacamp2-kdisrc*PKAcamp2+kasrc*pkac*PKAr
+dPKAc/dt=2*kdisrc*PKAcamp2-2*kasrc*PKAc*PKAr\
+-k27*PKAc*PP2a+k_27*PKAcPP2a+v27*PKAcPP2a-k24*d32p75*PKAc+k_24*PKAi-k20*D32*PKAc+k_20*D32PKA+v20*D32PKA\
++v25b*Pkaippap+v26b*PKAiPP2a+v25d*PKAiPPaC
+
+# add eq for PKAr instead, called PKAr2 and should be equal to PKAr
+dPKAr2/dt=kdisrc*PKAcamp2-kasrc*pkac*PKAr2
+             init PKAr2=29.48589
+
+Pka=PKAtot-PKAcamp1-PKAcamp2-0.5*(PKAc+PKAi+pkacpp2a+D32pka+Pkaippap+PKAiPP2a+PKAiPPaC)
+
+#now PKAr is (total PKAc produced)*0.5?
+PKAr=0.5*(PKAc+D32pka+PKAi+pkacpp2a+Pkaippap+PKAiPP2a+PKAiPPaC)
+aux PKAr=Pkar
+
+
+aux pka=pka
+             init  pkacamp1=240.339
+             init  PKAcAMP2=8.315964
+             init  PKAc=2.654418
+
+
+PKAact=PKAc+D32pka+PKAcpp2a
+Aux pkaact=pkaact
+
+totPKA=Pka+PKAcamp1+PKAcamp2+0.5*(PKAc+PKAi+pkacpp2a+D32pka+Pkaippap+PKAiPP2a+PKAiPPaC)
+aux totpka=totpka
+
+############################  DARPP  ####################################
+
+
+par Cdk5tot=1800
+
+par PP1tot=5000
+
+# 50mikroM darpp, Quimet et al, Brain Res 808:8-12 (1998)
+# basal levels of phosphorylated DARPP on 34 = 1%,  Nishi et al 99)
+# basal p75 13mikroM, Bibb et al 1999, Nature, 402:669-671
+par D32tot=50000
+
+par PP2Atot=2000
+# PP2A conc should be significantly lower than PP1 and PP2B?
+# Sim, J Neurochem. 1994, between *3-7  as much basal activity of PP2A compared with PP1
+# Nagase, J Biochem 1997, extraction of B'' subunit, gives 6*10-3 % of the protein content, i.e. 6*10-3% of 19000= 1.14
+# PP2A=200nM according to Usui et al FEBS Letters 430 312-316, 1998
+# cf Kuroda et al, 2700 nM PP2A
+
+
+
+#### D32+PKAc <--> D32PKA --> D32p34 + PKA (20) #####
+#probably PKAc can't phosphorylate darpp-Thr75 (?), see fig 2 in Bibb et al 1999, Nature, 402:669-671.
+#Girault et al 1989, *J Biol Chem 264:21748-59, Km around 3.7-5.2mikroM, k3 around 0.87-1.9s-1
+#from Hemmings et al, J Biol Chem 264:7726-7733, 1989, Km=2100nM, kcat=3s-1
+#from Hemmings et al 1984, J Biol Chem 259:14491-14497, Km=2.4mikroM, kcat=2.7s_1 (note different from I1)
+# Hemmings et al, J Biol Chem. 1990, 265:20369-76, 1.7uM, 2.6s-1
+# Nishi et al J Neurosci. 1997 17:8147-55,  120 s to reach maximal 6-9x increase in Thr34 due to D1 stim
+# Nishi et al, Proc Natl Acad Sci U S A. 2000 97:12840-5, D1 increase Thr34 4x, max after 6 min (360s), but
+# since also there is a decrease following one should note e.g. Nishi et al, Proc Natl Acad Sci U S A. 2005, 102:1199-204.
+
+parameters k20=0.0027 k_20=8 v20=2
+
+dD32PKA/dt=k20*D32*PKAc-k_20*D32PKA-v20*D32PKA
+
+             init  D32PKA=25.02775
+
+
+dD32p34/dt=v20*D32PKA+k_22*Dp34pp2b-k22*D32p34*PP2B-k21*D32p34*PP1+k_21*Dp34pp1\
+-D32p34*PP2A*k22b+Dp34pp2A*k_22b\
+-D32p34*PP2AP*k22c+Dp34ppAP*k_22c\
+-D32p34*PP2AC*k22d+Dp34ppAC*k_22d
+
+             init  D32p34=0.03595885
+
+
+
+#### D32p34 + PP1 <--> Dp34pp1 (21) #####
+# Hemmings et al 1984, Nature 310:503-505, Kin=1nM
+# Bhalla I1 inhibits PP1, k1=0.5, k_1=0.1
+# Huang PNAS 1997: IC50=1.7n
+# Huang JBC 1999: 2nM; 10nM
+# (or maybe unphosphorylated D32 can even inhibit PP1? kon/koff values given, Kd ca 300nM (i.e. a bit higher due to exp setup!) 
+# for p34 and 1200nM for d32, see Desdouits et al Biochemical and Biophysical Research Communications 206:652-658, 1995)
+
+parameters k21=0.4 k_21=0.58
+
+
+dDp34pp1/dt=k21*D32p34*PP1-k_21*Dp34pp1-k36*Dp34pp1*pp2b+k_36*Dp34p1p2\
+-Dp34pp1*PP2A*k36b+D34p1p2A*k_36b\
+-Dp34pp1*PP2AP*k36c+D34p1p2P*k_36c\
+-Dp34pp1*PP2AC*k36d+D34p1p2C*k_36d
+
+             init  Dp34pp1=397.3528
+
+
+
+
+#### D32p34 + PP2B <--> Dp34pp2b --> D32 + PP2B (22) #####
+# mostly PP2B dephosphorylates p34 (and some PP2a, 1/3 activity), Hemmings et al 1984, Nature 310:503-505 (just relative activities given).
+# molweight of PP2B ca 77000 Da, see Gupta RC, et al, Can J Physiol Pharmacol. 1985 Aug;63(8):1000-6. 
+# Desdouits et al 1995, PNAS 92:2682-2685, Km=3800-4000 nM, Vmax=0.065-0.3 s_1 (i.e. very slow Vmax=51-235nmol/60s/mg (Mr= 77000*1e-9 g per nmol))
+# cf King et al 1984, J Biol Chem 259:8080-8083, Km=1.6mikroM, vmax=0.2s_1
+# Hemming et al, J Biol Chem. 1990, 265:20369-76, 14 uM, 370nmol/min/mg (0.47 s-1)
+# Klee et al JBC 1998, 14uM, 0.2s-1 (no Mn)
+
+parameters k22=0.001 k_22=2 v22=0.5
+
+dDp34pp2b/dt=k22*D32p34*PP2B-k_22*Dp34pp2b-v22*Dp34pp2b
+
+             init  Dp34pp2b=0.007423035
+
+
+#### Dp34pp1 + PP2B <--> Dp34p1p2 --> D32 + PP1 + PP2B (36) #####
+# i.e. when PP1 is bound to D32, assume similar parameters as in eq 22 (maybe p34 and PP1 binds to several sites see 
+# Desdouits et al Biochemical and Biophysical Research Communications 206:652-658, 1995 )
+
+par k36_a=1.0
+k36=0.001*k36_a
+k_36=2*k36_a
+v36=0.5*k36_a
+
+dDp34p1p2/dt=k36*Dp34pp1*PP2B-k_36*Dp34p1p2-v36*Dp34p1p2
+             init  Dp34p1p2=82.02611
+
+
+#### PP2A forms dephosphorylating Thr34 site ##########
+# mostly PP2B dephosphorylates Dp34 (and some PP2a, 1/3 activity), Hemmings et al 1984, Nature 310:503-505 (just relative activities given).
+# Nishi et al 1999, J Neurochem 72:2015-2021 has data on PP2A and PP2B blockade on p34 levels
+
+# D32p34 + PP2A <--> Dp34pp2A --> D32 + PP2A (22b)
+# D32p34 + PP2aP <--> Dp34ppap --> D32 + PP2aP (22c)
+# D32p34 + PP2aC <--> Dp34ppc --> D32 + PP2aC (22d)
+par k22b=0.0001 k_22b=2 v22b=0.5
+par k22c=0.000 k_22c=0 v22c=0.0
+# from Nishi et al (2002) and 1999 (no CA effects seen on Thr34 when PP2B blocked, Ca affects AC)
+par k22d=0.0 k_22d=0 v22d=0
+
+
+dDp34pp2A/dt=k22b*D32p34*PP2A-(k_22b+v22b)*Dp34pp2A
+            init  Dp34pp2A=0.00163579
+
+dDp34ppap/dt=k22c*D32p34*PP2AP-(k_22c+v22c)*Dp34ppap
+            init  Dp34ppap=0.0
+
+dDp34ppac/dt=k22d*D32p34*PP2AC-(k_22d+v22d)*Dp34ppac
+            init  Dp34ppac=0.0
+
+
+#Dp34pp1 + PP2A <--> D34p1p2A --> D32 + PP1 + PP2A (36b) 
+#Dp34pp1 + PP2aP <--> D34p1p2P --> D32 + PP1 + PP2aP (36c) 
+#Dp34pp1 + PP2aC <--> D34p1p2C --> D32 + PP1 + PP2aC (36d) 
+
+par k36_b=1.0
+k36b=0.0001*k36_b 
+k_36b=2*k36_b
+v36b=0.5*k36_b
+
+par k36c=0.000 k_36c=0 v36c=0
+# from Nishi et al 2002,1999 (no CA effects seen on Thr34)
+par k36d=0.0 k_36d=0 v36d=0
+
+
+dD34p1p2A/dt=k36b*Dp34PP1*PP2A-(k_36b+v36b)*D34p1p2A
+            init  D34p1p2A=18.07582
+
+dD34p1p2P/dt=k36c*Dp34PP1*PP2AP-(k_36c+v36c)*D34p1p2P
+            init  D34p1p2P=0.0
+
+dD34p1p2C/dt=k36d*Dp34PP1*PP2AC-(k_36d+v36d)*D34p1p2C
+            init  D34p1p2C=0.0
+
+#### D32PP1 <--> D32 + PP1 (35), if we need some D32 inh of PP1  #####
+# Km=100 uM, low affinity assumed when phosphorylated
+# this eq even can be good to keep because PP1 is inhibited by unphosphorylated DARPP as well, see
+# Desdouits et al 1995, Biochemical and Biophysical Research Communications 206:652-658 (and PP1 may deph p34?),
+# Kd values for PP1 inhibition by Thr34 and ordinary DARPP are not that measured in other papers (see discussion) 
+
+parameters k35=0 k_35=0
+
+# assume that eg 36, 3bb,36c, 36d don't split momentarily
+dD32PP1/dt=0*(v36*Dp34p1p2+v36b*D34p1p2A+v36c*D34p1p2P+v36d*D34p1p2C)+k_35*D32*PP1-k35*D32PP1
+             init  D32PP1=0.0
+
+
+
+#### Cdk5 + D32 <--> CDK5D32 --> D32p75 + Cdk5 (23) #####
+#however, check Lew, Wang 95, ca 5-10mikroM/min/mg
+#below from Bibb et al, J Biol Chem. 2001, 276:14490-7
+#(cdk5=33kDa, Km around 5500, vmax=0.5 (from 0.9 µmol/min/mg), under the assumption that DARPP behaves as Inh-1 (Ser67))
+# Nishi et al, Proc Natl Acad Sci U S A. 2000 97:12840-5, D1 decrease Thr75 to 50%, max decrease after 4 min (240s)
+
+parameters k23=0.00045 k_23=2 v23=0.5
+
+
+dCDK5D32/dt=k23*D32*Cdk5-k_23*CDK5D32-v23*CDK5D32
+             init  CDK5D32=1552.944
+
+
+dD32p75/dt=v23*CDK5D32-k24*D32p75*PKAc+k_24*PKAi-k25*D32p75*PP2AP+k_25*DP75PPAP-k26*D32p75*pp2a+k_26*Dp75pp2a\
+-k25c*D32p75*PP2AC+k_25c*DP75PPaC\
+-PP1*D32p75*k00+k_00*Dp75PP1
+             init  D32p75=12648.22
+
+
+#### D32p75 + PKAc <--> PKAi (24) #####
+#Bibb et al 1999, Nature, 402:669-671, Ki=2700 (competitive), k_ just guessed
+
+parameters k24=0.00037 k_24=1
+
+
+dPKAi/dt=k24*D32p75*PKAc-k_24*PKAi\
+-k25b*PKAi*PP2aP+k_25b*Pkaippap-k26b*PKAi*PP2a+k_26b*PKAiPP2a\
+-k25d*PKAi*PP2aC+k_25d*PKAiPPaC
+             init  PKAi=12.42225
+
+
+
+#### PKAc dependent activation of PP2A ##### 
+#from Usui et al, FEBS Letters 430:312-316, 1998, Km=170 nM
+#vmax=105/60/(1e-3/molweight_PKAc)=105e-9/60/(1e-3/41000*1e9)nmol/s/nmol=0.07 per s
+# compare e.g. dephosphorylation rate of PP2a used in Kikuchi et al 2003, Neural Networks 16:1389-1398
+
+# PKAc + PP2a <--> PKAcPP2a --> PP2aP + PKAc (27)
+# PP2ap --> PP2a (28)
+parameters k27=0.0025 k_27=0.3  v27=0.1
+parameters k28=0.004
+
+dPKAcPP2A/dt=k27*PKAc*PP2A-k_27*PKAcPP2A-v27*PKAcPP2A
+             init  PKAcPP2a=18.86736
+ 
+dPP2AP/dt=v25*DP75PPAP+v27*PKAcPP2A-k25*D32p75*PP2ap+k_25*DP75PPAP-k28*PP2ap-k25b*PKAi*PP2aP+(k_25b+v25b)*Pkaippap\
++(v36c+k_36c)*D34p1p2P-k36c*PP2aP*Dp34PP1+(v22c+k_22c)*Dp34ppaP-k22c*PP2aP*D32p34
+             init  PP2AP=471.6841
+
+
+#### Ca_dep activation of PP2A, no data exist, i.e. years 2005-06) #####
+#Ca dependent pathway activate PP2a, see Nishi et al, 2002, J Neurochem 81:832-841
+#CamKII* + PP2a <--> CamKpp2a -> PP2ap + CamkII* (maybe not this because Fukunaga et al 2000, J Neurochem 74:807-817
+#shows that CamKII can phosphorylate PP2A in hippocampus and that instead decreases the activity of PP2A,
+#compare also Kikuchi et al 2003, Neural Networks 16:1389-98)
+
+# PP2a <--> PP2aC  (60) 
+#should reach their values after 5min=300s (Nishi et 1l 02)
+# sets restriction to speedup to 0.001, not slower!
+# if too fast -> overshoot in pkac when ca up
+# now the spped is comparable to PP2B dephosphorylating Thr34
+# also arbitrary activation by Ca, note Ca^4 necessary because steep
+# or else it is so that Vmax etc is more effective than for PP2Ap
+# our results really motivate an exp study of this mechanism!!
+par speedup=0.01
+#try out below to lift the pp2ac levels
+k_60=1*speedup
+k60=0.01/(60*60*60*60)*ca*ca*ca*ca*speedup
+
+
+dPP2aC/dt=k60*PP2a-k_60*PP2aC\
+-k25d*PKAi*PP2aC+(k_25d+v25d)*PkaiPPaC\
++(v25c+k_25c)*Dp75PPaC-k25c*D32p75*PP2aC\
++(v36d+k_36d)*D34p1p2C-k36d*PP2aC*Dp34PP1\
++(v22d+k_22d)*Dp34ppaC-k22d*PP2aC*D32p34
+             init  PP2aC=11.37265
+
+
+
+#### dephosphorylation of Thr75 sites by PP2A forms ##### 
+
+
+
+##D32p75 + PP2aP <--> Dp75PPaP --> D32 + PP2aP (25)
+# Nishi et al 1999, J Neurochem 72:2015-2021 has data on PP2A and PP2B blockade on p34 levels
+# Nishi et al 2000, PNAS 97:12840-12845  (maybe also PP1 involved in dephosphorylating Thr75), show that D1 
+# decreases Thr75 to 50%, max decrease after 4 min (240s), due to PP2A activation by PKAc (use antibodies to show PP2A = CAB'') 
+# Nishi et al 2002, J Neurochem 81:832-41 shows that PP2A dephosphorylates Thr75, says
+# NMDACa to PP2A to p34 decrease plays little role compared with NMDAca activation of PP2B 
+# Usui H, et al, J Biol Chem. 1988 Mar 15;263(8):3752-61. (MW pp2A 180000Da), see table IV
+# phosphorylase a Km 18uM, 155min-1=2.6s-1 for CABdelta, 6uM 110min-1=1.8s-1 for CABgamma
+# Usui et al FEBS Letters 430 312-316, 1998, see table II:
+# if behaves as for P-H2B as substrate, Km=34000  kcat=6.2 (parameters k25=0.001 k_25=24.8 v25=6.2)
+# if behaves as for P-H1 as substrate, Km=153000  kcat=0.93  (parameters k25=0.00003 k_25=3.72 v25=0.93)
+# if behaves as for phosphorylase a  as substrate, Km=24000  kcat=0.053  (parameters k25=0.00001 k_25=0.2120 v25=0.053)
+# Hemmings et al, J Biol Chem. 1990, 265:20369-76, 19uM; 1100nmol/min7mg (3.3s-1) for PP2Ac against darppSer34[8-38]; says
+# activity against Darp is 1.8x that against phosphorylase a ..
+## first trial use just meanvalues of the above + Bhallas rule k2=4*k3, (can also be varied together with k28)
+
+
+parameters k25=0.0004 k_25=12 v25=3
+
+dDP75PPAP/dt=k25*D32p75*PP2AP-k_25*DP75PPAP-v25*DP75PPAP
+             init  Dp75ppap=159.0924
+
+
+##D32p75+PP2a <--> Dp75pp2a --> D32 + PP2a (26)
+# info from  Table 2 in Usui et al FEBS Letters 430 312-316, 1998, where there is a row with H8 (inhibitor of PKA), so they measure unphosphorylated PP2A
+# Usui, table II: if behaves as for P-H2B as substrate, Km=140000 kcat=4.5167 (parameters k25=0.0002 k_25=18 v25=4.5)
+# if behaves as for P-H1 as substrate, Km=131000  kcat= 0.2433  (parameters k25=0.00001 k_25=1 v25=0.24)
+# if behaves as for phosphorylase a  as substrate, Km=20000  kcat=0.0368  (parameters k25=0.00001 k_25=0.16 v25=0.04)
+## first trial use just meanvalues of the 3 above
+
+parameters k26=0.0001 k_26=6.4 v26=1.6
+
+dDp75pp2a/dt=k26*D32p75*PP2A-k_26*Dp75pp2a-v26*Dp75pp2a
+             init  Dp75pp2a=179.8048
+
+##D32p75 + PP2aC <--> Dp75PPaC --> D32 + PP2aC (25c)
+# no data but see Nishi et al 2002
+# Lower affinity but higher kcat than pp2B (based on Hemings and Desdouits)
+
+parameters k25c=0.0004 k_25c=12 v25c=3
+
+dDp75PPaC/dt=k25c*D32p75*PP2aC-(k_25c+v25c)*Dp75PPaC
+             init  Dp75PPaC=3.835835
+
+
+
+##### allow also PP2a(P) to dephosphorylate PKAi complexes (eq 25b, 26b), this has just minor effects since low PKAi conc, not used here  ##########
+
+## PKAi+pp2ap <--> Pkaippap --> D32 + PKAc + PP2ap (25b)
+
+parameters k25b=0.000 k_25b=0 v25b=0.0
+
+dPkaippap/dt=k25b*PKAi*PP2AP-k_25b*Pkaippap-v25b*Pkaippap
+             init  PKAiPPAp=0.0
+
+
+## PKAi+pp2a <--> Pkaipp2a --> D32 + PKAc + PP2a (26b) 
+parameters k26b=0.00 k_26b=0 v26b=0.0
+
+dPKAiPP2A/dt=k26b*PKAi*PP2A-k_26b*PKAiPP2A-v26b*PKAiPP2A
+             init  PKAiPP2A=0.0
+
+## PKAi+pp2aC <--> PkaippaC --> D32 + PKAc + PP2aC (25d)
+parameters k25d=0.00 k_25d=0 v25d=0.0
+
+dPKAiPPaC/dt=k25d*PKAi*PP2aC-(k_25d+v25d)*PKAiPPaC
+             init  PKAiPPaC=0.0
+
+
+
+#### PP1 dephosphorylation of Thr75 ? #####
+# Nishi et al 2000, PNAS 97:12840-12845  (suggest PP1 involved in dephosphorylating Thr75, 1/3 of the PP2A effect?)
+# Desdouits et al 1995 (suggest PP1 also dephosphorylates Dp34)
+#PP1+D32p75 <--> dp75pp1 --> PP1 + D32 (k00, k_00, v00)
+# compare e.g. CamKPc + PP1 <-> CamKPcPP1 ->  CamKb + PP1  (k53, k_53, v53) 
+# where PP1 activity is from Bhalla 1999 (kcat=0.35,  Km=(0.35+1.4)/0.000343=5100nM  
+# same as for pp2a: par k00=0.0001 k_00=6.4 v00=1.6
+par k00=0.0000 k_00=0.0 v00=0.0
+
+ddp75pp1/dt=k00*PP1*D32p75-(v00+k_00)*dp75pp1
+            init dp75pp1=0.0
+
+
+
+
+
+##### expressions for cdk5, d32 p34, p75, PP1, PP2A ######
+
+Cdk5=Cdk5tot-Cdk5D32
+aux cdk5=cdk5
+
+
+D32=D32tot-D32PKA-D32p34-Dp34pp1-DP34PP2B-Dp34p1p2-cdk5D32-D32p75-PKAi-DP75PPAP\
+-dp75pp2a-D32PP1-Pkaippap-PKAiPP2A\
+-Dp75PPaC-PKAiPPaC\
+-(dp34pp2a+dp34ppap+dp34ppac+d34p1p2a+d34p1p2p+d34p1p2c)\
+-Dp75PP1
+
+aux d32=d32
+
+
+p34=d32p34+Dp34pp2b+Dp34pp1+Dp34p1p2+(dp34pp2a+dp34ppap+dp34ppac+d34p1p2a+d34p1p2p+d34p1p2c)
+aux p34=p34
+
+nonPhp34=d32p34+Dp34pp1
+aux nonPhp34=nonPhp34
+
+nonPhp75=d32p75+PKAi
+aux nonPhp75=nonPhp75
+
+p75=d32p75+dp75ppap+PKAi+dp75pp2a+Pkaippap+PKAiPP2a+Dp75PPaC+PKAiPPaC\
++Dp75PP1
+aux p75=p75
+
+
+d32sum=cdk5d32+d32+d32pka+d32pp1
+aux d32sum=d32sum
+
+
+totd32=d32sum+p34+p75
+aux totd32=totd32
+
+
+PP1=PP1tot-Dp34pp1-D32PP1-Dp34p1p2\
+-(d34p1p2a+d34p1p2p+d34p1p2c)\
+-Dp75PP1
+aux PP1=pp1
+
+ratio=pkac/PP1
+aux ratio=ratio
+
+ratio2=camka/PP1
+aux ratio2=ratio2
+
+ratio3=camka/PP2B
+aux ratio3=ratio3
+
+pp2a=PP2Atot-PP2AP-DP75PPAP-PKAcPP2A-dp75pp2a-Pkaippap-PKAiPP2a-PP2aC-Dp75PPaC-PKAiPPaC\
+-(dp34pp2a+dp34ppap+dp34ppac+d34p1p2a+d34p1p2p+d34p1p2c)
+aux PP2a=PP2a
+totpp2a=pp2a+PP2AP+DP75PPAP+PKAcPP2A+dp75pp2a+Pkaippap+PKAiPP2a+PP2aC+Dp75PPaC+PKAiPPaC\
++dp34pp2a+dp34ppap+dp34ppac+d34p1p2a+d34p1p2p+d34p1p2c
+aux totpp2a=totpp2a
+
+PP2a_act=PP2ac+pp2ap+PKaippac+pkaippap+dp75ppap+dp75ppac+dp34pp2a+dp34ppap+dp34ppac+d34p1p2a+d34p1p2p+d34p1p2c
+aux pp2a_act=pp2a_act
+
+
+# note need smaller time steps when showing cAMP etc signals (fast, brief), otherwise not looking smooth
+@ Total=2000 dt=0.1 method=stiff xlo=0 xhi=3000 ylo=0 yhi=1 maxstor=6000000 \
+  bounds=10000000000 BACK=white nOutput=10000
+d

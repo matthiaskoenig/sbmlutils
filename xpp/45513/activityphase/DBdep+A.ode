@@ -1,0 +1,77 @@
+# This is a a morris-lecar system with IA and depression.
+# The interesting phase plane for
+# the "middle" branch is the v vs. ha. Note also that the v vs w phase plane
+# can have a quintic v nullcline.
+
+#dv/dt = ( I - gca*minf(V)*(V-Vca)-gk*w*(V-VK)-GL*(v-vL))/c
+#dw/dt = (winf(V)-w)/(tauwleft +(tauwright - tauwleft)*Heav(v-0))
+v=-50+50*heav(TA-mod(t,per))
+dvf/dt = ( Ipost - gca*minf(Vf)*(Vf-Vca)-gk*wf*(Vf-VK)-ga*mainf(vf)*ha*(Vf-VK)-gl*(Vf-Vl)-ginh* s*(vf-Vsyn))/c1
+dwf/dt = (wfinf(Vf)-wf)/tauw(Vf)
+dha/dt = (hainf(vf) - ha)/tauha(vf)
+d'=(1-d)*Heav(vtheta-v)/taua -d*Heav(v-vtheta)/taub
+s'=-s*(Heav(vtheta-v)/tauk + Heav(v-vtheta)*sdecayup)
+y'=1
+tf'=0
+period'=0
+
+minf(v)=.5*(1+tanh((v-v1)/v2))
+winf(v)=.5*(1+tanh((v-v3)/v4))
+wfinf(v)=.5*(1+tanh((v-v5)/v4))
+tauw(v)=tauwflo+(tauwfhi-tauwflo)*winf(v)
+hainf(v)=1/(1+exp((v-vha)/kha))
+mainf(v)=1/(1+exp(-(v-vma)/kma))
+#tauha(v)=tauhhi+(tauhlo-tauhhi)*hainf(v)
+tauha(v)=tauhhi+(tauhlo-tauhhi)*hainf(v) + (tauhmed-tauhhi)*(Heav(v-vha) - Heav(v-vma-k))
+p ipost=45 v5=20 k=2
+p ga=2 vma=-10 kma=0.5
+p ginh=1.85
+p vha=-15 kha=0.5
+p tauhlo=465 tauhhi=10 tauhmed=1200
+p tauwflo=15 tauwfhi=2
+# p tauwleft=200 tauwright=100
+p taua=400 taub=5 tauk=125 c1=2
+p TA=5
+p per=500
+# flags
+
+global 1 v-vtheta {s=d}
+global 1 v-vtheta {y=0}
+global 1 vf-0 {tf=y}
+global 1 v+24.99 {period=y}
+
+# auxilary functions
+aux phase=tf/per
+aux v=v
+aux window=Heav(vf-vha) - Heav(vf-vma-k)
+#ma=mainf(V)
+v1=-1.2
+v2=18
+v3=0
+v4=5
+gk=8
+gl=2
+gca=4
+vk=-84
+vl=-60
+vca=120
+c=40
+vsyn=-80
+vtheta=-25
+sdecayup=0
+
+
+ha(0)=1
+
+@ total=5000,dt=1,xlo=-60,xhi=60,ylo=-.125,yhi=.6,
+# xp=vf,yp=wf
+@ nmesh=200,maxstor=100000,bounds=10000
+done
+
+
+
+
+
+
+
+

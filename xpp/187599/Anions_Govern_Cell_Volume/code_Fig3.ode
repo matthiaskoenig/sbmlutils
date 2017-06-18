@@ -1,0 +1,203 @@
+###########################################################
+# simulation code for Fig. 3;                             #
+# with "g_cl=0" (in line 135) also Fig. 4 can be produced #
+###########################################################
+# t:     time                             in [msec]  #
+# v:     membrane potential               in [mV]    #
+# n,h:   gating variables                 in [1]     #
+# n_ki:  amount of potassium in the ICS   in [fmol]  #
+# n_cli: amount of chloride in the ICS    in [fmol]  #
+# vli:   ICS volume                       in [um^3]  #
+######################################################
+
+##################################################
+# rate equations used by solver                  #
+# factor 1000. converts from [x/msec] to [x/sec] #
+##################################################
+v'     = 1000. * V_DOT
+n'     = 1000. * N_DOT
+h'     = 1000. * H_DOT
+n_ki'  = 1000. * N_KI_DOT
+n_cli' = 1000. * N_CLI_DOT
+vli'   = 1000. * VLI_DOT
+
+############################################
+# initial conditions: normal resting state #
+############################################
+init v=-67.
+init n=0.070
+init h=0.978
+init n_ki=277.7
+init n_cli=21.7
+init vli=2160.
+
+######################################################
+# maximal pump rate drops from 6.8 to 0 after 50 sec #
+# unit: [umA/cm^2]                                   #
+######################################################
+max_p = 6.8 * heav(50.-t)
+
+#######################################
+# parameter to between volume models: #
+# s=0 -> derived volume model         #
+# s=1 -> exponential volume model     #
+#######################################
+par s=0
+
+########################################
+# Hodgkin-Huxley like gating functions #
+# adiabatic value for "M"              #
+########################################
+AN  = 0.01 * (v + 34.0) / (1.0 - exp(-0.1 * (v + 34.0))) 
+BN  = 0.125 * exp(-(v + 44.0) / 80.0)
+AM  = 0.1 * (v + 30.0) / (1.0 - exp(-0.1 * (v + 30.0))) 
+BM  = 4.0 * exp(-(v + 55.0) / 18.0) 
+AH  = 0.07 * exp(-(v + 44.0) / 20)
+BH  = 1.0 / (1.0 + exp(-0.1 * (v + 14.0)))
+M   = AM / (AM + BM)
+
+#####################################################################
+# - resting state ion and impermeant particle amounts in [fmol]     #
+#   in the ICS (...i0) and the ECS (...e0)                          #
+# - "k,na,cl,imp" means potassium, sodium, chloride and impermeant  #
+#####################################################################
+n_ki0  = 277.7
+n_ke0  = 2.8
+n_nai0 = 54.6
+n_nae0 = 91.3
+n_cli0 = 21.7
+n_cle0 = 89.8
+n_impi = 318.0
+n_impe = 40
+
+############################################################################
+# electroneutrality (first line) and mass conservation (second to fourth)  #
+# conditions to compute ion amounts other than intracellular potassium and #
+# chloride                                                                 #
+############################################################################
+n_nai = n_nai0 + n_ki0  - n_ki - n_cli0 + n_cli
+n_nae = n_nae0 + n_nai0 - n_nai
+n_ke  = n_ke0  + n_ki0  - n_ki 
+n_cle = n_cle0 + n_cli0 - n_cli
+
+########################################################################
+# ECS volume "vle" follows from conservation of total volume "vl_tot"  #
+# units: [um^3]                                                        #
+########################################################################
+vl_tot = 2880.
+vle    = vl_tot - vli
+
+########################################
+# ion concentrations in [mM]=[mMol/l]  #
+########################################
+nai = n_nai / vli * 1000.
+nae = n_nae / vle * 1000.
+ki  = n_ki  / vli * 1000.
+ke  = n_ke  / vle * 1000.
+cli = n_cli / vli * 1000.
+cle = n_cle / vle * 1000.
+
+##################################################
+# choice between two volume models:              #
+# vli_inf0: equil. volume in derived model       #
+# vli_inf1: equil. volume in exponential model   #
+######################################################
+# n_i/e: total amount of particles in ICS/ECS        #
+# p_i/e: total concentration of particles in ICS/ECS #
+######################################################
+n_i      = n_nai + n_ki + n_cli + n_impi
+n_e      = n_nae + n_ke + n_cle + n_impe
+vli_inf0 = vl_tot * n_i / (n_i + n_e)
+
+vli0     = 2160.
+p_i      = n_i / vli * 1000.
+p_e      = n_e / vle * 1000.
+vli_inf1 = vli0 * (1.35 - 0.35*exp((p_e-p_i)/20.))
+
+vli_inf  = (1-s) * vli_inf0 + s * vli_inf1
+
+#####################
+# Nernst potentials #
+#####################
+EK  = 26.64 * log(ke  / ki)
+ENA = 26.64 * log(nae / nai)
+ECL =-26.64 * log(cle / cli)
+
+##############################################################################
+# - different leak and gated currents             "IION_l/g"   in [umA/cm^2] #
+# - leak and gated conductances for each channel  "gion_l/g"   in [mS/cm^2]  #
+# - Na/K-exchange pump current "IP" with maximal turnover rate "max_p"       #
+##############################################################################
+gna_l  = 0.0175
+gna_g  = 100.
+gk_l   = 0.05
+gk_g   = 40.
+par gcl_l=0.05
+    
+INA_l = gna_l            * (v - ENA)
+INA_g = gna_g * M**3 * h * (v - ENA)
+IK_l  = gk_l             * (v - EK)
+IK_g  = gk_g * n**4      * (v - EK)
+ICL_l = gcl_l            * (v - ECL)
+IP    = max_p / (1.0 + exp((25 - nai)/3.)) / (1. + exp(5.5 - ke))
+
+#####################################
+# full sodium and potassium current #
+#####################################
+INA = INA_l + INA_g + 3. * IP
+IK  = IK_l  + IK_g  - 2. * IP
+
+#############################
+# list of all changes rates #
+#####################################################################
+# c: membrane capacitance                   in [uF/cm^2]            #
+# conv: conversion from currents to fluxes  in [fmol/msec*cm^2/uA]  #
+# phi: gating timescale parameter           in [1/msec]             #
+# t_vl: timescale of volume dynamics        in [msec]               #
+#####################################################################
+c       = 1
+conv    = 9.55589e-5
+phi     = 3
+t_vl    = 250
+
+V_DOT     = -1. / c * (INA + IK + ICL_l)
+N_DOT     =  phi * (AN * (1 - n) - BN * n)
+H_DOT     =  phi * (AH * (1 - h) - BH * h)
+N_KI_DOT  = -conv * IK
+N_CLI_DOT =  conv * ICL_l
+VLI_DOT   =  1. / t_vl * (vli_inf - vli)
+
+####################################
+# auxiliary variables for plotting #
+####################################
+aux _ki	 = ki
+aux _ke	 = ke
+aux _nai = nai
+aux _nae = nae
+aux _cli = cli
+aux _cle = cle
+aux _EK	 = EK
+aux _ENA = ENA
+aux _ECL = ECL
+aux _vli = vli
+aux _vle = vle
+
+############
+# numerics #
+############
+@ meth=cvode
+@ dt=5e-4
+@ maxstor=10000000, bounds=10000000
+@ total=1000
+@ bell=0
+
+#############################################
+# plot options corresponding to Fig. 3a/b/c #
+#############################################
+@ xhi=1000
+@ nplot=4, yp1=v,  yp2=_EK, yp3=_ENA, yp4=_ECL, ylo=-150, yhi=160
+#@ nplot=2, yp1=_vli, yp2=_vle, ylo=0, yhi=2900
+#@ nplot=6, yp1=_ki, yp2=_ke, yp3=_cli, yp4=_cle, yp5=_nai, yp6=_nae, ylo=0, yhi=150
+
+done
+

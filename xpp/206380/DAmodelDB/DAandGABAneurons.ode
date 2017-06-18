@@ -1,0 +1,118 @@
+# The model consists of one DA neuron and one GABA neuron
+# for a reduced model set spike-producing currents (fast sodium and delayed rectifier  potassium currents) to 0
+
+# Injected currents to DA and GABA neurons
+par I=0, Iapp=0
+
+# ===============DA neuron=====================
+
+# Synaptic conductances
+par gbarnmda=0, ggaba=0,gampa=0
+
+# Reversal potentials
+par ECa=50., EK=-90., ENa=55., ENMDA=0., EAMPA=0., Egaba=-90.,Eh=-20.
+
+# Leak current
+par gL=0.18, EL=-35
+IL=gL*(EL-v)
+
+# H-current
+par vhh=-95, slh=8, th0=625, vtauh=-112, gbarh=2
+hinf(v)=1/(1+exp((v-vhh)/slh))
+tauh(v)=th0*exp(0.075*(v-vtauh))/(1+exp(0.083*(v-vtauh)))
+Ih=gbarh*q*(Eh-v)
+
+# subthreshold Na current
+par gSNa=0.13, vhna=-50, slna=5
+na(v)=1/(1+exp(-(v-vhna)/slna))
+Isna=gSNa*na(v)*(Ena-v)
+
+# SK current
+par gbarKCa=7.8, k=160
+gKCa(x)=gbarKCa*(x**4)/((x**4) + (k**4))
+IKCa=gKCa(u)*(EK-v)
+
+# Instantaneous K+ current
+par gbarK=1., vHk=-10, vSk=7 
+gK(x)=gbarK/(1. + exp(-(x-vHk)/vSk))
+IK=gK(v)*(EK-v)
+
+# Ca2+ balance parameters & constants
+par caLeak=0.1, caNMDA=0, buf=0.00023, r=0.2, tc=0.52, zF=.019298
+
+# Ca2+ current
+par gbarCa=2.5, Vcah=-52, Sca=3., CaConst=0.016
+alphac(V)=if (abs(V-Vcah)>0.00001) then (-0.0032*(V-Vcah)/(exp(-(V-Vcah)/Sca) - 1.)) else (-0.0032*0.00001/(exp(-0.00001/Sca)-1.))
+betac(V)=0.05*exp(-(V-Vcah+5.)/40.)
+csinf(V)=alphac(V)/(alphac(V)+betac(V)) 
+gCa(V)=gbarCa*(csinf(V)**4)
+Ica=gCa(v)*(ECa-v)
+
+# Na+ current
+par th=0.05, gbarNa=50;
+alpham(V)=-0.32*(V+31.)/(exp(-(V+31.)/4.) - 1.)
+betam(V)=0.28*(V+4.)/(exp((V+4.)/5.) - 1.)
+minf(v)=alpham(v)/(alpham(v)+betam(v))
+alphah(V)=0.2*th*exp(-((V+47.)/18.))
+betah(V)=25.*th/(1.+(exp(-(V+24.)/5.)))
+gNa(v,h)=gbarNa*(minf(v)**3)*h
+Ina=gNa(v,h)*(ENa-v)
+
+# Delayed rectifier K+ current
+par Vdrh=-5, tk=1, gbarDR=2
+alphan(V)=-0.0032*tk*(V+5.)/(exp(-(V-Vdrh)/10.) - 1.)
+betan(V)=0.05*tk*exp(-((V-Vdrh+5.)/16.))
+Idr=gbarDR*(n**4)*(EK-v)
+
+# NMDA current
+par Mg=0.5, me=0.062
+gnmda(v)=gbarnmda/(1+0.28*Mg*exp(-me*v))
+aux nmda=gnmda(v)
+#nmdasig=1/(1+exp(-(-nmdathresh)/nmdasl));
+Inmda=gnmda(v)*(ENMDA-v)
+
+# AMPA current
+Iampa=gampa*(EAMPA-v)
+#ampasig=1/(1+exp(-(y[2]*y[6]-ampathresh)/ampasl));
+
+v'=Ica + IKCa + IK + IsNa + IL + Ih + Idr + Ina + Inmda +Iampa + ggaba*gaba*(Egaba-v) + I
+u'= 2.*buf*((gCa(v)+gL*caLeak+gnmda(v)*caNMDA)*(ECa - v)/zF - u/tc)/r
+h'= alphah(v)*(1.-h)-betah(v)*h
+n'= alphan(v)*(1.-n)-betan(v)*n
+q'= (hinf(v)-q)/tauh(v)
+
+# =================GABA neuron==========================================
+par glg=0.05, gbarnag=22, gbardrg=7, tng=1, thg=5, tbn=0.7, as=12, bs=0.1, vgnz=0, dg=0
+par gampag=0, gnmdabarg=0;
+
+# N+ on GABA neuron
+amg(vgaba)=0.1*(vgaba+30.0)/(1.0-exp(-(vgaba+30.0)/10.0))
+bmg(vgaba)=4.0*exp(-(vgaba+55.0)/18.0)
+minfgg(vgaba)=amg(vgaba)/(amg(vgaba)+bmg(vgaba))
+ahg(vgaba)=0.07*exp(-(vgaba+53.0)/20.0)
+bhg(vgaba)=1.0/(1.0+exp(-(vgaba+23.0)/10.0))
+gnag(vgaba,hg)=gbarnag*(minfgg(vgaba)**3)*hg
+Inag = gnag(vgaba,hg)*(55-vgaba) 
+
+# K+ on GABA neuron
+ang(vgaba)=0.01*(vgaba+29.0)/(1.0-exp(-(vgaba+29.0)/10.0))
+bng(vgaba)=tbn*0.125*exp(-(vgaba+39.0)/80.0)
+gdrg(vgaba,ng)=gbardrg*(ng**4)
+gnmdagg(vgaba)=gnmdabarg/(1+0.28*Mg*exp(-me*vgaba))
+gspikeg(vgaba)=1/(1+exp(-vgaba/2))
+Idrg = gdrg(vgaba,ng)*(-90-vgaba)
+
+# Leak current on GABA neuron
+ILg=glg*(-51-vgaba)
+
+vgaba' = ILg + Inag + Idrg + gnmdagg(vgaba)*(eNMDA-vgaba) + gampag*(eAMPA-vgaba) + Iapp
+ng'=tng*(ang(vgaba)*(1-ng))-bng(vgaba)*ng
+hg'=thg*(ahg(vgaba)*(1-hg))-bhg(vgaba)*hg
+gaba'=as*gspikeg(vgaba)*(1-gaba)-bs*(1-gspikeg(vgaba))*gaba
+
+init v=-60, u=50, vgaba=-40, ng=0, hg=0, gaba=0
+
+@ MAXSTOR=40000,TOTAL=1000,bell=0,XP=v,YP=u
+@ BOUND=10000,DT=0.05,METH=stiff,YLO=40,YHI=130,XLO=-80,XHI=0
+
+done

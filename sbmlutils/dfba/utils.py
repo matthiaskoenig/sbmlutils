@@ -36,11 +36,7 @@ def set_notes(model, notes):
     :param notes: notes information (xml string)
     :return: 
     """
-    xml_node = XMLNode.convertStringToXMLNode(notes)
-    if xml_node is None:
-        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
-    check(model.setNotes(xml_node),
-          message="Setting notes on model")
+    factory.set_notes(model, notes)
 
 
 def set_units(model, units):

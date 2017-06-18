@@ -1,0 +1,27 @@
+% Ca-Oscil-Astrocyte.ode
+% Ref: Laventovich and Hemkin, A mathematical model of spontaneous calcium(II)  oscillations 
+% in astrocytes.  J Theor Biol 2008; 251(4):553-60.
+
+% Units: microM/sec; microM; sec
+% x: cytosolic Ca; y: Ca concencentration in ER; z: IP3 concentration
+
+init x=0.1, y=1.5, z=0.1
+
+parm vm2=15, vm3=40, vin=0.05, vp=0.05, k2=0.1
+parm kcaa=0.15, kcat=0.15, kip3=0.1, kp=0.3
+parm kdeg=0.08, kout=0.5, kf=0.5, n=2.02, m=2.2
+
+vserca=vm2*(x^2/(x^2+k2^2))
+vplc=vp*(x^2/(x^2+kp^2))
+vcicr=4*vm3*((kcaa^n)*(x^n)/((x^n+kcaa^n)*(x^n+kcat^n)))*(z^m/(z^m+kip3^m))*(y-x)
+
+dx/dt=vin-kout*x+vcicr-vserca+kf*(y-x)
+dy/dt=vserca-vcicr-kf*(y-x)
+dz/dt=vplc-kdeg*z
+
+@ meth=Euler, dt=0.01, total=600
+@ yp=x, ylo=0, yhi=0.7, xlo=0, xhi=600, bound=10000
+
+done
+
+

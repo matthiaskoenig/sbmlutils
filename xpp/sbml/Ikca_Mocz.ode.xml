@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre>% ikca_Mocz.ode
+% simplified mode for calcium-activated K+ current 
+% (Ref: From Moczydlowski and Latorre (1983)  J. Gen. Physiol. 82:511-542.)
+% Model 3. (Scheme R1 page 523)
+% (Ref: From Wang et al (2008) J. Membr. Biol. 213:175-185.)
+% Model has been briefly described in Computational Cell Biology (pp 88-90)
+% Results are similar to those in &apos;cagk&apos; in NEURON
+% Equation was incorporated to model skeletal muscle cell (Wang et al., 2008)
+
+% Initial values of the variables
+init o=0.0
+
+% Values of the model parameters; Units= mM, ms(-1), mV
+% k1 and k2 are zero-voltage dissociation constants.
+% d1 and d2 are fractional distances of the electric field.
+% bbar is alpha in originanl paper (1983) (p 524)
+par d1=0.84, d2=1.0, k1=0.18, k2=0.011, bbar=0.28, abar=0.48, celsius=20
+par gkbar=0.01, cai=0.1
+number fara=96.485
+par ko=5.4, ki=140
+par vhold=-65, vtest=20
+par ton=2, toff=12
+v = vhold + heav(t-ton)*heav(toff-t)*(vtest-vhold)
+
+% Gating functions
+ek = (8.313424*(273.15+celsius)/fara)*ln(ko/ki)
+alp(v) = abar/(1+k1*exp(-2*d1*fara*v/8.313424/(273.15+celsius))/cai)
+beta(v) = bbar/(1+cai/(k2*exp(-2*d2*fara*v/8.313424/(273.15+celsius))))
+tau(v) = 1/(alp(v)+beta(v))
+oinf(v) = alp(v)*tau(v)
+
+% Differential equation
+o&apos; = (oinf(v)-o)/tau(v)
+aux ikca = gkbar*o*(v-ek)
+aux vm=v
+
+% Numerical and plotting parameters for xpp
+@ yp=ikca, xlo=0, xhi=18 ylo=-.04, yhi=1.0, total=18, dt=0.01, method=Euler, LT=1
+
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="alp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> abar </ci>
+            </bvar>
+            <bvar>
+              <ci> cai </ci>
+            </bvar>
+            <bvar>
+              <ci> celsius </ci>
+            </bvar>
+            <bvar>
+              <ci> d1 </ci>
+            </bvar>
+            <bvar>
+              <ci> fara </ci>
+            </bvar>
+            <bvar>
+              <ci> k1 </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <ci> abar </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> k1 </ci>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <divide/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <apply>
+                              <minus/>
+                              <cn type="integer"> 2 </cn>
+                            </apply>
+                            <ci> d1 </ci>
+                            <ci> fara </ci>
+                            <ci> v </ci>
+                          </apply>
+                          <cn> 8.313424 </cn>
+                        </apply>
+                        <apply>
+                          <plus/>
+                          <cn> 273.15 </cn>
+                          <ci> celsius </ci>
+                        </apply>
+                      </apply>
+                    </apply>
+                  </apply>
+                  <ci> cai </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="beta">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> bbar </ci>
+            </bvar>
+            <bvar>
+              <ci> cai </ci>
+            </bvar>
+            <bvar>
+              <ci> celsius </ci>
+            </bvar>
+            <bvar>
+              <ci> d2 </ci>
+            </bvar>
+            <bvar>
+              <ci> fara </ci>
+            </bvar>
+            <bvar>
+              <ci> k2 </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <ci> bbar </ci>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <ci> cai </ci>
+                  <apply>
+                    <times/>
+                    <ci> k2 </ci>
+                    <apply>
+                      <exp/>
+                      <apply>
+                        <divide/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <apply>
+                              <minus/>
+                              <cn type="integer"> 2 </cn>
+                            </apply>
+                            <ci> d2 </ci>
+                            <ci> fara </ci>
+                            <ci> v </ci>
+                          </apply>
+                          <cn> 8.313424 </cn>
+                        </apply>
+                        <apply>
+                          <plus/>
+                          <cn> 273.15 </cn>
+                          <ci> celsius </ci>
+                        </apply>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tau">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> abar </ci>
+            </bvar>
+            <bvar>
+              <ci> bbar </ci>
+            </bvar>
+            <bvar>
+              <ci> cai </ci>
+            </bvar>
+            <bvar>
+              <ci> celsius </ci>
+            </bvar>
+            <bvar>
+              <ci> d1 </ci>
+            </bvar>
+            <bvar>
+              <ci> d2 </ci>
+            </bvar>
+            <bvar>
+              <ci> fara </ci>
+            </bvar>
+            <bvar>
+              <ci> k1 </ci>
+            </bvar>
+            <bvar>
+              <ci> k2 </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <apply>
+                  <ci> alp </ci>
+                  <ci> v </ci>
+                  <ci> d1 </ci>
+                  <ci> k1 </ci>
+                  <ci> cai </ci>
+                  <ci> abar </ci>
+                  <ci> celsius </ci>
+                  <ci> fara </ci>
+                </apply>
+                <apply>
+                  <ci> beta </ci>
+                  <ci> v </ci>
+                  <ci> bbar </ci>
+                  <ci> k2 </ci>
+                  <ci> d2 </ci>
+                  <ci> cai </ci>
+                  <ci> celsius </ci>
+                  <ci> fara </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="oinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> abar </ci>
+            </bvar>
+            <bvar>
+              <ci> bbar </ci>
+            </bvar>
+            <bvar>
+              <ci> cai </ci>
+            </bvar>
+            <bvar>
+              <ci> celsius </ci>
+            </bvar>
+            <bvar>
+              <ci> d1 </ci>
+            </bvar>
+            <bvar>
+              <ci> d2 </ci>
+            </bvar>
+            <bvar>
+              <ci> fara </ci>
+            </bvar>
+            <bvar>
+              <ci> k1 </ci>
+            </bvar>
+            <bvar>
+              <ci> k2 </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <ci> alp </ci>
+                <ci> v </ci>
+                <ci> d1 </ci>
+                <ci> k1 </ci>
+                <ci> cai </ci>
+                <ci> abar </ci>
+                <ci> celsius </ci>
+                <ci> fara </ci>
+              </apply>
+              <apply>
+                <ci> tau </ci>
+                <ci> v </ci>
+                <ci> abar </ci>
+                <ci> bbar </ci>
+                <ci> cai </ci>
+                <ci> celsius </ci>
+                <ci> d1 </ci>
+                <ci> d2 </ci>
+                <ci> fara </ci>
+                <ci> k1 </ci>
+                <ci> k2 </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="o" name="o = 0.0" value="0" constant="false"/>
+      <parameter id="d1" name="d1 = 0.84" value="0.84" constant="false"/>
+      <parameter id="d2" name="d2 = 1.0" value="1" constant="false"/>
+      <parameter id="k1" name="k1 = 0.18" value="0.18" constant="false"/>
+      <parameter id="k2" name="k2 = 0.011" value="0.011" constant="false"/>
+      <parameter id="bbar" name="bbar = 0.28" value="0.28" constant="false"/>
+      <parameter id="abar" name="abar = 0.48" value="0.48" constant="false"/>
+      <parameter id="celsius" name="celsius = 20" value="20" constant="false"/>
+      <parameter id="gkbar" name="gkbar = 0.01" value="0.01" constant="false"/>
+      <parameter id="cai" name="cai = 0.1" value="0.1" constant="false"/>
+      <parameter id="fara" name="fara = 96.485" value="96.485" constant="false"/>
+      <parameter id="ko" name="ko = 5.4" value="5.4" constant="false"/>
+      <parameter id="ki" name="ki = 140" value="140" constant="false"/>
+      <parameter id="vhold" name="vhold = -65" value="-65" constant="false"/>
+      <parameter id="vtest" name="vtest = 20" value="20" constant="false"/>
+      <parameter id="ton" name="ton = 2" value="2" constant="false"/>
+      <parameter id="toff" name="toff = 12" value="12" constant="false"/>
+      <parameter id="v" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ek" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ikca" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vm" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="o">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <ci> oinf </ci>
+                <ci> v </ci>
+                <ci> abar </ci>
+                <ci> bbar </ci>
+                <ci> cai </ci>
+                <ci> celsius </ci>
+                <ci> d1 </ci>
+                <ci> d2 </ci>
+                <ci> fara </ci>
+                <ci> k1 </ci>
+                <ci> k2 </ci>
+              </apply>
+              <ci> o </ci>
+            </apply>
+            <apply>
+              <ci> tau </ci>
+              <ci> v </ci>
+              <ci> abar </ci>
+              <ci> bbar </ci>
+              <ci> cai </ci>
+              <ci> celsius </ci>
+              <ci> d1 </ci>
+              <ci> d2 </ci>
+              <ci> fara </ci>
+              <ci> k1 </ci>
+              <ci> k2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="v">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> vhold </ci>
+            <apply>
+              <times/>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> ton </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> toff </ci>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> vtest </ci>
+                <ci> vhold </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ek">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <cn> 8.313424 </cn>
+                <apply>
+                  <plus/>
+                  <cn> 273.15 </cn>
+                  <ci> celsius </ci>
+                </apply>
+              </apply>
+              <ci> fara </ci>
+            </apply>
+            <apply>
+              <ln/>
+              <apply>
+                <divide/>
+                <ci> ko </ci>
+                <ci> ki </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ikca">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gkbar </ci>
+            <ci> o </ci>
+            <apply>
+              <minus/>
+              <ci> v </ci>
+              <ci> ek </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="vm">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> v </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

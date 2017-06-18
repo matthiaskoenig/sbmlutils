@@ -1,0 +1,1249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># PLOS Computational Biology, Riz et al., 2013
+# human beta-cell model including SK-channels and Ca2+ dynamics
+# Default parameters as in Fig. 1A
+
+# Differential equations
+V&apos;= -(ISK + IBK + IKv + IHERG + INa + ICaL + ICaPQ + ICaT + IKatp*(1+sigma*q) + Ileak + Igabar)
+
+# use for stochastic simulation in Fig 1E
+wiener q
+par sigma=0
+
+mkv&apos;=(mkvinf-mkv)/taumkv
+mBK&apos;=(mBKinf-mBK)/taumBK
+hNa&apos;=(hNainf-hNa)/tauhNa
+hCaL&apos;=(hCaLinf-hCaL)/tauhCaL
+hCaT&apos;=(hCaTinf-hCaT)/tauhCaT
+mHERG&apos;=(mHERGinf-mHERG)/taumHERG
+hHERG&apos;=(hHERGinf-hHERG)/tauhHERG
+
+# Differential equations for Ca2+ dynamics
+Cam&apos;=f*( (JCaL+JCaPQ+JCaT) - B*(Cam-Cac)/Volm*Volc - L/Volm*Volc )
+Cac&apos;=f*(B*(Cam-Cac)-Jserca+Jleak)
+
+# Initial conditions
+V(0)=-63
+mkv(0)=0.02
+mBK(0)=0.002
+hNa(0)=0.97
+hCaL(0)=0.98
+hCaT(0)=0.52
+mHERG(0)=0.1
+hHERG(0)=0.7
+Cam(0)=0.30
+Cac(0)=0.17
+
+## Nernst voltages
+par VNa=70
+par VCa=65
+par VK=-75
+par VCl=-40
+
+## Leak current
+par gleak=0.015
+par vleak=-30
+
+Ileak=gleak*(V-vleak)
+aux Ileak=Ileak
+
+## IKv
+par taumkv0=2, Vmkv=0, nmkv=-10, gkv=1
+
+mkvinf=1/(1+exp((V-Vmkv)/nmkv))
+taumkv=taumkv0+10*exp(min(log(3),(-20-V)/6))
+IKv=gkv*mkv*(V-VK)
+
+## IBK
+par taumBK=2, VmBK=0, nmBK=-10, BBK=20, gBK=0.02
+
+mBKinf=1/( 1+exp((V-VmBK)/nmBK))
+IBK = gBK*(-ICa+BBK)*mBK*(V-VK)
+aux ibk=IBK
+
+## hERG channels
+par VmHERG=-30, nmHERG=-10, taumHERG=100
+par VhHERG=-42, nhHERG=17.5, tauhHERG=50
+par gHERG=0
+
+mHERGinf=1/( 1+exp((V-VmHERG)/nmHERG) )
+hHERGinf=1/( 1+exp((V-VhHERG)/nhHERG) )
+IHERG = gHERG*mHERG*hHERG*(V-VK)
+
+## Na current
+par gNa=0.4, VmNa=-18, nmNa=-5, VhNa=-42, nhNa=6, tauhNa=2
+hNainf=1/( 1+exp((V-VhNa)/nhNa) )
+mNainf=1/( 1+exp((V-VmNa)/nmNa) )
+INa=gNa*mNainf*hNa*(V-VNa)
+
+## L-type Ca current
+par gCaL=0.14, VmCaL=-25, nmCaL=-6, tauhCaL=20
+
+mCaLinf=1/( 1+exp((V-VmCaL)/nmCaL) ) 
+hCaLinf=max(0,min(1,1+mCaLinf*(V-VCa)/57))
+ICaL = gCaL*mCaLinf*hCaL*(V-VCa)
+
+## PQ-type Ca current
+par gCaPQ=0.17, VmCaPQ=-10, nmCaPQ=-6
+
+mCaPQinf=1/( 1+exp((V-VmCaPQ)/nmCaPQ) )
+ICaPQ = gCaPQ*mCaPQinf*(V-VCa)
+
+## T-type Ca current
+par gCaT=0.05, VmCaT=-40, nmCaT=-4, VhCaT=-64, nhCaT=8, tauhCaT=7
+
+mCaTinf=1/( 1+exp((V-VmCaT)/nmCaT) )
+hCaTinf=1/( 1+exp((V-VhCaT)/nhCaT) )
+ICaT = gCaT*mCaTinf*hCaT*(V-VCa)
+ICa=ICaL+ICaPQ+ICaT
+
+## Katp current
+IKatp=gkatp*(V-VK)
+
+par gkatp=0.01
+
+## Gabar current
+Igabar=ggabar*(V-VCl)
+
+par ggabar=0
+
+
+## ISK current
+par gSK=0.1, kSK=0.57, nSK=5.2
+
+ISK = gSK*(Cam^nSK/( kSK^nSK+Cam^nSK) )*(V-VK)
+#aux ISK=ISK
+
+## Ca diffusion
+#definition of fluxes
+par Cm=10
+
+JCaL=-alpha*ICaL*Cm/Volm
+JCaPQ=-alpha*ICaPQ*Cm/Volm
+JCaT=-alpha*ICaT*Cm/Volm
+Jserca=Jsercamax*Cac^2/(Kserca^2 + Cac^2)
+Jpmca=Jpmcamax*Cam/(Kpmca + Cam)
+Jncx=Jncx0*(Cam)
+L=Jpmca+Jncx
+
+# Calcium dynamics parameters
+
+par f=0.01
+par B=0.1
+par Volc=1.15e-12, Volm=1e-13
+ 
+# conversion to fluxes
+par alpha=5.18e-15
+ 
+# other fluxes
+par Jsercamax=0.06, Kserca=0.27, Jpmcamax=0.021, Kpmca=0.5, Jleak=0.94e-3, Jncx0=0.01867
+
+@ meth=cvode, toler=1.0e-10, atoler=1.0e-10, dt=.01, total=3000,
+@ maxstor=2000000,bounds=10000000000000000000, xp=t, yp=v
+@ xlo=0, xhi=3000, ylo=-80, yhi=10
+
+done</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="q" value="0" constant="true"/>
+      <parameter id="sigma" value="0" constant="false"/>
+      <parameter id="V" value="-63" constant="false"/>
+      <parameter id="mkv" value="0.02" constant="false"/>
+      <parameter id="mBK" value="0.002" constant="false"/>
+      <parameter id="hNa" value="0.97" constant="false"/>
+      <parameter id="hCaL" value="0.98" constant="false"/>
+      <parameter id="hCaT" value="0.52" constant="false"/>
+      <parameter id="mHERG" value="0.1" constant="false"/>
+      <parameter id="hHERG" value="0.7" constant="false"/>
+      <parameter id="Cam" value="0.3" constant="false"/>
+      <parameter id="Cac" value="0.17" constant="false"/>
+      <parameter id="VNa" value="70" constant="false"/>
+      <parameter id="VCa" value="65" constant="false"/>
+      <parameter id="VK" value="-75" constant="false"/>
+      <parameter id="VCl" value="-40" constant="false"/>
+      <parameter id="gleak" value="0.015" constant="false"/>
+      <parameter id="vleak" value="-30" constant="false"/>
+      <parameter id="taumkv0" value="2" constant="false"/>
+      <parameter id="Vmkv" value="0" constant="false"/>
+      <parameter id="nmkv" value="-10" constant="false"/>
+      <parameter id="gkv" value="1" constant="false"/>
+      <parameter id="taumBK" value="2" constant="false"/>
+      <parameter id="VmBK" value="0" constant="false"/>
+      <parameter id="nmBK" value="-10" constant="false"/>
+      <parameter id="BBK" value="20" constant="false"/>
+      <parameter id="gBK" value="0.02" constant="false"/>
+      <parameter id="VmHERG" value="-30" constant="false"/>
+      <parameter id="nmHERG" value="-10" constant="false"/>
+      <parameter id="taumHERG" value="100" constant="false"/>
+      <parameter id="VhHERG" value="-42" constant="false"/>
+      <parameter id="nhHERG" value="17.5" constant="false"/>
+      <parameter id="tauhHERG" value="50" constant="false"/>
+      <parameter id="gHERG" value="0" constant="false"/>
+      <parameter id="gNa" value="0.4" constant="false"/>
+      <parameter id="VmNa" value="-18" constant="false"/>
+      <parameter id="nmNa" value="-5" constant="false"/>
+      <parameter id="VhNa" value="-42" constant="false"/>
+      <parameter id="nhNa" value="6" constant="false"/>
+      <parameter id="tauhNa" value="2" constant="false"/>
+      <parameter id="gCaL" value="0.14" constant="false"/>
+      <parameter id="VmCaL" value="-25" constant="false"/>
+      <parameter id="nmCaL" value="-6" constant="false"/>
+      <parameter id="tauhCaL" value="20" constant="false"/>
+      <parameter id="gCaPQ" value="0.17" constant="false"/>
+      <parameter id="VmCaPQ" value="-10" constant="false"/>
+      <parameter id="nmCaPQ" value="-6" constant="false"/>
+      <parameter id="gCaT" value="0.05" constant="false"/>
+      <parameter id="VmCaT" value="-40" constant="false"/>
+      <parameter id="nmCaT" value="-4" constant="false"/>
+      <parameter id="VhCaT" value="-64" constant="false"/>
+      <parameter id="nhCaT" value="8" constant="false"/>
+      <parameter id="tauhCaT" value="7" constant="false"/>
+      <parameter id="gkatp" value="0.01" constant="false"/>
+      <parameter id="ggabar" value="0" constant="false"/>
+      <parameter id="gSK" value="0.1" constant="false"/>
+      <parameter id="kSK" value="0.57" constant="false"/>
+      <parameter id="nSK" value="5.2" constant="false"/>
+      <parameter id="Cm" value="10" constant="false"/>
+      <parameter id="f" value="0.01" constant="false"/>
+      <parameter id="B" value="0.1" constant="false"/>
+      <parameter id="Volc" value="1.15e-12" constant="false"/>
+      <parameter id="Volm" value="1e-13" constant="false"/>
+      <parameter id="alpha" value="5.18e-15" constant="false"/>
+      <parameter id="Jsercamax" value="0.06" constant="false"/>
+      <parameter id="Kserca" value="0.27" constant="false"/>
+      <parameter id="Jpmcamax" value="0.021" constant="false"/>
+      <parameter id="Kpmca" value="0.5" constant="false"/>
+      <parameter id="Jleak" value="0.00094" constant="false"/>
+      <parameter id="Jncx0" value="0.01867" constant="false"/>
+      <parameter id="Ileak" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mkvinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="taumkv" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IKv" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mBKinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IBK" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ibk" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mHERGinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="hHERGinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IHERG" value="0" units="dimensionless" constant="false"/>
+      <parameter id="hNainf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mNainf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="INa" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mCaLinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="hCaLinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ICaL" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mCaPQinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ICaPQ" value="0" units="dimensionless" constant="false"/>
+      <parameter id="mCaTinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="hCaTinf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ICaT" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ICa" value="0" units="dimensionless" constant="false"/>
+      <parameter id="IKatp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Igabar" value="0" units="dimensionless" constant="false"/>
+      <parameter id="ISK" value="0" units="dimensionless" constant="false"/>
+      <parameter id="JCaL" value="0" units="dimensionless" constant="false"/>
+      <parameter id="JCaPQ" value="0" units="dimensionless" constant="false"/>
+      <parameter id="JCaT" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Jserca" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Jpmca" value="0" units="dimensionless" constant="false"/>
+      <parameter id="Jncx" value="0" units="dimensionless" constant="false"/>
+      <parameter id="L" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="V">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <ci> ISK </ci>
+              <ci> IBK </ci>
+              <ci> IKv </ci>
+              <ci> IHERG </ci>
+              <ci> INa </ci>
+              <ci> ICaL </ci>
+              <ci> ICaPQ </ci>
+              <ci> ICaT </ci>
+              <apply>
+                <times/>
+                <ci> IKatp </ci>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <times/>
+                    <ci> sigma </ci>
+                    <ci> q </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> Ileak </ci>
+              <ci> Igabar </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mkv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mkvinf </ci>
+              <ci> mkv </ci>
+            </apply>
+            <ci> taumkv </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mBK">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mBKinf </ci>
+              <ci> mBK </ci>
+            </apply>
+            <ci> taumBK </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hNa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hNainf </ci>
+              <ci> hNa </ci>
+            </apply>
+            <ci> tauhNa </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hCaL">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hCaLinf </ci>
+              <ci> hCaL </ci>
+            </apply>
+            <ci> tauhCaL </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hCaT">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hCaTinf </ci>
+              <ci> hCaT </ci>
+            </apply>
+            <ci> tauhCaT </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="mHERG">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> mHERGinf </ci>
+              <ci> mHERG </ci>
+            </apply>
+            <ci> taumHERG </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="hHERG">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> hHERGinf </ci>
+              <ci> hHERG </ci>
+            </apply>
+            <ci> tauhHERG </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Cam">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> f </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <ci> JCaL </ci>
+                  <ci> JCaPQ </ci>
+                  <ci> JCaT </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <ci> B </ci>
+                      <apply>
+                        <minus/>
+                        <ci> Cam </ci>
+                        <ci> Cac </ci>
+                      </apply>
+                    </apply>
+                    <ci> Volm </ci>
+                  </apply>
+                  <ci> Volc </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> L </ci>
+                  <ci> Volm </ci>
+                </apply>
+                <ci> Volc </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="Cac">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> f </ci>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> B </ci>
+                  <apply>
+                    <minus/>
+                    <ci> Cam </ci>
+                    <ci> Cac </ci>
+                  </apply>
+                </apply>
+                <ci> Jserca </ci>
+              </apply>
+              <ci> Jleak </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="Ileak">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gleak </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> vleak </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mkvinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> Vmkv </ci>
+                  </apply>
+                  <ci> nmkv </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="taumkv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> taumkv0 </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 10 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <ci> min </ci>
+                  <apply>
+                    <log/>
+                    <logbase>
+                      <cn type="integer"> 10 </cn>
+                    </logbase>
+                    <cn type="integer"> 3 </cn>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 20 </cn>
+                      </apply>
+                      <ci> V </ci>
+                    </apply>
+                    <cn type="integer"> 6 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IKv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gkv </ci>
+            <ci> mkv </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VK </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mBKinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VmBK </ci>
+                  </apply>
+                  <ci> nmBK </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IBK">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gBK </ci>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> ICa </ci>
+              </apply>
+              <ci> BBK </ci>
+            </apply>
+            <ci> mBK </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VK </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ibk">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> IBK </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mHERGinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VmHERG </ci>
+                  </apply>
+                  <ci> nmHERG </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="hHERGinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VhHERG </ci>
+                  </apply>
+                  <ci> nhHERG </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IHERG">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gHERG </ci>
+            <ci> mHERG </ci>
+            <ci> hHERG </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VK </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="hNainf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VhNa </ci>
+                  </apply>
+                  <ci> nhNa </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mNainf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VmNa </ci>
+                  </apply>
+                  <ci> nmNa </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="INa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gNa </ci>
+            <ci> mNainf </ci>
+            <ci> hNa </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VNa </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mCaLinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VmCaL </ci>
+                  </apply>
+                  <ci> nmCaL </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="hCaLinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <ci> max </ci>
+            <cn type="integer"> 0 </cn>
+            <apply>
+              <ci> min </ci>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> mCaLinf </ci>
+                    <apply>
+                      <minus/>
+                      <ci> V </ci>
+                      <ci> VCa </ci>
+                    </apply>
+                  </apply>
+                  <cn type="integer"> 57 </cn>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ICaL">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gCaL </ci>
+            <ci> mCaLinf </ci>
+            <ci> hCaL </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VCa </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mCaPQinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VmCaPQ </ci>
+                  </apply>
+                  <ci> nmCaPQ </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ICaPQ">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gCaPQ </ci>
+            <ci> mCaPQinf </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VCa </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="mCaTinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VmCaT </ci>
+                  </apply>
+                  <ci> nmCaT </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="hCaTinf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> V </ci>
+                    <ci> VhCaT </ci>
+                  </apply>
+                  <ci> nhCaT </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ICaT">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gCaT </ci>
+            <ci> mCaTinf </ci>
+            <ci> hCaT </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VCa </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ICa">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> ICaL </ci>
+            <ci> ICaPQ </ci>
+            <ci> ICaT </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="IKatp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gkatp </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VK </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Igabar">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> ggabar </ci>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VCl </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="ISK">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> gSK </ci>
+            <apply>
+              <divide/>
+              <apply>
+                <power/>
+                <ci> Cam </ci>
+                <ci> nSK </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <apply>
+                  <power/>
+                  <ci> kSK </ci>
+                  <ci> nSK </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> Cam </ci>
+                  <ci> nSK </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <ci> V </ci>
+              <ci> VK </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="JCaL">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> alpha </ci>
+              </apply>
+              <ci> ICaL </ci>
+              <ci> Cm </ci>
+            </apply>
+            <ci> Volm </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="JCaPQ">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> alpha </ci>
+              </apply>
+              <ci> ICaPQ </ci>
+              <ci> Cm </ci>
+            </apply>
+            <ci> Volm </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="JCaT">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <ci> alpha </ci>
+              </apply>
+              <ci> ICaT </ci>
+              <ci> Cm </ci>
+            </apply>
+            <ci> Volm </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Jserca">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> Jsercamax </ci>
+              <apply>
+                <power/>
+                <ci> Cac </ci>
+                <cn type="integer"> 2 </cn>
+              </apply>
+            </apply>
+            <apply>
+              <plus/>
+              <apply>
+                <power/>
+                <ci> Kserca </ci>
+                <cn type="integer"> 2 </cn>
+              </apply>
+              <apply>
+                <power/>
+                <ci> Cac </ci>
+                <cn type="integer"> 2 </cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Jpmca">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> Jpmcamax </ci>
+              <ci> Cam </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <ci> Kpmca </ci>
+              <ci> Cam </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Jncx">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Jncx0 </ci>
+            <ci> Cam </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="L">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> Jpmca </ci>
+            <ci> Jncx </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

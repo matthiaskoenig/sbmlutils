@@ -1,0 +1,80 @@
+# Kuznetsova and Deth, JCN, 2007
+# 4-cell network, all-to-all connections: E cells (V1, V2) and I cells (V3, V4) 
+init V1=-0.75  R1=0.26  CA1=0.1 H1=0.1
+init V2=-0.71  R2=0.26  CA2=0.1 H2=0.1
+init V3=-0.75  R3=0.26  CA3=0.1
+init V4=-0.71  R4=0.26  CA4=0.1
+
+init F1=0.0  S1=0.0  F2=0.0  S2=0.0 F3=0.0  S3=0.0  F4=0.0  S4=0.0
+init F5=0.0  S5=0.0  F6=0.0  S6=0.0 F7=0.0  S7=0.0  F8=0.0  S8=0.0
+init F9=0.0  S9=0.0  F10=0.0  S10=0.0 F11=0.0  S11=0.0  F12=0.0  S12=0.0
+
+par Ie1=0.6, Ie2=0.6
+#continuos input in both E cells
+
+par GCA=0.1, GH=4.
+par TR1=2.2, TR2=2.2
+par GSYNee=6, GSYNei=6, TSYN=2, W=-0.1
+#GSYNee=6 or 11
+
+par GCAi=0.25
+par TR3=1.5, TR4=1.5
+par GSYNi=3, TSYNi=8
+ 
+V1'=-MB(V1)*(V1-0.5)-26.*R1*(V1+0.95)-GCA*CA1*(V1-1.2)-GH*H1*(V1+0.95)-GSYNee*S1*(V1+0.0)-GSYNi*(V1+0.75)*(S2+S3)+Ie1  
+R1'=(1./TR1)*(-R1+RB(V1))
+CA1'=(1./14.)*(-CA1+CAB(V1))
+H1'=(1./45.)*(-H1+3.*CA1)
+F1'=(1./TSYN)*(-F1+heav(V2-W))
+S1'=(1./TSYN)*(-S1+F1)
+F2'=(1./TSYNi)*(-F2+heav(V3-W))
+S2'=(1./TSYNi)*(-S2+F2)
+F3'=(1./TSYNi)*(-F3+heav(V4-W))
+S3'=(1./TSYNi)*(-S3+F3)
+
+V2'=-MB(V2)*(V2-0.5)-26.*R2*(V2+0.95)-GCA*CA2*(V2-1.2)-GH*H2*(V2+0.95)-GSYNee*S4*(V2+0.0)-GSYNi*(V2+0.75)*(S5+S6)+Ie2
+R2'=(1./TR2)*(-R2+RB(V2))
+CA2'=(1./14.)*(-CA2+CAB(V2))
+H2'=(1./45.)*(-H2+3.*CA2)
+F4'=(1./TSYN)*(-F4+heav(V1-W))
+S4'=(1./TSYN)*(-S4+F4)
+F5'=(1./TSYNi)*(-F5+heav(V3-W))
+S5'=(1./TSYNi)*(-S5+F5)
+F6'=(1./TSYNi)*(-F6+heav(V4-W))
+S6'=(1./TSYNi)*(-S6+F6)
+
+V3'=-MB(V3)*(V3-0.5)-26.*R3*(V3+0.95)-GCAi*CA3*(V3-1.2)-GSYNi*S7*(V3+0.75)-GSYNei*(V3+0.0)*(S8+S9)
+R3'=(1./TR3)*(-R3+RB(V3))
+CA3'=(1./14.)*(-CA3+CAB(V3))
+F7'=(1./TSYNi)*(-F7+heav(V4-W))
+S7'=(1./TSYNi)*(-S7+F7)
+F8'=(1./TSYN)*(-F8+heav(V1-W))
+S8'=(1./TSYN)*(-S8+F8)
+F9'=(1./TSYN)*(-F9+heav(V2-W))
+S9'=(1./TSYN)*(-S9+F9)
+
+V4'=-MB(V4)*(V4-0.5)-26.*R4*(V4+0.95)-GCAi*CA4*(V4-1.2)-GSYNi*S10*(V4+0.75)-GSYNei*(V4+0.0)*(S11+S12)
+R4'=(1./TR4)*(-R4+RB(V4))
+CA4'=(1./14.)*(-CA4+CAB(V4))
+F10'=(1./TSYNi)*(-F10+heav(V4-W))
+S10'=(1./TSYNi)*(-S10+F10)
+F11'=(1./TSYN)*(-F11+heav(V1-W))
+S11'=(1./TSYN)*(-S11+F11)
+F12'=(1./TSYN)*(-F12+heav(V2-W))
+S12'=(1./TSYN)*(-S12+F12)
+
+
+CAB(V)=8.*(V+0.725)^2
+MB(V)=17.8+47.6*V+33.8*V*V
+RB(V)=1.24+3.7*V+3.2*V*V
+
+um(Ve1,Ve2)=(Ve1+Ve2)/2
+
+@ METHOD=stiff, TOLERANCE=.00001 BELL=0
+@ dt=.01, total=600, xplot=t,yplot=CA1
+@ xmin=0.0,xmax=600,ymin=-1.0,ymax=0.4
+@ xlo=0.0,ylo=0.0,xhi=600,yhi=0.4,bound=30000,MAXSTOR=400000
+
+aux n=um(V1,V2)
+
+done

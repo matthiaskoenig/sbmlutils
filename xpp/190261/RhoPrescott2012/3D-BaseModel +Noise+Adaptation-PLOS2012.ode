@@ -1,0 +1,46 @@
+# from Rho and Prescott, PLoS Comput Biol 2012
+# to be run in XPP
+# 2-D model plus noise (to get oscillations near the bifurcation) and adaptation (to getting bursting) (see Figs 3-5)
+
+# DIFFERENTIAL EQUATIONS
+
+dv/dt = (Istim+sqrt(Qi)*ni-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gl*(V-Vl)-gadapt*z*(v-VK))/cap
+dw/dt = phi_w*(winf(V)-w)/tauw(V)
+dz/dt = (1/(1+exp((beta_z-v)/gamma_z))-z)/tauz
+
+# TO IMPLEMENT NOISE
+wiener ni
+param Qi=1
+# noise amplitude is adjusted by varying Qi. Remove noise by setting to 0
+
+# FUNCTIONS AND PARAMETERS
+
+minf(v)=.5*(1+tanh((v-beta_m)/gamma_m))
+winf(v)=.5*(1+tanh((v-beta_w)/gamma_w))
+
+tauw(v)=1/cosh((v-beta_w)/(2*gamma_w))
+
+
+param Istim=0 
+param vna=50,vk=-100,vl=-70
+param gk=20,gl=2,gna=20
+param beta_m=-1.2,gamma_m=18
+param beta_w=-13,gamma_w=10
+# beta_w = -21 for transient spiking; beta_w = -13 for repetitive spiking
+param phi_w=.15
+param cap=2
+
+param gadapt=0.5,tauz=300,beta_z=0,gamma_z=4
+# this implements a spike-dependent form of adaptation... activated only as V crosses 0 mV
+
+# INITIAL CONDITIONS
+V(0)=-70
+w(0)=0.000025
+z(0)=0
+
+# ALWAYS USE EULER! - Actually this is only true for noise
+@ total=10000,dt=.05,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=euler
+@ MAXSTOR=1000000,bounds=10000
+
+done

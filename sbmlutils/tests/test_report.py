@@ -1,7 +1,7 @@
 """
 Test the SBML report.
 """
-from __future__ import print_function, division
+from __future__ import absolute_import, print_function
 
 import tempfile
 import unittest
@@ -10,7 +10,7 @@ from sbmlutils.report import sbmlreport
 from sbmlutils.tests import data
 
 
-class MyTestCase(unittest.TestCase):
+class ReportTestCase(unittest.TestCase):
 
     def test_demo_report(self):
         tmpdir = tempfile.mkdtemp(suffix="_sbml_report")

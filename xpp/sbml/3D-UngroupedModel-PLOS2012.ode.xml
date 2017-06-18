@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># from Rho and Prescott, PLoS Comput Biol 2012
+# to be run in XPP
+# code for 3-D &quot;ungrouped&quot; model; see Fig 7 from paper
+
+
+# DIFFERENTIAL EQUATIONS
+
+dv/dt = (Istim-gna*minf(V)*(V-Vna)-gk*w*(V-VK)-gl*(V-Vl)-gsubNa*yNa*(V-Vna)-gsubK*yK*(V-Vk))/cap
+dw/dt = phi_w*(winf(V)-w)/tauw(V)
+dyNa/dt = phi_yna*(yna_inf(V)-yNa)/tauyna(V)
+dyK/dt = phi_yk*(yk_inf(V)-yK)/tauyk(V)
+
+# FUNCTIONS AND PARAMETERS
+
+minf(v)=.5*(1+tanh((v-beta_m)/gamma_m))
+winf(v)=.5*(1+tanh((v-beta_w)/gamma_w))
+yna_inf(v)=.5*(1+tanh((v-beta_y)/gamma_y))
+yk_inf(v)=.5*(1+tanh((v-beta_y)/gamma_y))
+
+tauw(v)=1/cosh((v-beta_w)/(2*gamma_w))
+tauyna(v)=1/cosh((v-beta_y)/(2*gamma_y))
+tauyk(v)=1/cosh((v-beta_y)/(2*gamma_y))
+
+param Istim=0 
+param vna=50,vk=-100,vl=-70
+param gk=20,gl=2,gna=20
+param beta_m=-1.2,gamma_m=18
+param beta_w=-13,gamma_w=10
+# for some simulations, beta_w was -21
+param phi_w=.15
+
+# This code is designed to implement either a subthreshold Na or K current by setting the corresponding gsub to &gt;0
+# Leave the other gsub at 0 
+param gsubNa=0,gsubK=0
+param beta_y=-23,gamma_y=9,
+param phi_yna=0.3,phi_yk=0.15
+param cap=2
+
+# INITIAL CONDITIONS
+yNa(0)=0
+yK(0)=0
+V(0)=-70
+w(0)=0.000025
+
+# ALWAYS USE EULER! - Actually this is only true for noise
+@ total=10000,dt=.05,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=euler
+@ MAXSTOR=1000000,bounds=10000
+
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="minf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_m </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_m </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <tanh/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> beta_m </ci>
+                    </apply>
+                    <ci> gamma_m </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="winf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_w </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_w </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <tanh/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> beta_w </ci>
+                    </apply>
+                    <ci> gamma_w </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="yna_inf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_y </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_y </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <tanh/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> beta_y </ci>
+                    </apply>
+                    <ci> gamma_y </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="yk_inf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_y </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_y </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <cn> 0.5 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <tanh/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> beta_y </ci>
+                    </apply>
+                    <ci> gamma_y </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauw">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_w </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_w </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <cosh/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> beta_w </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> gamma_w </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauyna">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_y </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_y </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <cosh/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> beta_y </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> gamma_y </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="tauyk">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> v </ci>
+            </bvar>
+            <bvar>
+              <ci> beta_y </ci>
+            </bvar>
+            <bvar>
+              <ci> gamma_y </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <cosh/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> beta_y </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 2 </cn>
+                    <ci> gamma_y </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="istim" name="istim = 0" value="0" constant="false"/>
+      <parameter id="vna" name="vna = 50" value="50" constant="false"/>
+      <parameter id="vk" name="vk = -100" value="-100" constant="false"/>
+      <parameter id="vl" name="vl = -70" value="-70" constant="false"/>
+      <parameter id="gk" name="gk = 20" value="20" constant="false"/>
+      <parameter id="gl" name="gl = 2" value="2" constant="false"/>
+      <parameter id="gna" name="gna = 20" value="20" constant="false"/>
+      <parameter id="beta_m" name="beta_m = -1.2" value="-1.2" constant="false"/>
+      <parameter id="gamma_m" name="gamma_m = 18" value="18" constant="false"/>
+      <parameter id="beta_w" name="beta_w = -13" value="-13" constant="false"/>
+      <parameter id="gamma_w" name="gamma_w = 10" value="10" constant="false"/>
+      <parameter id="phi_w" name="phi_w = .15" value="0.15" constant="false"/>
+      <parameter id="gsubna" name="gsubna = 0" value="0" constant="false"/>
+      <parameter id="gsubk" name="gsubk = 0" value="0" constant="false"/>
+      <parameter id="beta_y" name="beta_y = -23" value="-23" constant="false"/>
+      <parameter id="gamma_y" name="gamma_y = 9" value="9" constant="false"/>
+      <parameter id="phi_yna" name="phi_yna = 0.3" value="0.3" constant="false"/>
+      <parameter id="phi_yk" name="phi_yk = 0.15" value="0.15" constant="false"/>
+      <parameter id="cap" name="cap = 2" value="2" constant="false"/>
+      <parameter id="yna" name="yna = 0" value="0" constant="false"/>
+      <parameter id="yk" name="yk = 0" value="0" constant="false"/>
+      <parameter id="v" name="v = -70" value="-70" constant="false"/>
+      <parameter id="w" name="w = 0.000025" value="2.5e-05" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="v">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <minus/>
+                      <ci> istim </ci>
+                      <apply>
+                        <times/>
+                        <ci> gna </ci>
+                        <apply>
+                          <ci> minf </ci>
+                          <ci> v </ci>
+                          <ci> beta_m </ci>
+                          <ci> gamma_m </ci>
+                        </apply>
+                        <apply>
+                          <minus/>
+                          <ci> v </ci>
+                          <ci> vna </ci>
+                        </apply>
+                      </apply>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> gk </ci>
+                      <ci> w </ci>
+                      <apply>
+                        <minus/>
+                        <ci> v </ci>
+                        <ci> vk </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> gl </ci>
+                    <apply>
+                      <minus/>
+                      <ci> v </ci>
+                      <ci> vl </ci>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> gsubna </ci>
+                  <ci> yna </ci>
+                  <apply>
+                    <minus/>
+                    <ci> v </ci>
+                    <ci> vna </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> gsubk </ci>
+                <ci> yk </ci>
+                <apply>
+                  <minus/>
+                  <ci> v </ci>
+                  <ci> vk </ci>
+                </apply>
+              </apply>
+            </apply>
+            <ci> cap </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="w">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> phi_w </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> winf </ci>
+                  <ci> v </ci>
+                  <ci> beta_w </ci>
+                  <ci> gamma_w </ci>
+                </apply>
+                <ci> w </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> tauw </ci>
+              <ci> v </ci>
+              <ci> beta_w </ci>
+              <ci> gamma_w </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="yna">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> phi_yna </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> yna_inf </ci>
+                  <ci> v </ci>
+                  <ci> beta_y </ci>
+                  <ci> gamma_y </ci>
+                </apply>
+                <ci> yna </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> tauyna </ci>
+              <ci> v </ci>
+              <ci> beta_y </ci>
+              <ci> gamma_y </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="yk">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> phi_yk </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <ci> yk_inf </ci>
+                  <ci> v </ci>
+                  <ci> beta_y </ci>
+                  <ci> gamma_y </ci>
+                </apply>
+                <ci> yk </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> tauyk </ci>
+              <ci> v </ci>
+              <ci> beta_y </ci>
+              <ci> gamma_y </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

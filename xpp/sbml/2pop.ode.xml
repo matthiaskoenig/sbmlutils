@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># Rate-based model of coupled neuron populations to 
+# perform discrimination using integral feedback control.
+# Continuous attractor version.
+par w1_2=1.0 w2_1=-1.0 i0=0.5 tau=0.05 di=0.001 
+par tstim=0.5 t1=5.0 t2=10.0 tauapp=0.005 dtapp=0.001
+par f1=20 f2=16 
+
+init r1=0.0 r2=0.0 
+# init sapp1=0.0 sapp2=0.0 
+init s1=0.0 s2=0.0
+
+sapp1=f1/((1+exp(-2*(t-t1)/dtapp))*(1+exp(-2*(t1+tstim-t)/dtapp)))
+sapp2=f2/((1+exp(-2*(t-t2)/dtapp))*(1+exp(-2*(t2+tstim-t)/dtapp)))
+
+ds1/dt=(sapp1-s1)/tauapp
+ds2/dt=(sapp2-s2)/tauapp
+
+dr2/dt=w1_2*r1/tau
+i1=w2_1*r2+s1+s2-i0
+dr1/dt=(-r1+i1/(1+exp(-2*i1/di)))/tau
+# dsapp1/dt=(s1-sapp1)/tauapp
+# dsapp2/dt=(s2-sapp2)/tauapp
+# ds1/dt=0.0
+# ds2/dt=0.0
+
+# global 1 {t-t1} {s1=f1}
+# global 2 {t-t1-tstim} {s1=0.0}
+# global 3 {t-t2} {s2=f2}
+# global 4 {t-t2-tstim} {s2=0}
+
+@total=15,bound=100,dt=.001,dtmin=1e-5,dtmax=10,atoler=1e-4
+@toler=1e-5,xhi=15,yhi=2,ylo=0 njmp=50,bell=0
+@bell=off,nout=50                                                             
+done
+
+
+
+
+
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="w1_2" name="w1_2 = 1.0" value="1" constant="false"/>
+      <parameter id="w2_1" name="w2_1 = -1.0" value="-1" constant="false"/>
+      <parameter id="i0" name="i0 = 0.5" value="0.5" constant="false"/>
+      <parameter id="tau" name="tau = 0.05" value="0.05" constant="false"/>
+      <parameter id="di" name="di = 0.001" value="0.001" constant="false"/>
+      <parameter id="tstim" name="tstim = 0.5" value="0.5" constant="false"/>
+      <parameter id="t1" name="t1 = 5.0" value="5" constant="false"/>
+      <parameter id="t2" name="t2 = 10.0" value="10" constant="false"/>
+      <parameter id="tauapp" name="tauapp = 0.005" value="0.005" constant="false"/>
+      <parameter id="dtapp" name="dtapp = 0.001" value="0.001" constant="false"/>
+      <parameter id="f1" name="f1 = 20" value="20" constant="false"/>
+      <parameter id="f2" name="f2 = 16" value="16" constant="false"/>
+      <parameter id="r1" name="r1 = 0.0" value="0" constant="false"/>
+      <parameter id="r2" name="r2 = 0.0" value="0" constant="false"/>
+      <parameter id="s1" name="s1 = 0.0" value="0" constant="false"/>
+      <parameter id="s2" name="s2 = 0.0" value="0" constant="false"/>
+      <parameter id="sapp1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="sapp2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="i1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="s1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> sapp1 </ci>
+              <ci> s1 </ci>
+            </apply>
+            <ci> tauapp </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="s2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> sapp2 </ci>
+              <ci> s2 </ci>
+            </apply>
+            <ci> tauapp </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> w1_2 </ci>
+              <ci> r1 </ci>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="r1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <ci> r1 </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> i1 </ci>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <apply>
+                          <minus/>
+                          <cn type="integer"> 2 </cn>
+                        </apply>
+                        <ci> i1 </ci>
+                      </apply>
+                      <ci> di </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <ci> tau </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="sapp1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> f1 </ci>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <ci> t </ci>
+                        <ci> t1 </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <plus/>
+                          <ci> t1 </ci>
+                          <ci> tstim </ci>
+                        </apply>
+                        <ci> t </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="sapp2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> f2 </ci>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <ci> t </ci>
+                        <ci> t2 </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="integer"> 2 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <apply>
+                          <plus/>
+                          <ci> t2 </ci>
+                          <ci> tstim </ci>
+                        </apply>
+                        <ci> t </ci>
+                      </apply>
+                    </apply>
+                    <ci> dtapp </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="i1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> w2_1 </ci>
+                <ci> r2 </ci>
+              </apply>
+              <ci> s1 </ci>
+              <ci> s2 </ci>
+            </apply>
+            <ci> i0 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

@@ -1,0 +1,87 @@
+# PARAMETERS
+p i0=2.5,is=0.0,ton=100,toff=900,A=0.0,f=0.0,B=0.0
+p gm=1
+p gnap=0.04,gh=0.05
+p gna=100.0,gkdr=20.0,gahp=10.0,gl=0.12
+p Cm=1,Vna=55.0,Vk=-90,Vh=-27.4,Vl=-70
+p Vsyn=0
+p THm=-28.0,Km=-7.8,THh=-50.0,Kh=7.0
+p THn=-23.0,Kn=-15.0
+p THp=-53.0,Kp=-5.0
+p THu=-25.0,Ku=-3,tauu=75.0
+p THz=-45.0,Kz=-4.25,tauz=75.0
+p THr=-83.9,Kr=7.4
+#
+#
+# INITIAL CONDITIONS
+V(0)=-67.231830
+h(0)=0.92141213
+n(0)=0.0497938
+z(0)=0.00040176
+u(0)=0.00040176 
+r(0)=0.095137881
+#
+#
+# FUNCTIONS
+Ina(V,h)=gna*(minf(V)^3)*h*(V-Vna)
+minf(V)=1.0/(1.0+exp((V-THm)/Km))
+hinf(V)=1.0/(1.0+exp((V-THh)/Kh))
+tauh(V)=30.0/(exp((V+50.0)/15.0)+exp(-(V+50.0)/16.0))
+#
+Ikdr(V,n)=gkdr*(n^4)*(V-Vk)
+ninf(V)=1.0/(1.0+exp((V-THn)/Kn))
+taun(V)=7.0/(exp((V+40.0)/40.0)+exp(-(V+40.0)/50.0))
+#
+Inap(V)=gnap*pinf(V)*(V-Vna)
+pinf(V)=1.0/(1+exp((V-THp)/Kp))
+#
+Im(V,z)=gm*z*(V-Vk)
+zinf(V)=1.0/(1+exp((V-THz)/Kz))
+#
+Iahp(V,u)=gahp*u*(V-Vk)
+uinf(V)=1.0/(1+exp((V-THu)/Ku))
+#
+Ih(V,r)=gh*r*(V-Vh)
+rinf(V)=1.0/(1+exp((V-THr)/Kr))
+taur(V)=6000.0/(exp((V+140.0)/21.6)+exp(-(V+40.0)/22.7))
+#
+Il(V)=gl*(V-Vl) 
+#
+Istep(t)=is*heav(t-ton)*heav(toff-t)
+Icos(t)=i0+A*cos(2*Pi*f*t)
+Iapp(t)=Istep(t)+Icos(t)
+aux I = Iapp(t)
+#
+#
+Isyn(V,t)=B*(1+cos(2*Pi*f*t))*(V-Vsyn)
+#
+#
+#
+# EQUATIONS
+V'=(-Ina(V,h)-Ikdr(V,n)-Iahp(V,u)-Im(V,z)-Inap(V)-Ih(V,r)-Isyn(V,t)-Il(V)+Iapp(t))/Cm
+h'=(hinf(v)-h)/tauh(v)
+n'=(ninf(v)-n)/taun(v)
+z'=(zinf(v)-z)/tauz
+u'=(uinf(v)-u)/tauu
+r'=(rinf(v)-r)/taur(v)
+#
+#
+#
+#
+#
+# xpp formatting
+@ XP=t
+@ YP=vs
+@ TOTAL=3000,DT=0.01
+@ MAXSTOR=8000000,BOUNDS=10000,method=runge-kutta
+@ xlo=0,xhi=3000,ylo=-92,yhi=53
+#
+@ NTST=250,NMAX=55000,NPR=50
+@ DS=0.2,DSMIN=0.001,DSMAX=0.3
+@ PARMIN=-30,PARMAX=400,NORMMIN=0.0,NORMMAX=10000.0
+@ AUTOVAR=vs,AUTOXMIN=-25.0,AUTOXMAX=400.0,AUTOYMIN=-80.0,AUTOYMAX=55.0
+
+
+
+done  
+

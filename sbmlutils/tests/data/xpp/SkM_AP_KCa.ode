@@ -1,0 +1,86 @@
+% SkM_AP_KCa.ode 
+% Simulations for skeletal muscle fiber
+% 
+% ICa(S) and IK(Ca) were  incorporated to simulate AP for human skeletal muscle cells.
+% 
+% "Wang YJ, Lin MW, Lin AA, Wu SN. Riluzole-induced block of voltage-gated Na(+) 
+% current and activation of BK(Ca) channels in cultured differentiated human
+% skeletal muscle cell. Life Sci 2007;82:11-20."
+
+% UNITS: millivolts, milliseconds, nanosiemens,  microfarads
+
+% INITIAL VALUES
+Initial Vm=-75, m=0.0, h=1.0, n=0.0, Vt=-70, c=0.15, o=0.15, cer=200
+
+% VALUES OF THE MODEL PARAMETERS
+Parm gNa_max=0.9, gcabar=0.05, gK_max=0.415, gL_max=0.0024, gkca=0.5
+Parm ENa=50.0, EK=-70.0, EL=-75.0, ECa=50
+Parm En=-40.0, Em=-42.0, Eh=-41.0
+Parm Ct=0.04, Cm=0.0090, Rs=15.0, Am=200.0
+Parm alpha_n_max=0.0229, beta_n_max=0.09616
+Parm v_alpha_m=10.0, v_alpha_n=7.0, v_alpha_h=14.7
+Parm alpha_m_max=0.208, beta_m_max=2.081
+Parm v_beta_n=40.0, v_beta_m=18.0, v_beta_h=7.6
+Parm alpha_h_max=0.0156, beta_h_max=3.382
+
+Parm kd=0.18, alpha=4.5e-6, kpmca=0.2, pleak=0.0005,  kserca=0.4
+Parm d1=0.84, d2=1.0, k1=0.18, k2=0.011, bbar=0.28, abar=0.48
+Parm fer=0.01, vcytver=5, fcyt=0.01
+
+% STIMULUS
+Parm period=50, iStim_mag=2, iStim_beg=5, iStim_dur=1
+iStim=  iStim_mag * heav(mod(t,period)-iStim_beg) * heav(iStim_beg+iStim_dur-mod(t,period))
+
+beta_n= (beta_n_max * exp(((En - Vm) / v_beta_n)))
+beta_m= (beta_m_max * exp(((Em - Vm) / v_beta_m)))
+beta_h= (beta_h_max / (1.0 + exp(((Eh - Vm) / v_beta_h))))
+alpha_n= (alpha_n_max * (Vm - En) / (1.0 - exp(((En - Vm) / v_alpha_n))))
+alpha_m= (alpha_m_max * (Vm - Em) / (1.0 - exp(((Em - Vm) / v_alpha_m))))
+alpha_h= (alpha_h_max * exp(((Eh - Vm) / v_alpha_h)))
+
+% IK(Ca) PARAMETERS
+alp(Vm) = abar/(1+k1*exp(-2*d1*96.485*Vm/8.313424/(310))/c)
+beta(Vm) = bbar/(1+c/(k2*exp(-2*d2*96.485*Vm/8.313424/310)))
+tau(Vm) = 1/(alp(Vm)+beta(Vm))
+ooinf(Vm) = alp(Vm)*tau(Vm)
+dinf = 1/(1 + exp((-24.6-Vm)/11.3))
+taud = 80*(1/(cosh(-0.031*(Vm+37.1))))
+alphad = dinf/taud
+betad = (1-dinf)/taud
+gca = -gcabar*Vm/(exp(0.117*Vm)-1)
+
+% CA HANDLING MECHANISMS
+w=c^5/(c^5+kd^5)
+jmem=-(alpha*ICa+kpmca*c)
+jleak=pleak*(cer-c)
+jserca=kserca*c
+jer=jleak-jserca
+
+% IONIC CURRENTS
+INa= (gNa_max * m**3 * h * (Vm - ENa))
+IT= ((Vm - Vt) / Rs)
+IKCa=gkca*o*w*(Vm-EK)
+ICa= gca*d^2
+IL= (gL_max * (Vm - EL))
+IK= (gK_max * n * n * n * n * (Vm - EK))
+
+% DIFFERENTIAL EQUATIONS 
+dVm/dt = ((iStim - (INa + ICa + IK + IL + IT + IKCa)) / Cm)
+dm/dt = ((alpha_m * (1.0 - m)) - (beta_m * m))
+dh/dt = ((alpha_h * (1.0 - h)) - (beta_h * h))
+dn/dt = ((alpha_n * (1.0 - n)) - (beta_n * n))
+dVt/dt = ((Vm - Vt) / (Rs * Ct))
+dd/dt = (1-d)*alphad - d*betad
+do/dt = (ooinf(Vm)-o)/tau(Vm)
+dc/dt = fcyt*(jmem+jer)
+dcer/dt =-fer*(vcytver)*jer
+
+% AUXILLARY FUNCTIONS
+aux i_na=INa
+aux  i_kca=IKCa
+
+% NUMERICAL AND PLOTTING PARAMETERS FOR XPP
+@ METH=Euler, DT=0.01, TOTAL=150, MAXSTOR=50000
+@ YP=vm, YHI=50, YLO=-90, XLO=0, XHI=150, BOUND=5000
+
+done

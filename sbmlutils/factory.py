@@ -21,7 +21,9 @@ from six import iteritems
 import logging
 import warnings
 import libsbml
+
 from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
+from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
@@ -96,6 +98,18 @@ def set_main_units(model, main_units):
         elif key == 'volume':
             model.setVolumeUnits(unit)
 
+def set_notes(model, notes):
+    """ Set notes information on model.
+
+    :param model: Model
+    :param notes: notes information (xml string)
+    :return:
+    """
+    xml_node = libsbml.XMLNode.convertStringToXMLNode(notes)
+    if xml_node is None:
+        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+    check(model.setNotes(xml_node),
+          message="Setting notes on model")
 
 #####################################################################
 # Creator
@@ -380,7 +394,7 @@ class InitialAssignment(Value):
 ##########################################################################
 class Rule(ValueWithUnit):
     @staticmethod
-    def _rule_factory(model, rule, rule_type):
+    def _rule_factory(model, rule, rule_type, value=None):
         """ Creates libsbml rule of given rule_type.
 
         :param model:
@@ -397,7 +411,7 @@ class Rule(ValueWithUnit):
                 and (not model.getCompartment(sid)):
 
             # Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
-            Parameter(sid, unit=rule.unit, name=rule.name, value=None, constant=False).create_sbml(model)
+            Parameter(sid, unit=rule.unit, name=rule.name, value=value, constant=False).create_sbml(model)
 
         # Make sure the parameter is const=False
         p = model.getParameter(sid)
@@ -410,7 +424,8 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            warnings.warn('Rule with sid already exists in model: {}'.format(sid))
+            warnings.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            obj = model.getRule(sid)
         return obj
 
     @staticmethod
@@ -529,10 +544,74 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
 ##########################################################################
 # Events
 ##########################################################################
-# Deficiency Events (Galactosemias)
+class Event(Sbase):
+    """ InitialAssignments. """
 
-# TODO: Event class
-# TODO: implement more general
+    def __init__(self, sid, trigger, assignments={},
+                 trigger_persistent=True, trigger_initialValue=False, useValuesFromTriggerTime=True,
+                 priority=None, delay=None,
+                 name=None, sboTerm=None, metaId=None):
+        super(Event, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+
+        self.trigger = trigger
+
+        # assignments
+        if type(assignments) is not dict:
+            warnings.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
+        self.assignments = assignments
+
+        self.trigger_persistent = trigger_persistent
+        self.trigger_initialValue = trigger_initialValue
+        self.useValuesFromTriggerTime = useValuesFromTriggerTime
+
+        self.priority = priority
+        self.delay = delay
+
+    def create_sbml(self, model):
+        """ Create libsbml InitialAssignment.
+
+        Creates a required parameter if not existing.
+
+        :param model:
+        :return:
+        """
+        event = model.createEvent()
+        self.set_fields(event, model)
+
+        return event
+
+    def set_fields(self, obj, model):
+        super(Event, self).set_fields(obj)
+
+        obj.setUseValuesFromTriggerTime(True)
+        t = obj.createTrigger()
+        t.setInitialValue(self.trigger_initialValue)  # False ! not supported by Copasi -> lame fix via time
+        t.setPersistent(self.trigger_persistent)  # True ! not supported by Copasi -> careful with usage
+
+        ast_trigger = libsbml.parseL3FormulaWithModel(self.trigger, model)
+        t.setMath(ast_trigger)
+
+        if self.priority is not None:
+            ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
+            event.setPriority(ast_priority)
+        if self.delay is not None:
+            ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
+            event.setDelay(ast_delay)
+
+        for key, math in iteritems(self.assignments):
+            ast_assign = libsbml.parseL3FormulaWithModel(str(math), model)
+            ea = obj.createEventAssignment()
+            ea.setVariable(key)
+            ea.setMath(ast_assign)
+
+    @staticmethod
+    def _trigger_from_time(t):
+        return '(time >= {})'.format(t)
+
+    @staticmethod
+    def _assignments_dict(species, values):
+        return dict(zip(species, values))
+
 
 def getDeficiencyEventId(deficiency):
     return 'EDEF_{:0>2d}'.format(deficiency)
@@ -568,12 +647,7 @@ def createEventFromEventData(model, edata):
     t.setPersistent(True)
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
-    # assignments
-    for key, value in iteritems(edata.assignments):
-        astnode = libsbml.parseL3FormulaWithModel(value, model)
-        ea = e.createEventAssignment()
-        ea.setVariable(key)
-        ea.setMath(astnode)
+
 
 
 ##########################################################################

@@ -1,0 +1,110 @@
+###########################################################################
+# This model has a delayed rectifier, a leak and
+# a sodium current based on the famous Traub and Miles model but with changes put in
+# by Bard Ermerntrout in linearization of F-I curves by adaptation, Neural computation, 
+# 10:1721-9, 1998
+# 
+# Input Currents are in nA, maximal conductances in mS/cm2, membrane potential 
+# in mV time in ms,and capacitance in uF/cm2
+############################################################################
+
+#adjust defaults for xpp internal variables
+@ MAXSTOR=40000
+@ YP=v
+@ TOTAL=1000
+@ DT=0.05
+@ BOUND=100000
+@ XHI=1000
+@ YLO=-100
+@ YHI=50
+#@ METH=gear
+@ BACKGROUND=white
+
+# parameters
+
+
+par gbarNa=80
+
+par gbarK=80
+
+par gleak=0.2
+par C=1., i=0.61
+
+v' = (i-(gleak*(v-Vl)+gK*(v-vk)+gNa*(v-vna))+eps*(u1-v)/dx)/C+p0*pulse(t-taup)
+
+aux longcur=eps*(u1-v)/dx
+#****************************************************
+gNa=gbarNa*(m**3)*h
+
+alpham=if (v+54) then (0.32*(V+54)/(1-exp(-(V+54)/4))) else (0.32)
+betam=if (V+27) then (0.28*(V+27)/(exp((V+27)/5)-1)) else (0.28)
+
+alphah=0.128*exp(-(V+50)/18)
+betah=4/(1+exp(-(V+27)/5))
+
+dm/dt=alpham*(1-m)-betam*m
+dh/dt=alphah*(1-h)-betah*h
+
+#**********************************************************
+
+gK=gbarK*(n**4)
+
+alphan=if (V+52) then (0.032*(V+52)/(1-exp(-(V+52)/5))) else (0.032)
+betan=0.5*exp(-(V+57)/40)
+
+dn/dt=alphan*(1-n)-betan*n
+
+
+
+# auxiliary variables
+# sod is sodium current
+aux sod=gbarNa*(m**3)*h*(v-vna)
+# pot is potassium current
+aux pot=gbarK*(n**4)*(v-vk)
+
+#initial conditions
+init v=-70
+init h=1-.000001,m=.000001,n=.000001
+
+par Vna=50,Vk=-100,Vl=-67
+par gld=0.1
+p Vp=-50, Vsp=9, gnad=0.02, taupna=10
+
+
+
+pinfd(V)=1/(1+exp(-(V-Vp)/Vsp))
+Inap(V,y)=gnad*y*(V-Vna)/gld
+
+pn[1..50]'=(pinfd(u[j])-pn[j])/taupna
+
+
+
+Ild(V)=V-Vl
+
+# cable equation
+
+
+p p[0..50]=0
+
+
+u1'=((lambda/dx)^2*(u2-2*u1+v)-Ild(u1)-Inap(u1,pn1))/tau +p1*pulse(t-taup)
+u[2..50]'= ((lambda/dx)^2*(u[j+1]-2*u[j]+u[j-1])-Ild(u[j])-Inap(u[j],pn[j]))/tau +p[j]*pulse(t-taup)
+u51=(c1+b1*u50/dx)/(a1+b1/dx)
+
+par lambda=1,tau=10,dx=.1,c1=0,a1=0,b1=1,c0=0,a0=0,b0=1,eps=.025
+
+pulse(t)=heav(t)*heav(sigma-t)
+par sigma=.2
+par t0=241.3
+aux prc=t0-t
+taup'=0
+
+i u[1..50]=-60
+i pn[1..50]=.1
+
+par taur=1,taud=3,thresh=-30,gsyn=.1,Esyn=0
+x1'=(-x1+.5*(1+tanh((v-thresh)/3.0)))/taur
+y1'=(-y1+x1)/taud
+init x1=0,y1=0
+
+d

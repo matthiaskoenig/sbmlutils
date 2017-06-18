@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre># doublebvp.ode
+# used for Bose and Rubin, IJBC, Vol. 25, June 30, 2015
+
+# integrate 4 trajectories simultaneously
+
+# (v,g) is the suppressed cell on its last cycle before it becomes active
+v&apos;=P*(I-v-g*(v-E)) 
+g&apos;=P*(-beta*g)
+
+# (vhat,ghat) is the active cell on its last cycle of being active; ghat \equiv 0
+vhat&apos;=P*(I-vhat)
+
+# (vtilde,gtilde) is the formerly suppressed cell on the cycle after its first reset
+vtilde&apos;=Q*(I-vtilde-gtilde*(vtilde-E))
+gtilde&apos;=Q*(-beta*gtilde)
+
+# (vstar,gstar) is the formerly active cell on the cycle after it is first inhibited
+vstar&apos;=Q*(I-vstar-gstar*(vstar-E))
+gstar&apos;=Q*(-beta*gstar)
+
+# two trivial equations are added, so that number of eqns = number of BCs
+P&apos;=0
+Q&apos;=0
+
+# BCs
+b v-1
+b v&apos;-1
+b g-g0
+b vhat
+b vtilde
+b vtilde&apos;-1
+b g&apos;-gtilde
+b vhat&apos;-vstar
+b vstar&apos;-1
+
+init P=0.65,Q=1.02,v=1,g=1.1,vstar=.96,gstar=1.24
+par beta=0.2,I=2,E=-0.1,g0=1.1
+@ total=1,dt=.01
+done
+</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="p" name="p = 0.65" value="0.65" constant="false"/>
+      <parameter id="q" name="q = 1.02" value="1.02" constant="false"/>
+      <parameter id="v" name="v = 1" value="1" constant="false"/>
+      <parameter id="g" name="g = 1.1" value="1.1" constant="false"/>
+      <parameter id="vstar" name="vstar = .96" value="0.96" constant="false"/>
+      <parameter id="gstar" name="gstar = 1.24" value="1.24" constant="false"/>
+      <parameter id="beta" name="beta = 0.2" value="0.2" constant="false"/>
+      <parameter id="i" name="i = 2" value="2" constant="false"/>
+      <parameter id="e" name="e = -0.1" value="-0.1" constant="false"/>
+      <parameter id="g0" name="g0 = 1.1" value="1.1" constant="false"/>
+      <parameter id="vhat" value="0" units="dimensionless" constant="false"/>
+      <parameter id="vtilde" value="0" units="dimensionless" constant="false"/>
+      <parameter id="gtilde" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="v">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> p </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> i </ci>
+                <ci> v </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> g </ci>
+                <apply>
+                  <minus/>
+                  <ci> v </ci>
+                  <ci> e </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="g">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> p </ci>
+            <apply>
+              <minus/>
+              <ci> beta </ci>
+            </apply>
+            <ci> g </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="vhat">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> p </ci>
+            <apply>
+              <minus/>
+              <ci> i </ci>
+              <ci> vhat </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="vtilde">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> q </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> i </ci>
+                <ci> vtilde </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> gtilde </ci>
+                <apply>
+                  <minus/>
+                  <ci> vtilde </ci>
+                  <ci> e </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="gtilde">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> q </ci>
+            <apply>
+              <minus/>
+              <ci> beta </ci>
+            </apply>
+            <ci> gtilde </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="vstar">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> q </ci>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> i </ci>
+                <ci> vstar </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> gstar </ci>
+                <apply>
+                  <minus/>
+                  <ci> vstar </ci>
+                  <ci> e </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="gstar">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> q </ci>
+            <apply>
+              <minus/>
+              <ci> beta </ci>
+            </apply>
+            <ci> gstar </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="p">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 0 </cn>
+        </math>
+      </rateRule>
+      <rateRule variable="q">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 0 </cn>
+        </math>
+      </rateRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

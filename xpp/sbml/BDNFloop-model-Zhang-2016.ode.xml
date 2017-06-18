@@ -1,0 +1,2757 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
+  <model>
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>XPP model</h1>
+        <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-0.1.5a6</code>.</p>
+        <pre>#Readme: The author recommend to run the code in silent mode. The data will be output in test.txt. 
+#When to do parameter sensitivity analysis, use command &apos;RANGE=1, RANGEOVER=step, RANGESTEP=1100, RANGELOW=0, RANGEHIGH=1100, RANGERESET=yes, RANGEOLDIC=yes, output=test1&apos;. The data will be output in 1100 data file named test1.1 (step value), test1.2........
+
+#A is BDNF activity, B is BDNF mRNA, CEBP is CEBP
+
+dA/dt=(stim + k_1*B^2/(B^2+k_trs^2)*(1-PSI*turn)-kdega*A/(A+K_A2))
+
+dB/dt=((K_min_B +k_2*feed3) - kdegb*B/(B+K_B2))
+
+feed3=(CEBP^2)/(K_BCEBP^2+CEBP^2)*(heav(t2+3600*endh-t))+kbcedbnf*(heav(t-t2-3600*endh))
+
+endh=18
+
+BDNF=A
+
+
+CREB1=CREBt-pCREB1
+
+CREBt=0.085
+
+
+pCREB1&apos;=((K_phosC1+feed4)*CREB1-K_dephC1*pCREB1)
+
+feed4=k_Cbdnf*BDNF^2/(BDNF^2+K_bpcreb^2)*(1-PSI*0)
+
+
+
+
+#synthesis OF CEBP protein
+
+CEBP&apos;=((feed2*v_cebp+K_min_C)*(CEBPmax-CEBP)*(1-PSI*turn)-K_dxCBP*CEBP/(CEBP+K_dCEBP))
+
+feed2 =(pCREB1^2)/(k_crece^2+pCREB1^2)*heav(t-t2-3600*starth)+kbpcrebce*heav(t2+3600*starth-t)
+
+starth=6
+
+CEBPmax=0.228
+
+
+#W1 is pathway 1, W2 is pathway 2, W3 is synaptic weight
+W1&apos;=((kbasw1+kfw1*(pCREB1-0.0066)/kw1creb*(CEBP-0.076)/kw1cebp*w1^2/(w1^2+kw1^2))*(1-PSI*turn)-kdw1*w1)
+
+w2&apos;=((kbasw2+kfw2*(CEBP-0.076)/kw2cebp*w2^2/(w2^2+kw2^2))*(1-PSI*turn)-kdw2*w2)
+
+w3&apos;=(kfw3*(W1+w2)*(1-PSI*turn)-kdw3*w3)
+
+
+# stimulus
+
+stim = test1*HEAV(T-t2)*HEAV(dur+t2-T)+0*(1-HEAV(T-t2)*HEAV(dur+t2-T))
+t2=10000 
+
+# inhibitors
+
+PSI=amp*heav(t-t1)*heav(t1+duration-t)
+
+p amp=0
+
+p turn=0
+
+
+#ADD ODN
+#p amp=0.95
+
+#ADD anti-BDNF 
+#p amp=0.8
+
+#ADD PSI
+#p amp=0.8
+
+#duration for anti-BDNF
+#duration=3600*6
+
+#duration for ODN
+#duration=3600*24
+
+#duration for PSI
+duration=3600*6
+
+
+# time to start inhbit
+t1=t2+3600*startIn
+startIn=24
+
+init A=0.0722924
+init B=0.00320135
+init pCREB1=0.0066
+init CEBP=0.076
+init w1=100
+init w2=100
+init w3=100
+
+
+
+#parameter sensitivity analysis
+K_BCEBP=1*(1+0.03*a4*heav(step+1)*heav(31-step)*HEAV(T-t2+7200))
+k_trs=1*(1+0.03*a4*heav(step-30)*heav(62-step)*HEAV(T-t2+7200))
+kdega=0.002*(1+0.03*a4*heav(step-61)*heav(93-step)*HEAV(T-t2+7200))
+kdegb=0.0000226*(1+0.03*a4*heav(step-92)*heav(124-step)*HEAV(T-t2+7200))
+K_bpcreb=5*(1+0.03*a4*heav(step-123)*heav(155-step)*HEAV(T-t2+7200))
+K_B2=0.6*(1-0.03*a4*heav(step-154)*heav(186-step)*HEAV(T-t2+7200))
+k_crece=2.24*(1+0.03*a4*heav(step-185)*heav(217-step)*HEAV(T-t2+7200))
+K_min_B=0.000000078*(1-0.03*a4*heav(step-216)*heav(248-step)*HEAV(T-t2+7200))
+k_1=21*(1-0.03*a4*heav(step-247)*heav(279-step)*HEAV(T-t2+7200))
+K_dephC1=0.000024*(1+0.03*a4*heav(step-278)*heav(310-step)*HEAV(T-t2+7200))
+K_dxCBP=0.00000565*(1+0.03*a4*heav(step-309)*heav(341-step)*HEAV(T-t2+7200))
+kbcedbnf=0.00574*(1-0.03*a4*heav(step-340)*heav(372-step)*HEAV(T-t2+7200))
+K_phosC1=0.0000008*(1-0.03*a4*heav(step-371)*heav(403-step)*HEAV(T-t2+7200))
+k_2=0.00000726*(1-0.03*a4*heav(step-402)*heav(434-step)*HEAV(T-t2+7200))
+k_Cbdnf=0.00592*(1-0.03*a4*heav(step-433)*heav(465-step)*HEAV(T-t2+7200))
+K_A2=0.6*(1-0.03*a4*heav(step-464)*heav(496-step)*HEAV(T-t2+7200))
+v_cebp=0.31*(1-0.03*a4*heav(step-495)*heav(527-step)*HEAV(T-t2+7200))
+K_min_C=0.0000158*(1-0.03*a4*heav(step-526)*heav(558-step)*HEAV(T-t2+7200))
+K_dCEBP=0.076*(1-0.03*a4*heav(step-557)*heav(589-step)*HEAV(T-t2+7200))
+test1=0.03*(1-0.03*a4*heav(step-588)*heav(620-step)*HEAV(T-t2+7200))
+dur=60*(1-0.03*a4*heav(step-619)*heav(651-step)*HEAV(T-t2+7200))
+kbpcrebce=0.0000089*(1-0.03*a4*heav(step-650)*heav(682-step)*HEAV(T-t2+7200))
+kbasw1=0.0004*(1-0.03*a4*heav(step-681)*heav(713-step)*HEAV(T-t2+7200))
+kw1creb=0.198*(1+0.03*a4*heav(step-712)*heav(744-step)*HEAV(T-t2+7200))
+kw1cebp=0.228*(1+0.03*a4*heav(step-743)*heav(775-step)*HEAV(T-t2+7200))
+kfw1=1.2*(1-0.03*a4*heav(step-774)*heav(806-step)*HEAV(T-t2+7200))
+kw1=150*(1+0.03*a4*heav(step-805)*heav(837-step)*HEAV(T-t2+7200))
+kdw1=1/250000*(1+0.03*a4*heav(step-836)*heav(868-step)*HEAV(T-t2+7200))
+kbasw2=1/100000*(1-0.03*a4*heav(step-867)*heav(899-step)*HEAV(T-t2+7200))
+kw2cebp=0.228*(1+0.03*a4*heav(step-898)*heav(930-step)*HEAV(T-t2+7200))
+kfw2=0.032*(1-0.03*a4*heav(step-929)*heav(961-step)*HEAV(T-t2+7200))
+kw2=150*(1+0.03*a4*heav(step-960)*heav(992-step)*HEAV(T-t2+7200))
+kdw2=1/10000000*(1+0.03*a4*heav(step-991)*heav(1023-step)*HEAV(T-t2+7200))
+kdw3=0.00002*(1+0.03*a4*heav(step-1022)*heav(1054-step)*HEAV(T-t2+7200))
+kfw3=0.00001*(1-0.03*a4*heav(step-1053)*heav(1085-step)*HEAV(T-t2+7200))
+
+a4=(step-31*flr(step/31))
+
+aux 0=(T-10000)/(3600*24)
+aux 1=stim
+aux 3=BDNF/0.072*100
+aux 4=B/0.0032*100
+aux 5=pCREB1/0.0066*100
+aux 6=CEBP/0.076*100
+aux 7=a4
+
+p step=0
+
+
+@ total=260000, xlo=0, xhi=5000, ylo=0, yhi=10, bounds=10e30, MAXSTOR=1300000,xp=vs, yp=mk,nout=2500, dt=0.05,
+
+@ output=test.txt
+#@ RANGE=1, RANGEOVER=step, RANGESTEP=1100, RANGELOW=0, RANGEHIGH=1100, RANGERESET=yes, RANGEOLDIC=yes, output=test1
+
+
+d</pre>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        </div>
+      </body>
+    </notes>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="minimum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="maximum">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="heav" name="heavyside">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <cn type="integer"> 0 </cn>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn> 0.5 </cn>
+                <apply>
+                  <eq/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <piece>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <cn type="integer"> 0 </cn>
+                </apply>
+              </piece>
+              <otherwise>
+                <cn type="integer"> 0 </cn>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="mod" name="modulo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <ceiling/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <xor/>
+                  <apply>
+                    <lt/>
+                    <ci> x </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                  <apply>
+                    <lt/>
+                    <ci> y </ci>
+                    <cn type="integer"> 0 </cn>
+                  </apply>
+                </apply>
+              </piece>
+              <otherwise>
+                <apply>
+                  <minus/>
+                  <ci> x </ci>
+                  <apply>
+                    <times/>
+                    <ci> y </ci>
+                    <apply>
+                      <floor/>
+                      <apply>
+                        <divide/>
+                        <ci> x </ci>
+                        <ci> y </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfParameters>
+      <parameter id="amp" name="amp = 0" value="0" constant="false"/>
+      <parameter id="turn" name="turn = 0" value="0" constant="false"/>
+      <parameter id="a" name="a = 0.0722924" value="0.0722924" constant="false"/>
+      <parameter id="b" name="b = 0.00320135" value="0.00320135" constant="false"/>
+      <parameter id="pcreb1" name="pcreb1 = 0.0066" value="0.0066" constant="false"/>
+      <parameter id="cebp" name="cebp = 0.076" value="0.076" constant="false"/>
+      <parameter id="w1" name="w1 = 100" value="100" constant="false"/>
+      <parameter id="w2" name="w2 = 100" value="100" constant="false"/>
+      <parameter id="w3" name="w3 = 100" value="100" constant="false"/>
+      <parameter id="step" name="step = 0" value="0" constant="false"/>
+      <parameter id="feed3" value="0" units="dimensionless" constant="false"/>
+      <parameter id="endh" value="0" units="dimensionless" constant="false"/>
+      <parameter id="bdnf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="creb1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="crebt" value="0" units="dimensionless" constant="false"/>
+      <parameter id="feed4" value="0" units="dimensionless" constant="false"/>
+      <parameter id="feed2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="starth" value="0" units="dimensionless" constant="false"/>
+      <parameter id="cebpmax" value="0" units="dimensionless" constant="false"/>
+      <parameter id="stim" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="psi" value="0" units="dimensionless" constant="false"/>
+      <parameter id="duration" value="0" units="dimensionless" constant="false"/>
+      <parameter id="t1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="startin" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_bcebp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_trs" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kdega" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kdegb" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_bpcreb" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_b2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_crece" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_min_b" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_dephc1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_dxcbp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kbcedbnf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_phosc1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_cbdnf" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_a2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="v_cebp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_min_c" value="0" units="dimensionless" constant="false"/>
+      <parameter id="k_dcebp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="test1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="dur" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kbpcrebce" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kbasw1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kw1creb" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kw1cebp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kfw1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kw1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kdw1" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kbasw2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kw2cebp" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kfw2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kw2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kdw2" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kdw3" value="0" units="dimensionless" constant="false"/>
+      <parameter id="kfw3" value="0" units="dimensionless" constant="false"/>
+      <parameter id="a4" value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter value="0" units="dimensionless" constant="false"/>
+      <parameter id="t" name="model time" value="0" units="dimensionless" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <rateRule variable="a">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <ci> stim </ci>
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> k_1 </ci>
+                    <apply>
+                      <power/>
+                      <ci> b </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <power/>
+                      <ci> b </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> k_trs </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <minus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <times/>
+                    <ci> psi </ci>
+                    <ci> turn </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> kdega </ci>
+                <ci> a </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> a </ci>
+                <ci> k_a2 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="b">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <plus/>
+              <ci> k_min_b </ci>
+              <apply>
+                <times/>
+                <ci> k_2 </ci>
+                <ci> feed3 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> kdegb </ci>
+                <ci> b </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> b </ci>
+                <ci> k_b2 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="pcreb1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> k_phosc1 </ci>
+                <ci> feed4 </ci>
+              </apply>
+              <ci> creb1 </ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci> k_dephc1 </ci>
+              <ci> pcreb1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cebp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> feed2 </ci>
+                  <ci> v_cebp </ci>
+                </apply>
+                <ci> k_min_c </ci>
+              </apply>
+              <apply>
+                <minus/>
+                <ci> cebpmax </ci>
+                <ci> cebp </ci>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> psi </ci>
+                  <ci> turn </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> k_dxcbp </ci>
+                <ci> cebp </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> cebp </ci>
+                <ci> k_dcebp </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="w1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> kbasw1 </ci>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <ci> kfw1 </ci>
+                            <apply>
+                              <minus/>
+                              <ci> pcreb1 </ci>
+                              <cn> 0.0066 </cn>
+                            </apply>
+                          </apply>
+                          <ci> kw1creb </ci>
+                        </apply>
+                        <apply>
+                          <minus/>
+                          <ci> cebp </ci>
+                          <cn> 0.076 </cn>
+                        </apply>
+                      </apply>
+                      <ci> kw1cebp </ci>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> w1 </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <power/>
+                      <ci> w1 </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> kw1 </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> psi </ci>
+                  <ci> turn </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kdw1 </ci>
+              <ci> w1 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="w2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> kbasw2 </ci>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <ci> kfw2 </ci>
+                        <apply>
+                          <minus/>
+                          <ci> cebp </ci>
+                          <cn> 0.076 </cn>
+                        </apply>
+                      </apply>
+                      <ci> kw2cebp </ci>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> w2 </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <power/>
+                      <ci> w2 </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> kw2 </ci>
+                      <cn type="integer"> 2 </cn>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> psi </ci>
+                  <ci> turn </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kdw2 </ci>
+              <ci> w2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="w3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci> kfw3 </ci>
+              <apply>
+                <plus/>
+                <ci> w1 </ci>
+                <ci> w2 </ci>
+              </apply>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> psi </ci>
+                  <ci> turn </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kdw3 </ci>
+              <ci> w3 </ci>
+            </apply>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="feed3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <power/>
+                  <ci> cebp </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> k_bcebp </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <apply>
+                    <power/>
+                    <ci> cebp </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t2 </ci>
+                    <apply>
+                      <times/>
+                      <cn type="integer"> 3600 </cn>
+                      <ci> endh </ci>
+                    </apply>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kbcedbnf </ci>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <ci> t </ci>
+                    <ci> t2 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 3600 </cn>
+                    <ci> endh </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="endh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 18 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="bdnf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> a </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="creb1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> crebt </ci>
+            <ci> pcreb1 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="crebt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.085 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="feed4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> k_cbdnf </ci>
+                <apply>
+                  <power/>
+                  <ci> bdnf </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <apply>
+                  <power/>
+                  <ci> bdnf </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> k_bpcreb </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <ci> psi </ci>
+                <cn type="integer"> 0 </cn>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="feed2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <power/>
+                  <ci> pcreb1 </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <power/>
+                    <ci> k_crece </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <apply>
+                    <power/>
+                    <ci> pcreb1 </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <ci> t </ci>
+                    <ci> t2 </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 3600 </cn>
+                    <ci> starth </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kbpcrebce </ci>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> t2 </ci>
+                    <apply>
+                      <times/>
+                      <cn type="integer"> 3600 </cn>
+                      <ci> starth </ci>
+                    </apply>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="starth">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 6 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="cebpmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn> 0.228 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="stim">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <ci> test1 </ci>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <ci> t </ci>
+                  <ci> t2 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <ci> heav </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> dur </ci>
+                    <ci> t2 </ci>
+                  </apply>
+                  <ci> t </ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 0 </cn>
+              <apply>
+                <minus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <apply>
+                    <ci> heav </ci>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <ci> heav </ci>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <plus/>
+                        <ci> dur </ci>
+                        <ci> t2 </ci>
+                      </apply>
+                      <ci> t </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 10000 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="psi">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> amp </ci>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <ci> t </ci>
+                <ci> t1 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <ci> heav </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <plus/>
+                  <ci> t1 </ci>
+                  <ci> duration </ci>
+                </apply>
+                <ci> t </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="duration">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 3600 </cn>
+            <cn type="integer"> 6 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> t2 </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 3600 </cn>
+              <ci> startin </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="startin">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <cn type="integer"> 24 </cn>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_bcebp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 1 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 31 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_trs">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 30 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 62 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kdega">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.002 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 61 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 93 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kdegb">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 2.26 <sep/> -5 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 92 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 124 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_bpcreb">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 5 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 123 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 155 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_b2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.6 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 154 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 186 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_crece">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 2.24 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 185 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 217 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_min_b">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 7.8 <sep/> -8 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 216 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 248 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 21 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 247 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 279 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_dephc1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 2.4 <sep/> -5 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 278 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 310 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_dxcbp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 5.65 <sep/> -6 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 309 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 341 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kbcedbnf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.00574 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 340 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 372 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_phosc1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 8 <sep/> -7 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 371 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 403 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 7.26 <sep/> -6 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 402 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 434 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_cbdnf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.00592 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 433 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 465 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_a2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.6 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 464 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 496 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="v_cebp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.31 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 495 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 527 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_min_c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 1.58 <sep/> -5 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 526 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 558 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="k_dcebp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.076 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 557 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 589 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="test1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.03 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 588 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 620 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="dur">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 60 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 619 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 651 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kbpcrebce">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 8.9 <sep/> -6 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 650 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 682 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kbasw1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.0004 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 681 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 713 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kw1creb">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.198 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 712 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 744 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kw1cebp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.228 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 743 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 775 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kfw1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 1.2 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 774 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 806 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kw1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 150 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 805 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 837 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kdw1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <cn type="integer"> 250000 </cn>
+            </apply>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 836 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 868 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kbasw2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <cn type="integer"> 100000 </cn>
+            </apply>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 867 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 899 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kw2cebp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.228 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 898 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 930 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kfw2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn> 0.032 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 929 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 961 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kw2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="integer"> 150 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 960 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 992 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kdw2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <cn type="integer"> 10000000 </cn>
+            </apply>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 991 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 1023 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kdw3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 2 <sep/> -5 </cn>
+            <apply>
+              <plus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 1022 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 1054 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="kfw3">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn type="e-notation"> 1 <sep/> -5 </cn>
+            <apply>
+              <minus/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <times/>
+                <cn> 0.03 </cn>
+                <ci> a4 </ci>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <ci> step </ci>
+                    <cn type="integer"> 1053 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <minus/>
+                    <cn type="integer"> 1085 </cn>
+                    <ci> step </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <ci> heav </ci>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <minus/>
+                      <ci> t </ci>
+                      <ci> t2 </ci>
+                    </apply>
+                    <cn type="integer"> 7200 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="a4">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <ci> step </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 31 </cn>
+              <apply>
+                <ci> flr </ci>
+                <apply>
+                  <divide/>
+                  <ci> step </ci>
+                  <cn type="integer"> 31 </cn>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> t </ci>
+              <cn type="integer"> 10000 </cn>
+            </apply>
+            <apply>
+              <times/>
+              <cn type="integer"> 3600 </cn>
+              <cn type="integer"> 24 </cn>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> stim </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> bdnf </ci>
+              <cn> 0.072 </cn>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> b </ci>
+              <cn> 0.0032 </cn>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> pcreb1 </ci>
+              <cn> 0.0066 </cn>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> cebp </ci>
+              <cn> 0.076 </cn>
+            </apply>
+            <cn type="integer"> 100 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> a4 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+  </model>
+</sbml>

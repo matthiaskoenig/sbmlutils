@@ -1,0 +1,127 @@
+# ClC2-VClamp-Prescott
+# Written by Steve Prescott, 2012
+# from Ratte and Prescott (ClC-2 channels regulate neuronal excitability, not intracellular chloride levels. J Neurosci 2011; 31: 15838-15843)
+# This is the code for voltage clamp simulations
+# Designed for XPPAUT 
+
+v=va+vb*heav(t>tb)+vc*heav(t>tc)
+# specify changes in command voltage... this sequence steps from -70 to +60 to -90
+param va=-70, vb=130, vc=-150
+# specify time of steps (in ms)
+param tb=2000, tc=4000
+aux v_=v
+
+# other equations are like in code for current clamp, except that Cli also depends on intracellular dialysis in this code
+# synaptic excitation and adaptation have been removed. Ina, IK, and Ileak have been left but are irrelevant unless you wish to measure them
+# outputs of interest are intracellular chloride Cli and Iclc2.
+# synaptic inhibition is intact so that one can apply a chloride load
+
+dw/dt = phi*(winf(V)-w)/tauw(V)
+w(0)=0.000025
+minf(v)=.5*(1+tanh((v-v1)/v2))
+winf(v)=.5*(1+tanh((v-v3)/v4))
+tauw(v)=1/cosh((v-v3)/(2*v4))
+param vk=-90,vl=-70,vna=45
+param gk=20,gl=1,gna=20
+param v1=-1.2,v2=18
+# v1 and v2 correspond to beta_m and gamma_m in paper
+param v3=-9,v4=10
+# v3 and v4 correspond to beta_w and gamma_w in paper
+param phi=.25,cap=2
+
+
+# SYNAPTIC INHIBITION
+
+# Here is the second WIENER VARIABLE... gives Ornstein-Uhlenbeck process for synaptic inhibition
+wiener nz2
+aux ginh_=(ginh*inorm+ginh_avg)*irect*(0+oninh(t)+offinh(t))
+dginh/dt=-ginh/tau_inh+scale_inh*nz2
+inorm=sqrt(2/tau_inh)
+irect=heav((ginh*inorm+ginh_avg)>0)
+par scale_inh=0
+par tau_inh=10
+par ginh_avg=1
+# See below for reversal potentials associated with chloride
+oninh(t)=heav(t>=tst_oninh)*1
+offinh(t)=heav(t>(tst_oninh+tr_offinh))*(-1)
+param tst_oninh=0,tr_offinh=4000
+# to give non-noisy gaba application 
+# set scale_inh to 0
+# set intensity by ginh_avg
+# set duration (onset and offset) by tst_oninh and tr_offinh
+# currently set to have open gaba channels during voltage command step to 0 mV, and then they close during step to -90 mV
+
+
+# ClC-2
+
+# parameters based on Staley 94 J Neurophysiol paper
+# voltage-dependence is relative to Ecl, which is how you get rectification
+dp/dt = (pinf(V)-p)/taup
+pinf(V)=1/(1+exp((vcl-betap-v)/gammap))
+param betap=15, gammap=-14
+# v1/2 (i.e. betap) and vslope (gammaP) taken from Staley 94, tau is an estimate from that same paper.
+param taup=300
+# estimate (slow) tau from Zuniga et al. 2004 J Physiol, at body temp (which is what Staley used in 94)
+p(0)=0
+# instead of using original rectification strategy, you can get simple rectification with the following param
+# betap=0 (centers curve on vcl), gammap=-0.0001 (makes the curve very steep), taup=0.1 (makes activation instantaneous) 
+aux Iclc2 = gclc*p*(V-Vcl)
+param gclc=0
+
+
+# CHLORIDE HANDLING
+
+# GHK equation, where 4 is for ratio of Cl to bicarb flux
+Vgaba = 1000*R*Tem/F*ln((4*cli+bicarb*11.8)/(4*clo+bicarb*25))
+# bicarb can be set to 1 or 0 to include or exclude bicarbonate component
+param bicarb=1
+
+# Nernst equations
+vbicarb = 1000*R*Tem/F*ln((bicarb*11.8)/(bicarb*25))
+Vcl = 1000*R*Tem/F*ln(cli/clo)
+aux vcl_=vcl
+aux vgaba_=vgaba
+
+param F=96485, R=8.3, Tem=310
+param clo=120
+cli(0)=6
+
+x = (Vbicarb-Vgaba)/(Vbicarb-Vcl)
+# based on ginh(v-vgaba) = x*ginh(v-vcl) + (1-x)ginh(v-vbicarb), re-arrange to find x, which apportions to current (ion flux) attributable to each ion species
+aux x_ = x
+
+# Next line updates intracellular chloride concentration, including intracellular dialysis from recording pipette
+dcli/dt = SAvol*((ginh*inorm+ginh_avg)*irect*x*(0+oninh(t)+offinh(t))*(v-Vcl)+gkcc2*(Vk-Vcl)+gclc*p*(V-Vcl))/F+(pip_cl-cli)/tau_pip
+# note for gaba current that driving force is calculated as v-Vcl and is multiplied by x in order to isolate chloride component of the total current.
+param pip_cl=4, tau_pip=1000
+
+param gkcc2=.7
+aux Ikcc2 = gkcc2*(Vk-Vcl)
+# Note that kcc2 does not appear in current balance equation because it is electroneutral (i.e. Cl and K flux cancel each other out)
+
+
+# SHAPE
+
+# for sphere: vol=(4/3)*pi*(ra^3), SA=4*pi*(ra^2), SA/vol=3/ra
+# for a cylinder: vol=pi*h*(ra^2), SA=2*pi*ra*(ra+h), SA/vol=(2/ra)+(2/h) -> Sa/vol=2/ra if you exlclude ends...assume it is connected to adjoining cylinders 
+# Therefore, shape = 3 for sphere; =2 for cylinder without ends
+param shape=3
+!SAvol=shape/(10*ra)
+# note because of units, factor of 10 is applied to denominator (convert mm to cm to get cm^3 for dealing with volumes)
+# Radius now specified in mm, 6.3 microns ->0.0063 mm, 
+param ra=.0063
+# this radius gives surface area (of sphere) of 5x10^-6 cm^2
+# Adjust to simulate cylindrical dendrite
+
+
+# PRACTICAL DETAILS FOR XPP
+
+@ total=20000,dt=.1,xlo=-100,xhi=60,ylo=-.125,yhi=.6,xp=v,yp=w
+@ meth=Euler
+# ALWAYS USE EULER METHOD WITH NOISE PROCESSES (although there are no such mechanisms in this code
+@ dsmin=1e-5,dsmax=.1,parmin=0,parmax=80, autoxmin=0,autoxmax=80,autoymin=-80,autoymax=40
+@ MAXSTOR=1000000
+
+done
+
+

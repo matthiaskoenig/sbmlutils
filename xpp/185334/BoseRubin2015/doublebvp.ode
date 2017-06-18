@@ -1,0 +1,39 @@
+# doublebvp.ode
+# used for Bose and Rubin, IJBC, Vol. 25, June 30, 2015
+
+# integrate 4 trajectories simultaneously
+
+# (v,g) is the suppressed cell on its last cycle before it becomes active
+v'=P*(I-v-g*(v-E)) 
+g'=P*(-beta*g)
+
+# (vhat,ghat) is the active cell on its last cycle of being active; ghat \equiv 0
+vhat'=P*(I-vhat)
+
+# (vtilde,gtilde) is the formerly suppressed cell on the cycle after its first reset
+vtilde'=Q*(I-vtilde-gtilde*(vtilde-E))
+gtilde'=Q*(-beta*gtilde)
+
+# (vstar,gstar) is the formerly active cell on the cycle after it is first inhibited
+vstar'=Q*(I-vstar-gstar*(vstar-E))
+gstar'=Q*(-beta*gstar)
+
+# two trivial equations are added, so that number of eqns = number of BCs
+P'=0
+Q'=0
+
+# BCs
+b v-1
+b v'-1
+b g-g0
+b vhat
+b vtilde
+b vtilde'-1
+b g'-gtilde
+b vhat'-vstar
+b vstar'-1
+
+init P=0.65,Q=1.02,v=1,g=1.1,vstar=.96,gstar=1.24
+par beta=0.2,I=2,E=-0.1,g0=1.1
+@ total=1,dt=.01
+done
