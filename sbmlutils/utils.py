@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import
 import warnings
 import time
-
+import libsbml
 
 def timeit(f):
     """ Timing decorator.
