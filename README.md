@@ -69,6 +69,10 @@ apt-get install python3-tk
 ```
 
 ## Release notes
+### 0.1.7a0
+* xpp converter
+* updated SBML reports
+
 
 ### 0.1.6
 * update SBML reports (fbc & comp support)
