@@ -137,6 +137,14 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
         dfs.append(df)
 
+        # print(dfba_simulator.all_fva)
+        print(dfba_simulator.unique.T)
+        if not np.all(dfba_simulator.unique):
+            print("* DFBA Solution is NOT UNIQUE *")
+        else:
+            print("* DFBA Solution is UNIQUE *")
+
+
         # generic analysis
         analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 
@@ -159,7 +167,7 @@ if __name__ == "__main__":
     sbml_path = os.path.join(directory, settings.top_file)
 
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
 
     from sbmlutils.dfba.model import DFBAModel
     dfba_model = DFBAModel(sbml_path=sbml_path)

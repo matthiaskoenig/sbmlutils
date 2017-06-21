@@ -14,6 +14,28 @@ from matplotlib import pyplot as plt
 set_matplotlib_parameters()
 
 
+def analyse_uniqueness(dfba_simulator, filepath=None):
+    """
+
+    :param dfba_simulator:
+    :return:
+    """
+    # print(dfba_simulator.all_fva)
+    print(dfba_simulator.unique.T)
+    if not np.all(dfba_simulator.unique):
+        print("* DFBA Solution is NOT UNIQUE *")
+        print(dfba_simulator.all_fva)
+    else:
+        print("* DFBA Solution is UNIQUE *")
+
+    fig = plt.figure(1)
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))
+    ax1.plot(dfba_simulator.unique.index, dfba_simulator.unique, 'o-', color="black", drawstyle="steps")
+    ax1.set_xlabel("time")
+    ax1.set_ylabel("unique solution at timepoint")
+    ax1.set_title("Uniqueness")
+    plt.show()
+
 def print_species(dfs, filepath=None, **kwargs):
     """ Print diauxic species.
 
