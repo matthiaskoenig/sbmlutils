@@ -10,7 +10,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.ecoli import settings, model_factory
-from sbmlutils.dfba.simulator import simulate_dfba
+from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
 
 from sbmlutils.dfba import utils
@@ -146,13 +146,7 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=True)
         dfs.append(df)
 
-        # print(dfba_simulator.all_fva)
-        print(dfba_simulator.unique.T)
-        if not np.all(dfba_simulator.unique):
-            print("* DFBA Solution is NOT UNIQUE *")
-            print(dfba_simulator.all_fva)
-        else:
-            print("* DFBA Solution is UNIQUE *")
+        analyse_uniqueness(dfba_simulator)
 
         # generic analysis
         analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)

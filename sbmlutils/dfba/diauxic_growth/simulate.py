@@ -14,7 +14,7 @@ from sbmlutils.dfba.utils import versioned_directory
 from sbmlutils.dfba.diauxic_growth import dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory
 from sbmlutils.dfba.diauxic_growth import analyse
-from sbmlutils.dfba.simulator import simulate_dfba
+from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 
 
 def simulate_diauxic_growth(sbml_path, out_dir, dts=[0.01, 0.1], figures=True):
@@ -28,7 +28,8 @@ def simulate_diauxic_growth(sbml_path, out_dir, dts=[0.01, 0.1], figures=True):
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=False)
         dfs.append(df)
 
-        analyse.analyse_uniqueness(dfba_simulator)
+        # uniqueness of solution
+        analyse_uniqueness(dfba_simulator)
 
         # generic analysis
         # analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
