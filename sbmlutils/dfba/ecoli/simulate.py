@@ -146,6 +146,14 @@ def simulate_ecoli(sbml_path, out_dir, dts=[0.1, 0.01], figures=True):
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=True)
         dfs.append(df)
 
+        # print(dfba_simulator.all_fva)
+        print(dfba_simulator.unique.T)
+        if not np.all(dfba_simulator.unique):
+            print("* DFBA Solution is NOT UNIQUE *")
+            print(dfba_simulator.all_fva)
+        else:
+            print("* DFBA Solution is UNIQUE *")
+
         # generic analysis
         analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 

@@ -3,8 +3,11 @@ Simulate the diauxic growth model.
 """
 from __future__ import print_function, division, absolute_import
 import os
+import numpy as np
 import warnings
 import logging
+
+from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.utils import versioned_directory
 
@@ -24,6 +27,8 @@ def simulate_diauxic_growth(sbml_path, out_dir, dts=[0.01, 0.1], figures=True):
     for dt in dts:
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=False)
         dfs.append(df)
+
+        analyse.analyse_uniqueness(dfba_simulator)
 
         # generic analysis
         # analysis = DFBAAnalysis(df=df, rr_comp=dfba_simulator.ode_model)
@@ -63,7 +68,6 @@ if __name__ == "__main__":
     directory = versioned_directory(dgsettings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, dgsettings.top_file)
     print('Model:', sbml_path)
-
 
     dfba_model = DFBAModel(sbml_path=sbml_path)
     print(dfba_model)

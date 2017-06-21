@@ -22,6 +22,7 @@ import logging
 import numpy as np
 import pandas as pd
 import cobra
+from cobra.flux_analysis import parsimonious
 import timeit
 
 from sbmlutils.dfba.model import DFBAModel
@@ -58,8 +59,9 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True,
 
 class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
+    # FIXME: add the pfba objective once and only update the coeffient depending on the actual optimum
 
-    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True):
+    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True, check_uniqueness=True):
         """ Create the simulator with the processed dfba model.
 
 
@@ -74,21 +76,24 @@ class DFBASimulator(object):
         self.rel_tol = rel_tol
         self.solution = None
 
+
         self.fba_solution = None  # last LP solution
         self.fluxes = None  # last LP fluxes dict
 
         self.simulation_time = None  # duration of last simulation
+
         # set solver
         self.cobra_model.solver = lp_solver
         self.pfba = pfba
+        self.check_uniqueness = check_uniqueness
+
+        # uniqueness of FBA solution
+        self.all_fva = None
+        self.unique = None
 
         # Check that the FBA model simulates with given FBA model bounds
         df_fbc = fbc.cobra_reaction_info(self.cobra_model)
         logging.info(df_fbc)
-
-        # FIXME: add the pfba objective once
-        # if self.pfba:
-        #     cobra.flux_analysis.parsimonious.add_pfba(self.cobra_model)
 
         # flux replacements in ode model
         parameter2flux = {}
@@ -174,9 +179,11 @@ class DFBASimulator(object):
             points = steps + 1
             all_time = np.linspace(start=tstart, stop=tend, num=points)
             all_results = []
+            all_fva = []
 
             # initial values
             ode_res = self._simulate_ode(tstart=0.0, tend=0.0)
+
             row_next = ode_res[1, :]
             time = 0.0
             kstep = 0
@@ -195,6 +202,10 @@ class DFBASimulator(object):
                 self._simulate_fba()
                 # set ode fluxes from fba
                 self._set_fluxes()
+
+                if self.check_uniqueness:
+                    # FIXME: probably not storing the correct values due to reference
+                    all_fva.append(self.fva)
 
                 # --------------------------------------
                 # ODE
@@ -234,6 +245,9 @@ class DFBASimulator(object):
 
         self.solution = df_results
         self.simulation_time = timeit.default_timer() - start_time
+        self.all_fva = all_fva
+        self.unique = pd.DataFrame(data=[np.sum(df.maximum-df.minimum)<1E-6 for df in all_fva], index=self.solution.time, columns=["unique"])
+
         return self.solution
 
     def benchmark(self, n_repeat=10, **kwargs):
@@ -269,6 +283,17 @@ class DFBASimulator(object):
             row[index] = flux = self.fluxes[fba_rid]
             logging.debug("\t{} = {}".format(fba_rid, flux))
 
+    def _is_fba_unique(self, tol=1E-6):
+        """ Checks if the FBA solution is unique for the timepoint.
+
+        :return:
+        """
+        # make sure that fva is run on the correct objective, i.e. fba/pfba model
+        diff = np.sum(self.fva.maximum-fva.minimum)
+        unique = abs(diff) < tol
+        return unique
+
+
     def _simulate_ode(self, tstart, tend):
         """ ODE integration for a single timestep.
 
@@ -290,16 +315,40 @@ class DFBASimulator(object):
         which gives the optimal growth rate, but minimizes the total sum of flux.
         """
         logging.debug("* FBA optimize")
-        # self.fba_solution = self.cobra_model.optimize()
-        # # FIXME
-        self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+
+        fva = None
+        if self.pfba:
+            # run pfba
+            # self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
+            with self.cobra_model as m:
+                # add the pfba constraint
+                cobra.flux_analysis.parsimonious.add_pfba(m, objective=None, fraction_of_optimum=1.0)
+                m.solver.optimize()
+                solution = cobra.core.solution.get_solution(m, reactions=m.reactions)
+            if self.check_uniqueness:
+                fva = cobra.flux_analysis.flux_variability_analysis(m)
+        else:
+            # run simple fba
+            solution = self.cobra_model.optimize()
+            if self.check_uniqueness:
+                fva = cobra.flux_analysis.flux_variability_analysis(self.cobra_model)
+
+        self.fba_solution = solution
+        self.fva = fva
+
         self.fluxes = self.fba_solution.fluxes
         logging.debug(self.fba_solution.fluxes)
 
-        # directly call the optimization
-        # self.cobra_model.solver.optimize()
-        # self.fluxes = DFBASimulator.get_fluxes_vector(self.cobra_model)
-        # logging.debug(self.fluxes)
+    def _fva_row(self):
+        """ Creates the fva row from thw fva results.
+
+        :return:
+        """
+        index = self.fva.index
+        columns = ["_unique_"] + ["_min_{}".format(rid) for rid in index] + ["_max_{}".format(rid) for rid in index]
+
+
+
 
     @staticmethod
     def get_fluxes_vector(model, reactions=None):
