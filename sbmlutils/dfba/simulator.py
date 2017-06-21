@@ -21,6 +21,7 @@ from six import iteritems
 import logging
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 import cobra
 from cobra.flux_analysis import parsimonious
 import timeit
@@ -246,7 +247,7 @@ class DFBASimulator(object):
         self.solution = df_results
         self.simulation_time = timeit.default_timer() - start_time
         self.all_fva = all_fva
-        self.unique = pd.DataFrame(data=[np.sum(df.maximum-df.minimum)<1E-6 for df in all_fva], index=self.solution.time, columns=["unique"])
+        self.unique = pd.DataFrame(data=[np.sum(df.maximum-df.minimum)/len(df)<1E-6 for df in all_fva], index=self.solution.time, columns=["unique"])
 
         return self.solution
 
@@ -435,3 +436,25 @@ class DFBASimulator(object):
             self.ode_model[top_pid] = self.fluxes[fba_rid]
             logging.debug('\t{:<10}: {:<10} = {}'.format(top_pid, fba_rid, self.fluxes[fba_rid]))
 
+
+def analyse_uniqueness(dfba_simulator, filepath=None):
+    """
+
+    :param dfba_simulator:
+    :return:
+    """
+    # print(dfba_simulator.all_fva)
+    print(dfba_simulator.unique.T)
+    if not np.all(dfba_simulator.unique):
+        print("* DFBA Solution is NOT UNIQUE *")
+        print(dfba_simulator.all_fva)
+    else:
+        print("* DFBA Solution is UNIQUE *")
+
+    fig = plt.figure(1)
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))
+    ax1.plot(dfba_simulator.unique.index, dfba_simulator.unique, 'o-', color="black", drawstyle="steps")
+    ax1.set_xlabel("time")
+    ax1.set_ylabel("unique solution at timepoint")
+    ax1.set_title("Uniqueness")
+    plt.show()
