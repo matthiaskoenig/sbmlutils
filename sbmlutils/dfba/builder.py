@@ -507,15 +507,17 @@ def create_update_parameter(model, sid, unit_flux):
     return pid
 
 
-def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
-    """ Creates the exchange reaction flux bounds.
+def create_exchange_bounds(model_bounds, model_fba, unit_flux=None, create_ports=True):
+    """ Creates the exchange reaction flux bounds in the bounds model.
     
-    :param model: 
-    :param model_fba: 
+    :param model_bounds: the bounds model for dynamic calculation of the bounds
+    :param model_fba:  the fba model
     :param unit_flux: 
     :param create_ports: 
     :return: 
     """
+    # FIXME: In addition to the variable bounds, variables
+
     ex_rids = utils.find_exchange_reactions(model_fba)
     objects = []
     port_sids = []
@@ -529,6 +531,8 @@ def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
         ub_id = r_fbc.getUpperFluxBound()
         ub_value = model_fba.getParameter(ub_id).getValue()
 
+        # This creates the dynamical flux bound variables which are initialized with the
+        # constant fba bounds
         objects.extend([
             # for assignments
             fac.Parameter(sid=lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
@@ -537,10 +541,57 @@ def create_exchange_bounds(model, model_fba, unit_flux=None, create_ports=True):
         port_sids.extend([lb_id, ub_id])
 
     # create bounds
-    fac.create_objects(model, objects)
+    fac.create_objects(model_bounds, objects)
     # create ports
     if create_ports:
-        comp.create_ports(model, idRefs=port_sids)
+        comp.create_ports(model_bounds, idRefs=port_sids)
+
+
+def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
+    """ Creates the dynamic bounds for the model.
+
+    :return:
+    """
+    fba_suffix = "_fba"
+    objects = []
+    ex_rids = utils.find_exchange_reactions(model_fba)
+    for ex_rid, sid in iteritems(ex_rids):
+        r = model_fba.getReaction(ex_rid)
+        r_fbc = r.getPlugin(SBML_FBC_NAME)
+
+        # get compartment from species
+        s = model_bounds.getSpecies(sid)
+        cid = s.getCompartment()
+
+        # upper bound parameter (export from FBA, i.e increase concentration)
+        ub_id = r_fbc.getUpperFluxBound()
+        fba_ub_id = ub_id + fba_suffix
+        ub_value = model_fba.getParameter(ub_id).getValue()
+        ub_formula = "{}".format(fba_ub_id)
+        objects.extend([
+            fac.Parameter(sid=fba_ub_id, value=ub_value, unit=unit_flux, constant=True, sboTerm=FLUX_BOUND_SBO),
+            fac.AssignmentRule(sid=ub_id, value=ub_formula, name="fba export bound ({})".format(sid)),
+        ])
+
+        # lower bound parameter (import to FBA, i.e decrease concentration)
+        lb_id = r_fbc.getLowerFluxBound()
+        fba_lb_id = lb_id + fba_suffix
+        lb_value = model_fba.getParameter(lb_id).getValue()
+        # concentration/amount formula for import depending on available species
+
+        if s.getHasOnlySubstanceUnits():
+            lb_formula = "max({}, -{}/dt)".format(fba_lb_id, sid)
+        else:
+            lb_formula = "max({}, -{}*{}/dt)".format(fba_lb_id, cid, sid)
+
+
+        objects.extend([
+            # default bounds from fba
+            fac.Parameter(sid=fba_lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
+            # uptake bounds (lower bound)
+            fac.AssignmentRule(sid=lb_id, value=lb_formula, name="dfba import bound ({})".format(sid)),
+        ])
+    fac.create_objects(model_bounds, objects)
 
 
 def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits=False):

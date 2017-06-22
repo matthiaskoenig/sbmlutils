@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from sbmlutils.dfba.toy_wholecell import settings, model_factory
-from sbmlutils.dfba.simulator import simulate_dfba
+from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
 
 from sbmlutils.dfba.utils import versioned_directory
@@ -137,12 +137,7 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
         dfs.append(df)
 
-        # print(dfba_simulator.all_fva)
-        print(dfba_simulator.unique.T)
-        if not np.all(dfba_simulator.unique):
-            print("* DFBA Solution is NOT UNIQUE *")
-        else:
-            print("* DFBA Solution is UNIQUE *")
+        analyse_uniqueness(dfba_simulator)
 
 
         # generic analysis
