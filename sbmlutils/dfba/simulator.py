@@ -317,7 +317,13 @@ class DFBASimulator(object):
         """
         logging.debug("* FBA optimize")
 
-        fva = None
+        def fva_analysis(model, solution):
+            fva = None
+            if self.check_uniqueness:
+                fva = cobra.flux_analysis.flux_variability_analysis(model)
+                fva['flux'] = pd.Series(solution.fluxes, index=fva.index)
+            return fva
+
         if self.pfba:
             # run pfba
             # self.fba_solution = cobra.flux_analysis.pfba(self.cobra_model)
@@ -326,29 +332,19 @@ class DFBASimulator(object):
                 cobra.flux_analysis.parsimonious.add_pfba(m, objective=None, fraction_of_optimum=1.0)
                 m.solver.optimize()
                 solution = cobra.core.solution.get_solution(m, reactions=m.reactions)
-            if self.check_uniqueness:
-                fva = cobra.flux_analysis.flux_variability_analysis(m)
+                fva = fva_analysis(m, solution)
         else:
-            # run simple fba
+            # run fba
             solution = self.cobra_model.optimize()
+            fva = fva_analysis(model, solution)
             if self.check_uniqueness:
                 fva = cobra.flux_analysis.flux_variability_analysis(self.cobra_model)
 
         self.fba_solution = solution
+        self.fluxes = solution.fluxes
         self.fva = fva
 
-        self.fluxes = self.fba_solution.fluxes
-        logging.debug(self.fba_solution.fluxes)
-
-    def _fva_row(self):
-        """ Creates the fva row from thw fva results.
-
-        :return:
-        """
-        index = self.fva.index
-        columns = ["_unique_"] + ["_min_{}".format(rid) for rid in index] + ["_max_{}".format(rid) for rid in index]
-
-
+        logging.debug(solution.fluxes)
 
 
     @staticmethod
@@ -385,7 +381,6 @@ class DFBASimulator(object):
         logging.debug('* FBA set bounds ')
 
         # FIXME: unify in one inline function, set upper and lower bounds at once
-
         # upper bounds
         for top_pid, rid in iteritems(self.fba_model.ub_pid2rid):
             reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
@@ -444,12 +439,18 @@ def analyse_uniqueness(dfba_simulator, filepath=None):
     :return:
     """
     # print(dfba_simulator.all_fva)
-    print(dfba_simulator.unique.T)
+    # print(dfba_simulator.unique.T)
     if not np.all(dfba_simulator.unique):
         print("* DFBA Solution is NOT UNIQUE *")
-        print(dfba_simulator.all_fva)
+        # print(dfba_simulator.all_fva)
     else:
         print("* DFBA Solution is UNIQUE *")
+
+    res = pd.concat(dfba_simulator.all_fva, axis=1, keys=dfba_simulator.solution.time)
+    print(res)
+    print(res.xs('R1', level='time'))
+
+
 
     fig = plt.figure(1)
     fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))

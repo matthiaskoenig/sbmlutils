@@ -34,7 +34,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 7
+version = 8
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -225,28 +225,8 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
-
-    # bounds
-    fba_prefix = "fba"
-    model_fba = doc_fba.getModel()
-    objects = []
-    ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
-        r = model_fba.getReaction(ex_rid)
-
-        # lower & upper bound parameters
-        r_fbc = r.getPlugin(builder.SBML_FBC_NAME)
-        lb_id = r_fbc.getLowerFluxBound()
-        fba_lb_id = fba_prefix + lb_id
-        lb_value = model_fba.getParameter(lb_id).getValue()
-
-        objects.extend([
-            # default bounds from fba
-            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
-            # uptake bounds (lower bound)
-            mc.AssignmentRule(sid=lb_id, value="max({}, -{}*bioreactor/dt)".format(fba_lb_id, sid)),
-        ])
-    mc.create_objects(model, objects)
+    # bounds update
+    builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX)
 
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
@@ -417,5 +397,5 @@ def create_reports(output_dir):
 if __name__ == "__main__":
 
     from sbmlutils.dfba.ecoli.settings import out_dir
-    # create_model(output_dir=out_dir)
-    create_reports(output_dir=out_dir)
+    create_model(output_dir=out_dir)
+    # create_reports(output_dir=out_dir)
