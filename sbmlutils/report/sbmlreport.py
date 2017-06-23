@@ -53,7 +53,7 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
     f_index.close()
 
 
-def _create_index_html(sbml_paths, html_template='index.html'):
+def _create_index_html(sbml_paths, html_template='index.html', offline=True):
     """Create index for sbml_paths.
     """
 
@@ -74,6 +74,8 @@ def _create_index_html(sbml_paths, html_template='index.html'):
 
     # Context
     c = {
+        'offline': offline,
+
         'sbml_basenames': sbml_basenames,
         'sbml_links': sbml_links,
     }
@@ -616,6 +618,9 @@ def id_html(item):
     """
     id = item.getId()
     meta = metaId(item)
+
+    # FIXME: these checks are not working for the rules & models are not created correct
+    # The problem is that the identification is done via the symbols
     if id:
         if type(item) == libsbml.RateRule:
             full_id = 'd {}/dt'.format(id)

@@ -1,6 +1,8 @@
 # -*- coding=utf-8 -*-
 """
 Create SBML models for the ATP submodel.
+* No flux weighting performed with model
+* species and fluxes are handled via concentrations
 """
 
 from __future__ import print_function, absolute_import
@@ -28,7 +30,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 9
+version = 10
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -197,8 +199,10 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
                                 hasOnlySubstanceUnits=False, create_port=True)
 
     # exchange bounds
-    builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
+    builder.create_exchange_bounds(model_bounds=model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
+    builder.create_dynamic_bounds(model_bounds=model, model_fba=model_fba, unit_flux=UNIT_FLUX)
 
+    '''
     # bounds
     fba_prefix = "fba"
     model_fba = doc_fba.getModel()
@@ -220,6 +224,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
             mc.AssignmentRule(sid=lb_id, value="max({}, -{}*{}/dt)".format(fba_lb_id, compartment_id, sid)),
         ])
     mc.create_objects(model, objects)
+    '''
 
     if annotations:
         annotation.annotate_sbml_doc(doc, annotations)
