@@ -219,6 +219,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
     # exchange bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
 
+
     objects = [
         # exchange bounds
         # FIXME: readout the FBA network bounds
