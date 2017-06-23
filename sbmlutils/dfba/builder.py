@@ -371,6 +371,10 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
     return ex_r
 
 
+################################
+# Update model
+################################
+
 def update_exchange_reactions(model, flux_unit):
     """ Updates existing exchange reaction in FBA model.
     
@@ -507,17 +511,22 @@ def create_update_parameter(model, sid, unit_flux):
     return pid
 
 
+################################
+# Bounds model
+################################
+# Creation of the bounds from the FBA model as bounds for the DFBA model.
+# In addition the exchange fluxes are constraint by the availabiltiy
+# of compounds.
+
 def create_exchange_bounds(model_bounds, model_fba, unit_flux=None, create_ports=True):
     """ Creates the exchange reaction flux bounds in the bounds model.
     
-    :param model_bounds: the bounds model for dynamic calculation of the bounds
-    :param model_fba:  the fba model
-    :param unit_flux: 
-    :param create_ports: 
+    :param model_bounds: the bounds model submodel
+    :param model_fba: the fba submodel
+    :param unit_flux: unit of fluxes
+    :param create_ports: should ports be created.
     :return: 
     """
-    # FIXME: In addition to the variable bounds, variables
-
     ex_rids = utils.find_exchange_reactions(model_fba)
     objects = []
     port_sids = []
@@ -549,6 +558,9 @@ def create_exchange_bounds(model_bounds, model_fba, unit_flux=None, create_ports
 
 def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
     """ Creates the dynamic bounds for the model.
+
+    It is necessary to create copies of the fixed bounds from the fba model
+    which are subsequently used in the dynamic bounds calculation.
 
     :return:
     """
@@ -593,6 +605,9 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
         ])
     fac.create_objects(model_bounds, objects)
 
+################################
+# Top model
+################################
 
 def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits=False):
     """ Creates the dummy species in the top model.
