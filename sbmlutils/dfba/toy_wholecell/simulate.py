@@ -139,7 +139,6 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
 
         analyse_uniqueness(dfba_simulator)
 
-
         # generic analysis
         analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 

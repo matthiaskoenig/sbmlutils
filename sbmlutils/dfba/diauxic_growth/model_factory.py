@@ -100,7 +100,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 12
+version = 13
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -247,7 +247,7 @@ def fba_model(sbml_file, directory, annotations=None):
                                          exchange_type=builder.EXCHANGE)
     # set bounds for the exchange reactions
     p_lb_O2 = model.getParameter("lb_EX_O2")
-    p_lb_O2.setValue(-15.0)  # FIXME: this is in mmol/gdw/h
+    p_lb_O2.setValue(-15.0)  # FIXME: this is in mmol/gdw/h (biomass weighting of FBA)
     p_lb_Glcxt = model.getParameter("lb_EX_Glcxt")
     p_lb_Glcxt.setValue(-10.0)  # FIXME: this is in mmol/gdw/h
 

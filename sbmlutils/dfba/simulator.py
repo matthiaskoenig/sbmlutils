@@ -446,16 +446,17 @@ def analyse_uniqueness(dfba_simulator, filepath=None):
     else:
         print("* DFBA Solution is UNIQUE *")
 
+    # create the uniqueness plots for the simulation
+
     res = pd.concat(dfba_simulator.all_fva, axis=1, keys=dfba_simulator.solution.time)
-    print(res)
-    print(res.xs('R1', level='time'))
+    # print(res)
+    # print(res.xs('R1', level='time'))
 
-
-
-    fig = plt.figure(1)
-    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))
-    ax1.plot(dfba_simulator.unique.index, dfba_simulator.unique, 'o-', color="black", drawstyle="steps")
-    ax1.set_xlabel("time")
-    ax1.set_ylabel("unique solution at timepoint")
-    ax1.set_title("Uniqueness")
-    plt.show()
+    if False:
+        fig = plt.figure(1)
+        fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))
+        ax1.plot(dfba_simulator.unique.index, dfba_simulator.unique, 'o-', color="black", drawstyle="steps")
+        ax1.set_xlabel("time")
+        ax1.set_ylabel("unique solution at timepoint")
+        ax1.set_title("Uniqueness")
+        plt.show()
