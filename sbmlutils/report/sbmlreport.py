@@ -26,6 +26,7 @@ from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
 from sbmlutils.validation import check_sbml
 from sbmlutils.utils import promote_local_variables
+from sbmlutils import annotation
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -206,14 +207,15 @@ def _create_value_dictionary(model):
 
 
 def infoSbase(item):
+    """ Info dictionary for SBase. """
     info = {
         'object': item,
         'id': item.id,
-        'metaId': metaId(item),
+        'metaId': metaid_html(item),
         'sbo': sbo(item),
         'cvterm': cvterm(item),
         'notes': notes(item),
-        'annotation': annotation(item)
+        'annotation': annotation_html(item)
     }
 
     if item.isSetName():
@@ -604,7 +606,7 @@ def sbaseref(sref):
 def empty_html():
     return '<i class="fa fa-ban gray"></i>'
 
-def metaId(item):
+def metaid_html(item):
     if item.isSetMetaId():
         return "<code>{}</code>".format(item.getMetaId())
     return ''
@@ -616,29 +618,27 @@ def id_html(item):
     :param item:
     :return:
     """
-    id = item.getId()
-    meta = metaId(item)
+    sid = item.getId()
+    meta = metaid_html(item)
 
-    # FIXME: these checks are not working for the rules & models are not created correct
-    # The problem is that the identification is done via the symbols
-    if id:
-        if type(item) == libsbml.RateRule:
-            full_id = 'd {}/dt'.format(id)
-        else:
-            full_id = id
-
-        info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, full_id, meta)
-        if id is not None and (type(item) is not libsbml.Model):
-            info += xml_modal(item)
+    if sid:
+        display_sid = sid
+        if isinstance(item, libsbml.RateRule) and item.isSetVariable():
+            display_sid = 'd {}/dt'.format(item.getVariable())
+        info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(sid, display_sid, meta)
     else:
         if meta:
             info = '<td class="active">{}'.format(meta)
         else:
             info = '<td class="active">{}'.format(empty_html())
+
+    # create modal information
+    info += xml_modal(item)
+
     return info
 
 
-def annotation(item):
+def annotation_html(item):
     info = '<div class="cvterm">'
     if item.getSBOTerm() != -1:
         info += '<a href="{}" target="_blank">{}</a><br />'.format(item.getSBOTermAsURL(), item.getSBOTermID())
@@ -664,6 +664,19 @@ def annotation_xml(item):
     return ''
 
 def xml_modal(item):
+    """ Creates modal information for a given sbase.
+
+    This provides some popup which allows to inspect the xml content of the element.
+
+    :param item:
+    :return:
+    """
+    # filter sbases
+    if type(item) is libsbml.Model:
+        return ''
+
+    hash_id = annotation.create_hash_id(item)
+
     info = '''
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{}"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-{}" role="dialog">
@@ -674,7 +687,7 @@ def xml_modal(item):
           </div>
         </div>
       </div>
-    '''.format(item.id, item.id, item.id, xml(item))
+    '''.format(hash_id, hash_id, hash_id, xml(item))
     return info
 
 

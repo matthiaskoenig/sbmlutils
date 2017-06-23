@@ -103,21 +103,31 @@ BiologicalQualifierType = {
 ########################################################################
 # Annotation
 ########################################################################
+def create_hash_id(sbase):
+    """ Creates unique hash id for sbase in model.
+
+    :param sbase:
+    :return:
+    """
+    # FIXME: This must be reproducible, so models don't change on recreation
+    if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
+        hash_id = sbase.getId()
+    else:
+        hash_id = uuid.uuid4().hex
+
+    # the special case of the assignment rules (getId() returns getVariable())
+    if isinstance(sbase, libsbml.AssignmentRule) or isinstance(sbase, libsbml.RateRule):
+        hash_id = uuid.uuid4().hex
+    return hash_id
+
+
 def create_metaid(sbase):
     """ Creates a unique meta id.
 
     Meta ids are required to store annotation elements.
     """
-    # TODO: This must be reproducible, so that models don't change on recreation
-    if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
-        meta_id = sbase.getId()
-    else:
-        meta_id = uuid.uuid4()
-        meta_id = meta_id.hex
-
-    if sbase is None:
-        raise ValueError("MetaId can only be created with existing sbase.")
-    return 'meta_{}'.format(meta_id)
+    hash_id = create_hash_id(sbase)
+    return 'meta_{}'.format(hash_id)
 
 
 class AnnotationException(Exception):
