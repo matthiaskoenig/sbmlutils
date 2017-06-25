@@ -5,6 +5,34 @@ The core E. coli metabolic model is a subset of the genome-scale metabolic recon
 
 It is described in EcoSal Chapter 10.2.1 - Reconstruction and Use of Microbial Metabolic Networks: 
 the Core Escherichia coli Metabolic Model as an Educational Guide by Orth, Fleming, and Palsson (2010) link
+
+* Biomass weighting of fluxes *
+One challenge is that the biomass species is expressed in [g] whereas all other species have units [mol] in the
+model. Normally the biomass should be converted with the molecular mass of the species, but
+for the biomass the conversion factor is most of the time implicitely put into the biomass function.
+
+
+Necessary to define a conversion factor for the species biomass X
+4.6.7 The conversionFactor attribute (on species)
+The attribute conversionFactor defines a conversion factor that applies to a particular species. The value
+of the attribute must have the data type SIdRef and must be the identifier of a Parameter object instance
+defined in the model. That Parameter object must be a constant, meaning its constant attribute must be set
+to true. If a given Species object defnition defnes a value for its conversionFactor attribute, it takes
+precedence over any factor dened by the Model object's conversionFactor attribute.
+
+In SBML, the unit of measurement associated with a species' quantity can be different from the unit of
+extent of reactions in the model. SBML avoids implicit unit conversions by providing an explicit way to
+indicate any unit conversion that might be required.
+The use of a conversion factor in computing the effects of reactions on a species' quantity
+is explained in Section 4.11.7. Because the value of the conversionFactor
+attribute is the identifer of a Parameter object, and because parameters can have units attached to them, the
+transformation from reaction extent units to species units can be completely specified using this approach.
+
+Note that the unit conversion factor is only applied when calculating the effect of a reaction on a species. It
+is not used in any rules or other SBML constructs that aect the species, and it is also not used when the
+value of the species is referenced in a mathematical expression.
+
+
 """
 from __future__ import print_function, absolute_import
 from six import iteritems
@@ -28,7 +56,14 @@ from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, updat
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
 # TODO: units
+
 # TODO: biomass weighting of fluxes
+# Necessary to implement alternative solutions of either weighting or not weighting the
+# fluxes from the FBA network.
+# The problem is that all the units are identical.
+
+# FBA fluxes: [mmol/h/g]
+# Biomass exchange flux [g(biomass)/h/g]
 
 
 ########################################################################
@@ -111,6 +146,8 @@ units = [
                         (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+    # mc.Unit('mmol_per_g', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+    #                       (UNIT_KIND_GRAM, 1.0)]),
 ]
 
 UNIT_AMOUNT = 'mmol'
@@ -172,8 +209,11 @@ def fba_model(sbml_file, directory):
     # we are adding the biomass component to the biomass function and create an
     # exchange reaction for it
     r_biomass = model.getReaction('BIOMASS_Ecoli_core_w_GAM')
+    # FIXME: display conversion factor & corresponding units
     mc.create_objects(model, [
-        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True)
+        mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_biomass')
     ])
     pr_biomass = r_biomass.createProduct()
     pr_biomass.setSpecies('X')
