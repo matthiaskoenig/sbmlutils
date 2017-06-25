@@ -416,7 +416,6 @@ def listOfSpecies_dict(model):
             cf_units = cf_p.getUnits()
 
             info['conversion_factor'] = "{}={} [{}]".format(cf_sid, cf_value, cf_units)
-            print('Conversion factor:', info['conversion_factor'])
         else:
             info['conversion_factor'] = empty_html()
 

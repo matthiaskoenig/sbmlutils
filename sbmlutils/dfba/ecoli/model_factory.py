@@ -209,7 +209,6 @@ def fba_model(sbml_file, directory):
     # we are adding the biomass component to the biomass function and create an
     # exchange reaction for it
     r_biomass = model.getReaction('BIOMASS_Ecoli_core_w_GAM')
-    # FIXME: display conversion factor & corresponding units
     mc.create_objects(model, [
         mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
         mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
@@ -260,8 +259,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True)
 
     # bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
@@ -291,8 +289,8 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=True)
+    # FIXME: biomass
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True)
 
     # update reactions
     # FIXME: weight with X (biomass)
@@ -329,8 +327,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=False)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=False)
 
     # minimal medium with single carbon source
     initial_c = {
@@ -360,7 +357,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
         species.setInitialConcentration(value)
 
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -403,6 +400,7 @@ def create_model(output_dir):
     update_model(update_file, directory, doc_fba=doc_fba)
     t_update = time.time()
     print('{:<10}: {:3.2f}'.format('update', t_update-t_bounds))
+
 
     emds = {
         "ecoli_fba": fba_file,

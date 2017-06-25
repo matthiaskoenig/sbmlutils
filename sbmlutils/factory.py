@@ -337,14 +337,12 @@ class Species(ValueWithUnit):
         s = model.createSpecies()
         self.set_fields(s)
         # substance unit must be set on the given substance unit
-        # TODO: FIXME in general the substance unit must be provided for species.
         s.setSubstanceUnits(model.getSubstanceUnits())
-        '''
         if self.unit is not None:
             s.setSubstanceUnits(self.unit)
         else:
             s.setSubstanceUnits(model.getSubstanceUnits())
-        '''
+
         return s
 
     def set_fields(self, obj):
