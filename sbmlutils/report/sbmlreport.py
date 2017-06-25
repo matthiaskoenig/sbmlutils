@@ -405,9 +405,20 @@ def listOfSpecies_dict(model):
         else:
             initial_concentration = empty_html()
         info['initial_concentration'] = initial_concentration
+        info['units'] = item.getUnits()
         info['substance_units'] = item.substance_units
         info['derived_units'] = derived_units(item)
-        info['xml'] = xml(item)
+
+        if item.isSetConversionFactor():
+            cf_sid = item.getConversionFactor()
+            cf_p = model.getParameter(cf_sid)
+            cf_value = cf_p.getValue()
+            cf_units = cf_p.getUnits()
+
+            info['conversion_factor'] = "{}={} [{}]".format(cf_sid, cf_value, cf_units)
+            print('Conversion factor:', info['conversion_factor'])
+        else:
+            info['conversion_factor'] = empty_html()
 
         # fbc
         sfbc = item.getPlugin("fbc")

@@ -1,4 +1,6 @@
 # TODO DFBA
+* FIXME: Display units on the species
+
 * model builder update bounds functions
     * building bound update factories (independent of compartment & amounts/concentrations)
     
