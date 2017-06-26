@@ -13,9 +13,10 @@
 Features are among others
 
 * HTML reports of SBML models
-* helper functions for model creation and manipulation
+* helper functions for model creation, manipulation, and annotation
 * interpolation functions to add experimental data to models
-* implementation of dynamic flux balance analysis (DFBA).
+* implementation of dynamic flux balance analysis (DFBA)
+* file converters (XPP)
 
 For a more detailed description and examples see the documentation.
 
