@@ -55,7 +55,7 @@ from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, updat
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
-# TODO: units
+# units are defined on the upper and lower bounds of the the exchange reactions.
 
 # TODO: biomass weighting of fluxes
 # Necessary to implement alternative solutions of either weighting or not weighting the
@@ -69,7 +69,8 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 8
+biomass_weighting = True
+version = 9
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -203,31 +204,44 @@ def fba_model(sbml_file, directory):
     model.getParameter(lb_id).setValue(0.0)  # 8.39 before
 
     # make unique upper and lower bounds for exchange reaction
-    builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX)
+    if not biomass_weighting:
+        builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX)
+    else:
+        builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX_PER_G)
 
     # add exchange reaction for biomass (X)
     # we are adding the biomass component to the biomass function and create an
     # exchange reaction for it
     r_biomass = model.getReaction('BIOMASS_Ecoli_core_w_GAM')
+
+    # FIXME: refactor in function
+    # FIXME: annotate biomass species (SBO for biomass missing)
     mc.create_objects(model, [
         mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
         mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_biomass')
     ])
+
+
+
     pr_biomass = r_biomass.createProduct()
     pr_biomass.setSpecies('X')
     pr_biomass.setStoichiometry(1.0)
     pr_biomass.setConstant(True)
-    builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX, exchange_type=builder.EXCHANGE_EXPORT)
-
+    if not biomass_weighting:
+        builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX, exchange_type=builder.EXCHANGE_EXPORT)
+    else:
+        builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX_PER_G, exchange_type=builder.EXCHANGE_EXPORT)
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
 
     # Set kinetic laws to zero for kinetic simulation
+    '''
     for reaction in model.getListOfReactions():
         ast_node = mc.ast_node_from_formula(model=model, formula='0 {}'.format(UNIT_FLUX))
         law = reaction.createKineticLaw()
         law.setMath(ast_node)
+    '''
 
     return doc_fba
 
@@ -259,12 +273,22 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True,
+                                exclude_sids=['X'])
+    # FIXME: biomass separately
+    mc.create_objects(model, [
+        mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_biomass')
+    ])
 
-    # bounds
-    builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
-    # bounds update
-    builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX)
+    # exchange & dynamic bounds
+    if not biomass_weighting:
+        builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
+        builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX)
+    else:
+        builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX_PER_G, create_ports=True)
+        builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX_PER_G)
 
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
@@ -289,8 +313,18 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    # FIXME: biomass
+
+
+    # creates all the exchange reactions, biomass must be handeled separately
     builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True)
+
+    # FIXME: biomass via function
+    mc.create_objects(model, [
+        mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_biomass')
+    ])
+
 
     # update reactions
     # FIXME: weight with X (biomass)
@@ -401,6 +435,7 @@ def create_model(output_dir):
     t_update = time.time()
     print('{:<10}: {:3.2f}'.format('update', t_update-t_bounds))
 
+    exit()
 
     emds = {
         "ecoli_fba": fba_file,
