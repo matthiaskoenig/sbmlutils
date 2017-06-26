@@ -226,7 +226,37 @@ def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port
     return c
 
 
-def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit=None, create_port=True):
+def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_port=True):
+    """ Creates the biomass species.
+
+    :param model:
+    :return:
+    """
+    # FIXME: implement
+    pass
+
+    mc.create_objects(model, [
+        mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_biomass')
+    ])
+    if create_port:
+        comp.create_ports(model, idRefs=['X'z-6656])
+
+
+def add_biomass_species_to_biomass_reaction(model):
+    """ Adds the
+
+    :param model:
+    :return:
+    """
+    # FIXME: implement
+    pass
+
+
+
+def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit=None, create_port=True,
+                        exclude_sids=[]):
     """ Add DFBA species and compartments from fba model to model. 
     Creates the dynamic species and respetive compartments with
     the necessary ports.
@@ -241,10 +271,13 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
     port_sids = []
     ex_rids = utils.find_exchange_reactions(model_fba)
     for ex_rid in ex_rids:
+
         r = model_fba.getReaction(ex_rid)
         sid = r.getReactant(0).getSpecies()
-        s = model_fba.getSpecies(sid)
+        if sid in exclude_sids:
+            continue
 
+        s = model_fba.getSpecies(sid)
         # exchange species to create
         objects.append(
             fac.Species(sid=sid, name=s.getName(), value=1.0, unit=unit,
