@@ -241,7 +241,7 @@ def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_por
                    conversionFactor='cf_biomass')
     ])
     if create_port:
-        comp.create_ports(model, idRefs=['X'z-6656])
+        comp.create_ports(model, idRefs=['X'])
 
 
 def add_biomass_species_to_biomass_reaction(model):

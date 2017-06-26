@@ -83,6 +83,7 @@ main_units = {
 units = [
     mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)], name="second"),
     mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)], name="kilogram"),
+
     mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="square meter"),
     mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)], name="cubic meter"),
@@ -96,7 +97,7 @@ units = [
 ]
 
 UNIT_TIME = 's'
-UNIT_AMOUNT = UNIT_KIND_ITEM
+UNIT_AMOUNT = str(UNIT_KIND_ITEM)
 UNIT_AREA = 'm2'
 UNIT_VOLUME = 'm3'
 UNIT_CONCENTRATION = 'item_per_m3'

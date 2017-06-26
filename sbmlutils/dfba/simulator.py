@@ -150,7 +150,7 @@ class DFBASimulator(object):
     def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True):
         """ Perform model simulation.
 
-        The simulator figures out based on the SBO terms in the list of submodels, which
+        The simulator images out based on the SBO terms in the list of submodels, which
         simulation/modelling framework to use.
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
         """
