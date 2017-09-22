@@ -16,5 +16,8 @@ update_file = '{}_update.xml'.format(model_id)
 top_file = '{}_top.xml'.format(model_id)
 flattened_file = '{}_flattened.xml'.format(model_id)
 
+# simulation files
+sedml_file = '{}_sedml.xml'.format(model_id)
+
 # annotation file
 annotations_file = 'annotations.xlsx'

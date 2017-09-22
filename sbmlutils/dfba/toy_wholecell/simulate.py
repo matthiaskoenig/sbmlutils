@@ -154,9 +154,49 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
     return dfs
 
 
+# TODO: create
+def create_sedml(sedml_location, sbml_location, directory, dts, tend):
+
+    import phrasedml
+    phrasedml.setWorkingDirectory(directory)
+    dt = dts[0]
+    steps = int(1.0 * tend/dt)
+
+    # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
+    species_ids = "A, C, D"
+
+
+    # TODO: load SBML
+
+    p = """
+          model1 = model "{}"
+          sim1 = simulate uniform(0, {}, {})
+          task1 = run sim1 on model1
+          plot "Figure 1: DFBA species vs. time" time vs {}
+    """.format(sbml_location, tend, steps, species_ids)
+
+    # TODO: add DFBA kisao
+
+    # TODO: save sedml
+
+
+    return_code = phrasedml.convertString(p)
+    if return_code is None:
+        print(phrasedml.getLastError())
+
+    # getPhrasedWarnings()
+    # getLastPhrasedError()
+    sedml = phrasedml.getLastSEDML()
+    print(sedml)
+
+
 if __name__ == "__main__":
     directory = versioned_directory(settings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, settings.top_file)
+
+    create_sedml(settings.sedml_file, settings.top_file, directory=directory, dts=[0.1, 1.0, 5.0], tend=50)
+
+    exit()
 
     import logging
     # logging.basicConfig(level=logging.DEBUG)
