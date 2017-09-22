@@ -8,11 +8,10 @@ of the dynamic FBA models.
 """
 
 from __future__ import print_function, division, absolute_import
-from six import iteritems
 
+import os
 import warnings
 import logging
-import os
 
 try:
     import libsbml
@@ -133,7 +132,7 @@ def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=No
 
     # dictionary, port ids are provided
     if type(data) == dict:
-        for pid, ref in iteritems(data):
+        for pid, ref in data.items():
             kwargs = {'pid': pid, ptype: ref}
             ports.append(
                 _create_port(model, portType=portType, **kwargs)
@@ -210,7 +209,7 @@ def replace_elements(model, sid, ref_type, replaced_elements):
     :param replaced_elements:
     :return:
     """
-    for submodel, rep_ids in iteritems(replaced_elements):
+    for submodel, rep_ids in replaced_elements.items():
         for rep_id in rep_ids:
             _create_replaced_element(model, sid, submodel, rep_id, ref_type=ref_type)
 

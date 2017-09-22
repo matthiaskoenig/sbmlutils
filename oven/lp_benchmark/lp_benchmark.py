@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division
+
 import cobra
 import optlang
 import numpy as np
 import timeit
 from matplotlib import pyplot as plt
-from six import iteritems
 
 
 def benchmark(model, lp_solver, n_repeat=10, **kwargs):
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # plot results
     fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))
 
-    for key, times in iteritems(timings):
+    for key, times in timings.items():
         ax1.plot(times, '-s', linewidth=2, label=key)
 
 

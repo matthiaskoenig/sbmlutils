@@ -17,7 +17,7 @@ Usage:
 
 
 from __future__ import print_function, division, absolute_import
-from six import iteritems
+
 import logging
 import numpy as np
 import pandas as pd
@@ -98,7 +98,7 @@ class DFBASimulator(object):
 
         # flux replacements in ode model
         parameter2flux = {}
-        for fba_rid, top_rid in iteritems(self.fba_model.fba2top_reactions):
+        for fba_rid, top_rid in self.fba_model.fba2top_reactions.items():
             top_pid = self.dfba_model.flux_rules[top_rid]
             parameter2flux[top_pid] = top_rid
         self.parameter2flux = parameter2flux
@@ -279,7 +279,7 @@ class DFBASimulator(object):
         """ Store FBA fluxes in ode solution. 
         :return: 
         """
-        for fba_rid, flat_rid in iteritems(self.fba_model.top2flat_reactions):
+        for fba_rid, flat_rid in self.fba_model.top2flat_reactions.items():
             index = self.columns[flat_rid]
             row[index] = flux = self.fluxes[fba_rid]
             logging.debug("\t{} = {}".format(fba_rid, flux))
@@ -382,7 +382,7 @@ class DFBASimulator(object):
 
         # FIXME: unify in one inline function, set upper and lower bounds at once
         # upper bounds
-        for top_pid, rid in iteritems(self.fba_model.ub_pid2rid):
+        for top_pid, rid in self.fba_model.ub_pid2rid.items():
             reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
 
             # lookup from ode results
@@ -398,7 +398,7 @@ class DFBASimulator(object):
             logging.debug('\tupper: {:<10} = {}'.format(top_pid, ub))
 
         # lower bounds
-        for top_pid, rid in iteritems(self.fba_model.lb_pid2rid):
+        for top_pid, rid in self.fba_model.lb_pid2rid.items():
             reaction = self.fba_model.cobra_model.reactions.get_by_id(rid)
 
             # lookup from ode results
@@ -425,7 +425,7 @@ class DFBASimulator(object):
         """
         logging.debug("* ODE set FBA fluxes")
 
-        for top_pid, fba_rid in iteritems(self.parameter2flux):
+        for top_pid, fba_rid in self.parameter2flux.items():
             # reaction rates cannot be set directly in roadrunner
             # parameters have to be set manually
             self.ode_model[top_pid] = self.fluxes[fba_rid]

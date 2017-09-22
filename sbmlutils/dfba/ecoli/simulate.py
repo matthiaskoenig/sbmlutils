@@ -4,15 +4,12 @@ Run ecoli model simulations.
 from __future__ import print_function, division
 import os
 import logging
-from six import iteritems
-import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.ecoli import settings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
-
 from sbmlutils.dfba import utils
 
 # general plot settings
@@ -110,7 +107,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     }
 
     for k, df in enumerate(dfs):
-        for key, ax in iteritems(mapping):
+        for key, ax in mapping.items():
             if k == 0:
                 ax.plot(df.time, df[key], label=key, color=colors[key], **kwargs)
             else:
@@ -118,7 +115,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
             ax.set_ylabel('Flux [?]')
             ax.legend()
 
-    for key, ax in iteritems(mapping):
+    for key, ax in mapping.items():
         ax.set_xlabel('time')
         ax.legend()
 
@@ -208,7 +205,7 @@ def simulate_carbon_sources(sbml_path, out_dir):
     dfba_simulator = simulator.DFBASimulator(dfba_model, pfba=True)
 
     # set initial values
-    for key, value in iteritems(initial_c):
+    for key, value in initial_c.items():
         dfba_simulator.ode_model.setValue('init([{}])'.format(key), value)
 
     dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
