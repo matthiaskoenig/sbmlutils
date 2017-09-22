@@ -3,8 +3,12 @@ Handles manipulation of the History of SBases.
 """
 from __future__ import print_function, absolute_import
 import datetime
-import libsbml
-from six import itervalues
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 from sbmlutils.validation import check
 from sbmlutils.annotation import create_metaid
 
@@ -48,7 +52,7 @@ def _create_history(creators):
     h = libsbml.ModelHistory()
 
     if isinstance(creators, dict):
-        values = itervalues(creators)
+        values = creators.values()
     else:
         values = creators
 

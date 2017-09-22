@@ -4,8 +4,11 @@ Test annotation functions and annotating of SBML models.
 from __future__ import print_function, division
 import re
 import tempfile
-import libsbml
 
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 from sbmlutils import annotation
 from sbmlutils.annotation import ModelAnnotator, ModelAnnotation

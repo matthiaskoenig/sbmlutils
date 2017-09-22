@@ -13,7 +13,10 @@ from sbmlutils.dfba import utils
 from six import iteritems
 import inspect
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 
 #################################################

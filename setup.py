@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 """
-see
-    https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
-
-source distribution generation via
-python setup.py sdist
+pip package definition
 """
 
 from __future__ import absolute_import, print_function

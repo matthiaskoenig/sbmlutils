@@ -4,7 +4,11 @@ Unit tests for fbc.
 from __future__ import print_function, absolute_import
 import os
 import cobra
-import libsbml
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 import sbmlutils.fbc as fbc
 from sbmlutils.tests import data

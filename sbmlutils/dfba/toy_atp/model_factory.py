@@ -6,13 +6,19 @@ Create SBML models for the ATP submodel.
 """
 
 from __future__ import print_function, absolute_import
-from six import iteritems
 
 import os
 from os.path import join as pjoin
-import libsbml
-from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+
+try:
+    import libsbml
+    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+except ImportError:
+    import tesbml as libsbml
+    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+
 
 from sbmlutils import comp
 from sbmlutils import sbmlio
@@ -317,7 +323,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
         'glc': 5.0,
         'pyr': 0.0
     }
-    for sid, value in iteritems(initial_c):
+    for sid, value in initial_c.items():
         species = model.getSpecies(sid)
         species.setInitialConcentration(value)
 

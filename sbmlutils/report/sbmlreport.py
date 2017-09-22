@@ -13,14 +13,18 @@ The basic steps of template creation are
 The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
 from __future__ import print_function, division, absolute_import
+import os
 import codecs
 import ntpath
-import os
 import warnings
+import jinja2
 from distutils import dir_util
 
-import libsbml
-from jinja2 import Environment, FileSystemLoader
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
@@ -59,7 +63,7 @@ def _create_index_html(sbml_paths, html_template='index.html', offline=True):
     """
 
     # template environment
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
                       extensions=['jinja2.ext.autoescape'],
                       trim_blocks=True,
                       lstrip_blocks=True)
@@ -138,7 +142,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
     :rtype:
     """
     # template environment
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
                       extensions=['jinja2.ext.autoescape'],
                       trim_blocks=True,
                       lstrip_blocks=True)
@@ -208,9 +212,10 @@ def _create_value_dictionary(model):
 
 def infoSbase(item):
     """ Info dictionary for SBase. """
+
     info = {
         'object': item,
-        'id': item.id,
+        'id': item.getId(),
         'metaId': metaid_html(item),
         'sbo': sbo(item),
         'cvterm': cvterm(item),
@@ -235,7 +240,6 @@ def infoSbase(item):
             info['replaced_by'] = '<br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>ReplacedBy {}:{}</code>'.format(submodel_ref, sbaseref(replaced_by))
 
         # ListOfReplacedElements
-        libsbml.CompSBasePlugin
         if item_comp.getNumReplacedElements() > 0:
             replaced_elements = []
             for rep_el in item_comp.getListOfReplacedElements():

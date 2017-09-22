@@ -21,12 +21,15 @@ from __future__ import print_function, absolute_import
 
 import logging
 import warnings
-import libsbml
 import pyexcel
 import csv
 import re
 import uuid
-# from bioservices import Miriam
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 
 def annotate_sbml_doc(doc, annotations):

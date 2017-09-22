@@ -9,7 +9,10 @@ import tempfile
 from collections import defaultdict
 from six import iteritems
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 import roadrunner
 import cobra
 

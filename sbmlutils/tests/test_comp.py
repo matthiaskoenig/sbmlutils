@@ -4,7 +4,10 @@ Unit tests for the comp module.
 
 from __future__ import print_function, absolute_import
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 from sbmlutils.comp import flattenExternalModelDefinitions
 from sbmlutils import sbmlio
