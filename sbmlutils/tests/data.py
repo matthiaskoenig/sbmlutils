@@ -42,3 +42,8 @@ GLUCOSE_SBML = pjoin(data_dir, 'models/glucose/Hepatic_glucose_3.xml')
 
 # van_der_pol ---------------
 VDP_SBML = pjoin(data_dir, 'models/van_der_pol/van_der_pol.xml')
+
+################################################################
+# Combine Archives
+################################################################
+OMEX_SHOWCASE = pjoin(data_dir, 'omex/CombineArchiveShowCase.omex')
