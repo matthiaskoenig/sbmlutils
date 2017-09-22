@@ -455,7 +455,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
         'O2': 0.21,
         'X': 0.001,
     }
-    for sid, value in iteritems(initial_c):
+    for sid, value in initial_c.items():
         species = model.getSpecies(sid)
         species.setInitialConcentration(value)
 
