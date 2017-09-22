@@ -318,6 +318,12 @@ class DFBASimulator(object):
         logging.debug("* FBA optimize")
 
         def fva_analysis(model, solution):
+            """ Wrapper for flux variability analysis.
+
+            :param model: cobra model
+            :param solution:
+            :return:
+            """
             fva = None
             if self.check_uniqueness:
                 fva = cobra.flux_analysis.flux_variability_analysis(model)
@@ -336,7 +342,7 @@ class DFBASimulator(object):
         else:
             # run fba
             solution = self.cobra_model.optimize()
-            fva = fva_analysis(model, solution)
+            fva = fva_analysis(self.cobra_model, solution)
             if self.check_uniqueness:
                 fva = cobra.flux_analysis.flux_variability_analysis(self.cobra_model)
 
