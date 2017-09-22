@@ -5,7 +5,11 @@ alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 from __future__ import print_function, absolute_import
 import re
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 
 def ast_info(ast):
     print(ast)

@@ -3,14 +3,14 @@ Functions for model manipulation.
 Like model merging.
 
 """
-from __future__ import print_function, division
-from six import iteritems
+from __future__ import absolute_import, print_function, division
 import os
 import logging
-import warnings
-from pprint import pprint
-import libsbml
-import tempfile
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 from sbmlutils import comp
 from sbmlutils import validation
@@ -37,7 +37,7 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
     os.chdir(out_dir)
 
     base_dir = None
-    for model_id, path in iteritems(model_paths):
+    for model_id, path in model_paths.items():
         if not os.path.exists(path):
             logging.error('Path for SBML file does not exist: {}'.format(path))
 
@@ -94,7 +94,7 @@ def create_merged_doc(model_paths, merged_id="merged"):
     comp_doc = doc.getPlugin("comp")
     comp_model = model.getPlugin("comp")
 
-    for emd_id, path in iteritems(model_paths):
+    for emd_id, path in model_paths.items():
         # create ExternalModelDefinitions
         emd = comp.create_ExternalModelDefinition(comp_doc, emd_id, source=path)
         # add submodel which references the external model definitions

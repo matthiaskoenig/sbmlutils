@@ -9,7 +9,10 @@ from __future__ import print_function, division
 
 import logging
 import time
-import libsbml
+try:
+    import libsbml
+except:
+    import tesbml as libsbml
 
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"

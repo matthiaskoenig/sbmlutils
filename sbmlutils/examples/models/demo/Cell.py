@@ -2,11 +2,16 @@
 """
 Demo kinetic network.
 """
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import, print_function, division
 
-import libsbml
+try:
+    import libsbml
+    from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
+except ImportError:
+    import tesbml as libsbml
+    from tesbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
+
 import sbmlutils.factory as mc
-from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 from sbmlutils.modelcreator import templates
 
 from . import Reactions as R

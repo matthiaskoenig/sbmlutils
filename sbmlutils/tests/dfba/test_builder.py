@@ -1,10 +1,20 @@
+"""
+Tests for the builder.
+"""
+
 from __future__ import print_function, absolute_import
-import libsbml
+
+import matplotlib
 
 from sbmlutils import factory as fac
 from sbmlutils.dfba import builder
 
-import matplotlib
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
+
 matplotlib.use('Agg')
 
 

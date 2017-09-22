@@ -14,7 +14,11 @@ import warnings
 import logging
 import os
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 import sbmlutils.factory as factory
 import sbmlutils.validation as validation
 from sbmlutils.validation import check

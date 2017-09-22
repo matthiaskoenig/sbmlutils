@@ -2,16 +2,16 @@
 Helper functions for working with FBC and cobrapy models.
 """
 from __future__ import print_function, division, absolute_import
-from six import iteritems
 
 import warnings
-import logging
-import tempfile
-import libsbml
 import cobra
-
-import numpy as np
 import pandas as pd
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 from sbmlutils import factory
 
 

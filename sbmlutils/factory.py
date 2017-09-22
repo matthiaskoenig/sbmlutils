@@ -20,9 +20,11 @@ from six import iteritems
 
 import logging
 import warnings
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
-from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
@@ -240,9 +242,9 @@ class Unit(Sbase):
     @staticmethod
     def get_unit_string(unit):
         if type(unit) is int:
-            unit = UnitKind_toString(unit)
+            unit = libsbml.UnitKind_toString(unit)
         if unit == '-':
-            unit = UnitKind_toString(UNIT_KIND_DIMENSIONLESS)
+            unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
         return unit
 
 

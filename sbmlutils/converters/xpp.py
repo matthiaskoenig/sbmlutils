@@ -36,18 +36,20 @@ Not supported:
  will be evaluated to 55. Another example combines the sum with the shift operator. sum(0,4)of(shift(u0,i')) will
  sum up u0 and the next four variables that were defined after it.
 """
+
 # FIXME: recursive if than else not supported
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
-
-
 
 
 from __future__ import print_function, absolute_import
 import warnings
 import re
 from pprint import pprint
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
