@@ -407,20 +407,38 @@ def create_model(output_dir):
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
                          output_path=pjoin(directory, settings.flattened_file))
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [settings.fba_file,
-                   settings.bounds_file,
-                   settings.update_file,
-                   settings.top_file,
-                   settings.flattened_file]]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+    locations = [
+        settings.fba_file,
+        settings.bounds_file,
+        settings.update_file,
+        settings.top_file,
+        settings.flattened_file
+    ]
+    desciptions = [
+        "FBA submodel (DFBA)",
+        "BOUNDS submodel (DFBA)",
+        "UPDATE submodel (DFBA)",
+        "TOP submodel (DFBA)",
+        "FLATTENED comp model (DFBA)",
+    ]
 
     # create omex with the sbml files
-    # TODO:
+    omex_entries = []
+    for location, desciption in dict(zip(locations, desciptions)).items():
+        entry = omex.Entry(location=location, formatKey="sbml", master=False, description=desciption, creators=creators)
+        omex_entries.append(entry)
 
-    omex_entries = 
-    omex.create_omex
+    base_directory = os.path.join(directory, "..")
+    omex_path = os.path.join(base_directory, "{}.omex".format(settings.model_id))
+    omex.combineArchiveFromEntries(omexPath=omex_path,
+                                   entries=omex_entries,
+                                   workingDir=directory)
+
+    # create reports
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
+    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # todo add report to archive
 
     return directory
 

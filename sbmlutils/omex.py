@@ -12,25 +12,21 @@ except ImportError:
 import pprint
 
 
-from collections import namedtuple
-
-Entry = namedtuple('Entry', 'location format master description creator')
-
-
 class Entry(object):
     """ Helper class to store content to create an OmexEntry."""
 
-    def __init__(self, location, format, master=False, description=None, creators=None):
+    def __init__(self, location, formatKey, master=False, description=None, creators=None):
         """ Create entry from information.
 
         :param location:
-        :param format:
+        :param formatKey:
         :param master:
         :param description:
         :param creators:
         """
         self.location = location
-        self.format = format
+        self.formatKey = formatKey
+        self.format = libcombine.KnownFormats.lookupFormat(formatKey=formatKey)
         self.master = master
         self.description = description
         self.creators = creators
@@ -82,17 +78,17 @@ def combineArchiveFromEntries(omexPath, entries, workingDir):
             if entry.creators:
                 for c in entry.creators:
                     creator = libcombine.VCard()
-                    creator.setFamilyName(c.get("familyName", ""))
-                    creator.setGivenName(c.get("givenName", ""))
-                    creator.setEmail(c.get("email", ""))
-                    creator.setOrganization(c.get("organisation", ""))
+                    creator.setFamilyName(c.familyName)
+                    creator.setGivenName(c.givenName)
+                    creator.setEmail(c.email)
+                    creator.setOrganization(c.organization)
                     omex_d.addCreator(creator)
 
             archive.addMetadata(location, omex_d)
 
     archive.writeToFile(omexPath)
     archive.cleanUp()
-    print('Archive created:', omexPath)
+    print('Archive created:\n\t', omexPath)
 
 
 def addEntriesToCombineArchive(omexPath, entries, workingDir):
