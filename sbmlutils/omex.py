@@ -47,19 +47,61 @@ def combineArchiveFromEntries(omexPath, entries, workingDir):
     :param workingDir:
     :return:
     """
+    _addEntriesToArchive(omexPath, entries, workingDir=workingDir, add_entries=False)
+    print("*" * 80)
+    print('Archive created:\n\t', omexPath)
+    print("*" * 80)
+
+
+def addEntriesToCombineArchive(omexPath, entries, workingDir):
+    """ Adds entries to
+
+    :param omexPath:
+    :param entries: iteratable of Entry
+    :param workingDir: locations are relative to working dir
+    :return:
+    """
+    _addEntriesToArchive(omexPath, entries, workingDir=workingDir, add_entries=True)
+    print("*" * 80)
+    print('Archive updated:\n\t', omexPath)
+    print("*" * 80)
+
+
+def _addEntriesToArchive(omexPath, entries, workingDir, add_entries=True):
+    """
+
+    :param archive:
+    :param entries:
+    :param workingDir:
+    :return:
+    """
+    omexPath = os.path.abspath(omexPath)
+    print('omexPath:', omexPath)
+    print('workingDir:', workingDir)
+
+
     if not os.path.exists(workingDir):
         raise IOError("Working directory does not exist: {}".format(workingDir))
 
-    # delete the old omex file
-    if os.path.exists(omexPath):
+    if os.path.exists(omexPath) and (add_entries is False):
+        # delete the old omex file
         warnings.warn("Combine archive is overwritten: {}".format(omexPath))
-        os.remove(omexPath)
+        # os.remove(omexPath)
+
+    archive = libcombine.CombineArchive()
+
+    if add_entries is True:
+        if os.path.exists(omexPath):
+            # init archive from existing content
+            if archive.initializeFromArchive(omexPath) is None:
+                raise IOError("Combine Archive is invalid: ", omexPath)
 
     # timestamp
     time_now = libcombine.OmexDescription.getCurrentDateAndTime()
 
-    archive = libcombine.CombineArchive()
+    print('*'*80)
     for entry in entries:
+        print(entry)
         location = entry.location
         path = os.path.join(workingDir, location)
         if not os.path.exists(path):
@@ -86,21 +128,9 @@ def combineArchiveFromEntries(omexPath, entries, workingDir):
 
             archive.addMetadata(location, omex_d)
 
+
     archive.writeToFile(omexPath)
     archive.cleanUp()
-    print('Archive created:\n\t', omexPath)
-
-
-def addEntriesToCombineArchive(omexPath, entries, workingDir):
-    """ Adds entries to
-
-    :param omexPath:
-    :param entries: iteratable of Entry
-    :param workingDir: locations are relative to working dir
-    :return:
-    """
-
-    raise NotImplementedError
 
 
 def extractCombineArchive(omexPath, directory, method="zip"):
