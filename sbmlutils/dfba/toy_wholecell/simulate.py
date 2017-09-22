@@ -216,6 +216,7 @@ if __name__ == "__main__":
     ]
     omex.addEntriesToCombineArchive(omex_path, entries, workingDir=directory)
 
+    exit()
 
     import logging
     # logging.basicConfig(level=logging.DEBUG)
