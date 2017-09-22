@@ -4,16 +4,15 @@ Run toy_atp model simulations.
 from __future__ import print_function, division
 import os
 import logging
-from six import iteritems
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.toy_atp import settings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
-
 from sbmlutils.dfba.utils import versioned_directory
 from sbmlutils.dfba.analysis import set_matplotlib_parameters
-from matplotlib import pyplot as plt
+
 set_matplotlib_parameters()
 
 
@@ -104,7 +103,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     }
 
     for k, df in enumerate(dfs):
-        for key, ax in iteritems(mapping):
+        for key, ax in mapping.items():
             if k == 0:
                 ax.plot(df.time, df[key], label=key, color=colors[key], **kwargs)
             else:
@@ -112,7 +111,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
             ax.set_ylabel('Flux [?]')
             ax.legend()
 
-    for key, ax in iteritems(mapping):
+    for key, ax in mapping.items():
         ax.set_xlabel('time')
         ax.legend()
 

@@ -7,7 +7,6 @@ import logging
 import warnings
 import tempfile
 from collections import defaultdict
-from six import iteritems
 
 try:
     import libsbml
@@ -17,7 +16,6 @@ import roadrunner
 import cobra
 
 from sbmlutils.dfba import builder
-from sbmlutils import comp
 
 
 #################################################

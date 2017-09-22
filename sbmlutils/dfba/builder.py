@@ -6,17 +6,14 @@ from __future__ import print_function, absolute_import, division
 import warnings
 import logging
 
-from sbmlutils import factory as fac
-from sbmlutils import comp
-from sbmlutils.dfba import utils
-
-from six import iteritems
-import inspect
-
 try:
     import libsbml
 except ImportError:
     import tesbml as libsbml
+
+from sbmlutils import factory as fac
+from sbmlutils import comp
+from sbmlutils.dfba import utils
 
 
 #################################################
@@ -97,7 +94,7 @@ def get_framework(model):
     if model.isSetSBOTerm():
 
         sbo = model.getSBOTermID()
-        for fw, sbos in iteritems(MODEL_FRAMEWORKS):
+        for fw, sbos in MODEL_FRAMEWORKS.items():
             if sbo in sbos:
                 framework = fw
     else:
@@ -137,6 +134,7 @@ def template_doc_bounds(model_id, create_min_max=True):
     
     Adds min and max functions 
     
+    :param create_min_max:
     :param model_id: model identifier
     :return: SBMLDocument
     """
@@ -181,6 +179,7 @@ def template_doc_top(model_id, emds):
     """ Create template top model.
     Adds the ExternalModelDefinitions and submodels for FBA, BOUNDS & UPDATE model.
     
+    :param emds:
     :param model_id: model identifier
     :return: SBMLDocument
     """
@@ -197,9 +196,12 @@ def template_doc_top(model_id, emds):
 
     # create listOfExternalModelDefinitions
     doc_comp = doc.getPlugin(SBML_COMP_NAME)
-    emd_fba = comp.create_ExternalModelDefinition(doc_comp, "{}_fba".format(model_id), source=emds["{}_fba".format(model_id)])
-    emd_bounds = comp.create_ExternalModelDefinition(doc_comp, "{}_bounds".format(model_id), source=emds["{}_bounds".format(model_id)])
-    emd_update = comp.create_ExternalModelDefinition(doc_comp, "{}_update".format(model_id), source=emds["{}_update".format(model_id)])
+    emd_fba = comp.create_ExternalModelDefinition(doc_comp, "{}_fba".format(model_id),
+                                                  source=emds["{}_fba".format(model_id)])
+    emd_bounds = comp.create_ExternalModelDefinition(doc_comp, "{}_bounds".format(model_id),
+                                                     source=emds["{}_bounds".format(model_id)])
+    emd_update = comp.create_ExternalModelDefinition(doc_comp, "{}_update".format(model_id),
+                                                     source=emds["{}_update".format(model_id)])
 
     # add submodel which references the external model definition
     doc_model = model.getPlugin(SBML_COMP_NAME)
@@ -236,11 +238,12 @@ def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_por
     :return:
     """
     # FIXME: implement
+    raise NotImplementedError
     pass
 
-    mc.create_objects(model, [
-        mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+    fac.create_objects(model, [
+        fac.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        fac.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_biomass')
     ])
     if create_port:
@@ -254,8 +257,8 @@ def add_biomass_species_to_biomass_reaction(model):
     :return:
     """
     # FIXME: implement
+    raise NotImplementedError
     pass
-
 
 
 def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit=None, create_port=True,
@@ -297,12 +300,11 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
 def create_dfba_dt(model, step_size=DT_SIM, time_unit=None, create_port=True):
     """ Creates the dt parameter in the model.
 
+    :param model:
+    :param create_port:
     :param step_size:
-    :type step_size:
     :param time_unit:
-    :type time_unit:
     :return:
-    :rtype:
     """
     objects = [
         fac.Parameter(sid=DT_ID, value=step_size, unit=time_unit, constant=True, sboTerm=DT_SBO)
@@ -361,11 +363,11 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
     and the ports.
 
     :param model:
-    :param species:
-    :param reversible:
+    :param species_id:
+    :param exchange_type:
     :param flux_unit:
+
     :return:
-    :rtype:
     """
     if exchange_type not in [EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT]:
         raise ValueError("Wrong exchange_type: {}".format(exchange_type))
@@ -417,8 +419,8 @@ def update_exchange_reactions(model, flux_unit):
     Sets all the necessary information and checks that correct.
     This is mainly used to prepare the exchange reactions of metabolites.
     
-    :param model: 
-    :param ex_rids: 
+    :param flux_unit:
+    :param model:
     :return: 
     """
 
@@ -478,7 +480,7 @@ def update_exchange_reactions(model, flux_unit):
 
         # create ports for bounds and reaction
         comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=[ex_rid, lb_id, ub_id])
+                          idRefs=[ex_rid, lb_id, ub_id])
 
     # check all the exchange reactions
     for ex_rid in ex_rids:
@@ -488,7 +490,7 @@ def update_exchange_reactions(model, flux_unit):
     # There could be unused bounds in the model which can be removed
 
 
-def create_update_reactions(model, model_fba, formula="-{}", unit_flux=None, modifiers=[]):
+def create_update_reactions(model, model_fba, formula="-{}", unit_flux=None, modifiers=None):
     """ Creates all update reactions with the given formula.
     
     :param model: 
@@ -498,13 +500,15 @@ def create_update_reactions(model, model_fba, formula="-{}", unit_flux=None, mod
     :param modifiers: 
     :return: 
     """
+    if modifiers is None:
+        modifiers = []
     ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
         create_update_parameter(model=model, sid=sid, unit_flux=unit_flux)
         create_update_reaction(model=model, sid=sid, modifiers=modifiers, formula=formula)
 
 
-def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
+def create_update_reaction(model, sid, modifiers=None, formula="-{}"):
     """ Creates the update reaction for a given species.
     Creates the update parameter in the process.
 
@@ -515,13 +519,15 @@ def create_update_reaction(model, sid, modifiers=[], formula="-{}"):
     :return:
     :rtype:
     """
+    if modifiers is None:
+        modifiers = []
     rid_update = UPDATE_REACTION_PREFIX + sid
 
     # format the formula
     formula = formula.format(FLUX_PARAMETER_PREFIX + sid)
     fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_SBO,
-                       reactants={sid: 1}, modifiers=modifiers,
-                       formula=formula)
+                        reactants={sid: 1}, modifiers=modifiers,
+                        formula=formula)
 
 
 def create_update_parameter(model, sid, unit_flux):
@@ -566,7 +572,7 @@ def create_exchange_bounds(model_bounds, model_fba, unit_flux=None, create_ports
     ex_rids = utils.find_exchange_reactions(model_fba)
     objects = []
     port_sids = []
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
         r = model_fba.getReaction(ex_rid)
 
         # lower & upper bound parameters
@@ -603,7 +609,7 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
     fba_suffix = "_fba"
     objects = []
     ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
         r = model_fba.getReaction(ex_rid)
         r_fbc = r.getPlugin(SBML_FBC_NAME)
 
@@ -632,7 +638,6 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
         else:
             lb_formula = "max({}, -{}*{}/dt)".format(fba_lb_id, cid, sid)
 
-
         objects.extend([
             # default bounds from fba
             fac.Parameter(sid=fba_lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
@@ -641,10 +646,10 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
         ])
     fac.create_objects(model_bounds, objects)
 
+
 ################################
 # Top model
 ################################
-
 def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits=False):
     """ Creates the dummy species in the top model.
     Adds a deletion in the top model which removes the object again.
@@ -666,14 +671,15 @@ def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits
 def create_dummy_reactions(model, model_fba, unit_flux=None):
     """ Creates the dummy reactions.
     This also creates the corresponding flux parameters and flux assignments.
-    
-    :param model: 
-    :param dfba_model: 
+
+    :param model:
+    :param model_fba:
+    :param unit_flux:
     :return: 
     """
     ex_rids = utils.find_exchange_reactions(model_fba)
     objects = []
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
 
         pid_flux = FLUX_PARAMETER_PREFIX + sid
         rid_flux = DUMMY_REACTION_PREFIX + sid
@@ -704,16 +710,17 @@ def create_top_replacedBy(model, model_fba):
     """
 
     ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
         comp.replaced_by(model, DUMMY_REACTION_PREFIX + sid, ref_type=comp.SBASE_REF_TYPE_PORT,
-                     submodel='fba', replaced_by="{}_port".format(EXCHANGE_REACTION_PREFIX + sid))
+                         submodel='fba', replaced_by="{}_port".format(EXCHANGE_REACTION_PREFIX + sid))
 
 
 def create_top_replacements(model, model_fba, compartment_id):
     """ Create all the replacements in the top model.
-    
-    :param model: 
-    :param model_fba: 
+
+    :param model:
+    :param model_fba:
+    :param compartment_id:
     :return: 
     """
 
@@ -729,7 +736,7 @@ def create_top_replacements(model, model_fba, compartment_id):
 
     # species dependent replacements
     ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
 
         # flux parameters
         comp.replace_elements(model, FLUX_PARAMETER_PREFIX + sid, ref_type=comp.SBASE_REF_TYPE_PORT,
@@ -747,9 +754,9 @@ def create_top_replacements(model, model_fba, compartment_id):
                            LOWER_BOUND_PREFIX + EXCHANGE_REACTION_PREFIX + sid]:
 
             comp.replace_elements(model, replace_id, ref_type=comp.SBASE_REF_TYPE_PORT,
-                          replaced_elements={
-                              'bounds': ['{}_port'.format(replace_id)],
-                              'fba': ['{}_port'.format(replace_id)]})
+                                  replaced_elements={
+                                    'bounds': ['{}_port'.format(replace_id)],
+                                    'fba': ['{}_port'.format(replace_id)]})
 
     # replace units
     for unit in model.getListOfUnitDefinitions():

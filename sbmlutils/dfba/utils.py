@@ -4,8 +4,7 @@ DFBA utility and helper functions.
 from __future__ import print_function, absolute_import
 import os
 import logging
-from os.path import join as pjoin
-from six import iteritems
+
 
 from sbmlutils import history
 from sbmlutils import factory
@@ -119,7 +118,7 @@ def clip_prefixes_in_model(model, prefix_species="M_", prefix_reaction="R_", pre
 def rename_elements(elements, rename_dict):
     """ Rename elements. """
     for e in elements:
-        for id_old, id_new in iteritems(rename_dict):
+        for id_old, id_new in rename_dict.items():
             e.renameSIdRefs(id_old, id_new)
 
 
@@ -146,7 +145,7 @@ def versioned_directory(output_dir, version):
         logging.info('Create directory: {}'.format(output_dir))
         os.mkdir(output_dir)
 
-    directory = pjoin(output_dir, 'v{}'.format(version))
+    directory = os.path.join(output_dir, 'v{}'.format(version))
     if not os.path.exists(directory):
         print('Create directory: {}'.format(directory))
         os.mkdir(directory)
