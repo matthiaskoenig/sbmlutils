@@ -67,7 +67,7 @@ def addEntriesToCombineArchive(omexPath, entries, workingDir):
     print("*" * 80)
 
 
-def _addEntriesToArchive(omexPath, entries, workingDir, add_entries=True):
+def _addEntriesToArchive(omexPath, entries, workingDir, add_entries):
     """
 
     :param archive:
@@ -83,14 +83,16 @@ def _addEntriesToArchive(omexPath, entries, workingDir, add_entries=True):
     if not os.path.exists(workingDir):
         raise IOError("Working directory does not exist: {}".format(workingDir))
 
-    if os.path.exists(omexPath) and (add_entries is False):
-        # delete the old omex file
-        warnings.warn("Combine archive is overwritten: {}".format(omexPath))
-        # os.remove(omexPath)
+    if add_entries is False:
+        if os.path.exists(omexPath):
+            # delete the old omex file
+            warnings.warn("Combine archive is overwritten: {}".format(omexPath))
+            os.remove(omexPath)
 
     archive = libcombine.CombineArchive()
 
     if add_entries is True:
+        # use existing entries
         if os.path.exists(omexPath):
             # init archive from existing content
             if archive.initializeFromArchive(omexPath) is None:
