@@ -31,6 +31,7 @@ from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 from sbmlutils import annotation
+from sbmlutils import omex
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -414,6 +415,13 @@ def create_model(output_dir):
                    settings.top_file,
                    settings.flattened_file]]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # create omex with the sbml files
+    # TODO:
+
+    omex_entries = 
+    omex.create_omex
+
     return directory
 
 
