@@ -233,8 +233,8 @@ if __name__ == "__main__":
     # import logging
     # logging.basicConfig(level=logging.DEBUG)
 
-    directory = utils.versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
+    directory = utils.versioned_directory(settings.OUT_DIR, model_factory.version)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
     print(sbml_path)
     simulate_ecoli(sbml_path, dts=[0.05], out_dir=directory)

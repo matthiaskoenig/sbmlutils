@@ -146,7 +146,8 @@ def clip_prefixes_in_model(model, prefix_species="M_", prefix_reaction="R_", pre
 
 def rename_elements(elements, rename_dict):
     """ Rename elements. """
-    for e in elements:
+    for k in range(elements.getSize()):
+        e = elements.get(k)
         for id_old, id_new in rename_dict.items():
             e.renameSIdRefs(id_old, id_new)
 

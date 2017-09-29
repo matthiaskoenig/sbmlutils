@@ -49,11 +49,11 @@ class DFBATestCase(unittest.TestCase):
         directory = toyfactory.create_model(output_dir=self.test_dir)
         print(os.listdir(self.test_dir))
 
-        self.file_exists(directory, settings.fba_file)
-        self.file_exists(directory, settings.bounds_file)
-        self.file_exists(directory, settings.update_file)
-        self.file_exists(directory, settings.top_file)
-        self.file_exists(directory, settings.flattened_file)
+        self.file_exists(directory, settings.FBA_LOCATION)
+        self.file_exists(directory, settings.BOUNDS_LOCATION)
+        self.file_exists(directory, settings.UPDATE_LOCATION)
+        self.file_exists(directory, settings.TOP_LOCATION)
+        self.file_exists(directory, settings.FLATTENED_LOCATION)
 
     def test_diauxic_creation(self):
         directory = dgfactory.create_model(output_dir=self.test_dir)
@@ -69,8 +69,8 @@ class DFBATestCase(unittest.TestCase):
     def test_toy_wholecell_simulation(self):
 
         toyfactory.create_model(self.test_dir)
-        sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.version),
-                                 settings.top_file)
+        sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.VERSION),
+                                 settings.TOP_LOCATION)
         print(sbml_path)
         toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0], figures=False)
 

@@ -15,8 +15,8 @@ from sbmlutils.dfba.toy_wholecell import model_factory as toyfactory
 @pytest.mark.skip(reason="validation currently not implemented")
 def test_validate_toy(self):
     """ Validate the toy model. """
-    sbml_path = os.path.join(utils.versioned_directory(toysettings.out_dir, toyfactory.version),
-                         toysettings.top_file)
+    sbml_path = os.path.join(utils.versioned_directory(toysettings.OUT_DIR, toyfactory.VERSION),
+                             toysettings.TOP_LOCATION)
     print(sbml_path)
 
     # run simulation with the top model

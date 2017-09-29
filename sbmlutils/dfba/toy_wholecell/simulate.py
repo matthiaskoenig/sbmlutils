@@ -202,11 +202,11 @@ def create_sedml(sedml_location, sbml_location, directory, dts, tend):
 
 
 if __name__ == "__main__":
-    directory = versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
+    directory = versioned_directory(settings.OUT_DIR, model_factory.VERSION)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
     # create SED-ML
-    create_sedml(settings.SEDML_LOCATION, settings.top_file, directory=directory, dts=[0.1, 1.0, 5.0], tend=50)
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory, dts=[0.1, 1.0, 5.0], tend=50)
 
     # Add to archive
     from sbmlutils import omex
