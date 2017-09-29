@@ -158,9 +158,61 @@ def simulate_toy_atp(sbml_path, out_dir, dts=[0.1], figures=True, tend=15):
     return dfs
 
 
+# TODO: create
+def create_sedml(sedml_location, sbml_location, directory, dts, tend):
+    import phrasedml
+    phrasedml.setWorkingDirectory(directory)
+    # FIXME: uses only the first dt
+    dt = dts[0]
+    steps = int(1.0 * tend / dt)
+
+    # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
+    species_ids = ", ".join(['atp', 'adp', 'glc', 'pyr', 'dummy_S', 'atp + adp'])
+    reaction_ids = ", ".join(['RATP', 'pEX_atp', 'pEX_atp', 'pEX_glc', 'pEX_pyr'])
+
+    # TODO: load SBML
+
+    # TODO: log plot
+
+    p = """
+          model1 = model "{}"
+          sim1 = simulate uniform(0, {}, {})
+          sim1.algorithm = kisao.500
+          task1 = run sim1 on model1
+          plot "Figure 1: DFBA species vs. time" time vs {}
+          plot "Figure 2: DFBA fluxes vs. time" time vs {}
+          report "Report 1: DFBA species vs. time" time vs {}
+          report "Report 2: DFBA fluxes vs. time" time vs {}
+
+    """.format(sbml_location, tend, steps, species_ids, reaction_ids, species_ids, reaction_ids)
+
+    # TODO: add DFBA kisao
+    # TODO: save sedml
+
+
+    return_code = phrasedml.convertString(p)
+    if return_code is None:
+        print(phrasedml.getLastError())
+
+    # getPhrasedWarnings()
+    # getLastPhrasedError()
+    sedml = phrasedml.getLastSEDML()
+    print(sedml)
+
+    sedml_file = os.path.join(directory, sedml_location)
+    with open(sedml_file, "w") as f:
+        f.write(sedml)
+
+
+
 if __name__ == "__main__":
-    directory = versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
+    directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
+
+    # create SED-ML
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory, dts=[0.1], tend=15)
+
+
 
     import logging
     # logging.basicConfig(level=logging.DEBUG)

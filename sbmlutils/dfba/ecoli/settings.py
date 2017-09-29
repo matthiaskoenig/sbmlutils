@@ -19,4 +19,4 @@ FLATTENED_LOCATION = '{}_flattened.xml'.format(MODEL_ID)
 SEDML_LOCATION = 'dfba_simulation.xml'.format(MODEL_ID)
 
 # Combine archive
-OMEX_LOCATION = '{}.omex'.format(MODEL_ID)
+OMEX_LOCATION = '{}-v{}.omex'.format(MODEL_ID, VERSION)
