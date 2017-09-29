@@ -36,7 +36,7 @@ class TissueModel(object):
         # print self.cellModel.info()
 
         # tissue information fields
-        for key, value in tissue_dict.iteritems():
+        for key, value in tissue_dict.items():
             setattr(self, key, value)
         self.events = events
 
@@ -66,7 +66,7 @@ class TissueModel(object):
         cdict = dict()
         for name in module_names:
             mdict = TissueModel._createDict(name)
-            for key, value in mdict.iteritems():
+            for key, value in mdict.items():
                 if type(value) is list:
                     # create new list
                     if not cdict.has_key(key):
@@ -80,7 +80,7 @@ class TissueModel(object):
                         cdict[key] = dict()
                     # now add the elements by copy
                     old_value = cdict.get(key)
-                    for k, v in value.iteritems():
+                    for k, v in value.items():
                         old_value[k] = copy.deepcopy(v)
         return cdict
 

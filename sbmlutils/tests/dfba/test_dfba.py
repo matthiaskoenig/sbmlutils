@@ -35,8 +35,9 @@ class DFBATestCase(unittest.TestCase):
         shutil.rmtree(self.test_dir)
 
     def file_exists(self, directory, filename):
-        """ Check if file with filename was generated in the test_dir.
+        """ Check if file with filename was generated in the directory.
 
+        :param directory:
         :param filename:
         :return:
         """
@@ -99,6 +100,7 @@ class DFBATestCase(unittest.TestCase):
         # self.file_exists("reactions.png")
         # self.file_exists("species.png")
         # self.file_exists("simulation.csv")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -35,8 +35,6 @@ value of the species is referenced in a mathematical expression.
 
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
-    
 import os
 from os.path import join as pjoin
 
@@ -394,7 +392,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
         'pyr_e': 1.0,
         'X': 0.001,
     }
-    for sid, value in iteritems(initial_c):
+    for sid, value in initial_c.items():
         species = model.getSpecies(sid)
         species.setInitialConcentration(value)
 
