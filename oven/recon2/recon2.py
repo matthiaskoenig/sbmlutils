@@ -2,8 +2,9 @@
 Rename restricted sids in models.
 """
 from __future__ import absolute_import, print_function, division
-from six import iteritems
+
 import libsbml
+
 from sbmlutils import sbmlio
 from sbmlutils.utils import timeit
 from sbmlutils import validation
@@ -29,7 +30,7 @@ def rename_restriced_sids(in_path, out_path,
     doc = libsbml.readSBMLFromFile(in_path)
     model = doc.getModel()
 
-    for old_id, new_id in iteritems(restricted):
+    for old_id, new_id in restricted:
         element_x = model.getElementBySId(old_id)
         if element_x is not None:
             print("Renaming: ", old_id, '->', new_id)

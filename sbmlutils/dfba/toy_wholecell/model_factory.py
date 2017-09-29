@@ -31,6 +31,7 @@ from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 from sbmlutils import annotation
+from sbmlutils import omex
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -406,14 +407,45 @@ def create_model(output_dir):
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
                          output_path=pjoin(directory, settings.flattened_file))
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [settings.fba_file,
-                   settings.bounds_file,
-                   settings.update_file,
-                   settings.top_file,
-                   settings.flattened_file]]
+    locations = [
+        settings.fba_file,
+        settings.bounds_file,
+        settings.update_file,
+        settings.top_file,
+        settings.flattened_file
+    ]
+    desciptions = [
+        "FBA submodel (DFBA)",
+        "BOUNDS submodel (DFBA)",
+        "UPDATE submodel (DFBA)",
+        "TOP submodel (DFBA)",
+        "FLATTENED comp model (DFBA)",
+    ]
+
+    # create omex with the sbml files
+    omex_entries = []
+    for location, desciption in dict(zip(locations, desciptions)).items():
+        entry = omex.Entry(location=location,
+                           formatKey="sbml",
+                           master=False,
+                           description=desciption, creators=creators)
+        omex_entries.append(entry)
+
+    base_directory = os.path.join(directory, "..")
+    omex_path = os.path.join(base_directory, settings.OMEX_LOCATION)
+    omex.combineArchiveFromEntries(omexPath=omex_path,
+                                   entries=omex_entries,
+                                   workingDir=directory)
+
+    if not os.path.exists(omex_path):
+        raise IOError("OMEX NOT CREATED")
+
+    # create reports
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # TODO: add report to archive
+
     return directory
 
 

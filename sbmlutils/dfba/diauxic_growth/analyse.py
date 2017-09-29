@@ -2,17 +2,16 @@
 Analysis functions.
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
+import os
 import logging
 import warnings
-import os
+
 import numpy as np
 import pandas as pd
 
 from sbmlutils.dfba.analysis import set_matplotlib_parameters
 from matplotlib import pyplot as plt
 set_matplotlib_parameters()
-
 
 
 def print_species(dfs, filepath=None, **kwargs):
@@ -95,7 +94,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
               'X': 'black'}
     for df in dfs:
         # internal fluxes (v1, v2, v3, v4)
-        for key, ax in iteritems(mapping1):
+        for key, ax in mapping1.items():
             ax.plot(df.time, df['fba__{}'.format(key)], label=labels1[key], color='k', **kwargs)
             ax.set_ylabel('Flux [mmol]')
             ax.set_title("{}: Flux".format(key))
@@ -104,7 +103,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
         # exchange fluxes with bounds
         ax7.plot(df.time, df['vO2_transfer'.format(key)], color='green', label="vO2_transfer")
 
-        for key, ax in iteritems(mapping2):
+        for key, ax in mapping2.items():
             ax.fill_between(df.time, df['lb_EX_{}'.format(key)], np.zeros(len(df.time)), facecolor=colors[key], alpha=0.3,
                             interpolate=False, step='post')
             ax.fill_between(df.time, np.zeros(len(df.time)), df['ub_EX_{}'.format(key)], facecolor=colors[key], alpha=0.2,
@@ -125,7 +124,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
 
 
         # concentrations
-        for key, ax in iteritems(mapping3):
+        for key, ax in mapping3.items():
             ax.plot([0, np.max(df.time)], [0, 0], color='gray', linestyle='-', linewidth=1)
             ax.plot(df.time, df['[{}]'.format(key)], color=colors[key], label="{}".format(key), **kwargs)
             ax.set_ylabel('Concentration [mmol/l]')
@@ -147,7 +146,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     ax9.set_title("Varma1994 Fig7")
     ax9.scatter(Varma1994_Fig7.time[inds], Varma1994_Fig7.value[inds], color='black', label='data')
 
-    for key, ax in iteritems(mapping3):
+    for key, ax in mapping3.items():
         ax.legend()
 
     if filepath is not None:

@@ -4,17 +4,15 @@ Run toy model simulations.
 from __future__ import print_function, division
 import os
 import logging
-from six import iteritems
-import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.toy_wholecell import settings, model_factory
 from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
-
 from sbmlutils.dfba.utils import versioned_directory
 from sbmlutils.dfba.analysis import set_matplotlib_parameters
-from matplotlib import pyplot as plt
+
 set_matplotlib_parameters()
 
 
@@ -102,7 +100,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     }
 
     for k, df in enumerate(dfs):
-        for key, ax in iteritems(mapping):
+        for key, ax in mapping.items():
             if k == 0:
                 ax.plot(df.time, df[key], label=key, color=colors[key], **kwargs)
             else:
@@ -110,7 +108,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
             ax.set_ylabel('Flux [?]')
             ax.legend()
 
-    for key, ax in iteritems(mapping):
+    for key, ax in mapping.items():
         ax.set_xlabel('time')
         ax.legend()
 
@@ -156,9 +154,69 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
     return dfs
 
 
+# TODO: create
+def create_sedml(sedml_location, sbml_location, directory, dts, tend):
+
+    import phrasedml
+    phrasedml.setWorkingDirectory(directory)
+    dt = dts[0]
+    steps = int(1.0 * tend/dt)
+
+    # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
+    species_ids = ", ".join(['A', 'C', 'D'])
+    # reaction_ids = ", ".join(['fba__R1', 'fba__R2', 'fba__R3', 'R4', 'EX_A', 'EX_C', 'update__update_A', 'update__update_C'])
+    reaction_ids = ", ".join(['R4', 'EX_A', 'EX_C'])
+
+    # TODO: load SBML
+
+    # TODO: log plot
+
+    p = """
+          model1 = model "{}"
+          sim1 = simulate uniform(0, {}, {})
+          sim1.algorithm = kisao.500
+          task1 = run sim1 on model1
+          plot "Figure 1: DFBA species vs. time" time vs {}
+          plot "Figure 2: DFBA fluxes vs. time" time vs {}
+          report "Report 1: DFBA species vs. time" time vs {}
+          report "Report 2: DFBA fluxes vs. time" time vs {}
+          
+    """.format(sbml_location, tend, steps, species_ids, reaction_ids, species_ids, reaction_ids)
+
+    # TODO: add DFBA kisao
+    # TODO: save sedml
+
+
+    return_code = phrasedml.convertString(p)
+    if return_code is None:
+        print(phrasedml.getLastError())
+
+    # getPhrasedWarnings()
+    # getLastPhrasedError()
+    sedml = phrasedml.getLastSEDML()
+    print(sedml)
+
+    sedml_file = os.path.join(directory, sedml_location)
+    with open(sedml_file, "w") as f:
+        f.write(sedml)
+
+
 if __name__ == "__main__":
     directory = versioned_directory(settings.out_dir, model_factory.version)
     sbml_path = os.path.join(directory, settings.top_file)
+
+    # create SED-ML
+    create_sedml(settings.SEDML_LOCATION, settings.top_file, directory=directory, dts=[0.1, 1.0, 5.0], tend=50)
+
+    # Add to archive
+    from sbmlutils import omex
+    omex_path = os.path.join(directory, settings.OMEX_LOCATION)
+    entries = [
+        omex.Entry(location=settings.SEDML_LOCATION, formatKey="sed-ml", master=True, description="DFBA simulation")
+    ]
+    omex.addEntriesToCombineArchive(omex_path, entries, workingDir=directory)
+
+    exit()
 
     import logging
     # logging.basicConfig(level=logging.DEBUG)
