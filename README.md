@@ -25,7 +25,7 @@ For a more detailed description and examples see the documentation.
       title         = {sbmlutils: python utilities for SBML},
       month         = {Mar.},
       year          = {2017},
-      doi           = "{10.5281/zenodo.439006}",
+      doi           = "{10.5281/zenodo.439006}",a
       url           = "{http://dx.doi.org/10.5281/zenodo.439006}"
     }
 
