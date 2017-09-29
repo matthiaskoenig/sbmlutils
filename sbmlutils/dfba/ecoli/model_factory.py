@@ -49,7 +49,7 @@ from sbmlutils.validation import check
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, update_file, top_file, flattened_file
+from sbmlutils.dfba.ecoli import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
@@ -429,54 +429,63 @@ def create_model(output_dir):
     import time
     t_start = time.time()
 
-    doc_fba = fba_model(fba_file, directory)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory)
     t_fba = time.time()
     print('{:<10}: {:3.2f}'.format('fba', t_fba-t_start))
 
-    bounds_model(bounds_file, directory, doc_fba=doc_fba)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba)
     t_bounds = time.time()
     print('{:<10}: {:3.2f}'.format('bounds', t_bounds-t_fba))
 
-    exit()
-
-    update_model(update_file, directory, doc_fba=doc_fba)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba)
     t_update = time.time()
     print('{:<10}: {:3.2f}'.format('update', t_update-t_bounds))
 
-
-
     emds = {
-        "ecoli_fba": fba_file,
-        "ecoli_bounds": bounds_file,
-        "ecoli_update": update_file,
+        "ecoli_fba": settings.FBA_LOCATION,
+        "ecoli_bounds": settings.BOUNDS_LOCATION,
+        "ecoli_update": settings.UPDATE_LOCATION,
     }
 
     # flatten top model
-    top_model(top_file, directory, emds, doc_fba=doc_fba)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba)
     t_top = time.time()
     print('{:<10}: {:3.2f}'.format('top', t_top-t_update))
 
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
-                         output_path=pjoin(directory, flattened_file))
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
     t_flat = time.time()
     print('{:<10}: {:3.2f}'.format('flat', t_flat-t_top))
 
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+    descriptions = [
+        "FBA submodel (DFBA)",
+        "BOUNDS submodel (DFBA)",
+        "UPDATE submodel (DFBA)",
+        "TOP submodel (DFBA)",
+        "FLATTENED comp model (DFBA)",
+    ]
+
+    utils.create_omex(directory=directory,
+                      omex_location=settings.OMEX_LOCATION,
+                      locations=locations,
+                      descriptions=descriptions,
+                      creators=creators)
+
+    # create reports
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
-def create_reports(output_dir):
-    directory = utils.versioned_directory(output_dir, version=version)
-
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
 if __name__ == "__main__":
 
-    from sbmlutils.dfba.ecoli.settings import out_dir
-    create_model(output_dir=out_dir)
+    create_model(output_dir=settings.OUT_DIR)
     # create_reports(output_dir=out_dir)

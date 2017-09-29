@@ -98,8 +98,7 @@ from sbmlutils import annotation
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.diauxic_growth.dgsettings import (model_id, fba_file, bounds_file,
-                                                      update_file, top_file, flattened_file, annotations_file)
+from sbmlutils.dfba.diauxic_growth import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
@@ -204,7 +203,7 @@ def fba_model(sbml_file, directory, annotations=None):
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-    doc = builder.template_doc_fba(model_id)
+    doc = builder.template_doc_fba(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model, notes=fba_notes, creators=creators, units=units, main_units=main_units)
 
@@ -286,7 +285,7 @@ def bounds_model(sbml_file, directory, doc_fba=None, annotations=None):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    doc = builder.template_doc_bounds(model_id)
+    doc = builder.template_doc_bounds(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model, notes=bounds_notes, creators=creators, units=units, main_units=main_units)
 
@@ -370,7 +369,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    doc = builder.template_doc_update(model_id)
+    doc = builder.template_doc_update(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model, notes=update_notes, creators=creators, units=units, main_units=main_units)
 
@@ -416,7 +415,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    doc = builder.template_doc_top(model_id, emds)
+    doc = builder.template_doc_top(settings.MODEL_ID, emds)
     model = doc.getModel()
     utils.set_model_info(model, notes=top_notes,
                          creators=creators, units=units, main_units=main_units)
@@ -489,33 +488,51 @@ def create_model(output_dir):
     """
     directory = utils.versioned_directory(output_dir, version=version)
 
-    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), annotations_file)
+    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.ANNOTATIONS_LOCATION)
     annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
 
     # create sbml
-    doc_fba = fba_model(fba_file, directory, annotations=annotations)
-    bounds_model(bounds_file, directory, doc_fba=doc_fba, annotations=annotations)
-    update_model(update_file, directory, doc_fba=doc_fba, annotations=annotations)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
     emds = {
-        "diauxic_fba": fba_file,
-        "diauxic_bounds": bounds_file,
-        "diauxic_update": update_file,
+        "diauxic_fba": settings.FBA_LOCATION,
+        "diauxic_bounds": settings.BOUNDS_LOCATION,
+        "diauxic_update": settings.UPDATE_LOCATION,
     }
-    top_model(top_file, directory, emds, doc_fba=doc_fba, annotations=annotations)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba, annotations=annotations)
 
     # flatten top model
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
-                         output_path=pjoin(directory, flattened_file))
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
 
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+    descriptions = [
+        "FBA submodel (DFBA)",
+        "BOUNDS submodel (DFBA)",
+        "UPDATE submodel (DFBA)",
+        "TOP submodel (DFBA)",
+        "FLATTENED comp model (DFBA)",
+    ]
 
+    utils.create_omex(directory=directory,
+                      omex_location=settings.OMEX_LOCATION,
+                      locations=locations,
+                      descriptions=descriptions,
+                      creators=creators)
+
+    # create reports
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
+    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
 
 if __name__ == "__main__":
-    from sbmlutils.dfba.diauxic_growth.dgsettings import out_dir
-    directory = create_model(output_dir=out_dir)
+    directory = create_model(output_dir=settings.OUT_DIR)

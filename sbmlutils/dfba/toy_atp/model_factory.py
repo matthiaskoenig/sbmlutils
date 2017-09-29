@@ -115,7 +115,7 @@ def fba_model(sbml_file, directory, annotations=None):
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-    doc = builder.template_doc_fba(settings.model_id)
+    doc = builder.template_doc_fba(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=fba_notes,
@@ -187,7 +187,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    doc = builder.template_doc_bounds(settings.model_id)
+    doc = builder.template_doc_bounds(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=bounds_notes,
@@ -225,7 +225,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    doc = builder.template_doc_update(settings.model_id)
+    doc = builder.template_doc_update(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=update_notes,
@@ -268,7 +268,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    doc = builder.template_doc_top(settings.model_id, emds)
+    doc = builder.template_doc_top(settings.MODEL_ID, emds)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=top_notes,
@@ -349,33 +349,50 @@ def create_model(output_dir):
     directory = utils.versioned_directory(output_dir, version=version)
 
     # create sbml
-    doc_fba = fba_model(settings.fba_file, directory, annotations=annotations)
-    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba, annotations=annotations)
-    update_model(settings.update_file, directory, doc_fba=doc_fba, annotations=annotations)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
 
     emds = {
-        "{}_fba".format(settings.model_id): settings.fba_file,
-        "{}_bounds".format(settings.model_id): settings.bounds_file,
-        "{}_update".format(settings.model_id): settings.update_file,
+        "{}_fba".format(settings.MODEL_ID): settings.FBA_LOCATION,
+        "{}_bounds".format(settings.MODEL_ID): settings.BOUNDS_LOCATION,
+        "{}_update".format(settings.MODEL_ID): settings.UPDATE_LOCATION,
     }
 
     # flatten top model
-    top_model(settings.top_file, directory, emds, doc_fba, annotations=annotations)
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
-                         output_path=pjoin(directory, settings.flattened_file))
-    # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [settings.fba_file,
-                   settings.bounds_file,
-                   settings.update_file,
-                   settings.top_file,
-                   settings.flattened_file]]
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba, annotations=annotations)
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
+
+    # create omex
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+    descriptions = [
+        "FBA submodel (DFBA)",
+        "BOUNDS submodel (DFBA)",
+        "UPDATE submodel (DFBA)",
+        "TOP submodel (DFBA)",
+        "FLATTENED comp model (DFBA)",
+    ]
+
+    utils.create_omex(directory=directory,
+                      omex_location=settings.OMEX_LOCATION,
+                      locations=locations,
+                      descriptions=descriptions,
+                      creators=creators)
+
+    # create report
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    directory = create_model(output_dir=settings.out_dir)
+    directory = create_model(output_dir=settings.OUT_DIR)
     print(directory)
