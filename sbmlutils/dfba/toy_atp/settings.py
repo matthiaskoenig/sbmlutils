@@ -5,7 +5,8 @@ Definition of constants.
 from __future__ import absolute_import, print_function
 import os
 
-MODEL_ID = 'toy_wholecell'
+MODEL_ID = 'toy_atp'
+VERSION = 11
 
 # directory
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
@@ -21,7 +22,7 @@ FLATTENED_LOCATION = '{}_flattened.xml'.format(MODEL_ID)
 SEDML_LOCATION = 'dfba_simulation.xml'.format(MODEL_ID)
 
 # Combine archive
-OMEX_LOCATION = '{}.omex'.format(MODEL_ID)
+OMEX_LOCATION = '{}_v{}.omex'.format(MODEL_ID, VERSION)
 
 # annotation file
 ANNOTATIONS_LOCATION = 'annotations.xlsx'

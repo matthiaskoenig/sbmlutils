@@ -42,7 +42,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-VERSION = 12
+
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -74,7 +74,7 @@ notes = """
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""".format(VERSION, '{}')
+""".format(settings.VERSION, '{}')
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
@@ -386,7 +386,7 @@ def create_model(output_dir):
     :rtype:
     :return directory in which model files exist.
     """
-    directory = utils.versioned_directory(output_dir, version=VERSION)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.ANNOTATIONS_LOCATION)
     annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)

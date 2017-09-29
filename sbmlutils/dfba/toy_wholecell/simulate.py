@@ -159,13 +159,14 @@ def create_sedml(sedml_location, sbml_location, directory, dts, tend):
 
     import phrasedml
     phrasedml.setWorkingDirectory(directory)
+    # FIXME: uses only the first dt
     dt = dts[0]
     steps = int(1.0 * tend/dt)
 
     # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
     species_ids = ", ".join(['A', 'C', 'D'])
     # reaction_ids = ", ".join(['fba__R1', 'fba__R2', 'fba__R3', 'R4', 'EX_A', 'EX_C', 'update__update_A', 'update__update_C'])
-    reaction_ids = ", ".join(['R4', 'EX_A', 'EX_C'])
+    reaction_ids = ", ".join(['R4', 'pEX_A', 'pEX_C'])
 
     # TODO: load SBML
 
@@ -202,19 +203,22 @@ def create_sedml(sedml_location, sbml_location, directory, dts, tend):
 
 
 if __name__ == "__main__":
-    directory = versioned_directory(settings.OUT_DIR, model_factory.VERSION)
+    directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
     sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
     # create SED-ML
     create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory, dts=[0.1, 1.0, 5.0], tend=50)
 
     # Add to archive
+    # FIXME: adding entries to archive is not working
+    '''
     from sbmlutils import omex
-    omex_path = os.path.join(directory, settings.OMEX_LOCATION)
+    omex_path = os.path.join(settings.OUT_DIR, settings.OMEX_LOCATION)
     entries = [
         omex.Entry(location=settings.SEDML_LOCATION, formatKey="sed-ml", master=True, description="DFBA simulation")
     ]
     omex.addEntriesToCombineArchive(omex_path, entries, workingDir=directory)
+    '''
 
     exit()
 
