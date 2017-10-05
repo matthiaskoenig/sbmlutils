@@ -10,8 +10,15 @@ from __future__ import print_function, division, absolute_import
 
 from sbmlutils import factory as mc
 
-from libsbml import UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE
-from libsbml import XMLNode
+try:
+    import libsbml
+    from libsbml import (XMLNode, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
+                         UNIT_KIND_SECOND, UNIT_KIND_LITRE)
+except ImportError:
+    import tesbml as libsbml
+    from tebsbml import (XMLNode, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
+                         UNIT_KIND_SECOND, UNIT_KIND_LITRE)
+
 from sbmlutils.modelcreator import templates
 
 from . import Reactions

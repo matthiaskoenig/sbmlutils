@@ -3,7 +3,15 @@
 PKPD example model
 """
 from __future__ import absolute_import, print_function
-from libsbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
+
+try:
+    import libsbml
+    from libsbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
+except ImportError:
+    import tesbml as libsbml
+    from tebsbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
+
+
 
 import sbmlutils.factory as fac
 from sbmlutils.modelcreator import templates
