@@ -16,7 +16,7 @@ try:
                          UNIT_KIND_SECOND, UNIT_KIND_LITRE)
 except ImportError:
     import tesbml as libsbml
-    from tebsbml import (XMLNode, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
+    from tesbml import (XMLNode, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
                          UNIT_KIND_SECOND, UNIT_KIND_LITRE)
 
 from sbmlutils.modelcreator import templates
