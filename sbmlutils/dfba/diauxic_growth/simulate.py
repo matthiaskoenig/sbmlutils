@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.utils import versioned_directory
 
-from sbmlutils.dfba.diauxic_growth import dgsettings
+from sbmlutils.dfba.diauxic_growth import settings as dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory
 from sbmlutils.dfba.diauxic_growth import analyse
 from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness

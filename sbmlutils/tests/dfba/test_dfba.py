@@ -16,7 +16,7 @@ from sbmlutils.dfba.toy_atp import settings as atpsettings
 from sbmlutils.dfba.toy_atp import model_factory as atpfactory
 from sbmlutils.dfba.toy_atp import simulate as atpsimulate
 
-from sbmlutils.dfba.diauxic_growth import dgsettings
+from sbmlutils.dfba.diauxic_growth import settings as dgsettings
 from sbmlutils.dfba.diauxic_growth import model_factory as dgfactory
 from sbmlutils.dfba.diauxic_growth import simulate as dgsimulate
 
@@ -60,16 +60,16 @@ class DFBATestCase(unittest.TestCase):
 
         print(os.listdir(self.test_dir))
 
-        self.file_exists(directory, dgsettings.fba_file)
-        self.file_exists(directory, dgsettings.bounds_file)
-        self.file_exists(directory, dgsettings.update_file)
-        self.file_exists(directory, dgsettings.top_file)
-        self.file_exists(directory, dgsettings.flattened_file)
+        self.file_exists(directory, dgsettings.FBA_LOCATION)
+        self.file_exists(directory, dgsettings.BOUNDS_LOCATION)
+        self.file_exists(directory, dgsettings.UPDATE_LOCATION)
+        self.file_exists(directory, dgsettings.TOP_LOCATION)
+        self.file_exists(directory, dgsettings.FLATTENED_LOCATION)
 
     def test_toy_wholecell_simulation(self):
 
         toyfactory.create_model(self.test_dir)
-        sbml_path = os.path.join(versioned_directory(self.test_dir, toyfactory.VERSION),
+        sbml_path = os.path.join(versioned_directory(self.test_dir, settings.VERSION),
                                  settings.TOP_LOCATION)
         print(sbml_path)
         toysimulate.simulate_toy(sbml_path, self.test_dir, dts=[1.0], figures=False)
@@ -80,8 +80,8 @@ class DFBATestCase(unittest.TestCase):
 
     def test_toy_atp_simulation(self):
         atpfactory.create_model(self.test_dir)
-        sbml_path = os.path.join(versioned_directory(self.test_dir, atpfactory.version),
-                                 atpsettings.top_file)
+        sbml_path = os.path.join(versioned_directory(self.test_dir, atpsettings.VERSION),
+                                 atpsettings.TOP_LOCATION)
         print(sbml_path)
         atpsimulate.simulate_toy_atp(sbml_path, self.test_dir, dts=[1.0], figures=False)
 
@@ -93,7 +93,7 @@ class DFBATestCase(unittest.TestCase):
 
         dgfactory.create_model(self.test_dir)
         sbml_path = os.path.join(versioned_directory(self.test_dir, dgfactory.version),
-                                 dgsettings.top_file)
+                                 dgsettings.TOP_LOCATION)
         print(sbml_path)
         dgsimulate.simulate_diauxic_growth(sbml_path, self.test_dir, dts=[0.01], figures=False)
 
