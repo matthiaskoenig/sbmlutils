@@ -6,6 +6,8 @@
 [![codecov](https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg)](https://codecov.io/gh/matthiaskoenig/sbmlutils)
 [![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
+[![GitHub version](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils.svg)](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils)
+
 
 # sbmlutils: Python utilities for SBML
 `sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of the [libSBML](http://sbml.org/Software/libSBML) python bindings.
