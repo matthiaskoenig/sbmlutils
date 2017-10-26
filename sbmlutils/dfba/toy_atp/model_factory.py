@@ -371,19 +371,6 @@ def create_model(output_dir):
         settings.TOP_LOCATION,
         settings.FLATTENED_LOCATION
     ]
-    descriptions = [
-        "FBA submodel (DFBA)",
-        "BOUNDS submodel (DFBA)",
-        "UPDATE submodel (DFBA)",
-        "TOP submodel (DFBA)",
-        "FLATTENED comp model (DFBA)",
-    ]
-
-    utils.create_omex(directory=directory,
-                      omex_location=settings.OMEX_LOCATION,
-                      locations=locations,
-                      descriptions=descriptions,
-                      creators=creators)
 
     # create report
     sbml_paths = [pjoin(directory, fname) for fname in locations]
