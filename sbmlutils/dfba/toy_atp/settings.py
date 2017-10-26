@@ -6,7 +6,7 @@ from __future__ import absolute_import, print_function
 import os
 
 MODEL_ID = 'toy_atp'
-VERSION = 11
+VERSION = 12
 
 # directory
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')

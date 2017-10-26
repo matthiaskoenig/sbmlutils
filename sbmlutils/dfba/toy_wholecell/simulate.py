@@ -227,3 +227,6 @@ if __name__ == "__main__":
                                      creators=creators,
                                      creators_for_all=True)
 
+    omex.printArchive(omex_path)
+    omex.printArchive("/home/mkoenig/git/sed-ml/specification/level-1-version-3/examples/__omex__/L1V3_ikkapab.omex")
+    # omex.listContents(omexPath=omex_path)

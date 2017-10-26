@@ -158,12 +158,9 @@ def simulate_toy_atp(sbml_path, out_dir, dts=[0.1], figures=True, tend=15):
     return dfs
 
 
-# TODO: create
-def create_sedml(sedml_location, sbml_location, directory, dts, tend):
+def create_sedml(sedml_location, sbml_location, directory, dt, tend, species_ids, reactions_ids):
     import phrasedml
     phrasedml.setWorkingDirectory(directory)
-    # FIXME: uses only the first dt
-    dt = dts[0]
     steps = int(1.0 * tend / dt)
 
     # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
