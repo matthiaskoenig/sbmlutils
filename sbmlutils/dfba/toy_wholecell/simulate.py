@@ -3,11 +3,11 @@ Run toy model simulations.
 """
 from __future__ import print_function, division
 import os
-import logging
+
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from sbmlutils.dfba.toy_wholecell import settings, model_factory
+from sbmlutils.dfba.toy_wholecell import settings
 from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
 from sbmlutils.dfba.utils import versioned_directory
@@ -154,23 +154,26 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
     return dfs
 
 
-# TODO: create
-def create_sedml(sedml_location, sbml_location, directory, dts, tend):
+def create_sedml(sedml_location, sbml_location, directory, dt, tend):
+    """ Creates SED-ML file for the given simulation.
+
+    :param sedml_location:
+    :param sbml_location:
+    :param directory:
+    :param dt:
+    :param tend:
+    :return:
+    """
 
     import phrasedml
     phrasedml.setWorkingDirectory(directory)
-    # FIXME: uses only the first dt
-    dt = dts[0]
     steps = int(1.0 * tend/dt)
 
     # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
     species_ids = ", ".join(['A', 'C', 'D'])
     # reaction_ids = ", ".join(['fba__R1', 'fba__R2', 'fba__R3', 'R4', 'EX_A', 'EX_C', 'update__update_A', 'update__update_C'])
-    reaction_ids = ", ".join(['R4', 'pEX_A', 'pEX_C'])
-
-    # TODO: load SBML
-
-    # TODO: log plot
+    reaction_ids = ", ".join(['R4', 'EX_A', 'EX_C'])
+    # reaction_ids = ", ".join(['R4', 'pEX_A', 'pEX_C'])
 
     p = """
           model1 = model "{}"
@@ -184,18 +187,13 @@ def create_sedml(sedml_location, sbml_location, directory, dts, tend):
           
     """.format(sbml_location, tend, steps, species_ids, reaction_ids, species_ids, reaction_ids)
 
-    # TODO: add DFBA kisao
-    # TODO: save sedml
-
 
     return_code = phrasedml.convertString(p)
     if return_code is None:
         print(phrasedml.getLastError())
 
-    # getPhrasedWarnings()
-    # getLastPhrasedError()
     sedml = phrasedml.getLastSEDML()
-    print(sedml)
+    # print(sedml)
 
     sedml_file = os.path.join(directory, sedml_location)
     with open(sedml_file, "w") as f:
@@ -206,22 +204,6 @@ if __name__ == "__main__":
     directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
     sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
-    # create SED-ML
-    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory, dts=[0.1, 1.0, 5.0], tend=50)
-
-    # Add to archive
-    # FIXME: adding entries to archive is not working
-    '''
-    from sbmlutils import omex
-    omex_path = os.path.join(settings.OUT_DIR, settings.OMEX_LOCATION)
-    entries = [
-        omex.Entry(location=settings.SEDML_LOCATION, formatKey="sed-ml", master=True, description="DFBA simulation")
-    ]
-    omex.addEntriesToCombineArchive(omex_path, entries, workingDir=directory)
-    '''
-
-    exit()
-
     import logging
     # logging.basicConfig(level=logging.DEBUG)
 
@@ -230,3 +212,18 @@ if __name__ == "__main__":
 
     # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
     simulate_toy(sbml_path, out_dir=directory)
+
+    # create SED-ML
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory, dt=0.1, tend=50)
+
+    # store everything in combine archive
+    from tellurium.utils import omex
+    creators = [
+        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com")
+    ]
+    omex_path = os.path.join(settings.OUT_DIR, "{}-v{}.omex".format(settings.MODEL_ID, settings.VERSION))
+    omex.combineArchiveFromDirectory(directory=directory,
+                                     omexPath=omex_path,
+                                     creators=creators,
+                                     creators_for_all=True)
+
