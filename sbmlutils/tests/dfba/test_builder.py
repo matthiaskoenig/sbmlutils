@@ -41,6 +41,7 @@ def create_fba_doc():
 
 
 def test_create_exchange_reaction():
+    print(libsbml.getLibSBMLDottedVersion())
     doc = create_fba_doc()
     model = doc.getModel()
 

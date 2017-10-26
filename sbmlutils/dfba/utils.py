@@ -5,38 +5,8 @@ from __future__ import print_function, absolute_import
 import os
 import logging
 
-
 from sbmlutils import history
 from sbmlutils import factory
-from sbmlutils import omex
-
-def create_omex(directory, omex_location, locations, descriptions, creators):
-    """
-
-    :param locations:
-    :param descriptions:
-    :return:
-    """
-    if len(locations) != len(descriptions):
-        raise ValueError("Description for all locations required.")
-
-    # create omex with the sbml files
-    omex_entries = []
-    for location, description in dict(zip(locations, descriptions)).items():
-        entry = omex.Entry(location=location,
-                           formatKey="sbml",
-                           master=False,
-                           description=description, creators=creators)
-        omex_entries.append(entry)
-
-    base_directory = os.path.join(directory, "..")
-    omex_path = os.path.join(base_directory, omex_location)
-    omex.combineArchiveFromEntries(omexPath=omex_path,
-                                   entries=omex_entries,
-                                   workingDir=directory)
-
-    if not os.path.exists(omex_path):
-        raise IOError("OMEX NOT CREATED")
 
 
 def set_model_info(model, notes=None, creators=None, units=None, main_units=None):
