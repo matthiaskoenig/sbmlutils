@@ -219,7 +219,9 @@ if __name__ == "__main__":
     # store everything in combine archive
     from tellurium.utils import omex
     creators = [
-        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com")
+        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
+        omex.Creator(givenName="Leandro", familyName="Watanabe", organization="University of Utah",
+                     email="leandrohw@gmail.com")
     ]
     omex_path = os.path.join(settings.OUT_DIR, "{}-v{}.omex".format(settings.MODEL_ID, settings.VERSION))
     omex.combineArchiveFromDirectory(directory=directory,
