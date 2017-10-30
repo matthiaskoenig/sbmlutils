@@ -10,7 +10,11 @@
 
 
 # sbmlutils: Python utilities for SBML
+<b><a href="https://orcid.org/0000-0003-1725-179X" title="orcid id"><img src="./docs_builder/images/logos/orcid.png" height="15"/></a> Matthias König</b>
+
 `sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of the [libSBML](http://sbml.org/Software/libSBML) python bindings.
+
+
 
 Features are among others
 
