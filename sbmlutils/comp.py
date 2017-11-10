@@ -169,15 +169,22 @@ def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, 
     p.setId(pid)
     if name is not None:
         p.setName(name)
+    ref = None
     if portRef is not None:
         p.setPortRef(portRef)
+        ref = portRef
     if idRef is not None:
         p.setIdRef(idRef)
+        ref = idRef
     if unitRef is not None:
         unit_str = factory.get_unit_string(unitRef)
-        res = p.setUnitRef(unit_str)
+        p.setUnitRef(unit_str)
+        ref = unit_str
     if metaIdRef is not None:
         p.setMetaIdRef(metaIdRef)
+        ref = metaIdRef
+    if name is None and ref is not None:
+        p.setName("port {}".format(ref))
     if portType == PORT_TYPE_PORT:
         # SBO:0000599 - port
         p.setSBOTerm(599)
