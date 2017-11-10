@@ -356,13 +356,13 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # kinetic
-        mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
+        mc.Parameter(sid="k_R4", value=0.1, constant=True, unit="per_s", sboTerm="SBO:0000009"),
 
         # bounds parameter
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
     ])
     # kinetic reaction (MMK)
-    mc.create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
+    mc.create_reaction(model, rid="R4", name="R4: C -> D", fast=False, reversible=False,
                        reactants={"C": 1}, products={"D": 1}, formula="k_R4*C", compartment="extern")
 
     # kinetic flux bounds

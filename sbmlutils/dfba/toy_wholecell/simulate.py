@@ -223,7 +223,7 @@ if __name__ == "__main__":
         omex.Creator(givenName="Leandro", familyName="Watanabe", organization="University of Utah",
                      email="leandrohw@gmail.com")
     ]
-    omex_path = os.path.join(settings.OUT_DIR, "{}-v{}.omex".format(settings.MODEL_ID, settings.VERSION))
+    omex_path = os.path.join(settings.OUT_DIR, "{}_v{}.omex".format(settings.MODEL_ID, settings.VERSION))
     omex.combineArchiveFromDirectory(directory=directory,
                                      omexPath=omex_path,
                                      creators=creators,
