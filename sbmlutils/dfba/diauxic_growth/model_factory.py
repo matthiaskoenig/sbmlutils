@@ -105,7 +105,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 13
+
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -141,7 +141,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""".format(version, '{}')
+""".format(settings.VERSION, '{}')
 
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
@@ -486,7 +486,7 @@ def create_model(output_dir):
 
     :return:
     """
-    directory = utils.versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.ANNOTATIONS_LOCATION)
     annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
@@ -514,23 +514,17 @@ def create_model(output_dir):
         settings.TOP_LOCATION,
         settings.FLATTENED_LOCATION
     ]
-    descriptions = [
-        "FBA submodel (DFBA)",
-        "BOUNDS submodel (DFBA)",
-        "UPDATE submodel (DFBA)",
-        "TOP submodel (DFBA)",
-        "FLATTENED comp model (DFBA)",
-    ]
 
-    utils.create_omex(directory=directory,
-                      omex_location=settings.OMEX_LOCATION,
-                      locations=locations,
-                      descriptions=descriptions,
-                      creators=creators)
-
-    # create reports
     sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # create sedml
+    from sbmlutils.dfba.sedml import create_sedml
+    species_ids = ", ".join(['Ac', 'Glcxt', 'O2', 'X'])
+    reaction_ids = ", ".join(['vO2_transfer', 'EX_Ac', 'EX_Glcxt', 'EX_O2', 'EX_X'])
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory,
+                 dt=0.01, tend=15, species_ids=species_ids, reaction_ids=reaction_ids)
+
     return directory
 
 

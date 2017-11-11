@@ -7,8 +7,6 @@ import os
 
 MODEL_ID = 'toy_wholecell'
 VERSION = 14
-
-# directory
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
 # SBML

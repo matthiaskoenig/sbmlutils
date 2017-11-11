@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.utils import versioned_directory
 
-from sbmlutils.dfba.diauxic_growth import settings as dgsettings
+from sbmlutils.dfba.diauxic_growth import settings
 from sbmlutils.dfba.diauxic_growth import model_factory
 from sbmlutils.dfba.diauxic_growth import analyse
 from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
@@ -22,7 +22,7 @@ def simulate_diauxic_growth(sbml_path, out_dir, dts=[0.01, 0.1], figures=True):
 
     :return: solution data frame
     """
-    tend = 20
+    tend = 15
     dfs = []
     for dt in dts:
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, pfba=False)
@@ -66,15 +66,14 @@ if __name__ == "__main__":
     from sbmlutils.dfba.model import DFBAModel
     from sbmlutils.dfba.simulator import DFBASimulator
 
-    directory = versioned_directory(dgsettings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, dgsettings.top_file)
-    print('Model:', sbml_path)
+    directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
     dfba_model = DFBAModel(sbml_path=sbml_path)
     print(dfba_model)
 
     # logging.getLogger().setLevel(logging.INFO)
-    simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.05])
+    simulate_diauxic_growth(sbml_path, out_dir=directory, dts=[0.01])
 
     # benchmark simulation
     if False:
@@ -86,4 +85,19 @@ if __name__ == "__main__":
             dfba_simulator = DFBASimulator(dfba_model, lp_solver=solver)
             print(dfba_simulator.cobra_model.solver.interface)
             dfba_simulator.benchmark(n_repeat=20, tend=10, dt=0.05)
+
+    # create COMBINE archive
+    from tellurium.utils import omex
+    creators = [
+        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
+        omex.Creator(givenName="Leandro", familyName="Watanabe", organization="University of Utah",
+                     email="leandrohw@gmail.com")
+    ]
+    omex_path = os.path.join(settings.OUT_DIR, "{}_v{}.omex".format(settings.MODEL_ID, settings.VERSION))
+    omex.combineArchiveFromDirectory(directory=directory,
+                                     omexPath=omex_path,
+                                     creators=creators,
+                                     creators_for_all=True)
+
+    omex.printArchive(omex_path)
 
