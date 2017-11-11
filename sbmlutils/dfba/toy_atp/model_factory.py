@@ -363,7 +363,7 @@ def create_model(output_dir):
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
                          output_path=pjoin(directory, settings.FLATTENED_LOCATION))
 
-    # create omex
+    # create reports
     locations = [
         settings.FBA_LOCATION,
         settings.BOUNDS_LOCATION,
@@ -372,13 +372,19 @@ def create_model(output_dir):
         settings.FLATTENED_LOCATION
     ]
 
-    # create report
     sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # create sedml
+    from sbmlutils.dfba.sedml import create_sedml
+    species_ids = ", ".join(['atp', 'adp', 'glc', 'pyr'])
+    reaction_ids = ", ".join(['EX_atp', 'EX_adp', 'EX_glc', 'EX_pyr', 'RATP'])
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory,
+                 dt=0.1, tend=15, species_ids=species_ids, reaction_ids=reaction_ids)
+
     return directory
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    directory = create_model(output_dir=settings.OUT_DIR)
-    print(directory)
+    create_model(output_dir=settings.OUT_DIR)
