@@ -418,10 +418,16 @@ def create_model(output_dir):
     sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
 
+    # create sedml
+    from sbmlutils.dfba.sedml import create_sedml
+    species_ids = ", ".join(['A', 'C', 'D'])
+    reaction_ids = ", ".join(['R4', 'EX_A', 'EX_C'])
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory,
+                 dt=0.1, tend=50, species_ids=species_ids, reaction_ids=reaction_ids)
+
     return directory
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    directory = create_model(output_dir=settings.OUT_DIR)
-    print(directory)
+    create_model(output_dir=settings.OUT_DIR)

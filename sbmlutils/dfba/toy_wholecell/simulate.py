@@ -154,52 +154,6 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
     return dfs
 
 
-def create_sedml(sedml_location, sbml_location, directory, dt, tend):
-    """ Creates SED-ML file for the given simulation.
-
-    :param sedml_location:
-    :param sbml_location:
-    :param directory:
-    :param dt:
-    :param tend:
-    :return:
-    """
-
-    import phrasedml
-    phrasedml.setWorkingDirectory(directory)
-    steps = int(1.0 * tend/dt)
-
-    # species_ids = self.rr_comp.model.getFloatingSpeciesIds() + self.rr_comp.model.getBoundarySpeciesIds()]
-    species_ids = ", ".join(['A', 'C', 'D'])
-    # reaction_ids = ", ".join(['fba__R1', 'fba__R2', 'fba__R3', 'R4', 'EX_A', 'EX_C', 'update__update_A', 'update__update_C'])
-    reaction_ids = ", ".join(['R4', 'EX_A', 'EX_C'])
-    # reaction_ids = ", ".join(['R4', 'pEX_A', 'pEX_C'])
-
-    p = """
-          model1 = model "{}"
-          sim1 = simulate uniform(0, {}, {})
-          sim1.algorithm = kisao.500
-          task1 = run sim1 on model1
-          plot "Figure 1: DFBA species vs. time" time vs {}
-          plot "Figure 2: DFBA fluxes vs. time" time vs {}
-          report "Report 1: DFBA species vs. time" time vs {}
-          report "Report 2: DFBA fluxes vs. time" time vs {}
-          
-    """.format(sbml_location, tend, steps, species_ids, reaction_ids, species_ids, reaction_ids)
-
-
-    return_code = phrasedml.convertString(p)
-    if return_code is None:
-        print(phrasedml.getLastError())
-
-    sedml = phrasedml.getLastSEDML()
-    # print(sedml)
-
-    sedml_file = os.path.join(directory, sedml_location)
-    with open(sedml_file, "w") as f:
-        f.write(sedml)
-
-
 if __name__ == "__main__":
     directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
     sbml_path = os.path.join(directory, settings.TOP_LOCATION)
@@ -213,10 +167,7 @@ if __name__ == "__main__":
     # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
     simulate_toy(sbml_path, out_dir=directory)
 
-    # create SED-ML
-    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory, dt=0.1, tend=50)
-
-    # store everything in combine archive
+    # create COMBINE archive
     from tellurium.utils import omex
     creators = [
         omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
@@ -230,5 +181,3 @@ if __name__ == "__main__":
                                      creators_for_all=True)
 
     omex.printArchive(omex_path)
-    omex.printArchive("/home/mkoenig/git/sed-ml/specification/level-1-version-3/examples/__omex__/L1V3_ikkapab.omex")
-    # omex.listContents(omexPath=omex_path)
