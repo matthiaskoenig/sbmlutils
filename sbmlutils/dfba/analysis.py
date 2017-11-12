@@ -15,7 +15,7 @@ def set_matplotlib_parameters():
     plt.rcParams.update({
         'axes.labelsize': 'large',
         'axes.labelweight': 'bold',
-        'axes.titlesize': 'large',
+        'axes.titlesize': 'small',
         'axes.titleweight': 'bold',
         'legend.fontsize': 'small',
         'xtick.labelsize': 'large',
