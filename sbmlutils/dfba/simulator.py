@@ -77,7 +77,6 @@ class DFBASimulator(object):
         self.rel_tol = rel_tol
         self.solution = None
 
-
         self.fba_solution = None  # last LP solution
         self.fluxes = None  # last LP fluxes dict
 
@@ -147,13 +146,23 @@ class DFBASimulator(object):
         self.ode_model.timeCourseSelections = sel
         self.columns = dict(zip(sel, range(len(sel))))
 
-    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True):
+    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True, show_settings=False):
         """ Perform model simulation.
 
         The simulator images out based on the SBO terms in the list of submodels, which
         simulation/modelling framework to use.
         The passing of information between FBA and SSA/ODE is based on the list of replacements.
+
+        :param tstart:
+        :param tend:
+        :param dt:
+        :param absTol:
+        :param relTol:
+        :param reset:
+        :param show_settings:
+        :return:
         """
+
         start_time = timeit.default_timer()
         # set the columns in output
         self._set_timecourse_selections()
@@ -162,7 +171,18 @@ class DFBASimulator(object):
         if reset:
             self.reset()
 
-        # FIXME: set tolerances on the ode model
+        # set tolerances on ODE solver
+        integrator = self.ode_model.integrator
+        integrator.absolute_tolerance = self.abs_tol
+        integrator.relative_tolerance = self.rel_tol
+        if show_settings:
+            print("-" * 80)
+            print("ODE integrator settings")
+            print("-" * 80)
+            print(self.ode_model)
+            print("-" * 80)
+
+        # FIXME: set tolerances on cobra solver
 
         # number of steps
         steps = np.round(1.0 * tend / dt)
