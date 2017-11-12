@@ -14,10 +14,9 @@
 <b><a href="https://orcid.org/0000-0003-1725-179X" title="orcid id"><img src="./docs_builder/images/orcid.png" height="15"/></a> Matthias König</b>
 
 `sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of [libSBML](http://sbml.org/Software/libSBML)
-and other libraries.
+and other libraries available from [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils)
 
-
-Features are among others
+Features include among others
 
 * HTML reports of SBML models
 * helper functions for model creation, manipulation, and annotation
@@ -25,33 +24,28 @@ Features are among others
 * implementation of dynamic flux balance analysis (DFBA)
 * file converters (XPP)
 
-For a more detailed description and examples see the documentation.
+For a more detailed description and examples see the documentation at <a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
+[![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/).  
+
+
 
 ### How to cite
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  
-
-The project code is available from [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
 
 ### License
 * Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
 * Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
-### Documentation
-[![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)  
-Documentation with examples is available at 
-<a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
 
 ## Installation
-`sbmlutils` can be installed either via `pip` or directly from the source code.
-
-### Stable version
-`sbmlutils` can be installed from [https://pypi.python.org/pypi/sbmlutils](https://pypi.python.org/pypi/sbmlutils) via 
+`sbmlutils` is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and 
+can be installed via 
 ```
 pip install sbmlutils
 ```
 
 ### Develop version
-The latest develop version is available via
+The latest develop version can be installed via
 ```
 pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop
 ```
