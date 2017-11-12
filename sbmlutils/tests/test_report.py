@@ -32,5 +32,6 @@ class ReportTestCase(unittest.TestCase):
         tmpdir = tempfile.mkdtemp(suffix="_sbml_report")
         sbmlreport.create_sbml_report(data.VDP_SBML, tmpdir)
 
+
 if __name__ == '__main__':
     unittest.main()

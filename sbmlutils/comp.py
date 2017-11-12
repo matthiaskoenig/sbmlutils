@@ -8,13 +8,16 @@ of the dynamic FBA models.
 """
 
 from __future__ import print_function, division, absolute_import
-from six import iteritems
 
+import os
 import warnings
 import logging
-import os
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 import sbmlutils.factory as factory
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
@@ -129,7 +132,7 @@ def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=No
 
     # dictionary, port ids are provided
     if type(data) == dict:
-        for pid, ref in iteritems(data):
+        for pid, ref in data.items():
             kwargs = {'pid': pid, ptype: ref}
             ports.append(
                 _create_port(model, portType=portType, **kwargs)
@@ -166,15 +169,22 @@ def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, 
     p.setId(pid)
     if name is not None:
         p.setName(name)
+    ref = None
     if portRef is not None:
         p.setPortRef(portRef)
+        ref = portRef
     if idRef is not None:
         p.setIdRef(idRef)
+        ref = idRef
     if unitRef is not None:
         unit_str = factory.get_unit_string(unitRef)
-        res = p.setUnitRef(unit_str)
+        p.setUnitRef(unit_str)
+        ref = unit_str
     if metaIdRef is not None:
         p.setMetaIdRef(metaIdRef)
+        ref = metaIdRef
+    if name is None and ref is not None:
+        p.setName("port {}".format(ref))
     if portType == PORT_TYPE_PORT:
         # SBO:0000599 - port
         p.setSBOTerm(599)
@@ -206,7 +216,7 @@ def replace_elements(model, sid, ref_type, replaced_elements):
     :param replaced_elements:
     :return:
     """
-    for submodel, rep_ids in iteritems(replaced_elements):
+    for submodel, rep_ids in replaced_elements.items():
         for rep_id in rep_ids:
             _create_replaced_element(model, sid, submodel, rep_id, ref_type=ref_type)
 

@@ -1,16 +1,23 @@
 """
-Settings for e.coli model.
+Definition of constants.
 """
-from __future__ import print_function, division
+from __future__ import absolute_import, print_function
 import os
 
-# directory to write files to
-out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
+MODEL_ID = 'ecoli'
+VERSION = 10
 
-model_id = 'ecoli'
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
-fba_file = '{}_fba.xml'.format(model_id)
-bounds_file = '{}_bounds.xml'.format(model_id)
-update_file = '{}_update.xml'.format(model_id)
-top_file = '{}_top.xml'.format(model_id)
-flattened_file = '{}_flattened.xml'.format(model_id)
+# SBML
+FBA_LOCATION = '{}_fba.xml'.format(MODEL_ID)
+BOUNDS_LOCATION = '{}_bounds.xml'.format(MODEL_ID)
+UPDATE_LOCATION = '{}_update.xml'.format(MODEL_ID)
+TOP_LOCATION = '{}_top.xml'.format(MODEL_ID)
+FLATTENED_LOCATION = '{}_flattened.xml'.format(MODEL_ID)
+
+# SED-ML
+SEDML_LOCATION = 'dfba_simulation.xml'.format(MODEL_ID)
+
+# Combine archive
+OMEX_LOCATION = '{}_v{}.omex'.format(MODEL_ID, VERSION)

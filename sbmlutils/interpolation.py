@@ -7,14 +7,18 @@ https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
 
 """
-from __future__ import print_function, division
+from __future__ import absolute_import, print_function, division
 
 import os.path
 import shutil
 import tempfile
 import warnings
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 import pandas as pd
 from sbmlutils import validation
 

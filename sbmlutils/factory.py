@@ -15,14 +15,15 @@ To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
 
-from __future__ import print_function, division
-from six import iteritems
+from __future__ import absolute_import, print_function, division
 
 import logging
 import warnings
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 
-from libsbml import UNIT_KIND_DIMENSIONLESS, UnitKind_toString
 from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
@@ -80,7 +81,7 @@ def set_main_units(model, main_units):
     """
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
         if key not in main_units:
-            logging.warn('The following key is missing in main_units: {}'.format(key))
+            logging.warning('The following key is missing in main_units: {}'.format(key))
             continue
         unit = main_units[key]
         unit = Unit.get_unit_string(unit)
@@ -98,6 +99,7 @@ def set_main_units(model, main_units):
         elif key == 'volume':
             model.setVolumeUnits(unit)
 
+
 def set_notes(model, notes):
     """ Set notes information on model.
 
@@ -110,6 +112,7 @@ def set_notes(model, notes):
         raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
     check(model.setNotes(xml_node),
           message="Setting notes on model")
+
 
 #####################################################################
 # Creator
@@ -240,9 +243,9 @@ class Unit(Sbase):
     @staticmethod
     def get_unit_string(unit):
         if type(unit) is int:
-            unit = UnitKind_toString(unit)
+            unit = libsbml.UnitKind_toString(unit)
         if unit == '-':
-            unit = UnitKind_toString(UNIT_KIND_DIMENSIONLESS)
+            unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
         return unit
 
 
@@ -336,7 +339,13 @@ class Species(ValueWithUnit):
     def create_sbml(self, model):
         s = model.createSpecies()
         self.set_fields(s)
+        # substance unit must be set on the given substance unit
         s.setSubstanceUnits(model.getSubstanceUnits())
+        if self.unit is not None:
+            s.setSubstanceUnits(self.unit)
+        else:
+            s.setSubstanceUnits(model.getSubstanceUnits())
+
         return s
 
     def set_fields(self, obj):
@@ -513,13 +522,13 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
     r.setFast(fast)
     r.setReversible(reversible)
 
-    for sid, stoichiometry in iteritems(reactants):
+    for sid, stoichiometry in reactants.items():
         rt = r.createReactant()
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
         rt.setConstant(True)
 
-    for sid, stoichiometry in iteritems(products):
+    for sid, stoichiometry in products.items():
         rt = r.createProduct()
         rt.setSpecies(sid)
         rt.setStoichiometry(abs(stoichiometry))
@@ -581,6 +590,12 @@ class Event(Sbase):
         return event
 
     def set_fields(self, obj, model):
+        """ Set fields on given object.
+
+        :param obj: event
+        :param model:
+        :return:
+        """
         super(Event, self).set_fields(obj)
 
         obj.setUseValuesFromTriggerTime(True)
@@ -593,12 +608,12 @@ class Event(Sbase):
 
         if self.priority is not None:
             ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
-            event.setPriority(ast_priority)
+            obj.setPriority(ast_priority)
         if self.delay is not None:
             ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
-            event.setDelay(ast_delay)
+            obj.setDelay(ast_delay)
 
-        for key, math in iteritems(self.assignments):
+        for key, math in self.assignments.items():
             ast_assign = libsbml.parseL3FormulaWithModel(str(math), model)
             ea = obj.createEventAssignment()
             ea.setVariable(key)
@@ -614,10 +629,12 @@ class Event(Sbase):
 
 
 def getDeficiencyEventId(deficiency):
+    warnings.warn('Will be removed.', DeprecationWarning)
     return 'EDEF_{:0>2d}'.format(deficiency)
 
 
 def createDeficiencyEvent(model, deficiency):
+    warnings.warn('Will be removed.', DeprecationWarning)
     eid = getDeficiencyEventId(deficiency)
     e = model.createEvent()
     e.setId(eid)
@@ -630,14 +647,14 @@ def createDeficiencyEvent(model, deficiency):
     t.setMath(astnode)
     return e
 
-
 def createSimulationEvents(model, elist):
+    warnings.warn('Will be removed.', DeprecationWarning)
     """ Simulation Events (Peaks & Challenges). """
     for edata in elist:
         createEventFromEventData(model, edata)
 
-
 def createEventFromEventData(model, edata):
+    warnings.warn('Will be removed.', DeprecationWarning)
     e = model.createEvent()
     e.setId(edata.eid)
     e.setName(edata.key)
@@ -649,12 +666,10 @@ def createEventFromEventData(model, edata):
     t.setMath(astnode)
 
 
-
 ##########################################################################
 # FBC
 ##########################################################################
 # TODO: FluxBound and Objective class
-
 def set_flux_bounds(reaction, lb, ub):
     """ Set flux bounds on given reaction. """
     rplugin = reaction.getPlugin("fbc")
@@ -677,7 +692,7 @@ def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
     objective.setType(otype)
     if active:
         model_fbc.setActiveObjectiveId(oid)
-    for rid, coefficient in iteritems(fluxObjectives):
+    for rid, coefficient in fluxObjectives.items():
         fluxObjective = objective.createFluxObjective()
         fluxObjective.setReaction(rid)
         fluxObjective.setCoefficient(coefficient)

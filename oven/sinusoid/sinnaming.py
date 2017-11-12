@@ -22,9 +22,7 @@ in the geometry.
     -------------------
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
 import re
-
 
 # -------------------------------------------------------------------------------------
 # Compartments
@@ -246,6 +244,6 @@ def initString(s, initDict):
 
     # replace everything from the dict
     res = s[:]
-    for key, value in iteritems(initDict):
+    for key, value in initDict.items():
         res = res.replace(key, value)
     return res

@@ -1,10 +1,14 @@
 """
 Test annotation functions and annotating of SBML models.
 """
-from __future__ import print_function, division
+from __future__ import absolute_import, print_function
 
 import pytest
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 from sbmlutils import factory
 from sbmlutils import history
 

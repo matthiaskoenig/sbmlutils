@@ -13,19 +13,24 @@ The basic steps of template creation are
 The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
 from __future__ import print_function, division, absolute_import
+import os
 import codecs
 import ntpath
-import os
 import warnings
+import jinja2
 from distutils import dir_util
 
-import libsbml
-from jinja2 import Environment, FileSystemLoader
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
 from sbmlutils.validation import check_sbml
 from sbmlutils.utils import promote_local_variables
+from sbmlutils import annotation
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -53,12 +58,12 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
     f_index.close()
 
 
-def _create_index_html(sbml_paths, html_template='index.html'):
+def _create_index_html(sbml_paths, html_template='index.html', offline=True):
     """Create index for sbml_paths.
     """
 
     # template environment
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
                       extensions=['jinja2.ext.autoescape'],
                       trim_blocks=True,
                       lstrip_blocks=True)
@@ -74,6 +79,8 @@ def _create_index_html(sbml_paths, html_template='index.html'):
 
     # Context
     c = {
+        'offline': offline,
+
         'sbml_basenames': sbml_basenames,
         'sbml_links': sbml_links,
     }
@@ -135,7 +142,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
     :rtype:
     """
     # template environment
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
                       extensions=['jinja2.ext.autoescape'],
                       trim_blocks=True,
                       lstrip_blocks=True)
@@ -204,14 +211,16 @@ def _create_value_dictionary(model):
 
 
 def infoSbase(item):
+    """ Info dictionary for SBase. """
+
     info = {
         'object': item,
-        'id': item.id,
-        'metaId': metaId(item),
+        'id': item.getId(),
+        'metaId': metaid_html(item),
         'sbo': sbo(item),
         'cvterm': cvterm(item),
         'notes': notes(item),
-        'annotation': annotation(item)
+        'annotation': annotation_html(item)
     }
 
     if item.isSetName():
@@ -231,7 +240,6 @@ def infoSbase(item):
             info['replaced_by'] = '<br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>ReplacedBy {}:{}</code>'.format(submodel_ref, sbaseref(replaced_by))
 
         # ListOfReplacedElements
-        libsbml.CompSBasePlugin
         if item_comp.getNumReplacedElements() > 0:
             replaced_elements = []
             for rep_el in item_comp.getListOfReplacedElements():
@@ -401,9 +409,19 @@ def listOfSpecies_dict(model):
         else:
             initial_concentration = empty_html()
         info['initial_concentration'] = initial_concentration
+        info['units'] = item.getUnits()
         info['substance_units'] = item.substance_units
         info['derived_units'] = derived_units(item)
-        info['xml'] = xml(item)
+
+        if item.isSetConversionFactor():
+            cf_sid = item.getConversionFactor()
+            cf_p = model.getParameter(cf_sid)
+            cf_value = cf_p.getValue()
+            cf_units = cf_p.getUnits()
+
+            info['conversion_factor'] = "{}={} [{}]".format(cf_sid, cf_value, cf_units)
+        else:
+            info['conversion_factor'] = empty_html()
 
         # fbc
         sfbc = item.getPlugin("fbc")
@@ -602,7 +620,7 @@ def sbaseref(sref):
 def empty_html():
     return '<i class="fa fa-ban gray"></i>'
 
-def metaId(item):
+def metaid_html(item):
     if item.isSetMetaId():
         return "<code>{}</code>".format(item.getMetaId())
     return ''
@@ -614,26 +632,27 @@ def id_html(item):
     :param item:
     :return:
     """
-    id = item.getId()
-    meta = metaId(item)
-    if id:
-        if type(item) == libsbml.RateRule:
-            full_id = 'd {}/dt'.format(id)
-        else:
-            full_id = id
+    sid = item.getId()
+    meta = metaid_html(item)
 
-        info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(id, full_id, meta)
-        if id is not None and (type(item) is not libsbml.Model):
-            info += xml_modal(item)
+    if sid:
+        display_sid = sid
+        if isinstance(item, libsbml.RateRule) and item.isSetVariable():
+            display_sid = 'd {}/dt'.format(item.getVariable())
+        info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(sid, display_sid, meta)
     else:
         if meta:
             info = '<td class="active">{}'.format(meta)
         else:
             info = '<td class="active">{}'.format(empty_html())
+
+    # create modal information
+    info += xml_modal(item)
+
     return info
 
 
-def annotation(item):
+def annotation_html(item):
     info = '<div class="cvterm">'
     if item.getSBOTerm() != -1:
         info += '<a href="{}" target="_blank">{}</a><br />'.format(item.getSBOTermAsURL(), item.getSBOTermID())
@@ -659,6 +678,19 @@ def annotation_xml(item):
     return ''
 
 def xml_modal(item):
+    """ Creates modal information for a given sbase.
+
+    This provides some popup which allows to inspect the xml content of the element.
+
+    :param item:
+    :return:
+    """
+    # filter sbases
+    if type(item) is libsbml.Model:
+        return ''
+
+    hash_id = annotation.create_hash_id(item)
+
     info = '''
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{}"><i class="fa fa-code"></i></button>
       <div class="modal fade" id="model-{}" role="dialog">
@@ -669,7 +701,7 @@ def xml_modal(item):
           </div>
         </div>
       </div>
-    '''.format(item.id, item.id, item.id, xml(item))
+    '''.format(hash_id, hash_id, hash_id, xml(item))
     return info
 
 
