@@ -1,5 +1,5 @@
 
-<img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" />
+<h1><img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" /> sbmlutils: python utilities for SBML</h1>
 
 [![PyPI version](https://badge.fury.io/py/sbmlutils.svg)](https://badge.fury.io/py/sbmlutils)
 [![GitHub version](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils.svg)](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils)
@@ -10,7 +10,6 @@
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
 
 
-# sbmlutils: Python utilities for SBML
 <b><a href="https://orcid.org/0000-0003-1725-179X" title="orcid id"><img src="./docs_builder/images/orcid.png" height="15"/></a> Matthias König</b>
 
 `sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of [libSBML](http://sbml.org/Software/libSBML)
@@ -24,11 +23,9 @@ Features include among others
 * implementation of dynamic flux balance analysis (DFBA)
 * file converters (XPP)
 
-For a more detailed description and examples see the documentation at <a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
-[![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/).  
-
-
-
+For a more detailed description and examples see the documentation at   
+<a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
+  
 ### How to cite
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  
 
@@ -44,6 +41,13 @@ can be installed via
 pip install sbmlutils
 ```
 
+### Requirements
+`tkinter` is required which can be installed via
+```
+apt-get install python-tk
+apt-get install python3-tk
+```
+
 ### Develop version
 The latest develop version can be installed via
 ```
@@ -52,16 +56,6 @@ pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop
 Or via cloning the repository and installing via
 ```
 pip install -e .
-```
-
-### Requirements
-`tkinter` is required which can be installed for python 2 via
-```
-apt-get install python-tk
-```
-or for python 3 via
-```
-apt-get install python3-tk
 ```
 
 ## Release notes
