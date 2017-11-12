@@ -3,7 +3,7 @@ Run toy model simulations.
 """
 from __future__ import print_function, division
 import os
-
+import logging
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
     sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
-    import logging
+
     # logging.basicConfig(level=logging.DEBUG)
 
     from sbmlutils.dfba.model import DFBAModel
