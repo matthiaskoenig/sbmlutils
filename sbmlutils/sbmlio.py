@@ -7,7 +7,10 @@ from __future__ import print_function, absolute_import
 import logging
 import os
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
 from sbmlutils import validation
 
 

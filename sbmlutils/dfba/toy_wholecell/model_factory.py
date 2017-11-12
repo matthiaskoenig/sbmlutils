@@ -12,19 +12,26 @@ the main model and the kinetic model parts.
 """
 
 from __future__ import print_function, absolute_import
-from six import iteritems
 
 import os
 from os.path import join as pjoin
-import libsbml
-from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+
+try:
+    import libsbml
+    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+except ImportError:
+    import tesbml as libsbml
+    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+
 
 from sbmlutils import comp
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 from sbmlutils import annotation
+
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -35,7 +42,7 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 11
+
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -67,7 +74,7 @@ notes = """
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""".format(version, '{}')
+""".format(settings.VERSION, '{}')
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
@@ -83,6 +90,7 @@ main_units = {
 units = [
     mc.Unit('s', [(UNIT_KIND_SECOND, 1.0)], name="second"),
     mc.Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)], name="kilogram"),
+
     mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="square meter"),
     mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)], name="cubic meter"),
@@ -96,7 +104,7 @@ units = [
 ]
 
 UNIT_TIME = 's'
-UNIT_AMOUNT = UNIT_KIND_ITEM
+UNIT_AMOUNT = str(UNIT_KIND_ITEM)
 UNIT_AREA = 'm2'
 UNIT_VOLUME = 'm3'
 UNIT_CONCENTRATION = 'item_per_m3'
@@ -117,7 +125,7 @@ def fba_model(sbml_file, directory, annotations=None):
     <h2>FBA submodel</h2>
     <p>DFBA fba submodel. Unbalanced metabolites are encoded via exchange fluxes.</p>
     """)
-    doc = builder.template_doc_fba(settings.model_id)
+    doc = builder.template_doc_fba(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=fba_notes,
@@ -197,7 +205,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
     The dynamically changing flux bounds are the input to the
     FBA model.</p>
     """)
-    doc = builder.template_doc_bounds(settings.model_id)
+    doc = builder.template_doc_bounds(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=bounds_notes,
@@ -218,6 +226,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
 
     # exchange bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
+
 
     objects = [
         # exchange bounds
@@ -254,7 +263,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
         <p>Submodel for dynamically updating the metabolite count.
         This updates the ode model based on the FBA fluxes.</p>
         """)
-    doc = builder.template_doc_update(settings.model_id)
+    doc = builder.template_doc_update(settings.MODEL_ID)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=update_notes,
@@ -298,7 +307,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    doc = builder.template_doc_top(settings.model_id, emds)
+    doc = builder.template_doc_top(settings.MODEL_ID, emds)
     model = doc.getModel()
     utils.set_model_info(model,
                          notes=top_notes,
@@ -336,7 +345,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
         'A': 10.0,
         'C': 0.0,
     }
-    for sid, value in iteritems(initial_c):
+    for sid, value in initial_c.items():
         species = model.getSpecies(sid)
         species.setInitialConcentration(value)
 
@@ -347,13 +356,13 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # kinetic
-        mc.Parameter(sid="k_R4", name="k R4", value=0.1, constant=True, unit="per_s"),
+        mc.Parameter(sid="k_R4", value=0.1, constant=True, unit="per_s", sboTerm="SBO:0000009"),
 
         # bounds parameter
-        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000346"),
+        mc.Parameter(sid='ub_R1', value=1.0, unit=UNIT_FLUX, constant=False, sboTerm="SBO:0000625"),
     ])
     # kinetic reaction (MMK)
-    mc.create_reaction(model, rid="R4", name="C -> D", fast=False, reversible=False,
+    mc.create_reaction(model, rid="R4", name="R4: C -> D", fast=False, reversible=False,
                        reactants={"C": 1}, products={"D": 1}, formula="k_R4*C", compartment="extern")
 
     # kinetic flux bounds
@@ -377,39 +386,48 @@ def create_model(output_dir):
     :rtype:
     :return directory in which model files exist.
     """
-    directory = utils.versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
-    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.annotations_file)
+    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.ANNOTATIONS_LOCATION)
     annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
 
     # create sbml
-    doc_fba = fba_model(settings.fba_file, directory, annotations=annotations)
-    bounds_model(settings.bounds_file, directory, doc_fba=doc_fba, annotations=annotations)
-    update_model(settings.update_file, directory, doc_fba=doc_fba, annotations=annotations)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
 
     emds = {
-        "{}_fba".format(settings.model_id): settings.fba_file,
-        "{}_bounds".format(settings.model_id): settings.bounds_file,
-        "{}_update".format(settings.model_id): settings.update_file,
+        "{}_fba".format(settings.MODEL_ID): settings.FBA_LOCATION,
+        "{}_bounds".format(settings.MODEL_ID): settings.BOUNDS_LOCATION,
+        "{}_update".format(settings.MODEL_ID): settings.UPDATE_LOCATION,
     }
 
     # flatten top model
-    top_model(settings.top_file, directory, emds, doc_fba, annotations=annotations)
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.top_file),
-                         output_path=pjoin(directory, settings.flattened_file))
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba, annotations=annotations)
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [settings.fba_file,
-                   settings.bounds_file,
-                   settings.update_file,
-                   settings.top_file,
-                   settings.flattened_file]]
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # create sedml
+    from sbmlutils.dfba.sedml import create_sedml
+    species_ids = ", ".join(['A', 'C', 'D'])
+    reaction_ids = ", ".join(['R4', 'EX_A', 'EX_C'])
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory,
+                 dt=0.1, tend=50, species_ids=species_ids, reaction_ids=reaction_ids)
+
     return directory
 
 
 ########################################################################################################################
 if __name__ == "__main__":
-    directory = create_model(output_dir=settings.out_dir)
-    print(directory)
+    create_model(output_dir=settings.OUT_DIR)

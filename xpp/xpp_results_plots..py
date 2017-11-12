@@ -1,3 +1,29 @@
+"""
+Summary: Xpp -> SBML conversion
+Download models from ModelDB
+
+
+http://www.math.pitt.edu/~bard/bardware/tut/newstyle.html
+
+! Variables have to be case sensitive !. These issues can easily be fixed based on validator output.
+! many recursive if than else not supported
+! numerical - boolean comparison (fixed in L3V2)
+# TODO: rnd via dist (also normal)
+
+* function definitions which use global constant parameters (much easier writing of math) would be great!
+
+* Lookup tables would be amazing !!! Probably in the context of arrays.
+* triggers on events
+global Global flags are expressions that signal events when they change sign, from less than to greater
+ than zero if sign=1 , greater than to less than if sign=-1 or eithet way if sign=0.
+ The condition should be delimited by braces {} The events are of the form variable=expression ,
+ are delimited by braces, and separated by semicolons. When the condition occurs all the
+ variables in the event set are changed possibly discontinuously. This lets you simulate
+ "Delta" functions.
+
+"""
+
+
 from __future__ import print_function, absolute_import
 import pandas as pd
 import numpy as np

@@ -1,10 +1,17 @@
+"""
+Testing the factory methods.
+"""
 from __future__ import print_function, absolute_import
 import pytest
-import libsbml
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 from sbmlutils import factory as fac
 
 
-# EVENTS #
 def test_event():
     objects = [
         fac.Parameter(sid="p1", value=0.0, constant=False),

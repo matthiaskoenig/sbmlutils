@@ -6,7 +6,11 @@ from __future__ import print_function
 import warnings
 from collections import namedtuple
 
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
 

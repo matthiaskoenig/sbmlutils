@@ -8,13 +8,15 @@ its physiological and patho-physiological states.
 https://www.ncbi.nlm.nih.gov/pubmed/21749716
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
-    
 import os
 from os.path import join as pjoin
 
-import libsbml
-from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+try:
+    import libsbml
+    from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+except ImportError:
+    import tesbml as libsbml
+    from tesbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
@@ -23,7 +25,7 @@ from sbmlutils.report import sbmlreport
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.rbc.settings import fba_file, model_id, bounds_file, update_file, top_file, flattened_file
+from sbmlutils.dfba.rbc import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
@@ -140,8 +142,8 @@ def fba_model(sbml_file, directory):
     utils.clip_prefixes_in_model(model)
 
     # set id & framework
-    model.setId('{}_fba'.format(model_id))
-    model.setName('{} (FBA)'.format(model_id))
+    model.setId('{}_fba'.format(settings.MODEL_ID))
+    model.setName('{} (FBA)'.format(settings.MODEL_ID))
     model.setSBOTerm(comp.SBO_FLUX_BALANCE_FRAMEWORK)
 
     # add units and information
@@ -168,7 +170,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     The dynamically changing flux bounds are the input to the
     FBA model.
     """
-    doc = builder.template_doc_bounds(model_id)
+    doc = builder.template_doc_bounds(settings.MODEL_ID)
     model = doc.getModel()
 
     bounds_notes = notes.format("""
@@ -199,7 +201,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     model_fba = doc_fba.getModel()
     objects = []
     ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
+    for ex_rid, sid in ex_rids.items():
         r = model_fba.getReaction(ex_rid)
 
         # lower & upper bound parameters
@@ -224,7 +226,7 @@ def update_model(sbml_file, directory, doc_fba=None):
         Submodel for dynamically updating the metabolite count/concentration.
         This updates the ode model based on the FBA fluxes.
     """
-    doc = builder.template_doc_update(model_id)
+    doc = builder.template_doc_update(settings.MODEL_ID)
     model = doc.getModel()
     update_notes = notes.format("""
         <h2>UPDATE submodel</h2>
@@ -262,7 +264,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
     working_dir = os.getcwd()
     os.chdir(directory)
 
-    doc = builder.template_doc_top(model_id, emds)
+    doc = builder.template_doc_top(settings.MODEL_ID, emds)
     model = doc.getModel()
     utils.set_model_info(model, notes=top_notes,
                          creators=creators, units=units, main_units=main_units)
@@ -308,38 +310,57 @@ def create_model(output_dir):
     directory = utils.versioned_directory(output_dir, version=version)
 
     print("FBA")
-    doc_fba = fba_model(fba_file, directory)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory)
     print("BOUNDS")
-    bounds_model(bounds_file, directory, doc_fba=doc_fba)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba)
     print("UPDATE")
-    update_model(update_file, directory, doc_fba=doc_fba)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba)
 
     emds = {
-        "{}_fba".format(model_id): fba_file,
-        "{}_bounds".format(model_id): bounds_file,
-        "{}_update".format(model_id): update_file,
+        "{}_fba".format(settings.MODEL_ID): settings.FBA_LOCATION,
+        "{}_bounds".format(settings.MODEL_ID): settings.BOUNDS_LOCATION,
+        "{}_update".format(settings.MODEL_ID): settings.UPDATE_LOCATION,
     }
 
     print("TOP")
-    top_model(top_file, directory, emds, doc_fba=doc_fba, validate=False)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba, validate=False)
 
     # flatten top model
     print("FLATTENING")
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
-                         output_path=pjoin(directory, flattened_file))
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
 
-    print("REPORTS")
-    # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+    # create omex
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+    descriptions = [
+        "FBA submodel (DFBA)",
+        "BOUNDS submodel (DFBA)",
+        "UPDATE submodel (DFBA)",
+        "TOP submodel (DFBA)",
+        "FLATTENED comp model (DFBA)",
+    ]
+
+    utils.create_omex(directory=directory,
+                      omex_location=settings.OMEX_LOCATION,
+                      locations=locations,
+                      descriptions=descriptions,
+                      creators=creators)
+
+    # create report
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
 
 if __name__ == "__main__":
 
-    from sbmlutils.dfba.rbc.settings import out_dir
-    create_model(output_dir=out_dir)
+    from sbmlutils.dfba.rbc.settings import OUT_DIR
+    create_model(output_dir=OUT_DIR)
 
 

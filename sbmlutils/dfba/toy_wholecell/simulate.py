@@ -4,17 +4,15 @@ Run toy model simulations.
 from __future__ import print_function, division
 import os
 import logging
-from six import iteritems
-import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
-from sbmlutils.dfba.toy_wholecell import settings, model_factory
-from sbmlutils.dfba.simulator import simulate_dfba
+from sbmlutils.dfba.toy_wholecell import settings
+from sbmlutils.dfba.simulator import simulate_dfba, analyse_uniqueness
 from sbmlutils.dfba.analysis import DFBAAnalysis
-
 from sbmlutils.dfba.utils import versioned_directory
 from sbmlutils.dfba.analysis import set_matplotlib_parameters
-from matplotlib import pyplot as plt
+
 set_matplotlib_parameters()
 
 
@@ -102,7 +100,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     }
 
     for k, df in enumerate(dfs):
-        for key, ax in iteritems(mapping):
+        for key, ax in mapping.items():
             if k == 0:
                 ax.plot(df.time, df[key], label=key, color=colors[key], **kwargs)
             else:
@@ -110,7 +108,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
             ax.set_ylabel('Flux [?]')
             ax.legend()
 
-    for key, ax in iteritems(mapping):
+    for key, ax in mapping.items():
         ax.set_xlabel('time')
         ax.legend()
 
@@ -137,6 +135,8 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
         df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
         dfs.append(df)
 
+        analyse_uniqueness(dfba_simulator)
+
         # generic analysis
         analysis = DFBAAnalysis(df=df, ode_model=dfba_simulator.ode_model)
 
@@ -155,14 +155,29 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
 
 
 if __name__ == "__main__":
-    directory = versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
+    directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+
+    # logging.basicConfig(level=logging.DEBUG)
 
     from sbmlutils.dfba.model import DFBAModel
     dfba_model = DFBAModel(sbml_path=sbml_path)
 
     # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
     simulate_toy(sbml_path, out_dir=directory)
+
+    # create COMBINE archive
+    from tellurium.utils import omex
+    creators = [
+        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
+        omex.Creator(givenName="Leandro", familyName="Watanabe", organization="University of Utah",
+                     email="leandrohw@gmail.com")
+    ]
+    omex_path = os.path.join(settings.OUT_DIR, "{}_v{}.omex".format(settings.MODEL_ID, settings.VERSION))
+    omex.combineArchiveFromDirectory(directory=directory,
+                                     omexPath=omex_path,
+                                     creators=creators,
+                                     creators_for_all=True)
+
+    omex.printArchive(omex_path)

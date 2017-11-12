@@ -5,15 +5,46 @@ The core E. coli metabolic model is a subset of the genome-scale metabolic recon
 
 It is described in EcoSal Chapter 10.2.1 - Reconstruction and Use of Microbial Metabolic Networks: 
 the Core Escherichia coli Metabolic Model as an Educational Guide by Orth, Fleming, and Palsson (2010) link
+
+* Biomass weighting of fluxes *
+One challenge is that the biomass species is expressed in [g] whereas all other species have units [mol] in the
+model. Normally the biomass should be converted with the molecular mass of the species, but
+for the biomass the conversion factor is most of the time implicitely put into the biomass function.
+
+
+Necessary to define a conversion factor for the species biomass X
+4.6.7 The conversionFactor attribute (on species)
+The attribute conversionFactor defines a conversion factor that applies to a particular species. The value
+of the attribute must have the data type SIdRef and must be the identifier of a Parameter object instance
+defined in the model. That Parameter object must be a constant, meaning its constant attribute must be set
+to true. If a given Species object defnition defnes a value for its conversionFactor attribute, it takes
+precedence over any factor dened by the Model object's conversionFactor attribute.
+
+In SBML, the unit of measurement associated with a species' quantity can be different from the unit of
+extent of reactions in the model. SBML avoids implicit unit conversions by providing an explicit way to
+indicate any unit conversion that might be required.
+The use of a conversion factor in computing the effects of reactions on a species' quantity
+is explained in Section 4.11.7. Because the value of the conversionFactor
+attribute is the identifer of a Parameter object, and because parameters can have units attached to them, the
+transformation from reaction extent units to species units can be completely specified using this approach.
+
+Note that the unit conversion factor is only applied when calculating the effect of a reaction on a species. It
+is not used in any rules or other SBML constructs that aect the species, and it is also not used when the
+value of the species is referenced in a mathematical expression.
+
+
 """
 from __future__ import print_function, absolute_import
-from six import iteritems
-    
 import os
 from os.path import join as pjoin
 
-import libsbml
-from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+try:
+    import libsbml
+    from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+except ImportError:
+    import tesbml as libsbml
+    from tesbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
@@ -23,18 +54,30 @@ from sbmlutils.validation import check
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, update_file, top_file, flattened_file
+from sbmlutils.dfba.ecoli import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
-# TODO: units
+# units are defined on the upper and lower bounds of the the exchange reactions.
+
 # TODO: biomass weighting of fluxes
+# Necessary to implement alternative solutions of either weighting or not weighting the
+# fluxes from the FBA network.
+# The problem is that all the units are identical.
+
+# FBA fluxes: [mmol/h/g]
+# Biomass exchange flux [g(biomass)/h/g]
 
 
 ########################################################################
 # General model information
 ########################################################################
-version = 7
+biomass_weighting = False
+print('-'*80)
+print('BIOMASS WEIGHTING:', biomass_weighting)
+print('-'*80)
+
+
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -76,7 +119,7 @@ notes = """
         <a href="https://dx.doi.org/10.1093/nar/gkv1049" target="_blank" title="Access the publication about BiGG Models knowledge-base">doi:10.1093/nar/gkv1049</a></dd></dt>
       </dl>
       </body>
-""".format(version, '{}')
+""".format(settings.VERSION, '{}')
 
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
@@ -111,6 +154,8 @@ units = [
                         (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+    # mc.Unit('mmol_per_g', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+    #                       (UNIT_KIND_GRAM, 1.0)]),
 ]
 
 UNIT_AMOUNT = 'mmol'
@@ -166,29 +211,44 @@ def fba_model(sbml_file, directory):
     model.getParameter(lb_id).setValue(0.0)  # 8.39 before
 
     # make unique upper and lower bounds for exchange reaction
-    builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX)
+    if not biomass_weighting:
+        builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX)
+    else:
+        builder.update_exchange_reactions(model=model, flux_unit=UNIT_FLUX_PER_G)
 
     # add exchange reaction for biomass (X)
     # we are adding the biomass component to the biomass function and create an
     # exchange reaction for it
     r_biomass = model.getReaction('BIOMASS_Ecoli_core_w_GAM')
+
+    # FIXME: refactor in function
+    # FIXME: annotate biomass species (SBO for biomass missing)
     mc.create_objects(model, [
-        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True)
+        mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_X')
     ])
+
+
     pr_biomass = r_biomass.createProduct()
     pr_biomass.setSpecies('X')
     pr_biomass.setStoichiometry(1.0)
     pr_biomass.setConstant(True)
-    builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX, exchange_type=builder.EXCHANGE_EXPORT)
-
+    # FIXME: the flux units must fit to the species units.
+    if not biomass_weighting:
+        builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX, exchange_type=builder.EXCHANGE_EXPORT)
+    else:
+        builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX_PER_G, exchange_type=builder.EXCHANGE_EXPORT)
     # write SBML file
     sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
 
     # Set kinetic laws to zero for kinetic simulation
+    '''
     for reaction in model.getListOfReactions():
         ast_node = mc.ast_node_from_formula(model=model, formula='0 {}'.format(UNIT_FLUX))
         law = reaction.createKineticLaw()
         law.setMath(ast_node)
+    '''
 
     return doc_fba
 
@@ -199,6 +259,8 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     The dynamically changing flux bounds are the input to the
     FBA model.
+
+    The units of the exchange fluxes must fit to the transported species.
     """
     doc = builder.template_doc_bounds("ecoli")
     model = doc.getModel()
@@ -220,33 +282,23 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True,
+                                exclude_sids=['X'])
+    # FIXME: define biomass separately, also port needed for biomass
+    mc.create_objects(model, [
+        mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment=compartment_id, name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_X')
+    ])
 
-    # bounds
-    builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
 
-    # bounds
-    fba_prefix = "fba"
-    model_fba = doc_fba.getModel()
-    objects = []
-    ex_rids = utils.find_exchange_reactions(model_fba)
-    for ex_rid, sid in iteritems(ex_rids):
-        r = model_fba.getReaction(ex_rid)
-
-        # lower & upper bound parameters
-        r_fbc = r.getPlugin(builder.SBML_FBC_NAME)
-        lb_id = r_fbc.getLowerFluxBound()
-        fba_lb_id = fba_prefix + lb_id
-        lb_value = model_fba.getParameter(lb_id).getValue()
-
-        objects.extend([
-            # default bounds from fba
-            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
-            # uptake bounds (lower bound)
-            mc.AssignmentRule(sid=lb_id, value="max({}, -{}*bioreactor/dt)".format(fba_lb_id, sid)),
-        ])
-    mc.create_objects(model, objects)
+    # exchange & dynamic bounds
+    if not biomass_weighting:
+        builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
+        builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX)
+    else:
+        builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX_PER_G, create_ports=True)
+        builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX_PER_G)
 
     sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
@@ -271,8 +323,18 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=True)
+
+
+    # creates all the exchange reactions, biomass must be handeled separately
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True)
+
+    # FIXME: biomass via function
+    mc.create_objects(model, [
+        mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
+        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+                   conversionFactor='cf_biomass')
+    ])
+
 
     # update reactions
     # FIXME: weight with X (biomass)
@@ -309,8 +371,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
-                                create_port=False)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=False)
 
     # minimal medium with single carbon source
     initial_c = {
@@ -325,22 +386,23 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
         'glc__D_e': 20.0,
         'gln__L_e': 10.0,
         'glu__L_e': 1.0,
-        'h2o_e': 20.0,
         'h_e': 1.0,
+        'h2o_e': 20.0,
         'lac__D_e': 1.0,
         'mal__L_e': 1.0,
         'nh4_e': 1.0,
         'o2_e': 1.0,
         'pi_e': 1.0,
         'pyr_e': 1.0,
+        'succ_e': 1.0,
         'X': 0.001,
     }
-    for sid, value in iteritems(initial_c):
+    for sid, value in initial_c.items():
         species = model.getSpecies(sid)
         species.setInitialConcentration(value)
 
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -366,56 +428,64 @@ def create_model(output_dir):
 
     :return: directory where SBML files are located
     """
-    directory = utils.versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     # create sbml
     import time
     t_start = time.time()
 
-    doc_fba = fba_model(fba_file, directory)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory)
     t_fba = time.time()
     print('{:<10}: {:3.2f}'.format('fba', t_fba-t_start))
 
-    bounds_model(bounds_file, directory, doc_fba=doc_fba)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba)
     t_bounds = time.time()
     print('{:<10}: {:3.2f}'.format('bounds', t_bounds-t_fba))
 
-    update_model(update_file, directory, doc_fba=doc_fba)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba)
     t_update = time.time()
     print('{:<10}: {:3.2f}'.format('update', t_update-t_bounds))
 
     emds = {
-        "ecoli_fba": fba_file,
-        "ecoli_bounds": bounds_file,
-        "ecoli_update": update_file,
+        "ecoli_fba": settings.FBA_LOCATION,
+        "ecoli_bounds": settings.BOUNDS_LOCATION,
+        "ecoli_update": settings.UPDATE_LOCATION,
     }
 
     # flatten top model
-    top_model(top_file, directory, emds, doc_fba=doc_fba)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba)
     t_top = time.time()
     print('{:<10}: {:3.2f}'.format('top', t_top-t_update))
 
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
-                         output_path=pjoin(directory, flattened_file))
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
     t_flat = time.time()
     print('{:<10}: {:3.2f}'.format('flat', t_flat-t_top))
 
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # create sedml
+    from sbmlutils.dfba.sedml import create_sedml
+    sids = ['ac_e', 'acald_e', 'akg_e', 'co2_e', 'etoh_e', 'for_e', 'fru_e', 'fum_e', 'glc__D_e',
+            'gln__L_e', 'glu__L_e', 'h_e', 'h2o_e', 'lac__D_e', 'mal__L_e', 'nh4_e', 'o2_e', 'pi_e',
+            'pyr_e', 'succ_e', 'X']
+    species_ids = ", ".join(sids)
+    reaction_ids = ", ".join(['EX_{}'.format(sid) for sid in sids])
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory,
+                 dt=0.01, tend=3.5, species_ids=species_ids, reaction_ids=reaction_ids)
+
     return directory
 
-def create_reports(output_dir):
-    directory = utils.versioned_directory(output_dir, version=version)
-
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
-
+########################################################################################################################
 if __name__ == "__main__":
-
-    from sbmlutils.dfba.ecoli.settings import out_dir
-    # create_model(output_dir=out_dir)
-    create_reports(output_dir=out_dir)
+    create_model(output_dir=settings.OUT_DIR)

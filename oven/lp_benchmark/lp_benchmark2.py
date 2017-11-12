@@ -4,7 +4,6 @@ import optlang
 import numpy as np
 import timeit
 from matplotlib import pyplot as plt
-from six import iteritems
 
 
 def benchmark(model, lp_solver, n_repeat=10, f_sim="simulate", **kwargs):
@@ -149,7 +148,7 @@ if __name__ == "__main__":
     if plot:
         fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(7, 7))
 
-        for key, times in iteritems(timings):
+        for key, times in timings.items():
             ax1.plot(times, '-s', linewidth=2, label=key)
 
 

@@ -1,7 +1,15 @@
+"""
+Utility functions.
+"""
+
 from __future__ import print_function, absolute_import
 import warnings
 import time
-import libsbml
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 
 def timeit(f):
     """ Timing decorator.
@@ -19,6 +27,22 @@ def timeit(f):
         return result
 
     return timed
+
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+        as deprecated. It will result in a warning being emitted
+        when the function is used.
+    """
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.warn_explicit(
+            "Call to deprecated function {}.".format(func.__name__),
+            category=DeprecationWarning,
+            filename=func.func_code.co_filename,
+            lineno=func.func_code.co_firstlineno + 1
+        )
+        return func(*args, **kwargs)
+    return new_func
 
 
 def promote_local_variables(doc):

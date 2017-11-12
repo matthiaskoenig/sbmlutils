@@ -188,6 +188,6 @@ Please use concise descriptive commit messages and consider using
 2. Please write tests for new functions. Writing documentation as well
    would also be very helpful.
 3. Ensure code will work with both python 2 and python 3. For example,
-   instead of ``my_dict.iteritems()`` use ``six.iteritems(my_dict)``
+   instead of ``my_dict.iteritems()`` use ``my_dict.items(my_dict)``
 
 Thank you very much for contributing to sbmlutils!

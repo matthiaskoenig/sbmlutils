@@ -1,20 +1,26 @@
 """
-Settings for toy model.
+Definition of constants.
 """
-from __future__ import print_function, division
+
+from __future__ import absolute_import, print_function
 import os
 
-# output directory
-out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
+MODEL_ID = 'toy_wholecell'
+VERSION = 14
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
-model_id = 'toy_wholecell'
+# SBML
+FBA_LOCATION = '{}_fba.xml'.format(MODEL_ID)
+BOUNDS_LOCATION = '{}_bounds.xml'.format(MODEL_ID)
+UPDATE_LOCATION = '{}_update.xml'.format(MODEL_ID)
+TOP_LOCATION = '{}_top.xml'.format(MODEL_ID)
+FLATTENED_LOCATION = '{}_flattened.xml'.format(MODEL_ID)
 
-# model files
-fba_file = '{}_fba.xml'.format(model_id)
-bounds_file = '{}_bounds.xml'.format(model_id)
-update_file = '{}_update.xml'.format(model_id)
-top_file = '{}_top.xml'.format(model_id)
-flattened_file = '{}_flattened.xml'.format(model_id)
+# SED-ML
+SEDML_LOCATION = 'dfba_simulation.xml'.format(MODEL_ID)
+
+# Combine archive
+OMEX_LOCATION = '{}_v{}.omex'.format(MODEL_ID, VERSION)
 
 # annotation file
-annotations_file = 'annotations.xlsx'
+ANNOTATIONS_LOCATION = 'annotations.xlsx'

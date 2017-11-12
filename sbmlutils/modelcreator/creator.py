@@ -12,19 +12,24 @@ Uses the importlib to import the information.
 
 from __future__ import print_function, division
 
-import copy
-import logging
 import os
 import shutil
+import copy
+import logging
 import tempfile
 import warnings
-from six import iteritems
+
+try:
+    import libsbml
+except ImportError:
+    import tesbml as libsbml
+
 
 import sbmlutils.annotation as annotation
 import sbmlutils.history as history
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
-from libsbml import SBMLDocument, SBMLNamespaces
+
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 from sbmlutils.report import sbmlreport
 
@@ -132,7 +137,7 @@ class Preprocess(object):
             # single module dict
             mdict = Preprocess._createDict(module)
             # add to overall dict
-            for key, value in iteritems(mdict):
+            for key, value in mdict.items():
 
                 # lists of higher modules are extended
                 if type(value) in [list, tuple]:
@@ -150,7 +155,7 @@ class Preprocess(object):
                     # now add the elements by copy
                     d = cdict[key]
                     print(d)
-                    for k, v in iteritems(value):
+                    for k, v in value.items():
                         d[k] = copy.deepcopy(v)
 
                 # !everything else is overwritten
@@ -212,7 +217,7 @@ class CoreModel(object):
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
-        for key, value in iteritems(CoreModel._keys):
+        for key, value in CoreModel._keys.items():
             # necessary to init the lists for every instance,
             # to not share them between instances
             if value is not None:
@@ -223,9 +228,8 @@ class CoreModel(object):
 
             setattr(self, key, value)
 
-        # SBMLDocument and Model
-        self.doc = None
-        self.model = None
+        self.doc = None  # SBMLDocument
+        self.model = None  # SBMLModel
 
     @property
     def model_id(self):
@@ -246,7 +250,7 @@ class CoreModel(object):
         """
         m = CoreModel()
         # add info from model_dict to instance
-        for key, value in iteritems(model_dict):
+        for key, value in model_dict.items():
             if key in CoreModel._keys:
                 setattr(m, key, value)
             else:
@@ -280,8 +284,8 @@ class CoreModel(object):
         print('\n', '*' * 40, '\n', self.model_id, '\n', '*' * 40)
 
         # create core model
-        sbmlns = SBMLNamespaces(sbml_level, sbml_version, "fbc", 2)
-        self.doc = SBMLDocument(sbmlns)
+        sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version, "fbc", 2)
+        self.doc = libsbml.SBMLDocument(sbmlns)
         self.doc.setPackageRequired("fbc", False)
         self.model = self.doc.createModel()
         mplugin = self.model.getPlugin("fbc")
