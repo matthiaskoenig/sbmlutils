@@ -27,3 +27,4 @@ def test_fixed_step_simulation():
     assert s[-1, 0] == 10
     # test correct number of steps
     assert len(s['time']) == steps+1
+

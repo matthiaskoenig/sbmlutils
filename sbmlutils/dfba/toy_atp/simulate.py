@@ -123,7 +123,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy_atp(sbml_path, out_dir, dts=[0.1], figures=True, tend=15):
+def simulate_toy_atp(sbml_path, out_dir, dts=[0.1, 1], figures=True, tend=15):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
@@ -159,8 +159,8 @@ def simulate_toy_atp(sbml_path, out_dir, dts=[0.1], figures=True, tend=15):
 
 
 if __name__ == "__main__":
-    directory = versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
+    directory = versioned_directory(settings.OUT_DIR, settings.VERSION)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
     import logging
     # logging.basicConfig(level=logging.DEBUG)
@@ -170,3 +170,18 @@ if __name__ == "__main__":
 
     # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
     simulate_toy_atp(sbml_path, out_dir=directory)
+
+    # create COMBINE archive
+    from tellurium.utils import omex
+    creators = [
+        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
+        omex.Creator(givenName="Leandro", familyName="Watanabe", organization="University of Utah",
+                     email="leandrohw@gmail.com")
+    ]
+    omex_path = os.path.join(settings.OUT_DIR, "{}_v{}.omex".format(settings.MODEL_ID, settings.VERSION))
+    omex.combineArchiveFromDirectory(directory=directory,
+                                     omexPath=omex_path,
+                                     creators=creators,
+                                     creators_for_all=True)
+
+    omex.printArchive(omex_path)
