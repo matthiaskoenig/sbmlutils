@@ -92,7 +92,7 @@ class DFBATestCase(unittest.TestCase):
     def test_diauxic_simulation(self):
 
         dgfactory.create_model(self.test_dir)
-        sbml_path = os.path.join(versioned_directory(self.test_dir, dgfactory.version),
+        sbml_path = os.path.join(versioned_directory(self.test_dir, dgsettings.VERSION),
                                  dgsettings.TOP_LOCATION)
         print(sbml_path)
         dgsimulate.simulate_diauxic_growth(sbml_path, self.test_dir, dts=[0.01], figures=False)
