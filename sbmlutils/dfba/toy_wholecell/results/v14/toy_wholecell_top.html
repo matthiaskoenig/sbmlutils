@@ -1,0 +1,1764 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>toy_wholecell_top</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+
+
+    <!-- MathJax not working offline -->
+    <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#doc"><b>SBMLDocument</b></a></li>
+                <li><a href="#model">Model</a></li>
+                    <li><a href="#table_modeldefs">comp:ModelDefinitions</a></li>
+                    <li><a href="#table_submodels">comp:Submodels</a></li>
+                    <li><a href="#table_units">UnitDefinitions</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- SBMLDocument                                  -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="doc"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <h1>Wholecell Toy Model</h1>
+    <p>
+      <strong>Model version: 14</strong>
+    </p>
+    <h2>TOP model</h2>
+    <p>Main comp DFBA model by combining fba, update and bounds
+            model with additional kinetics in the top model.</p>
+    <h2>Description</h2>
+    <p>This is a toy model for coupling models with different modeling frameworks via comp.</p>
+    <div class="dc:publisher">This file has been produced by
+      <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
+      </div>
+    <h2>Terms of use</h2>
+    <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+    <div class="dc:license">
+      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+        <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+        <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+      </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+    </div>
+  </body>
+</notes><hr />
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <h1 id="model">Model : toy_wholecell_top</h1>
+    <b>Creator</b><br />Matthias, Koenig, Humboldt University Berlin, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-11-11 18:07<br /><b>Modified:</b> 2017-11-11 18:07<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="toy_wholecell_top" class="active"><span class="package">toy_wholecell_top</span> <code>meta_toy_wholecell_top</code></tr>
+                <tr><td class="active">name</td><td>toy_wholecell (TOP)</td></tr>
+                <tr><td class="active">time</td><td>s</td></tr>
+                <tr><td class="active">substance</td><td>item</td></tr>
+                <tr><td class="active">extent</td><td>item</td></tr>
+                <tr><td class="active">volume</td><td>m3</td></tr>
+                <tr><td class="active">area</td><td>m2</td></tr>
+                <tr><td class="active">length</td><td>m</td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="toy_wholecell_top.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="Access SBML model" title="SBML model"/></a>&nbsp;
+                <span class="package">L3V1</span> <span class="package">comp-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000293" target="_blank">SBO:0000293</a><br /></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
+        <table id="table_modeldefs" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">ModelDefinitions [3]</th>
+	<th scope="col">name</th>
+    <th scope="col">type</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">ModelDefinition</td>
+	    <td id="toy_wholecell_fba" class="active"><span class="package">toy_wholecell_fba</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-toy_wholecell_fba"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-toy_wholecell_fba" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">toy_wholecell_fba</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><comp:externalModelDefinition comp:id="toy_wholecell_fba" comp:name="toy_wholecell_fba" comp:source="toy_wholecell_fba.xml" comp:modelRef="toy_wholecell_fba"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>toy_wholecell_fba</td>
+    <td>ExternalModelDefinition (<code>source=toy_wholecell_fba.xml</code>)</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">ModelDefinition</td>
+	    <td id="toy_wholecell_bounds" class="active"><span class="package">toy_wholecell_bounds</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-toy_wholecell_bounds"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-toy_wholecell_bounds" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">toy_wholecell_bounds</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><comp:externalModelDefinition comp:id="toy_wholecell_bounds" comp:name="toy_wholecell_bounds" comp:source="toy_wholecell_bounds.xml" comp:modelRef="toy_wholecell_bounds"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>toy_wholecell_bounds</td>
+    <td>ExternalModelDefinition (<code>source=toy_wholecell_bounds.xml</code>)</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">ModelDefinition</td>
+	    <td id="toy_wholecell_update" class="active"><span class="package">toy_wholecell_update</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-toy_wholecell_update"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-toy_wholecell_update" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">toy_wholecell_update</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><comp:externalModelDefinition comp:id="toy_wholecell_update" comp:name="toy_wholecell_update" comp:source="toy_wholecell_update.xml" comp:modelRef="toy_wholecell_update"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>toy_wholecell_update</td>
+    <td>ExternalModelDefinition (<code>source=toy_wholecell_update.xml</code>)</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+        <table id="table_submodels" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Submodels [3]</th>
+	<th scope="col">name</th>
+	<th scope="col">model ref</th>
+	<th scope="col">deletions</th>
+	<th scope="col">time conversion</th>
+	<th scope="col">extent conversion</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Submodel</td>
+	    <td id="fba" class="active"><span class="package">fba</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-fba"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-fba" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">fba</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><comp:submodel sboTerm="SBO:0000624" comp:id="fba" comp:modelRef="toy_wholecell_fba"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>toy_wholecell_fba</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000624" target="_blank">SBO:0000624</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Submodel</td>
+	    <td id="bounds" class="active"><span class="package">bounds</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-bounds"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-bounds" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">bounds</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><comp:submodel sboTerm="SBO:0000293" comp:id="bounds" comp:modelRef="toy_wholecell_bounds"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>toy_wholecell_bounds</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000293" target="_blank">SBO:0000293</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Submodel</td>
+	    <td id="update" class="active"><span class="package">update</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-update"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-update" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">update</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><comp:submodel sboTerm="SBO:0000293" comp:id="update" comp:modelRef="toy_wholecell_update"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>toy_wholecell_update</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000293" target="_blank">SBO:0000293</a></div></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">UnitDefinitions [9]</th>
+	<th scope="col">name</th>
+	<th scope="col">units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="s" class="active"><span class="package">s</span> <code>meta_s</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="meta_s" id="s" name="second">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_s">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uo/UO:0000010"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnits>
+    <unit kind="second" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="s" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="s" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="s" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=s</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=s</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=s</code><br />    </td>
+
+	<td>second</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> s </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000010" target="_blank">UO:0000010</a></div></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="kg" class="active"><span class="package">kg</span> <code>meta_kg</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kg"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kg" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kg</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="meta_kg" id="kg" name="kilogram">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_kg">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uo/UO:0000009"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnits>
+    <unit kind="kilogram" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="kg" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="kg" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="kg" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=kg</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=kg</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=kg</code><br />    </td>
+
+	<td>kilogram</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> kg </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000009" target="_blank">UO:0000009</a></div></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m" class="active"><span class="package">m</span> <code>meta_m</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="meta_m" id="m" name="meter">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_m">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uo/UO:0000008"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnits>
+    <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="m" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="m" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="m" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=m</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=m</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=m</code><br />    </td>
+
+	<td>meter</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> m </ci>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000008" target="_blank">UO:0000008</a></div></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m2" class="active"><span class="package">m2</span> <code>meta_m2</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="meta_m2" id="m2" name="square meter">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_m2">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uo/UO:0000080"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnits>
+    <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="m2" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="m2" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="m2" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=m2</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=m2</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=m2</code><br />    </td>
+
+	<td>square meter</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000080" target="_blank">UO:0000080</a></div></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m3" class="active"><span class="package">m3</span> <code>meta_m3</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="meta_m3" id="m3" name="cubic meter">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_m3">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uo/UO:0000096"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnits>
+    <unit kind="metre" exponent="3" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="m3" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="m3" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="m3" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=m3</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=m3</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=m3</code><br />    </td>
+
+	<td>cubic meter</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000096" target="_blank">UO:0000096</a></div></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="mM" class="active"><span class="package">mM</span> <code>meta_mM</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mM"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mM" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mM</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="meta_mM" id="mM" name="millimolar">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_mM">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uo/UO:0000063"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfUnits>
+    <unit kind="mole" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="metre" exponent="-3" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="mM" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="mM" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="mM" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=mM</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=mM</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=mM</code><br />    </td>
+
+	<td>millimolar</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/uo/UO:0000063" target="_blank">UO:0000063</a></div></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="per_s" class="active"><span class="package">per_s</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-per_s"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-per_s" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">per_s</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="per_s">
+  <listOfUnits>
+    <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="per_s" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="per_s" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="per_s" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=per_s</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=per_s</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=per_s</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="item_per_s" class="active"><span class="package">item_per_s</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-item_per_s"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-item_per_s" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">item_per_s</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="item_per_s">
+  <listOfUnits>
+    <unit kind="item" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="item_per_s" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="item_per_s" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="item_per_s" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=item_per_s</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=item_per_s</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=item_per_s</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="item_per_m3" class="active"><span class="package">item_per_m3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-item_per_m3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-item_per_m3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">item_per_m3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="item_per_m3">
+  <listOfUnits>
+    <unit kind="item" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="metre" exponent="-3" scale="0" multiplier="1"/>
+  </listOfUnits>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:unitRef="item_per_m3" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:unitRef="item_per_m3" comp:submodelRef="fba"/>
+    <comp:replacedElement comp:unitRef="item_per_m3" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:unitRef=item_per_m3</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:unitRef=item_per_m3</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:unitRef=item_per_m3</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	    <td id="extern" class="active"><span class="package">extern</span> <code>meta_extern</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-extern"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-extern" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">extern</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="meta_extern" sboTerm="SBO:0000290" id="extern" name="extern" spatialDimensions="3" size="1" units="m3" constant="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_extern">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000290"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="extern_port" comp:submodelRef="update"/>
+    <comp:replacedElement comp:portRef="extern_port" comp:submodelRef="bounds"/>
+  </comp:listOfReplacedElements>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:portRef=extern_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=extern_port</code><br />    </td>
+
+	<td>extern</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td>m3</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [4]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+	<th scope="col">boundary condition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initial amount</th>
+	<th scope="col">initial concentration</th>
+    <th scope="col">conversion factor</th>
+    <th scope="col">units</th>
+	<th scope="col">substance units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="C" class="active"><span class="package">C</span> <code>meta_C</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-C"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-C" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">C</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_C" sboTerm="SBO:0000247" id="C" name="C" compartment="extern" initialConcentration="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_C">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="C_port" comp:submodelRef="update"/>
+    <comp:replacedElement comp:portRef="C_port" comp:submodelRef="bounds"/>
+  </comp:listOfReplacedElements>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:portRef=C_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=C_port</code><br />    </td>
+
+	<td>C</td>
+	<td>extern</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td>item</td>
+	<td>item</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="A" class="active"><span class="package">A</span> <code>meta_A</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_A" sboTerm="SBO:0000247" id="A" name="A" compartment="extern" initialConcentration="10" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_A">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="A_port" comp:submodelRef="update"/>
+    <comp:replacedElement comp:portRef="A_port" comp:submodelRef="bounds"/>
+  </comp:listOfReplacedElements>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:portRef=A_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=A_port</code><br />    </td>
+
+	<td>A</td>
+	<td>extern</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>10.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td>item</td>
+	<td>item</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="dummy_S" class="active"><span class="package">dummy_S</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-dummy_S"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-dummy_S" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">dummy_S</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species sboTerm="SBO:0000291" id="dummy_S" name="dummy_S" compartment="extern" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>dummy_S</td>
+	<td>extern</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td>item</td>
+	<td>item</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000291" target="_blank">SBO:0000291</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="D" class="active"><span class="package">D</span> <code>meta_D</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-D"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-D" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">D</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_D" sboTerm="SBO:0000247" id="D" compartment="extern" initialAmount="0" substanceUnits="item" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_D">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000247"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>extern</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
+	<td><i class="fa fa-ban gray"></i></td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td>item</td>
+	<td>item</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> item </ci>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [9]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="dt" class="active"><span class="package">dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-dt"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-dt" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">dt</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000346" id="dt" value="0.1" units="s" constant="true">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="dt_port" comp:submodelRef="bounds"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=dt_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.1</td>
+	<td>s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> s </ci>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000346" target="_blank">SBO:0000346</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="lb_EX_C" class="active"><span class="package">lb_EX_C</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_C"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_C" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">lb_EX_C</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_C" value="-1000" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="lb_EX_C_port" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:portRef="lb_EX_C_port" comp:submodelRef="fba"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=lb_EX_C_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:portRef=lb_EX_C_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-1000.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="ub_EX_C" class="active"><span class="package">ub_EX_C</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_C"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ub_EX_C" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ub_EX_C</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_C" value="1000" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="ub_EX_C_port" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:portRef="ub_EX_C_port" comp:submodelRef="fba"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=ub_EX_C_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:portRef=ub_EX_C_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1000.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="lb_EX_A" class="active"><span class="package">lb_EX_A</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-lb_EX_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-lb_EX_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">lb_EX_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="lb_EX_A" value="-1000" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="lb_EX_A_port" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:portRef="lb_EX_A_port" comp:submodelRef="fba"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=lb_EX_A_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:portRef=lb_EX_A_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>-1000.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="ub_EX_A" class="active"><span class="package">ub_EX_A</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_EX_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ub_EX_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ub_EX_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_EX_A" value="1000" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="ub_EX_A_port" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:portRef="ub_EX_A_port" comp:submodelRef="fba"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=ub_EX_A_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:portRef=ub_EX_A_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1000.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="pEX_C" class="active"><span class="package">pEX_C</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_C"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_C" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_C</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_C" value="1" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="pEX_C_port" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:portRef=pEX_C_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="pEX_A" class="active"><span class="package">pEX_A</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pEX_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pEX_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pEX_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000612" id="pEX_A" value="1" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="pEX_A_port" comp:submodelRef="update"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement update:portRef=pEX_A_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000612" target="_blank">SBO:0000612</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="k_R4" class="active"><span class="package">k_R4</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k_R4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k_R4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k_R4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000009" id="k_R4" value="0.1" units="per_s" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.1</td>
+	<td>per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <cn type="integer"> 1 </cn>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000009" target="_blank">SBO:0000009</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="ub_R1" class="active"><span class="package">ub_R1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ub_R1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ub_R1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ub_R1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter sboTerm="SBO:0000625" id="ub_R1" value="1" units="item_per_s" constant="false">
+  <comp:listOfReplacedElements>
+    <comp:replacedElement comp:portRef="ub_R1_port" comp:submodelRef="bounds"/>
+    <comp:replacedElement comp:portRef="ub_R1_port" comp:submodelRef="fba"/>
+  </comp:listOfReplacedElements>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement bounds:portRef=ub_R1_port</code><br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement fba:portRef=ub_R1_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>item_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000625" target="_blank">SBO:0000625</a></div></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [2]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">name</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="pEX_C" class="active"><span class="package">pEX_C</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-8e33479215784a92a902d4dedc4c11a5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-8e33479215784a92a902d4dedc4c11a5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">8e33479215784a92a902d4dedc4c11a5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_C">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> EX_C </ci>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> EX_C </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="pEX_A" class="active"><span class="package">pEX_A</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-34d2536df1d04017ae5c88dc5706bb98"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-34d2536df1d04017ae5c88dc5706bb98" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">34d2536df1d04017ae5c88dc5706bb98</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule sboTerm="SBO:0000391" variable="pEX_A">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> EX_A </ci>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> EX_A </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000391" target="_blank">SBO:0000391</a></div></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [3]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="EX_C" class="active"><span class="package">EX_C</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EX_C"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-EX_C" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">EX_C</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction sboTerm="SBO:0000631" id="EX_C" reversible="false" fast="false">
+  <listOfProducts>
+    <speciesReference species="dummy_S" stoichiometry="1" constant="true"/>
+  </listOfProducts>
+  <kineticLaw>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+      <cn sbml:units="item_per_s" type="integer"> 0 </cn>
+    </math>
+  </kineticLaw>
+  <comp:replacedBy comp:portRef="EX_C_port" comp:submodelRef="fba"/>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>ReplacedBy fba:portRef=EX_C_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; dummy_S</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
+  <cn sbml:units="item_per_s" type="integer"> 0 </cn>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000631" target="_blank">SBO:0000631</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="EX_A" class="active"><span class="package">EX_A</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-EX_A"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-EX_A" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">EX_A</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction sboTerm="SBO:0000631" id="EX_A" reversible="false" fast="false">
+  <listOfProducts>
+    <speciesReference species="dummy_S" stoichiometry="1" constant="true"/>
+  </listOfProducts>
+  <kineticLaw>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+      <cn sbml:units="item_per_s" type="integer"> 0 </cn>
+    </math>
+  </kineticLaw>
+  <comp:replacedBy comp:portRef="EX_A_port" comp:submodelRef="fba"/>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+<br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>ReplacedBy fba:portRef=EX_A_port</code><br />    </td>
+
+	<td><i class="fa fa-ban gray"></i><br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; dummy_S</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
+  <cn sbml:units="item_per_s" type="integer"> 0 </cn>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000631" target="_blank">SBO:0000631</a></div></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="R4" class="active"><span class="package">R4</span> <code>meta_R4</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-R4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-R4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">R4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="meta_R4" sboTerm="SBO:0000176" id="R4" name="R4: C -&gt; D" reversible="false" fast="false" compartment="extern">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_R4">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/sbo/SBO:0000176"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference species="C" stoichiometry="1" constant="true"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference species="D" stoichiometry="1" constant="true"/>
+  </listOfProducts>
+  <kineticLaw>
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> k_R4 </ci>
+        <ci> C </ci>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>R4: C -> D<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>C &#10142; D</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> k_R4 </ci>
+    <ci> C </ci>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> item </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000176" target="_blank">SBO:0000176</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/sbo/SBO:0000176" target="_blank">SBO:0000176</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

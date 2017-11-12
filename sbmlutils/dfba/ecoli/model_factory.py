@@ -38,8 +38,13 @@ from __future__ import print_function, absolute_import
 import os
 from os.path import join as pjoin
 
-import libsbml
-from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+try:
+    import libsbml
+    from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+except ImportError:
+    import tesbml as libsbml
+    from tesbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
@@ -49,7 +54,7 @@ from sbmlutils.validation import check
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
-from sbmlutils.dfba.ecoli.settings import fba_file, model_id, bounds_file, update_file, top_file, flattened_file
+from sbmlutils.dfba.ecoli import settings
 
 libsbml.XMLOutputStream.setWriteTimestamp(False)
 
@@ -73,7 +78,6 @@ print('BIOMASS WEIGHTING:', biomass_weighting)
 print('-'*80)
 
 
-version = 9
 DT_SIM = 0.1
 notes = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -115,7 +119,7 @@ notes = """
         <a href="https://dx.doi.org/10.1093/nar/gkv1049" target="_blank" title="Access the publication about BiGG Models knowledge-base">doi:10.1093/nar/gkv1049</a></dd></dt>
       </dl>
       </body>
-""".format(version, '{}')
+""".format(settings.VERSION, '{}')
 
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
@@ -382,14 +386,15 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
         'glc__D_e': 20.0,
         'gln__L_e': 10.0,
         'glu__L_e': 1.0,
-        'h2o_e': 20.0,
         'h_e': 1.0,
+        'h2o_e': 20.0,
         'lac__D_e': 1.0,
         'mal__L_e': 1.0,
         'nh4_e': 1.0,
         'o2_e': 1.0,
         'pi_e': 1.0,
         'pyr_e': 1.0,
+        'succ_e': 1.0,
         'X': 0.001,
     }
     for sid, value in initial_c.items():
@@ -423,60 +428,64 @@ def create_model(output_dir):
 
     :return: directory where SBML files are located
     """
-    directory = utils.versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     # create sbml
     import time
     t_start = time.time()
 
-    doc_fba = fba_model(fba_file, directory)
+    doc_fba = fba_model(settings.FBA_LOCATION, directory)
     t_fba = time.time()
     print('{:<10}: {:3.2f}'.format('fba', t_fba-t_start))
 
-    bounds_model(bounds_file, directory, doc_fba=doc_fba)
+    bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba)
     t_bounds = time.time()
     print('{:<10}: {:3.2f}'.format('bounds', t_bounds-t_fba))
 
-    exit()
-
-    update_model(update_file, directory, doc_fba=doc_fba)
+    update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba)
     t_update = time.time()
     print('{:<10}: {:3.2f}'.format('update', t_update-t_bounds))
 
-
-
     emds = {
-        "ecoli_fba": fba_file,
-        "ecoli_bounds": bounds_file,
-        "ecoli_update": update_file,
+        "ecoli_fba": settings.FBA_LOCATION,
+        "ecoli_bounds": settings.BOUNDS_LOCATION,
+        "ecoli_update": settings.UPDATE_LOCATION,
     }
 
     # flatten top model
-    top_model(top_file, directory, emds, doc_fba=doc_fba)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba)
     t_top = time.time()
     print('{:<10}: {:3.2f}'.format('top', t_top-t_update))
 
-    comp.flattenSBMLFile(sbml_path=pjoin(directory, top_file),
-                         output_path=pjoin(directory, flattened_file))
+    comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
+                         output_path=pjoin(directory, settings.FLATTENED_LOCATION))
     t_flat = time.time()
     print('{:<10}: {:3.2f}'.format('flat', t_flat-t_top))
 
     # create reports
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  # [fba_file, bounds_file, update_file, top_file, flattened_file]]
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
+    locations = [
+        settings.FBA_LOCATION,
+        settings.BOUNDS_LOCATION,
+        settings.UPDATE_LOCATION,
+        settings.TOP_LOCATION,
+        settings.FLATTENED_LOCATION
+    ]
+
+    sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+
+    # create sedml
+    from sbmlutils.dfba.sedml import create_sedml
+    sids = ['ac_e', 'acald_e', 'akg_e', 'co2_e', 'etoh_e', 'for_e', 'fru_e', 'fum_e', 'glc__D_e',
+            'gln__L_e', 'glu__L_e', 'h_e', 'h2o_e', 'lac__D_e', 'mal__L_e', 'nh4_e', 'o2_e', 'pi_e',
+            'pyr_e', 'succ_e', 'X']
+    species_ids = ", ".join(sids)
+    reaction_ids = ", ".join(['EX_{}'.format(sid) for sid in sids])
+    create_sedml(settings.SEDML_LOCATION, settings.TOP_LOCATION, directory=directory,
+                 dt=0.01, tend=3.5, species_ids=species_ids, reaction_ids=reaction_ids)
+
     return directory
 
-def create_reports(output_dir):
-    directory = utils.versioned_directory(output_dir, version=version)
-
-    sbml_paths = [pjoin(directory, fname) for fname in
-                  [fba_file, bounds_file, update_file, top_file, flattened_file]]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
-
+########################################################################################################################
 if __name__ == "__main__":
-
-    from sbmlutils.dfba.ecoli.settings import out_dir
-    create_model(output_dir=out_dir)
-    # create_reports(output_dir=out_dir)
+    create_model(output_dir=settings.OUT_DIR)

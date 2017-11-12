@@ -233,12 +233,27 @@ if __name__ == "__main__":
     # import logging
     # logging.basicConfig(level=logging.DEBUG)
 
-    directory = utils.versioned_directory(settings.out_dir, model_factory.version)
-    sbml_path = os.path.join(directory, settings.top_file)
+    directory = utils.versioned_directory(settings.OUT_DIR, settings.VERSION)
+    sbml_path = os.path.join(directory, settings.TOP_LOCATION)
 
     print(sbml_path)
-    simulate_ecoli(sbml_path, dts=[0.05], out_dir=directory)
+    # simulate_ecoli(sbml_path, dts=[0.05], out_dir=directory)
     # simulate_carbon_sources(top_sbml_path, out_dir=directory)
+
+
+    # create COMBINE archive
+    from tellurium.utils import omex
+    creators = [
+        omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
+        omex.Creator(givenName="Leandro", familyName="Watanabe", organization="University of Utah",
+                     email="leandrohw@gmail.com")
+    ]
+    omex_path = os.path.join(settings.OUT_DIR, "{}_v{}.omex".format(settings.MODEL_ID, settings.VERSION))
+    omex.combineArchiveFromDirectory(directory=directory,
+                                     omexPath=omex_path,
+                                     creators=creators,
+                                     creators_for_all=True)
+
 
     # benchmark simulation
     if False:
