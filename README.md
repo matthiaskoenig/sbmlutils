@@ -1,19 +1,20 @@
 
 <img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" />
- 
+
+[![PyPI version](https://badge.fury.io/py/sbmlutils.svg)](https://badge.fury.io/py/sbmlutils)
+[![GitHub version](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils.svg)](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils)
 [![Build Status](https://travis-ci.org/matthiaskoenig/sbmlutils.svg?branch=develop)](https://travis-ci.org/matthiaskoenig/sbmlutils)
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)
 [![codecov](https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg)](https://codecov.io/gh/matthiaskoenig/sbmlutils)
 [![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
-[![GitHub version](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils.svg)](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils)
 
 
 # sbmlutils: Python utilities for SBML
-<b><a href="https://orcid.org/0000-0003-1725-179X" title="orcid id"><img src="./docs_builder/images/logos/orcid.png" height="15"/></a> Matthias König</b>
+<b><a href="https://orcid.org/0000-0003-1725-179X" title="orcid id"><img src="./docs_builder/images/orcid.png" height="15"/></a> Matthias König</b>
 
-`sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of the [libSBML](http://sbml.org/Software/libSBML) python bindings.
-
+`sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of [libSBML](http://sbml.org/Software/libSBML)
+and other libraries.
 
 
 Features are among others
@@ -26,22 +27,16 @@ Features are among others
 
 For a more detailed description and examples see the documentation.
 
-    @MISC{sbmlutils,
-      author        = {Matthias König},
-      title         = {sbmlutils: python utilities for SBML},
-      month         = {Mar.},
-      year          = {2017},
-      doi           = "{10.5281/zenodo.439006}",a
-      url           = "{http://dx.doi.org/10.5281/zenodo.439006}"
-    }
+### How to cite
+[![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  
 
 The project code is available from [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
 
-## License
+### License
 * Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
 * Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
-## Documentation
+### Documentation
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)  
 Documentation with examples is available at 
 <a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
@@ -76,6 +71,9 @@ apt-get install python3-tk
 ```
 
 ## Release notes
+### 0.1.8
+* DFBA release
+
 ### 0.1.7a0
 * xpp converter
 * updated SBML reports
@@ -110,4 +108,4 @@ apt-get install python3-tk
 * initial release
 
 
-&copy; 2017 Matthias König.
+&copy; 2017 Matthias König
