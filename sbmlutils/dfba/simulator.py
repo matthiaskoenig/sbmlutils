@@ -183,6 +183,7 @@ class DFBASimulator(object):
             print("-" * 80)
 
         # FIXME: set tolerances on cobra solver
+        # model.solver.configuration.tolerances.feasibility = 1e-8 (absolute tolerances)
 
         # number of steps
         steps = np.round(1.0 * tend / dt)
