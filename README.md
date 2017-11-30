@@ -10,7 +10,7 @@
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
 
 
-<b><a href="https://orcid.org/0000-0003-1725-179X" title="https://orcid.org/0000-0003-1725-179X"><img src="./docs/images/orcid.png" height="15"/></a> Matthias König</b>
+<b><a href="https://orcid.org/0000-0003-1725-179X" title="https://orcid.org/0000-0003-1725-179X"><img src="./docs_builder/images/orcid.png" height="15"/></a> Matthias König</b>
 
 `sbmlutils` is a collection of python utilities for working with [SBML](http://www.sbml.org) models implemented on top of [libSBML](http://sbml.org/Software/libSBML)
 and other libraries available from [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils)
