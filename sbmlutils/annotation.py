@@ -150,6 +150,7 @@ class ModelAnnotation(object):
     def __init__(self, d, check_miriam=False):
 
         self.d = d
+        print(d)
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'collection', 'name']:
