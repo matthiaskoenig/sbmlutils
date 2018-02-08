@@ -210,7 +210,9 @@ class CoreModel(object):
              'rules': list,
              'rate_rules': list,
              'reactions': list,
-             'events': list}
+             'events': list,
+             'ports': list,
+             }
 
     def __init__(self):
         """
@@ -284,12 +286,15 @@ class CoreModel(object):
         print('\n', '*' * 40, '\n', self.model_id, '\n', '*' * 40)
 
         # create core model
-        sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version, "fbc", 2)
+        sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
+        sbmlns.addPackageNamespace("fbc", 2)
+        sbmlns.addPackageNamespace("comp", 1)
         self.doc = libsbml.SBMLDocument(sbmlns)
+        self.doc.setPackageRequired("comp", True)
         self.doc.setPackageRequired("fbc", False)
         self.model = self.doc.createModel()
-        mplugin = self.model.getPlugin("fbc")
-        mplugin.setStrict(False)
+        fbc_plugin = self.model.getPlugin("fbc")
+        fbc_plugin.setStrict(False)
 
         # name & id
         check(self.model.setId(self.model_id), 'set id')
@@ -317,7 +322,8 @@ class CoreModel(object):
                      'rules',
                      'rate_rules',
                      'reactions',
-                     'events']:
+                     'events',
+                     'ports',]:
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
@@ -325,6 +331,9 @@ class CoreModel(object):
                     factory.create_objects(self.model, objects)
                 else:
                     logging.warn("Attribute <{}> missing from model.".format(attr))
+
+
+
 
     def write_sbml(self, filepath):
         """ Write sbml to file.

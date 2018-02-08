@@ -91,16 +91,135 @@ def get_submodel_frameworks(doc):
 
 
 ##########################################################################
+# ExternalModelDefinitions
+##########################################################################
+class ExternalModelDefinition(factory.Sbase):
+
+    def __init__(self, sid, source=None, modelRef=None, md5=None, name=None, sboTerm=None, metaId=None):
+        """ Create an ExternalModelDefinitions.
+        """
+        super(ExternalModelDefinition, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.source = source
+        self.modelRef = modelRef
+        self.md5 = md5
+
+    def create_sbml(self, model):
+        doc = model.getSBMLDocument()
+        cdoc = doc.getPlugin("comp")
+        extdef = cdoc.createExternalModelDefinition()
+        self.set_fields(extdef)
+        return extdef
+
+        return p
+
+    def set_fields(self, obj):
+        super(ExternalModelDefinition, self).set_fields(obj)
+        obj.setModelRef(self.emd_id)
+        obj.setSource(self.source)
+        obj.setMd5(self.md5)
+
+
+##########################################################################
+# Submodel
+##########################################################################
+class Submodel(factory.Sbase):
+
+    def __init__(self, sid, modelRef=None, timeConversionFactor=None, extentConversionFactor=None, name=None, sboTerm=None, metaId=None):
+        """ Create an ExternalModelDefinitions.
+        """
+        super(Submodel, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.modelRef = modelRef
+        self.timeConversionFactor = timeConversionFactor
+        self.extentConversionFactor = extentConversionFactor
+
+    def create_sbml(self, model):
+        cmodel = model.getPlugin("comp")
+        submodel = cmodel.createSubmodel()
+        self.set_fields(submodel)
+
+        obj.setModelRef(model_ref)
+        if self.timeConversionFactor:
+            submodel.setTimeConversionFactor(self.timeConversionFactor)
+        if self.extentConversionFactor:
+            submodel.setExtentConversionFactor(self.extentConversionFactor)
+
+        return submodel
+
+    def set_fields(self, obj):
+        super(ExternalModelDefinition, self).set_fields(obj)
+
+
+##########################################################################
 # Ports
 ##########################################################################
-# Ports are stored in an optional child ListOfPorts object, which,  if
+# Ports are stored in an optional child ListOfPorts object, which, if
 # present, must contain one or more Port objects.  All of the Ports
 # present in the ListOfPorts collectively define the 'port interface' of
 # the Model.
-
 PORT_TYPE_PORT = "port"
 PORT_TYPE_INPUT = "input port"
 PORT_TYPE_OUTPUT = "output port"
+
+
+class Port(factory.Sbase):
+
+    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, portType=PORT_TYPE_PORT, name=None, sboTerm=None, metaId=None):
+        """ Create a port.
+
+        :param sid:
+        :param portRef:
+        :param idRef:
+        :param unitRef:
+        :param metaIdRef:
+        :param portType:
+        :param name:
+        :param sboTerm:
+        :param metaId:
+        """
+        super(Port, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.portRef = portRef
+        self.idRef = idRef
+        self.unitRef = unitRef
+        self.metaIdRef = metaIdRef
+        self.portType = portType
+
+    def create_sbml(self, model):
+        cmodel = model.getPlugin("comp")
+        p = cmodel.createPort()
+        self.set_fields(p)
+
+        ref = None
+        if self.portRef is not None:
+            p.setPortRef(self.portRef)
+            ref = self.portRef
+        if self.idRef is not None:
+            p.setIdRef(self.idRef)
+            ref = self.idRef
+        if self.unitRef is not None:
+            unit_str = factory.Unit.get_unit_string(self.unitRef)
+            p.setUnitRef(unit_str)
+            ref = unit_str
+        if self.metaIdRef is not None:
+            p.setMetaIdRef(self.metaIdRef)
+            ref = self.metaIdRef
+        if self.name is None and ref is not None:
+            p.setName("o-| {}".format(ref))
+        if self.sboTerm is None:
+            if self.portType == PORT_TYPE_PORT:
+                # SBO:0000599 - port
+                sbo = 599
+            elif self.portType == PORT_TYPE_INPUT:
+                # SBO:0000600 - input port
+                sbo = 600
+            elif self.portType == PORT_TYPE_OUTPUT:
+                # SBO:0000601 - output port
+                sbo = 601
+            p.setSBOTerm(sbo)
+
+        return p
+
+    def set_fields(self, obj):
+        super(Port, self).set_fields(obj)
 
 
 def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=None,
