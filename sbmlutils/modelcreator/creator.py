@@ -118,7 +118,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     if create_report:
         sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir)
 
-    return [model_dict, core_model]
+    return [model_dict, core_model, sbml_path]
 
 
 class Preprocess(object):
@@ -201,6 +201,9 @@ class CoreModel(object):
              'creators': list,
              'main_units': dict,
 
+             'externalModelDefinitions': list,
+             'submodels': list,
+
              'units': list,
              'functions': list,
              'compartments': list,
@@ -212,6 +215,8 @@ class CoreModel(object):
              'reactions': list,
              'events': list,
              'ports': list,
+             'replacedElements': list,
+             'deletions': list,
              }
 
     def __init__(self):
@@ -310,20 +315,23 @@ class CoreModel(object):
         if hasattr(self, 'main_units'):
             factory.set_main_units(self.model, self.main_units)
 
-        # additional units
-
         # lists ofs
-        for attr in ['units',
-                     'functions',
-                     'parameters',
-                     'compartments',
-                     'species',
-                     'assignments',
-                     'rules',
-                     'rate_rules',
-                     'reactions',
-                     'events',
-                     'ports',]:
+        for attr in [
+            'externalModelDefinitions',
+            'submodels',
+            'units',
+            'functions',
+            'parameters',
+            'compartments',
+            'species',
+            'assignments',
+            'rules',
+            'rate_rules',
+            'reactions',
+            'events',
+            'ports',
+            'replacedElements',
+            'deletions',]:
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)

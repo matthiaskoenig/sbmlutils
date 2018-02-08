@@ -95,7 +95,7 @@ def get_submodel_frameworks(doc):
 ##########################################################################
 class ExternalModelDefinition(factory.Sbase):
 
-    def __init__(self, sid, source=None, modelRef=None, md5=None, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, source, modelRef, md5=None, name=None, sboTerm=None, metaId=None):
         """ Create an ExternalModelDefinitions.
         """
         super(ExternalModelDefinition, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
@@ -114,9 +114,10 @@ class ExternalModelDefinition(factory.Sbase):
 
     def set_fields(self, obj):
         super(ExternalModelDefinition, self).set_fields(obj)
-        obj.setModelRef(self.emd_id)
+        obj.setModelRef(self.modelRef)
         obj.setSource(self.source)
-        obj.setMd5(self.md5)
+        if self.md5 is not None:
+            obj.setMd5(self.md5)
 
 
 ##########################################################################
@@ -137,7 +138,7 @@ class Submodel(factory.Sbase):
         submodel = cmodel.createSubmodel()
         self.set_fields(submodel)
 
-        obj.setModelRef(model_ref)
+        submodel.setModelRef(self.modelRef)
         if self.timeConversionFactor:
             submodel.setTimeConversionFactor(self.timeConversionFactor)
         if self.extentConversionFactor:
@@ -146,8 +147,111 @@ class Submodel(factory.Sbase):
         return submodel
 
     def set_fields(self, obj):
-        super(ExternalModelDefinition, self).set_fields(obj)
+        super(Submodel, self).set_fields(obj)
 
+
+##########################################################################
+# SBaseRef
+##########################################################################
+class SbaseRef(factory.Sbase):
+
+    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+        """ Create an SBaseRef.
+        """
+        super(SbaseRef, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.portRef = portRef
+        self.idRef = idRef
+        self.unitRef = unitRef
+        self.metaIdRef = metaIdRef
+
+    def set_fields(self, obj):
+        super(SbaseRef, self).set_fields(obj)
+
+        obj.setId(self.sid)
+        if self.portRef is not None:
+            obj.setPortRef(self.portRef)
+        if self.idRef is not None:
+            obj.setIdRef(self.idRef)
+        if self.unitRef is not None:
+            unit_str = factory.Unit.get_unit_string(self.unitRef)
+            obj.setUnitRef(unit_str)
+        if self.metaIdRef is not None:
+            obj.setMetaIdRef(self.metaIdRef)
+
+
+##########################################################################
+# ReplacedElements
+##########################################################################
+class ReplacedElement(SbaseRef):
+
+    def __init__(self, sid, elementRef, submodelRef, deletion=None, conversionFactor=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None,
+                 metaId=None):
+        """
+
+        :param sid:
+        :param elementRef: sid of the element on which the ReplacedElement is generated.
+        :param submodelRef:
+        :param deletion:
+        :param conversionFactor:
+        :param portRef:
+        :param idRef:
+        :param unitRef:
+        :param metaIdRef:
+        :param name:
+        :param sboTerm:
+        :param metaId:
+        """
+        """ Create a ReplacedElement. """
+        super(ReplacedElement, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
+                                              name=name, sboTerm=sboTerm, metaId=metaId)
+        self.elementRef = elementRef
+        self.submodelRef = submodelRef
+        self.deletion = deletion
+        self.conversionFactor = conversionFactor
+
+    def create_sbml(self, model):
+
+        # resolve port element
+        element = model.getElementBySId(self.elementRef)
+        print("elementRef:", self.elementRef, "element:", element)
+        eplugin = element.getPlugin("comp")
+        obj = eplugin.createReplacedElement()
+        self.set_fields(obj)
+
+        return obj
+
+    def set_fields(self, obj):
+        super(ReplacedElement, self).set_fields(obj)
+        obj.setSubmodelRef(self.submodelRef)
+        if self.deletion:
+            obj.setDeletion(self.deletion)
+        if self.conversionFactor:
+            obj.setConversionFactor(self.conversionFactor)
+
+
+##########################################################################
+# Deletions
+##########################################################################
+class Deletion(SbaseRef):
+
+    # TODO: FIXME not implemented yet, this requires a submodel to work.
+
+    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+        """ Create a Deletion. """
+        super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
+                                   name=name, sboTerm=sboTerm, metaId=metaId)
+
+    def create_sbml(self, model):
+
+        # Deletions for submodels
+        cmodel = model.getPlugin("comp")
+        p = cmodel.createPort()
+        self.set_fields(p)
+
+        return p
+
+    def set_fields(self, obj):
+        super(Deletion, self).set_fields(obj)
 
 ##########################################################################
 # Ports
@@ -161,26 +265,13 @@ PORT_TYPE_INPUT = "input port"
 PORT_TYPE_OUTPUT = "output port"
 
 
-class Port(factory.Sbase):
+class Port(SbaseRef):
 
     def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, portType=PORT_TYPE_PORT, name=None, sboTerm=None, metaId=None):
         """ Create a port.
-
-        :param sid:
-        :param portRef:
-        :param idRef:
-        :param unitRef:
-        :param metaIdRef:
-        :param portType:
-        :param name:
-        :param sboTerm:
-        :param metaId:
         """
-        super(Port, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
-        self.portRef = portRef
-        self.idRef = idRef
-        self.unitRef = unitRef
-        self.metaIdRef = metaIdRef
+        super(Port, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
+                                   name=name, sboTerm=sboTerm, metaId=metaId)
         self.portType = portType
 
     def create_sbml(self, model):
@@ -188,22 +279,6 @@ class Port(factory.Sbase):
         p = cmodel.createPort()
         self.set_fields(p)
 
-        ref = None
-        if self.portRef is not None:
-            p.setPortRef(self.portRef)
-            ref = self.portRef
-        if self.idRef is not None:
-            p.setIdRef(self.idRef)
-            ref = self.idRef
-        if self.unitRef is not None:
-            unit_str = factory.Unit.get_unit_string(self.unitRef)
-            p.setUnitRef(unit_str)
-            ref = unit_str
-        if self.metaIdRef is not None:
-            p.setMetaIdRef(self.metaIdRef)
-            ref = self.metaIdRef
-        if self.name is None and ref is not None:
-            p.setName("o-| {}".format(ref))
         if self.sboTerm is None:
             if self.portType == PORT_TYPE_PORT:
                 # SBO:0000599 - port
