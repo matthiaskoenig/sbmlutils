@@ -31,7 +31,7 @@ from sbmlutils import fbc
 
 
 def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True,
-                  abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', **kwargs):
+                  abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', ode_integrator="cvode", **kwargs):
     """ Simulates given model with DFBA.
 
     Utility function which sets up the model object, a simulator and 
@@ -45,7 +45,7 @@ def simulate_dfba(sbml_path, tstart=0.0, tend=10.0, dt=0.1, pfba=True,
 
     # simulation
     dfba_simulator = DFBASimulator(dfba_model, pfba=pfba,
-                                   abs_tol=abs_tol, rel_tol=rel_tol, lp_solver=lp_solver)
+                                   abs_tol=abs_tol, rel_tol=rel_tol, lp_solver=lp_solver, ode_integrator=ode_integrator)
     dfba_simulator.simulate(tstart=tstart, tend=tend, dt=dt, **kwargs)
     df = dfba_simulator.solution
 
@@ -62,7 +62,7 @@ class DFBASimulator(object):
     """ Simulator class to dynamic flux balance models (DFBA). """
     # FIXME: add the pfba objective once and only update the coeffient depending on the actual optimum
 
-    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', pfba=True, check_uniqueness=True):
+    def __init__(self, dfba_model, abs_tol=1E-6, rel_tol=1E-6, lp_solver='glpk', ode_integrator="cvode", pfba=True, check_uniqueness=True):
         """ Create the simulator with the processed dfba model.
 
 
@@ -73,6 +73,7 @@ class DFBASimulator(object):
         :param pfba: perform minimal flux simulation
         """
         self.dfba_model = dfba_model
+        self.ode_integrator = ode_integrator
         self.abs_tol = abs_tol
         self.rel_tol = rel_tol
         self.solution = None
@@ -146,7 +147,7 @@ class DFBASimulator(object):
         self.ode_model.timeCourseSelections = sel
         self.columns = dict(zip(sel, range(len(sel))))
 
-    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True, show_settings=False):
+    def simulate(self, tstart=0.0, tend=10.0, dt=0.1, absTol=1E-6, relTol=1E-6, reset=True, show_settings=True):
         """ Perform model simulation.
 
         The simulator images out based on the SBO terms in the list of submodels, which
@@ -172,9 +173,12 @@ class DFBASimulator(object):
             self.reset()
 
         # set tolerances on ODE solver
+        self.ode_model.setIntegrator(self.ode_integrator)
         integrator = self.ode_model.integrator
-        integrator.absolute_tolerance = self.abs_tol
-        integrator.relative_tolerance = self.rel_tol
+        if integrator != "gillespie":
+            integrator.absolute_tolerance = self.abs_tol
+            integrator.relative_tolerance = self.rel_tol
+
         if show_settings:
             print("-" * 80)
             print("ODE integrator settings")
@@ -206,7 +210,12 @@ class DFBASimulator(object):
             # initial values
             ode_res = self._simulate_ode(tstart=0.0, tend=0.0)
 
-            row_next = ode_res[1, :]
+            if self.ode_integrator == "gillespie":
+                row_next = ode_res[0, :]
+            else:
+                row_next = ode_res[1, :]
+
+
             time = 0.0
             kstep = 0
             while kstep < points:
