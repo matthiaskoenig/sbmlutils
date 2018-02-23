@@ -11,10 +11,11 @@ except ImportError:
     import tesbml as libsbml
 
 from pprint import pprint
+from sbmlutils.converters.mathml import evaluableMathML
 
-
-def f_ode(sbml_file):
+def f_ode(sbml_file, py_file):
     """ Create ode system which can be integrated with scipy.
+    The python module is stored.
 
     :param sbml_file:
     :return:
@@ -23,6 +24,7 @@ def f_ode(sbml_file):
     doc = libsbml.readSBMLFromFile(sbml_file)  # type: libsbml.SBMLDocument
     model = doc.getModel()  # type: libsbml.Model
 
+    x0 = {}
     xids = {}  # state variables x
     pids = {}  # parameters p
     yids = {}  # assigned variables
@@ -37,7 +39,7 @@ def f_ode(sbml_file):
         if parameter.getConstant():
             value = parameter.getValue()
         else:
-            value = None
+            value = ''
         pids[pid] = value
 
     # --------------
@@ -45,7 +47,9 @@ def f_ode(sbml_file):
     # --------------
     for species in model.getListOfSpecies():  # type: libsbml.Species
         sid = species.getId()
-        xids[sid] = None
+        xids[sid] = ''
+
+
 
     # SBML_ASSIGNMENT_RULE = _libsbml.SBML_ASSIGNMENT_RULE
     # SBML_RATE_RULE = _libsbml.SBML_RATE_RULE
@@ -63,8 +67,8 @@ def f_ode(sbml_file):
             variable = rate_rule.getVariable()
 
             # store rule
-            math = rate_rule.getMath()
-            xids[variable] = math
+            astnode = rate_rule.getMath()
+            xids[variable] = evaluableMathML(astnode)
 
             # could be species or variable
             if variable in pids:
@@ -76,8 +80,8 @@ def f_ode(sbml_file):
         elif type_code == libsbml.SBML_ASSIGNMENT_RULE:
             as_rule = rule  # type: libsbml.RateRule
             variable = as_rule.getVariable()
-            math = as_rule.getMath()
-            yids[variable] = math
+            astnode = as_rule.getMath()
+            yids[variable] = evaluableMathML(astnode)
             if variable in xids:
                 del xids[variable]
             if variable in pids:
@@ -89,25 +93,52 @@ def f_ode(sbml_file):
         math = None
         if reaction.isSetKineticLaw():
             klaw = reaction.getKineticLaw()  # type: libsbml.KineticLaw
-            math = klaw.getMath()
-        rids[rid] = math
+            astnode = klaw.getMath()
+            formula = evaluableMathML(astnode)
+        rids[rid] = formula
+        for reactant in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
+            stoichiometry = reactant.getStoichiometry()
+            sid = reactant.getSpecies()
+            species = model.getSpecies(sid)
+            vid = species.getCompartment()
 
-    print("-"*80)
-    print('xids')
-    print("-" * 80)
-    pprint(xids)
+            # check if only substance units
+            if species.getHasOnlySubstanceUnits():
+                xids[sid] += ' - {}*({})'.format(stoichiometry, formula)
+            else:
+                xids[sid] += '- {}*({})/{}'.format(stoichiometry, formula, vid)
+        for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
+            stoichiometry = reactant.getStoichiometry()
+            sid = reactant.getSpecies()
+            species = model.getSpecies(sid)
+            vid = species.getCompartment()
 
-    print("-" * 80)
-    print('pids')
-    print("-" * 80)
-    pprint(pids)
+            # check if only substance units
+            if species.getHasOnlySubstanceUnits():
+                xids[sid] += ' + {}*({})'.format(stoichiometry, formula)
+            else:
+                xids[sid] += ' + {}*({})/{}'.format(stoichiometry, formula, vid)
 
-    print("-" * 80)
-    print('yids')
-    print("-" * 80)
-    pprint(yids)
 
-    # TODO: necessary to find dependency tree for yids
+    # TODO: write the kinetic laws for reactions
+
+
+
+    with open(py_file, "w") as f:
+        empty_line = "# " + '-'*80 + "\n"
+
+        for vid, d in [('x', xids), ('r', rids), ('p', pids), ('y', yids)]:
+            f.write(empty_line)
+            f.write("# " + vid + "\n")
+            f.write(empty_line)
+
+            f.write("{} = [\n".format(vid))
+            for key in sorted(d.keys()):
+                f.write('    {},\t\t# {}\n'.format(d[key], key))
+            f.write("]\n\n")
+
+    # TODO: necessary to find dependency tree for yids (order accordingly)
+    # check which math depends on other math
 
 
 
@@ -143,13 +174,14 @@ def f_ode(sbml_file):
 if __name__ == "__main__":
 
     # convert xpp to sbml
-    model_id = "limax_pkpd_37"
+    model_id = "limax_pkpd_38"
     in_dir = './scipyode_example'
     out_dir = './scipyode_example/results'
     sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
+    py_file = os.path.join(in_dir, "{}.py".format(model_id))
 
 
-    f = f_ode(sbml_file)
+    f = f_ode(sbml_file, py_file)
 
 
     # ----------------------
@@ -161,6 +193,7 @@ if __name__ == "__main__":
 
 
     # 2. Change parameters & initial conditions
+    # calculate all the initial conditions for the system (InitialAssignments & values for species)
 
 
     # 3. Update initial conditions based on changed parameters (apply InitialAssignment rules)
