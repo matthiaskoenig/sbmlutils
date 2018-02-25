@@ -16,6 +16,7 @@ from sbmlutils.converters.mathml import evaluableMathML
 from collections import defaultdict
 
 # TODO: create class for SBML to ODE conversion
+# TODO: does not handle ConversionFactors, FunctionDefinitions nor Events
 
 
 def f_ode(sbml_file, py_file):
@@ -53,6 +54,23 @@ def f_ode(sbml_file, py_file):
     for species in model.getListOfSpecies():  # type: libsbml.Species
         sid = species.getId()
         dxids[sid] = ''
+        # initial condition
+        value = None
+        compartment = model.getCompartment(species.getCompartment())  # type: libsbml.Compartment
+        if species.isSetInitialAmount():
+            value = species.getInitialAmount()
+            if not species.getHasOnlySubstanceUnits():
+                # FIXME: handle the initial assignments/assignment rules for compartment volumes
+                value = value / compartment.getSize()
+
+        elif species.isSetInitialConcentration():
+            value = species.getInitialConcentration()
+            if species.getHasOnlySubstanceUnits():
+                # FIXME: handle the initial assignments/assignment rules for compartment volumes
+                value = value * compartment.getSize()
+
+        x0[sid] = value
+
 
     # SBML_ASSIGNMENT_RULE = _libsbml.SBML_ASSIGNMENT_RULE
     # SBML_RATE_RULE = _libsbml.SBML_RATE_RULE
@@ -72,11 +90,14 @@ def f_ode(sbml_file, py_file):
             # store rule
             astnode = rate_rule.getMath()
             dxids[variable] = astnode
+
             # dxids[variable] = evaluableMathML(astnode)
 
-            # could be species or variable
+            # could be species or parameter
             if variable in pids:
                 del pids[variable]
+                parameter = model.getParameter(variable)
+                x0[variable] = parameter.getValue()
 
         # --------------
         # assignment rules
@@ -143,7 +164,7 @@ def f_ode(sbml_file, py_file):
     for k, key in enumerate(sorted(pids.keys())):
         pids_idx[key] = k
     yids_idx = {}
-    for k, key in enumerate(sorted(yids_ordered)):
+    for k, key in enumerate(yids_ordered):
         yids_idx[key] = k
     dxids_idx = {}
     for k, key in enumerate(sorted(dxids.keys())):
@@ -153,31 +174,33 @@ def f_ode(sbml_file, py_file):
 
 
     for d in [yids, rids, dxids]:
-        # y: replace p and x, y
+        # replace p and x, y
         for key in d:
             astnode = d[key]
             if not isinstance(astnode, libsbml.ASTNode):
                 continue
 
-            # replace parameters
-            for key_rep, index in pids_idx.items():
-                ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
-                astnode.replaceArgument(key_rep, ast_rep)
-            # replace states
-            for key_rep, index in dxids_idx.items():
-                ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
-                astnode.replaceArgument(key_rep, ast_rep)
-            # replace y
-            for key_rep, index in yids_idx.items():
-                ast_rep = libsbml.parseL3Formula('y__{}__'.format(index))
-                astnode.replaceArgument(key_rep, ast_rep)
+            if True:
+                # replace parameters
+                for key_rep, index in pids_idx.items():
+                    ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
+                    astnode.replaceArgument(key_rep, ast_rep)
+                # replace states
+                for key_rep, index in dxids_idx.items():
+                    ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
+                    astnode.replaceArgument(key_rep, ast_rep)
+                # replace y (use ordery yids for lookup)
+                for key_rep, index in yids_idx.items():
+                    ast_rep = libsbml.parseL3Formula('y__{}__'.format(index))
+                    astnode.replaceArgument(key_rep, ast_rep)
 
             formula = evaluableMathML(astnode)
-            # TODO: perform replacements with indices
-            formula = re.sub("p__", "p[", formula)
-            formula = re.sub("x__", "x[", formula)
-            formula = re.sub("y__", "y[", formula)
-            formula = re.sub("__", "]", formula)
+            if True:
+                # TODO: perform replacements with indices
+                formula = re.sub("p__", "p[", formula)
+                formula = re.sub("x__", "x[", formula)
+                formula = re.sub("y__", "y[", formula)
+                formula = re.sub("__", "]", formula)
 
             d[key] = formula
 
@@ -186,7 +209,16 @@ def f_ode(sbml_file, py_file):
     # ------------------------
 
     with open(py_file, "w") as f:
+        f.write('"""\n')
+        f.write("{}\n".format(model_id))
+        f.write('"""\n')
+        f.write("import numpy as np\n")
+        f.write("\n\n")
 
+        f.write("x0 = [\n")
+        for key in sorted(x0.keys()):
+            f.write('    {},\t\t# {}\n'.format(x0[key], key))
+        f.write("]\n\n")
 
 
         # write states, reactions, pids
@@ -196,16 +228,15 @@ def f_ode(sbml_file, py_file):
                 f.write('    {},\t\t# {}\n'.format(d[key], key))
             f.write("]\n\n")
 
-
         # write ode function
         f.write("def f_dxdt(x, t, p):\n")
         f.write('    """ ODE system """\n')
 
         # y
-        f.write("    {} = [\n".format('y'))
-        for key in yids_ordered:
-            f.write('        {},\t\t# {}\n'.format(yids[key], key))
-        f.write("    ]\n\n")
+        f.write("    y = np.zeros(shape=({}, 1))\n".format(len(yids)))
+        for k, key in enumerate(yids_ordered):
+            f.write('    y[{}] = {},\t\t# {}\n'.format(k, yids[key], key))
+        f.write("\n\n")
 
         # r
         f.write("    # reactions\n")
