@@ -12,6 +12,10 @@ except ImportError:
 
 from pprint import pprint
 from sbmlutils.converters.mathml import evaluableMathML
+from collections import defaultdict
+
+# TODO: create class for SBML to ODE conversion
+
 
 def f_ode(sbml_file, py_file):
     """ Create ode system which can be integrated with scipy.
@@ -49,8 +53,6 @@ def f_ode(sbml_file, py_file):
         sid = species.getId()
         xids[sid] = ''
 
-
-
     # SBML_ASSIGNMENT_RULE = _libsbml.SBML_ASSIGNMENT_RULE
     # SBML_RATE_RULE = _libsbml.SBML_RATE_RULE
     # SBML_SPECIES_CONCENTRATION_RULE = _libsbml.SBML_SPECIES_CONCENTRATION_RULE
@@ -63,7 +65,7 @@ def f_ode(sbml_file, py_file):
         # --------------
         if type_code == libsbml.SBML_RATE_RULE:
             # directly converted to odes (create additional state variables)
-            rate_rule = rule  # type: libsbml.RateRule
+            rate_rule = rule  # type: libsbml.AssignmentRule
             variable = rate_rule.getVariable()
 
             # store rule
@@ -119,27 +121,35 @@ def f_ode(sbml_file, py_file):
             else:
                 xids[sid] += ' + {}*({})/{}'.format(stoichiometry, formula, vid)
 
+    # TODO: necessary to find dependency tree for yids (order accordingly)
+    # check which math depends on other math (build tree of dependencies)
+
+    filtered_ids = set(list(pids.keys()) + list(xids.keys()) + list(rids.keys()))
+    yids_ordered = ordered_yids(model, filtered_ids)
+    print(yids_ordered)
+    print(len(yids_ordered))
+
+
+    # ------------------------
+    # Write ODE
+    # ------------------------
 
     with open(py_file, "w") as f:
         empty_line = "# " + '-'*80 + "\n"
 
-        for vid, d in [('x', xids), ('r', rids), ('p', pids), ('y', yids)]:
-            f.write(empty_line)
-            f.write("# " + vid + "\n")
-            f.write(empty_line)
+        # write states, reactions, pids
+        for vid, d in [('x', xids), ('r', rids), ('p', pids)]:
 
             f.write("{} = [\n".format(vid))
             for key in sorted(d.keys()):
                 f.write('    {},\t\t# {}\n'.format(d[key], key))
             f.write("]\n\n")
 
-    # TODO: necessary to find dependency tree for yids (order accordingly)
-    # check which math depends on other math (build tree of dependencies)
-
-
-
-
-
+        # write y
+        f.write("{} = [\n".format('y'))
+        for key in yids_ordered:
+            f.write('    {},\t\t# {}\n'.format(yids[key], key))
+        f.write("]\n\n")
 
 
 
@@ -151,15 +161,10 @@ def f_ode(sbml_file, py_file):
     # def y(x, t):
 
 
-
-
     def fdxdt(x, t, p):
 
         # calculate y values which are depending on x and p and possible other y (in order of dependency
         # y =
-
-
-
         # calculate the next differential equation
         c = 1.0
         k = 2.0
@@ -167,6 +172,83 @@ def f_ode(sbml_file, py_file):
         return dxdt
 
     return x, xids, p, pids, fdxdt
+
+
+def ordered_yids(model, filtered_ids):
+    """ Get the order of the vids from the assignment rules.
+
+    :param model:
+    :param filtered_ids
+    :return:
+    """
+    g = defaultdict(set)
+
+    def add_dependency_edges(g, astnode):
+        """ Add the dependency edges to the graph.
+
+        :param g:
+        :param astnode:
+        :return:
+        """
+        # variable --depends_on--> v2
+        for k in range(astnode.getNumChildren()):
+            child = astnode.getChild(k)  # type: libsbml.ASTNode
+            if child.getType() == libsbml.AST_NAME:
+
+                # add to dependency graph if id is not a defined parameter or state variable
+                sid = child.getName()
+                if sid not in filtered_ids:
+                    g[variable].add(sid)
+
+            # recursive adding of children
+            add_dependency_edges(g, child)
+
+    # create dependency graph
+    for rule in model.getListOfRules():  # type: libsbml.Rule
+        # assignment rules
+        type_code = rule.getTypeCode()
+        if type_code == libsbml.SBML_ASSIGNMENT_RULE:
+            as_rule = rule  # type: libsbml.AssignmentRule
+            variable = as_rule.getVariable()
+            g[variable] = set()
+
+            # traverse astnode to find the dependencies (add to graph)
+            astnode = as_rule.getMath()  # type: libsbml.ASTNode
+            add_dependency_edges(g, astnode)
+
+    def create_ordered_variables(g, yids=None):
+        if yids is None:
+            yids = []
+
+        yids_remove = []
+        for yid in sorted(g.keys()):
+            yid_deps = g[yid]
+
+            # add yids with no dependencies
+            if len(yid_deps) == 0:
+                yids_remove.append(yid)
+
+        # add nodes with no dependencies to list
+        yids = yids + list(yids_remove)  # hard copy to store
+
+        for yid in yids_remove:
+            # remove the yid from nodes
+            del g[yid]
+            # remove the yid from dependency graph
+            for s in g.values():
+                if yid in s:
+                    s.remove(yid)
+
+        # still nodes in dependency graph (recursive removal)
+        print(len(yids))
+        print(len(g))
+        if len(g) > 0:
+            yids = create_ordered_variables(g, yids=yids)
+        return yids
+
+    # create order from dependency graph
+    yids = create_ordered_variables(g)
+    return yids
 
 
 if __name__ == "__main__":

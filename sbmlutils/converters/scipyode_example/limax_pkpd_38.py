@@ -1,6 +1,3 @@
-# --------------------------------------------------------------------------------
-# x
-# --------------------------------------------------------------------------------
 x = [
      + 1.0*(Qlu * (Clu_apap / Kplu_apap) * BP_apap) - 1.0*(Qre * Car_apap) - 1.0*(Qbo * Car_apap) - 1.0*(Qgu * Car_apap) - 1.0*(Qhe * Car_apap) - 1.0*(Qki * Car_apap) - 1.0*(Qsp * Car_apap) - 1.0*(Qha * Car_apap),		# Aar_apap
      + 1.0*(Qlu * (Clu_co2c13 / Kplu_co2c13) * BP_co2c13) - 1.0*(Qre * Car_co2c13) - 1.0*(Qbo * Car_co2c13) - 1.0*(Qgu * Car_co2c13) - 1.0*(Qhe * Car_co2c13) - 1.0*(Qki * Car_co2c13) - 1.0*(Qsp * Car_co2c13) - 1.0*(Qha * Car_co2c13),		# Aar_co2c13
@@ -48,9 +45,6 @@ x = [
     Ri_metc13 * 60,		# cum_dose_metc13
 ]
 
-# --------------------------------------------------------------------------------
-# r
-# --------------------------------------------------------------------------------
 r = [
     APAPD_CLliv * 1 * (Cli_free_apap / (Cli_free_apap + APAPD_Km_apap)),		# APAPD
     (Ka_apap * D_apap / Mr_apap) * F_apap,		# Absorption_apap
@@ -120,9 +114,6 @@ r = [
     CLrenal_metc13 * Cki_free_metc13,		# vre_metc13
 ]
 
-# --------------------------------------------------------------------------------
-# p
-# --------------------------------------------------------------------------------
 p = [
     2.5,		# APAPD_HLM_CL
     0.5,		# APAPD_Km_apap
@@ -220,106 +211,14 @@ p = [
     10.0,		# ti_metc13
 ]
 
-# --------------------------------------------------------------------------------
-# y
-# --------------------------------------------------------------------------------
 y = [
-    (APAPD_HLM_CL / fumic_apap) * MPPGL * Vli * F_PAR * 60 / 1000,		# APAPD_CLliv
     0.024265 * (BW / 1)**0.5378 * (HEIGHT / 1)**0.3964,		# BSA
     BW * COBW + (HR - HRrest) * COHRI / 60,		# CO
-    CO2FIX_HLM_CL * MPPGL * Vli * F_PAR * 60 / 1000,		# CO2FIX_CLliv
-    (CYP1A2MET_CL / fumic_metc13) * MPPGL * Vli * F_PAR * 60 / 1000,		# CYP1A2MET_CLliv
-    Aar_apap / Var,		# Car_apap
-    Aar_co2c13 / Var,		# Car_co2c13
-    Aar_metc13 / Var,		# Car_metc13
-    Abo_apap / Vbo,		# Cbo_apap
-    Abo_co2c13 / Vbo,		# Cbo_co2c13
-    Abo_co2c13_fix / Vbo,		# Cbo_co2c13_fix
-    Abo_metc13 / Vbo,		# Cbo_metc13
-    Agu_apap / Vgu,		# Cgu_apap
-    Agu_co2c13 / Vgu,		# Cgu_co2c13
-    Agu_metc13 / Vgu,		# Cgu_metc13
-    Ahe_apap / Vhe,		# Che_apap
-    Ahe_co2c13 / Vhe,		# Che_co2c13
-    Ahe_metc13 / Vhe,		# Che_metc13
-    Aki_apap / Vki,		# Cki_apap
-    Aki_co2c13 / Vki,		# Cki_co2c13
-    Cki_apap * fup_apap,		# Cki_free_apap
-    Cki_co2c13 * fup_co2c13,		# Cki_free_co2c13
-    Cki_metc13 * fup_metc13,		# Cki_free_metc13
-    Aki_metc13 / Vki,		# Cki_metc13
-    Ali_apap / Vli,		# Cli_apap
-    Ali_co2c13 / Vli,		# Cli_co2c13
-    Cli_apap * fup_apap,		# Cli_free_apap
-    Cli_co2c13 * fup_co2c13,		# Cli_free_co2c13
-    Cli_metc13 * fup_metc13,		# Cli_free_metc13
-    Ali_metc13 / Vli,		# Cli_metc13
-    Alu_apap / Vlu,		# Clu_apap
-    Alu_co2c13 / Vlu,		# Clu_co2c13
-    Alu_metc13 / Vlu,		# Clu_metc13
-    Cve_apap / BP_apap,		# Cpl_ve_apap
-    Cve_co2c13 / BP_co2c13,		# Cpl_ve_co2c13
-    Cve_metc13 / BP_metc13,		# Cpl_ve_metc13
-    Are_apap / Vre,		# Cre_apap
-    Are_co2c13 / Vre,		# Cre_co2c13
-    Are_metc13 / Vre,		# Cre_metc13
-    Asp_apap / Vsp,		# Csp_apap
-    Asp_co2c13 / Vsp,		# Csp_co2c13
-    Asp_metc13 / Vsp,		# Csp_metc13
-    Ave_apap / Vve,		# Cve_apap
-    Ave_co2c13 / Vve,		# Cve_co2c13
-    Ave_metc13 / Vve,		# Cve_metc13
-    ((P_CO2c13 / P_CO2c12 - R_PDB) / R_PDB) * 1000,		# DOB
     1 - (FQbo + FQhe + FQgu + FQki + FQh + FQsp),		# FQre
     1 - (FVbo + FVhe + FVgu + FVki + FVli + FVlu + FVsp + FVve + FVar + FVpl),		# FVre
     (1.386 / ti_apap) * 3600,		# Ki_apap
     (1.386 / ti_co2c13) * 3600,		# Ki_co2c13
     (1.386 / ti_metc13) * 3600,		# Ki_metc13
-    (Aar_apap / Var) * Mr_apap,		# Mar_apap
-    (Aar_co2c13 / Var) * Mr_co2c13,		# Mar_co2c13
-    (Aar_metc13 / Var) * Mr_metc13,		# Mar_metc13
-    (Abo_apap / Vbo) * Mr_apap,		# Mbo_apap
-    (Abo_co2c13 / Vbo) * Mr_co2c13,		# Mbo_co2c13
-    (Abo_metc13 / Vbo) * Mr_metc13,		# Mbo_metc13
-    (Agu_apap / Vgu) * Mr_apap,		# Mgu_apap
-    (Agu_co2c13 / Vgu) * Mr_co2c13,		# Mgu_co2c13
-    (Agu_metc13 / Vgu) * Mr_metc13,		# Mgu_metc13
-    (Ahe_apap / Vhe) * Mr_apap,		# Mhe_apap
-    (Ahe_co2c13 / Vhe) * Mr_co2c13,		# Mhe_co2c13
-    (Ahe_metc13 / Vhe) * Mr_metc13,		# Mhe_metc13
-    (Aki_apap / Vki) * Mr_apap,		# Mki_apap
-    (Aki_co2c13 / Vki) * Mr_co2c13,		# Mki_co2c13
-    (Aki_metc13 / Vki) * Mr_metc13,		# Mki_metc13
-    (Ali_apap / Vli) * Mr_apap,		# Mli_apap
-    (Ali_co2c13 / Vli) * Mr_co2c13,		# Mli_co2c13
-    (Ali_metc13 / Vli) * Mr_metc13,		# Mli_metc13
-    (Alu_apap / Vlu) * Mr_apap,		# Mlu_apap
-    (Alu_co2c13 / Vlu) * Mr_co2c13,		# Mlu_co2c13
-    (Alu_metc13 / Vlu) * Mr_metc13,		# Mlu_metc13
-    (Are_apap / Vre) * Mr_apap,		# Mre_apap
-    (Are_co2c13 / Vre) * Mr_co2c13,		# Mre_co2c13
-    (Are_metc13 / Vre) * Mr_metc13,		# Mre_metc13
-    (Asp_apap / Vsp) * Mr_apap,		# Msp_apap
-    (Asp_co2c13 / Vsp) * Mr_co2c13,		# Msp_co2c13
-    (Asp_metc13 / Vsp) * Mr_metc13,		# Msp_metc13
-    (Ave_apap / Vve) * Mr_apap,		# Mve_apap
-    (Ave_co2c13 / Vve) * Mr_co2c13,		# Mve_co2c13
-    (Ave_metc13 / Vve) * Mr_metc13,		# Mve_metc13
-    BSA * P_CO2BSA / 60,		# P_CO2
-    P_CO2c13 / (P_CO2c12 + P_CO2c13),		# P_CO2Fc13
-    P_CO2c13 / P_CO2c12,		# P_CO2R
-    (1 / (1 + R_PDB)) * P_CO2,		# P_CO2c12
-    (R_PDB / (1 + R_PDB)) * P_CO2 + Exhalation_co2c13 / 60,		# P_CO2c13
-    (CO / 1000) * 3600,		# QC
-    QC * FQbo,		# Qbo
-    QC * FQgu,		# Qgu
-    QC * FQh,		# Qh
-    Qh - Qgu - Qsp,		# Qha
-    QC * FQhe,		# Qhe
-    QC * FQki,		# Qki
-    QC * FQlu,		# Qlu
-    QC * FQre,		# Qre
-    QC * FQsp,		# Qsp
     BW * FVar,		# Var
     BW * FVbo,		# Vbo
     BW * FVgu,		# Vgu
@@ -328,9 +227,6 @@ y = [
     BW * FVli,		# Vli
     BW * FVlu,		# Vlu
     BW * FVpl,		# Vpl
-    Vpl * Var / (Vve + Var),		# Vplas_art
-    Vpl * Vve / (Vve + Var),		# Vplas_ven
-    BW * FVre,		# Vre
     BW * FVsp,		# Vsp
     BW * FVve,		# Vve
     Aar_apap * Mr_apap,		# Xar_apap
@@ -340,9 +236,6 @@ y = [
     Abo_co2c13 * Mr_co2c13,		# Xbo_co2c13
     Abo_co2c13_fix * Mr_co2c13,		# Xbo_co2c13_fix
     Abo_metc13 * Mr_metc13,		# Xbo_metc13
-    Xar_apap + Xbo_apap + Xhe_apap + Xgu_apap + Xki_apap + Xli_apap + Xlu_apap + Xsp_apap + Xre_apap + Xve_apap,		# Xbody_apap
-    Xar_co2c13 + Xbo_co2c13 + Xhe_co2c13 + Xgu_co2c13 + Xki_co2c13 + Xli_co2c13 + Xlu_co2c13 + Xsp_co2c13 + Xre_co2c13 + Xve_co2c13,		# Xbody_co2c13
-    Xar_metc13 + Xbo_metc13 + Xhe_metc13 + Xgu_metc13 + Xki_metc13 + Xli_metc13 + Xlu_metc13 + Xsp_metc13 + Xre_metc13 + Xve_metc13,		# Xbody_metc13
     Abreath_co2c13 * Mr_co2c13,		# Xbreath_co2c13
     Agu_apap * Mr_apap,		# Xgu_apap
     Agu_co2c13 * Mr_co2c13,		# Xgu_co2c13
@@ -371,5 +264,100 @@ y = [
     Ave_apap * Mr_apap,		# Xve_apap
     Ave_co2c13 * Mr_co2c13,		# Xve_co2c13
     Ave_metc13 * Mr_metc13,		# Xve_metc13
+    (APAPD_HLM_CL / fumic_apap) * MPPGL * Vli * F_PAR * 60 / 1000,		# APAPD_CLliv
+    CO2FIX_HLM_CL * MPPGL * Vli * F_PAR * 60 / 1000,		# CO2FIX_CLliv
+    (CYP1A2MET_CL / fumic_metc13) * MPPGL * Vli * F_PAR * 60 / 1000,		# CYP1A2MET_CLliv
+    Aar_apap / Var,		# Car_apap
+    Aar_co2c13 / Var,		# Car_co2c13
+    Aar_metc13 / Var,		# Car_metc13
+    Abo_apap / Vbo,		# Cbo_apap
+    Abo_co2c13 / Vbo,		# Cbo_co2c13
+    Abo_co2c13_fix / Vbo,		# Cbo_co2c13_fix
+    Abo_metc13 / Vbo,		# Cbo_metc13
+    Agu_apap / Vgu,		# Cgu_apap
+    Agu_co2c13 / Vgu,		# Cgu_co2c13
+    Agu_metc13 / Vgu,		# Cgu_metc13
+    Ahe_apap / Vhe,		# Che_apap
+    Ahe_co2c13 / Vhe,		# Che_co2c13
+    Ahe_metc13 / Vhe,		# Che_metc13
+    Aki_apap / Vki,		# Cki_apap
+    Aki_co2c13 / Vki,		# Cki_co2c13
+    Aki_metc13 / Vki,		# Cki_metc13
+    Ali_apap / Vli,		# Cli_apap
+    Ali_co2c13 / Vli,		# Cli_co2c13
+    Ali_metc13 / Vli,		# Cli_metc13
+    Alu_apap / Vlu,		# Clu_apap
+    Alu_co2c13 / Vlu,		# Clu_co2c13
+    Alu_metc13 / Vlu,		# Clu_metc13
+    Asp_apap / Vsp,		# Csp_apap
+    Asp_co2c13 / Vsp,		# Csp_co2c13
+    Asp_metc13 / Vsp,		# Csp_metc13
+    Ave_apap / Vve,		# Cve_apap
+    Ave_co2c13 / Vve,		# Cve_co2c13
+    Ave_metc13 / Vve,		# Cve_metc13
+    (Aar_apap / Var) * Mr_apap,		# Mar_apap
+    (Aar_co2c13 / Var) * Mr_co2c13,		# Mar_co2c13
+    (Aar_metc13 / Var) * Mr_metc13,		# Mar_metc13
+    (Abo_apap / Vbo) * Mr_apap,		# Mbo_apap
+    (Abo_co2c13 / Vbo) * Mr_co2c13,		# Mbo_co2c13
+    (Abo_metc13 / Vbo) * Mr_metc13,		# Mbo_metc13
+    (Agu_apap / Vgu) * Mr_apap,		# Mgu_apap
+    (Agu_co2c13 / Vgu) * Mr_co2c13,		# Mgu_co2c13
+    (Agu_metc13 / Vgu) * Mr_metc13,		# Mgu_metc13
+    (Ahe_apap / Vhe) * Mr_apap,		# Mhe_apap
+    (Ahe_co2c13 / Vhe) * Mr_co2c13,		# Mhe_co2c13
+    (Ahe_metc13 / Vhe) * Mr_metc13,		# Mhe_metc13
+    (Aki_apap / Vki) * Mr_apap,		# Mki_apap
+    (Aki_co2c13 / Vki) * Mr_co2c13,		# Mki_co2c13
+    (Aki_metc13 / Vki) * Mr_metc13,		# Mki_metc13
+    (Ali_apap / Vli) * Mr_apap,		# Mli_apap
+    (Ali_co2c13 / Vli) * Mr_co2c13,		# Mli_co2c13
+    (Ali_metc13 / Vli) * Mr_metc13,		# Mli_metc13
+    (Alu_apap / Vlu) * Mr_apap,		# Mlu_apap
+    (Alu_co2c13 / Vlu) * Mr_co2c13,		# Mlu_co2c13
+    (Alu_metc13 / Vlu) * Mr_metc13,		# Mlu_metc13
+    (Asp_apap / Vsp) * Mr_apap,		# Msp_apap
+    (Asp_co2c13 / Vsp) * Mr_co2c13,		# Msp_co2c13
+    (Asp_metc13 / Vsp) * Mr_metc13,		# Msp_metc13
+    (Ave_apap / Vve) * Mr_apap,		# Mve_apap
+    (Ave_co2c13 / Vve) * Mr_co2c13,		# Mve_co2c13
+    (Ave_metc13 / Vve) * Mr_metc13,		# Mve_metc13
+    BSA * P_CO2BSA / 60,		# P_CO2
+    (CO / 1000) * 3600,		# QC
+    Vpl * Var / (Vve + Var),		# Vplas_art
+    Vpl * Vve / (Vve + Var),		# Vplas_ven
+    BW * FVre,		# Vre
+    Xar_apap + Xbo_apap + Xhe_apap + Xgu_apap + Xki_apap + Xli_apap + Xlu_apap + Xsp_apap + Xre_apap + Xve_apap,		# Xbody_apap
+    Xar_co2c13 + Xbo_co2c13 + Xhe_co2c13 + Xgu_co2c13 + Xki_co2c13 + Xli_co2c13 + Xlu_co2c13 + Xsp_co2c13 + Xre_co2c13 + Xve_co2c13,		# Xbody_co2c13
+    Xar_metc13 + Xbo_metc13 + Xhe_metc13 + Xgu_metc13 + Xki_metc13 + Xli_metc13 + Xlu_metc13 + Xsp_metc13 + Xre_metc13 + Xve_metc13,		# Xbody_metc13
+    Cki_apap * fup_apap,		# Cki_free_apap
+    Cki_co2c13 * fup_co2c13,		# Cki_free_co2c13
+    Cki_metc13 * fup_metc13,		# Cki_free_metc13
+    Cli_apap * fup_apap,		# Cli_free_apap
+    Cli_co2c13 * fup_co2c13,		# Cli_free_co2c13
+    Cli_metc13 * fup_metc13,		# Cli_free_metc13
+    Cve_apap / BP_apap,		# Cpl_ve_apap
+    Cve_co2c13 / BP_co2c13,		# Cpl_ve_co2c13
+    Cve_metc13 / BP_metc13,		# Cpl_ve_metc13
+    Are_apap / Vre,		# Cre_apap
+    Are_co2c13 / Vre,		# Cre_co2c13
+    Are_metc13 / Vre,		# Cre_metc13
+    (Are_apap / Vre) * Mr_apap,		# Mre_apap
+    (Are_co2c13 / Vre) * Mr_co2c13,		# Mre_co2c13
+    (Are_metc13 / Vre) * Mr_metc13,		# Mre_metc13
+    (1 / (1 + R_PDB)) * P_CO2,		# P_CO2c12
+    (R_PDB / (1 + R_PDB)) * P_CO2 + Exhalation_co2c13 / 60,		# P_CO2c13
+    QC * FQbo,		# Qbo
+    QC * FQgu,		# Qgu
+    QC * FQh,		# Qh
+    QC * FQhe,		# Qhe
+    QC * FQki,		# Qki
+    QC * FQlu,		# Qlu
+    QC * FQre,		# Qre
+    QC * FQsp,		# Qsp
+    ((P_CO2c13 / P_CO2c12 - R_PDB) / R_PDB) * 1000,		# DOB
+    P_CO2c13 / (P_CO2c12 + P_CO2c13),		# P_CO2Fc13
+    P_CO2c13 / P_CO2c12,		# P_CO2R
+    Qh - Qgu - Qsp,		# Qha
 ]
 
