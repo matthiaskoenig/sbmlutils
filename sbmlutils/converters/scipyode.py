@@ -108,8 +108,8 @@ def f_ode(sbml_file, py_file):
             else:
                 xids[sid] += '- {}*({})/{}'.format(stoichiometry, formula, vid)
         for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
-            stoichiometry = reactant.getStoichiometry()
-            sid = reactant.getSpecies()
+            stoichiometry = product.getStoichiometry()
+            sid = product.getSpecies()
             species = model.getSpecies(sid)
             vid = species.getCompartment()
 
@@ -118,10 +118,6 @@ def f_ode(sbml_file, py_file):
                 xids[sid] += ' + {}*({})'.format(stoichiometry, formula)
             else:
                 xids[sid] += ' + {}*({})/{}'.format(stoichiometry, formula, vid)
-
-
-    # TODO: write the kinetic laws for reactions
-
 
 
     with open(py_file, "w") as f:
@@ -138,7 +134,9 @@ def f_ode(sbml_file, py_file):
             f.write("]\n\n")
 
     # TODO: necessary to find dependency tree for yids (order accordingly)
-    # check which math depends on other math
+    # check which math depends on other math (build tree of dependencies)
+
+
 
 
 

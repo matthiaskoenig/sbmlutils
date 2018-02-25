@@ -116,6 +116,7 @@ def evaluableMathML(astnode, variables={}, array=False):
     # <replacements>
     formula = formula.replace("&&", 'and')
     formula = formula.replace("||", 'or')
+    formula = formula.replace("^", '**')
 
     return formula
 
