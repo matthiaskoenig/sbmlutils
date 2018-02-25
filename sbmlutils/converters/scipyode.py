@@ -10,6 +10,7 @@ try:
 except ImportError:
     import tesbml as libsbml
 
+import re
 from pprint import pprint
 from sbmlutils.converters.mathml import evaluableMathML
 from collections import defaultdict
@@ -29,7 +30,7 @@ def f_ode(sbml_file, py_file):
     model = doc.getModel()  # type: libsbml.Model
 
     x0 = {}
-    xids = {}  # state variables x
+    dxids = {}  # state variables x
     pids = {}  # parameters p
     yids = {}  # assigned variables
     rids = {}
@@ -51,7 +52,7 @@ def f_ode(sbml_file, py_file):
     # --------------
     for species in model.getListOfSpecies():  # type: libsbml.Species
         sid = species.getId()
-        xids[sid] = ''
+        dxids[sid] = ''
 
     # SBML_ASSIGNMENT_RULE = _libsbml.SBML_ASSIGNMENT_RULE
     # SBML_RATE_RULE = _libsbml.SBML_RATE_RULE
@@ -70,7 +71,8 @@ def f_ode(sbml_file, py_file):
 
             # store rule
             astnode = rate_rule.getMath()
-            xids[variable] = evaluableMathML(astnode)
+            dxids[variable] = astnode
+            # dxids[variable] = evaluableMathML(astnode)
 
             # could be species or variable
             if variable in pids:
@@ -83,75 +85,139 @@ def f_ode(sbml_file, py_file):
             as_rule = rule  # type: libsbml.RateRule
             variable = as_rule.getVariable()
             astnode = as_rule.getMath()
-            yids[variable] = evaluableMathML(astnode)
-            if variable in xids:
-                del xids[variable]
+            yids[variable] = astnode
+            # yids[variable] = evaluableMathML(astnode)
+            if variable in dxids:
+                del dxids[variable]
             if variable in pids:
                 del pids[variable]
+
+
+    def add_reaction_formula(rid, species_ref, sign):
+        """ Adds part of reaction formula to species.
+        :param rid:
+        :param species_ref:
+        :param sign:
+        :return:
+        """
+        stoichiometry = species_ref.getStoichiometry()
+        sid = species_ref.getSpecies()
+        species = model.getSpecies(sid)
+        vid = species.getCompartment()
+
+        # stoichiometry prefix
+        if abs(stoichiometry - 1.0) < 1E-10:
+            stoichiometry = ''
+        else:
+            stoichiometry = '{}*'.format(stoichiometry)
+
+        # check if only substance units
+        if species.getHasOnlySubstanceUnits():
+            dxids[sid] += ' {} {}{}'.format(sign, stoichiometry, rid)
+        else:
+            dxids[sid] += ' {} {}{}/{}'.format(sign, stoichiometry, rid, vid)
 
     # Process the kinetic laws of reactions
     for reaction in model.getListOfReactions():  # type: libsbml.Reaction
         rid = reaction.getId()
-        math = None
+        formula = None  # fallback
         if reaction.isSetKineticLaw():
             klaw = reaction.getKineticLaw()  # type: libsbml.KineticLaw
             astnode = klaw.getMath()
-            formula = evaluableMathML(astnode)
-        rids[rid] = formula
+        rids[rid] = astnode
+
         for reactant in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
-            stoichiometry = reactant.getStoichiometry()
-            sid = reactant.getSpecies()
-            species = model.getSpecies(sid)
-            vid = species.getCompartment()
-
-            # check if only substance units
-            if species.getHasOnlySubstanceUnits():
-                xids[sid] += ' - {}*({})'.format(stoichiometry, formula)
-            else:
-                xids[sid] += '- {}*({})/{}'.format(stoichiometry, formula, vid)
+            add_reaction_formula(rid=rid, species_ref=reactant, sign="-")
         for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
-            stoichiometry = product.getStoichiometry()
-            sid = product.getSpecies()
-            species = model.getSpecies(sid)
-            vid = species.getCompartment()
+            add_reaction_formula(rid=rid, species_ref=product, sign="+")
 
-            # check if only substance units
-            if species.getHasOnlySubstanceUnits():
-                xids[sid] += ' + {}*({})'.format(stoichiometry, formula)
-            else:
-                xids[sid] += ' + {}*({})/{}'.format(stoichiometry, formula, vid)
 
-    # TODO: necessary to find dependency tree for yids (order accordingly)
     # check which math depends on other math (build tree of dependencies)
-
-    filtered_ids = set(list(pids.keys()) + list(xids.keys()) + list(rids.keys()))
+    filtered_ids = set(list(pids.keys()) + list(dxids.keys()) + list(rids.keys()))
     yids_ordered = ordered_yids(model, filtered_ids)
     print(yids_ordered)
     print(len(yids_ordered))
 
+    # replacement dictionaries:
+    pids_idx = {}
+    for k, key in enumerate(sorted(pids.keys())):
+        pids_idx[key] = k
+    yids_idx = {}
+    for k, key in enumerate(sorted(yids_ordered)):
+        yids_idx[key] = k
+    dxids_idx = {}
+    for k, key in enumerate(sorted(dxids.keys())):
+        dxids_idx[key] = k
+
+    pprint(pids_idx)
+
+
+    for d in [yids, rids, dxids]:
+        # y: replace p and x, y
+        for key in d:
+            astnode = d[key]
+            if not isinstance(astnode, libsbml.ASTNode):
+                continue
+
+            # replace parameters
+            for key_rep, index in pids_idx.items():
+                ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
+                astnode.replaceArgument(key_rep, ast_rep)
+            # replace states
+            for key_rep, index in dxids_idx.items():
+                ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
+                astnode.replaceArgument(key_rep, ast_rep)
+            # replace y
+            for key_rep, index in yids_idx.items():
+                ast_rep = libsbml.parseL3Formula('y__{}__'.format(index))
+                astnode.replaceArgument(key_rep, ast_rep)
+
+            formula = evaluableMathML(astnode)
+            # TODO: perform replacements with indices
+            formula = re.sub("p__", "p[", formula)
+            formula = re.sub("x__", "x[", formula)
+            formula = re.sub("y__", "y[", formula)
+            formula = re.sub("__", "]", formula)
+
+            d[key] = formula
 
     # ------------------------
     # Write ODE
     # ------------------------
 
     with open(py_file, "w") as f:
-        empty_line = "# " + '-'*80 + "\n"
+
+
 
         # write states, reactions, pids
-        for vid, d in [('x', xids), ('r', rids), ('p', pids)]:
-
+        for vid, d in [('p', pids)]:
             f.write("{} = [\n".format(vid))
             for key in sorted(d.keys()):
                 f.write('    {},\t\t# {}\n'.format(d[key], key))
             f.write("]\n\n")
 
-        # write y
-        f.write("{} = [\n".format('y'))
+
+        # write ode function
+        f.write("def f_dxdt(x, t, p):\n")
+        f.write('    """ ODE system """\n')
+
+        # y
+        f.write("    {} = [\n".format('y'))
         for key in yids_ordered:
-            f.write('    {},\t\t# {}\n'.format(yids[key], key))
-        f.write("]\n\n")
+            f.write('        {},\t\t# {}\n'.format(yids[key], key))
+        f.write("    ]\n\n")
+
+        # r
+        f.write("    # reactions\n")
+        for key in sorted(rids.keys()):
+            f.write('    {} = {}\n'.format(key, rids[key]))
+        f.write("\n\n")
 
 
+        f.write("    return [\n")
+        for key in sorted(dxids.keys()):
+            f.write('        {},\t\t# {}\n'.format(dxids[key], key))
+        f.write("    ]\n\n")
 
     # handle initial assignments
 
