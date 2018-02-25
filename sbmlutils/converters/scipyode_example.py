@@ -94,10 +94,31 @@ def example_scipy(model_id):
     plt.show()
     '''
 
+def example_scipy2(model_id):
+    # convert xpp to sbml
+    in_dir = './scipyode_example'
+    out_dir = './scipyode_example/results'
+
+    sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
+
+    # ----------------------
+    # scipy simulation
+    # ----------------------
+    from scipy.integrate import odeint
+    from sbmlutils.converters.scipyode_example.limax_pkpd_38 import p, x0, f_dxdt
+
+    # intital condition and timespan
+    T = np.arange(0, 10, 0.1)
+
+    X = odeint(f_dxdt, x0, T, p)
+    plt.plot(T, X, linewidth=2)
+    plt.show()
+
 
 
 if __name__ == "__main__":
-    example_scipy("limax_pkpd_37")
+    # example_scipy("limax_pkpd_37")
+    example_scipy2("limax_pkpd_37")
 
 
 
