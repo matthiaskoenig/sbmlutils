@@ -41,11 +41,11 @@ class SBML2ODE(object):
         """
         self.doc = doc  # type: libsbml.SBMLDocument
 
-
-        self.x0 = {}  # initial conditions
-        self.dx = {}  # state variables x
-        self.p = {}  # parameters p
-        self.y = {}  # assigned variables
+        self.x0 = {}    # initial amounts/concentrations
+        self.a = {}     # initial assignments
+        self.dx = {}    # state variables x (odes)
+        self.p = {}     # parameters p (constants)
+        self.y = {}     # assigned variables
         self.yids_ordered = None
 
         self._create_odes()
@@ -75,6 +75,18 @@ class SBML2ODE(object):
             self.p[pid] = value
 
         # --------------
+        # compartments
+        # --------------
+        # constant compartments (parameters of the system)
+        for compartment in model.getListOfCompartments():  # type: libsbml.Compartment
+            cid = compartment.getId()
+            if compartment.getConstant():
+                value = compartment.getSize()
+            else:
+                value = ''
+            self.p[cid] = value
+
+        # --------------
         # species
         # --------------
         for species in model.getListOfSpecies():  # type: libsbml.Species
@@ -97,6 +109,17 @@ class SBML2ODE(object):
 
             self.x0[sid] = value
 
+        # --------------------
+        # initial assignments
+        # --------------------
+        # types of objects whose identifiers are permitted as the values of InitialAssignment symbol attributes
+        # are Compartment, Species, SpeciesReference and (global) Parameter objects in the model.
+
+        for assignment in model.getListOfInitialAssignments():  # type: libsbml.InitialAssignment
+            variable = assignment.getSymbol()
+            astnode = assignment.getMath()
+            self.x0[variable] = astnode
+
         # --------------
         # rules
         # --------------
@@ -116,11 +139,15 @@ class SBML2ODE(object):
 
                 # dxids[variable] = evaluableMathML(astnode)
 
-                # could be species or parameter
+                # could be species, parameter, or compartment
                 if variable in self.p:
                     del self.p[variable]
                     parameter = model.getParameter(variable)
-                    self.x0[variable] = parameter.getValue()
+                    if parameter:
+                        self.x0[variable] = parameter.getValue()
+                    compartment = model.getCompartment(variable)
+                    if compartment:
+                        self.x0[variable] = compartment.getSize()
 
             # --------------
             # assignment rules
@@ -271,16 +298,11 @@ class SBML2ODE(object):
                                  extensions=['jinja2.ext.autoescape'],
                                  trim_blocks=True,
                                  lstrip_blocks=True)
-        # additional filters
-        # for key in sbmlfilters.filters:
-        #    env.filters[key] = getattr(sbmlfilters, key)
-
         template = env.get_template(template)
 
         # Context
-        model = self.doc.getModel()
         c = {
-            'model': model,
+            'model': self.doc.getModel(),
             'xids': sorted(self.dx.keys()),
             'pids': sorted(self.p.keys()),
             'yids': self.yids_ordered,
@@ -290,7 +312,6 @@ class SBML2ODE(object):
             'p': self.p,
             'y': self.y,
             'dx': self.dx,
-
         }
         return template.render(c)
 
@@ -391,7 +412,7 @@ class SBML2ODE(object):
 if __name__ == "__main__":
 
     # convert xpp to sbml
-    model_id = "limax_pkpd_38"
+    model_id = "limax_pkpd_39"
     in_dir = './odefac_example'
     out_dir = './odefac_example/results'
     sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))

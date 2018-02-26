@@ -71,10 +71,8 @@ def example_scipy(model_id):
     p = np.empty_like(ode.p)
     p[:] = ode.p
 
+    # set PODOSE_apap
     x0[38] = 5600
-
-    # Updated initial conditions
-    # TODO
 
     # Integration
     X = odeint(ode.f_dxdt, x0, T, args=(p, ))
@@ -98,7 +96,7 @@ def example_scipy(model_id):
 
 
 if __name__ == "__main__":
-    model_id = "limax_pkpd_38"
+    model_id = "limax_pkpd_39"
     example_roadrunner(model_id)
     example_scipy(model_id)
 
