@@ -17,13 +17,10 @@ from sbmlutils.converters.mathml import evaluableMathML
 from collections import defaultdict
 
 
-# TODO: separate in required y and yc (calculated y)
-# TODO: helper functions for y calculation and data frame
-
-# TODO: proper calculation of initial conditions (initial assignments & assignment rules)
 # TODO: R export
+# TODO: proper calculation of initial conditions (initial assignments & assignment rules)
 
-
+# TODO: separate in required y and yc (calculated y)
 # TODO: does not handle ConversionFactors, FunctionDefinitions nor Events
 
 # template location
@@ -168,8 +165,6 @@ class SBML2ODE(object):
         for k, key in enumerate(sorted(self.dx.keys())):
             dxids_idx[key] = k
 
-        pprint(pids_idx)
-
         for d in [self.y, self.dx]:
             # replace p and x, y
             for key in d:
@@ -298,8 +293,6 @@ class SBML2ODE(object):
                         s.remove(yid)
 
             # still nodes in dependency graph (recursive removal)
-            print(len(yids))
-            print(len(g))
             if len(g) > 0:
                 yids = create_ordered_variables(g, yids=yids)
             return yids

@@ -3,13 +3,15 @@ Test scipy ode file.
 """
 from __future__ import print_function, absolute_import
 import os
-from sbmlutils.report import sbmlreport
-from sbmlutils.converters import xpp
+
 import roadrunner
 from roadrunner import SelectionRecord
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+
+from scipy.integrate import odeint
+from sbmlutils.converters.scipyode import SBML2ODE
 
 
 def example_roadrunner(model_id):
@@ -52,79 +54,68 @@ def example_roadrunner(model_id):
 
 
 def example_scipy(model_id):
-    # convert xpp to sbml
+
+    # convert SBML to ode
     in_dir = './scipyode_example'
     out_dir = './scipyode_example/results'
-
     sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
+    py_file = os.path.join(in_dir, "{}.py".format(model_id))
+
+    # ----------------------
+    # SBML -> ODE
+    # ----------------------
+    # generate ode.py
+    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
+    sbml2ode.to_python(py_file=py_file)
+
+    # import the info
+    # from sbmlutils.converters.scipyode_example.limax_pkpd_38 import p, x0, f_dxdt, f_z
+    from importlib.machinery import SourceFileLoader
+    ode = SourceFileLoader("module.name", py_file).load_module()
 
     # ----------------------
     # scipy simulation
     # ----------------------
-    from scipy.integrate import odeint
-    def simple_ode(x, t):
+    # Simulation time
+    T = np.arange(0, 24, 0.01)
 
-        # define parameters
-        c = 1.0
-        k = 2.0
-        dxdt = c - k * x
-        return dxdt
+    # Change parameters & initial amount/concentration (in copy)
+    x0 = np.empty_like(ode.x0)
+    x0[:] = ode.x0
+    p = np.empty_like(ode.p)
+    p[:] = ode.p
 
-    # intital condition and timespan
-    T = np.arange(0, 10, 0.1)
-    X0 = 0
-    X = odeint(simple_ode, X0, T)
-    plt.plot(T, X, linewidth=2)
-    plt.show()
+    x0[38] = 5600
 
-    '''
+    # Updated initial conditions
+    # TODO
+
+    # Integration
+    X = odeint(ode.f_dxdt, x0, T, args=(p, ))
+    # Solution DataFrame
+    s = ode.f_z(X, T, p)
+
     # ---------------------
     # plot results
     # ---------------------
     fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(5, 5))
     fig.subplots_adjust(wspace=0.3, hspace=0.3)
-    ax1.plot(s.time, s.Mve_apap, color="black", label="roadrunner")
+    ax1.plot(s.time, s.Mve_apap, color="black", label="scipy")
     ax1.set_ylabel('Paracetamol [mg/l]')
 
     for ax in (ax1,):
         ax.set_title(model_id)
         ax.set_xlabel('time [h]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "roadrunner.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "scipy.png"), dpi=300, bbox_inches="tight")
     plt.show()
-    '''
-
-def example_scipy2():
-    # convert xpp to sbml
-    # in_dir = './scipyode_example'
-    # out_dir = './scipyode_example/results'
-
-    # sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
-
-    # ----------------------
-    # scipy simulation
-    # ----------------------
-    from scipy.integrate import odeint
-    from sbmlutils.converters.scipyode_example.limax_pkpd_38 import p, x0, f_dxdt
-
-    # intital condition and timespan
-    T = np.arange(0, 24, 0.01)
-
-    x0[38] = 5600
-
-    X = odeint(f_dxdt, x0, T, args=(p, ))
-    plt.plot(T, X, linewidth=2)
-    plt.show()
-
-    plt.plot(T, X[:, 32])
-    plt.show()
-
-
 
 
 if __name__ == "__main__":
+    model_id = "limax_pkpd_38"
     # example_scipy("limax_pkpd_37")
-    example_scipy2()
+    example_roadrunner(model_id)
+    example_scipy(model_id)
 
 
 
