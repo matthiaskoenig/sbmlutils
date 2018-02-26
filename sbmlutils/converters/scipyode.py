@@ -17,6 +17,7 @@ from collections import defaultdict
 
 # TODO: create class for SBML to ODE conversion
 # TODO: does not handle ConversionFactors, FunctionDefinitions nor Events
+# TODO: proper calculation of initial conditions (initial assignments & assignment rules)
 
 
 def f_ode(sbml_file, py_file):
@@ -209,33 +210,61 @@ def f_ode(sbml_file, py_file):
     # ------------------------
 
     with open(py_file, "w") as f:
+        # -------------------
+        # imports
+        # -------------------
         f.write('"""\n')
         f.write("{}\n".format(model_id))
         f.write('"""\n')
         f.write("import numpy as np\n")
         f.write("\n\n")
 
-        f.write("x0 = [\n")
-        for key in sorted(x0.keys()):
-            f.write('    {},\t\t# {}\n'.format(x0[key], key))
+        # -------------------
+        # ids
+        # -------------------
+        f.write("xids = [")
+        for key in sorted(dxids.keys()):
+            f.write('"{}", '.format(key))
+        f.write("]\n")
+
+        f.write("pids = [")
+        for key in sorted(pids.keys()):
+            f.write('"{}", '.format(key))
+        f.write("]\n")
+
+        f.write("yids = [")
+        for key in yids_ordered:
+            f.write('"{}", '.format(key))
         f.write("]\n\n")
 
+        # -------------------
+        # initial conditions
+        # -------------------
+        f.write("x0 = [\n")
+        for k, key in enumerate(sorted(x0.keys())):
+            f.write('    {},\t\t# {} [{}]\n'.format(x0[key], key, k))
+        f.write("]\n\n")
 
-        # write states, reactions, pids
+        # -------------------
+        # parameters
+        # -------------------
         for vid, d in [('p', pids)]:
             f.write("{} = [\n".format(vid))
-            for key in sorted(d.keys()):
-                f.write('    {},\t\t# {}\n'.format(d[key], key))
+            for k, key in enumerate(sorted(d.keys())):
+                f.write('    {},\t\t# {} [{}]\n'.format(d[key], key, k))
             f.write("]\n\n")
 
-        # write ode function
+        # -------------------
+        # odes
+        # -------------------
+
         f.write("def f_dxdt(x, t, p):\n")
         f.write('    """ ODE system """\n')
 
         # y
         f.write("    y = np.zeros(shape=({}, 1))\n".format(len(yids)))
         for k, key in enumerate(yids_ordered):
-            f.write('    y[{}] = {},\t\t# {}\n'.format(k, yids[key], key))
+            f.write('    y[{}] = {},\t\t# {} [{}]\n'.format(k, yids[key], key, k))
         f.write("\n\n")
 
         # r
@@ -246,27 +275,14 @@ def f_ode(sbml_file, py_file):
 
 
         f.write("    return [\n")
-        for key in sorted(dxids.keys()):
-            f.write('        {},\t\t# {}\n'.format(dxids[key], key))
+        for k, key in enumerate(sorted(dxids.keys())):
+            f.write('        {},\t\t# {} [{}]\n'.format(dxids[key], key, k))
         f.write("    ]\n\n")
 
-    # handle initial assignments
+    # TODO: handle initial assignments
+    # TODO: separate in required y and yc (calculated y),
+    # TODO: provide functions for calculating the full solution (as DataFrame)
 
-    # -----------------
-    # assignment rules
-    # -----------------
-    # def y(x, t):
-
-
-    def fdxdt(x, t, p):
-
-        # calculate y values which are depending on x and p and possible other y (in order of dependency
-        # y =
-        # calculate the next differential equation
-        c = 1.0
-        k = 2.0
-        dxdt = c - k * x
-        return dxdt
 
     return x, xids, p, pids, fdxdt
 
