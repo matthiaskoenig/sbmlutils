@@ -428,3 +428,245 @@ f_dxdt <- function(t, x, p){
         dcum_dose_metc13 = p[85] * 60
     ))
 }
+
+f_y <- function(t, x, p){
+    # Calculate y
+
+    Absorption_apap = (p[47] * x[39] / p[75]) * p[34]  # [1] Absorption_apap
+    Absorption_co2c13 = (p[48] * x[40] / p[76]) * p[35]  # [2] Absorption_co2c13
+    Absorption_metc13 = (p[49] * x[41] / p[77]) * p[36]  # [3] Absorption_metc13
+    BSA = 0.024265 * (p[6] / 1)**0.5378 * (p[37] / 1)**0.3964  # [4] BSA
+    CO = p[6] * p[12] + (p[38] - p[39]) * p[13] / 60  # [5] CO
+    FQre = 1 - (p[16] + p[19] + p[17] + p[20] + p[18] + p[22])  # [6] FQre
+    FVre = 1 - (p[24] + p[26] + p[25] + p[27] + p[28] + p[29] + p[31] + p[32] + p[23] + p[30])  # [7] FVre
+    Infusion_apap = (p[83] / p[75]) * 60  # [8] Infusion_apap
+    Infusion_co2c13 = (p[84] / p[76]) * 60  # [9] Infusion_co2c13
+    Infusion_metc13 = (p[85] / p[77]) * 60  # [10] Infusion_metc13
+    Ki_apap = (1.386 / p[92]) * 3600  # [11] Ki_apap
+    Ki_co2c13 = (1.386 / p[93]) * 3600  # [12] Ki_co2c13
+    Ki_metc13 = (1.386 / p[94]) * 3600  # [13] Ki_metc13
+    Var = p[6] * p[23]  # [14] Var
+    Vbo = p[6] * p[24]  # [15] Vbo
+    Vgu = p[6] * p[25]  # [16] Vgu
+    Vhe = p[6] * p[26]  # [17] Vhe
+    Vki = p[6] * p[27]  # [18] Vki
+    Vli = p[6] * p[28]  # [19] Vli
+    Vlu = p[6] * p[29]  # [20] Vlu
+    Vpl = p[6] * p[30]  # [21] Vpl
+    Vsp = p[6] * p[31]  # [22] Vsp
+    Vve = p[6] * p[32]  # [23] Vve
+    Xar_apap = x[1] * p[75]  # [24] Xar_apap
+    Xar_co2c13 = x[2] * p[76]  # [25] Xar_co2c13
+    Xar_metc13 = x[3] * p[77]  # [26] Xar_metc13
+    Xbo_apap = x[4] * p[75]  # [27] Xbo_apap
+    Xbo_co2c13 = x[5] * p[76]  # [28] Xbo_co2c13
+    Xbo_co2c13_fix = x[6] * p[76]  # [29] Xbo_co2c13_fix
+    Xbo_metc13 = x[7] * p[77]  # [30] Xbo_metc13
+    Xbreath_co2c13 = x[8] * p[76]  # [31] Xbreath_co2c13
+    Xgu_apap = x[9] * p[75]  # [32] Xgu_apap
+    Xgu_co2c13 = x[10] * p[76]  # [33] Xgu_co2c13
+    Xgu_metc13 = x[11] * p[77]  # [34] Xgu_metc13
+    Xhe_apap = x[12] * p[75]  # [35] Xhe_apap
+    Xhe_co2c13 = x[13] * p[76]  # [36] Xhe_co2c13
+    Xhe_metc13 = x[14] * p[77]  # [37] Xhe_metc13
+    Xki_apap = x[15] * p[75]  # [38] Xki_apap
+    Xki_co2c13 = x[16] * p[76]  # [39] Xki_co2c13
+    Xki_metc13 = x[17] * p[77]  # [40] Xki_metc13
+    Xli_apap = x[18] * p[75]  # [41] Xli_apap
+    Xli_co2c13 = x[19] * p[76]  # [42] Xli_co2c13
+    Xli_metc13 = x[20] * p[77]  # [43] Xli_metc13
+    Xlu_apap = x[21] * p[75]  # [44] Xlu_apap
+    Xlu_co2c13 = x[22] * p[76]  # [45] Xlu_co2c13
+    Xlu_metc13 = x[23] * p[77]  # [46] Xlu_metc13
+    Xre_apap = x[24] * p[75]  # [47] Xre_apap
+    Xre_co2c13 = x[25] * p[76]  # [48] Xre_co2c13
+    Xre_metc13 = x[26] * p[77]  # [49] Xre_metc13
+    Xsp_apap = x[27] * p[75]  # [50] Xsp_apap
+    Xsp_co2c13 = x[28] * p[76]  # [51] Xsp_co2c13
+    Xsp_metc13 = x[29] * p[77]  # [52] Xsp_metc13
+    Xurine_apap = x[30] * p[75]  # [53] Xurine_apap
+    Xurine_co2c13 = x[31] * p[76]  # [54] Xurine_co2c13
+    Xurine_metc13 = x[32] * p[77]  # [55] Xurine_metc13
+    Xve_apap = x[33] * p[75]  # [56] Xve_apap
+    Xve_co2c13 = x[34] * p[76]  # [57] Xve_co2c13
+    Xve_metc13 = x[35] * p[77]  # [58] Xve_metc13
+    APAPD_CLliv = (p[1] / p[86]) * p[74] * Vli * p[33] * 60 / 1000  # [59] APAPD_CLliv
+    CO2FIX_CLliv = p[10] * p[74] * Vli * p[33] * 60 / 1000  # [60] CO2FIX_CLliv
+    CYP1A2MET_CLliv = (p[14] / p[88]) * p[74] * Vli * p[33] * 60 / 1000  # [61] CYP1A2MET_CLliv
+    Car_apap = x[1] / Var  # [62] Car_apap
+    Car_co2c13 = x[2] / Var  # [63] Car_co2c13
+    Car_metc13 = x[3] / Var  # [64] Car_metc13
+    Cbo_apap = x[4] / Vbo  # [65] Cbo_apap
+    Cbo_co2c13 = x[5] / Vbo  # [66] Cbo_co2c13
+    Cbo_co2c13_fix = x[6] / Vbo  # [67] Cbo_co2c13_fix
+    Cbo_metc13 = x[7] / Vbo  # [68] Cbo_metc13
+    Cgu_apap = x[9] / Vgu  # [69] Cgu_apap
+    Cgu_co2c13 = x[10] / Vgu  # [70] Cgu_co2c13
+    Cgu_metc13 = x[11] / Vgu  # [71] Cgu_metc13
+    Che_apap = x[12] / Vhe  # [72] Che_apap
+    Che_co2c13 = x[13] / Vhe  # [73] Che_co2c13
+    Che_metc13 = x[14] / Vhe  # [74] Che_metc13
+    Cki_apap = x[15] / Vki  # [75] Cki_apap
+    Cki_co2c13 = x[16] / Vki  # [76] Cki_co2c13
+    Cki_metc13 = x[17] / Vki  # [77] Cki_metc13
+    Cli_apap = x[18] / Vli  # [78] Cli_apap
+    Cli_co2c13 = x[19] / Vli  # [79] Cli_co2c13
+    Cli_metc13 = x[20] / Vli  # [80] Cli_metc13
+    Clu_apap = x[21] / Vlu  # [81] Clu_apap
+    Clu_co2c13 = x[22] / Vlu  # [82] Clu_co2c13
+    Clu_metc13 = x[23] / Vlu  # [83] Clu_metc13
+    Csp_apap = x[27] / Vsp  # [84] Csp_apap
+    Csp_co2c13 = x[28] / Vsp  # [85] Csp_co2c13
+    Csp_metc13 = x[29] / Vsp  # [86] Csp_metc13
+    Cve_apap = x[33] / Vve  # [87] Cve_apap
+    Cve_co2c13 = x[34] / Vve  # [88] Cve_co2c13
+    Cve_metc13 = x[35] / Vve  # [89] Cve_metc13
+    Injection_apap = Ki_apap * x[36] / p[75]  # [90] Injection_apap
+    Injection_co2c13 = Ki_co2c13 * x[37] / p[76]  # [91] Injection_co2c13
+    Injection_metc13 = Ki_metc13 * x[38] / p[77]  # [92] Injection_metc13
+    Mar_apap = (x[1] / Var) * p[75]  # [93] Mar_apap
+    Mar_co2c13 = (x[2] / Var) * p[76]  # [94] Mar_co2c13
+    Mar_metc13 = (x[3] / Var) * p[77]  # [95] Mar_metc13
+    Mbo_apap = (x[4] / Vbo) * p[75]  # [96] Mbo_apap
+    Mbo_co2c13 = (x[5] / Vbo) * p[76]  # [97] Mbo_co2c13
+    Mbo_metc13 = (x[7] / Vbo) * p[77]  # [98] Mbo_metc13
+    Mgu_apap = (x[9] / Vgu) * p[75]  # [99] Mgu_apap
+    Mgu_co2c13 = (x[10] / Vgu) * p[76]  # [100] Mgu_co2c13
+    Mgu_metc13 = (x[11] / Vgu) * p[77]  # [101] Mgu_metc13
+    Mhe_apap = (x[12] / Vhe) * p[75]  # [102] Mhe_apap
+    Mhe_co2c13 = (x[13] / Vhe) * p[76]  # [103] Mhe_co2c13
+    Mhe_metc13 = (x[14] / Vhe) * p[77]  # [104] Mhe_metc13
+    Mki_apap = (x[15] / Vki) * p[75]  # [105] Mki_apap
+    Mki_co2c13 = (x[16] / Vki) * p[76]  # [106] Mki_co2c13
+    Mki_metc13 = (x[17] / Vki) * p[77]  # [107] Mki_metc13
+    Mli_apap = (x[18] / Vli) * p[75]  # [108] Mli_apap
+    Mli_co2c13 = (x[19] / Vli) * p[76]  # [109] Mli_co2c13
+    Mli_metc13 = (x[20] / Vli) * p[77]  # [110] Mli_metc13
+    Mlu_apap = (x[21] / Vlu) * p[75]  # [111] Mlu_apap
+    Mlu_co2c13 = (x[22] / Vlu) * p[76]  # [112] Mlu_co2c13
+    Mlu_metc13 = (x[23] / Vlu) * p[77]  # [113] Mlu_metc13
+    Msp_apap = (x[27] / Vsp) * p[75]  # [114] Msp_apap
+    Msp_co2c13 = (x[28] / Vsp) * p[76]  # [115] Msp_co2c13
+    Msp_metc13 = (x[29] / Vsp) * p[77]  # [116] Msp_metc13
+    Mve_apap = (x[33] / Vve) * p[75]  # [117] Mve_apap
+    Mve_co2c13 = (x[34] / Vve) * p[76]  # [118] Mve_co2c13
+    Mve_metc13 = (x[35] / Vve) * p[77]  # [119] Mve_metc13
+    P_CO2 = BSA * p[81] / 60  # [120] P_CO2
+    QC = (CO / 1000) * 3600  # [121] QC
+    Vplas_art = Vpl * Var / (Vve + Var)  # [122] Vplas_art
+    Vplas_ven = Vpl * Vve / (Vve + Var)  # [123] Vplas_ven
+    Vre = p[6] * FVre  # [124] Vre
+    Xbody_apap = Xar_apap + Xbo_apap + Xhe_apap + Xgu_apap + Xki_apap + Xli_apap + Xlu_apap + Xsp_apap + Xre_apap + Xve_apap  # [125] Xbody_apap
+    Xbody_co2c13 = Xar_co2c13 + Xbo_co2c13 + Xhe_co2c13 + Xgu_co2c13 + Xki_co2c13 + Xli_co2c13 + Xlu_co2c13 + Xsp_co2c13 + Xre_co2c13 + Xve_co2c13  # [126] Xbody_co2c13
+    Xbody_metc13 = Xar_metc13 + Xbo_metc13 + Xhe_metc13 + Xgu_metc13 + Xki_metc13 + Xli_metc13 + Xlu_metc13 + Xsp_metc13 + Xre_metc13 + Xve_metc13  # [127] Xbody_metc13
+    CO2FIX = CO2FIX_CLliv * 1 * (Cli_co2c13 / (Cli_co2c13 + p[11]))  # [128] CO2FIX
+    Cki_free_apap = Cki_apap * p[89]  # [129] Cki_free_apap
+    Cki_free_co2c13 = Cki_co2c13 * p[90]  # [130] Cki_free_co2c13
+    Cki_free_metc13 = Cki_metc13 * p[91]  # [131] Cki_free_metc13
+    Cli_free_apap = Cli_apap * p[89]  # [132] Cli_free_apap
+    Cli_free_co2c13 = Cli_co2c13 * p[90]  # [133] Cli_free_co2c13
+    Cli_free_metc13 = Cli_metc13 * p[91]  # [134] Cli_free_metc13
+    Cpl_ve_apap = Cve_apap / p[3]  # [135] Cpl_ve_apap
+    Cpl_ve_co2c13 = Cve_co2c13 / p[4]  # [136] Cpl_ve_co2c13
+    Cpl_ve_metc13 = Cve_metc13 / p[5]  # [137] Cpl_ve_metc13
+    Cre_apap = x[24] / Vre  # [138] Cre_apap
+    Cre_co2c13 = x[25] / Vre  # [139] Cre_co2c13
+    Cre_metc13 = x[26] / Vre  # [140] Cre_metc13
+    Exhalation_co2c13 = p[46] * 60 * Clu_co2c13 * Vlu  # [141] Exhalation_co2c13
+    Fixation_co2c13 = p[43] * 60 * Cve_co2c13 * Vve * (1 - Cbo_co2c13_fix / p[44])  # [142] Fixation_co2c13
+    Mre_apap = (x[24] / Vre) * p[75]  # [143] Mre_apap
+    Mre_co2c13 = (x[25] / Vre) * p[76]  # [144] Mre_co2c13
+    Mre_metc13 = (x[26] / Vre) * p[77]  # [145] Mre_metc13
+    P_CO2c12 = (1 / (1 + p[82])) * P_CO2  # [146] P_CO2c12
+    Qbo = QC * p[16]  # [147] Qbo
+    Qgu = QC * p[17]  # [148] Qgu
+    Qh = QC * p[18]  # [149] Qh
+    Qhe = QC * p[19]  # [150] Qhe
+    Qki = QC * p[20]  # [151] Qki
+    Qlu = QC * p[21]  # [152] Qlu
+    Qre = QC * FQre  # [153] Qre
+    Qsp = QC * p[22]  # [154] Qsp
+    Release_co2c13 = p[45] * 60 * Cbo_co2c13_fix * Vve  # [155] Release_co2c13
+    APAPD = APAPD_CLliv * 1 * (Cli_free_apap / (Cli_free_apap + p[2]))  # [156] APAPD
+    CYP1A2MET = CYP1A2MET_CLliv * 1 * (Cli_free_metc13 / (Cli_free_metc13 + p[15]))  # [157] CYP1A2MET
+    P_CO2c13 = (p[82] / (1 + p[82])) * P_CO2 + Exhalation_co2c13 / 60  # [158] P_CO2c13
+    Qha = Qh - Qgu - Qsp  # [159] Qha
+    ar_bo_apap = Qbo * Car_apap  # [160] ar_bo_apap
+    ar_bo_co2c13 = Qbo * Car_co2c13  # [161] ar_bo_co2c13
+    ar_bo_metc13 = Qbo * Car_metc13  # [162] ar_bo_metc13
+    ar_gu_apap = Qgu * Car_apap  # [163] ar_gu_apap
+    ar_gu_co2c13 = Qgu * Car_co2c13  # [164] ar_gu_co2c13
+    ar_gu_metc13 = Qgu * Car_metc13  # [165] ar_gu_metc13
+    ar_he_apap = Qhe * Car_apap  # [166] ar_he_apap
+    ar_he_co2c13 = Qhe * Car_co2c13  # [167] ar_he_co2c13
+    ar_he_metc13 = Qhe * Car_metc13  # [168] ar_he_metc13
+    ar_ki_apap = Qki * Car_apap  # [169] ar_ki_apap
+    ar_ki_co2c13 = Qki * Car_co2c13  # [170] ar_ki_co2c13
+    ar_ki_metc13 = Qki * Car_metc13  # [171] ar_ki_metc13
+    ar_re_apap = Qre * Car_apap  # [172] ar_re_apap
+    ar_re_co2c13 = Qre * Car_co2c13  # [173] ar_re_co2c13
+    ar_re_metc13 = Qre * Car_metc13  # [174] ar_re_metc13
+    ar_sp_apap = Qsp * Car_apap  # [175] ar_sp_apap
+    ar_sp_co2c13 = Qsp * Car_co2c13  # [176] ar_sp_co2c13
+    ar_sp_metc13 = Qsp * Car_metc13  # [177] ar_sp_metc13
+    bo_ve_apap = Qbo * (Cbo_apap / p[50]) * p[3]  # [178] bo_ve_apap
+    bo_ve_co2c13 = Qbo * (Cbo_co2c13 / p[51]) * p[4]  # [179] bo_ve_co2c13
+    bo_ve_metc13 = Qbo * (Cbo_metc13 / p[52]) * p[5]  # [180] bo_ve_metc13
+    gu_li_apap = Qgu * (Cgu_apap / p[53]) * p[3]  # [181] gu_li_apap
+    gu_li_co2c13 = Qgu * (Cgu_co2c13 / p[54]) * p[4]  # [182] gu_li_co2c13
+    gu_li_metc13 = Qgu * (Cgu_metc13 / p[55]) * p[5]  # [183] gu_li_metc13
+    he_ve_apap = Qhe * (Che_apap / p[56]) * p[3]  # [184] he_ve_apap
+    he_ve_co2c13 = Qhe * (Che_co2c13 / p[57]) * p[4]  # [185] he_ve_co2c13
+    he_ve_metc13 = Qhe * (Che_metc13 / p[58]) * p[5]  # [186] he_ve_metc13
+    ki_ve_apap = Qki * (Cki_apap / p[59]) * p[3]  # [187] ki_ve_apap
+    ki_ve_co2c13 = Qki * (Cki_co2c13 / p[60]) * p[4]  # [188] ki_ve_co2c13
+    ki_ve_metc13 = Qki * (Cki_metc13 / p[61]) * p[5]  # [189] ki_ve_metc13
+    li_ve_apap = Qh * (Cli_apap / p[62]) * p[3]  # [190] li_ve_apap
+    li_ve_co2c13 = Qh * (Cli_co2c13 / p[63]) * p[4]  # [191] li_ve_co2c13
+    li_ve_metc13 = Qh * (Cli_metc13 / p[64]) * p[5]  # [192] li_ve_metc13
+    lu_ar_apap = Qlu * (Clu_apap / p[65]) * p[3]  # [193] lu_ar_apap
+    lu_ar_co2c13 = Qlu * (Clu_co2c13 / p[66]) * p[4]  # [194] lu_ar_co2c13
+    lu_ar_metc13 = Qlu * (Clu_metc13 / p[67]) * p[5]  # [195] lu_ar_metc13
+    re_ve_apap = Qre * (Cre_apap / p[68]) * p[3]  # [196] re_ve_apap
+    re_ve_co2c13 = Qre * (Cre_co2c13 / p[69]) * p[4]  # [197] re_ve_co2c13
+    re_ve_metc13 = Qre * (Cre_metc13 / p[70]) * p[5]  # [198] re_ve_metc13
+    sp_li_apap = Qsp * (Csp_apap / p[71]) * p[3]  # [199] sp_li_apap
+    sp_li_co2c13 = Qsp * (Csp_co2c13 / p[72]) * p[4]  # [200] sp_li_co2c13
+    sp_li_metc13 = Qsp * (Csp_metc13 / p[73]) * p[5]  # [201] sp_li_metc13
+    ve_lu_apap = Qlu * Cve_apap  # [202] ve_lu_apap
+    ve_lu_co2c13 = Qlu * Cve_co2c13  # [203] ve_lu_co2c13
+    ve_lu_metc13 = Qlu * Cve_metc13  # [204] ve_lu_metc13
+    vre_apap = p[7] * Cki_free_apap  # [205] vre_apap
+    vre_co2c13 = p[8] * Cki_free_co2c13  # [206] vre_co2c13
+    vre_metc13 = p[9] * Cki_free_metc13  # [207] vre_metc13
+    DOB = ((P_CO2c13 / P_CO2c12 - p[82]) / p[82]) * 1000  # [208] DOB
+    P_CO2Fc13 = P_CO2c13 / (P_CO2c12 + P_CO2c13)  # [209] P_CO2Fc13
+    P_CO2R = P_CO2c13 / P_CO2c12  # [210] P_CO2R
+    ar_li_apap = Qha * Car_apap  # [211] ar_li_apap
+    ar_li_co2c13 = Qha * Car_co2c13  # [212] ar_li_co2c13
+    ar_li_metc13 = Qha * Car_metc13  # [213] ar_li_metc13
+
+    # --------------------------------------
+
+    y = np.empty(shape=(213))
+    c(Absorption_apap, Absorption_co2c13, Absorption_metc13, BSA, CO, FQre, FVre, Infusion_apap, Infusion_co2c13, Infusion_metc13, Ki_apap, Ki_co2c13, Ki_metc13, Var, Vbo, Vgu, Vhe, Vki, Vli, Vlu, Vpl, Vsp, Vve, Xar_apap, Xar_co2c13, Xar_metc13, Xbo_apap, Xbo_co2c13, Xbo_co2c13_fix, Xbo_metc13, Xbreath_co2c13, Xgu_apap, Xgu_co2c13, Xgu_metc13, Xhe_apap, Xhe_co2c13, Xhe_metc13, Xki_apap, Xki_co2c13, Xki_metc13, Xli_apap, Xli_co2c13, Xli_metc13, Xlu_apap, Xlu_co2c13, Xlu_metc13, Xre_apap, Xre_co2c13, Xre_metc13, Xsp_apap, Xsp_co2c13, Xsp_metc13, Xurine_apap, Xurine_co2c13, Xurine_metc13, Xve_apap, Xve_co2c13, Xve_metc13, APAPD_CLliv, CO2FIX_CLliv, CYP1A2MET_CLliv, Car_apap, Car_co2c13, Car_metc13, Cbo_apap, Cbo_co2c13, Cbo_co2c13_fix, Cbo_metc13, Cgu_apap, Cgu_co2c13, Cgu_metc13, Che_apap, Che_co2c13, Che_metc13, Cki_apap, Cki_co2c13, Cki_metc13, Cli_apap, Cli_co2c13, Cli_metc13, Clu_apap, Clu_co2c13, Clu_metc13, Csp_apap, Csp_co2c13, Csp_metc13, Cve_apap, Cve_co2c13, Cve_metc13, Injection_apap, Injection_co2c13, Injection_metc13, Mar_apap, Mar_co2c13, Mar_metc13, Mbo_apap, Mbo_co2c13, Mbo_metc13, Mgu_apap, Mgu_co2c13, Mgu_metc13, Mhe_apap, Mhe_co2c13, Mhe_metc13, Mki_apap, Mki_co2c13, Mki_metc13, Mli_apap, Mli_co2c13, Mli_metc13, Mlu_apap, Mlu_co2c13, Mlu_metc13, Msp_apap, Msp_co2c13, Msp_metc13, Mve_apap, Mve_co2c13, Mve_metc13, P_CO2, QC, Vplas_art, Vplas_ven, Vre, Xbody_apap, Xbody_co2c13, Xbody_metc13, CO2FIX, Cki_free_apap, Cki_free_co2c13, Cki_free_metc13, Cli_free_apap, Cli_free_co2c13, Cli_free_metc13, Cpl_ve_apap, Cpl_ve_co2c13, Cpl_ve_metc13, Cre_apap, Cre_co2c13, Cre_metc13, Exhalation_co2c13, Fixation_co2c13, Mre_apap, Mre_co2c13, Mre_metc13, P_CO2c12, Qbo, Qgu, Qh, Qhe, Qki, Qlu, Qre, Qsp, Release_co2c13, APAPD, CYP1A2MET, P_CO2c13, Qha, ar_bo_apap, ar_bo_co2c13, ar_bo_metc13, ar_gu_apap, ar_gu_co2c13, ar_gu_metc13, ar_he_apap, ar_he_co2c13, ar_he_metc13, ar_ki_apap, ar_ki_co2c13, ar_ki_metc13, ar_re_apap, ar_re_co2c13, ar_re_metc13, ar_sp_apap, ar_sp_co2c13, ar_sp_metc13, bo_ve_apap, bo_ve_co2c13, bo_ve_metc13, gu_li_apap, gu_li_co2c13, gu_li_metc13, he_ve_apap, he_ve_co2c13, he_ve_metc13, ki_ve_apap, ki_ve_co2c13, ki_ve_metc13, li_ve_apap, li_ve_co2c13, li_ve_metc13, lu_ar_apap, lu_ar_co2c13, lu_ar_metc13, re_ve_apap, re_ve_co2c13, re_ve_metc13, sp_li_apap, sp_li_co2c13, sp_li_metc13, ve_lu_apap, ve_lu_co2c13, ve_lu_metc13, vre_apap, vre_co2c13, vre_metc13, DOB, P_CO2Fc13, P_CO2R, ar_li_apap, ar_li_co2c13, ar_li_metc13)
+}
+
+
+f_z <- function(T, X, p){
+    # calculate z
+    shape <- dim(X)
+    Nt <- shape[1]
+    Nx <- shape[2]
+    Ny = length(yids)
+    Nz = 1 + Nx + Ny
+    Z = matrix(, nrow=Nt, ncol=Nz)
+    Z[,1] = T
+    Z[,2:(Nx+2)] = X
+    for (kt in seq(Nt)){
+        y = f_y(t=T[kt], x=X[kt, ], p=p)
+        Z[kt, (Nx+2):Nz] = y
+    }
+    colnames(Z) <- c ("time", xids, yids)
+    Z
+}
