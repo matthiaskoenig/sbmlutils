@@ -429,7 +429,7 @@ f_dxdt <- function(t, x, p){
     ))
 }
 
-f_y <- function(t, x, p){
+f_y <- function(times, x, p){
     # Calculate y
 
     Absorption_apap = (p[47] * x[39] / p[75]) * p[34]  # [1] Absorption_apap
@@ -647,26 +647,29 @@ f_y <- function(t, x, p){
     ar_li_metc13 = Qha * Car_metc13  # [213] ar_li_metc13
 
     # --------------------------------------
-
-    y = np.empty(shape=(213))
     c(Absorption_apap, Absorption_co2c13, Absorption_metc13, BSA, CO, FQre, FVre, Infusion_apap, Infusion_co2c13, Infusion_metc13, Ki_apap, Ki_co2c13, Ki_metc13, Var, Vbo, Vgu, Vhe, Vki, Vli, Vlu, Vpl, Vsp, Vve, Xar_apap, Xar_co2c13, Xar_metc13, Xbo_apap, Xbo_co2c13, Xbo_co2c13_fix, Xbo_metc13, Xbreath_co2c13, Xgu_apap, Xgu_co2c13, Xgu_metc13, Xhe_apap, Xhe_co2c13, Xhe_metc13, Xki_apap, Xki_co2c13, Xki_metc13, Xli_apap, Xli_co2c13, Xli_metc13, Xlu_apap, Xlu_co2c13, Xlu_metc13, Xre_apap, Xre_co2c13, Xre_metc13, Xsp_apap, Xsp_co2c13, Xsp_metc13, Xurine_apap, Xurine_co2c13, Xurine_metc13, Xve_apap, Xve_co2c13, Xve_metc13, APAPD_CLliv, CO2FIX_CLliv, CYP1A2MET_CLliv, Car_apap, Car_co2c13, Car_metc13, Cbo_apap, Cbo_co2c13, Cbo_co2c13_fix, Cbo_metc13, Cgu_apap, Cgu_co2c13, Cgu_metc13, Che_apap, Che_co2c13, Che_metc13, Cki_apap, Cki_co2c13, Cki_metc13, Cli_apap, Cli_co2c13, Cli_metc13, Clu_apap, Clu_co2c13, Clu_metc13, Csp_apap, Csp_co2c13, Csp_metc13, Cve_apap, Cve_co2c13, Cve_metc13, Injection_apap, Injection_co2c13, Injection_metc13, Mar_apap, Mar_co2c13, Mar_metc13, Mbo_apap, Mbo_co2c13, Mbo_metc13, Mgu_apap, Mgu_co2c13, Mgu_metc13, Mhe_apap, Mhe_co2c13, Mhe_metc13, Mki_apap, Mki_co2c13, Mki_metc13, Mli_apap, Mli_co2c13, Mli_metc13, Mlu_apap, Mlu_co2c13, Mlu_metc13, Msp_apap, Msp_co2c13, Msp_metc13, Mve_apap, Mve_co2c13, Mve_metc13, P_CO2, QC, Vplas_art, Vplas_ven, Vre, Xbody_apap, Xbody_co2c13, Xbody_metc13, CO2FIX, Cki_free_apap, Cki_free_co2c13, Cki_free_metc13, Cli_free_apap, Cli_free_co2c13, Cli_free_metc13, Cpl_ve_apap, Cpl_ve_co2c13, Cpl_ve_metc13, Cre_apap, Cre_co2c13, Cre_metc13, Exhalation_co2c13, Fixation_co2c13, Mre_apap, Mre_co2c13, Mre_metc13, P_CO2c12, Qbo, Qgu, Qh, Qhe, Qki, Qlu, Qre, Qsp, Release_co2c13, APAPD, CYP1A2MET, P_CO2c13, Qha, ar_bo_apap, ar_bo_co2c13, ar_bo_metc13, ar_gu_apap, ar_gu_co2c13, ar_gu_metc13, ar_he_apap, ar_he_co2c13, ar_he_metc13, ar_ki_apap, ar_ki_co2c13, ar_ki_metc13, ar_re_apap, ar_re_co2c13, ar_re_metc13, ar_sp_apap, ar_sp_co2c13, ar_sp_metc13, bo_ve_apap, bo_ve_co2c13, bo_ve_metc13, gu_li_apap, gu_li_co2c13, gu_li_metc13, he_ve_apap, he_ve_co2c13, he_ve_metc13, ki_ve_apap, ki_ve_co2c13, ki_ve_metc13, li_ve_apap, li_ve_co2c13, li_ve_metc13, lu_ar_apap, lu_ar_co2c13, lu_ar_metc13, re_ve_apap, re_ve_co2c13, re_ve_metc13, sp_li_apap, sp_li_co2c13, sp_li_metc13, ve_lu_apap, ve_lu_co2c13, ve_lu_metc13, vre_apap, vre_co2c13, vre_metc13, DOB, P_CO2Fc13, P_CO2R, ar_li_apap, ar_li_co2c13, ar_li_metc13)
 }
 
 
-f_z <- function(T, X, p){
+f_z <- function(times, X, p){
     # calculate z
     shape <- dim(X)
     Nt <- shape[1]
-    Nx <- shape[2]
+    Nx <- shape[2] - 1
     Ny = length(yids)
     Nz = 1 + Nx + Ny
     Z = matrix(, nrow=Nt, ncol=Nz)
-    Z[,1] = T
-    Z[,2:(Nx+2)] = X
+    Z[,1] = times
+    for (kx in seq(Nx)){
+        Z[,(1+kx)] = X[,1+kx]
+    }
+    print(Z[, 2])
     for (kt in seq(Nt)){
-        y = f_y(t=T[kt], x=X[kt, ], p=p)
-        Z[kt, (Nx+2):Nz] = y
+        y = f_y(t=times[kt], x=X[kt, 2:(Nx+1)], p=p)
+        Z[kt, (2+Nx):Nz] = y
     }
     colnames(Z) <- c ("time", xids, yids)
     Z
 }
+
+s = f_z(times, X, p)
