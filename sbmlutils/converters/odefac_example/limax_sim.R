@@ -31,4 +31,9 @@ s = f_z(times, X, p)
 # ---------------------
 # plot results
 # ---------------------
-plot(s[, 'time'], s[, 'Mve_apap'])
+png(filename="./results/desolve.png")
+plot(s[, 'time'], s[, 'Mve_apap'], 
+     main="desolve",
+     xlab='time [h]', 
+     ylab='Paracetamol [mg/l]')
+dev.off()

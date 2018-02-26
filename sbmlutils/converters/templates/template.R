@@ -71,7 +71,6 @@ f_z <- function(times, X, p){
     for (kx in seq(Nx)){
         Z[,(1+kx)] = X[,1+kx]
     }
-    print(Z[, 2])
     for (kt in seq(Nt)){
         y = f_y(t=times[kt], x=X[kt, 2:(Nx+1)], p=p)
         Z[kt, (2+Nx):Nz] = y
