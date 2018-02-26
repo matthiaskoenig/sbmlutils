@@ -11,20 +11,17 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from scipy.integrate import odeint
-from sbmlutils.converters.scipyode import SBML2ODE
+
+in_dir = '.'
+out_dir = './results'
 
 
 def example_roadrunner(model_id):
-    # convert xpp to sbml
-    in_dir = './scipyode_example'
-    out_dir = './scipyode_example/results'
-
-    sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
-
     # ----------------------
     # roadrunner simulation
     # ----------------------
     # load the model
+    sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
     r = roadrunner.RoadRunner(sbml_file)
     r.timeCourseSelections = ["time"] + r.model.getFloatingSpeciesIds() + r.model.getGlobalParameterIds()
 
@@ -55,21 +52,10 @@ def example_roadrunner(model_id):
 
 def example_scipy(model_id):
 
-    # convert SBML to ode
-    in_dir = './scipyode_example'
-    out_dir = './scipyode_example/results'
-    sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
+    # ----------------------
+    # import odes
+    # ----------------------
     py_file = os.path.join(in_dir, "{}.py".format(model_id))
-
-    # ----------------------
-    # SBML -> ODE
-    # ----------------------
-    # generate ode.py
-    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
-    sbml2ode.to_python(py_file=py_file)
-
-    # import the info
-    # from sbmlutils.converters.scipyode_example.limax_pkpd_38 import p, x0, f_dxdt, f_z
     from importlib.machinery import SourceFileLoader
     ode = SourceFileLoader("module.name", py_file).load_module()
 
@@ -113,7 +99,6 @@ def example_scipy(model_id):
 
 if __name__ == "__main__":
     model_id = "limax_pkpd_38"
-    # example_scipy("limax_pkpd_37")
     example_roadrunner(model_id)
     example_scipy(model_id)
 
