@@ -24,10 +24,18 @@ x0[39] = 5600  # indexing from 1 !
 # ODE integration
 # ----------------------
 X <- ode(y=x0, times=times, func=f_dxdt, parms=p)
-# Solution DataFrame
+
+# Solution Matrix
+
+Nx = length(x0)
+Nt = length(times)
+s <- matrix(X, nrow=Nt, ncol=(1+Nx))
+colnames(s) <- c('time', xids)
+colnames(s)
+
 # s = ode.f_z(X, T, p)
-head(X)
 
 # ---------------------
 # plot results
 # ---------------------
+plot(s[, 'time'], s[, 'Ave_apap'])
