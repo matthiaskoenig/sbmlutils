@@ -17,8 +17,8 @@ from sbmlutils.converters.mathml import evaluableMathML
 from collections import defaultdict
 
 
-# TODO: R export
 # TODO: proper calculation of initial conditions (initial assignments & assignment rules)
+# TODO: R export
 
 # TODO: separate in required y and yc (calculated y)
 # TODO: does not handle ConversionFactors, FunctionDefinitions nor Events
@@ -57,7 +57,6 @@ class SBML2ODE(object):
 
 
     def _create_odes(self):
-
         """ Creates information of ODE system from SBMLDocument.
 
         :return:
@@ -154,46 +153,6 @@ class SBML2ODE(object):
         # check which math depends on other math (build tree of dependencies)
         self.yids_ordered = self._ordered_yids()
 
-        # replacement dictionaries:
-        pids_idx = {}
-        for k, key in enumerate(sorted(self.p.keys())):
-            pids_idx[key] = k
-        yids_idx = {}
-        for k, key in enumerate(self.yids_ordered):
-            yids_idx[key] = k
-        dxids_idx = {}
-        for k, key in enumerate(sorted(self.dx.keys())):
-            dxids_idx[key] = k
-
-        for d in [self.y, self.dx]:
-            # replace p and x, y
-            for key in d:
-                astnode = d[key]
-                if not isinstance(astnode, libsbml.ASTNode):
-                    continue
-
-                if True:
-                    # replace parameters
-                    for key_rep, index in pids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
-                    # replace states
-                    for key_rep, index in dxids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
-                    # replace y (use ordery yids for lookup)
-                    # for key_rep, index in yids_idx.items():
-                    #    ast_rep = libsbml.parseL3Formula('y__{}__'.format(index))
-                    #    astnode.replaceArgument(key_rep, ast_rep)
-
-                formula = evaluableMathML(astnode)
-                if True:
-                    formula = re.sub("p__", "p[", formula)
-                    formula = re.sub("x__", "x[", formula)
-                    formula = re.sub("y__", "y[", formula)
-                    formula = re.sub("__", "]", formula)
-
-                d[key] = formula
 
     def _add_reaction_formula(self, model, rid, species_ref, sign):
         """ Adds part of reaction formula to ODEs for species.
@@ -335,14 +294,95 @@ class SBML2ODE(object):
         }
         return template.render(c)
 
+
+    def _indices(self, index_offset=0):
+        # replacement dictionaries:
+        pids_idx = {}
+        for k, key in enumerate(sorted(self.p.keys())):
+            pids_idx[key] = k + index_offset
+        yids_idx = {}
+        for k, key in enumerate(self.yids_ordered):
+            yids_idx[key] = k + index_offset
+        dxids_idx = {}
+        for k, key in enumerate(sorted(self.dx.keys())):
+            dxids_idx[key] = k + index_offset
+
+        return (pids_idx, yids_idx, dxids_idx)
+
     def to_python(self, py_file):
         """ Write ODEs to python.
 
         :param py_file:
         :return:
         """
+        (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=0)
+
+        for d in [self.y, self.dx]:
+            # replace p and x, y
+            for key in d:
+                astnode = d[key]
+                if not isinstance(astnode, libsbml.ASTNode):
+                    continue
+
+                if True:
+                    # replace parameters
+                    for key_rep, index in pids_idx.items():
+                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
+                        astnode.replaceArgument(key_rep, ast_rep)
+                    # replace states
+                    for key_rep, index in dxids_idx.items():
+                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
+                        astnode.replaceArgument(key_rep, ast_rep)
+
+                formula = evaluableMathML(astnode)
+                if True:
+                    formula = re.sub("p__", "p[", formula)
+                    formula = re.sub("x__", "x[", formula)
+                    formula = re.sub("y__", "y[", formula)
+                    formula = re.sub("__", "]", formula)
+
+                d[key] = formula
+
         content = self._render_template(template="template.py")
         with open(py_file, "w") as f:
+            f.write(content)
+
+    def to_R(self, r_file):
+        """ Write ODEs to R.
+
+        :param py_file:
+        :return:
+        """
+        (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=1)
+
+        for d in [self.y, self.dx]:
+            # replace p and x, y
+            for key in d:
+                astnode = d[key]
+                if not isinstance(astnode, libsbml.ASTNode):
+                    continue
+
+                if True:
+                    # replace parameters
+                    for key_rep, index in pids_idx.items():
+                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
+                        astnode.replaceArgument(key_rep, ast_rep)
+                    # replace states
+                    for key_rep, index in dxids_idx.items():
+                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
+                        astnode.replaceArgument(key_rep, ast_rep)
+
+                formula = evaluableMathML(astnode)
+                if True:
+                    formula = re.sub("p__", "p[", formula)
+                    formula = re.sub("x__", "x[", formula)
+                    formula = re.sub("y__", "y[", formula)
+                    formula = re.sub("__", "]", formula)
+
+                d[key] = formula
+
+        content = self._render_template(template="template.R")
+        with open(r_file, "w") as f:
             f.write(content)
 
 
@@ -352,10 +392,14 @@ if __name__ == "__main__":
 
     # convert xpp to sbml
     model_id = "limax_pkpd_38"
-    in_dir = './scipyode_example'
-    out_dir = './scipyode_example/results'
+    in_dir = './odefac_example'
+    out_dir = './odefac_example/results'
     sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
     py_file = os.path.join(in_dir, "{}.py".format(model_id))
+    r_file = os.path.join(in_dir, "{}.R".format(model_id))
 
     sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
     sbml2ode.to_python(py_file=py_file)
+
+    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
+    sbml2ode.to_R(r_file=r_file)
