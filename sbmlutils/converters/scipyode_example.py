@@ -115,8 +115,6 @@ def example_scipy2():
     X = odeint(f_dxdt, x0, T, args=(p, ))
     plt.plot(T, X, linewidth=2)
     plt.show()
-    print(T.shape)
-    print(X.shape)
 
     plt.plot(T, X[:, 32])
     plt.show()

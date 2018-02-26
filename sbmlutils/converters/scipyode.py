@@ -10,23 +10,24 @@ try:
 except ImportError:
     import tesbml as libsbml
 
+import jinja2
 import re
 from pprint import pprint
 from sbmlutils.converters.mathml import evaluableMathML
 from collections import defaultdict
 
 
-# TODO: jinja2 template for python code generation
-# TODO: fix dependency order with reactions (general dependency order)
-
 # TODO: separate in required y and yc (calculated y)
 # TODO: helper functions for y calculation and data frame
+
 # TODO: proper calculation of initial conditions (initial assignments & assignment rules)
 # TODO: R export
 
 
 # TODO: does not handle ConversionFactors, FunctionDefinitions nor Events
 
+# template location
+TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 
 class SBML2ODE(object):
@@ -45,10 +46,9 @@ class SBML2ODE(object):
 
 
         self.x0 = {}  # initial conditions
-        self.dxids = {}  # state variables x
-        self.pids = {}  # parameters p
-        self.yids = {}  # assigned variables
-        self.rids = {}  # reactions
+        self.dx = {}  # state variables x
+        self.p = {}  # parameters p
+        self.y = {}  # assigned variables
         self.yids_ordered = None
 
         self._create_odes()
@@ -76,14 +76,14 @@ class SBML2ODE(object):
                 value = parameter.getValue()
             else:
                 value = ''
-            self.pids[pid] = value
+            self.p[pid] = value
 
         # --------------
         # species
         # --------------
         for species in model.getListOfSpecies():  # type: libsbml.Species
             sid = species.getId()
-            self.dxids[sid] = ''
+            self.dx[sid] = ''
             # initial condition
             value = None
             compartment = model.getCompartment(species.getCompartment())  # type: libsbml.Compartment
@@ -116,13 +116,13 @@ class SBML2ODE(object):
 
                 # store rule
                 astnode = rate_rule.getMath()
-                self.dxids[variable] = astnode
+                self.dx[variable] = astnode
 
                 # dxids[variable] = evaluableMathML(astnode)
 
                 # could be species or parameter
-                if variable in self.pids:
-                    del self.pids[variable]
+                if variable in self.p:
+                    del self.p[variable]
                     parameter = model.getParameter(variable)
                     self.x0[variable] = parameter.getValue()
 
@@ -133,12 +133,12 @@ class SBML2ODE(object):
                 as_rule = rule  # type: libsbml.RateRule
                 variable = as_rule.getVariable()
                 astnode = as_rule.getMath()
-                self.yids[variable] = astnode
+                self.y[variable] = astnode
                 # yids[variable] = evaluableMathML(astnode)
-                if variable in self.dxids:
-                    del self.dxids[variable]
-                if variable in self.pids:
-                    del self.pids[variable]
+                if variable in self.dx:
+                    del self.dx[variable]
+                if variable in self.p:
+                    del self.p[variable]
 
         # Process the kinetic laws of reactions
         for reaction in model.getListOfReactions():  # type: libsbml.Reaction
@@ -146,31 +146,31 @@ class SBML2ODE(object):
             if reaction.isSetKineticLaw():
                 klaw = reaction.getKineticLaw()  # type: libsbml.KineticLaw
                 astnode = klaw.getMath()
-            self.rids[rid] = astnode
+            self.y[rid] = astnode
 
             for reactant in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
                 self._add_reaction_formula(model, rid=rid, species_ref=reactant, sign="-")
             for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
                 self._add_reaction_formula(model, rid=rid, species_ref=product, sign="+")
 
+
         # check which math depends on other math (build tree of dependencies)
-        filtered_ids = set(list(self.pids.keys()) + list(self.dxids.keys()) + list(self.rids.keys()))
-        self.yids_ordered = self._ordered_yids(model, filtered_ids)
+        self.yids_ordered = self._ordered_yids()
 
         # replacement dictionaries:
         pids_idx = {}
-        for k, key in enumerate(sorted(self.pids.keys())):
+        for k, key in enumerate(sorted(self.p.keys())):
             pids_idx[key] = k
         yids_idx = {}
         for k, key in enumerate(self.yids_ordered):
             yids_idx[key] = k
         dxids_idx = {}
-        for k, key in enumerate(sorted(self.dxids.keys())):
+        for k, key in enumerate(sorted(self.dx.keys())):
             dxids_idx[key] = k
 
         pprint(pids_idx)
 
-        for d in [self.yids, self.rids, self.dxids]:
+        for d in [self.y, self.dx]:
             # replace p and x, y
             for key in d:
                 astnode = d[key]
@@ -187,9 +187,9 @@ class SBML2ODE(object):
                         ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
                         astnode.replaceArgument(key_rep, ast_rep)
                     # replace y (use ordery yids for lookup)
-                    for key_rep, index in yids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('y__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
+                    # for key_rep, index in yids_idx.items():
+                    #    ast_rep = libsbml.parseL3Formula('y__{}__'.format(index))
+                    #    astnode.replaceArgument(key_rep, ast_rep)
 
                 formula = evaluableMathML(astnode)
                 if True:
@@ -221,20 +221,20 @@ class SBML2ODE(object):
 
         # check if only substance units
         if species.getHasOnlySubstanceUnits():
-            self.dxids[sid] += ' {} {}{}'.format(sign, stoichiometry, rid)
+            self.dx[sid] += ' {}{}{}'.format(sign, stoichiometry, rid)
         else:
-            self.dxids[sid] += ' {} {}{}/{}'.format(sign, stoichiometry, rid, vid)
+            self.dx[sid] += ' {}{}{}/{}'.format(sign, stoichiometry, rid, vid)
 
-    def _ordered_yids(self, model, filtered_ids):
-        """ Get the order of the vids from the assignment rules.
+    @staticmethod
+    def dependency_graph(y, filtered_ids):
+        """ Creates dependency graph from given dictionary.
 
-        :param model:
-        :param filtered_ids
+        :param y: { variable: astnode } dictionary
+        :param filtered_ids: ids which are defined elsewhere and not part of dependency tree
         :return:
         """
-        g = defaultdict(set)
 
-        def add_dependency_edges(g, astnode):
+        def add_dependency_edges(g, variable, astnode):
             """ Add the dependency edges to the graph.
 
             :param g:
@@ -252,20 +252,27 @@ class SBML2ODE(object):
                         g[variable].add(sid)
 
                 # recursive adding of children
-                add_dependency_edges(g, child)
+                add_dependency_edges(g, variable, child)
 
-        # create dependency graph
-        for rule in model.getListOfRules():  # type: libsbml.Rule
-            # assignment rules
-            type_code = rule.getTypeCode()
-            if type_code == libsbml.SBML_ASSIGNMENT_RULE:
-                as_rule = rule  # type: libsbml.AssignmentRule
-                variable = as_rule.getVariable()
-                g[variable] = set()
 
-                # traverse astnode to find the dependencies (add to graph)
-                astnode = as_rule.getMath()  # type: libsbml.ASTNode
-                add_dependency_edges(g, astnode)
+        # create the math dependency graph
+        g = defaultdict(set)
+        for variable, astnode in y.items():
+            g[variable] = set()
+            add_dependency_edges(g, variable=variable, astnode=astnode)
+
+        return g
+
+    def _ordered_yids(self):
+        """ Get the order of the vids from the assignment rules.
+
+        :param model:
+        :param filtered_ids
+        :return:
+        """
+        filtered_ids = set(list(self.p.keys()) + list(self.dx.keys()))
+        g = SBML2ODE.dependency_graph(self.y, filtered_ids)
+        # pprint(g)
 
         def create_ordered_variables(g, yids=None):
             if yids is None:
@@ -301,6 +308,39 @@ class SBML2ODE(object):
         yids = create_ordered_variables(g)
         return yids
 
+    def _render_template(self, template='template.py'):
+        """ Renders given language template.
+
+        :param template:
+        :return:
+        """
+        # template environment
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
+                                 extensions=['jinja2.ext.autoescape'],
+                                 trim_blocks=True,
+                                 lstrip_blocks=True)
+        # additional filters
+        # for key in sbmlfilters.filters:
+        #    env.filters[key] = getattr(sbmlfilters, key)
+
+        template = env.get_template(template)
+
+        # Context
+        model = self.doc.getModel()
+        c = {
+            'model': model,
+            'xids': sorted(self.dx.keys()),
+            'pids': sorted(self.p.keys()),
+            'yids': self.yids_ordered,
+            # 'rids': sorted(self.r.keys()),
+
+            'x0': self.x0,
+            'p': self.p,
+            'y': self.y,
+            'dx': self.dx,
+
+        }
+        return template.render(c)
 
     def to_python(self, py_file):
         """ Write ODEs to python.
@@ -308,75 +348,9 @@ class SBML2ODE(object):
         :param py_file:
         :return:
         """
-        # TODO: provide functions for calculating the full solution (as DataFrame)
+        content = self._render_template(template="template.py")
         with open(py_file, "w") as f:
-            # -------------------
-            # imports
-            # -------------------
-            f.write('"""\n')
-            f.write("{}\n".format(model_id))
-            f.write('"""\n')
-            f.write("import numpy as np\n")
-            f.write("\n\n")
-
-            # -------------------
-            # ids
-            # -------------------
-            f.write("xids = [")
-            for key in sorted(self.dxids.keys()):
-                f.write('"{}", '.format(key))
-            f.write("]\n")
-
-            f.write("pids = [")
-            for key in sorted(self.pids.keys()):
-                f.write('"{}", '.format(key))
-            f.write("]\n")
-
-            f.write("yids = [")
-            for key in self.yids_ordered:
-                f.write('"{}", '.format(key))
-            f.write("]\n\n")
-
-            # -------------------
-            # initial conditions
-            # -------------------
-            f.write("x0 = [\n")
-            for k, key in enumerate(sorted(self.x0.keys())):
-                f.write('    {},\t\t# {} [{}]\n'.format(self.x0[key], key, k))
-            f.write("]\n\n")
-
-            # -------------------
-            # parameters
-            # -------------------
-            for vid, d in [('p', self.pids)]:
-                f.write("{} = [\n".format(vid))
-                for k, key in enumerate(sorted(d.keys())):
-                    f.write('    {},\t\t# {} [{}]\n'.format(d[key], key, k))
-                f.write("]\n\n")
-
-            # -------------------
-            # odes
-            # -------------------
-
-            f.write("def f_dxdt(x, t, p):\n")
-            f.write('    """ ODE system """\n')
-
-            # y
-            f.write("    y = np.zeros(shape=({}, 1))\n".format(len(self.yids)))
-            for k, key in enumerate(self.yids_ordered):
-                f.write('    y[{}] = {},\t\t# {} [{}]\n'.format(k, self.yids[key], key, k))
-            f.write("\n\n")
-
-            # r
-            f.write("    # reactions\n")
-            for key in sorted(self.rids.keys()):
-                f.write('    {} = {}\n'.format(key, self.rids[key]))
-            f.write("\n\n")
-
-            f.write("    return [\n")
-            for k, key in enumerate(sorted(self.dxids.keys())):
-                f.write('        {},\t\t# {} [{}]\n'.format(self.dxids[key], key, k))
-            f.write("    ]\n\n")
+            f.write(content)
 
 
 #####################################################################################
