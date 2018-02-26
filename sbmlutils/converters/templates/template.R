@@ -46,3 +46,35 @@ f_dxdt <- function(t, x, p){
         {% endfor %}
     ))
 }
+
+f_y <- function(t, x, p){
+    # Calculate y
+
+    {% for id in yids %}
+    {{ id }} = {{ y[id] }}  # [{{ loop.index }}] {{ id }}
+    {% endfor %}
+
+    # --------------------------------------
+
+    y = np.empty(shape=({{yids | length}}))
+    c({% for id in yids %}{{ id }}{% if not loop.last %}, {% endif %}{% endfor %})
+}
+
+
+f_z <- function(T, X, p){
+    # calculate z
+    shape <- dim(X)
+    Nt <- shape[1]
+    Nx <- shape[2]
+    Ny = length(yids)
+    Nz = 1 + Nx + Ny
+    Z = matrix(, nrow=Nt, ncol=Nz)
+    Z[,1] = T
+    Z[,2:(Nx+2)] = X
+    for (kt in seq(Nt)){
+        y = f_y(t=T[kt], x=X[kt, ], p=p)
+        Z[kt, (Nx+2):Nz] = y
+    }
+    colnames(Z) <- c ("time", xids, yids)
+    Z
+}
