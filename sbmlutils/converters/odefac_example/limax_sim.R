@@ -6,7 +6,7 @@ library(deSolve)
 # ----------------------
 # setwd(getSrcDirectory()[1])
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-source("limax_pkpd_38.R")
+source("limax_pkpd_39.R")
 
 # ----------------------
 # desolve simulation
@@ -14,11 +14,8 @@ source("limax_pkpd_38.R")
 # Simulation time
 times <- seq(0, 24, by=0.01)
 
-# Change parameters & initial amount/concentration (in copy)
-x0[39] = 5600  # indexing from 1 !
-
-# Updated initial conditions
-# TODO
+# Change parameters & initial amount/concentration (no intial assignments in model)
+x0[39] = 5600  # indexing from 1 ! PODOSE_apap
 
 # ----------------------
 # ODE integration
