@@ -35,7 +35,7 @@ p = c(
 # -------------------
 dxdt_dmod <- c(
     {% for id in xids %}
-    {{ id }} = "{{ dx_sym[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
+    {{ id }} = "{{ dx_flat[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
     {% endfor %}
 )
 
