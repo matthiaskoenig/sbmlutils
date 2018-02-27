@@ -171,10 +171,17 @@ class SBML2ODE(object):
                 astnode = klaw.getMath()
             self.y_ast[rid] = astnode
 
+            # create astnode for dx_ast
             for reactant in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
                 self._add_reaction_formula(model, rid=rid, species_ref=reactant, sign="-")
             for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
                 self._add_reaction_formula(model, rid=rid, species_ref=product, sign="+")
+
+        for key, astnode in self.dx_ast.items():
+            # create astnodes for the formula strings
+            if not isinstance(astnode, libsbml.ASTNode):
+                astnode = libsbml.parseL3FormulaWithModel(astnode, model)
+                self.dx_ast[key] = astnode
 
 
         # check which math depends on other math (build tree of dependencies)
@@ -321,16 +328,16 @@ class SBML2ODE(object):
                     continue
 
                 if replace_symbols:
-                    ast = astnode.deepCopy()
+                    astnode = astnode.deepCopy()
 
                     # replace parameters (p)
                     for key_rep, index in pids_idx.items():
                         ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
-                        ast.replaceArgument(key_rep, ast_rep)
+                        astnode.replaceArgument(key_rep, ast_rep)
                     # replace states (x)
                     for key_rep, index in dxids_idx.items():
                         ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
-                        ast.replaceArgument(key_rep, ast_rep)
+                        astnode.replaceArgument(key_rep, ast_rep)
 
                 formula = evaluableMathML(astnode)
                 if replace_symbols:
@@ -342,14 +349,47 @@ class SBML2ODE(object):
                 d[key] = formula
             return d
 
-        # replace parameters
+
+
+
+        # replace parameters and states
         y = to_formula(self.y_ast, replace_symbols=True)
         dx = to_formula(self.dx_ast, replace_symbols=True)
 
         # keep symbols
         y_sym = to_formula(self.y_ast, replace_symbols=False)
-        pprint(y_sym)
         dx_sym = to_formula(self.dx_ast, replace_symbols=False)
+
+
+        def flat_formulas():
+            """ Creates a flat formula by full replacement.
+
+            :param ast_dict:
+            :return:
+            """
+            # deepcopy the ast dicts for replacements
+            y_flat = dict()
+            for yid in self.yids_ordered:
+                astnode = self.y_ast[yid]
+                y_flat[yid] = astnode.deepCopy()
+
+            # deepcopy
+            dx_flat = dict()
+            for xid, astnode in self.dx_ast.items():
+                dx_flat[xid] = astnode.deepCopy()
+
+            # replacements
+            for yid in reversed(self.yids_ordered):
+                astnode = y_flat[yid]
+                for key in self.yids_ordered:
+                    ast_rep = y_flat[key]
+                    astnode.replaceArgument(key, ast_rep)
+
+            return y_flat, dx_flat
+
+        y_flat, dx_flat = flat_formulas()
+        y_flat = to_formula(y_flat, replace_symbols=False)
+        pprint(y_flat)
 
         # context
         c = {
@@ -365,6 +405,8 @@ class SBML2ODE(object):
             'dx': dx,
             'y_sym': y_sym,
             'dx_sym': dx_sym,
+            'y_flat': y_flat,
+            'x_flat': dx_flat
         }
         return template.render(c)
 

@@ -38,10 +38,10 @@ dxdt_dmod <- c(
     {{ id }} = "{{ dx_sym[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
     {% endfor %}
 )
-    
+
 y_dmod <- c(
     {% for id in yids %}
-    {{ id }} = "{{ y_sym[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
+    {{ id }} = "{{ y_flat[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
     {% endfor %}
 )
 
