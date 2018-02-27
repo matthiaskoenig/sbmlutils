@@ -350,8 +350,6 @@ class SBML2ODE(object):
             return d
 
 
-
-
         # replace parameters and states
         y = to_formula(self.y_ast, replace_symbols=True)
         dx = to_formula(self.dx_ast, replace_symbols=True)
@@ -363,6 +361,7 @@ class SBML2ODE(object):
 
         def flat_formulas():
             """ Creates a flat formula by full replacement.
+            Uses the order of the dependencies.
 
             :param ast_dict:
             :return:
@@ -378,9 +377,15 @@ class SBML2ODE(object):
             for xid, astnode in self.dx_ast.items():
                 dx_flat[xid] = astnode.deepCopy()
 
-            # replacements
+            # replacements y_flat
             for yid in reversed(self.yids_ordered):
                 astnode = y_flat[yid]
+                for key in self.yids_ordered:
+                    ast_rep = y_flat[key]
+                    astnode.replaceArgument(key, ast_rep)
+
+            # replacements dx_flat
+            for x_id, astnode in dx_flat.items():
                 for key in self.yids_ordered:
                     ast_rep = y_flat[key]
                     astnode.replaceArgument(key, ast_rep)
@@ -389,7 +394,9 @@ class SBML2ODE(object):
 
         y_flat, dx_flat = flat_formulas()
         y_flat = to_formula(y_flat, replace_symbols=False)
-        pprint(y_flat)
+        dx_flat = to_formula(dx_flat, replace_symbols=False)
+
+        pprint(dx_flat)
 
         # context
         c = {
@@ -406,7 +413,7 @@ class SBML2ODE(object):
             'y_sym': y_sym,
             'dx_sym': dx_sym,
             'y_flat': y_flat,
-            'x_flat': dx_flat
+            'dx_flat': dx_flat
         }
         return template.render(c)
 
