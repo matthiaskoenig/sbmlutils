@@ -1,47 +1,60 @@
 """
-Convert SBML model to ODE system which can be integrated with scipy.
+Convert SBML models to ODE systems for various programming languages.
+This allows easy integration with existing workflows by rendering respective code templates.
+
+Currently supported code generation:
+- python: scipy
+- R: desolve
+- R: dmod
+
+The following SBML core constructs are currently NOT supported:
+- ConversionFactors
+- FunctionDefinitions
+- InitialAssignments
+- Events
 """
+
+# TODO: helper functions for initial conditions (initial assignments & assignment rules)
+# TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
+
+
 import os
+from pprint import pprint
+import re
+from collections import defaultdict
+import jinja2
 
 try:
     import libsbml
 except ImportError:
     import tesbml as libsbml
 
-import jinja2
-import re
-from pprint import pprint
 from sbmlutils.converters.mathml import evaluableMathML
-from collections import defaultdict
 
 
-# TODO: proper calculation of initial conditions (initial assignments & assignment rules)
-# TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
-
-# template location
+# template location (for language templates)
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 
 class SBML2ODE(object):
-    """ SBML 2 ode converter.
+    """ SBML to ODE converter.
 
-    Writes out python or R ODE files which can be used with standard
-    integrators like scipy odeint or R odeint.
+    Writes out python or R ODE files which can be solved with standard
+    integrators like scipy odeint or R desolve.
     """
-
     def __init__(self, doc):
-        """
+        """ Init with SBMLDocument.
 
         :param doc: SBMLdocument
         """
         self.doc = doc  # type: libsbml.SBMLDocument
 
-        self.x0 = {}    # initial amounts/concentrations
+        self.x0 = {}        # initial amounts/concentrations
         self.a_ast = {}     # initial assignments
         self.dx_ast = {}    # state variables x (odes)
-        self.p = {}     # parameters p (constants)
+        self.p = {}         # parameters p (constants)
         self.y_ast = {}     # assigned variables
-        self.yids_ordered = None
+        self.yids_ordered = None  # ordered y values in order of math dependencies
 
         self._create_odes()
 
@@ -49,7 +62,6 @@ class SBML2ODE(object):
     def from_file(cls, sbml_file):
         doc = libsbml.readSBMLFromFile(sbml_file)  # type: libsbml.SBMLDocument
         return cls(doc)
-
 
     def _create_odes(self):
         """ Creates information of ODE system from SBMLDocument.
@@ -286,6 +298,26 @@ class SBML2ODE(object):
         yids = create_ordered_variables(g)
         return yids
 
+    def to_python(self, py_file):
+        """ Write ODEs to python.
+
+        :param py_file:
+        :return:
+        """
+        content = self._render_template(template="template.py", index_offset=0)
+        with open(py_file, "w") as f:
+            f.write(content)
+
+    def to_R(self, r_file):
+        """ Write ODEs to R.
+
+        :param py_file:
+        :return:
+        """
+        content = self._render_template(template="template.R", index_offset=1)
+        with open(r_file, "w") as f:
+            f.write(content)
+
     def _render_template(self, template='template.py', index_offset=0):
         """ Renders given language template.
 
@@ -420,25 +452,7 @@ class SBML2ODE(object):
 
         return (pids_idx, yids_idx, dxids_idx)
 
-    def to_python(self, py_file):
-        """ Write ODEs to python.
 
-        :param py_file:
-        :return:
-        """
-        content = self._render_template(template="template.py", index_offset=0)
-        with open(py_file, "w") as f:
-            f.write(content)
-
-    def to_R(self, r_file):
-        """ Write ODEs to R.
-
-        :param py_file:
-        :return:
-        """
-        content = self._render_template(template="template.R", index_offset=1)
-        with open(r_file, "w") as f:
-            f.write(content)
 
 
 #####################################################################################
