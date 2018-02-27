@@ -2,9 +2,7 @@
 Convert SBML model to ODE system which can be integrated with scipy.
 """
 import os
-import numpy as np
-from scipy.integrate import odeint
-from matplotlib import pyplot as plt
+
 try:
     import libsbml
 except ImportError:
@@ -18,10 +16,7 @@ from collections import defaultdict
 
 
 # TODO: proper calculation of initial conditions (initial assignments & assignment rules)
-# TODO: R export
-
-# TODO: separate in required y and yc (calculated y)
-# TODO: does not handle ConversionFactors, FunctionDefinitions nor Events
+# TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -177,16 +172,14 @@ class SBML2ODE(object):
             for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
                 self._add_reaction_formula(model, rid=rid, species_ref=product, sign="+")
 
+        # create astnodes for the formula strings
         for key, astnode in self.dx_ast.items():
-            # create astnodes for the formula strings
             if not isinstance(astnode, libsbml.ASTNode):
                 astnode = libsbml.parseL3FormulaWithModel(astnode, model)
                 self.dx_ast[key] = astnode
 
-
         # check which math depends on other math (build tree of dependencies)
         self.yids_ordered = self._ordered_yids()
-
 
     def _add_reaction_formula(self, model, rid, species_ref, sign):
         """ Adds part of reaction formula to ODEs for species.
@@ -242,8 +235,7 @@ class SBML2ODE(object):
                 # recursive adding of children
                 add_dependency_edges(g, variable, child)
 
-
-        # create the math dependency graph
+        # create math dependency graph
         g = defaultdict(set)
         for variable, astnode in y.items():
             g[variable] = set()
@@ -307,7 +299,6 @@ class SBML2ODE(object):
                                  lstrip_blocks=True)
         template = env.get_template(template)
 
-
         # indices for replacements
         (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=index_offset)
 
@@ -349,12 +340,11 @@ class SBML2ODE(object):
                 d[key] = formula
             return d
 
-
-        # replace parameters and states
+        # replace parameters and states with (p[*], x[*]
         y = to_formula(self.y_ast, replace_symbols=True)
         dx = to_formula(self.dx_ast, replace_symbols=True)
 
-        # keep symbols
+        # keep symbols (no replacements)
         y_sym = to_formula(self.y_ast, replace_symbols=False)
         dx_sym = to_formula(self.dx_ast, replace_symbols=False)
 
@@ -392,11 +382,10 @@ class SBML2ODE(object):
 
             return y_flat, dx_flat
 
+        # flatten dx and y, i.e., full replacements of astnode for one line expressions
         y_flat, dx_flat = flat_formulas()
         y_flat = to_formula(y_flat, replace_symbols=False)
         dx_flat = to_formula(dx_flat, replace_symbols=False)
-
-        pprint(dx_flat)
 
         # context
         c = {
@@ -464,8 +453,10 @@ if __name__ == "__main__":
     py_file = os.path.join(in_dir, "{}.py".format(model_id))
     r_file = os.path.join(in_dir, "{}.R".format(model_id))
 
+    # create python code
     sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
     sbml2ode.to_python(py_file=py_file)
 
+    # create R code
     sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
     sbml2ode.to_R(r_file=r_file)
