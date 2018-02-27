@@ -16,7 +16,7 @@ yids <- c({% for id in yids %}"{{ id }}"{% if not loop.last %}, {% endif %}{% en
 # -------------------
 x0 = c(
 {% for id in xids %}
-  {{ x0[id] }}{% if not loop.last %},{% endif %}      # [{{ loop.index }}] {{ id }}
+  {{ id }} = {{ x0[id] }}{% if not loop.last %},{% endif %}      # [{{ loop.index }}]
 {% endfor %}
 )
 
@@ -25,9 +25,27 @@ x0 = c(
 # -------------------
 p = c(
 {% for id in pids %}
-  {{ p[id] }}{% if not loop.last %},{% endif %}      # [{{ loop.index }}] {{ id }}
+  {{ id }} = {{ p[id] }}{% if not loop.last %},{% endif %}      # [{{ loop.index }}]
 {% endfor %}
 )
+
+
+# -------------------
+# dmod odes
+# -------------------
+dxdt_dmod <- c(
+    {% for id in xids %}
+    {{ id }} = "{{ dx_sym[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
+    {% endfor %}
+)
+    
+y_dmod <- c(
+    {% for id in yids %}
+    {{ id }} = "{{ y_sym[id] }}"{% if not loop.last %}, {% endif %}  # [{{ loop.index }}]
+    {% endfor %}
+)
+
+
 
 # -------------------
 # odes

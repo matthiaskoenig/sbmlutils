@@ -42,10 +42,10 @@ class SBML2ODE(object):
         self.doc = doc  # type: libsbml.SBMLDocument
 
         self.x0 = {}    # initial amounts/concentrations
-        self.a = {}     # initial assignments
-        self.dx = {}    # state variables x (odes)
+        self.a_ast = {}     # initial assignments
+        self.dx_ast = {}    # state variables x (odes)
         self.p = {}     # parameters p (constants)
-        self.y = {}     # assigned variables
+        self.y_ast = {}     # assigned variables
         self.yids_ordered = None
 
         self._create_odes()
@@ -91,7 +91,7 @@ class SBML2ODE(object):
         # --------------
         for species in model.getListOfSpecies():  # type: libsbml.Species
             sid = species.getId()
-            self.dx[sid] = ''
+            self.dx_ast[sid] = ''
             # initial condition
             value = None
             compartment = model.getCompartment(species.getCompartment())  # type: libsbml.Compartment
@@ -135,7 +135,7 @@ class SBML2ODE(object):
 
                 # store rule
                 astnode = rate_rule.getMath()
-                self.dx[variable] = astnode
+                self.dx_ast[variable] = astnode
 
                 # dxids[variable] = evaluableMathML(astnode)
 
@@ -156,9 +156,9 @@ class SBML2ODE(object):
                 as_rule = rule  # type: libsbml.RateRule
                 variable = as_rule.getVariable()
                 astnode = as_rule.getMath()
-                self.y[variable] = astnode
+                self.y_ast[variable] = astnode
                 # yids[variable] = evaluableMathML(astnode)
-                if variable in self.dx:
+                if variable in self.dx_ast:
                     del self.dx[variable]
                 if variable in self.p:
                     del self.p[variable]
@@ -169,7 +169,7 @@ class SBML2ODE(object):
             if reaction.isSetKineticLaw():
                 klaw = reaction.getKineticLaw()  # type: libsbml.KineticLaw
                 astnode = klaw.getMath()
-            self.y[rid] = astnode
+            self.y_ast[rid] = astnode
 
             for reactant in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
                 self._add_reaction_formula(model, rid=rid, species_ref=reactant, sign="-")
@@ -202,9 +202,9 @@ class SBML2ODE(object):
 
         # check if only substance units
         if species.getHasOnlySubstanceUnits():
-            self.dx[sid] += ' {}{}{}'.format(sign, stoichiometry, rid)
+            self.dx_ast[sid] += ' {}{}{}'.format(sign, stoichiometry, rid)
         else:
-            self.dx[sid] += ' {}{}{}/{}'.format(sign, stoichiometry, rid, vid)
+            self.dx_ast[sid] += ' {}{}{}/{}'.format(sign, stoichiometry, rid, vid)
 
     @staticmethod
     def dependency_graph(y, filtered_ids):
@@ -251,8 +251,8 @@ class SBML2ODE(object):
         :param filtered_ids
         :return:
         """
-        filtered_ids = set(list(self.p.keys()) + list(self.dx.keys()))
-        g = SBML2ODE.dependency_graph(self.y, filtered_ids)
+        filtered_ids = set(list(self.p.keys()) + list(self.dx_ast.keys()))
+        g = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # pprint(g)
 
         def create_ordered_variables(g, yids=None):
@@ -287,7 +287,7 @@ class SBML2ODE(object):
         yids = create_ordered_variables(g)
         return yids
 
-    def _render_template(self, template='template.py'):
+    def _render_template(self, template='template.py', index_offset=0):
         """ Renders given language template.
 
         :param template:
@@ -300,21 +300,73 @@ class SBML2ODE(object):
                                  lstrip_blocks=True)
         template = env.get_template(template)
 
-        # Context
+
+        # indices for replacements
+        (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=index_offset)
+
+        # create formulas
+        def to_formula(ast_dict, replace_symbols=True):
+            """ Replaces all symbols in given astnode dictionary.
+
+            :param ast_dict:
+            :return:
+            """
+            d = dict()
+
+            for key in ast_dict:
+                astnode = ast_dict[key]
+                if not isinstance(astnode, libsbml.ASTNode):
+                    # already a formula
+                    d[key] = astnode
+                    continue
+
+                if replace_symbols:
+                    ast = astnode.deepCopy()
+
+                    # replace parameters (p)
+                    for key_rep, index in pids_idx.items():
+                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
+                        ast.replaceArgument(key_rep, ast_rep)
+                    # replace states (x)
+                    for key_rep, index in dxids_idx.items():
+                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
+                        ast.replaceArgument(key_rep, ast_rep)
+
+                formula = evaluableMathML(astnode)
+                if replace_symbols:
+                    formula = re.sub("p__", "p[", formula)
+                    formula = re.sub("x__", "x[", formula)
+                    formula = re.sub("y__", "y[", formula)
+                    formula = re.sub("__", "]", formula)
+
+                d[key] = formula
+            return d
+
+        # replace parameters
+        y = to_formula(self.y_ast, replace_symbols=True)
+        dx = to_formula(self.dx_ast, replace_symbols=True)
+
+        # keep symbols
+        y_sym = to_formula(self.y_ast, replace_symbols=False)
+        pprint(y_sym)
+        dx_sym = to_formula(self.dx_ast, replace_symbols=False)
+
+        # context
         c = {
             'model': self.doc.getModel(),
-            'xids': sorted(self.dx.keys()),
+            'xids': sorted(self.dx_ast.keys()),
             'pids': sorted(self.p.keys()),
             'yids': self.yids_ordered,
             # 'rids': sorted(self.r.keys()),
 
             'x0': self.x0,
             'p': self.p,
-            'y': self.y,
-            'dx': self.dx,
+            'y': y,
+            'dx': dx,
+            'y_sym': y_sym,
+            'dx_sym': dx_sym,
         }
         return template.render(c)
-
 
     def _indices(self, index_offset=0):
         # replacement dictionaries:
@@ -325,7 +377,7 @@ class SBML2ODE(object):
         for k, key in enumerate(self.yids_ordered):
             yids_idx[key] = k + index_offset
         dxids_idx = {}
-        for k, key in enumerate(sorted(self.dx.keys())):
+        for k, key in enumerate(sorted(self.dx_ast.keys())):
             dxids_idx[key] = k + index_offset
 
         return (pids_idx, yids_idx, dxids_idx)
@@ -336,35 +388,7 @@ class SBML2ODE(object):
         :param py_file:
         :return:
         """
-        (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=0)
-
-        for d in [self.y, self.dx]:
-            # replace p and x, y
-            for key in d:
-                astnode = d[key]
-                if not isinstance(astnode, libsbml.ASTNode):
-                    continue
-
-                if True:
-                    # replace parameters
-                    for key_rep, index in pids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
-                    # replace states
-                    for key_rep, index in dxids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
-
-                formula = evaluableMathML(astnode)
-                if True:
-                    formula = re.sub("p__", "p[", formula)
-                    formula = re.sub("x__", "x[", formula)
-                    formula = re.sub("y__", "y[", formula)
-                    formula = re.sub("__", "]", formula)
-
-                d[key] = formula
-
-        content = self._render_template(template="template.py")
+        content = self._render_template(template="template.py", index_offset=0)
         with open(py_file, "w") as f:
             f.write(content)
 
@@ -374,35 +398,7 @@ class SBML2ODE(object):
         :param py_file:
         :return:
         """
-        (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=1)
-
-        for d in [self.y, self.dx]:
-            # replace p and x, y
-            for key in d:
-                astnode = d[key]
-                if not isinstance(astnode, libsbml.ASTNode):
-                    continue
-
-                if True:
-                    # replace parameters
-                    for key_rep, index in pids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
-                    # replace states
-                    for key_rep, index in dxids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
-                        astnode.replaceArgument(key_rep, ast_rep)
-
-                formula = evaluableMathML(astnode)
-                if True:
-                    formula = re.sub("p__", "p[", formula)
-                    formula = re.sub("x__", "x[", formula)
-                    formula = re.sub("y__", "y[", formula)
-                    formula = re.sub("__", "]", formula)
-
-                d[key] = formula
-
-        content = self._render_template(template="template.R")
+        content = self._render_template(template="template.R", index_offset=1)
         with open(r_file, "w") as f:
             f.write(content)
 
