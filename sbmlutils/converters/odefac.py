@@ -402,13 +402,13 @@ class SBML2ODE(object):
             # replacements y_flat
             for yid in reversed(self.yids_ordered):
                 astnode = y_flat[yid]
-                for key in self.yids_ordered:
+                for key in reversed(self.yids_ordered):
                     ast_rep = y_flat[key]
                     astnode.replaceArgument(key, ast_rep)
 
             # replacements dx_flat
             for x_id, astnode in dx_flat.items():
-                for key in self.yids_ordered:
+                for key in reversed(self.yids_ordered):
                     ast_rep = y_flat[key]
                     astnode.replaceArgument(key, ast_rep)
 
