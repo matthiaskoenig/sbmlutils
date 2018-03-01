@@ -16,7 +16,7 @@ The following SBML core constructs are currently NOT supported:
 
 # TODO: helper functions for initial conditions (initial assignments & assignment rules)
 # TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
-
+# TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 
 import os
 from pprint import pprint
