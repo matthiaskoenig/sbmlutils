@@ -9,9 +9,9 @@ import sbmlutils.factory as factory
 # id : ('FamilyName', 'GivenName', 'Email', 'Organization')
 creators = [factory.Creator(familyName='Koenig',
                             givenName='Matthias',
-                            email='konigmatt@googlemail.com',
+                            email='koenigmx@hu-berlin.de',
                             organization='Humboldt-University Berlin, Institute for Theoretical Biology',
-                            site="https://livermetabolism.com/contact.html")]
+                            site="https://livermetabolism.com")]
 
 terms_of_use = """
     <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
