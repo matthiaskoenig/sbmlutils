@@ -6,7 +6,8 @@ library(deSolve)
 # ----------------------
 # setwd(getSrcDirectory()[1])
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-source("limax_pkpd_39.R")
+model_id = "limax_pkpd_v41"
+source(paste0(model_id, ".R"))
 
 # ----------------------
 # APAP simulation
@@ -28,7 +29,7 @@ plot(s[, 'time'], s[, 'Mve_apap'],
      xlab='time [h]',
      ylab='Paracetamol [mg/l]')
 
-png(filename="./results/apap_desolve.png")
+png(filename=paste0("./results/", model_id, "_apap_desolve.png"))
 plot(s[, 'time'], s[, 'Mve_apap'],
      main="desolve",
      xlab='time [h]',
@@ -54,7 +55,7 @@ s = f_z(times, X, p)
 Exhalation_co2c13 <- s[, c('Exhalation_co2c13')]
 recovery = Exhalation_co2c13/60 * p['Mr_metc13']/p['Ri_co2c13'] * 100 
 
-png(filename="./results/bicarbonate_desolve.png")
+png(filename=paste0("./results/", model_id, "_bicarbonate_desolve.png"))
 par(mfrow = c(1, 1))
 plot(s[, 'time']*60, s[, 'DOB'],
      main="desolve (bicarbonate simulation)",
@@ -85,7 +86,7 @@ recovery = Exhalation_co2c13/(x0['PODOSE_metc13']/p['Mr_metc13']) * 100 # [% dos
 cum = Abreath_co2c13/(x0['PODOSE_metc13']/p['Mr_metc13']) * 100  # [% dose] cummulative recovery
 
 
-png(filename="./results/mbt_desolve.png", width=1200, height=600)
+png(filename=paste0("./results/", model_id, "_mbt_desolve.png"), width=1200, height=600)
 # plot results
 par(mfrow = c(1, 2))
 plot(s[, 'time']*60, recovery,
