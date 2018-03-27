@@ -45,7 +45,7 @@ def example_roadrunner(model_id):
         ax.set_title(model_id)
         ax.set_xlabel('time [h]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "apap_roadrunner.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "{}_apap_roadrunner.png".format(model_id)), dpi=300, bbox_inches="tight")
     plt.show()
 
     # ---------------------
@@ -69,7 +69,7 @@ def example_roadrunner(model_id):
         ax.set_title(model_id)
         ax.set_xlabel('time [min]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "bicarbonate_roadrunner.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "{}_bicarbonate_roadrunner.png".format(model_id)), dpi=300, bbox_inches="tight")
     plt.show()
 
     # ---------------------
@@ -100,7 +100,7 @@ def example_roadrunner(model_id):
         ax.set_title(model_id)
         ax.set_xlabel('time [min]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "mbt_roadrunner.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "{}_mbt_roadrunner.png".format(model_id)), dpi=300, bbox_inches="tight")
     plt.show()
 
 
@@ -142,7 +142,7 @@ def example_scipy(model_id):
         ax.set_title(model_id)
         ax.set_xlabel('time [h]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "apap_scipy.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "{}_apap_scipy.png".format(model_id)), dpi=300, bbox_inches="tight")
     plt.show()
 
     # ----------------------
@@ -174,7 +174,7 @@ def example_scipy(model_id):
         ax.set_title(model_id)
         ax.set_xlabel('time [min]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "bicarbonate_scipy.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "{}_bicarbonate_scipy.png".format(model_id)), dpi=300, bbox_inches="tight")
     plt.show()
 
     # ----------------------
@@ -216,12 +216,12 @@ def example_scipy(model_id):
         ax.set_title(model_id)
         ax.set_xlabel('time [min]')
         ax.legend()
-    fig.savefig(os.path.join(out_dir, "mbt_scipy.png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(out_dir, "{}_mbt_scipy.png".format(model_id)), dpi=300, bbox_inches="tight")
     plt.show()
 
 
 if __name__ == "__main__":
-    model_id = "limax_pkpd_39"
+    model_id = "limax_pkpd_v41"
     example_roadrunner(model_id)
     example_scipy(model_id)
 
