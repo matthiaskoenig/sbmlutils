@@ -91,16 +91,210 @@ def get_submodel_frameworks(doc):
 
 
 ##########################################################################
+# ExternalModelDefinitions
+##########################################################################
+class ExternalModelDefinition(factory.Sbase):
+
+    def __init__(self, sid, source, modelRef, md5=None, name=None, sboTerm=None, metaId=None):
+        """ Create an ExternalModelDefinitions.
+        """
+        super(ExternalModelDefinition, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.source = source
+        self.modelRef = modelRef
+        self.md5 = md5
+
+    def create_sbml(self, model):
+        doc = model.getSBMLDocument()
+        cdoc = doc.getPlugin("comp")
+        extdef = cdoc.createExternalModelDefinition()
+        self.set_fields(extdef)
+        return extdef
+
+        return p
+
+    def set_fields(self, obj):
+        super(ExternalModelDefinition, self).set_fields(obj)
+        obj.setModelRef(self.modelRef)
+        obj.setSource(self.source)
+        if self.md5 is not None:
+            obj.setMd5(self.md5)
+
+
+##########################################################################
+# Submodel
+##########################################################################
+class Submodel(factory.Sbase):
+
+    def __init__(self, sid, modelRef=None, timeConversionFactor=None, extentConversionFactor=None, name=None, sboTerm=None, metaId=None):
+        """ Create an ExternalModelDefinitions.
+        """
+        super(Submodel, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.modelRef = modelRef
+        self.timeConversionFactor = timeConversionFactor
+        self.extentConversionFactor = extentConversionFactor
+
+    def create_sbml(self, model):
+        cmodel = model.getPlugin("comp")
+        submodel = cmodel.createSubmodel()
+        self.set_fields(submodel)
+
+        submodel.setModelRef(self.modelRef)
+        if self.timeConversionFactor:
+            submodel.setTimeConversionFactor(self.timeConversionFactor)
+        if self.extentConversionFactor:
+            submodel.setExtentConversionFactor(self.extentConversionFactor)
+
+        return submodel
+
+    def set_fields(self, obj):
+        super(Submodel, self).set_fields(obj)
+
+
+##########################################################################
+# SBaseRef
+##########################################################################
+class SbaseRef(factory.Sbase):
+
+    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+        """ Create an SBaseRef.
+        """
+        super(SbaseRef, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.portRef = portRef
+        self.idRef = idRef
+        self.unitRef = unitRef
+        self.metaIdRef = metaIdRef
+
+    def set_fields(self, obj):
+        super(SbaseRef, self).set_fields(obj)
+
+        obj.setId(self.sid)
+        if self.portRef is not None:
+            obj.setPortRef(self.portRef)
+        if self.idRef is not None:
+            obj.setIdRef(self.idRef)
+        if self.unitRef is not None:
+            unit_str = factory.Unit.get_unit_string(self.unitRef)
+            obj.setUnitRef(unit_str)
+        if self.metaIdRef is not None:
+            obj.setMetaIdRef(self.metaIdRef)
+
+
+##########################################################################
+# ReplacedElements
+##########################################################################
+class ReplacedElement(SbaseRef):
+
+    def __init__(self, sid, elementRef, submodelRef, deletion=None, conversionFactor=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None,
+                 metaId=None):
+        """
+
+        :param sid:
+        :param elementRef: sid of the element on which the ReplacedElement is generated.
+        :param submodelRef:
+        :param deletion:
+        :param conversionFactor:
+        :param portRef:
+        :param idRef:
+        :param unitRef:
+        :param metaIdRef:
+        :param name:
+        :param sboTerm:
+        :param metaId:
+        """
+        """ Create a ReplacedElement. """
+        super(ReplacedElement, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
+                                              name=name, sboTerm=sboTerm, metaId=metaId)
+        self.elementRef = elementRef
+        self.submodelRef = submodelRef
+        self.deletion = deletion
+        self.conversionFactor = conversionFactor
+
+    def create_sbml(self, model):
+
+        # resolve port element
+        element = model.getElementBySId(self.elementRef)
+        print("elementRef:", self.elementRef, "element:", element)
+        eplugin = element.getPlugin("comp")
+        obj = eplugin.createReplacedElement()
+        self.set_fields(obj)
+
+        return obj
+
+    def set_fields(self, obj):
+        super(ReplacedElement, self).set_fields(obj)
+        obj.setSubmodelRef(self.submodelRef)
+        if self.deletion:
+            obj.setDeletion(self.deletion)
+        if self.conversionFactor:
+            obj.setConversionFactor(self.conversionFactor)
+
+
+##########################################################################
+# Deletions
+##########################################################################
+class Deletion(SbaseRef):
+
+    # TODO: FIXME not implemented yet, this requires a submodel to work.
+
+    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+        """ Create a Deletion. """
+        super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
+                                   name=name, sboTerm=sboTerm, metaId=metaId)
+
+    def create_sbml(self, model):
+
+        # Deletions for submodels
+        cmodel = model.getPlugin("comp")
+        p = cmodel.createPort()
+        self.set_fields(p)
+
+        return p
+
+    def set_fields(self, obj):
+        super(Deletion, self).set_fields(obj)
+
+##########################################################################
 # Ports
 ##########################################################################
-# Ports are stored in an optional child ListOfPorts object, which,  if
+# Ports are stored in an optional child ListOfPorts object, which, if
 # present, must contain one or more Port objects.  All of the Ports
 # present in the ListOfPorts collectively define the 'port interface' of
 # the Model.
-
 PORT_TYPE_PORT = "port"
 PORT_TYPE_INPUT = "input port"
 PORT_TYPE_OUTPUT = "output port"
+
+
+class Port(SbaseRef):
+
+    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, portType=PORT_TYPE_PORT, name=None, sboTerm=None, metaId=None):
+        """ Create a port.
+        """
+        super(Port, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
+                                   name=name, sboTerm=sboTerm, metaId=metaId)
+        self.portType = portType
+
+    def create_sbml(self, model):
+        cmodel = model.getPlugin("comp")
+        p = cmodel.createPort()
+        self.set_fields(p)
+
+        if self.sboTerm is None:
+            if self.portType == PORT_TYPE_PORT:
+                # SBO:0000599 - port
+                sbo = 599
+            elif self.portType == PORT_TYPE_INPUT:
+                # SBO:0000600 - input port
+                sbo = 600
+            elif self.portType == PORT_TYPE_OUTPUT:
+                # SBO:0000601 - output port
+                sbo = 601
+            p.setSBOTerm(sbo)
+
+        return p
+
+    def set_fields(self, obj):
+        super(Port, self).set_fields(obj)
 
 
 def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=None,
