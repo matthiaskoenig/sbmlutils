@@ -120,7 +120,7 @@ def print_fluxes(dfs, filepath=None, **kwargs):
     logging.info("print_fluxes: {}".format(filepath))
 
 
-def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50):
+def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50, ode_integrator="cvode"):
     """ Simulate the diauxic growth model.
 
     :return: solution data frame
@@ -132,7 +132,7 @@ def simulate_toy(sbml_path, out_dir, dts=[0.1, 1.0, 5.0], figures=True, tend=50)
     }
     dfs = []
     for dt in dts:
-        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt)
+        df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=tend, dt=dt, ode_integrator=ode_integrator)
         dfs.append(df)
 
         analyse_uniqueness(dfba_simulator)
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     dfba_model = DFBAModel(sbml_path=sbml_path)
 
     # simulate_toy(sbml_path, out_dir=directory, dts=[5.0], tend=10)
-    simulate_toy(sbml_path, out_dir=directory)
+    simulate_toy(sbml_path, out_dir=directory, ode_integrator="gillespie")
 
     # create COMBINE archive
     from tellurium.utils import omex

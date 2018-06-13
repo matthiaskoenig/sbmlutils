@@ -3,15 +3,15 @@
 Template information for the model creation.
 """
 from __future__ import print_function, division, absolute_import
-
+from datetime import datetime
 import sbmlutils.factory as factory
 
 # id : ('FamilyName', 'GivenName', 'Email', 'Organization')
 creators = [factory.Creator(familyName='Koenig',
                             givenName='Matthias',
-                            email='konigmatt@googlemail.com',
+                            email='koenigmx@hu-berlin.de',
                             organization='Humboldt-University Berlin, Institute for Theoretical Biology',
-                            site="https://livermetabolism.com/contact.html")]
+                            site="https://livermetabolism.com")]
 
 terms_of_use = """
     <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
@@ -34,7 +34,7 @@ terms_of_use = """
         implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
         </p>
     </div>
-""".format(year=2016, given_name=creators[0].givenName, family_name=creators[0].familyName, site=creators[0].site)
+""".format(year=datetime.now().year, given_name=creators[0].givenName, family_name=creators[0].familyName, site=creators[0].site)
 
 
 #####################################################################################

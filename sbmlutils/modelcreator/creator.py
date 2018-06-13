@@ -118,7 +118,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     if create_report:
         sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir)
 
-    return [model_dict, core_model]
+    return [model_dict, core_model, sbml_path]
 
 
 class Preprocess(object):
@@ -201,6 +201,9 @@ class CoreModel(object):
              'creators': list,
              'main_units': dict,
 
+             'externalModelDefinitions': list,
+             'submodels': list,
+
              'units': list,
              'functions': list,
              'compartments': list,
@@ -210,7 +213,11 @@ class CoreModel(object):
              'rules': list,
              'rate_rules': list,
              'reactions': list,
-             'events': list}
+             'events': list,
+             'ports': list,
+             'replacedElements': list,
+             'deletions': list,
+             }
 
     def __init__(self):
         """
@@ -284,12 +291,15 @@ class CoreModel(object):
         print('\n', '*' * 40, '\n', self.model_id, '\n', '*' * 40)
 
         # create core model
-        sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version, "fbc", 2)
+        sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
+        sbmlns.addPackageNamespace("fbc", 2)
+        sbmlns.addPackageNamespace("comp", 1)
         self.doc = libsbml.SBMLDocument(sbmlns)
+        self.doc.setPackageRequired("comp", True)
         self.doc.setPackageRequired("fbc", False)
         self.model = self.doc.createModel()
-        mplugin = self.model.getPlugin("fbc")
-        mplugin.setStrict(False)
+        fbc_plugin = self.model.getPlugin("fbc")
+        fbc_plugin.setStrict(False)
 
         # name & id
         check(self.model.setId(self.model_id), 'set id')
@@ -305,19 +315,23 @@ class CoreModel(object):
         if hasattr(self, 'main_units'):
             factory.set_main_units(self.model, self.main_units)
 
-        # additional units
-
         # lists ofs
-        for attr in ['units',
-                     'functions',
-                     'parameters',
-                     'compartments',
-                     'species',
-                     'assignments',
-                     'rules',
-                     'rate_rules',
-                     'reactions',
-                     'events']:
+        for attr in [
+            'externalModelDefinitions',
+            'submodels',
+            'units',
+            'functions',
+            'parameters',
+            'compartments',
+            'species',
+            'assignments',
+            'rules',
+            'rate_rules',
+            'reactions',
+            'events',
+            'ports',
+            'replacedElements',
+            'deletions',]:
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
@@ -325,6 +339,9 @@ class CoreModel(object):
                     factory.create_objects(self.model, objects)
                 else:
                     logging.warn("Attribute <{}> missing from model.".format(attr))
+
+
+
 
     def write_sbml(self, filepath):
         """ Write sbml to file.
