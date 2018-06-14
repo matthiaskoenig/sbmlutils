@@ -76,11 +76,11 @@ def f_z(X, T, p):
     Nz = 1 + Nx + Ny
     columns = ["time"] + xids + yids
     Z = np.empty(shape=(Nt, Nz))
-    Z[:,0] = T
-    Z[:,1:(Nx+1)] = X
+    Z[:, 0] = T
+    Z[:, 1:(Nx+1)] = X
     for kt in range(Nt):
         y = f_y(x=X[kt, :], t=T[kt], p=p)
         Z[kt, (Nx+1):] = y
 
-    Z = pd.DataFrame(Z, columns = columns)
+    Z = pd.DataFrame(Z, columns=columns)
     return Z

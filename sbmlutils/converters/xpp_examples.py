@@ -8,6 +8,7 @@ from sbmlutils.converters import xpp
 import roadrunner
 from matplotlib import pyplot as plt
 
+
 def example(model_id):
     # convert xpp to sbml
     xpp_dir = './xpp_example'
@@ -42,8 +43,3 @@ if __name__ == "__main__":
     example(model_id="112836_HH-ext")
     example(model_id="SkM_AP_KCa")
     example(model_id="PLoSCompBiol_Fig1")
-
-
-
-
-

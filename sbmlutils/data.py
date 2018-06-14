@@ -7,13 +7,13 @@ import numpy as np
 
 def overview(data):
     """ Prints overview of data vector.
-    
-    :param data: vector of data 
-    :return: 
+
+    :param data: vector of data
+    :return:
     """
     info = "mean  +- std [min|max]\n" \
            "{:2.2f} +- {:2.2f}\t[{:2.2f}|{:2.2f}]".format(np.mean(data), np.std(data),
-                                                           np.min(data), np.max(data), )
+                                                          np.min(data), np.max(data), )
     print('-' * 80)
     print(data)
     print('-' * 80)
@@ -36,9 +36,3 @@ if __name__ == "__main__":
     # overview(df.cl)
     # overview(df.vd)
     print(df.age.describe())
-
-
-
-
-
-
