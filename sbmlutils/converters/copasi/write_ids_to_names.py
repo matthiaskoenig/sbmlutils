@@ -20,15 +20,14 @@ def write_ids_to_names(input_path, output_path):
 
 if __name__ == "__main__":
 
-
-    """
+    '''
     if len(sys.argv) < 3:
         print ("Usage: write_ids_to_name <input_copasi_file> <output_copasi_file>")
         sys.exit(0)
 
     input_path = sys.argv[1]
     output_pth = sys.argv[2]
-    """
+    '''
     input_path = "limax_pkpd_37.xml"
     output_path = "limax_pkpd_37_copasi.xml"
     write_ids_to_names(input_path, output_path)

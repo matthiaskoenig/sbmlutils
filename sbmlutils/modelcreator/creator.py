@@ -331,7 +331,8 @@ class CoreModel(object):
             'events',
             'ports',
             'replacedElements',
-            'deletions',]:
+            'deletions',
+        ]:
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)

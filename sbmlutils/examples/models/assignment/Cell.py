@@ -12,7 +12,6 @@ except ImportError:
     from tesbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM
 
 
-
 import sbmlutils.factory as fac
 from sbmlutils.modelcreator import templates
 
