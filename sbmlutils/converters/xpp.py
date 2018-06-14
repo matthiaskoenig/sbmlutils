@@ -46,6 +46,7 @@ from __future__ import print_function, absolute_import
 import warnings
 import re
 from pprint import pprint
+
 try:
     import libsbml
 except ImportError:
@@ -88,7 +89,7 @@ XPP_TYPE_CHARS = {
 NOTES = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>XPP model</h1>
-    <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-{}</code>.</p> 
+    <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-{}</code>.</p>
     <pre>{}</pre>
     <div class="dc:publisher">This file has been produced by
       <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
@@ -223,8 +224,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                     )
                     if new_formula != formula:
                         function_definitions[i]['formula'] = new_formula
-                        function_definitions[i]['new_args'] = list(sorted(set(function_definitions[i]['new_args'] + \
-                                                              function_definitions[k]['new_args'])))
+                        function_definitions[i]['new_args'] = list(sorted(set(function_definitions[i]['new_args'] +
+                                                                              function_definitions[k]['new_args'])))
                         changes = True
 
         return changes
@@ -399,7 +400,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
         if debug:
             # line after function replacements
-            print('*'*3, line, '*'*3)
+            print('*' * 3, line, '*' * 3)
 
         ################################
         # Start parsing the given line
@@ -421,9 +422,9 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
                 # wiener
                 if xpp_type == XPP_WIE:
-                    ''' Wiener parameters are normally distributed numbers with zero mean 
-                    and unit standard deviation. They are useful in stochastic simulations since 
-                    they automatically scale with change in the integration time step. 
+                    ''' Wiener parameters are normally distributed numbers with zero mean
+                    and unit standard deviation. They are useful in stochastic simulations since
+                    they automatically scale with change in the integration time step.
                     Their names are listed separated by commas or spaces. '''
                     # FIXME: this should be encoded using dist
                     parameters.append(
@@ -453,8 +454,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
                 # parameter & numbers
                 if xpp_type in [XPP_PAR, XPP_NUM]:
-                    ''' Parameter values are optional; if not they are set to zero. 
-                    Number declarations are like parameter declarations, except that they cannot be 
+                    ''' Parameter values are optional; if not they are set to zero.
+                    Number declarations are like parameter declarations, except that they cannot be
                     changed within the program and do not appear in the parameter window. '''
                     for part in parts:
                         sid, value = sid_value_from_part(part)
@@ -462,7 +463,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
                 # aux
                 elif xpp_type == XPP_AUX:
-                    '''Auxiliary quantities are expressions that depend on all of your dynamic 
+                    '''Auxiliary quantities are expressions that depend on all of your dynamic
                     variables which you want to keep track of. Energy is one such example. They are declared
                     like fixed quantities, but are prefaced by aux .'''
                     for part in parts:
@@ -483,8 +484,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
                 # table
                 elif xpp_type == XPP_TAB:
-                    ''' The Table declaration allows the user to specify a function of 1 variable in terms 
-                    of a lookup table which uses linear interpolation. The name of the function follows the 
+                    ''' The Table declaration allows the user to specify a function of 1 variable in terms
+                    of a lookup table which uses linear interpolation. The name of the function follows the
                     declaration and this is followed by (i) a filename (ii) or a function of "t".'''
                     warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
 
@@ -496,10 +497,10 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                 xpp_type = parse_keyword(xid)
                 # global
                 if xpp_type == XPP_GLO:
-                    '''Global flags are expressions that signal events when they change sign, from less than 
-                    to greater than zero if sign=1 , greater than to less than if sign=-1 or either way 
-                    if sign=0. The condition should be delimited by braces {} The events are of the form 
-                    variable=expression, are delimited by braces, and separated by semicolons. When the 
+                    '''Global flags are expressions that signal events when they change sign, from less than
+                    to greater than zero if sign=1 , greater than to less than if sign=-1 or either way
+                    if sign=0. The condition should be delimited by braces {} The events are of the form
+                    variable=expression, are delimited by braces, and separated by semicolons. When the
                     condition occurs all the variables in the event set are changed possibly discontinuously.
                     '''
 

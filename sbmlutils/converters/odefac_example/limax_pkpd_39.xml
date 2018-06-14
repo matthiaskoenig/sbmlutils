@@ -1,0 +1,3631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
+  <model metaid="meta_limax_pkpd_39" id="limax_pkpd_39" name="limax_pkpd_39" substanceUnits="mmole" timeUnits="h" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole" fbc:strict="false">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>PKPD model for methacetin based liver function tests.</h1>
+        <h2>Description</h2>
+        <p>
+        This model is a physiological pharmacokinetic/pharmacodynamics model (PKPD) for the
+        absorption, distribution, metabolism and elimination of methacetin, bicarbonate and paracetamol 
+        encoded in <a href="http://sbml.org">SBML</a> format.<br/></p>
+        <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
+        <div class="dc:publisher">This file has been created by
+    <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.</div>
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2018 Matthias Koenig.</div>
+        <div class="dc:license">
+          <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
+        that the following conditions are met:
+        <ol>
+            <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
+          the following disclaimer.</li>
+            <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
+          and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+          </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+        </p>
+        </div>
+      </body>
+    </notes>
+    <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+        <rdf:Description rdf:about="#meta_limax_pkpd_39">
+          <dcterms:creator>
+            <rdf:Bag>
+              <rdf:li rdf:parseType="Resource">
+                <vCard:N rdf:parseType="Resource">
+                  <vCard:Family>Koenig</vCard:Family>
+                  <vCard:Given>Matthias</vCard:Given>
+                </vCard:N>
+                <vCard:EMAIL>konigmatt@googlemail.com</vCard:EMAIL>
+                <vCard:ORG rdf:parseType="Resource">
+                  <vCard:Orgname>Humboldt-University Berlin, Institute for Theoretical Biology</vCard:Orgname>
+                </vCard:ORG>
+              </rdf:li>
+            </rdf:Bag>
+          </dcterms:creator>
+          <dcterms:created rdf:parseType="Resource">
+            <dcterms:W3CDTF>2018-02-26T19:16:14Z</dcterms:W3CDTF>
+          </dcterms:created>
+          <dcterms:modified rdf:parseType="Resource">
+            <dcterms:W3CDTF>2018-02-26T19:16:14Z</dcterms:W3CDTF>
+          </dcterms:modified>
+        </rdf:Description>
+      </rdf:RDF>
+    </annotation>
+    <listOfFunctionDefinitions>
+      <functionDefinition id="max" name="min">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <gt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+      <functionDefinition id="min" name="max">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> x </ci>
+            </bvar>
+            <bvar>
+              <ci> y </ci>
+            </bvar>
+            <piecewise>
+              <piece>
+                <ci> x </ci>
+                <apply>
+                  <lt/>
+                  <ci> x </ci>
+                  <ci> y </ci>
+                </apply>
+              </piece>
+              <otherwise>
+                <ci> y </ci>
+              </otherwise>
+            </piecewise>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfUnitDefinitions>
+      <unitDefinition id="h">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="s">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="kg">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m2">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_h">
+        <listOfUnits>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_min">
+        <listOfUnits>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="cm">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="-2" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg_per_litre">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg_per_g">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="gram" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg_per_h">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_h">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_litre">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mM">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="litre_per_h">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="litre_per_kg">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mulitre_per_min_mg">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="-6" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+          <unit kind="gram" exponent="-1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="g_per_mole">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="mole" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m2_per_kg">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+          <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mug_per_hkg">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-6" multiplier="1"/>
+          <unit kind="mole" exponent="-1" scale="0" multiplier="3600"/>
+          <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg_per_min">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_minkg">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+          <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_hm2">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+          <unit kind="metre" exponent="-2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="ml">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="ml_per_s">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="ml_per_skg">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+          <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="min_per_h">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="s_per_min">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="s_per_h">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mulitre_per_g">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="-6" multiplier="1"/>
+          <unit kind="gram" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="ml_per_litre">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="Vre" name="rest of body" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vbo" name="bone" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vhe" name="heart" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vgu" name="gut" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vki" name="kidney" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vli" name="liver" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vlu" name="lung" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vsp" name="spleen" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vve" name="venous blood" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Var" name="arterial blood" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vpl" name="plasma" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vplas_ven" name="venous plasma" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vplas_art" name="arterial plasma" spatialDimensions="3" size="1" units="litre" constant="false"/>
+      <compartment id="Vbreath" name="breath" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment id="Vurine" name="urine" spatialDimensions="3" size="1" units="litre" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="Asp_metc13" name="C13-methacetin (spleen)" compartment="Vsp" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Are_metc13" name="C13-methacetin (rest)" compartment="Vre" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ali_metc13" name="C13-methacetin (liver)" compartment="Vli" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ave_metc13" name="C13-methacetin (venous blood)" compartment="Vve" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Abo_metc13" name="C13-methacetin (bone)" compartment="Vbo" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aki_metc13" name="C13-methacetin (kidney)" compartment="Vki" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Alu_metc13" name="C13-methacetin (lung)" compartment="Vlu" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Agu_metc13" name="C13-methacetin (gut)" compartment="Vgu" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ahe_metc13" name="C13-methacetin (heart)" compartment="Vhe" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aar_metc13" name="C13-methacetin (arterial blood)" compartment="Var" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aurine_metc13" name="C13-methacetin (urine)" compartment="Vurine" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Asp_apap" name="paracetamol (spleen)" compartment="Vsp" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Are_apap" name="paracetamol (rest)" compartment="Vre" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ali_apap" name="paracetamol (liver)" compartment="Vli" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ave_apap" name="paracetamol (venous blood)" compartment="Vve" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Abo_apap" name="paracetamol (bone)" compartment="Vbo" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aki_apap" name="paracetamol (kidney)" compartment="Vki" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Alu_apap" name="paracetamol (lung)" compartment="Vlu" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Agu_apap" name="paracetamol (gut)" compartment="Vgu" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ahe_apap" name="paracetamol (heart)" compartment="Vhe" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aar_apap" name="paracetamol (arterial blood)" compartment="Var" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aurine_apap" name="paracetamol (urine)" compartment="Vurine" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Asp_co2c13" name="C13-CO2 (spleen)" compartment="Vsp" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Are_co2c13" name="C13-CO2 (rest)" compartment="Vre" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ali_co2c13" name="C13-CO2 (liver)" compartment="Vli" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ave_co2c13" name="C13-CO2 (venous blood)" compartment="Vve" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Abo_co2c13" name="C13-CO2 (bone)" compartment="Vbo" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aki_co2c13" name="C13-CO2 (kidney)" compartment="Vki" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Alu_co2c13" name="C13-CO2 (lung)" compartment="Vlu" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Agu_co2c13" name="C13-CO2 (gut)" compartment="Vgu" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Ahe_co2c13" name="C13-CO2 (heart)" compartment="Vhe" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aar_co2c13" name="C13-CO2 (arterial blood)" compartment="Var" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aurine_co2c13" name="C13-CO2 (urine)" compartment="Vurine" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Abreath_co2c13" name="C13-CO2 (breath)" compartment="Vbreath" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Abo_co2c13_fix" name="C13-CO2 (bone, fixed)" compartment="Vbo" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="BW" name="body weight [kg]" value="75" units="kg" constant="true"/>
+      <parameter id="HEIGHT" name="height [cm]" value="170" units="cm" constant="true"/>
+      <parameter id="HR" name="heart rate [1/min]" value="70" units="per_min" constant="true"/>
+      <parameter id="HRrest" name="heart rate [1/min]" value="70" units="per_min" constant="true"/>
+      <parameter id="BSA" name="body surface area [m^2]" value="0" units="m2" constant="false"/>
+      <parameter id="COBW" name="cardiac output per bodyweight [ml/s/kg]" value="1.548" units="ml_per_skg" constant="true"/>
+      <parameter id="CO" name="cardiac output [ml/s]" value="108.33" units="ml_per_s" constant="false"/>
+      <parameter id="QC" name="cardiac output [L/hr]" value="389988000" units="litre_per_h" constant="false"/>
+      <parameter id="COHRI" name="increase of cardiac output per heartbeat [ml/min*min]" value="150" units="ml" constant="true"/>
+      <parameter id="FVre" name="rest of body fractional tissue volume" value="0" units="litre_per_kg" constant="false"/>
+      <parameter id="FVbo" name="bone fractional tissue volume" value="0.0856" units="litre_per_kg" constant="true"/>
+      <parameter id="FVhe" name="heart fractional tissue volume" value="0.0047" units="litre_per_kg" constant="true"/>
+      <parameter id="FVgu" name="gut fractional tissue volume" value="0.0171" units="litre_per_kg" constant="true"/>
+      <parameter id="FVki" name="kidney fractional tissue volume" value="0.0044" units="litre_per_kg" constant="true"/>
+      <parameter id="FVli" name="liver fractional tissue volume" value="0.021" units="litre_per_kg" constant="true"/>
+      <parameter id="FVlu" name="lung fractional tissue volume" value="0.0076" units="litre_per_kg" constant="true"/>
+      <parameter id="FVsp" name="spleen fractional tissue volume" value="0.0026" units="litre_per_kg" constant="true"/>
+      <parameter id="FVve" name="venous fractional tissue volume" value="0.0514" units="litre_per_kg" constant="true"/>
+      <parameter id="FVar" name="arterial fractional tissue volume" value="0.0257" units="litre_per_kg" constant="true"/>
+      <parameter id="FVpl" name="plasma fractional tissue volume" value="0.0424" units="litre_per_kg" constant="true"/>
+      <parameter id="FQre" name="rest of body fractional tissue blood flow" value="0" units="dimensionless" constant="false"/>
+      <parameter id="FQbo" name="bone fractional tissue blood flow" value="0.05" units="dimensionless" constant="true"/>
+      <parameter id="FQhe" name="heart fractional tissue blood flow" value="0.04" units="dimensionless" constant="true"/>
+      <parameter id="FQgu" name="gut fractional tissue blood flow" value="0.146" units="dimensionless" constant="true"/>
+      <parameter id="FQki" name="kidney fractional tissue blood flow" value="0.19" units="dimensionless" constant="true"/>
+      <parameter id="FQh" name="hepatic (venous side) fractional tissue blood flow" value="0.215" units="dimensionless" constant="true"/>
+      <parameter id="FQlu" name="lung fractional tissue blood flow" value="1" units="dimensionless" constant="true"/>
+      <parameter id="FQsp" name="spleen fractional tissue blood flow" value="0.017" units="dimensionless" constant="true"/>
+      <parameter id="F_PAR" name="parenchymal liver fraction" value="0.85" units="dimensionless" constant="true"/>
+      <parameter id="MPPGL" name="mg microsomal protein per g liver parenchym" value="45" units="mg_per_g" constant="true"/>
+      <parameter id="KLU_EXCO2" name="CO2 rate of disposal in air [1/min]" value="1.2" units="per_min" constant="true"/>
+      <parameter id="KBO_FIXCO2" name="CO2 storage slow pool [1/min]" value="0.1" units="per_min" constant="true"/>
+      <parameter id="KBO_RELCO2" name="CO2 release slow pool [1/min]" value="0.0001" units="per_min" constant="true"/>
+      <parameter id="KBO_MAXCO2" name="CO2 pool size [mg]" value="0.2" units="mM" constant="true"/>
+      <parameter id="P_CO2BSA" name="CO2 production per body surface area [mmole/h/m2]" value="300" units="mmole_per_hm2" constant="true"/>
+      <parameter id="R_PDB" name="reference value of 13CO2/12CO2 ratio" value="0.01123" units="dimensionless" constant="true"/>
+      <parameter id="Mr_metc13" name="Molecular weight metc13 [g/mole]" value="165.19" units="g_per_mole" constant="true"/>
+      <parameter id="IVDOSE_metc13" name="IV bolus dose metc13 [mg]" value="0" units="mg" constant="false"/>
+      <parameter id="PODOSE_metc13" name="oral bolus dose metc13 [mg]" value="0" units="mg" constant="false"/>
+      <parameter id="Ka_metc13" name="Ka [1/hr] absorption metc13" value="4" units="per_h" constant="true"/>
+      <parameter id="F_metc13" name="fraction absorbed metc13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="ti_metc13" name="injection time metc13 [s]" value="10" units="s" constant="true"/>
+      <parameter id="Ki_metc13" name="Ki [1/hr] injection metc13" value="1" units="per_h" constant="false"/>
+      <parameter id="Ri_metc13" name="Ri [mg/min] rate of injection metc13" value="0" units="mg_per_min" constant="true"/>
+      <parameter id="cum_dose_metc13" name="Cumulative dose due to infusion metc13" value="0" units="mg" constant="false"/>
+      <parameter id="fup_metc13" name="fraction unbound in plasma metc13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="BP_metc13" name="blood to plasma ratio metc13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="fumic_metc13" name="fraction unbound in microsomes metc13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="CLrenal_metc13" name="renal clearance metc13 [L/hr]" value="10" units="litre_per_h" constant="true"/>
+      <parameter id="Kpsp_metc13" name="spleen plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpre_metc13" name="rest plasma partition coefficient" value="0.2" units="dimensionless" constant="true"/>
+      <parameter id="Kpli_metc13" name="liver plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpbo_metc13" name="bone plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpki_metc13" name="kidney plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kplu_metc13" name="lung plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpgu_metc13" name="gut plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kphe_metc13" name="heart plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Mr_apap" name="Molecular weight apap [g/mole]" value="151.16" units="g_per_mole" constant="true"/>
+      <parameter id="IVDOSE_apap" name="IV bolus dose apap [mg]" value="0" units="mg" constant="false"/>
+      <parameter id="PODOSE_apap" name="oral bolus dose apap [mg]" value="0" units="mg" constant="false"/>
+      <parameter id="Ka_apap" name="Ka [1/hr] absorption apap" value="2.5" units="per_h" constant="true"/>
+      <parameter id="F_apap" name="fraction absorbed apap" value="0.87" units="dimensionless" constant="true"/>
+      <parameter id="ti_apap" name="injection time apap [s]" value="10" units="s" constant="true"/>
+      <parameter id="Ki_apap" name="Ki [1/hr] injection apap" value="1" units="per_h" constant="false"/>
+      <parameter id="Ri_apap" name="Ri [mg/min] rate of injection apap" value="0" units="mg_per_min" constant="true"/>
+      <parameter id="cum_dose_apap" name="Cumulative dose due to infusion apap" value="0" units="mg" constant="false"/>
+      <parameter id="fup_apap" name="fraction unbound in plasma apap" value="1" units="dimensionless" constant="true"/>
+      <parameter id="BP_apap" name="blood to plasma ratio apap" value="1" units="dimensionless" constant="true"/>
+      <parameter id="fumic_apap" name="fraction unbound in microsomes apap" value="1" units="dimensionless" constant="true"/>
+      <parameter id="CLrenal_apap" name="renal clearance apap [L/hr]" value="0.714" units="litre_per_h" constant="true"/>
+      <parameter id="Kpsp_apap" name="spleen plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpre_apap" name="rest plasma partition coefficient" value="0.8" units="dimensionless" constant="true"/>
+      <parameter id="Kpli_apap" name="liver plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpbo_apap" name="bone plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpki_apap" name="kidney plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kplu_apap" name="lung plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpgu_apap" name="gut plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kphe_apap" name="heart plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Mr_co2c13" name="Molecular weight co2c13 [g/mole]" value="62.02" units="g_per_mole" constant="true"/>
+      <parameter id="IVDOSE_co2c13" name="IV bolus dose co2c13 [mg]" value="0" units="mg" constant="false"/>
+      <parameter id="PODOSE_co2c13" name="oral bolus dose co2c13 [mg]" value="0" units="mg" constant="false"/>
+      <parameter id="Ka_co2c13" name="Ka [1/hr] absorption co2c13" value="8" units="per_h" constant="true"/>
+      <parameter id="F_co2c13" name="fraction absorbed co2c13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="ti_co2c13" name="injection time co2c13 [s]" value="10" units="s" constant="true"/>
+      <parameter id="Ki_co2c13" name="Ki [1/hr] injection co2c13" value="1" units="per_h" constant="false"/>
+      <parameter id="Ri_co2c13" name="Ri [mg/min] rate of injection co2c13" value="0" units="mg_per_min" constant="true"/>
+      <parameter id="cum_dose_co2c13" name="Cumulative dose due to infusion co2c13" value="0" units="mg" constant="false"/>
+      <parameter id="fup_co2c13" name="fraction unbound in plasma co2c13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="BP_co2c13" name="blood to plasma ratio co2c13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="fumic_co2c13" name="fraction unbound in microsomes co2c13" value="1" units="dimensionless" constant="true"/>
+      <parameter id="CLrenal_co2c13" name="renal clearance co2c13 [L/hr]" value="0" units="litre_per_h" constant="true"/>
+      <parameter id="Kpsp_co2c13" name="spleen plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpre_co2c13" name="rest plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpli_co2c13" name="liver plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpbo_co2c13" name="bone plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpki_co2c13" name="kidney plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kplu_co2c13" name="lung plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kpgu_co2c13" name="gut plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="Kphe_co2c13" name="heart plasma partition coefficient" value="1" units="dimensionless" constant="true"/>
+      <parameter id="P_CO2" units="mmole_per_min" constant="false"/>
+      <parameter id="P_CO2c13" units="mmole_per_min" constant="false"/>
+      <parameter id="P_CO2c12" units="mmole_per_min" constant="false"/>
+      <parameter id="P_CO2R" units="dimensionless" constant="false"/>
+      <parameter id="P_CO2Fc13" units="dimensionless" constant="false"/>
+      <parameter id="DOB" units="dimensionless" constant="false"/>
+      <parameter id="Qbo" name="bone blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qhe" name="heart blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qgu" name="gut blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qki" name="kidney blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qh" name="hepatic (venous side) blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qha" name="hepatic artery blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qlu" name="lung blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qsp" name="spleen blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Qre" name="rest of body blood flow" units="litre_per_h" constant="false"/>
+      <parameter id="Xbody_metc13" units="mg" constant="false"/>
+      <parameter id="Cpl_ve_metc13" name="C13-methacetin venous plasma concentration" units="mM" constant="false"/>
+      <parameter id="Cli_free_metc13" name="C13-methacetin free liver concentration" units="mM" constant="false"/>
+      <parameter id="Cki_free_metc13" name="C13-methacetin free kidney concentration" units="mM" constant="false"/>
+      <parameter id="Csp_metc13" name="C13-methacetin concentration (spleen)" units="mM" constant="false"/>
+      <parameter id="Xsp_metc13" name="C13-methacetin amount (spleen)" units="mg" constant="false"/>
+      <parameter id="Msp_metc13" name="C13-methacetin amount (spleen)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cre_metc13" name="C13-methacetin concentration (rest)" units="mM" constant="false"/>
+      <parameter id="Xre_metc13" name="C13-methacetin amount (rest)" units="mg" constant="false"/>
+      <parameter id="Mre_metc13" name="C13-methacetin amount (rest)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cli_metc13" name="C13-methacetin concentration (liver)" units="mM" constant="false"/>
+      <parameter id="Xli_metc13" name="C13-methacetin amount (liver)" units="mg" constant="false"/>
+      <parameter id="Mli_metc13" name="C13-methacetin amount (liver)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cve_metc13" name="C13-methacetin concentration (venous blood)" units="mM" constant="false"/>
+      <parameter id="Xve_metc13" name="C13-methacetin amount (venous blood)" units="mg" constant="false"/>
+      <parameter id="Mve_metc13" name="C13-methacetin amount (venous blood)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cbo_metc13" name="C13-methacetin concentration (bone)" units="mM" constant="false"/>
+      <parameter id="Xbo_metc13" name="C13-methacetin amount (bone)" units="mg" constant="false"/>
+      <parameter id="Mbo_metc13" name="C13-methacetin amount (bone)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cki_metc13" name="C13-methacetin concentration (kidney)" units="mM" constant="false"/>
+      <parameter id="Xki_metc13" name="C13-methacetin amount (kidney)" units="mg" constant="false"/>
+      <parameter id="Mki_metc13" name="C13-methacetin amount (kidney)" units="mg_per_litre" constant="false"/>
+      <parameter id="Clu_metc13" name="C13-methacetin concentration (lung)" units="mM" constant="false"/>
+      <parameter id="Xlu_metc13" name="C13-methacetin amount (lung)" units="mg" constant="false"/>
+      <parameter id="Mlu_metc13" name="C13-methacetin amount (lung)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cgu_metc13" name="C13-methacetin concentration (gut)" units="mM" constant="false"/>
+      <parameter id="Xgu_metc13" name="C13-methacetin amount (gut)" units="mg" constant="false"/>
+      <parameter id="Mgu_metc13" name="C13-methacetin amount (gut)" units="mg_per_litre" constant="false"/>
+      <parameter id="Che_metc13" name="C13-methacetin concentration (heart)" units="mM" constant="false"/>
+      <parameter id="Xhe_metc13" name="C13-methacetin amount (heart)" units="mg" constant="false"/>
+      <parameter id="Mhe_metc13" name="C13-methacetin amount (heart)" units="mg_per_litre" constant="false"/>
+      <parameter id="Car_metc13" name="C13-methacetin concentration (arterial blood)" units="mM" constant="false"/>
+      <parameter id="Xar_metc13" name="C13-methacetin amount (arterial blood)" units="mg" constant="false"/>
+      <parameter id="Mar_metc13" name="C13-methacetin amount (arterial blood)" units="mg_per_litre" constant="false"/>
+      <parameter id="Xurine_metc13" name="C13-methacetin amount (urine)" units="mg" constant="false"/>
+      <parameter id="Xbody_apap" units="mg" constant="false"/>
+      <parameter id="Cpl_ve_apap" name="paracetamol venous plasma concentration" units="mM" constant="false"/>
+      <parameter id="Cli_free_apap" name="paracetamol free liver concentration" units="mM" constant="false"/>
+      <parameter id="Cki_free_apap" name="paracetamol free kidney concentration" units="mM" constant="false"/>
+      <parameter id="Csp_apap" name="paracetamol concentration (spleen)" units="mM" constant="false"/>
+      <parameter id="Xsp_apap" name="paracetamol amount (spleen)" units="mg" constant="false"/>
+      <parameter id="Msp_apap" name="paracetamol amount (spleen)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cre_apap" name="paracetamol concentration (rest)" units="mM" constant="false"/>
+      <parameter id="Xre_apap" name="paracetamol amount (rest)" units="mg" constant="false"/>
+      <parameter id="Mre_apap" name="paracetamol amount (rest)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cli_apap" name="paracetamol concentration (liver)" units="mM" constant="false"/>
+      <parameter id="Xli_apap" name="paracetamol amount (liver)" units="mg" constant="false"/>
+      <parameter id="Mli_apap" name="paracetamol amount (liver)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cve_apap" name="paracetamol concentration (venous blood)" units="mM" constant="false"/>
+      <parameter id="Xve_apap" name="paracetamol amount (venous blood)" units="mg" constant="false"/>
+      <parameter id="Mve_apap" name="paracetamol amount (venous blood)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cbo_apap" name="paracetamol concentration (bone)" units="mM" constant="false"/>
+      <parameter id="Xbo_apap" name="paracetamol amount (bone)" units="mg" constant="false"/>
+      <parameter id="Mbo_apap" name="paracetamol amount (bone)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cki_apap" name="paracetamol concentration (kidney)" units="mM" constant="false"/>
+      <parameter id="Xki_apap" name="paracetamol amount (kidney)" units="mg" constant="false"/>
+      <parameter id="Mki_apap" name="paracetamol amount (kidney)" units="mg_per_litre" constant="false"/>
+      <parameter id="Clu_apap" name="paracetamol concentration (lung)" units="mM" constant="false"/>
+      <parameter id="Xlu_apap" name="paracetamol amount (lung)" units="mg" constant="false"/>
+      <parameter id="Mlu_apap" name="paracetamol amount (lung)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cgu_apap" name="paracetamol concentration (gut)" units="mM" constant="false"/>
+      <parameter id="Xgu_apap" name="paracetamol amount (gut)" units="mg" constant="false"/>
+      <parameter id="Mgu_apap" name="paracetamol amount (gut)" units="mg_per_litre" constant="false"/>
+      <parameter id="Che_apap" name="paracetamol concentration (heart)" units="mM" constant="false"/>
+      <parameter id="Xhe_apap" name="paracetamol amount (heart)" units="mg" constant="false"/>
+      <parameter id="Mhe_apap" name="paracetamol amount (heart)" units="mg_per_litre" constant="false"/>
+      <parameter id="Car_apap" name="paracetamol concentration (arterial blood)" units="mM" constant="false"/>
+      <parameter id="Xar_apap" name="paracetamol amount (arterial blood)" units="mg" constant="false"/>
+      <parameter id="Mar_apap" name="paracetamol amount (arterial blood)" units="mg_per_litre" constant="false"/>
+      <parameter id="Xurine_apap" name="paracetamol amount (urine)" units="mg" constant="false"/>
+      <parameter id="Xbody_co2c13" units="mg" constant="false"/>
+      <parameter id="Cpl_ve_co2c13" name="C13-CO2 venous plasma concentration" units="mM" constant="false"/>
+      <parameter id="Cli_free_co2c13" name="C13-CO2 free liver concentration" units="mM" constant="false"/>
+      <parameter id="Cki_free_co2c13" name="C13-CO2 free kidney concentration" units="mM" constant="false"/>
+      <parameter id="Csp_co2c13" name="C13-CO2 concentration (spleen)" units="mM" constant="false"/>
+      <parameter id="Xsp_co2c13" name="C13-CO2 amount (spleen)" units="mg" constant="false"/>
+      <parameter id="Msp_co2c13" name="C13-CO2 amount (spleen)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cre_co2c13" name="C13-CO2 concentration (rest)" units="mM" constant="false"/>
+      <parameter id="Xre_co2c13" name="C13-CO2 amount (rest)" units="mg" constant="false"/>
+      <parameter id="Mre_co2c13" name="C13-CO2 amount (rest)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cli_co2c13" name="C13-CO2 concentration (liver)" units="mM" constant="false"/>
+      <parameter id="Xli_co2c13" name="C13-CO2 amount (liver)" units="mg" constant="false"/>
+      <parameter id="Mli_co2c13" name="C13-CO2 amount (liver)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cve_co2c13" name="C13-CO2 concentration (venous blood)" units="mM" constant="false"/>
+      <parameter id="Xve_co2c13" name="C13-CO2 amount (venous blood)" units="mg" constant="false"/>
+      <parameter id="Mve_co2c13" name="C13-CO2 amount (venous blood)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cbo_co2c13" name="C13-CO2 concentration (bone)" units="mM" constant="false"/>
+      <parameter id="Xbo_co2c13" name="C13-CO2 amount (bone)" units="mg" constant="false"/>
+      <parameter id="Mbo_co2c13" name="C13-CO2 amount (bone)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cki_co2c13" name="C13-CO2 concentration (kidney)" units="mM" constant="false"/>
+      <parameter id="Xki_co2c13" name="C13-CO2 amount (kidney)" units="mg" constant="false"/>
+      <parameter id="Mki_co2c13" name="C13-CO2 amount (kidney)" units="mg_per_litre" constant="false"/>
+      <parameter id="Clu_co2c13" name="C13-CO2 concentration (lung)" units="mM" constant="false"/>
+      <parameter id="Xlu_co2c13" name="C13-CO2 amount (lung)" units="mg" constant="false"/>
+      <parameter id="Mlu_co2c13" name="C13-CO2 amount (lung)" units="mg_per_litre" constant="false"/>
+      <parameter id="Cgu_co2c13" name="C13-CO2 concentration (gut)" units="mM" constant="false"/>
+      <parameter id="Xgu_co2c13" name="C13-CO2 amount (gut)" units="mg" constant="false"/>
+      <parameter id="Mgu_co2c13" name="C13-CO2 amount (gut)" units="mg_per_litre" constant="false"/>
+      <parameter id="Che_co2c13" name="C13-CO2 concentration (heart)" units="mM" constant="false"/>
+      <parameter id="Xhe_co2c13" name="C13-CO2 amount (heart)" units="mg" constant="false"/>
+      <parameter id="Mhe_co2c13" name="C13-CO2 amount (heart)" units="mg_per_litre" constant="false"/>
+      <parameter id="Car_co2c13" name="C13-CO2 concentration (arterial blood)" units="mM" constant="false"/>
+      <parameter id="Xar_co2c13" name="C13-CO2 amount (arterial blood)" units="mg" constant="false"/>
+      <parameter id="Mar_co2c13" name="C13-CO2 amount (arterial blood)" units="mg_per_litre" constant="false"/>
+      <parameter id="Xurine_co2c13" name="C13-CO2 amount (urine)" units="mg" constant="false"/>
+      <parameter id="Xbreath_co2c13" name="C13-CO2 amount (breath)" units="mg" constant="false"/>
+      <parameter id="Cbo_co2c13_fix" name="C13-CO2 concentration (bone)" units="mM" constant="false"/>
+      <parameter id="Xbo_co2c13_fix" name="C13-CO2 amount (bone)" units="mg" constant="false"/>
+      <parameter id="CYP1A2MET_CL" name="HLM apparent clearance by hepatic microsomes [mul/min/mg]" value="1.5" units="mulitre_per_min_mg" constant="true"/>
+      <parameter id="CYP1A2MET_Km_met" value="0.02" units="mM" constant="true"/>
+      <parameter id="CYP1A2MET_CLliv" name="liver clearance [l/hr]" units="litre_per_h" constant="false"/>
+      <parameter id="CO2FIX_HLM_CL" name="HLM apparent clearance by hepatic microsomes [mul/min/mg]" value="1.5" units="mulitre_per_min_mg" constant="true"/>
+      <parameter id="CO2FIX_Km_co2" value="0.2" units="mM" constant="true"/>
+      <parameter id="CO2FIX_CLliv" name="liver clearance [l/hr]" units="litre_per_h" constant="false"/>
+      <parameter id="APAPD_HLM_CL" name="HLM apparent clearance by hepatic microsomes [mul/min/mg]" value="2.5" units="mulitre_per_min_mg" constant="true"/>
+      <parameter id="APAPD_Km_apap" value="0.5" units="mM" constant="true"/>
+      <parameter id="APAPD_CLliv" name="liver clearance [l/hr]" units="litre_per_h" constant="false"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="FVre">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <minus/>
+            <cn sbml:units="litre_per_kg"> 1 </cn>
+            <apply>
+              <plus/>
+              <ci> FVbo </ci>
+              <ci> FVhe </ci>
+              <ci> FVgu </ci>
+              <ci> FVki </ci>
+              <ci> FVli </ci>
+              <ci> FVlu </ci>
+              <ci> FVsp </ci>
+              <ci> FVve </ci>
+              <ci> FVar </ci>
+              <ci> FVpl </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="FQre">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <minus/>
+            <cn sbml:units="dimensionless"> 1 </cn>
+            <apply>
+              <plus/>
+              <ci> FQbo </ci>
+              <ci> FQhe </ci>
+              <ci> FQgu </ci>
+              <ci> FQki </ci>
+              <ci> FQh </ci>
+              <ci> FQsp </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="BSA">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <cn sbml:units="m2"> 0.024265 </cn>
+            <apply>
+              <power/>
+              <apply>
+                <divide/>
+                <ci> BW </ci>
+                <cn sbml:units="kg" type="integer"> 1 </cn>
+              </apply>
+              <cn> 0.5378 </cn>
+            </apply>
+            <apply>
+              <power/>
+              <apply>
+                <divide/>
+                <ci> HEIGHT </ci>
+                <cn sbml:units="cm" type="integer"> 1 </cn>
+              </apply>
+              <cn> 0.3964 </cn>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="CO">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <ci> BW </ci>
+              <ci> COBW </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <minus/>
+                  <ci> HR </ci>
+                  <ci> HRrest </ci>
+                </apply>
+                <ci> COHRI </ci>
+              </apply>
+              <cn sbml:units="s_per_min" type="integer"> 60 </cn>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="QC">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> CO </ci>
+              <cn sbml:units="ml_per_litre" type="integer"> 1000 </cn>
+            </apply>
+            <cn sbml:units="s_per_h" type="integer"> 3600 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="P_CO2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> BSA </ci>
+              <ci> P_CO2BSA </ci>
+            </apply>
+            <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="P_CO2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> R_PDB </ci>
+                <apply>
+                  <plus/>
+                  <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+                  <ci> R_PDB </ci>
+                </apply>
+              </apply>
+              <ci> P_CO2 </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <ci> Exhalation_co2c13 </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="P_CO2c12">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+                <ci> R_PDB </ci>
+              </apply>
+            </apply>
+            <ci> P_CO2 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="P_CO2R">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> P_CO2c13 </ci>
+            <ci> P_CO2c12 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="P_CO2Fc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> P_CO2c13 </ci>
+            <apply>
+              <plus/>
+              <ci> P_CO2c12 </ci>
+              <ci> P_CO2c13 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="DOB">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <apply>
+                <minus/>
+                <apply>
+                  <divide/>
+                  <ci> P_CO2c13 </ci>
+                  <ci> P_CO2c12 </ci>
+                </apply>
+                <ci> R_PDB </ci>
+              </apply>
+              <ci> R_PDB </ci>
+            </apply>
+            <cn sbml:units="dimensionless" type="integer"> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vbo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVbo </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vhe">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVhe </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vgu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVgu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vki">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVki </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vli">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVli </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vlu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVlu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vsp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVsp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vve">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVve </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Var">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVar </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vpl">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVpl </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vre">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> BW </ci>
+            <ci> FVre </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vplas_ven">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> Vpl </ci>
+              <ci> Vve </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <ci> Vve </ci>
+              <ci> Var </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Vplas_art">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> Vpl </ci>
+              <ci> Var </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <ci> Vve </ci>
+              <ci> Var </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qbo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQbo </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qhe">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQhe </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qgu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQgu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qki">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQki </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQh </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qha">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <ci> Qh </ci>
+              <ci> Qgu </ci>
+            </apply>
+            <ci> Qsp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qlu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQlu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qsp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQsp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Qre">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> QC </ci>
+            <ci> FQre </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbody_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> Xar_metc13 </ci>
+            <ci> Xbo_metc13 </ci>
+            <ci> Xhe_metc13 </ci>
+            <ci> Xgu_metc13 </ci>
+            <ci> Xki_metc13 </ci>
+            <ci> Xli_metc13 </ci>
+            <ci> Xlu_metc13 </ci>
+            <ci> Xsp_metc13 </ci>
+            <ci> Xre_metc13 </ci>
+            <ci> Xve_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cpl_ve_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Cve_metc13 </ci>
+            <ci> BP_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cli_free_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Cli_metc13 </ci>
+            <ci> fup_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cki_free_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Cki_metc13 </ci>
+            <ci> fup_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Ki_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn sbml:units="dimensionless"> 1.386 </cn>
+              <ci> ti_metc13 </ci>
+            </apply>
+            <cn sbml:units="s_per_h" type="integer"> 3600 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Csp_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Asp_metc13 </ci>
+            <ci> Vsp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xsp_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Asp_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Msp_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Asp_metc13 </ci>
+              <ci> Vsp </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cre_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Are_metc13 </ci>
+            <ci> Vre </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xre_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Are_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mre_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Are_metc13 </ci>
+              <ci> Vre </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cli_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ali_metc13 </ci>
+            <ci> Vli </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xli_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ali_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mli_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ali_metc13 </ci>
+              <ci> Vli </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cve_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ave_metc13 </ci>
+            <ci> Vve </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xve_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ave_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mve_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ave_metc13 </ci>
+              <ci> Vve </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cbo_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Abo_metc13 </ci>
+            <ci> Vbo </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbo_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Abo_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mbo_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Abo_metc13 </ci>
+              <ci> Vbo </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cki_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Aki_metc13 </ci>
+            <ci> Vki </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xki_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aki_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mki_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Aki_metc13 </ci>
+              <ci> Vki </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Clu_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Alu_metc13 </ci>
+            <ci> Vlu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xlu_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Alu_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mlu_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Alu_metc13 </ci>
+              <ci> Vlu </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cgu_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Agu_metc13 </ci>
+            <ci> Vgu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xgu_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Agu_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mgu_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Agu_metc13 </ci>
+              <ci> Vgu </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Che_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ahe_metc13 </ci>
+            <ci> Vhe </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xhe_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ahe_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mhe_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ahe_metc13 </ci>
+              <ci> Vhe </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Car_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Aar_metc13 </ci>
+            <ci> Var </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xar_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aar_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mar_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Aar_metc13 </ci>
+              <ci> Var </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xurine_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aurine_metc13 </ci>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbody_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> Xar_apap </ci>
+            <ci> Xbo_apap </ci>
+            <ci> Xhe_apap </ci>
+            <ci> Xgu_apap </ci>
+            <ci> Xki_apap </ci>
+            <ci> Xli_apap </ci>
+            <ci> Xlu_apap </ci>
+            <ci> Xsp_apap </ci>
+            <ci> Xre_apap </ci>
+            <ci> Xve_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cpl_ve_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Cve_apap </ci>
+            <ci> BP_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cli_free_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Cli_apap </ci>
+            <ci> fup_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cki_free_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Cki_apap </ci>
+            <ci> fup_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Ki_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn sbml:units="dimensionless"> 1.386 </cn>
+              <ci> ti_apap </ci>
+            </apply>
+            <cn sbml:units="s_per_h" type="integer"> 3600 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Csp_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Asp_apap </ci>
+            <ci> Vsp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xsp_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Asp_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Msp_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Asp_apap </ci>
+              <ci> Vsp </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cre_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Are_apap </ci>
+            <ci> Vre </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xre_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Are_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mre_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Are_apap </ci>
+              <ci> Vre </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cli_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ali_apap </ci>
+            <ci> Vli </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xli_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ali_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mli_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ali_apap </ci>
+              <ci> Vli </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cve_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ave_apap </ci>
+            <ci> Vve </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xve_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ave_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mve_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ave_apap </ci>
+              <ci> Vve </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cbo_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Abo_apap </ci>
+            <ci> Vbo </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbo_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Abo_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mbo_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Abo_apap </ci>
+              <ci> Vbo </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cki_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Aki_apap </ci>
+            <ci> Vki </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xki_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aki_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mki_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Aki_apap </ci>
+              <ci> Vki </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Clu_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Alu_apap </ci>
+            <ci> Vlu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xlu_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Alu_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mlu_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Alu_apap </ci>
+              <ci> Vlu </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cgu_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Agu_apap </ci>
+            <ci> Vgu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xgu_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Agu_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mgu_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Agu_apap </ci>
+              <ci> Vgu </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Che_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ahe_apap </ci>
+            <ci> Vhe </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xhe_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ahe_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mhe_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ahe_apap </ci>
+              <ci> Vhe </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Car_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Aar_apap </ci>
+            <ci> Var </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xar_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aar_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mar_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Aar_apap </ci>
+              <ci> Var </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xurine_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aurine_apap </ci>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbody_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> Xar_co2c13 </ci>
+            <ci> Xbo_co2c13 </ci>
+            <ci> Xhe_co2c13 </ci>
+            <ci> Xgu_co2c13 </ci>
+            <ci> Xki_co2c13 </ci>
+            <ci> Xli_co2c13 </ci>
+            <ci> Xlu_co2c13 </ci>
+            <ci> Xsp_co2c13 </ci>
+            <ci> Xre_co2c13 </ci>
+            <ci> Xve_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cpl_ve_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Cve_co2c13 </ci>
+            <ci> BP_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cli_free_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Cli_co2c13 </ci>
+            <ci> fup_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cki_free_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Cki_co2c13 </ci>
+            <ci> fup_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Ki_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <cn sbml:units="dimensionless"> 1.386 </cn>
+              <ci> ti_co2c13 </ci>
+            </apply>
+            <cn sbml:units="s_per_h" type="integer"> 3600 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Csp_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Asp_co2c13 </ci>
+            <ci> Vsp </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xsp_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Asp_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Msp_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Asp_co2c13 </ci>
+              <ci> Vsp </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cre_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Are_co2c13 </ci>
+            <ci> Vre </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xre_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Are_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mre_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Are_co2c13 </ci>
+              <ci> Vre </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cli_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ali_co2c13 </ci>
+            <ci> Vli </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xli_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ali_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mli_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ali_co2c13 </ci>
+              <ci> Vli </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cve_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ave_co2c13 </ci>
+            <ci> Vve </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xve_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ave_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mve_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ave_co2c13 </ci>
+              <ci> Vve </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cbo_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Abo_co2c13 </ci>
+            <ci> Vbo </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbo_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Abo_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mbo_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Abo_co2c13 </ci>
+              <ci> Vbo </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cki_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Aki_co2c13 </ci>
+            <ci> Vki </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xki_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aki_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mki_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Aki_co2c13 </ci>
+              <ci> Vki </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Clu_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Alu_co2c13 </ci>
+            <ci> Vlu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xlu_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Alu_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mlu_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Alu_co2c13 </ci>
+              <ci> Vlu </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cgu_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Agu_co2c13 </ci>
+            <ci> Vgu </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xgu_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Agu_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mgu_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Agu_co2c13 </ci>
+              <ci> Vgu </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Che_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Ahe_co2c13 </ci>
+            <ci> Vhe </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xhe_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Ahe_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mhe_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Ahe_co2c13 </ci>
+              <ci> Vhe </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Car_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Aar_co2c13 </ci>
+            <ci> Var </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xar_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aar_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Mar_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Aar_co2c13 </ci>
+              <ci> Var </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xurine_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Aurine_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbreath_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Abreath_co2c13 </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Cbo_co2c13_fix">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <ci> Abo_co2c13_fix </ci>
+            <ci> Vbo </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="Xbo_co2c13_fix">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> Abo_co2c13_fix </ci>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <rateRule variable="PODOSE_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Absorption_metc13 </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="IVDOSE_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Injection_metc13 </ci>
+            </apply>
+            <ci> Mr_metc13 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cum_dose_metc13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <ci> Ri_metc13 </ci>
+            <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PODOSE_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Absorption_apap </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="IVDOSE_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Injection_apap </ci>
+            </apply>
+            <ci> Mr_apap </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cum_dose_apap">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <ci> Ri_apap </ci>
+            <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="PODOSE_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Absorption_co2c13 </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="IVDOSE_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Injection_co2c13 </ci>
+            </apply>
+            <ci> Mr_co2c13 </ci>
+          </apply>
+        </math>
+      </rateRule>
+      <rateRule variable="cum_dose_co2c13">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <times/>
+            <ci> Ri_co2c13 </ci>
+            <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+          </apply>
+        </math>
+      </rateRule>
+      <assignmentRule variable="CYP1A2MET_CLliv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> CYP1A2MET_CL </ci>
+                <ci> fumic_metc13 </ci>
+              </apply>
+              <ci> MPPGL </ci>
+              <ci> Vli </ci>
+              <ci> F_PAR </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+            <cn sbml:units="mulitre_per_g" type="integer"> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="CO2FIX_CLliv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci> CO2FIX_HLM_CL </ci>
+              <ci> MPPGL </ci>
+              <ci> Vli </ci>
+              <ci> F_PAR </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+            <cn sbml:units="mulitre_per_g" type="integer"> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="APAPD_CLliv">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> APAPD_HLM_CL </ci>
+                <ci> fumic_apap </ci>
+              </apply>
+              <ci> MPPGL </ci>
+              <ci> Vli </ci>
+              <ci> F_PAR </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+            <cn sbml:units="mulitre_per_g" type="integer"> 1000 </cn>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="CYP1A2MET" name="CYP1A2_MET (CYP1A2) [metc13 -&gt; apap + co2c13]" reversible="false" fast="false" compartment="Vli">
+        <listOfReactants>
+          <speciesReference species="Ali_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_apap" stoichiometry="1" constant="true"/>
+          <speciesReference species="Ali_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <ci> CYP1A2MET_CLliv </ci>
+              <cn sbml:units="mmole_per_litre"> 1 </cn>
+              <apply>
+                <divide/>
+                <ci> Cli_free_metc13 </ci>
+                <apply>
+                  <plus/>
+                  <ci> Cli_free_metc13 </ci>
+                  <ci> CYP1A2MET_Km_met </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="CO2FIX" name="CO2FIX [co2c13 -&gt;]" reversible="false" fast="false" compartment="Vli">
+        <listOfReactants>
+          <speciesReference species="Ali_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <ci> CO2FIX_CLliv </ci>
+              <cn sbml:units="mmole_per_litre"> 1 </cn>
+              <apply>
+                <divide/>
+                <ci> Cli_co2c13 </ci>
+                <apply>
+                  <plus/>
+                  <ci> Cli_co2c13 </ci>
+                  <ci> CO2FIX_Km_co2 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="APAPD" name="APAP detoxification (apap -&gt; )" reversible="false" fast="false" compartment="Vli">
+        <listOfReactants>
+          <speciesReference species="Ali_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <ci> APAPD_CLliv </ci>
+              <cn sbml:units="mmole_per_litre"> 1 </cn>
+              <apply>
+                <divide/>
+                <ci> Cli_free_apap </ci>
+                <apply>
+                  <plus/>
+                  <ci> Cli_free_apap </ci>
+                  <ci> APAPD_Km_apap </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Exhalation_co2c13" name="exhalation C13-CO2" reversible="false" fast="false" compartment="Vlu">
+        <listOfReactants>
+          <speciesReference species="Alu_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Abreath_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <ci> KLU_EXCO2 </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+              <ci> Clu_co2c13 </ci>
+              <ci> Vlu </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Fixation_co2c13" name="fixation C13-CO2" reversible="false" fast="false" compartment="Vve">
+        <listOfReactants>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Abo_co2c13_fix" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <ci> KBO_FIXCO2 </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+              <ci> Cve_co2c13 </ci>
+              <ci> Vve </ci>
+              <apply>
+                <minus/>
+                <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+                <apply>
+                  <divide/>
+                  <ci> Cbo_co2c13_fix </ci>
+                  <ci> KBO_MAXCO2 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Release_co2c13" name="release C13-CO2" reversible="false" fast="false" compartment="Vve">
+        <listOfReactants>
+          <speciesReference species="Abo_co2c13_fix" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <ci> KBO_RELCO2 </ci>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+              <ci> Cbo_co2c13_fix </ci>
+              <ci> Vve </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Injection_metc13" name="injection C13-methacetin" reversible="false" fast="false" compartment="Vve">
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> Ki_metc13 </ci>
+                <ci> IVDOSE_metc13 </ci>
+              </apply>
+              <ci> Mr_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Infusion_metc13" name="infusion C13-methacetin" reversible="false" fast="false" compartment="Vve">
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> Ri_metc13 </ci>
+                <ci> Mr_metc13 </ci>
+              </apply>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Absorption_metc13" name="absorption C13-methacetin" reversible="false" fast="false" compartment="Vgu">
+        <listOfProducts>
+          <speciesReference species="Agu_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Ka_metc13 </ci>
+                  <ci> PODOSE_metc13 </ci>
+                </apply>
+                <ci> Mr_metc13 </ci>
+              </apply>
+              <ci> F_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="vre_metc13" name="clearance C13-methacetin (kidney)" reversible="false" fast="false" compartment="Vki">
+        <listOfReactants>
+          <speciesReference species="Aki_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aurine_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> CLrenal_metc13 </ci>
+              <ci> Cki_free_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ve_lu_metc13" name="inflow lung C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Alu_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qlu </ci>
+              <ci> Cve_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="lu_ar_metc13" name="outflow lung C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Alu_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qlu </ci>
+              <apply>
+                <divide/>
+                <ci> Clu_metc13 </ci>
+                <ci> Kplu_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_re_metc13" name="inflow rest C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Are_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qre </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="re_ve_metc13" name="outflow lung C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Are_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qre </ci>
+              <apply>
+                <divide/>
+                <ci> Cre_metc13 </ci>
+                <ci> Kpre_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_bo_metc13" name="inflow bone C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Abo_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qbo </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="bo_ve_metc13" name="outflow bone C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Abo_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qbo </ci>
+              <apply>
+                <divide/>
+                <ci> Cbo_metc13 </ci>
+                <ci> Kpbo_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_gu_metc13" name="inflow gut C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Agu_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qgu </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="gu_li_metc13" name="outflow gut C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Agu_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qgu </ci>
+              <apply>
+                <divide/>
+                <ci> Cgu_metc13 </ci>
+                <ci> Kpgu_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_he_metc13" name="inflow heart C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ahe_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qhe </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="he_ve_metc13" name="outflow heart C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ahe_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qhe </ci>
+              <apply>
+                <divide/>
+                <ci> Che_metc13 </ci>
+                <ci> Kphe_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_ki_metc13" name="inflow kidney C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aki_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qki </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ki_ve_metc13" name="outflow kidney C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aki_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qki </ci>
+              <apply>
+                <divide/>
+                <ci> Cki_metc13 </ci>
+                <ci> Kpki_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_sp_metc13" name="inflow spleen C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Asp_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qsp </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="sp_li_metc13" name="outflow spleen C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Asp_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qsp </ci>
+              <apply>
+                <divide/>
+                <ci> Csp_metc13 </ci>
+                <ci> Kpsp_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_li_metc13" name="inflow liver C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qha </ci>
+              <ci> Car_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="li_ve_metc13" name="outflow liver C13-methacetin" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ali_metc13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_metc13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qh </ci>
+              <apply>
+                <divide/>
+                <ci> Cli_metc13 </ci>
+                <ci> Kpli_metc13 </ci>
+              </apply>
+              <ci> BP_metc13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Injection_apap" name="injection paracetamol" reversible="false" fast="false" compartment="Vve">
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> Ki_apap </ci>
+                <ci> IVDOSE_apap </ci>
+              </apply>
+              <ci> Mr_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Infusion_apap" name="infusion paracetamol" reversible="false" fast="false" compartment="Vve">
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> Ri_apap </ci>
+                <ci> Mr_apap </ci>
+              </apply>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Absorption_apap" name="absorption paracetamol" reversible="false" fast="false" compartment="Vgu">
+        <listOfProducts>
+          <speciesReference species="Agu_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Ka_apap </ci>
+                  <ci> PODOSE_apap </ci>
+                </apply>
+                <ci> Mr_apap </ci>
+              </apply>
+              <ci> F_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="vre_apap" name="clearance paracetamol (kidney)" reversible="false" fast="false" compartment="Vki">
+        <listOfReactants>
+          <speciesReference species="Aki_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aurine_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> CLrenal_apap </ci>
+              <ci> Cki_free_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ve_lu_apap" name="inflow lung paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Alu_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qlu </ci>
+              <ci> Cve_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="lu_ar_apap" name="outflow lung paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Alu_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qlu </ci>
+              <apply>
+                <divide/>
+                <ci> Clu_apap </ci>
+                <ci> Kplu_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_re_apap" name="inflow rest paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Are_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qre </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="re_ve_apap" name="outflow lung paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Are_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qre </ci>
+              <apply>
+                <divide/>
+                <ci> Cre_apap </ci>
+                <ci> Kpre_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_bo_apap" name="inflow bone paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Abo_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qbo </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="bo_ve_apap" name="outflow bone paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Abo_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qbo </ci>
+              <apply>
+                <divide/>
+                <ci> Cbo_apap </ci>
+                <ci> Kpbo_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_gu_apap" name="inflow gut paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Agu_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qgu </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="gu_li_apap" name="outflow gut paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Agu_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qgu </ci>
+              <apply>
+                <divide/>
+                <ci> Cgu_apap </ci>
+                <ci> Kpgu_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_he_apap" name="inflow heart paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ahe_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qhe </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="he_ve_apap" name="outflow heart paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ahe_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qhe </ci>
+              <apply>
+                <divide/>
+                <ci> Che_apap </ci>
+                <ci> Kphe_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_ki_apap" name="inflow kidney paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aki_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qki </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ki_ve_apap" name="outflow kidney paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aki_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qki </ci>
+              <apply>
+                <divide/>
+                <ci> Cki_apap </ci>
+                <ci> Kpki_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_sp_apap" name="inflow spleen paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Asp_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qsp </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="sp_li_apap" name="outflow spleen paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Asp_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qsp </ci>
+              <apply>
+                <divide/>
+                <ci> Csp_apap </ci>
+                <ci> Kpsp_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_li_apap" name="inflow liver paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qha </ci>
+              <ci> Car_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="li_ve_apap" name="outflow liver paracetamol" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ali_apap" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_apap" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qh </ci>
+              <apply>
+                <divide/>
+                <ci> Cli_apap </ci>
+                <ci> Kpli_apap </ci>
+              </apply>
+              <ci> BP_apap </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Injection_co2c13" name="injection C13-CO2" reversible="false" fast="false" compartment="Vve">
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> Ki_co2c13 </ci>
+                <ci> IVDOSE_co2c13 </ci>
+              </apply>
+              <ci> Mr_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Infusion_co2c13" name="infusion C13-CO2" reversible="false" fast="false" compartment="Vve">
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> Ri_co2c13 </ci>
+                <ci> Mr_co2c13 </ci>
+              </apply>
+              <cn sbml:units="min_per_h" type="integer"> 60 </cn>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="Absorption_co2c13" name="absorption C13-CO2" reversible="false" fast="false" compartment="Vgu">
+        <listOfProducts>
+          <speciesReference species="Agu_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> Ka_co2c13 </ci>
+                  <ci> PODOSE_co2c13 </ci>
+                </apply>
+                <ci> Mr_co2c13 </ci>
+              </apply>
+              <ci> F_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="vre_co2c13" name="clearance C13-CO2 (kidney)" reversible="false" fast="false" compartment="Vki">
+        <listOfReactants>
+          <speciesReference species="Aki_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aurine_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> CLrenal_co2c13 </ci>
+              <ci> Cki_free_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ve_lu_co2c13" name="inflow lung C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Alu_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qlu </ci>
+              <ci> Cve_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="lu_ar_co2c13" name="outflow lung C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Alu_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qlu </ci>
+              <apply>
+                <divide/>
+                <ci> Clu_co2c13 </ci>
+                <ci> Kplu_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_re_co2c13" name="inflow rest C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Are_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qre </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="re_ve_co2c13" name="outflow lung C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Are_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qre </ci>
+              <apply>
+                <divide/>
+                <ci> Cre_co2c13 </ci>
+                <ci> Kpre_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_bo_co2c13" name="inflow bone C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Abo_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qbo </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="bo_ve_co2c13" name="outflow bone C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Abo_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qbo </ci>
+              <apply>
+                <divide/>
+                <ci> Cbo_co2c13 </ci>
+                <ci> Kpbo_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_gu_co2c13" name="inflow gut C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Agu_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qgu </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="gu_li_co2c13" name="outflow gut C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Agu_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qgu </ci>
+              <apply>
+                <divide/>
+                <ci> Cgu_co2c13 </ci>
+                <ci> Kpgu_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_he_co2c13" name="inflow heart C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ahe_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qhe </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="he_ve_co2c13" name="outflow heart C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ahe_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qhe </ci>
+              <apply>
+                <divide/>
+                <ci> Che_co2c13 </ci>
+                <ci> Kphe_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_ki_co2c13" name="inflow kidney C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Aki_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qki </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ki_ve_co2c13" name="outflow kidney C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aki_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qki </ci>
+              <apply>
+                <divide/>
+                <ci> Cki_co2c13 </ci>
+                <ci> Kpki_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_sp_co2c13" name="inflow spleen C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Asp_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qsp </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="sp_li_co2c13" name="outflow spleen C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Asp_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qsp </ci>
+              <apply>
+                <divide/>
+                <ci> Csp_co2c13 </ci>
+                <ci> Kpsp_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ar_li_co2c13" name="inflow liver C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Aar_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ali_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qha </ci>
+              <ci> Car_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="li_ve_co2c13" name="outflow liver C13-CO2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="Ali_co2c13" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Ave_co2c13" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Qh </ci>
+              <apply>
+                <divide/>
+                <ci> Cli_co2c13 </ci>
+                <ci> Kpli_co2c13 </ci>
+              </apply>
+              <ci> BP_co2c13 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
