@@ -107,7 +107,7 @@ def get_framework(model):
 
 def template_doc_fba(model_id):
     """ create template for fba model.
-    
+
     :param model_id: model identifier
     :return: SBMLDocument
     """
@@ -131,9 +131,9 @@ def template_doc_fba(model_id):
 
 def template_doc_bounds(model_id, create_min_max=True):
     """ Create template bounds model.
-    
-    Adds min and max functions 
-    
+
+    Adds min and max functions
+
     :param create_min_max:
     :param model_id: model identifier
     :return: SBMLDocument
@@ -159,7 +159,7 @@ def template_doc_bounds(model_id, create_min_max=True):
 
 def template_doc_update(model_id):
     """ Create template update model.
-    
+
     :param model_id: model identifier
     :return: SBMLDocument
     """
@@ -178,7 +178,7 @@ def template_doc_update(model_id):
 def template_doc_top(model_id, emds):
     """ Create template top model.
     Adds the ExternalModelDefinitions and submodels for FBA, BOUNDS & UPDATE model.
-    
+
     :param emds:
     :param model_id: model identifier
     :return: SBMLDocument
@@ -214,8 +214,8 @@ def template_doc_top(model_id, emds):
 
 def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port=True):
     """ Creates the main compartment for the dynamic species.
-    
-    :param model: 
+
+    :param model:
     :param compartment_id: id
     :param unit_volume: unit
     :param create_port: flag to create port
@@ -244,7 +244,7 @@ def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_por
     fac.create_objects(model, [
         fac.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
         fac.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
-                   conversionFactor='cf_biomass')
+                    conversionFactor='cf_biomass')
     ])
     if create_port:
         comp.create_ports(model, idRefs=['X'])
@@ -263,15 +263,15 @@ def add_biomass_species_to_biomass_reaction(model):
 
 def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit=None, create_port=True,
                         exclude_sids=[]):
-    """ Add DFBA species and compartments from fba model to model. 
+    """ Add DFBA species and compartments from fba model to model.
     Creates the dynamic species and respetive compartments with
     the necessary ports.
     This is used in the bounds submodel, update submodel and the
     and top model.
-    
-    :param model: 
-    :param model_fba: 
-    :return: 
+
+    :param model:
+    :param model_fba:
+    :return:
     """
     objects = []
     port_sids = []
@@ -319,7 +319,7 @@ def check_exchange_reaction(model, reaction_id):
 
     :param model: SBML model
     :param reaction_id: id of exchange reaction
-    :return: boolean true or false 
+    :return: boolean true or false
     """
     valid = True
     sid = None
@@ -415,13 +415,13 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
 
 def update_exchange_reactions(model, flux_unit):
     """ Updates existing exchange reaction in FBA model.
-    
+
     Sets all the necessary information and checks that correct.
     This is mainly used to prepare the exchange reactions of metabolites.
-    
+
     :param flux_unit:
     :param model:
-    :return: 
+    :return:
     """
 
     # mapping of bounds to reactions
@@ -492,13 +492,13 @@ def update_exchange_reactions(model, flux_unit):
 
 def create_update_reactions(model, model_fba, formula="-{}", unit_flux=None, modifiers=None):
     """ Creates all update reactions with the given formula.
-    
-    :param model: 
-    :param model_fba: 
-    :param formula: 
-    :param unit_flux: 
-    :param modifiers: 
-    :return: 
+
+    :param model:
+    :param model_fba:
+    :param formula:
+    :param unit_flux:
+    :param modifiers:
+    :return:
     """
     if modifiers is None:
         modifiers = []
@@ -562,12 +562,12 @@ def create_update_parameter(model, sid, unit_flux):
 
 def create_exchange_bounds(model_bounds, model_fba, unit_flux=None, create_ports=True):
     """ Creates the exchange reaction flux bounds in the bounds model.
-    
+
     :param model_bounds: the bounds model submodel
     :param model_fba: the fba submodel
     :param unit_flux: unit of fluxes
     :param create_ports: should ports be created.
-    :return: 
+    :return:
     """
     ex_rids = utils.find_exchange_reactions(model_fba)
     objects = []
@@ -658,7 +658,7 @@ def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits
     :param compartment_id: compartment
     :param unit: unit
     :param hasOnlySubstanceUnits: switch if amount or concentration
-    :return: 
+    :return:
     """
     # dummy species for dummy reactions (empty set)
     fac.create_objects(model,
@@ -675,7 +675,7 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
     :param model:
     :param model_fba:
     :param unit_flux:
-    :return: 
+    :return:
     """
     ex_rids = utils.find_exchange_reactions(model_fba)
     objects = []
@@ -703,10 +703,10 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
 
 def create_top_replacedBy(model, model_fba):
     """ Creates the replacedBy Elements in the top model.
-    
-    :param model: 
-    :param model_fba: 
-    :return: 
+
+    :param model:
+    :param model_fba:
+    :return:
     """
 
     ex_rids = utils.find_exchange_reactions(model_fba)
@@ -721,7 +721,7 @@ def create_top_replacements(model, model_fba, compartment_id):
     :param model:
     :param model_fba:
     :param compartment_id:
-    :return: 
+    :return:
     """
 
     # compartment

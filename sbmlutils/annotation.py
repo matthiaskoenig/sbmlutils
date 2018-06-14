@@ -150,6 +150,7 @@ class ModelAnnotation(object):
     def __init__(self, d, check_miriam=False):
 
         self.d = d
+        print(d)
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'collection', 'name']:
@@ -382,7 +383,7 @@ class ModelAnnotator(object):
         if success != 0:
             print("Warning, RDF not written: ", success)
             print(libsbml.OperationReturnValue_toString(success))
-            print(element, qualifier, collection, entity)
+            print(element, qualifier, resource)
 
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
@@ -438,6 +439,3 @@ class ModelAnnotator(object):
             import os
             os.remove(csvfile)
         return res
-
-
-

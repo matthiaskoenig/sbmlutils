@@ -46,6 +46,7 @@ def notesToString(sbase):
 
     return notes
 
+
 # ------------------------------
 # Math and formulas
 # ------------------------------
@@ -55,8 +56,10 @@ def stringToMathML(string):
     mathml = libsbml.writeMathMLToString(astnode)
     return mathml
 
+
 def astnodeToString(astnode):
     return libsbml.formulaToString(astnode)
+
 
 def astnodeToMathML(astnode):
     mathml = libsbml.writeMathMLToString(astnode)
@@ -66,7 +69,6 @@ def astnodeToMathML(astnode):
 # ------------------------------
 # Equations
 # ------------------------------
-
 def equationStringFromReaction(reaction, sep_reversible='&#8646;', sep_irreversible='&#10142;'):
     left = _halfEquation(reaction.getListOfReactants())
     right = _halfEquation(reaction.getListOfProducts())
@@ -132,6 +134,7 @@ def boundsStringFromReaction(reaction, model):
             bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(lb_value, ub_value)
     return bounds
 
+
 def geneProductAssociationStringFromReaction(reaction):
     """ String representation of the GeneProductAssociation for given reaction.
 
@@ -147,10 +150,10 @@ def geneProductAssociationStringFromReaction(reaction):
         info = association.toInfix()
     return info
 
+
 # ------------------------------
 # ModelHistory
 # ------------------------------
-
 def modelHistoryToString(mhistory):
     """ Renders HTML representation of the model history. """
     if not mhistory:
