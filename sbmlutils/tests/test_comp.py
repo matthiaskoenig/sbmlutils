@@ -106,4 +106,3 @@ def test_flattenExternalModelDefinition():
     Nall, Nerr, Nwarn = validation.check_doc(doc_no_emd)
     # assert Nall == 0
     # FIXME: currently not possible to flatten, add test when fixing method
-

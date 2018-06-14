@@ -647,11 +647,13 @@ def createDeficiencyEvent(model, deficiency):
     t.setMath(astnode)
     return e
 
+
 def createSimulationEvents(model, elist):
     warnings.warn('Will be removed.', DeprecationWarning)
     """ Simulation Events (Peaks & Challenges). """
     for edata in elist:
         createEventFromEventData(model, edata)
+
 
 def createEventFromEventData(model, edata):
     warnings.warn('Will be removed.', DeprecationWarning)

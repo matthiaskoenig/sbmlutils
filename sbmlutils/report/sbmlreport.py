@@ -64,9 +64,9 @@ def _create_index_html(sbml_paths, html_template='index.html', offline=True):
 
     # template environment
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-                      extensions=['jinja2.ext.autoescape'],
-                      trim_blocks=True,
-                      lstrip_blocks=True)
+                             extensions=['jinja2.ext.autoescape'],
+                             trim_blocks=True,
+                             lstrip_blocks=True)
 
     template = env.get_template(html_template)
 
@@ -143,9 +143,9 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
     """
     # template environment
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-                      extensions=['jinja2.ext.autoescape'],
-                      trim_blocks=True,
-                      lstrip_blocks=True)
+                             extensions=['jinja2.ext.autoescape'],
+                             trim_blocks=True,
+                             lstrip_blocks=True)
     # additional SBML filters
     for key in sbmlfilters.filters:
         env.filters[key] = getattr(sbmlfilters, key)
@@ -253,6 +253,7 @@ def infoSbase(item):
 
     return info
 
+
 def document_dict(doc):
     info = infoSbase(doc)
     packages = ['<span class="package">L{}V{}</span>'.format(doc.getLevel(), doc.getVersion())]
@@ -320,9 +321,9 @@ def listOfSubmodels_dict(model):
 
 def sbase_ref_dict(item):
     """ Information dictionary of SbaseRef
-    
-    :param sbase_ref: 
-    :return: 
+
+    :param sbase_ref:
+    :return:
     """
     info = infoSbase(item)
     port_ref = ''
@@ -355,6 +356,7 @@ def listOfPorts_dict(model):
             items.append(info)
     return items
 
+
 def listOfFunctions_dict(model):
     items = []
     for item in model.getListOfFunctionDefinitions():
@@ -363,6 +365,7 @@ def listOfFunctions_dict(model):
         items.append(info)
     return items
 
+
 def listOfUnits_dict(model):
     items = []
     for item in model.getListOfUnitDefinitions():
@@ -370,6 +373,7 @@ def listOfUnits_dict(model):
         info['units'] = formating.stringToMathML(formating.unitDefinitionToString(item))
         items.append(info)
     return items
+
 
 def listOfCompartments_dict(model, values):
     items = []
@@ -436,6 +440,7 @@ def listOfSpecies_dict(model):
                 info['fbc'] = "<br /><code>{} {}</code>".format(info.get('fbc_formula', ''), info.get('fbc_charge', ''))
         items.append(info)
     return items
+
 
 def listOfGeneProducts_dict(model):
     items = []
@@ -533,6 +538,7 @@ def listOfReactions_dict(model):
 
     return items
 
+
 def listOfObjectives_dict(model):
     items = []
     mfbc = model.getPlugin('fbc')
@@ -553,6 +559,7 @@ def listOfObjectives_dict(model):
             info['flux_objectives'] = " ".join(flux_objectives)
             items.append(info)
     return items
+
 
 def listOfEvents_dict(model):
     items = []
@@ -591,15 +598,18 @@ def notes(item):
         return formating.notesToString(item)
     return ''
 
+
 def cvterm(item):
     if item.isSetAnnotation():
-       return '<div class="cvterm">{}</div>'.format(formating.annotation_to_html(item))
+        return '<div class="cvterm">{}</div>'.format(formating.annotation_to_html(item))
     return ''
+
 
 def sbo(item):
     if item.getSBOTerm() != -1:
         return '<div class="cvterm"><a href="{}" target="_blank">{}</a></div>'.format(item.getSBOTermAsURL(), item.getSBOTermID())
     return ''
+
 
 def sbaseref(sref):
     """ Formats the SBaseRef
@@ -617,8 +627,10 @@ def sbaseref(sref):
         return 'metaIdRef={}'.format(sref.getMetaIdRef())
     return ''
 
+
 def empty_html():
     return '<i class="fa fa-ban gray"></i>'
+
 
 def metaid_html(item):
     if item.isSetMetaId():
@@ -661,10 +673,12 @@ def annotation_html(item):
     info += '</div>'
     return info
 
+
 def math(item):
     if item:
         return formating.astnodeToMathML(item.getMath())
     return empty_html()
+
 
 def boolean(condition):
     if condition:
@@ -672,10 +686,12 @@ def boolean(condition):
     else:
         return '<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>'
 
+
 def annotation_xml(item):
     if item.isSetAnnotation():
         return '<pre>{}</pre>'.format(item.getAnnotationString().decode('utf-8'))
     return ''
+
 
 def xml_modal(item):
     """ Creates modal information for a given sbase.
@@ -710,6 +726,7 @@ def xml(item):
 
     return html
     # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
+
 
 def derived_units(item):
     if item:

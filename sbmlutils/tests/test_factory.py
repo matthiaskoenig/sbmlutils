@@ -51,9 +51,3 @@ def test_event2():
     assert e.getId() == "e1"
     assignments = e.getListOfEventAssignments()
     assert len(assignments) == 2
-
-
-
-
-
-
