@@ -1,45 +1,38 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 """
-pip package definition
+sbmlutils pip package
 """
-
 from __future__ import absolute_import, print_function
 
 import io
 import re
+import os
 from setuptools import find_packages
 from setuptools import setup
 
 setup_kwargs = {}
 
-# read the version and info file
+
 def read(*names, **kwargs):
     """ Read file info in correct encoding. """
     return io.open(
-        join(dirname(__file__), *names),
+        os.path.join(os.path.dirname(__file__), *names),
         encoding=kwargs.get('encoding', 'utf8')
     ).read()
 
 
 # version from file
-try:
-    verstrline = read('sbmlutils/_version.py')
-    mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
-    if mo:
-        verstr = mo.group(1)
-        setup_kwargs['version'] = verstr
-    else:
-        raise RuntimeError("Unable to find version string")
-except Exception as e:
-    print('Could not read version: {}'.format(e))
+verstrline = read('sbmlutils/_version.py')
+mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
+if mo:
+    verstr = mo.group(1)
+    setup_kwargs['version'] = verstr
+else:
+    raise RuntimeError("Unable to find version string")
 
 # description from markdown
-try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')
-except(IOError, ImportError):
-    long_description = open('README.md').read()
+long_description = read('README.rst')
 setup_kwargs['long_description'] = long_description
 
 setup(
