@@ -33,6 +33,11 @@ For a more detailed description and examples see the documentation at
 * Source Code: [LGPLv3](http://opensource.org/licenses/LGPL-3.0)
 * Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
+## Funding
+Matthias König is supported by the Federal Ministry of Education and Research (BMBF, Germany)
+within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054).
+
+
 
 ## Installation
 `sbmlutils` is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and 
@@ -59,6 +64,13 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.1.9
+* update dependencies
+* pip 10 fixes installer
+* fixed unit tests
+* bug fixes
+
+
 ### 0.1.8
 * DFBA release
 
