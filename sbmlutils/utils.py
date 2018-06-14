@@ -28,6 +28,7 @@ def timeit(f):
 
     return timed
 
+
 def deprecated(func):
     """This is a decorator which can be used to mark functions
         as deprecated. It will result in a warning being emitted

@@ -24,7 +24,7 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
     """ Merge models in model path.
     All models must be in the same subfolder.
     Relative paths are set in the merged models.
-    
+
     Output directory must exist.
 
     :param model_paths: absolute paths to models

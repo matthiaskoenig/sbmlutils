@@ -11,11 +11,12 @@ import logging
 import time
 try:
     import libsbml
-except:
+except ImportError:
     import tesbml as libsbml
 
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
+
 
 def check(value, message):
     """

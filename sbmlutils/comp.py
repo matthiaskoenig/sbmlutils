@@ -239,7 +239,7 @@ class Deletion(SbaseRef):
     def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
         """ Create a Deletion. """
         super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
-                                   name=name, sboTerm=sboTerm, metaId=metaId)
+                                       name=name, sboTerm=sboTerm, metaId=metaId)
 
     def create_sbml(self, model):
 
@@ -476,6 +476,7 @@ def comp_delete(model):
     """
     pass
 
+
 def _get_eplugin_by_sid(model, sid):
     """ Gets the comp plugin by sid.
 
@@ -538,10 +539,10 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None, suffix='_flat
 
 def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten the given SBMLDocument.
-    
+
     Validation should be performed before the flattening and is not part
     of the flattening routine.
-    
+
     :param doc: SBMLDocument to flatten.
     :type doc: SBMLDocument
     :return:
@@ -634,7 +635,7 @@ def flattenExternalModelDefinitions(doc, validate=False):
             # print(ref_model)
             for k in range(ref_doc.getNumPlugins()):
                 plugin = ref_doc.getPlugin(k)
-                #print(k, plugin)
+                # print(k, plugin)
 
                 # enable the package on the main SBMLDocument
                 uri = plugin.getURI()

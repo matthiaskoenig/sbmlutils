@@ -17,7 +17,7 @@ try:
 except ImportError:
     import tesbml as libsbml
     from tesbml import (XMLNode, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
-                         UNIT_KIND_SECOND, UNIT_KIND_LITRE)
+                        UNIT_KIND_SECOND, UNIT_KIND_LITRE)
 
 from sbmlutils.modelcreator import templates
 

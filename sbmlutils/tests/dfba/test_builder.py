@@ -118,5 +118,3 @@ def test_create_dt():
     assert dt
     assert dt.getConstant()
     assert dt.getSBOTermID() == builder.DT_SBO
-
-

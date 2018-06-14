@@ -1,3 +1,0 @@
-"""
-SED-ML helpers.
-"""

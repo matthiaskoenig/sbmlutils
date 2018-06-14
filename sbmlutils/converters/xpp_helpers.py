@@ -79,6 +79,7 @@ def replace_formula(formula, fid, old_args, new_args):
 
     return new_formula
 
+
 # This is a workaround due to not using a real parser.
 def top_bracket_content(s):
     """ Get content of top bracket.
@@ -104,7 +105,6 @@ def bracket_stack(s):
             toret[pstack.pop()] = i
 
     return toret
-
 
 
 if __name__ == "__main__":
