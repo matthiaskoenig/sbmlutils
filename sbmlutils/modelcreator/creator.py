@@ -58,7 +58,7 @@ class Factory(object):
             target_dir = self.target_dir
 
         try:
-            [model_dict, core_model] = create_model(
+            [model_dict, core_model, sbml_path] = create_model(
                 modules=self.modules,
                 target_dir=target_dir,
                 annotations=self.annotations,
