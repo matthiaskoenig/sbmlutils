@@ -383,7 +383,7 @@ class ModelAnnotator(object):
         if success != 0:
             print("Warning, RDF not written: ", success)
             print(libsbml.OperationReturnValue_toString(success))
-            print(element, qualifier, collection, entity)
+            print(element, qualifier, resource)
 
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
@@ -439,6 +439,3 @@ class ModelAnnotator(object):
             import os
             os.remove(csvfile)
         return res
-
-
-

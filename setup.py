@@ -1,70 +1,38 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 """
-pip package definition
+sbmlutils pip package
 """
-
 from __future__ import absolute_import, print_function
 
 import io
 import re
-from os.path import dirname
-from os.path import join
-
+import os
 from setuptools import find_packages
 from setuptools import setup
 
-import pip
-
-# parse requirements.txt (packages and github links)
-links = []
-requires = []
-
-try:
-    requirements = pip.req.parse_requirements('requirements.txt')
-except:
-    # new versions of pip requires a session
-    requirements = pip.req.parse_requirements(
-        'requirements.txt', session=pip.download.PipSession())
-
-for item in pip.req.parse_requirements(
-        'requirements.txt', session=pip.download.PipSession()):
-    # we want to handle package names and also repo urls
-    if getattr(item, 'url', None):  # older pip has url
-        links.append(str(item.url))
-    if getattr(item, 'link', None):  # newer pip has link
-        links.append(str(item.link))
-    if item.req:
-        requires.append(str(item.req))
+setup_kwargs = {}
 
 
-# read the version and info file
 def read(*names, **kwargs):
     """ Read file info in correct encoding. """
     return io.open(
-        join(dirname(__file__), *names),
+        os.path.join(os.path.dirname(__file__), *names),
         encoding=kwargs.get('encoding', 'utf8')
     ).read()
 
 
-setup_kwargs = {}
-try:
-    verstrline = read('sbmlutils/_version.py')
-    mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
-    if mo:
-        verstr = mo.group(1)
-        setup_kwargs['version'] = verstr
-    else:
-        raise RuntimeError("Unable to find version string")
-except Exception as e:
-    print('Could not read version: {}'.format(e))
+# version from file
+verstrline = read('sbmlutils/_version.py')
+mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
+if mo:
+    verstr = mo.group(1)
+    setup_kwargs['version'] = verstr
+else:
+    raise RuntimeError("Unable to find version string")
 
-# descripion from markdown
-try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')
-except(IOError, ImportError):
-    long_description = open('README.md').read()
+# description from markdown
+long_description = read('README.rst')
 setup_kwargs['long_description'] = long_description
 
 setup(
@@ -97,7 +65,35 @@ setup(
     include_package_data=True,
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
-    install_requires=requires,
-    dependency_links=links,
+    install_requires=[
+        "numpy>=1.14.5",
+        "scipy>=1.1.0",
+        "matplotlib>=2.2.2",
+        "pandas>=0.23.1",
+        "tabulate>=0.8.2",
+        "Jinja2>=2.10",
+        "requests>=2.19.0",
+        "beautifulsoup4>=4.6.0",
+        "xarray>=0.10.7",
+        "pyexcel>=0.5.8",
+        "pyexcel-xlsx>=0.5.6",
+        # fba
+        "cobra>=0.13.0",
+        "optlang>=1.4.2",
+        # standards
+        "libroadrunner>=1.4.24",
+        "tesbml>=5.15.0.1",
+        "tesedml>=0.4.3",
+        "tecombine>=0.2.2.1",
+        "tenuml>=1.1.1",
+        "phrasedml>=1.0.9",
+        "antimony>=2.9.4",
+        "tellurium>=2.0.18",
+        # testing
+        "pytest>=3.6.1",
+        "pytest-cov>=2.5.1",
+        # misc
+        "ipykernel>=4.8.2",
+    ],
     extras_require={},
     **setup_kwargs)

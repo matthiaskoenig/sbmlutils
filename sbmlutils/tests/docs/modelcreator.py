@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+
 def test_modelcreator_notebook():
     """
     If this test fails the respective notebook must be updated:
