@@ -6,6 +6,7 @@ import logging
 import warnings
 from matplotlib import pyplot as plt
 
+
 # TODO: update plots
 def set_matplotlib_parameters():
     """ Sets default plot parameters.
@@ -27,9 +28,9 @@ class DFBAAnalysis(object):
     """ Plot and analysis functions for given results. """
 
     def __init__(self, df, ode_model):
-        """ 
+        """ Constructor.
         
-        :param df: Solution DataFrame 
+        :param df: Solution DataFrame
         :param ode_model: flattened roadrunner ode model
         """
         self.df = df
@@ -107,5 +108,3 @@ class DFBAAnalysis(object):
             logging.info("plot_ids: {}".format(filepath))
         else:
             plt.show()
-
-

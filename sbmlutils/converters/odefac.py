@@ -380,7 +380,6 @@ class SBML2ODE(object):
         y_sym = to_formula(self.y_ast, replace_symbols=False)
         dx_sym = to_formula(self.dx_ast, replace_symbols=False)
 
-
         def flat_formulas():
             """ Creates a flat formula by full replacement.
             Uses the order of the dependencies.
@@ -453,10 +452,7 @@ class SBML2ODE(object):
         return (pids_idx, yids_idx, dxids_idx)
 
 
-
-
 #####################################################################################
-
 if __name__ == "__main__":
 
     # convert xpp to sbml

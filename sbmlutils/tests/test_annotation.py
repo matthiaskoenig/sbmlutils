@@ -35,6 +35,7 @@ def test_model_annotation():
     assert 'test_name' == ma.name
     assert ma.resource is None
 
+
 def test_model_annotation():
     """ Check annotation data structure. """
     d = {'pattern': 'id1',

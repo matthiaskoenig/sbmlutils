@@ -24,4 +24,3 @@ def test_validate_toy(self):
 
     validator.validate_dfba(sbml_path)
     assert False
-

@@ -14,6 +14,7 @@ from sbmlutils import validation
 
 xpp_dir = os.path.join(data.data_dir, 'xpp')
 
+
 class XPPTestCase(unittest.TestCase):
 
     def xpp_check(self, ode_id, Nall=0, Nerr=0, Nwarn=0):
@@ -36,6 +37,3 @@ class XPPTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-

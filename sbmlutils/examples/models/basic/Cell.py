@@ -13,8 +13,6 @@ except ImportError:
     from tesbml import XMLNode, UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 
 
-
-
 from sbmlutils.modelcreator import templates
 from sbmlutils import factory as fac
 from . import Reactions

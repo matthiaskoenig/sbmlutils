@@ -18,13 +18,12 @@ from sbmlutils.tests.data import data_dir
 
 def test_biomodel_merge():
     """ Test model merging.
-    
+
     Using the pytest tmpdir fixture
-    :param tmpdir: 
-    :return: 
+    :param tmpdir:
+    :return:
     """
     manipulation_dir = os.path.join(data_dir, 'manipulation')
-
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels
@@ -58,4 +57,3 @@ def test_biomodel_merge():
     # FIXME: bug fixed on next SBML release
     assert Nwarn in [0, 74]
     assert Nall in [0, 74]
-

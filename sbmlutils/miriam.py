@@ -2,7 +2,6 @@
 Helper class to work with the MIRIAM resources.
 """
 from __future__ import print_function, absolute_import
-from bioservices import Miriam
 
 _collections = [
     ["sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
@@ -29,29 +28,3 @@ _collections = [
      "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
     ["uo", "Ontology of standardized units", "^UO:\d{7}?"],
 ]
-
-
-if __name__ == "__main__":
-    m = Miriam()
-    uri = m.getMiriamURI("http://www.ebi.ac.uk/chebi/#CHEBI:17891")
-
-    print(uri)
-
-    nickname = 'uniprot'
-    entry_id = 'P62158'
-
-    print(m.getDataTypeSynonyms(nickname))
-    print(m.getDataTypeDef(nickname))
-    print(m.getDataTypePattern(nickname))
-    print(m.getDataTypePattern('sbo'))
-
-    # Converts a MIRIAM URI into its equivalent Identifiers.org URL.
-    urn = m.serv.getURI(nickname, entry_id)
-    print(urn)
-
-    urn = m.serv.getURI('sbo', 'SBO:0000001')
-    print(urn)
-    urn2 = m.convertURNs([urn, urn])
-    print(urn2)
-
-
