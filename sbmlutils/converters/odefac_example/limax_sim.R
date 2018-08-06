@@ -6,7 +6,7 @@ library(deSolve)
 # ----------------------
 # setwd(getSrcDirectory()[1])
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-model_id = "limax_pkpd_v41"
+model_id = "limax_pkpd_v47"
 source(paste0(model_id, ".R"))
 
 # ----------------------
@@ -40,7 +40,7 @@ dev.off()
 # Bicarbonate
 # ----------------------
 # reset everything
-source("limax_pkpd_39.R")
+source(paste0(model_id, ".R"))
 
 # desolve simulation
 times <- seq(0, 5, by=0.01)
@@ -67,7 +67,7 @@ dev.off()
 # MBT (methacetin)
 # ----------------------
 # reset everything
-source("limax_pkpd_39.R")
+source(paste0(model_id, ".R"))
 
 # desolve simulation
 times <- seq(0, 2.5, by=0.01)
