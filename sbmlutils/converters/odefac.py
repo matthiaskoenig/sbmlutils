@@ -456,7 +456,7 @@ class SBML2ODE(object):
 if __name__ == "__main__":
 
     # convert xpp to sbml
-    model_id = "limax_pkpd_v47"
+    model_id = "limax_pkpd_v48"
     in_dir = './odefac_example'
     out_dir = './odefac_example/results'
     sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
