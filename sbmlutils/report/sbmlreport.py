@@ -401,6 +401,7 @@ def listOfSpecies_dict(model):
     for item in model.getListOfSpecies():
         info = infoSbase(item)
         info['compartment'] = item.compartment
+        info['has_only_substance_units'] = boolean(item.has_only_substance_units)
         info['boundary_condition'] = boolean(item.boundary_condition)
         info['constant'] = boolean(item.constant)
         if item.isSetInitialAmount():
