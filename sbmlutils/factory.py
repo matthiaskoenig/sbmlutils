@@ -324,12 +324,20 @@ class Compartment(ValueWithUnit):
 ##########################################################################
 # Species
 ##########################################################################
-class Species(ValueWithUnit):
+class Species(Sbase):
     """ Species. """
 
-    def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
+    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, unit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None):
-        super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+
+        if (initialAmount is None) and (initialConcentration is None):
+            raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
+        if initialAmount and initialConcentration:
+            raise ValueError("initialAmount and initialConcentration cannot be set on species: {}".format(sid))
+        self.unit = unit
+        self.initialAmount = initialAmount
+        self.initialConcentration = initialConcentration
         self.compartment = compartment
         self.constant = constant
         self.boundaryCondition = boundaryCondition
@@ -354,14 +362,13 @@ class Species(ValueWithUnit):
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
-
-        # TODO: handle the amount/concentrations with corresponding substance units correctly
-        if self.hasOnlySubstanceUnits:
-            obj.setInitialAmount(self.value)
-        else:
-            obj.setInitialConcentration(self.value)
-
-        if self.conversionFactor:
+        if self.unit is not None:
+            obj.setUnits(Unit.get_unit_string(self.unit))
+        if self.initialAmount is not None:
+            obj.setInitialAmount(self.initialAmount)
+        if self.initialConcentration is not None:
+            obj.setInitialConcentration(self.initialConcentration)
+        if self.conversionFactor is not None:
             obj.setConversionFactor(self.conversionFactor)
 
 
