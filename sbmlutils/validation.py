@@ -144,13 +144,12 @@ def _check_consistency(doc, internalConsistency=False, show_errors=True):
 
         # FIXME: print to logging & make optional
         if show_errors:
-            pass
-            print_errors(doc)
+            log_errors(doc)
 
     return Nall, Nerr, Nwarn
 
 
-def print_errors(doc):
+def log_errors(doc):
     """ Prints errors of SBMLDocument.
 
     :param doc:
@@ -158,8 +157,9 @@ def print_errors(doc):
     """
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
-        error_str = error_string(error, k)
-        print(error_str)
+        error_str, severity = error_string(error, k)
+        # FIXME: plot depending on logging level
+        logging.error(error_str)
 
 
 def error_string(error, k=None):
@@ -172,12 +172,11 @@ def error_string(error, k=None):
     if package == '':
         package = 'core'
 
+    severity = error.getSeverityAsString()
     error_str = 'E{}: {} ({}, L{}, {})  \n' \
-                '{}\n' \
                 '[{}] {}\n' \
                 '{}\n'.format(
                     k, error.getCategoryAsString(), package, error.getLine(), 'code',
-                    '-' * 60,
                     error.getSeverityAsString(), error.getShortMessage(),
                     error.getMessage())
-    return error_str
+    return error_str, severity
