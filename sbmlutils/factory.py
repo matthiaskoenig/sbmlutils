@@ -18,7 +18,6 @@ which takes care of the order of object creation.
 from __future__ import absolute_import, print_function, division
 
 import logging
-import warnings
 try:
     import libsbml
 except ImportError:
@@ -59,8 +58,8 @@ def ast_node_from_formula(model, formula):
     """
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        warnings.warn("Formula could not be parsed: '{}'".format(formula))
-        warnings.warn(libsbml.getLastParseL3Error())
+        logging.error("Formula could not be parsed: '{}'".format(formula))
+        logging.error(libsbml.getLastParseL3Error())
     return ast_node
 
 
@@ -440,7 +439,7 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            warnings.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            logging.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
 
@@ -573,7 +572,7 @@ class Event(Sbase):
 
         # assignments
         if type(assignments) is not dict:
-            warnings.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
+            logging.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
         self.assignments = assignments
 
         self.trigger_persistent = trigger_persistent
@@ -636,12 +635,12 @@ class Event(Sbase):
 
 
 def getDeficiencyEventId(deficiency):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     return 'EDEF_{:0>2d}'.format(deficiency)
 
 
 def createDeficiencyEvent(model, deficiency):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     eid = getDeficiencyEventId(deficiency)
     e = model.createEvent()
     e.setId(eid)
@@ -656,14 +655,14 @@ def createDeficiencyEvent(model, deficiency):
 
 
 def createSimulationEvents(model, elist):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     """ Simulation Events (Peaks & Challenges). """
     for edata in elist:
         createEventFromEventData(model, edata)
 
 
 def createEventFromEventData(model, edata):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     e = model.createEvent()
     e.setId(edata.eid)
     e.setName(edata.key)
