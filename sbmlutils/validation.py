@@ -7,13 +7,14 @@ Helper functions if setting sbml information was successful.
 
 from __future__ import print_function, division
 
+from sbmlutils.logutils import bcolors
+
 import logging
 import time
 try:
     import libsbml
 except ImportError:
     import tesbml as libsbml
-
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
 
@@ -97,7 +98,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
 
     lines = [
         '',
-        '-' * 80,
+        '-' * 120,
         name,
         "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
@@ -108,20 +109,23 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
         ]
     lines += [
         "{:<25}: {:.3f}".format("check time (ms)", time.clock() - current),
-        '-' * 80,
+        '-' * 120,
     ]
     info = "\n".join(lines)
 
+    if valid_status:
+        info = bcolors.OKGREEN+info+bcolors.ENDC
+    else:
+        info = bcolors.FAIL + info + bcolors.ENDC
+    info = bcolors.BOLD+info+bcolors.ENDC
+
     if Nall > 0:
         if Nerr > 0:
-            # logging.error(info)
-            logging.debug(info)
+            logging.error(info)
         else:
-            # logging.warning(info)
-            logging.debug(info)
+            logging.warning(info)
     else:
-        logging.debug(info)
-    logging.info(info)
+        logging.info(info)
 
     return Nall, Nerr, Nwarn
 
@@ -173,10 +177,12 @@ def error_string(error, k=None):
         package = 'core'
 
     severity = error.getSeverityAsString()
-    error_str = 'E{}: {} ({}, L{}, {})  \n' \
-                '[{}] {}\n' \
-                '{}\n'.format(
-                    k, error.getCategoryAsString(), package, error.getLine(), 'code',
-                    error.getSeverityAsString(), error.getShortMessage(),
-                    error.getMessage())
+    lines = [
+        '',
+        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code')+ bcolors.ENDC + bcolors.ENDC,
+        bcolors.FAIL + '[{}] {}'.format(error.getSeverityAsString(), error.getShortMessage()) + bcolors.ENDC,
+        bcolors.OKBLUE + error.getMessage() + bcolors.ENDC
+    ]
+    error_str = '\n'.join(lines)
+    print(error_str)
     return error_str, severity

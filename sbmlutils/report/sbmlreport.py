@@ -183,7 +183,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
         }
     else:
         # no model exists
-        warnings.warn("No model in SBML file when creating model report: {}".format(doc))
+        logging.error("No model in SBML file when creating model report: {}".format(doc))
         template = env.get_template("report_no_model.html")
         c = {
             'basename': basename,
