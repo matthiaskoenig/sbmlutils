@@ -31,13 +31,13 @@ def check(value, message):
 
     """
     if value is None:
-        print('Error: LibSBML returned a null value trying to <' + message + '>.')
+        logging.error('Error: LibSBML returned a null value trying to <' + message + '>.')
     elif type(value) is int:
         if value == libsbml.LIBSBML_OPERATION_SUCCESS:
             return
         else:
-            print('Error encountered trying to <' + message + '>.')
-            print('LibSBML returned error code {}: {}'.format(str(value),
+            logging.error('Error encountered trying to <' + message + '>.')
+            logging.error('LibSBML returned error code {}: {}'.format(str(value),
                                                               libsbml.OperationReturnValue_toString(value).strip()))
     else:
         return
@@ -96,6 +96,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
     valid_status = (Nerr is 0)
 
     lines = [
+        '',
         '-' * 80,
         name,
         "{:<25}: {}".format("valid", str(valid_status).upper()),
@@ -120,7 +121,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
             logging.debug(info)
     else:
         logging.debug(info)
-    print(info)
+    logging.info(info)
 
     return Nall, Nerr, Nwarn
 
