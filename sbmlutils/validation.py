@@ -194,5 +194,4 @@ def error_string(error, k=None):
         bcolors.OKBLUE + error.getMessage() + bcolors.ENDC
     ]
     error_str = '\n'.join(lines)
-    print(error_str)
     return error_str, severity
