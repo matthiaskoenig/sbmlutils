@@ -107,7 +107,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
         filename = '{}.xml'.format(mid)
     sbml_path = os.path.join(target_dir, filename)
 
-    core_model.write_sbml(sbml_path)
+    core_model.write_sbml(sbml_path, validate=True)
 
     # annotate
     if annotations is not None:
@@ -117,7 +117,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     # create report
     if create_report:
         logging.info("Create SBML report:'{}'".format(sbml_path))
-        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir)
+        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
 
@@ -353,7 +353,7 @@ class CoreModel(object):
 
 
 
-    def write_sbml(self, filepath):
+    def write_sbml(self, filepath, validate=True):
         """ Write sbml to file.
 
         :param filepath:
@@ -361,5 +361,5 @@ class CoreModel(object):
         :return:
         :rtype:
         """
-        sbmlio.write_sbml(self.doc, filepath, validate=True,
+        sbmlio.write_sbml(self.doc, filepath, validate=validate,
                           program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)
