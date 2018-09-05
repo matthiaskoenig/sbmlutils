@@ -146,7 +146,6 @@ def _check_consistency(doc, internalConsistency=False, show_errors=True):
             else:
                 Nwarn += 1
 
-        # FIXME: print to logging & make optional
         if show_errors:
             log_errors(doc)
 
@@ -159,11 +158,22 @@ def log_errors(doc):
     :param doc:
     :return:
     """
+    model = doc.getModel()
+
+    sep_line = bcolors.BGWHITE + bcolors.BLACK + '-'*120 + bcolors.ENDC + bcolors.ENDC
+    header_lines = [
+        '', '',
+        sep_line,
+        bcolors.BGWHITE + bcolors.BLACK + str(model) + bcolors.ENDC + bcolors.ENDC,
+        sep_line
+    ]
+    logging.error("\n".join(header_lines))
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
         error_str, severity = error_string(error, k)
         # FIXME: plot depending on logging level
         logging.error(error_str)
+    logging.error("\n" + sep_line + "\n\n")
 
 
 def error_string(error, k=None):
