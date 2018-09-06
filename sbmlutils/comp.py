@@ -217,7 +217,7 @@ class ReplacedElement(SbaseRef):
 
         # resolve port element
         element = model.getElementBySId(self.elementRef)
-        print("elementRef:", self.elementRef, "element:", element)
+        # print("elementRef:", self.elementRef, "element:", element)
         eplugin = element.getPlugin("comp")
         obj = eplugin.createReplacedElement()
         self.set_fields(obj)
