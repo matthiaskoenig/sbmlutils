@@ -217,6 +217,8 @@ class ReplacedElement(SbaseRef):
 
         # resolve port element
         element = model.getElementBySId(self.elementRef)
+        if element is None:
+            raise ValueError("SBML element not found for elementRef: {}".format(self.elementRef))
         # print("elementRef:", self.elementRef, "element:", element)
         eplugin = element.getPlugin("comp")
         obj = eplugin.createReplacedElement()
