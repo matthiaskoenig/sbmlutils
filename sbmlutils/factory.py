@@ -27,6 +27,7 @@ from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
+PORT_SUFFIX = "_port"
 
 
 def create_objects(model, obj_iter, debug=False):
@@ -131,11 +132,12 @@ class Creator(object):
 # Base classes
 #####################################################################
 class Sbase(object):
-    def __init__(self, sid, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, name=None, sboTerm=None, metaId=None, port=None):
         self.sid = sid
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
+        self.port = port
 
     def __str__(self):
         tokens = str(self.__class__).split('.')
@@ -156,14 +158,37 @@ class Sbase(object):
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
+    def create_port(self, model):
+        """ Create port if existing. """
+        if self.port is None:
+            return
+
+        if isinstance(self.port, bool) and self.port is True:
+            # manually create port for the id
+            cmodel = model.getPlugin("comp")
+            p = cmodel.createPort()
+            port_sid = f'{self.sid}{PORT_SUFFIX}'
+            p.setId(port_sid)
+            p.setName(port_sid)
+            p.setMetaId(port_sid)
+            p.setSBOTerm(599)  # port
+            p.setIdRef(self.sid)
+
+        else:
+            # use the port object
+            if (not self.port.portRef) and (not self.port.idRef) and (not self.port.unitRef) and (not self.port.metaIdRef):
+                # if no reference set id reference to current object
+                self.port.idRef = self.sid
+            self.port.create_sbml(model)
+
 
 class Value(Sbase):
     """ Helper class.
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
-        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
+        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.value = value
 
     def set_fields(self, obj):
@@ -175,8 +200,8 @@ class ValueWithUnit(Value):
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
-    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
+        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -189,8 +214,8 @@ class ValueWithUnit(Value):
 # Units
 ##########################################################################
 class Unit(Sbase):
-    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None):
-        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None, port=None):
+        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.definition = definition
 
     def create_sbml(self, model):
@@ -253,8 +278,8 @@ class Unit(Sbase):
 ##########################################################################
 class Function(Sbase):
 
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
-        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
+        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.formula = value
 
     def create_sbml(self, model):
@@ -273,8 +298,8 @@ class Function(Sbase):
 ##########################################################################
 class Parameter(ValueWithUnit):
 
-    def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
-        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None, port=None):
+        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.constant = constant
 
     def create_sbml(self, model):
@@ -294,8 +319,9 @@ class Parameter(ValueWithUnit):
 ##########################################################################
 class Compartment(ValueWithUnit):
 
-    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None):
-        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None,
+                 port=None):
+        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -312,6 +338,8 @@ class Compartment(ValueWithUnit):
                 # AssignmentRule._create(model, sid=self.sid, formula=self.value)
         else:
             c.setSize(self.value)
+
+        self.create_port(model)
         return c
 
     def set_fields(self, obj):
@@ -327,8 +355,9 @@ class Species(Sbase):
     """ Species. """
 
     def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, unit=None, constant=False, boundaryCondition=False,
-                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None):
-        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
+                 port=None):
+        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
 
         if (initialAmount is None) and (initialConcentration is None):
             raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
@@ -353,11 +382,14 @@ class Species(Sbase):
         else:
             s.setSubstanceUnits(model.getSubstanceUnits())
 
+        self.create_port(model)
         return s
 
     def set_fields(self, obj):
         super(Species, self).set_fields(obj)
         obj.setConstant(self.constant)
+        if self.compartment is None:
+            raise ValueError(f"Compartment cannot be None on Species: {self}")
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
@@ -377,8 +409,8 @@ class Species(Sbase):
 class InitialAssignment(Value):
     """ InitialAssignments. """
 
-    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
+        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.unit = unit
 
     def create_sbml(self, model):

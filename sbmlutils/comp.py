@@ -21,12 +21,14 @@ except ImportError:
     import tesbml as libsbml
 
 import sbmlutils.factory as factory
+from sbmlutils.factory import PORT_SUFFIX
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
 
 # Modeling frameworks
 SBO_CONTINOUS_FRAMEWORK = 'SBO:0000293'
 SBO_FLUX_BALANCE_FRAMEWORK = 'SBO:0000624'
+
 
 
 ##########################################################################
