@@ -87,7 +87,9 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     :return:
     """
     # preprocess
-    logging.info("Create model: {}".format(modules))
+    logging.info('-'*80)
+    logging.info(modules)
+    logging.info('-' * 80)
     model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
@@ -97,6 +99,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
 
     # write file
     if not os.path.exists(target_dir):
+        logging.warning("Target directory does not exist and is created: {}".format(target_dir))
         os.makedirs(target_dir)
 
     if mid is None:
