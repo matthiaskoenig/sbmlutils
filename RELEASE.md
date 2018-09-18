@@ -15,7 +15,8 @@ Steps for release are
 ```
 git branch master
 git pull
-python setup.py sdist upload
+python setup.py sdist
+twine upload dist/*
 ```
 * test installation in virtualenv from pypi
 ```
