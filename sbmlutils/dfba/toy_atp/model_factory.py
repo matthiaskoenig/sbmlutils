@@ -126,14 +126,14 @@ def fba_model(sbml_file, directory, annotations=None):
         mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimensions=3),
 
         # exchange species
-        mc.Species(sid='atp', name="ATP", value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='adp', name="ADP", value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='glc', name="Glucose", value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='pyr', name='Pyruvate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='atp', name="ATP", initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='adp', name="ADP", initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='glc', name="Glucose", initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='pyr', name='Pyruvate', initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # internal species
-        mc.Species(sid='fru16bp', name='Fructose 1,6-bisphospate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='pg2', name='2-Phosphoglycerate', value=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='fru16bp', name='Fructose 1,6-bisphospate', initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='pg2', name='2-Phosphoglycerate', initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # bounds
         mc.Parameter(sid="ub_R3", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),

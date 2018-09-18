@@ -28,8 +28,8 @@ def create_port_doc():
 
     objects = [
         fac.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
-        fac.Species(sid='A', name="A", value=10.0, hasOnlySubstanceUnits=True, compartment="extern"),
-        fac.Species(sid='C', name="C", value=0, hasOnlySubstanceUnits=True, compartment="extern"),
+        fac.Species(sid='A', name="A", initialConcentration=10.0, hasOnlySubstanceUnits=True, compartment="extern"),
+        fac.Species(sid='C', name="C", initialConcentration=0, hasOnlySubstanceUnits=True, compartment="extern"),
         fac.Parameter(sid="EX_A", value=1.0, constant=False, sboTerm="SBO:0000613"),
         fac.Parameter(sid="EX_C", value=1.0, constant=False, sboTerm="SBO:0000613"),
     ]
