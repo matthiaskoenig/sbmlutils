@@ -64,6 +64,12 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.2.0
+* better comp support
+* hasOnlySubstanceUnits in sbmlreport added
+* initialAmounts and initialConcentrations supported in sbmlcreator
+* bug fixes
+
 ### 0.1.9
 * update dependencies
 * pip 10 fixes installer
