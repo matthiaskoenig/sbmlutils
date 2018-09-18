@@ -167,7 +167,7 @@ class Sbase(object):
             # manually create port for the id
             cmodel = model.getPlugin("comp")
             p = cmodel.createPort()
-            port_sid = f'{self.sid}{PORT_SUFFIX}'
+            port_sid = '{}{}'.format(self.sid, PORT_SUFFIX)
             p.setId(port_sid)
             p.setName(port_sid)
             p.setMetaId(port_sid)
@@ -389,7 +389,7 @@ class Species(Sbase):
         super(Species, self).set_fields(obj)
         obj.setConstant(self.constant)
         if self.compartment is None:
-            raise ValueError(f"Compartment cannot be None on Species: {self}")
+            raise ValueError("Compartment cannot be None on Species: {}".format(self))
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)

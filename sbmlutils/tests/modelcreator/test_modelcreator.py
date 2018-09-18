@@ -8,7 +8,6 @@ from __future__ import print_function
 
 from sbmlutils.examples.models.basic import factory as basic_factory
 from sbmlutils.examples.models.demo import factory as demo_factory
-from sbmlutils.examples.models.glucose import factory as glucose_factory
 
 from sbmlutils.modelcreator.creator import CoreModel, Preprocess
 from sbmlutils.examples.models.assignment import factory as assignment_factory
@@ -33,13 +32,6 @@ def test_create_demo():
     :return:
     """
     demo_factory.create(tmp=True)
-
-
-def test_create_glucose():
-    """ Create glucose model.
-    :return:
-    """
-    glucose_factory.create(tmp=True)
 
 
 def test_demo():

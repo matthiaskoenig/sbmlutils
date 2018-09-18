@@ -74,12 +74,12 @@ compartments.extend([
 # Species
 ##############################################################
 species.extend([
-    mc.Species(sid='c__A', compartment='c', value=0, unit='mM', boundaryCondition=False, name='A'),
-    mc.Species(sid='c__B', compartment='c', value=0.0, unit='mM', boundaryCondition=False, name='B'),
-    mc.Species(sid='c__C', compartment='c', value=0.0, unit='mM', boundaryCondition=False, name='C'),
-    mc.Species(sid='e__A', compartment='e', value=10.0, unit='mM', boundaryCondition=False, name='A'),
-    mc.Species(sid='e__B', compartment='e', value=0.0, unit='mM', boundaryCondition=False, name='B'),
-    mc.Species(sid='e__C', compartment='e', value=0.0, unit='mM', boundaryCondition=False, name='C'),
+    mc.Species(sid='c__A', compartment='c', initialConcentration=0.0, unit='mM', boundaryCondition=False, name='A'),
+    mc.Species(sid='c__B', compartment='c', initialConcentration=0.0, unit='mM', boundaryCondition=False, name='B'),
+    mc.Species(sid='c__C', compartment='c', initialConcentration=0.0, unit='mM', boundaryCondition=False, name='C'),
+    mc.Species(sid='e__A', compartment='e', initialConcentration=0.0, unit='mM', boundaryCondition=False, name='A'),
+    mc.Species(sid='e__B', compartment='e', initialConcentration=0.0, unit='mM', boundaryCondition=False, name='B'),
+    mc.Species(sid='e__C', compartment='e', initialConcentration=0.0, unit='mM', boundaryCondition=False, name='C'),
 ])
 
 ##############################################################
