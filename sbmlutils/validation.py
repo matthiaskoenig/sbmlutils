@@ -7,13 +7,14 @@ Helper functions if setting sbml information was successful.
 
 from __future__ import print_function, division
 
+from sbmlutils.logutils import bcolors
+
 import logging
 import time
 try:
     import libsbml
 except ImportError:
     import tesbml as libsbml
-
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
 
@@ -31,13 +32,13 @@ def check(value, message):
 
     """
     if value is None:
-        print('Error: LibSBML returned a null value trying to <' + message + '>.')
+        logging.error('Error: LibSBML returned a null value trying to <' + message + '>.')
     elif type(value) is int:
         if value == libsbml.LIBSBML_OPERATION_SUCCESS:
             return
         else:
-            print('Error encountered trying to <' + message + '>.')
-            print('LibSBML returned error code {}: {}'.format(str(value),
+            logging.error('Error encountered trying to <' + message + '>.')
+            logging.error('LibSBML returned error code {}: {}'.format(str(value),
                                                               libsbml.OperationReturnValue_toString(value).strip()))
     else:
         return
@@ -96,7 +97,8 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
     valid_status = (Nerr is 0)
 
     lines = [
-        '-' * 80,
+        '',
+        '-' * 120,
         name,
         "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
@@ -107,20 +109,23 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
         ]
     lines += [
         "{:<25}: {:.3f}".format("check time (ms)", time.clock() - current),
-        '-' * 80,
+        '-' * 120,
     ]
     info = "\n".join(lines)
 
+    if valid_status:
+        info = bcolors.OKGREEN+info+bcolors.ENDC
+    else:
+        info = bcolors.FAIL + info + bcolors.ENDC
+    info = bcolors.BOLD+info+bcolors.ENDC
+
     if Nall > 0:
         if Nerr > 0:
-            # logging.error(info)
-            logging.debug(info)
+            logging.error(info)
         else:
-            # logging.warning(info)
-            logging.debug(info)
+            logging.warning(info)
     else:
-        logging.debug(info)
-    print(info)
+        logging.info(info)
 
     return Nall, Nerr, Nwarn
 
@@ -141,24 +146,34 @@ def _check_consistency(doc, internalConsistency=False, show_errors=True):
             else:
                 Nwarn += 1
 
-        # FIXME: print to logging & make optional
         if show_errors:
-            pass
-            print_errors(doc)
+            log_errors(doc)
 
     return Nall, Nerr, Nwarn
 
 
-def print_errors(doc):
+def log_errors(doc):
     """ Prints errors of SBMLDocument.
 
     :param doc:
     :return:
     """
+    model = doc.getModel()
+
+    sep_line = bcolors.BGWHITE + bcolors.BLACK + '-'*120 + bcolors.ENDC + bcolors.ENDC
+    header_lines = [
+        '', '',
+        sep_line,
+        bcolors.BGWHITE + bcolors.BLACK + str(model) + bcolors.ENDC + bcolors.ENDC,
+        sep_line
+    ]
+    logging.error("\n".join(header_lines))
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
-        error_str = error_string(error, k)
-        print(error_str)
+        error_str, severity = error_string(error, k)
+        # FIXME: plot depending on logging level
+        logging.error(error_str)
+    logging.error("\n" + sep_line + "\n\n")
 
 
 def error_string(error, k=None):
@@ -171,12 +186,12 @@ def error_string(error, k=None):
     if package == '':
         package = 'core'
 
-    error_str = 'E{}: {} ({}, L{}, {})  \n' \
-                '{}\n' \
-                '[{}] {}\n' \
-                '{}\n'.format(
-                    k, error.getCategoryAsString(), package, error.getLine(), 'code',
-                    '-' * 60,
-                    error.getSeverityAsString(), error.getShortMessage(),
-                    error.getMessage())
-    return error_str
+    severity = error.getSeverityAsString()
+    lines = [
+        '',
+        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code')+ bcolors.ENDC + bcolors.ENDC,
+        bcolors.FAIL + '[{}] {}'.format(error.getSeverityAsString(), error.getShortMessage()) + bcolors.ENDC,
+        bcolors.OKBLUE + error.getMessage() + bcolors.ENDC
+    ]
+    error_str = '\n'.join(lines)
+    return error_str, severity

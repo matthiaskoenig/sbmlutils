@@ -286,7 +286,7 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
         s = model_fba.getSpecies(sid)
         # exchange species to create
         objects.append(
-            fac.Species(sid=sid, name=s.getName(), value=1.0, unit=unit,
+            fac.Species(sid=sid, name=s.getName(), initialConcentration=1.0, unit=unit,
                         hasOnlySubstanceUnits=hasOnlySubstanceUnits, compartment=compartment_id)
         )
         # port of exchange species
@@ -662,7 +662,7 @@ def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits
     """
     # dummy species for dummy reactions (empty set)
     fac.create_objects(model,
-                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, value=0, unit=unit,
+                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0, unit=unit,
                                     hasOnlySubstanceUnits=hasOnlySubstanceUnits,
                                     compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
                         ])

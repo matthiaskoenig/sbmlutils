@@ -32,8 +32,8 @@ def create_fba_doc():
 
     objects = [
         fac.Compartment(sid='cell', value=1.0),
-        fac.Species(sid='A', value=0, compartment="cell"),
-        fac.Species(sid='B', value=0, compartment="cell"),
+        fac.Species(sid='A', initialConcentration=0, compartment="cell"),
+        fac.Species(sid='B', initialConcentration=0, compartment="cell"),
     ]
     fac.create_objects(model, objects)
 
