@@ -75,8 +75,8 @@ compartments.extend([
 # Species
 ##############################################################
 species.extend([
-    fac.Species(sid='e__gal', compartment='ext', value=3.0, unit='mM', boundaryCondition=True, name='D-galactose'),
-    fac.Species(sid='c__gal', compartment='cyto', value=0.00012, unit='mM', boundaryCondition=False,
+    fac.Species(sid='e__gal', compartment='ext', initialConcentration=3.0, unit='mM', boundaryCondition=True, name='D-galactose'),
+    fac.Species(sid='c__gal', compartment='cyto', initialConcentration=0.00012, unit='mM', boundaryCondition=False,
                 name='D-galactose'),
 ])
 

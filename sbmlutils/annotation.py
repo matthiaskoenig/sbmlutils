@@ -20,7 +20,6 @@ ontology lookup service.
 from __future__ import print_function, absolute_import
 
 import logging
-import warnings
 import pyexcel
 import csv
 import re
@@ -150,7 +149,7 @@ class ModelAnnotation(object):
     def __init__(self, d, check_miriam=False):
 
         self.d = d
-        print(d)
+        # print(d)
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'collection', 'name']:
@@ -170,7 +169,7 @@ class ModelAnnotation(object):
                 uri = m.serv.getURI(self.collection, self.entity)
                 resource = m.convertURN(uri)
                 if resource is None:
-                    warnings.warn("resource could not be found for {} : {}".format(self.collection, self.entity))
+                    logging.warn("resource could not be found for {} : {}".format(self.collection, self.entity))
                 '''
             else:
                 # create identifiers.org resource manually
@@ -192,7 +191,7 @@ class ModelAnnotation(object):
     def check(self):
         """ Checks if the annotation is valid. """
         if self.sbml_type not in self._sbml_types:
-            warnings.warn("sbml_type not supported: {}, {}".format(self.sbml_type, self.d))
+            logging.warning("sbml_type not supported: {}, {}".format(self.sbml_type, self.d))
 
     def __str__(self):
         return str(self.d)
@@ -309,7 +308,7 @@ class ModelAnnotator(object):
                 if sid == model.getId():
                     e = model
                 else:
-                    warnings.warn('Element could not be found: {}'.format(sid))
+                    logging.warning('Element could not be found: {}'.format(sid))
                     continue
             elements.append(e)
         return elements
@@ -333,12 +332,12 @@ class ModelAnnotator(object):
             elif a.annotation_type in ['Formula', 'Charge']:
                 # via fbc species plugin, so check that species first
                 if a.sbml_type != 'species':
-                    warnings.warn("Chemical formula or Charge can only be set on species.")
+                    logging.error("Chemical formula or Charge can only be set on species.")
                 else:
                     s = self.model.getSpecies(e.getId())
                     splugin = s.getPlugin("fbc")
                     if splugin is None:
-                        logging.warning("FBC SPlugin not found for species, no fbc: {}".format(s))
+                        logging.error("FBC SPlugin not found for species, no fbc: {}".format(s))
                     else:
                         if a.annotation_type == 'Formula':
                             splugin.setChemicalFormula(a.entity)
@@ -381,9 +380,9 @@ class ModelAnnotator(object):
         success = element.addCVTerm(cv)
 
         if success != 0:
-            print("Warning, RDF not written: ", success)
-            print(libsbml.OperationReturnValue_toString(success))
-            print(element, qualifier, resource)
+            logging.error("RDF not written: ", success)
+            logging.error(libsbml.OperationReturnValue_toString(success))
+            logging.error("{}, {}, {}".format(element, qualifier, resource))
 
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
@@ -408,7 +407,7 @@ class ModelAnnotator(object):
 
         # first line is headers line
         headers = next(reader)
-        logging.info('Headers: {}'.format(headers))
+        logging.debug('Headers: {}'.format(headers))
 
         # read entries
         for row in reader:
@@ -422,7 +421,7 @@ class ModelAnnotator(object):
             entry = dict(zip(headers, [item.strip() for item in row]))
             a = ModelAnnotation(entry)
             res.append(a)
-            logging.info(str(a))
+            # logging.debug(str(a))
 
         return res
 

@@ -18,7 +18,6 @@ which takes care of the order of object creation.
 from __future__ import absolute_import, print_function, division
 
 import logging
-import warnings
 try:
     import libsbml
 except ImportError:
@@ -28,6 +27,7 @@ from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
+PORT_SUFFIX = "_port"
 
 
 def create_objects(model, obj_iter, debug=False):
@@ -59,8 +59,8 @@ def ast_node_from_formula(model, formula):
     """
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        warnings.warn("Formula could not be parsed: '{}'".format(formula))
-        warnings.warn(libsbml.getLastParseL3Error())
+        logging.error("Formula could not be parsed: '{}'".format(formula))
+        logging.error(libsbml.getLastParseL3Error())
     return ast_node
 
 
@@ -132,11 +132,12 @@ class Creator(object):
 # Base classes
 #####################################################################
 class Sbase(object):
-    def __init__(self, sid, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, name=None, sboTerm=None, metaId=None, port=None):
         self.sid = sid
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
+        self.port = port
 
     def __str__(self):
         tokens = str(self.__class__).split('.')
@@ -157,14 +158,37 @@ class Sbase(object):
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
+    def create_port(self, model):
+        """ Create port if existing. """
+        if self.port is None:
+            return
+
+        if isinstance(self.port, bool) and self.port is True:
+            # manually create port for the id
+            cmodel = model.getPlugin("comp")
+            p = cmodel.createPort()
+            port_sid = '{}{}'.format(self.sid, PORT_SUFFIX)
+            p.setId(port_sid)
+            p.setName(port_sid)
+            p.setMetaId(port_sid)
+            p.setSBOTerm(599)  # port
+            p.setIdRef(self.sid)
+
+        else:
+            # use the port object
+            if (not self.port.portRef) and (not self.port.idRef) and (not self.port.unitRef) and (not self.port.metaIdRef):
+                # if no reference set id reference to current object
+                self.port.idRef = self.sid
+            self.port.create_sbml(model)
+
 
 class Value(Sbase):
     """ Helper class.
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
-        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
+        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.value = value
 
     def set_fields(self, obj):
@@ -176,8 +200,8 @@ class ValueWithUnit(Value):
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
-    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
+        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -190,8 +214,8 @@ class ValueWithUnit(Value):
 # Units
 ##########################################################################
 class Unit(Sbase):
-    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None):
-        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None, port=None):
+        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.definition = definition
 
     def create_sbml(self, model):
@@ -254,8 +278,8 @@ class Unit(Sbase):
 ##########################################################################
 class Function(Sbase):
 
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None):
-        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
+        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.formula = value
 
     def create_sbml(self, model):
@@ -274,8 +298,8 @@ class Function(Sbase):
 ##########################################################################
 class Parameter(ValueWithUnit):
 
-    def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None):
-        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None, port=None):
+        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.constant = constant
 
     def create_sbml(self, model):
@@ -295,8 +319,9 @@ class Parameter(ValueWithUnit):
 ##########################################################################
 class Compartment(ValueWithUnit):
 
-    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None):
-        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None,
+                 port=None):
+        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -313,6 +338,8 @@ class Compartment(ValueWithUnit):
                 # AssignmentRule._create(model, sid=self.sid, formula=self.value)
         else:
             c.setSize(self.value)
+
+        self.create_port(model)
         return c
 
     def set_fields(self, obj):
@@ -324,12 +351,21 @@ class Compartment(ValueWithUnit):
 ##########################################################################
 # Species
 ##########################################################################
-class Species(ValueWithUnit):
+class Species(Sbase):
     """ Species. """
 
-    def __init__(self, sid, value, compartment, unit=None, constant=False, boundaryCondition=False,
-                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None):
-        super(Species, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, unit=None, constant=False, boundaryCondition=False,
+                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
+                 port=None):
+        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+
+        if (initialAmount is None) and (initialConcentration is None):
+            raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
+        if initialAmount and initialConcentration:
+            raise ValueError("initialAmount and initialConcentration cannot be set on species: {}".format(sid))
+        self.unit = unit
+        self.initialAmount = initialAmount
+        self.initialConcentration = initialConcentration
         self.compartment = compartment
         self.constant = constant
         self.boundaryCondition = boundaryCondition
@@ -346,22 +382,24 @@ class Species(ValueWithUnit):
         else:
             s.setSubstanceUnits(model.getSubstanceUnits())
 
+        self.create_port(model)
         return s
 
     def set_fields(self, obj):
         super(Species, self).set_fields(obj)
         obj.setConstant(self.constant)
+        if self.compartment is None:
+            raise ValueError("Compartment cannot be None on Species: {}".format(self))
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
-
-        # TODO: handle the amount/concentrations with corresponding substance units correctly
-        if self.hasOnlySubstanceUnits:
-            obj.setInitialAmount(self.value)
-        else:
-            obj.setInitialConcentration(self.value)
-
-        if self.conversionFactor:
+        if self.unit is not None:
+            obj.setUnits(Unit.get_unit_string(self.unit))
+        if self.initialAmount is not None:
+            obj.setInitialAmount(self.initialAmount)
+        if self.initialConcentration is not None:
+            obj.setInitialConcentration(self.initialConcentration)
+        if self.conversionFactor is not None:
             obj.setConversionFactor(self.conversionFactor)
 
 
@@ -371,8 +409,8 @@ class Species(ValueWithUnit):
 class InitialAssignment(Value):
     """ InitialAssignments. """
 
-    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None):
-        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
+        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.unit = unit
 
     def create_sbml(self, model):
@@ -433,7 +471,7 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            warnings.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            logging.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
 
@@ -566,7 +604,7 @@ class Event(Sbase):
 
         # assignments
         if type(assignments) is not dict:
-            warnings.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
+            logging.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
         self.assignments = assignments
 
         self.trigger_persistent = trigger_persistent
@@ -629,12 +667,12 @@ class Event(Sbase):
 
 
 def getDeficiencyEventId(deficiency):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     return 'EDEF_{:0>2d}'.format(deficiency)
 
 
 def createDeficiencyEvent(model, deficiency):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     eid = getDeficiencyEventId(deficiency)
     e = model.createEvent()
     e.setId(eid)
@@ -649,14 +687,14 @@ def createDeficiencyEvent(model, deficiency):
 
 
 def createSimulationEvents(model, elist):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     """ Simulation Events (Peaks & Challenges). """
     for edata in elist:
         createEventFromEventData(model, edata)
 
 
 def createEventFromEventData(model, edata):
-    warnings.warn('Will be removed.', DeprecationWarning)
+    logging.warn('Will be removed.', DeprecationWarning)
     e = model.createEvent()
     e.setId(edata.eid)
     e.setName(edata.key)

@@ -12,6 +12,8 @@ from __future__ import print_function, division, absolute_import
 import os
 import warnings
 import logging
+import time
+from sbmlutils.logutils import bcolors
 
 try:
     import libsbml
@@ -19,12 +21,14 @@ except ImportError:
     import tesbml as libsbml
 
 import sbmlutils.factory as factory
+from sbmlutils.factory import PORT_SUFFIX
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
 
 # Modeling frameworks
 SBO_CONTINOUS_FRAMEWORK = 'SBO:0000293'
 SBO_FLUX_BALANCE_FRAMEWORK = 'SBO:0000624'
+
 
 
 ##########################################################################
@@ -213,7 +217,9 @@ class ReplacedElement(SbaseRef):
 
         # resolve port element
         element = model.getElementBySId(self.elementRef)
-        print("elementRef:", self.elementRef, "element:", element)
+        if element is None:
+            raise ValueError("SBML element not found for elementRef: {}".format(self.elementRef))
+        # print("elementRef:", self.elementRef, "element:", element)
         eplugin = element.getPlugin("comp")
         obj = eplugin.createReplacedElement()
         self.set_fields(obj)
@@ -552,25 +558,39 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat')
     if Nerrors > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
             # Handle case of unreadable file here.
-            doc.printErrors()
+            logging.error("SBML error in doc: libsbml.XMLFileUnreadable")
         elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
             # Handle case of other file error here.
-            doc.printErrors()
+            logging.error("SBML error in doc: libsbml.XMLFileOperationError")
         else:
             # Handle other error cases here.
-            doc.printErrors()
+            logging.error("SBML errors in doc, see SBMLDocument error log.")
 
     # converter options
     props = libsbml.ConversionProperties()
     props.addOption("flatten comp", True)  # Invokes CompFlatteningConverter
     props.addOption("leave_ports", leave_ports)  # Indicates whether to leave ports
 
-    # convert
+    # flatten
+    current = time.clock()
     result = doc.convert(props)
-    if result != libsbml.LIBSBML_OPERATION_SUCCESS:
-        doc.printErrors()
-        logging.error("model could not be flattended due to errors.")
-        return
+    flattened_status = (result==libsbml.LIBSBML_OPERATION_SUCCESS)
+
+    lines = [
+        '',
+        '-' * 120,
+        str(doc),
+        "{:<25}: {}".format("flattened", str(flattened_status).upper()),
+        "{:<25}: {:.3f}".format("flatten time (ms)", time.clock() - current),
+        '-' * 120,
+    ]
+    info = bcolors.BOLD + "\n".join(lines) + bcolors.ENDC
+
+    if flattened_status:
+        logging.info(bcolors.OKGREEN + info + bcolors.ENDC)
+    else:
+        logging.error(bcolors.FAIL + info + bcolors.ENDC)
+        raise ValueError("SBML could not be flattend due to errors in the SBMLDocument.")
 
     if suffix is not None:
         model = doc.getModel()
@@ -582,7 +602,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat')
     if output_path is not None:
         # Write the results to the output file.
         libsbml.writeSBMLToFile(doc, output_path)
-        print("Flattened model written to {}".format(output_path))
+        logging.info("Flattened model written to {}".format(output_path))
 
     return doc
 

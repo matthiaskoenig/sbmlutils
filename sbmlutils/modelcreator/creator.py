@@ -18,6 +18,7 @@ import copy
 import logging
 import tempfile
 import warnings
+from sbmlutils.logutils import bcolors
 
 try:
     import libsbml
@@ -87,16 +88,17 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     :return:
     """
     # preprocess
-    print("create model:", modules)
+    logging.info(bcolors.OKBLUE + '\n\n' + '-'*120 + '\n' + str(modules) + '\n' + '-'*120 + bcolors.ENDC)
     model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
     core_model = CoreModel.from_dict(model_dict=model_dict)
-    core_model.info()
+    logging.debug(core_model.get_info())
     core_model.create_sbml()
 
     # write file
     if not os.path.exists(target_dir):
+        logging.warning("Target directory does not exist and is created: {}".format(target_dir))
         os.makedirs(target_dir)
 
     if mid is None:
@@ -107,7 +109,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
         filename = '{}.xml'.format(mid)
     sbml_path = os.path.join(target_dir, filename)
 
-    core_model.write_sbml(sbml_path)
+    core_model.write_sbml(sbml_path, validate=True)
 
     # annotate
     if annotations is not None:
@@ -116,7 +118,8 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
 
     # create report
     if create_report:
-        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir)
+        logging.info("Create SBML report:'{}'".format(sbml_path))
+        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
 
@@ -154,7 +157,6 @@ class Preprocess(object):
                         cdict[key] = dict()
                     # now add the elements by copy
                     d = cdict[key]
-                    print(d)
                     for k, v in value.items():
                         d[k] = copy.deepcopy(v)
 
@@ -176,7 +178,7 @@ class Preprocess(object):
         module = importlib.import_module(module_name, package=package)
 
         # get attributes from class
-        print('Preprocess: <{}>'.format(module_name))
+        logging.info('Preprocess: <{}>'.format(module_name))
 
         d = dict()
         for key in CoreModel._keys:
@@ -264,22 +266,28 @@ class CoreModel(object):
                 warnings.warn('Unsupported key for CoreModel: {}'.format(key))
         return m
 
-    def info(self):
-        """ Print information of model dictionary.
+    def get_info(self):
+        """ Return information of model dictionary.
 
         :return:
         :rtype:
         """
-        print('-'*80)
-        print(self)
-        print('-' * 80)
+        # FIXME: return string, which can be logged or printed
+        info = '\n' + '-'*80 + '\n'
+        info += '{}'.format(self) + '\n'
+        info += '-' * 80 + '\n'
         for key in sorted(CoreModel._keys):
             # string representation
             obj_str = getattr(self, key)
             if isinstance(obj_str, (list, tuple)):
                 # probably tuple or list
                 obj_str = [str(obj) for obj in obj_str]
-            print('{:<15}: {}'.format(key, obj_str))
+            info += '{:<15}: {}\n'.format(key, obj_str)
+        return info
+
+    def info(self):
+        """ Print information string. """
+        print(self.get_info())
 
     def create_sbml(self, sbml_level=3, sbml_version=1):
         """ Creats the SBML model
@@ -288,7 +296,10 @@ class CoreModel(object):
         :rtype:
         """
         from sbmlutils.validation import check
-        print('\n', '*' * 40, '\n', self.model_id, '\n', '*' * 40)
+
+        logging.info('*'*40)
+        logging.info(self.model_id)
+        logging.info('*' * 40)
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
@@ -339,12 +350,12 @@ class CoreModel(object):
                 if (objects):
                     factory.create_objects(self.model, objects)
                 else:
-                    logging.warn("Attribute <{}> missing from model.".format(attr))
+                    logging.warn("<{}> attribute not in model".format(attr))
 
 
 
 
-    def write_sbml(self, filepath):
+    def write_sbml(self, filepath, validate=True):
         """ Write sbml to file.
 
         :param filepath:
@@ -352,5 +363,5 @@ class CoreModel(object):
         :return:
         :rtype:
         """
-        sbmlio.write_sbml(self.doc, filepath, validate=True,
+        sbmlio.write_sbml(self.doc, filepath, validate=validate,
                           program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)

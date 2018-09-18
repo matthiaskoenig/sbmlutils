@@ -18,6 +18,7 @@ import codecs
 import ntpath
 import warnings
 import jinja2
+import logging
 from distutils import dir_util
 
 try:
@@ -48,7 +49,7 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
     """
     # individual reports
     for sbml_path in sbml_paths:
-        print(sbml_path)
+        logging.info(sbml_path)
         create_sbml_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
 
     # write index html (unicode)
@@ -182,7 +183,7 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
         }
     else:
         # no model exists
-        warnings.warn("No model in SBML file when creating model report: {}".format(doc))
+        logging.error("No model in SBML file when creating model report: {}".format(doc))
         template = env.get_template("report_no_model.html")
         c = {
             'basename': basename,
@@ -401,6 +402,7 @@ def listOfSpecies_dict(model):
     for item in model.getListOfSpecies():
         info = infoSbase(item)
         info['compartment'] = item.compartment
+        info['has_only_substance_units'] = boolean(item.has_only_substance_units)
         info['boundary_condition'] = boolean(item.boundary_condition)
         info['constant'] = boolean(item.constant)
         if item.isSetInitialAmount():
@@ -465,7 +467,6 @@ def listOfParameters_dict(model, values):
         if item.isSetValue():
             value = item.value
         else:
-            from pprint import pprint
             value_formula = values.get(item.id, None)
             if value_formula is None:
                 warnings.warn("No value for parameter via Value, InitialAssignment or AssignmentRule: {}".format(item.id))

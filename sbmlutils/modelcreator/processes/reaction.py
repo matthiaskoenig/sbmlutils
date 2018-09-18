@@ -3,7 +3,7 @@ ReactionTemplate.
 """
 from __future__ import print_function
 
-import warnings
+import logging
 from collections import namedtuple
 
 try:
@@ -73,6 +73,6 @@ class ReactionTemplate(object):
         law = reaction.createKineticLaw()
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
-            warnings.warn(libsbml.getLastParseL3Error())
+            logging.error(libsbml.getLastParseL3Error())
         check(law.setMath(ast_node), 'set math in kinetic law')
         return law

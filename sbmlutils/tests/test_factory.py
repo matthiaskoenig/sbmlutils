@@ -34,7 +34,7 @@ def test_event():
 def test_event2():
     objects = [
         fac.Compartment('c', value=1.0),
-        fac.Species('S1', value=1.0, compartment='c'),
+        fac.Species('S1', initialAmount=1.0, compartment='c'),
         fac.Parameter(sid="p1", value=0.0, constant=False),
 
         fac.Event(sid="e1", trigger='time >= 100', assignments={'p1': 10.0, 'S1': "p1 + 10"})
