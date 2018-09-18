@@ -18,6 +18,7 @@ import copy
 import logging
 import tempfile
 import warnings
+from sbmlutils.logutils import bcolors
 
 try:
     import libsbml
@@ -87,9 +88,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     :return:
     """
     # preprocess
-    logging.info('-'*80)
-    logging.info(modules)
-    logging.info('-' * 80)
+    logging.info(bcolors.OKBLUE + '\n\n' + '-'*120 + '\n' + str(modules) + '\n' + '-'*120 + bcolors.ENDC)
     model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
