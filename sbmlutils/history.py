@@ -59,10 +59,14 @@ def _create_history(creators):
     # add all creators
     for creator in values:
         c = libsbml.ModelCreator()
-        c.setFamilyName(creator.familyName)
-        c.setGivenName(creator.givenName)
-        c.setEmail(creator.email)
-        c.setOrganization(creator.organization)
+        if creator.familyName:
+            c.setFamilyName(creator.familyName)
+        if creator.givenName:
+            c.setGivenName(creator.givenName)
+        if creator.email:
+            c.setEmail(creator.email)
+        if creator.organization:
+            c.setOrganization(creator.organization)
         check(h.addCreator(c), 'add creator')
 
     # create time is now
