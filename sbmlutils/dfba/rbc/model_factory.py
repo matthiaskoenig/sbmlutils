@@ -189,7 +189,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
 
     # bounds
@@ -240,7 +240,7 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
 
     # update reactions
@@ -329,7 +329,7 @@ def create_model(output_dir):
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
                          output_path=pjoin(directory, settings.FLATTENED_LOCATION))
 
-    # create omex
+    # create report
     locations = [
         settings.FBA_LOCATION,
         settings.BOUNDS_LOCATION,
@@ -337,29 +337,14 @@ def create_model(output_dir):
         settings.TOP_LOCATION,
         settings.FLATTENED_LOCATION
     ]
-    descriptions = [
-        "FBA submodel (DFBA)",
-        "BOUNDS submodel (DFBA)",
-        "UPDATE submodel (DFBA)",
-        "TOP submodel (DFBA)",
-        "FLATTENED comp model (DFBA)",
-    ]
-
-    utils.create_omex(directory=directory,
-                      omex_location=settings.OMEX_LOCATION,
-                      locations=locations,
-                      descriptions=descriptions,
-                      creators=creators)
-
-    # create report
     sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
 
 if __name__ == "__main__":
-
-    from sbmlutils.dfba.rbc.settings import OUT_DIR
+    print("REPORT")
+    from sbmlutils.dfba.recon1.settings import OUT_DIR
     create_model(output_dir=OUT_DIR)
 
 
