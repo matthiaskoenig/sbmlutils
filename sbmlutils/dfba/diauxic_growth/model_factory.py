@@ -213,13 +213,13 @@ def fba_model(sbml_file, directory, annotations=None):
                        spatialDimensions=3),
 
         # species
-        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
         # bounds
@@ -298,7 +298,7 @@ def bounds_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
     # bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
@@ -379,7 +379,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
 
     # update reactions
@@ -429,11 +429,11 @@ def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=False)
 
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
