@@ -66,10 +66,10 @@ setup(
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "pip>=18.0",
-        "numpy>=1.14.5",
+        "pip>=18.1",
+        "numpy>=1.15.3",
         "scipy>=1.1.0",
-        "matplotlib>=2.2.2",
+        "matplotlib>=3.0.0",
         "pandas>=0.23.1",
         "tabulate>=0.8.2",
         "Jinja2>=2.10",
@@ -82,14 +82,14 @@ setup(
         "cobra>=0.13.0",
         "optlang>=1.4.2",
         # standards
-        "libroadrunner>=1.4.24",
+        "libroadrunner>=1.5.2",
         "tesbml>=5.15.0.1",
         "tesedml>=0.4.3",
         "tecombine>=0.2.2.1",
         "tenuml>=1.1.1",
         "phrasedml>=1.0.9",
         "antimony>=2.9.4",
-        "tellurium>=2.0.18",
+        "tellurium>=2.1.1",
         # testing
         "pytest>=3.6.1",
         "pytest-cov>=2.5.1",
