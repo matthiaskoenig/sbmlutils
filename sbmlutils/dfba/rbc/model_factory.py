@@ -35,7 +35,6 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 1
 DT_SIM = 0.1
 notes = """
 <notes>
@@ -77,7 +76,7 @@ notes = """
         <a href="https://dx.doi.org/10.1093/nar/gkv1049" target="_blank" title="Access the publication about BiGG Models knowledge-base">doi:10.1093/nar/gkv1049</a></dd></dt>
       </dl></body>
     </notes>
-""".format(version, '{}')
+""".format(settings.VERSION, '{}')
 
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
@@ -190,7 +189,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
                                 create_port=True)
 
     # bounds
@@ -241,7 +240,7 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
                                 create_port=True)
 
     # update reactions
@@ -278,10 +277,10 @@ def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
                                 create_port=False)
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -307,7 +306,7 @@ def create_model(output_dir):
 
     :return: directory where SBML files are located
     """
-    directory = utils.versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     print("FBA")
     doc_fba = fba_model(settings.FBA_LOCATION, directory)

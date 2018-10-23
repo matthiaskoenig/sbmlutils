@@ -225,7 +225,7 @@ def fba_model(sbml_file, directory):
     # FIXME: annotate biomass species (SBO for biomass missing)
     mc.create_objects(model, [
         mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        mc.Species(sid='X', initialAmount=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_X')
     ])
 
@@ -282,12 +282,12 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT, create_port=True,
                                 exclude_sids=['X'])
     # FIXME: define biomass separately, also port needed for biomass
     mc.create_objects(model, [
         mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', value=0.001, compartment=compartment_id, name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        mc.Species(sid='X', initialAmount=0.001, compartment=compartment_id, name='biomass', unit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_X')
     ])
 
@@ -326,12 +326,12 @@ def update_model(sbml_file, directory, doc_fba=None):
 
 
     # creates all the exchange reactions, biomass must be handeled separately
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=True)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT, create_port=True)
 
     # FIXME: biomass via function
     mc.create_objects(model, [
         mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        mc.Species(sid='X', initialAmount=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_biomass')
     ])
 
@@ -371,7 +371,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT, create_port=False)
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT, create_port=False)
 
     # minimal medium with single carbon source
     initial_c = {
@@ -402,7 +402,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
         species.setInitialConcentration(value)
 
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_AMOUNT)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
