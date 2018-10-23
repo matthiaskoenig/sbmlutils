@@ -8,6 +8,8 @@ import logging
 from sbmlutils import history
 from sbmlutils import factory
 
+import tesbml as libsbml
+
 
 def set_model_info(model, notes=None, creators=None, units=None, main_units=None):
     """ Adds the shared information to the models.
