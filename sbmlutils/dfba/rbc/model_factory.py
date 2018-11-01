@@ -74,7 +74,8 @@ notes = """
         <dd>BiGG Models: A platform for integrating, standardizing, and sharing genome-scale models. 
         <i>Nucl Acids Res</i>. 
         <a href="https://dx.doi.org/10.1093/nar/gkv1049" target="_blank" title="Access the publication about BiGG Models knowledge-base">doi:10.1093/nar/gkv1049</a></dd></dt>
-      </dl></body>
+      </dl>
+      </body>
     </notes>
 """.format(settings.VERSION, '{}')
 
@@ -277,10 +278,10 @@ def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=False)
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -322,7 +323,7 @@ def create_model(output_dir):
     }
 
     print("TOP")
-    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba, validate=False)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba, validate=True)
 
     # flatten top model
     print("FLATTENING")
@@ -343,8 +344,6 @@ def create_model(output_dir):
 
 
 if __name__ == "__main__":
-    print("REPORT")
-    from sbmlutils.dfba.recon1.settings import OUT_DIR
-    create_model(output_dir=OUT_DIR)
+    create_model(output_dir=settings.OUT_DIR)
 
 

@@ -360,7 +360,6 @@ if __name__ == "__main__":
     # clip_prefixes(path_in=path_in, path_out=path_out)
 
     # Create model
-    from sbmlutils.dfba.rbc.settings import OUT_DIR
-    create_model(output_dir=OUT_DIR)
+    create_model(output_dir=settings.OUT_DIR)
 
 
