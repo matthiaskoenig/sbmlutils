@@ -219,7 +219,6 @@ class ReplacedElement(SbaseRef):
         element = model.getElementBySId(self.elementRef)
         if element is None:
             raise ValueError("SBML element not found for elementRef: {}".format(self.elementRef))
-        # print("elementRef:", self.elementRef, "element:", element)
         eplugin = element.getPlugin("comp")
         obj = eplugin.createReplacedElement()
         self.set_fields(obj)
@@ -240,21 +239,22 @@ class ReplacedElement(SbaseRef):
 ##########################################################################
 class Deletion(SbaseRef):
 
-    # TODO: FIXME not implemented yet, this requires a submodel to work.
 
-    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, submodelRef, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
         """ Create a Deletion. """
         super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
                                        name=name, sboTerm=sboTerm, metaId=metaId)
+        self.submodelRef = submodelRef
 
     def create_sbml(self, model):
 
         # Deletions for submodels
-        cmodel = model.getPlugin("comp")
-        p = cmodel.createPort()
-        self.set_fields(p)
+        cmodel = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
+        submodel = cmodel.getSubmodel(self.submodelRef)  # type: libsbml.Submodel
+        deletion = submodel.createDeletion()  # type: libsbml.Deletion
+        self.set_fields(deletion)
 
-        return p
+        return deletion
 
     def set_fields(self, obj):
         super(Deletion, self).set_fields(obj)
