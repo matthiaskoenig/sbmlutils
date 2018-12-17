@@ -216,10 +216,15 @@ class ReplacedElement(SbaseRef):
     def create_sbml(self, model):
 
         # resolve port element
-        element = model.getElementBySId(self.elementRef)
-        if element is None:
-            raise ValueError("SBML element not found for elementRef: {}".format(self.elementRef))
-        eplugin = element.getPlugin("comp")
+        e = model.getElementBySId(self.elementRef)
+        if not e:
+            logging.warn("Element for sid '{}' not found, falling back to unit definitions.".format(self.elementRef))
+            # fallback to units (only working if no name shadowing)
+            e = model.getUnitDefinition(self.elementRef)
+            if not e:
+                raise ValueError("Neither SBML element nor UnitDefinition found for elementRef: {}".format(self.elementRef))
+
+        eplugin = e.getPlugin("comp")
         obj = eplugin.createReplacedElement()
         self.set_fields(obj)
 
