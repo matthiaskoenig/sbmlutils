@@ -108,7 +108,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
             "{:<25}: {}".format("validation warnings(s)", Nwarn),
         ]
     lines += [
-        "{:<25}: {:.3f}".format("check time (ms)", time.clock() - current),
+        "{:<25}: {:.3f}".format("check time (s)", time.clock() - current),
         '-' * 120,
     ]
     info = "\n".join(lines)
