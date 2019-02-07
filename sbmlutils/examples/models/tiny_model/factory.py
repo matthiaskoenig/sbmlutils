@@ -26,7 +26,9 @@ def create(tmp=False):
                          'results',
                          '{}_{}.xml'.format(model.mid, model.version))
 
-    doc = libsbml.
+    doc = libsbml.readSBMLFromFile(tiny_sbml)
+    model = doc.getModel()  # type: libsbml.Model
+    model.
 
 
 
