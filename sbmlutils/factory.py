@@ -26,7 +26,7 @@ except ImportError:
 from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
-SBML_VERSION = 1  # default SBML version
+SBML_VERSION = 2  # default SBML version
 PORT_SUFFIX = "_port"
 
 
@@ -354,7 +354,7 @@ class Compartment(ValueWithUnit):
 class Species(Sbase):
     """ Species. """
 
-    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, unit=None, constant=False, boundaryCondition=False,
+    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
                  port=None):
         super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
@@ -363,7 +363,7 @@ class Species(Sbase):
             raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
         if initialAmount and initialConcentration:
             raise ValueError("initialAmount and initialConcentration cannot be set on species: {}".format(sid))
-        self.unit = unit
+        self.substanceUnit = substanceUnit
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment
@@ -373,12 +373,12 @@ class Species(Sbase):
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
-        s = model.createSpecies()
+        s = model.createSpecies()  # type: libsbml.Species
         self.set_fields(s)
         # substance unit must be set on the given substance unit
         s.setSubstanceUnits(model.getSubstanceUnits())
-        if self.unit is not None:
-            s.setSubstanceUnits(self.unit)
+        if self.substanceUnit is not None:
+            s.setSubstanceUnits(self.substanceUnit)
         else:
             s.setSubstanceUnits(model.getSubstanceUnits())
 
@@ -393,8 +393,8 @@ class Species(Sbase):
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
-        if self.unit is not None:
-            obj.setUnits(Unit.get_unit_string(self.unit))
+        if self.substanceUnit is not None:
+            obj.setUnits(Unit.get_unit_string(self.substanceUnit))
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
         if self.initialConcentration is not None:

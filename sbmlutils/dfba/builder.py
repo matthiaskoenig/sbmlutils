@@ -243,7 +243,7 @@ def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_por
 
     fac.create_objects(model, [
         fac.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        fac.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        fac.Species(sid='X', value=0.001, compartment='c', name='biomass', substanceUnit='g', hasOnlySubstanceUnits=True,
                     conversionFactor='cf_biomass')
     ])
     if create_port:
@@ -286,7 +286,7 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
         s = model_fba.getSpecies(sid)
         # exchange species to create
         objects.append(
-            fac.Species(sid=sid, name=s.getName(), initialConcentration=1.0, unit=unit_amount,
+            fac.Species(sid=sid, name=s.getName(), initialConcentration=1.0, substanceUnit=unit_amount,
                         hasOnlySubstanceUnits=hasOnlySubstanceUnits, compartment=compartment_id)
         )
         # port of exchange species
@@ -662,7 +662,7 @@ def create_dummy_species(model, compartment_id, unit_amount=None, hasOnlySubstan
     """
     # dummy species for dummy reactions (empty set)
     fac.create_objects(model,
-                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0, unit=unit_amount,
+                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0, substanceUnit=unit_amount,
                                     hasOnlySubstanceUnits=hasOnlySubstanceUnits,
                                     compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
                         ])

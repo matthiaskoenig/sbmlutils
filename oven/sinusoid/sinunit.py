@@ -142,17 +142,17 @@ class SinusoidalUnitFactory(object):
             name = s.name
             # PP & PV
             species.extend([
-                Species(getPPSpeciesId(sid), s.value, compartment=getPPId(), unit=s.unit,
+                Species(getPPSpeciesId(sid), s.value, compartment=getPPId(), substanceUnit=s.unit,
                         boundaryCondition=True, name=getPPSpeciesName(name)),
-                Species(getPVSpeciesId(sid), s.value, compartment=getPVId(), unit=s.unit,
+                Species(getPVSpeciesId(sid), s.value, compartment=getPVId(), substanceUnit=s.unit,
                         boundaryCondition=False, name=getPVSpeciesName(name))
             ])
             # sinusoid & disse space
             for k in self.cell_range():
                 species.extend([
-                    Species(getSinusoidSpeciesId(sid, k), s.value, compartment=getSinusoidId(k), unit=s.unit,
+                    Species(getSinusoidSpeciesId(sid, k), s.value, compartment=getSinusoidId(k), substanceUnit=s.unit,
                             boundaryCondition=False, name=getSinusoidSpeciesName(name, k)),
-                    Species(getDisseSpeciesId(sid, k), s.value, compartment=getDisseId(k), unit=s.unit,
+                    Species(getDisseSpeciesId(sid, k), s.value, compartment=getDisseId(k), substanceUnit=s.unit,
                             boundaryCondition=False, name=getDisseSpeciesName(name, k))
                 ])
         return species

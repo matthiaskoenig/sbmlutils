@@ -76,15 +76,15 @@ def test_modelcreator_notebook():
         fac.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimensions=2),
 
         # exchange species
-        fac.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='A', name="A", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="extern"),
-        fac.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='C', name="C", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="extern"),
 
         # internal species
-        fac.Species(sid='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='B1', name="B1", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="cell"),
-        fac.Species(sid='B2', name="B2", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='B2', name="B2", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="cell"),
 
         # bounds
