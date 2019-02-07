@@ -17,7 +17,7 @@ from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 ##############################################################
 mid = 'tiny_example'
-version = 1
+version = 2
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h2>Description</h2>
@@ -77,7 +77,7 @@ units.extend([
 # Compartments
 ##############################################################
 compartments.extend([
-    mc.Compartment(sid='c', value=1e-15, unit=UNIT_KIND_LITRE, constant=True, name='cell compartment'),
+    mc.Compartment(sid='c', value=1e-5, unit=UNIT_KIND_LITRE, constant=True, name='cell compartment'),
 ])
 
 ##############################################################
@@ -101,7 +101,7 @@ species.extend([
 ##############################################################
 parameters.extend([
 
-    mc.Parameter('Vmax', 1.0E-16, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax Hexokinase"),
+    mc.Parameter('Vmax', 1.0E-6, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax Hexokinase"),
     mc.Parameter('Km_glc', 0.5, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km glucose"),
     mc.Parameter('Km_atp', 0.1, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km ATP"),
 ])
