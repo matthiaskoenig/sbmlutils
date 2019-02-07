@@ -2,8 +2,9 @@
 Create model.
 """
 import os
+import libsbml
 from sbmlutils.modelcreator.creator import Factory
-
+from sbmlutils.examples.models.tiny_model import model
 
 def create(tmp=False):
     """ Create demo model.
@@ -20,6 +21,13 @@ def create(tmp=False):
                       target_dir=os.path.join(models_dir, 'results'),
                       annotations=os.path.join(models_dir, 'annotations.xlsx'))
     factory.create(tmp)
+
+    tiny_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'results',
+                         '{}_{}.xml'.format(model.mid, model.version))
+
+    doc = libsbml.
+
 
 
 if __name__ == "__main__":

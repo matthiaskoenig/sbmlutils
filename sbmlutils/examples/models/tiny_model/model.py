@@ -101,7 +101,7 @@ species.extend([
 ##############################################################
 parameters.extend([
 
-    mc.Parameter('Vmax', 1.0E-10, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax Hexokinase"),
+    mc.Parameter('Vmax', 1.0E-16, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax Hexokinase"),
     mc.Parameter('Km_glc', 0.5, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km glucose"),
     mc.Parameter('Km_atp', 0.1, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km ATP"),
 ])
@@ -127,6 +127,6 @@ reactions.extend([
         compartment='c',
         pars=[],
         rules=[],
-        formula=('Vmax * glc/(Km_glc+glc) * atp/(Km_atp+atp)', 'mmole_per_s')
+        formula=('Vmax * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))', 'mmole_per_s')
     )
 ])

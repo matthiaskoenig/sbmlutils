@@ -7,9 +7,6 @@ from __future__ import print_function, division
 import os
 
 import model
-import cobra
-import libsbml
-from sbmlutils import fbc
 import roadrunner
 import pandas as pd
 
@@ -24,5 +21,15 @@ r = roadrunner.RoadRunner(tiny_sbml)
 print(r)
 s = r.simulate(0, 100, steps=100)
 df = pd.DataFrame(s, columns=s.colnames)
-print(df.head(10))
-# r.plot()
+r.plot()
+
+r = roadrunner.RoadRunner(tiny_sbml)
+r.integrator.setValue("relative_tolerance", 1E-18)
+r.integrator.setValue("absolute_tolerance", 1E-18)
+s = r.simulate(0, 100, steps=100)
+df = pd.DataFrame(s, columns=s.colnames)
+r.plot()
+
+
+
+
