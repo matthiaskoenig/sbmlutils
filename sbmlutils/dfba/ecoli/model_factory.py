@@ -225,7 +225,7 @@ def fba_model(sbml_file, directory):
     # FIXME: annotate biomass species (SBO for biomass missing)
     mc.create_objects(model, [
         mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', initialAmount=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        mc.Species(sid='X', initialAmount=0.001, compartment='c', name='biomass', substanceUnit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_X')
     ])
 
@@ -287,7 +287,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
     # FIXME: define biomass separately, also port needed for biomass
     mc.create_objects(model, [
         mc.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', initialAmount=0.001, compartment=compartment_id, name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        mc.Species(sid='X', initialAmount=0.001, compartment=compartment_id, name='biomass', substanceUnit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_X')
     ])
 
@@ -331,7 +331,7 @@ def update_model(sbml_file, directory, doc_fba=None):
     # FIXME: biomass via function
     mc.create_objects(model, [
         mc.Parameter(sid='cf_biomass', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        mc.Species(sid='X', initialAmount=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        mc.Species(sid='X', initialAmount=0.001, compartment='c', name='biomass', substanceUnit='g', hasOnlySubstanceUnits=True,
                    conversionFactor='cf_biomass')
     ])
 

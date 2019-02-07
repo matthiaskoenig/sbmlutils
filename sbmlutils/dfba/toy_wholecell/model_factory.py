@@ -140,15 +140,15 @@ def fba_model(sbml_file, directory, annotations=None):
         mc.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimensions=2),
 
         # exchange species
-        mc.Species(sid='A', name="A", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='A', name="A", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
-        mc.Species(sid='C', name="C", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='C', name="C", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
 
         # internal species
-        mc.Species(sid='B1', name="B1", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='B1', name="B1", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
-        mc.Species(sid='B2', name="B2", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='B2', name="B2", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
 
         # bounds
@@ -352,7 +352,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     # kinetic model
     mc.create_objects(model, [
         # kinetic species
-        mc.Species(sid='D', initialConcentration=0, unit=UNIT_AMOUNT,
+        mc.Species(sid='D', initialConcentration=0, substanceUnit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # kinetic

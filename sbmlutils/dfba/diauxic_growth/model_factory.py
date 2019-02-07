@@ -213,13 +213,13 @@ def fba_model(sbml_file, directory, annotations=None):
                        spatialDimensions=3),
 
         # species
-        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", initialConcentration=0.0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
         # bounds
