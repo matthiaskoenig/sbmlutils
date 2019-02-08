@@ -18,7 +18,7 @@ from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 ##############################################################
 mid = 'tiny_example'
-version = 4
+version = 5
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h2>Description</h2>

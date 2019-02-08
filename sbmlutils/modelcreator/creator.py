@@ -216,6 +216,7 @@ class CoreModel(object):
              'rate_rules': list,
              'reactions': list,
              'events': list,
+             'constraints': list,
              'ports': list,
              'replacedElements': list,
              'deletions': list,
@@ -292,7 +293,7 @@ class CoreModel(object):
         print(self.get_info())
 
     def create_sbml(self, sbml_level=3, sbml_version=1):
-        """ Creats the SBML model
+        """ Create the SBML model
 
         :return:
         :rtype:
@@ -346,6 +347,7 @@ class CoreModel(object):
             'ports',
             'replacedElements',
             'deletions',
+            'layouts'
         ]:
             # create the respective objects
             if hasattr(self, attr):
