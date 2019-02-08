@@ -30,7 +30,7 @@ SBML_VERSION = 2  # default SBML version
 PORT_SUFFIX = "_port"
 
 
-def create_objects(model, obj_iter, debug=False):
+def create_objects(model, key, obj_iter, debug=False):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -42,11 +42,18 @@ def create_objects(model, obj_iter, debug=False):
     :return:
     """
     sbml_objects = {}
-    for obj in obj_iter:
-        if debug:
-            print(obj)
-        sbml_obj = obj.create_sbml(model)
-        sbml_objects[sbml_obj.getId()] = sbml_obj
+    try:
+        for obj in obj_iter:
+            if debug:
+                print(obj)
+            sbml_obj = obj.create_sbml(model)
+            sbml_objects[sbml_obj.getId()] = sbml_obj
+    except Exception as error:
+        logging.error("Error creation SBML objects <{}>: {}".format(key, obj_iter))
+        logging.error(error)
+
+        raise
+
     return sbml_objects
 
 
@@ -277,13 +284,19 @@ class Unit(Sbase):
 # Functions
 ##########################################################################
 class Function(Sbase):
+    """ SBML FunctionDefinitions
+
+    FunctionDefinitions consist of a lambda expression in the value field, e.g.,
+        lambda(x,y, piecewise(x,gt(x,y),y) )  #  definition of minimum function
+        lambda(x, sin(x) )
+    """
 
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
         super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.formula = value
 
     def create_sbml(self, model):
-        f = model.createFunctionDefinition()
+        f = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
         self.set_fields(f, model)
         return f
 
@@ -407,8 +420,11 @@ class Species(Sbase):
 # InitialAssignments
 ##########################################################################
 class InitialAssignment(Value):
-    """ InitialAssignments. """
+    """ InitialAssignments.
 
+    The unit attribute is only for the case where a parameter must be created (which has the unit).
+    In case of an initialAssignment of a value the units have to be defined in the math.
+    """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
         super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.unit = unit
@@ -471,9 +487,18 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            logging.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            logging.warning('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
+
+    def create_sbml(self, model):
+        """ Create Rule in model.
+
+        :param model:
+        :return:
+        """
+        logging.error("Rule cannot be created, use either <AssignmentRule> or <RateRule>.")
+        raise NotImplementedError
 
     @staticmethod
     def _create_rule(model, rule, sid, formula):
@@ -592,7 +617,14 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
 # Events
 ##########################################################################
 class Event(Sbase):
-    """ InitialAssignments. """
+    """ InitialAssignments.
+
+    Trigger have the format of a logical expression:
+        time%200 == 0
+    Assignments have the format
+        sid = value
+
+    """
 
     def __init__(self, sid, trigger, assignments={},
                  trigger_persistent=True, trigger_initialValue=False, useValuesFromTriggerTime=True,

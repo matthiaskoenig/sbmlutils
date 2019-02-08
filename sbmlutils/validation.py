@@ -170,9 +170,13 @@ def log_errors(doc):
     logging.error("\n".join(header_lines))
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
-        error_str, severity = error_string(error, k)
-        # FIXME: plot depending on logging level
-        logging.error(error_str)
+        msg, severity = error_string(error, k)
+        if severity == libsbml.LIBSBML_SEV_WARNING:
+            logging.warning(msg)
+        elif severity in [libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL]:
+            logging.error(msg)
+        else:
+            logging.info(msg)
     logging.error("\n" + sep_line + "\n\n")
 
 
@@ -186,7 +190,7 @@ def error_string(error, k=None):
     if package == '':
         package = 'core'
 
-    severity = error.getSeverityAsString()
+    severity = error.getSeverity()
     lines = [
         '',
         bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code')+ bcolors.ENDC + bcolors.ENDC,
