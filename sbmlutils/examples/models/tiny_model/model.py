@@ -12,6 +12,7 @@ except ImportError:
     from tesbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
 
 import sbmlutils.factory as mc
+import sbmlutils.layout as layout
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
@@ -64,6 +65,7 @@ rules = list()
 reactions = list()
 events = list()
 constraints = list()
+layouts = list()
 
 ##############################################################
 # Units
@@ -169,3 +171,38 @@ events.extend([
 events.extend([
     mc.Constraint("constraint_1", math="atp >= 0 mM", message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
 ])
+
+
+##############################################################
+# Layout
+##############################################################
+
+layouts.extend([
+    layout.Layout(sid="layout_1", name="Layout 1", width=400.0, height=200.0,
+              species_glyphs=[
+                    layout.SpeciesGlyph('glyph_atp', species="atp", x=100, y=100, text="ATP"),
+                    layout.SpeciesGlyph('glyph_adp', species="adp", x=200, y=200, text="ADP"),
+                    layout.SpeciesGlyph('glyph_glc', species="glc", x=300, y=300, text="glucose"),
+                    layout.SpeciesGlyph('glyph_g6p', species="g6p", x=400, y=400, text="glucose-6-phosphate"),
+                    layout.SpeciesGlyph('glyph_hydron', species="hydron", x=500, y=500, text="hydron"),
+              ],
+              reaction_glyphs=[
+                    layout.ReactionGlyph('glyph_GK', reaction="GK", x=500, y=500, text="GK",
+                                     species_glyphs={
+                                         "glyph_atp": "sidesubstrate",
+                                         "glyph_adp": "sideproduct",
+                                         "glyph_glc": "substrate",
+                                         "glyph_g6p": "product",
+                                         "glyph_hydron": "sideproduct"
+                                     }),
+                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=500, y=500, text="ATPase",
+                                     species_glyphs={
+                                         "glyph_atp": "substrate",
+                                         "glyph_adp": "product",
+                                     }),
+              ])
+])
+
+
+
+
