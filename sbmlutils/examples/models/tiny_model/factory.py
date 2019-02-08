@@ -5,11 +5,6 @@ import os
 import libsbml
 from sbmlutils.modelcreator.creator import Factory
 
-
-
-# TODO: add event
-# TODO: add a constraint
-
 # TODO: add a group
 # TODO: add a layout
 

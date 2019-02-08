@@ -219,6 +219,8 @@ class CoreModel(object):
              'ports': list,
              'replacedElements': list,
              'deletions': list,
+
+             'layouts': list,
              }
 
     def __init__(self):
