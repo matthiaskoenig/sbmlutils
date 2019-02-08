@@ -178,7 +178,7 @@ events.extend([
 ##############################################################
 
 layouts.extend([
-    layout.Layout(sid="layout_1", name="Layout 1", width=400.0, height=200.0,
+    layout.Layout(sid="layout_1", name="Layout 1", width=1000.0, height=800.0,
               species_glyphs=[
                     layout.SpeciesGlyph('glyph_atp', species="atp", x=100, y=100, text="ATP"),
                     layout.SpeciesGlyph('glyph_adp', species="adp", x=200, y=200, text="ADP"),
@@ -187,7 +187,7 @@ layouts.extend([
                     layout.SpeciesGlyph('glyph_hydron', species="hydron", x=500, y=500, text="hydron"),
               ],
               reaction_glyphs=[
-                    layout.ReactionGlyph('glyph_GK', reaction="GK", x=500, y=500, text="GK",
+                    layout.ReactionGlyph('glyph_GK', reaction="GK", x=100, y=500, text="GK",
                                      species_glyphs={
                                          "glyph_atp": "sidesubstrate",
                                          "glyph_adp": "sideproduct",
@@ -195,7 +195,7 @@ layouts.extend([
                                          "glyph_g6p": "product",
                                          "glyph_hydron": "sideproduct"
                                      }),
-                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=500, y=500, text="ATPase",
+                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=300, y=500, text="ATPase",
                                      species_glyphs={
                                          "glyph_atp": "substrate",
                                          "glyph_adp": "product",
