@@ -68,7 +68,7 @@ class Factory(object):
             if tmp:
                 shutil.rmtree(target_dir)
 
-        return [model_dict, core_model]
+        return [model_dict, core_model, sbml_path]
 
 
 def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, mid=None):
@@ -187,7 +187,7 @@ class Preprocess(object):
                 d[key] = info
             else:
                 # key does not exist in module
-                logging.warning(" ".join(['missing:', key]))
+                logging.info(" ".join(['key not defined:', key]))
         return d
 
 
@@ -340,6 +340,7 @@ class CoreModel(object):
             'rate_rules',
             'reactions',
             'events',
+            'constraints',
             'ports',
             'replacedElements',
             'deletions',
@@ -347,13 +348,10 @@ class CoreModel(object):
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
-                if (objects):
-                    factory.create_objects(self.model, objects)
+                if objects:
+                    factory.create_objects(self.model, attr, objects)
                 else:
-                    logging.warn("<{}> attribute not in model".format(attr))
-
-
-
+                    logging.warning("Not defined: <{}> ".format(attr))
 
     def write_sbml(self, filepath, validate=True):
         """ Write sbml to file.

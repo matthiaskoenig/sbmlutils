@@ -16,32 +16,12 @@ from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 ##############################################################
-mid = 'tiny_example'
-version = 4
+mid = 'atp_balance'
+version = 1
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h2>Description</h2>
-    <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
-    </p>
-    <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
-    <div class="dc:publisher">This file has been created by
-    <a href="http://sbml.org" title="SBML team" target="_blank">SBML team</a>.</div>
-
-    <h2>Terms of use</h2>
-    <div class="dc:rightsHolder">Copyright © 2019 SBML team.</div>
-    <div class="dc:license">
-        <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
-        that the following conditions are met:
-        <ol>
-          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
-          the following disclaimer.</li>
-          <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
-          and the following disclaimer in the documentation and/or other materials provided
-          with the distribution.</li>
-        </ol>
-        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-        </p>
+    <p>A minimal example for atp balance.</p>
     </div>
     </body>
     """)
@@ -86,17 +66,10 @@ compartments.extend([
 # Species
 ##############################################################
 species.extend([
-
-    mc.Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm="SBO:0000247", port=True),
     mc.Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
                boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='g6p', compartment='c', initialConcentration=0.1, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm="SBO:0000247"),
     mc.Species(sid='adp', compartment='c', initialConcentration=0.8, substanceUnit='mmole', constant=False,
                boundaryCondition=False, hasOnlySubstanceUnits=False, name='ADP', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='hydron', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm="SBO:0000247")
 ])
 
 ##############################################################
@@ -104,25 +77,17 @@ species.extend([
 ##############################################################
 parameters.extend([
 
-    mc.Parameter('Vmax_GK', 1.0E-6, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax Glucokinase"),
-    mc.Parameter('Km_glc', 0.5, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km glucose"),
+    mc.Parameter('Vmax', 1.0E-6, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax ATPase"),
     mc.Parameter('Km_atp', 0.1, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km ATP"),
-    mc.Parameter('Vmax_ATPASE', 1.0E-6, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax ATPase"),
 ])
 
 ##############################################################
 # FunctionDefinitions
 ##############################################################
-compartments.extend([
-    mc.Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
-])
 
 ##############################################################
 # Assignments
 ##############################################################
-assignments.extend([
-    mc.InitialAssignment('glc', "4.5 mM")
-])
 
 ##############################################################
 # Rules
@@ -136,29 +101,12 @@ rules.extend([
 ##############################################################
 reactions.extend([
     ReactionTemplate(
-        rid='GK',
-        name='Glucokinase',
-        equation='glc + atp -> g6p + adp + hydron []',
-        compartment='c',
-        pars=[],
-        rules=[],
-        formula=('Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))', 'mmole_per_s')
-    ),
-    ReactionTemplate(
         rid='ATPASE',
         name='ATP consumption',
         equation='atp -> adp []',
         compartment='c',
         pars=[],
         rules=[],
-        formula=('Vmax_ATPASE * (atp/(Km_atp+atp)) * f_oscillation(time/ 1 second)', 'mmole_per_s')
+        formula=('Vmax* (atp/(Km_atp+atp))', 'mmole_per_s')
     )
-])
-
-##############################################################
-# Events
-##############################################################
-events.extend([
-    mc.Event("ev1", trigger="time%200 second == 0 second", assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
-             name="reset concentrations")
 ])

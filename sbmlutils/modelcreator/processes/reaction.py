@@ -33,8 +33,8 @@ class ReactionTemplate(object):
     def create_sbml(self, model):
         from sbmlutils.factory import create_objects
         # parameters and rules
-        create_objects(model, self.pars)
-        create_objects(model, self.rules)
+        create_objects(model, 'parameters', self.pars)
+        create_objects(model, 'rules',  self.rules)
 
         # reaction
         r = model.createReaction()
