@@ -614,10 +614,58 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
 
 
 ##########################################################################
+# Constraint
+##########################################################################
+class Constraint(Sbase):
+    """ Constraint.
+
+    The Constraint object is a mechanism for stating the assumptions under which a model is designed to operate.
+    The constraints are statements about permissible values of different quantities in a model.
+
+    The message must be well formated XHTML, e.g.,
+        message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>'
+    """
+    def __init__(self, sid, math, message=None,
+                 name=None, sboTerm=None, metaId=None):
+        super(Constraint, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+
+        self.math = math
+        self.message = message
+
+    def create_sbml(self, model: libsbml.Model):
+        """ Create libsbml InitialAssignment.
+
+        Creates a required parameter if not existing.
+
+        :param model:
+        :return:
+        """
+        constraint = model.createConstraint()  # type: libsbml.Constraint
+        self.set_fields(constraint, model)
+        return constraint
+
+    def set_fields(self, obj: libsbml.Constraint, model: libsbml.Model):
+        """ Set fields on given object.
+
+        :param obj: constraint
+        :param model: libsbml.Model instance
+        :return:
+        """
+        super(Constraint, self).set_fields(obj)
+
+        if self.math is not None:
+            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
+            obj.setMath(ast_math)
+        if self.message is not None:
+            check(obj.setMessage(self.message), message="Setting message on constraint: '{}'".format(self.message))
+
+
+
+##########################################################################
 # Events
 ##########################################################################
 class Event(Sbase):
-    """ InitialAssignments.
+    """ Event.
 
     Trigger have the format of a logical expression:
         time%200 == 0
