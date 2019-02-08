@@ -113,7 +113,7 @@ parameters.extend([
 ##############################################################
 # FunctionDefinitions
 ##############################################################
-compartments.extend([
+functions.extend([
     mc.Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
 ])
 
@@ -159,6 +159,13 @@ reactions.extend([
 # Events
 ##############################################################
 events.extend([
-    mc.Event("ev1", trigger="time%200 second == 0 second", assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
+    mc.Event("event_1", trigger="time%200 second == 0 second", assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
              name="reset concentrations")
+])
+
+##############################################################
+# Constraints
+##############################################################
+events.extend([
+    mc.Constraint("constraint_1", math="atp >= 0 mM", message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
 ])
