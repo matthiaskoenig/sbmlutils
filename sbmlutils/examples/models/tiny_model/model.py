@@ -178,27 +178,30 @@ events.extend([
 ##############################################################
 
 layouts.extend([
-    layout.Layout(sid="layout_1", name="Layout 1", width=1000.0, height=800.0,
+    layout.Layout(sid="layout_1", name="Layout 1", width=1400.0, height=1400.0,
+              compartment_glyphs=[
+                layout.CompartmentGlyph("glyph_c", compartment="c", x=0, y=0, width=1400, height=1400)
+              ],
               species_glyphs=[
-                    layout.SpeciesGlyph('glyph_atp', species="atp", x=100, y=100, text="ATP"),
-                    layout.SpeciesGlyph('glyph_adp', species="adp", x=200, y=200, text="ADP"),
-                    layout.SpeciesGlyph('glyph_glc', species="glc", x=300, y=300, text="glucose"),
-                    layout.SpeciesGlyph('glyph_g6p', species="g6p", x=400, y=400, text="glucose-6-phosphate"),
-                    layout.SpeciesGlyph('glyph_hydron', species="hydron", x=500, y=500, text="hydron"),
+                    layout.SpeciesGlyph('glyph_atp', species="atp", x=900, y=100, text="ATP"),
+                    layout.SpeciesGlyph('glyph_adp', species="adp", x=900, y=900, text="ADP"),
+                    layout.SpeciesGlyph('glyph_glc', species="glc", x=100, y=100, text="glucose"),
+                    layout.SpeciesGlyph('glyph_g6p', species="g6p", x=100, y=900, text="glucose-6-phosphate"),
+                    layout.SpeciesGlyph('glyph_hydron', species="hydron", x=900, y=1300, text="hydron"),
               ],
               reaction_glyphs=[
-                    layout.ReactionGlyph('glyph_GK', reaction="GK", x=100, y=500, text="GK",
+                    layout.ReactionGlyph('glyph_GK', reaction="GK", x=500, y=500, text="GK",
                                      species_glyphs={
-                                         "glyph_atp": "sidesubstrate",
-                                         "glyph_adp": "sideproduct",
-                                         "glyph_glc": "substrate",
-                                         "glyph_g6p": "product",
-                                         "glyph_hydron": "sideproduct"
+                                         "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
+                                         "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
+                                         "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
+                                         "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
+                                         "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
                                      }),
-                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=300, y=500, text="ATPase",
+                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=1300, y=500, text="ATPase",
                                      species_glyphs={
-                                         "glyph_atp": "substrate",
-                                         "glyph_adp": "product",
+                                         "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
+                                         "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
                                      }),
               ])
 ])
