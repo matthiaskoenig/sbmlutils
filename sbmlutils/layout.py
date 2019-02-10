@@ -80,15 +80,15 @@ class Layout(factory.Sbase):
 # SpeciesGlyph
 ##########################################################################
 class SpeciesGlyph(factory.Sbase):
-    def __init__(self, sid, species, x, y, z=0, width=50, height=20, depth=0, text=None, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, species, x, y, z=0, w=50, h=20, d=0, text=None, name=None, sboTerm=None, metaId=None):
         super(SpeciesGlyph, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.species = species
         self.x = x
         self.y = y
         self.z = z
-        self.width = width
-        self.height = height
-        self.depth = depth
+        self.width = w
+        self.height = h
+        self.depth = d
         self.text = text
 
     def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
@@ -109,15 +109,15 @@ class SpeciesGlyph(factory.Sbase):
 # CompartmentGlyph
 ##########################################################################
 class CompartmentGlyph(factory.Sbase):
-    def __init__(self, sid, compartment, x, y, z=0, width=200, height=200, depth=0, text=None, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, compartment, x, y, z=0, w=200, h=200, d=0, text=None, name=None, sboTerm=None, metaId=None):
         super(CompartmentGlyph, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.compartment = compartment
         self.x = x
         self.y = y
         self.z = z
-        self.width = width
-        self.height = height
-        self.depth = depth
+        self.width = w
+        self.height = h
+        self.depth = d
         self.text = text
 
     def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
@@ -138,15 +138,16 @@ class CompartmentGlyph(factory.Sbase):
 # ReactionGlyph
 ##########################################################################
 class ReactionGlyph(factory.Sbase):
-    def __init__(self, sid, reaction, x, y, z=0, species_glyphs=[], width=20, height=20, depth=0, text=None, name=None, sboTerm=None, metaId=None):
+
+    def __init__(self, sid, reaction, x, y, z=0, species_glyphs=[], w=20, h=20, d=0, text=None, name=None, sboTerm=None, metaId=None):
         super(ReactionGlyph, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.reaction = reaction
         self.x = x
         self.y = y
         self.z = z
-        self.width = width
-        self.height = height
-        self.depth = depth
+        self.width = w
+        self.height = h
+        self.depth = d
 
         self.text = text
         self.species_glyphs = species_glyphs
@@ -168,6 +169,43 @@ class ReactionGlyph(factory.Sbase):
         bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=0, height=0, depth=0)
         t_glyph.setBoundingBox(bb)
 
+        # get direction of reaction
+        eps = 1E-6
+        x_tot = 0
+        y_tot = 0
+        x_r = bb.getX()
+        y_r = bb.getY()
+        for sg_id, role in self.species_glyphs.items():
+            s_glyph = layout.getSpeciesGlyph(sg_id)  # type: libsbml.SpeciesGlyph
+            s_bb = s_glyph.getBoundingBox()  # type: libsbml.BoundingBox
+            x_s = s_bb.getX()
+            y_s = s_bb.getY()
+            if role in [LAYOUT_ROLE_SIDESUBSTRATE, LAYOUT_ROLE_SUBSTRATE]:
+                x_tot += (x_r - x_s)
+                y_tot += (y_r - y_s)
+            elif role in [LAYOUT_ROLE_PRODUCT, LAYOUT_ROLE_SIDEPRODUCT]:
+                x_tot += (x_s - x_r)
+                y_tot += (y_s - y_r)
+
+
+        print("x_tot, ytot")
+        print(x_tot, y_tot)
+        if (abs(x_tot) < eps) and (abs(y_tot) < eps):
+            direction = "down"
+        else:
+            if abs(x_tot) >= abs(y_tot):
+                if x_tot >= 0:
+                    direction = "right"
+                elif x_tot < 0:
+                    direction = "left"
+            elif abs(x_tot) < abs(y_tot):
+                if y_tot >= 0:
+                    direction = "down"
+                elif x_tot > 0:
+                    direction = "up"
+        print(direction)
+
+
         # create speciesReferenceGlyphs
         for sg_id, role in self.species_glyphs.items():
             srg = obj.createSpeciesReferenceGlyph()  # type: libsbml.SpeciesReferenceGlyph
@@ -175,15 +213,29 @@ class ReactionGlyph(factory.Sbase):
             srg.setSpeciesGlyphId(sg_id)
             srg.setRole(role)
 
-            self._create_curve(layout, obj.getId(), sg_id, role)
+            self._create_curve(layout, srg, obj.getId(), sg_id, role, direction)
 
-    def _create_curve(self, layout: libsbml.Layout, r_glyph_id, s_glyph_id, role):
+    def _create_curve(self, layout: libsbml.Layout, srg: libsbml.SpeciesReferenceGlyph, r_glyph_id, s_glyph_id, role, direction):
+        """ Heuristic for creating the curves.
+
+        :param layout:
+        :param srg:
+        :param r_glyph_id:
+        :param s_glyph_id:
+        :param role:
+        :return:
+        """
+
+        # 1. Find the direction of the reaction (via location of substrates and
+        # 2. Orient the curves accordingly (at the bounding box, with all ingoing connecting
+        # at same point and all outgoing connecting at same point.
+
 
         r_glyph = layout.getReactionGlyph(r_glyph_id)  # type: libsbml.ReactionGlyph
         s_glyph = layout.getSpeciesGlyph(s_glyph_id)  # type: libsbml.SpeciesGlyph
 
         # create curve
-        line_segment = r_glyph.createLineSegment()  # type: libsbml.LineSegment
+        line_segment = srg.createLineSegment()  # type: libsbml.LineSegment
 
         # calculate start and end points for line
         s_bb = s_glyph.getBoundingBox()  # type: libsbml.BoundingBox
@@ -191,38 +243,57 @@ class ReactionGlyph(factory.Sbase):
 
         # dist = 0.2
         dist = 10
-        if s_bb.getX() <= r_bb.getX():
-            x_start = s_bb.getX() + s_bb.getWidth() + dist
-            x_end = r_bb.getX() - dist
-        else:
-            x_start = s_bb.getX() - dist
-            x_end = r_bb.getX() + s_bb.getWidth() + dist
 
-        if s_bb.getY() <= r_bb.getY():
-            y_start = s_bb.getY() + s_bb.getHeight() + dist
-            y_end = r_bb.getY() - dist
-        else:
-            y_start = s_bb.getY() - dist
-            y_end = r_bb.getY() + s_bb.getHeight() + dist
+        x, y, h, w = r_bb.getX(), r_bb.getY(), r_bb.getHeight(), r_bb.getWidth()
+        xs, ys, hs, ws = s_bb.getX(), s_bb.getY(), s_bb.getHeight(), s_bb.getWidth()
+        if direction == "right":
+            s_point_substrate = (xs+ws, ys+0.5*hs)
+            s_point_product = (xs, ys+0.5*hs)
+            s_point_modifier  = (xs+0.5*ws, y+hs)
 
-        if s_bb.getZ() <= r_bb.getZ():
-            z_start = s_bb.getZ() + s_bb.getDepth() + dist
-            z_end = r_bb.getZ() - dist
-        else:
-            z_start = s_bb.getZ() - dist
-            z_end = r_bb.getZ() + s_bb.getDepth() + dist
+            r_point_substrate = (x, y+0.5*h)
+            r_point_product   = (x+w, y+0.5*h)
+            r_point_modifier  = (x+0.5*w, y)
+        elif direction == "left":
+            s_point_substrate = (xs, ys+0.5*hs)
+            s_point_product   = (xs+ws, ys+0.5*hs)
+            s_point_modifier  = (xs+0.5*ws, y+hs)
 
-        # direction of line
+            r_point_substrate = (x+w, y+0.5*h)
+            r_point_product = (x, y+0.5*h)
+            r_point_modifier = (x + 0.5*w, y)
+        elif direction == "down":
+            s_point_substrate = (xs+0.5*ws, ys+hs)
+            s_point_product   = (xs+0.5*ws, ys)
+            s_point_modifier  = (xs, ys+0.5*hs)
+
+            r_point_substrate = (x+0.5*w, y)
+            r_point_product = (x+0.5*w, y+h)
+            r_point_modifier = (x+w, y+0.5*h)
+        elif direction == "up":
+            s_point_substrate = (xs + 0.5 * ws, ys)
+            s_point_product = (xs + 0.5 * ws, ys+hs)
+            s_point_modifier = (xs, ys + 0.5 * hs)
+
+            r_point_substrate = (x + 0.5 * w, y+h)
+            r_point_product = (x + 0.5 * w, y)
+            r_point_modifier = (x + w, y + 0.5 * h)
+
+
         if role in [LAYOUT_ROLE_ACTIVATOR,
                     LAYOUT_ROLE_INHIBITOR,
                     LAYOUT_ROLE_MODIFIER]:
             # segment from species -> reaction
-            line_segment.setStart(x_start, y_start, z_start)
-            line_segment.setEnd(x_end, y_end, z_end)
-        else:
+            line_segment.setStart(s_point_modifier[0], s_point_modifier[1], 0)
+            line_segment.setEnd(r_point_modifier[0], r_point_modifier[1], 0)
+        elif role in [LAYOUT_ROLE_SUBSTRATE, LAYOUT_ROLE_SIDESUBSTRATE, LAYOUT_ROLE_UNDEFINED]:
             # segment from reaction -> species
-            line_segment.setStart(x_end, y_end, z_end)
-            line_segment.setEnd(x_start, y_start, z_start)
+            line_segment.setEnd(s_point_substrate[0], s_point_substrate[1], 0)
+            line_segment.setStart(r_point_substrate[0], r_point_substrate[1], 0)
+        elif role in [LAYOUT_ROLE_PRODUCT, LAYOUT_ROLE_SIDEPRODUCT]:
+            # segment from reaction -> species
+            line_segment.setEnd(s_point_product[0], s_point_product[1], 0)
+            line_segment.setStart(r_point_product[0], r_point_product[1], 0)
 
 
 def _create_bounding_box(x, y, width, height, z=0, depth=0):
