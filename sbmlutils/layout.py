@@ -165,7 +165,7 @@ class ReactionGlyph(factory.Sbase):
         t_glyph.setId("tglyph_{}".format(self.sid))
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=self.width, height=self.height, depth=self.depth)
+        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=0, height=0, depth=0)
         t_glyph.setBoundingBox(bb)
 
         # create speciesReferenceGlyphs
@@ -189,35 +189,33 @@ class ReactionGlyph(factory.Sbase):
         s_bb = s_glyph.getBoundingBox()  # type: libsbml.BoundingBox
         r_bb = r_glyph.getBoundingBox()  # type: libsbml.BoundingBox
 
-        dist = 0.2
+        # dist = 0.2
+        dist = 10
         if s_bb.getX() <= r_bb.getX():
-            x_start = s_bb.getX() + (1 + dist) * s_bb.getWidth()
-            x_end = r_bb.getX() - dist * s_bb.getWidth()
+            x_start = s_bb.getX() + s_bb.getWidth() + dist
+            x_end = r_bb.getX() - dist
         else:
-            x_start = s_bb.getX() - dist * s_bb.getWidth()
-            x_end = r_bb.getX() + (1+dist) * s_bb.getWidth()
+            x_start = s_bb.getX() - dist
+            x_end = r_bb.getX() + s_bb.getWidth() + dist
 
         if s_bb.getY() <= r_bb.getY():
-            y_start = s_bb.getY() + (1 + dist) * s_bb.getHeight()
-            y_end = r_bb.getY() - dist * s_bb.getHeight()
+            y_start = s_bb.getY() + s_bb.getHeight() + dist
+            y_end = r_bb.getY() - dist
         else:
-            y_start = s_bb.getY() - dist * s_bb.getHeight()
-            y_end = r_bb.getY() + (1 + dist) * s_bb.getHeight()
+            y_start = s_bb.getY() - dist
+            y_end = r_bb.getY() + s_bb.getHeight() + dist
 
         if s_bb.getZ() <= r_bb.getZ():
-            z_start = s_bb.getZ() + (1 + dist) * s_bb.getDepth()
-            z_end = r_bb.getZ() - dist * s_bb.getDepth()
+            z_start = s_bb.getZ() + s_bb.getDepth() + dist
+            z_end = r_bb.getZ() - dist
         else:
-            z_start = s_bb.getZ() - dist * s_bb.getDepth()
-            z_end = r_bb.getZ() + (1 + dist) * s_bb.getDepth()
+            z_start = s_bb.getZ() - dist
+            z_end = r_bb.getZ() + s_bb.getDepth() + dist
 
         # direction of line
-        if role in [LAYOUT_ROLE_SUBSTRATE,
-                    LAYOUT_ROLE_SIDESUBSTRATE,
-                    LAYOUT_ROLE_ACTIVATOR,
+        if role in [LAYOUT_ROLE_ACTIVATOR,
                     LAYOUT_ROLE_INHIBITOR,
-                    LAYOUT_ROLE_MODIFIER,
-                    LAYOUT_ROLE_UNDEFINED]:
+                    LAYOUT_ROLE_MODIFIER]:
             # segment from species -> reaction
             line_segment.setStart(x_start, y_start, z_start)
             line_segment.setEnd(x_end, y_end, z_end)
