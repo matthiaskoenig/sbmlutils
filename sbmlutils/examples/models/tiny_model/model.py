@@ -18,7 +18,7 @@ from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 ##############################################################
 mid = 'tiny_example'
-version = 5
+version = 6
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h2>Description</h2>
@@ -190,6 +190,28 @@ layouts.extend([
                     layout.SpeciesGlyph('glyph_hydron', species="hydron", x=900, y=1300, text="hydron"),
               ],
               reaction_glyphs=[
+                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=1300, y=500, text="ATPase",
+                                     species_glyphs={
+                                         "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
+                                         "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
+                                     }),
+              ])
+])
+
+'''
+layouts.extend([
+    layout.Layout(sid="layout_1", name="Layout 1", width=1400.0, height=1400.0,
+              compartment_glyphs=[
+                layout.CompartmentGlyph("glyph_c", compartment="c", x=0, y=0, width=1400, height=1400)
+              ],
+              species_glyphs=[
+                    layout.SpeciesGlyph('glyph_atp', species="atp", x=900, y=100, text="ATP"),
+                    layout.SpeciesGlyph('glyph_adp', species="adp", x=900, y=900, text="ADP"),
+                    layout.SpeciesGlyph('glyph_glc', species="glc", x=100, y=100, text="glucose"),
+                    layout.SpeciesGlyph('glyph_g6p', species="g6p", x=100, y=900, text="glucose-6-phosphate"),
+                    layout.SpeciesGlyph('glyph_hydron', species="hydron", x=900, y=1300, text="hydron"),
+              ],
+              reaction_glyphs=[
                     layout.ReactionGlyph('glyph_GK', reaction="GK", x=500, y=500, text="GK",
                                      species_glyphs={
                                          "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
@@ -205,6 +227,9 @@ layouts.extend([
                                      }),
               ])
 ])
+
+
+'''
 
 
 
