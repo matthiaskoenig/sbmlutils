@@ -31,6 +31,7 @@ import sbmlutils.history as history
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
 
+from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 from sbmlutils.report import sbmlreport
 
@@ -292,7 +293,7 @@ class CoreModel(object):
         """ Print information string. """
         print(self.get_info())
 
-    def create_sbml(self, sbml_level=3, sbml_version=1):
+    def create_sbml(self, sbml_level=SBML_LEVEL, sbml_version=SBML_VERSION):
         """ Create the SBML model
 
         :return:

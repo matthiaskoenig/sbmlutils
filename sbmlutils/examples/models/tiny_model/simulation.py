@@ -25,15 +25,13 @@ print('-' * 80)
 factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model'],
                   target_dir=os.path.join(models_dir, 'results'),
                   annotations=os.path.join(models_dir, 'annotations.xlsx'))
-# factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model2'],
-#                  target_dir=os.path.join(models_dir, 'results'))
 _, _, tiny_sbml = factory.create(tmp=False)
 
 
 # SBML file
-# tiny_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-#                         'results',
-#                         '{}_{}.xml'.format(model.mid, model.version))
+tiny_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'results',
+                         '{}_{}.xml'.format(model.mid, model.version))
 
 
 r = roadrunner.RoadRunner(tiny_sbml)
