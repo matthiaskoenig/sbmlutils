@@ -20,7 +20,7 @@ Formula = namedtuple('Formula', 'value unit')
 class ReactionTemplate(object):
     """ All reactions are instances of the ReactionTemplate. """
     def __init__(self, rid, equation, formula, pars=[], rules=[],
-                 name=None, compartment=None, fast=False):
+                 name=None, compartment=None, fast=False, sboTerm=None):
         self.rid = rid
         self.name = name
         self.equation = Equation(equation)
@@ -29,6 +29,7 @@ class ReactionTemplate(object):
         self.rules = rules
         self.formula = Formula(*formula)
         self.fast = fast
+        self.sboTerm = sboTerm
 
     def create_sbml(self, model):
         from sbmlutils.factory import create_objects
@@ -37,7 +38,7 @@ class ReactionTemplate(object):
         create_objects(model, 'rules',  self.rules)
 
         # reaction
-        r = model.createReaction()
+        r = model.createReaction()  # type: libsbml.Reaction
         r.setId(self.rid)
         if self.name:
             r.setName(self.name)
@@ -45,10 +46,13 @@ class ReactionTemplate(object):
             r.setName(self.rid)
         if self.compartment:
             r.setCompartment(self.compartment)
+        if self.sboTerm:
+            r.setSBOTerm(self.sboTerm)
         r.setReversible(self.equation.reversible)
         r.setFast(self.fast)
 
         #  equation
+        print(r)
         for reactant in self.equation.reactants:
             sref = r.createReactant()
             sref.setSpecies(reactant.sid)
