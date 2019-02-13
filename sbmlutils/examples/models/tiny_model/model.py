@@ -12,13 +12,16 @@ except ImportError:
     from tesbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
 
 import sbmlutils.factory as mc
+mc.SBML_LEVEL = 3
+mc.SBML_VERSION = 2
+
 import sbmlutils.layout as layout
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 ##############################################################
 mid = 'tiny_example'
-version = 6
+version = 8
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h2>Description</h2>
@@ -91,14 +94,18 @@ species.extend([
 
     mc.Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
                boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm="SBO:0000247", port=True),
     mc.Species(sid='g6p', compartment='c', initialConcentration=0.1, substanceUnit='mmole', constant=False,
                boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm="SBO:0000247"),
+    mc.Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
+               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm="SBO:0000247", port=True),
     mc.Species(sid='adp', compartment='c', initialConcentration=0.8, substanceUnit='mmole', constant=False,
                boundaryCondition=False, hasOnlySubstanceUnits=False, name='ADP', sboTerm="SBO:0000247", port=True),
+    mc.Species(sid='phos', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
+               boundaryCondition=True, hasOnlySubstanceUnits=False, name='P', sboTerm="SBO:0000247", port=True),
     mc.Species(sid='hydron', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm="SBO:0000247")
+               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm="SBO:0000247"),
+    mc.Species(sid='h2o', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
+               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H2O', sboTerm="SBO:0000247")
 ])
 
 ##############################################################
@@ -144,16 +151,18 @@ reactions.extend([
         compartment='c',
         pars=[],
         rules=[],
-        formula=('Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))', 'mmole_per_s')
+        formula=('Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))', 'mmole_per_s'),
+        sboTerm="SBO:0000176"
     ),
     ReactionTemplate(
         rid='ATPASE',
         name='ATP consumption',
-        equation='atp -> adp []',
+        equation='atp + h2o -> adp + phos + hydron []',
         compartment='c',
         pars=[],
         rules=[],
-        formula=('Vmax_ATPASE * (atp/(Km_atp+atp)) * f_oscillation(time/ 1 second)', 'mmole_per_s')
+        formula=('Vmax_ATPASE * (atp/(Km_atp+atp)) * f_oscillation(time/ 1 second)', 'mmole_per_s'),
+        sboTerm="SBO:0000176"
     )
 ])
 
