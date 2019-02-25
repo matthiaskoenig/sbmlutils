@@ -26,7 +26,7 @@ except ImportError:
 from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
-SBML_VERSION = 2  # default SBML version
+SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 
 
