@@ -51,8 +51,7 @@ class ReactionTemplate(object):
         r.setReversible(self.equation.reversible)
         r.setFast(self.fast)
 
-        #  equation
-        print(r)
+        # equation
         for reactant in self.equation.reactants:
             sref = r.createReactant()
             sref.setSpecies(reactant.sid)
