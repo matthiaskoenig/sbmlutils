@@ -660,7 +660,6 @@ class Constraint(Sbase):
             check(obj.setMessage(self.message), message="Setting message on constraint: '{}'".format(self.message))
 
 
-
 ##########################################################################
 # Events
 ##########################################################################
