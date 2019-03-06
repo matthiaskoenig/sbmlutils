@@ -30,6 +30,12 @@ SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 
 
+# TODO: Define recurring SBO terms
+PREFIX_EXCHANGE_REACTION = 'EX_'
+SBO_EXCHANGE_REACTION = "SBO:0000627"
+SBO_FLUX_BOUND = "SBO:0000612"
+
+
 def create_objects(model, key, obj_iter, debug=False):
     """ Create the objects in the model.
 
