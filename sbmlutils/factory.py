@@ -750,7 +750,7 @@ class Event(Sbase):
     def _assignments_dict(species, values):
         return dict(zip(species, values))
 
-
+'''
 def getDeficiencyEventId(deficiency):
     logging.warn('Will be removed.', DeprecationWarning)
     return 'EDEF_{:0>2d}'.format(deficiency)
@@ -789,36 +789,5 @@ def createEventFromEventData(model, edata):
     t.setPersistent(True)
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
+'''
 
-
-##########################################################################
-# FBC
-##########################################################################
-# TODO: FluxBound and Objective class
-def set_flux_bounds(reaction, lb, ub):
-    """ Set flux bounds on given reaction. """
-    rplugin = reaction.getPlugin("fbc")
-    rplugin.setLowerFluxBound(lb)
-    rplugin.setUpperFluxBound(ub)
-
-
-def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
-    """ Create flux optimization objective.
-
-    :param model_fbc: FbcModelPlugin
-    :param oid: objective identifier
-    :param otype:
-    :param fluxObjectives:
-    :param active:
-    :return:
-    """
-    objective = model_fbc.createObjective()
-    objective.setId(oid)
-    objective.setType(otype)
-    if active:
-        model_fbc.setActiveObjectiveId(oid)
-    for rid, coefficient in fluxObjectives.items():
-        fluxObjective = objective.createFluxObjective()
-        fluxObjective.setReaction(rid)
-        fluxObjective.setCoefficient(coefficient)
-    return objective

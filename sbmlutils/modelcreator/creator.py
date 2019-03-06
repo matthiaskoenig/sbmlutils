@@ -222,6 +222,8 @@ class CoreModel(object):
              'replacedElements': list,
              'deletions': list,
 
+             'objectives': list,
+
              'layouts': list,
              }
 
@@ -348,6 +350,7 @@ class CoreModel(object):
             'ports',
             'replacedElements',
             'deletions',
+            'objectives',
             'layouts'
         ]:
             # create the respective objects

@@ -6,13 +6,75 @@ from __future__ import print_function, division, absolute_import
 import warnings
 import cobra
 import pandas as pd
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 from sbmlutils import factory
+
+
+# -----------------------------------------------------------------------------
+# Objective
+# -----------------------------------------------------------------------------
+class Objective(factory.Sbase):
+
+    def __init__(self, sid,
+                 objectiveType=libsbml.OBJECTIVE_TYPE_MAXIMIZE,
+                 active=True,
+                 fluxObjectives={},
+                 name=None, sboTerm=None, metaId=None):
+        """ Create a layout. """
+        super(Objective, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.objectiveType = objectiveType
+        self.active = active
+        self.fluxObjectives = fluxObjectives
+
+    def create_sbml(self, model: libsbml.Model):
+        model_fbc = model.getPlugin("fbc")  # type: libsbml.FbcModelPlugin
+        obj = model_fbc.createObjective()  # type: libsbml.Objective
+        obj.setId(self.sid)
+        obj.setType(self.objectiveType)
+        if self.active:
+            model_fbc.setActiveObjectiveId(self.sid)
+        for rid, coefficient in self.fluxObjectives.items():
+            # FIXME: check for rid
+            fluxObjective = obj.createFluxObjective()
+            fluxObjective.setReaction(rid)
+            fluxObjective.setCoefficient(coefficient)
+        return obj
+
+    def set_fields(self, obj: libsbml.Layout):
+        super(Objective, self).set_fields(obj)
+
+
+
+def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
+    """ Create flux optimization objective.
+
+    :param model_fbc: FbcModelPlugin
+    :param oid: objective identifier
+    :param otype:
+    :param fluxObjectives:
+    :param active:
+    :return:
+    """
+    objective = model_fbc.createObjective()
+    objective.setId(oid)
+    objective.setType(otype)
+    if active:
+        model_fbc.setActiveObjectiveId(oid)
+    for rid, coefficient in fluxObjectives.items():
+        fluxObjective = objective.createFluxObjective()
+        fluxObjective.setReaction(rid)
+        fluxObjective.setCoefficient(coefficient)
+    return objective
+
+
+# -----------------------------------------------------------------------------
+# FluxBounds
+# -----------------------------------------------------------------------------
+def set_flux_bounds(reaction, lb, ub):
+    """ Set flux bounds on given reaction. """
+    rplugin = reaction.getPlugin("fbc")
+    rplugin.setLowerFluxBound(lb)
+    rplugin.setUpperFluxBound(ub)
 
 
 def load_cobra_model(sbml_path):
@@ -24,21 +86,7 @@ def load_cobra_model(sbml_path):
     :return:
     :rtype:
     """
-    doc = libsbml.readSBMLFromFile(sbml_path)
-
-    # add defaults
-    # add_default_flux_bounds(doc)
-
-    # boundarySpecies
-    # no_boundary_conditions(doc)
-
-    # f = tempfile.NamedTemporaryFile('w', suffix='xml')
-    # libsbml.writeSBMLToFile(doc, f.name)
-    # f.flush()
-    # cobra_model = cobra.io.read_sbml_model(f.name)
-    cobra_model = cobra.io.read_sbml_model(sbml_path)
-
-    return cobra_model
+    return cobra.io.read_sbml_model(sbml_path)
 
 
 def cobra_reaction_info(cobra_model):
