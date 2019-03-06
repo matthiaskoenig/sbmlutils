@@ -7,6 +7,7 @@ from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, \
     UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE
 
 import sbmlutils.factory as mc
+from sbmlutils.fbc import Objective
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate, EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT
 
@@ -108,6 +109,9 @@ FLUX_BOUND_PLUS_1000 = "ub_1000"
 FLUX_BOUND_MINUS_INF = "lb_inf"
 FLUX_BOUND_MINUS_1000 = "lb_1000"
 
+FLUX_BOUND_GLC_IMPORT = "glc_import"
+FLUX_BOUND_O2_IMPORT = "o2_import"
+
 parameters.extend([
     # bounds
     mc.Parameter(sid=FLUX_BOUND_ZERO, name="zero bound", value=0.0, unit=UNIT_FLUX,
@@ -123,6 +127,12 @@ parameters.extend([
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
     mc.Parameter(sid=FLUX_BOUND_MINUS_1000, name="lower bound -1000",
                  value=-1000, unit=UNIT_FLUX,
+                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
+    mc.Parameter(sid=FLUX_BOUND_GLC_IMPORT, name="glc import bound",
+                 value=-15, unit=UNIT_FLUX,
+                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
+    mc.Parameter(sid=FLUX_BOUND_O2_IMPORT, name="o2 import bound",
+                 value=-10, unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
 ])
 
@@ -170,25 +180,26 @@ reactions.extend([
     ExchangeReactionTemplate(species_id="O2",
                              flux_unit=UNIT_FLUX,
                              exchange_type=EXCHANGE_IMPORT,
-                             lowerFluxBound=FLUX_BOUND_MINUS_INF,
+                             lowerFluxBound=FLUX_BOUND_O2_IMPORT,
                              upperFluxBound=FLUX_BOUND_ZERO),
     ExchangeReactionTemplate(species_id="Glcxt",
                              flux_unit=UNIT_FLUX,
                              exchange_type=EXCHANGE_IMPORT,
-                             lowerFluxBound=FLUX_BOUND_MINUS_INF,
+                             lowerFluxBound=FLUX_BOUND_GLC_IMPORT,
                              upperFluxBound=FLUX_BOUND_ZERO),
     ExchangeReactionTemplate(species_id="X",
                              flux_unit=UNIT_FLUX,
                              exchange_type=EXCHANGE,
                              lowerFluxBound=FLUX_BOUND_MINUS_INF,
                              upperFluxBound=FLUX_BOUND_PLUS_INF),
-    ])
+])
 
 
+# -----------------------------------------------------------------------------
+# Objective function
+# -----------------------------------------------------------------------------
+objectives = [
+    Objective(sid="biomass_max", objectiveType="maximize", active=True,
+              fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
+]
 
-"""
-# objective function
-model_fba = model.getPlugin(builder.SBML_FBC_NAME)
-mc.create_objective(model_fba, oid="biomass_max", otype="maximize",
-                    fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
-"""

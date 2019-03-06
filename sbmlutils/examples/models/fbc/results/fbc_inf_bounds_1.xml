@@ -19,10 +19,10 @@
             </rdf:Bag>
           </dcterms:creator>
           <dcterms:created rdf:parseType="Resource">
-            <dcterms:W3CDTF>2019-03-06T12:42:37Z</dcterms:W3CDTF>
+            <dcterms:W3CDTF>2019-03-06T13:19:00Z</dcterms:W3CDTF>
           </dcterms:created>
           <dcterms:modified rdf:parseType="Resource">
-            <dcterms:W3CDTF>2019-03-06T12:42:37Z</dcterms:W3CDTF>
+            <dcterms:W3CDTF>2019-03-06T13:19:00Z</dcterms:W3CDTF>
           </dcterms:modified>
         </rdf:Description>
       </rdf:RDF>
@@ -123,6 +123,8 @@
       <parameter sboTerm="SBO:0000612" id="lb_inf" name="default lower bound" value="-INF" units="mmol_per_h" constant="true"/>
       <parameter sboTerm="SBO:0000612" id="ub_1000" name="upper bound 1000" value="1000" units="mmol_per_h" constant="true"/>
       <parameter sboTerm="SBO:0000612" id="lb_1000" name="lower bound -1000" value="-1000" units="mmol_per_h" constant="true"/>
+      <parameter sboTerm="SBO:0000612" id="glc_import" name="glc import bound" value="-15" units="mmol_per_h" constant="true"/>
+      <parameter sboTerm="SBO:0000612" id="o2_import" name="o2 import bound" value="-10" units="mmol_per_h" constant="true"/>
     </listOfParameters>
     <listOfReactions>
       <reaction id="v1" name="v1 (39.43 Ac + 35 O2 -&gt; X)" reversible="false" fast="false" compartment="bioreactor" fbc:lowerFluxBound="zero" fbc:upperFluxBound="ub_inf">
@@ -167,12 +169,12 @@
           <speciesReference species="Ac" stoichiometry="1" constant="true"/>
         </listOfReactants>
       </reaction>
-      <reaction sboTerm="SBO:0000627" id="EX_O2" name="EX_O2" reversible="false" fast="false" fbc:lowerFluxBound="lb_inf" fbc:upperFluxBound="zero">
+      <reaction sboTerm="SBO:0000627" id="EX_O2" name="EX_O2" reversible="false" fast="false" fbc:lowerFluxBound="o2_import" fbc:upperFluxBound="zero">
         <listOfReactants>
           <speciesReference species="O2" stoichiometry="1" constant="true"/>
         </listOfReactants>
       </reaction>
-      <reaction sboTerm="SBO:0000627" id="EX_Glcxt" name="EX_Glcxt" reversible="false" fast="false" fbc:lowerFluxBound="lb_inf" fbc:upperFluxBound="zero">
+      <reaction sboTerm="SBO:0000627" id="EX_Glcxt" name="EX_Glcxt" reversible="false" fast="false" fbc:lowerFluxBound="glc_import" fbc:upperFluxBound="zero">
         <listOfReactants>
           <speciesReference species="Glcxt" stoichiometry="1" constant="true"/>
         </listOfReactants>
@@ -183,5 +185,15 @@
         </listOfReactants>
       </reaction>
     </listOfReactions>
+    <fbc:listOfObjectives fbc:activeObjective="biomass_max">
+      <fbc:objective fbc:id="biomass_max" fbc:type="maximize">
+        <fbc:listOfFluxObjectives>
+          <fbc:fluxObjective fbc:reaction="v1" fbc:coefficient="1"/>
+          <fbc:fluxObjective fbc:reaction="v2" fbc:coefficient="1"/>
+          <fbc:fluxObjective fbc:reaction="v3" fbc:coefficient="1"/>
+          <fbc:fluxObjective fbc:reaction="v4" fbc:coefficient="1"/>
+        </fbc:listOfFluxObjectives>
+      </fbc:objective>
+    </fbc:listOfObjectives>
   </model>
 </sbml>
