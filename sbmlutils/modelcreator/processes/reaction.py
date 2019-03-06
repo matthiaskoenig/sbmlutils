@@ -17,19 +17,27 @@ from sbmlutils.equation import Equation
 Formula = namedtuple('Formula', 'value unit')
 
 
+# -----------------------------------------------------------------------------
+# Reactions
+# -----------------------------------------------------------------------------
 class ReactionTemplate(object):
     """ All reactions are instances of the ReactionTemplate. """
-    def __init__(self, rid, equation, formula, pars=[], rules=[],
-                 name=None, compartment=None, fast=False, sboTerm=None):
+    def __init__(self, rid, equation, formula=None, pars=[], rules=[],
+                 name=None, compartment=None, fast=False, sboTerm=None,
+                 lowerFluxBound=None, upperFluxBound=None):
         self.rid = rid
         self.name = name
         self.equation = Equation(equation)
         self.compartment = compartment
         self.pars = pars
         self.rules = rules
-        self.formula = Formula(*formula)
+        self.formula = formula
+        if formula is not None:
+            self.formula = Formula(*formula)
         self.fast = fast
         self.sboTerm = sboTerm
+        self.lowerFluxBound = lowerFluxBound
+        self.upperFluxBound = upperFluxBound
 
     def create_sbml(self, model):
         from sbmlutils.factory import create_objects
@@ -52,12 +60,12 @@ class ReactionTemplate(object):
         r.setFast(self.fast)
 
         # equation
-        for reactant in self.equation.reactants:
+        for reactant in self.equation.reactants:  # type: libsbml.SpeciesReference
             sref = r.createReactant()
             sref.setSpecies(reactant.sid)
             sref.setStoichiometry(reactant.stoichiometry)
             sref.setConstant(True)
-        for product in self.equation.products:
+        for product in self.equation.products:  # type: libsbml.SpeciesReference
             sref = r.createProduct()
             sref.setSpecies(product.sid)
             sref.setStoichiometry(product.stoichiometry)
@@ -67,7 +75,18 @@ class ReactionTemplate(object):
             sref.setSpecies(modifier)
 
         # kinetics
-        ReactionTemplate.set_kinetic_law(model, r, self.formula.value)
+        if self.formula:
+            ReactionTemplate.set_kinetic_law(model, r, self.formula.value)
+
+        # add fbc bounds
+        if self.upperFluxBound or self.lowerFluxBound:
+            r_fbc = r.getPlugin("fbc")  # type: libsbml.FbcReactionPlugin
+            if self.upperFluxBound:
+                r_fbc.setUpperFluxBound(self.upperFluxBound)
+            if self.lowerFluxBound:
+                r_fbc.setLowerFluxBound(self.lowerFluxBound)
+
+
         return r
 
     @staticmethod
@@ -79,3 +98,40 @@ class ReactionTemplate(object):
             logging.error(libsbml.getLastParseL3Error())
         check(law.setMath(ast_node), 'set math in kinetic law')
         return law
+
+# -----------------------------------------------------------------------------
+# ExchangeReactions
+# -----------------------------------------------------------------------------
+EXCHANGE_REACTION_PREFIX = 'EX_'
+EXCHANGE_REACTION_SBO = "SBO:0000627"
+EXCHANGE = 'exchange'
+EXCHANGE_IMPORT = 'import'
+EXCHANGE_EXPORT = 'export'
+
+
+class ExchangeReactionTemplate(object):
+    """ All reactions are instances of the ReactionTemplate. """
+    def __init__(self, species_id, exchange_type=EXCHANGE, flux_unit=None,
+                 lower_bound=None, upper_bound=None):
+        self.species_id = species_id
+        self.exchange_type = exchange_type
+        self.flux_unit = flux_unit
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+        if exchange_type not in [EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT]:
+            raise ValueError("Incorrect exchange_type: {}".format(exchange_type))
+
+    def create_sbml(self, model):
+
+        # id (e.g. EX_A)
+        ex_rid = EXCHANGE_REACTION_PREFIX + species_id
+
+        rt = ReactionTemplate(
+            rid=ex_rid,
+            equation="{} ->".format(self.species_id),
+            sboTerm=EXCHANGE_REACTION_SBO,
+            lowerFluxBound=self.lower_bound,
+            upperFluxBound=self.upper_bound
+        )
+        rt.create_sbml(model)
