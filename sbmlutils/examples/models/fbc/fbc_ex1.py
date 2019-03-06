@@ -1,6 +1,6 @@
 # -*- coding=utf-8 -*-
 """
-FBA example
+FBA example with exchange reactions.
 """
 import libsbml
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, \
@@ -12,7 +12,7 @@ from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate, EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT
 
 # -----------------------------------------------------------------------------
-mid = 'fbc_inf_bounds'
+mid = 'fbc_ex1'
 version = 1
 creators = templates.creators
 main_units = {
@@ -105,9 +105,7 @@ species.extend([
 # -----------------------------------------------------------------------------
 FLUX_BOUND_ZERO = "zero"
 FLUX_BOUND_PLUS_INF = "ub_inf"
-FLUX_BOUND_PLUS_1000 = "ub_1000"
 FLUX_BOUND_MINUS_INF = "lb_inf"
-FLUX_BOUND_MINUS_1000 = "lb_1000"
 
 FLUX_BOUND_GLC_IMPORT = "glc_import"
 FLUX_BOUND_O2_IMPORT = "o2_import"
@@ -121,12 +119,6 @@ parameters.extend([
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
     mc.Parameter(sid=FLUX_BOUND_MINUS_INF, name="default lower bound",
                  value=-float("Inf"), unit=UNIT_FLUX,
-                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
-    mc.Parameter(sid=FLUX_BOUND_PLUS_1000, name="upper bound 1000",
-                 value=1000, unit=UNIT_FLUX,
-                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
-    mc.Parameter(sid=FLUX_BOUND_MINUS_1000, name="lower bound -1000",
-                 value=-1000, unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
     mc.Parameter(sid=FLUX_BOUND_GLC_IMPORT, name="glc import bound",
                  value=-15, unit=UNIT_FLUX,
