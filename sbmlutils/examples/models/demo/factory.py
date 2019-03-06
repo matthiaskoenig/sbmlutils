@@ -5,10 +5,9 @@ Create model.
 from __future__ import print_function, absolute_import
 
 import os
-
 from sbmlutils.modelcreator.creator import Factory
 
-from .Cell import mid, version
+from sbmlutils.examples.models.demo import model
 
 
 def create(tmp=False):
@@ -22,16 +21,16 @@ def create(tmp=False):
     print(models_dir)
     print('-' * 80)
 
-    factory = Factory(modules=['sbmlutils.examples.models.demo.Cell'],
+    factory = Factory(modules=['sbmlutils.examples.models.demo.model'],
                       target_dir=os.path.join(models_dir, 'results'),
                       annotations=os.path.join(models_dir, 'demo_annotations.xlsx'))
     factory.create(tmp)
 
     # without annotations
     factory_no_annotations = Factory(
-        modules=['sbmlutils.examples.models.demo.Cell'],
+        modules=['sbmlutils.examples.models.demo.model'],
         target_dir=os.path.join(models_dir, 'results'),
-        mid="{}_{}_{}".format(mid, version, "no_annotations"))
+        mid="{}_{}_{}".format(model.mid, model.version, "no_annotations"))
     factory_no_annotations.create(tmp)
 
 
