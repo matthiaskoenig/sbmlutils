@@ -5,9 +5,6 @@ import os
 import libsbml
 from sbmlutils.modelcreator.creator import Factory
 
-# TODO: add a group
-# TODO: add a layout
-
 
 def create(tmp=False):
     """ Create demo model.
@@ -26,7 +23,6 @@ def create(tmp=False):
     # factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model2'],
     #                  target_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
-
 
 
 if __name__ == "__main__":

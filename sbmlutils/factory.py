@@ -376,7 +376,7 @@ class Species(Sbase):
             raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
         if initialAmount and initialConcentration:
             raise ValueError("initialAmount and initialConcentration cannot be set on species: {}".format(sid))
-        self.substanceUnit = substanceUnit
+        self.substanceUnit = Unit.get_unit_string(substanceUnit)
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment

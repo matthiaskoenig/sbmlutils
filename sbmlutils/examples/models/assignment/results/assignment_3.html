@@ -13,28 +13,23 @@
     <link rel="icon" href="_report/images/sbml.ico">
     <title>assignment_3</title>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/bs/jq-2.2.0,dt-1.10.11/datatables.min.css"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="_report/css/dashboard.css"/>
-    <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
 
-    <!-- JS -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/t/bs/jq-2.2.0,dt-1.10.11/datatables.min.js"></script>
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+
+
+    <!-- MathJax not working offline -->
     <script type="text/javascript" async
-      src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
     </script>
-
-    <!--
-    <link rel="stylesheet" href="_report/css/bootstrap.min.css">
-    <link rel="stylesheet" href="_report/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="_report/css/datatables.min.css">
-    <script type="text/javascript" src="_report/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_report/js/datatables.min.js"></script>
-    <script type="text/javascript" src="_report/js/MathJax.js"></script>
-    -->
 
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
@@ -51,6 +46,32 @@
                 "ordering": true
             } );
 
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
 
             var t_functions = $('#table_functions').dataTable({
                 "bPaginate": false,
@@ -88,6 +109,15 @@
                 t_species.fnFilter($(this).val());
             });
 
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
             var t_parameters = $('#table_parameters').dataTable({
                "bPaginate": false,
                 "bInfo": false,
@@ -115,6 +145,25 @@
                 t_rules.fnFilter($(this).val());
             });
 
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
             var t_constraints = $('#table_constraints').dataTable({
                "bPaginate": false,
                 "bInfo": false,
@@ -124,14 +173,6 @@
                 t_constraints.fnFilter($(this).val());
             });
 
-            var t_reactions = $('#table_reactions').dataTable({
-               "bPaginate": false,
-                "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
-            });
-            $('#searchField').keyup(function(){
-                t_reactions.fnFilter($(this).val());
-            });
 
             var t_events = $('#table_events').dataTable({
                "bPaginate": false,
@@ -150,85 +191,83 @@
 </head>
 
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#top">assignment_3</a>
-        </div>
-
-        <form class="navbar-form navbar-left">
-            <input id="searchField" type="text" class="form-control" placeholder="Search...">
-        </form>
-    </div>
-</nav>
 
 <!-- CONTAINER -->
 <div class="container-fluid">
+
     <!-- ROW -->
     <div class="row">
         <!-- LEFT -->
         <div class="col-sm-3 col-md-2 sidebar">
+
             <ul class="nav nav-sidebar">
-                <li><a href="#top">Model</a></li>
-                    <li><a href="#UnitDefinitions">UnitDefinitions</a></li>
-                    <li><a href="#Parameters">Parameters</a></li>
-                    <li><a href="#InitialAssignments">InitialAssignments</a></li>
-                    <li><a href="#Rules">Rules</a></li>
+                <li><a href="#doc"><b>SBMLDocument</b></a></li>
+                <li><a href="#model">Model</a></li>
+                    <li><a href="#table_units">UnitDefinitions</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_assignments">InitialAssignments</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
             </ul>
         </div>
         <!-- END LEFT -->
 
         <!-- RIGHT -->
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div class="col-lg-8 col-lg-offset-2 main">
 
             <!-- CONTENT -->
             <div class="content">
     <!--------------------------------------------------->
+    <!-- SBMLDocument                                  -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="doc"></a>
+
+    <!--------------------------------------------------->
     <!-- Model                                         -->
     <!--------------------------------------------------->
-    <a class="anchor" id="Model"></a>
-
-
-
-    <h1>Model : assignment_3</h1>
-    <b>Creator</b><br />Matthias, Koenig, Humboldt-University Berlin, Institute for Theoretical Biology, <a href="mailto:konigmatt@googlemail.com" target="_blank">konigmatt@googlemail.com</a><br /><b>Created:</b> 2017-06-09 10:48<br /><b>Modified:</b> 2017-06-09 10:48<br /><br />
-    <table id="table_model_annotation" class="table table-condensed table-nonfluid table-hover">
+    <h1 id="model">Model : assignment_3</h1>
+    <b>Creator</b><br />Matthias, Koenig, Humboldt-University Berlin, Institute for Theoretical Biology, <a href="mailto:koenigmx@hu-berlin.de" target="_blank">koenigmx@hu-berlin.de</a><br /><b>Created:</b> 2019-03-06 09:16<br /><b>Modified:</b> 2019-03-06 09:16<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
         <tr>
-            <td>
-                <a href="assignment_3.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="SBML model" title="SBML model"/> </a><br /><br />
-                    <div class="cvterm">
-    </div>
-<br />
-                    <div class="cvterm">
-       
-    </div>
-
-            </td>
-            <td>
-                <table id="table_model" class="table table-condensed table-nonfluid table-hover">
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
                 <tbody>
-                <tr>	<tr><td class="active">id</td><td>assignment_3</td></tr>
-	<tr><td class="active">name</td><td>assignment_3</td></tr>
-	<tr><td class="active">version</td><td>L3V1</td></tr>
-	<tr><td class="active">time</td><td>h</td></tr>
-	<tr><td class="active">substance</td><td>mg</td></tr>
-	<tr><td class="active">extent</td><td>mg</td></tr>
-	<tr><td class="active">volume</td><td>litre</td></tr>
-	<tr><td class="active">area</td><td>m2</td></tr>
-	<tr><td class="active">length</td><td>m</td></tr>
-</tr>
+                <tr><td class="active">id</td> <td id="assignment_3" class="active"><span class="package">assignment_3</span> <code>meta_assignment_3</code></tr>
+                <tr><td class="active">name</td><td>assignment_3</td></tr>
+                <tr><td class="active">time</td><td>h</td></tr>
+                <tr><td class="active">substance</td><td>mg</td></tr>
+                <tr><td class="active">extent</td><td>mg</td></tr>
+                <tr><td class="active">volume</td><td>litre</td></tr>
+                <tr><td class="active">area</td><td>m2</td></tr>
+                <tr><td class="active">length</td><td>m</td></tr>
                 </tbody>
                 </table>
             </td>
+            <td>
+                <a href="assignment_3.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="Access SBML model" title="SBML model"/></a>&nbsp;
+                <span class="package">L3V1</span> <span class="package">fbc-V2</span> <span class="package">comp-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"></div>
+            </td>
         </tr>
     </table>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
 
     <!--------------------------------------------------->
     <!-- FunctionDefinitions -->
@@ -237,7 +276,6 @@
     <!--------------------------------------------------->
     <!-- UnitDefinitions -->
     <!--------------------------------------------------->
-        <a class="anchor" id="UnitDefinitions"></a>
         <table id="table_units" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
@@ -250,8 +288,24 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">h</td>
-	<td></td>
+	    <td id="h" class="active"><span class="package">h</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-h"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-h" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">h</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="h">
+  <listOfUnits>
+    <unit kind="second" exponent="1" scale="0" multiplier="3600"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -264,8 +318,24 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">kg</td>
-	<td></td>
+	    <td id="kg" class="active"><span class="package">kg</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kg"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kg" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kg</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="kg">
+  <listOfUnits>
+    <unit kind="gram" exponent="1" scale="3" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -282,8 +352,24 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">m</td>
-	<td></td>
+	    <td id="m" class="active"><span class="package">m</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m">
+  <listOfUnits>
+    <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <ci> m </ci>
@@ -292,8 +378,24 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">m2</td>
-	<td></td>
+	    <td id="m2" class="active"><span class="package">m2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m2">
+  <listOfUnits>
+    <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -306,8 +408,24 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">per_h</td>
-	<td></td>
+	    <td id="per_h" class="active"><span class="package">per_h</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-per_h"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-per_h" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">per_h</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="per_h">
+  <listOfUnits>
+    <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -324,8 +442,24 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mg</td>
-	<td></td>
+	    <td id="mg" class="active"><span class="package">mg</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mg"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mg" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mg</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mg">
+  <listOfUnits>
+    <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -345,8 +479,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mg_per_litre</td>
-	<td></td>
+	    <td id="mg_per_litre" class="active"><span class="package">mg_per_litre</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mg_per_litre"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mg_per_litre" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mg_per_litre</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mg_per_litre">
+  <listOfUnits>
+    <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+    <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -370,8 +521,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mg_per_g</td>
-	<td></td>
+	    <td id="mg_per_g" class="active"><span class="package">mg_per_g</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mg_per_g"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mg_per_g" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mg_per_g</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mg_per_g">
+  <listOfUnits>
+    <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+    <unit kind="gram" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -395,8 +563,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mg_per_h</td>
-	<td></td>
+	    <td id="mg_per_h" class="active"><span class="package">mg_per_h</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mg_per_h"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mg_per_h" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mg_per_h</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mg_per_h">
+  <listOfUnits>
+    <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -424,8 +609,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">litre_per_h</td>
-	<td></td>
+	    <td id="litre_per_h" class="active"><span class="package">litre_per_h</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-litre_per_h"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-litre_per_h" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">litre_per_h</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="litre_per_h">
+  <listOfUnits>
+    <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -442,8 +644,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">litre_per_kg</td>
-	<td></td>
+	    <td id="litre_per_kg" class="active"><span class="package">litre_per_kg</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-litre_per_kg"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-litre_per_kg" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">litre_per_kg</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="litre_per_kg">
+  <listOfUnits>
+    <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -464,8 +683,26 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mulitre_per_min_mg</td>
-	<td></td>
+	    <td id="mulitre_per_min_mg" class="active"><span class="package">mulitre_per_min_mg</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mulitre_per_min_mg"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mulitre_per_min_mg" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mulitre_per_min_mg</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mulitre_per_min_mg">
+  <listOfUnits>
+    <unit kind="litre" exponent="1" scale="-6" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+    <unit kind="gram" exponent="-1" scale="-3" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -502,8 +739,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">ml_per_s</td>
-	<td></td>
+	    <td id="ml_per_s" class="active"><span class="package">ml_per_s</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ml_per_s"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ml_per_s" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ml_per_s</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="ml_per_s">
+  <listOfUnits>
+    <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -527,8 +781,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">s_per_h</td>
-	<td></td>
+	    <td id="s_per_h" class="active"><span class="package">s_per_h</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s_per_h"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s_per_h" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s_per_h</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="s_per_h">
+  <listOfUnits>
+    <unit kind="second" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -545,8 +816,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">min_per_h</td>
-	<td></td>
+	    <td id="min_per_h" class="active"><span class="package">min_per_h</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-min_per_h"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-min_per_h" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">min_per_h</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="min_per_h">
+  <listOfUnits>
+    <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -567,8 +855,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">ml_per_litre</td>
-	<td></td>
+	    <td id="ml_per_litre" class="active"><span class="package">ml_per_litre</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ml_per_litre"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ml_per_litre" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ml_per_litre</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="ml_per_litre">
+  <listOfUnits>
+    <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
+    <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -592,8 +897,25 @@
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">UnitDefinition</td>
-	<td class="active">mulitre_per_g</td>
-	<td></td>
+	    <td id="mulitre_per_g" class="active"><span class="package">mulitre_per_g</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mulitre_per_g"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mulitre_per_g" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mulitre_per_g</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mulitre_per_g">
+  <listOfUnits>
+    <unit kind="litre" exponent="1" scale="-6" multiplier="1"/>
+    <unit kind="gram" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
@@ -629,30 +951,45 @@
     <!--------------------------------------------------->
 
     <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
     <!-- Parameters -->
     <!--------------------------------------------------->
-        <a class="anchor" id="Parameters"></a>
         <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Parameters [9]</th>
 	<th scope="col">name</th>
+	<th scope="col">constant</th>
 	<th scope="col">value</th>
 	<th scope="col">unit</th>
 	<th scope="col">derived unit</th>
-	<th scope="col">constant</th>
     <th scope="col">sbo</th>
     <th scope="col">cvterm</th>
 </tr>
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">Ave</td>
-	<td></td>
-	<td>            0.0
+	    <td id="Ave" class="active"><span class="package">Ave</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Ave"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Ave" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Ave</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="Ave" value="0" units="mg" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
 	<td>mg</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -666,20 +1003,30 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">D</td>
-	<td></td>
-	<td>            0.0
+	    <td id="D" class="active"><span class="package">D</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-D"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-D" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">D</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="D" value="0" units="mg" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>0.0</td>
 	<td>mg</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -693,20 +1040,30 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">IVDOSE</td>
-	<td></td>
-	<td>            0.0
+	    <td id="IVDOSE" class="active"><span class="package">IVDOSE</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-IVDOSE"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-IVDOSE" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">IVDOSE</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="IVDOSE" value="0" units="mg" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.0</td>
 	<td>mg</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -720,20 +1077,30 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
-            <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">PODOSE</td>
-	<td></td>
-	<td>            100.0
+	    <td id="PODOSE" class="active"><span class="package">PODOSE</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-PODOSE"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-PODOSE" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">PODOSE</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="PODOSE" value="100" units="mg" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>100.0</td>
 	<td>mg</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -747,20 +1114,30 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
-            <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">k1</td>
-	<td></td>
-	<td>            0.1
+	    <td id="k1" class="active"><span class="package">k1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-k1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-k1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">k1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="k1" value="0.1" units="litre_per_h" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.1</td>
 	<td>litre_per_h</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
@@ -771,20 +1148,30 @@
       <ci> s </ci>
     </apply>
   </apply>
-</math>
-</td>
-            <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">BW</td>
-	<td></td>
-	<td>            70.0
+	    <td id="BW" class="active"><span class="package">BW</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-BW"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-BW" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">BW</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="BW" value="70" units="kg" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>70.0</td>
 	<td>kg</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -795,20 +1182,30 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
-            <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">FVve</td>
-	<td></td>
-	<td>            0.0514
+	    <td id="FVve" class="active"><span class="package">FVve</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-FVve"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-FVve" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">FVve</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="FVve" value="0.0514" units="litre_per_kg" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
     </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.0514</td>
 	<td>litre_per_kg</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
@@ -823,28 +1220,37 @@
       <ci> g </ci>
     </apply>
   </apply>
-</math>
-</td>
-            <td class="success"><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">Cve</td>
-	<td></td>
-	<td>                <?xml version="1.0" encoding="UTF-8"?>
+	    <td id="Cve" class="active"><span class="package">Cve</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Cve"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Cve" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Cve</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="Cve" units="mg_per_litre" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
     <ci> Ave </ci>
     <ci> Vve </ci>
   </apply>
-</math>
-
-    </td>
+</math></td>
 	<td>mg_per_litre</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
@@ -862,33 +1268,40 @@
     </apply>
     <ci> litre </ci>
   </apply>
-</math>
-</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Parameter</td>
-	<td class="active">Vve</td>
-	<td></td>
-	<td>                <?xml version="1.0" encoding="UTF-8"?>
+	    <td id="Vve" class="active"><span class="package">Vve</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Vve"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Vve" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Vve</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="Vve" units="litre" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
     <ci> BW </ci>
     <ci> FVve </ci>
   </apply>
-</math>
-
-    </td>
+</math></td>
 	<td>litre</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <ci> litre </ci>
-</math>
-</td>
-            <td class="danger"><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+</math></td>
 
 	<td></td>
 	<td></td>
@@ -900,12 +1313,12 @@
     <!--------------------------------------------------->
     <!-- InitialAssignments -->
     <!--------------------------------------------------->
-        <a class="anchor" id="InitialAssignments"></a>
         <table id="table_assignments" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">InitialAssignments [2]</th>
-	<th scope="col">&nbsp;</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
 	<th scope="col">assignment</th>
 	<th scope="col">derived units</th>
     <th scope="col">sbo</th>
@@ -914,15 +1327,14 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">InitialAssignment</td>
-    <td class="active">Ave</td>
-    <td></td>
+    <td class="active">Ave </td>
+    <td><i class="fa fa-ban gray"></i></td>
 	<td>=</td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <ci> IVDOSE </ci>
-</math>
-</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+</math></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -936,21 +1348,19 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
+</math></td>
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">InitialAssignment</td>
-    <td class="active">D</td>
-    <td></td>
+    <td class="active">D </td>
+    <td><i class="fa fa-ban gray"></i></td>
 	<td>=</td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <ci> PODOSE </ci>
-</math>
-</td>
-	<td>        <?xml version="1.0" encoding="UTF-8"?>
+</math></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -964,8 +1374,7 @@
     </apply>
     <ci> g </ci>
   </apply>
-</math>
-</td>
+</math></td>
 	<td></td>
 	<td></td>
 </tr>
@@ -976,13 +1385,13 @@
     <!--------------------------------------------------->
     <!-- Rules -->
     <!--------------------------------------------------->
-        <a class="anchor" id="Rules"></a>
         <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
             <thead>
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Rules [3]</th>
 	<th scope="col">&nbsp;</th>
 	<th scope="col">assignment</th>
+	<th scope="col">name</th>
 	<th scope="col">derived units</th>
     <th scope="col">sbo</th>
     <th scope="col">cvterm</th>
@@ -990,18 +1399,38 @@
             </thead>
             <tbody>
                 <tr>    <td class="hidden">Rule</td>
-	<td class="active">Cve</td>
+	    <td id="Cve" class="active"><span class="package">Cve</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-3519f605a588444fa90d49cf604eb697"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-3519f605a588444fa90d49cf604eb697" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">3519f605a588444fa90d49cf604eb697</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="Cve">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <divide/>
+      <ci> Ave </ci>
+      <ci> Vve </ci>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
 	<td>=</td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
     <ci> Ave </ci>
     <ci> Vve </ci>
   </apply>
-</math>
-</td>
-    <td>        <?xml version="1.0" encoding="UTF-8"?>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
@@ -1019,35 +1448,76 @@
     </apply>
     <ci> litre </ci>
   </apply>
-</math>
-</td>
+</math></td>
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td class="active">Vve</td>
+	    <td id="Vve" class="active"><span class="package">Vve</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-037ad9878fde40368b355b585401d30e"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-037ad9878fde40368b355b585401d30e" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">037ad9878fde40368b355b585401d30e</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="Vve">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <ci> BW </ci>
+      <ci> FVve </ci>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
 	<td>=</td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
     <ci> BW </ci>
     <ci> FVve </ci>
   </apply>
-</math>
-</td>
-    <td>        <?xml version="1.0" encoding="UTF-8"?>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <ci> litre </ci>
-</math>
-</td>
+</math></td>
 	<td></td>
 	<td></td>
 </tr>
                 <tr>    <td class="hidden">Rule</td>
-	<td class="active">d Ave/dt</td>
+	    <td id="Ave" class="active"><span class="package">d Ave/dt</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-859f33ae28314da1bb1d089a06de649a"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-859f33ae28314da1bb1d089a06de649a" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">859f33ae28314da1bb1d089a06de649a</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule variable="Ave">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <times/>
+      <apply>
+        <minus/>
+        <ci> k1 </ci>
+      </apply>
+      <ci> Cve </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
 	<td>=</td>
-	<td>    <?xml version="1.0" encoding="UTF-8"?>
+	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
@@ -1057,9 +1527,9 @@
     </apply>
     <ci> Cve </ci>
   </apply>
-</math>
-</td>
-    <td>        <?xml version="1.0" encoding="UTF-8"?>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <divide/>
@@ -1081,8 +1551,7 @@
       <ci> s </ci>
     </apply>
   </apply>
-</math>
-</td>
+</math></td>
 	<td></td>
 	<td></td>
 </tr>
@@ -1091,18 +1560,20 @@
         <hr/>
     
     <!--------------------------------------------------->
-    <!-- Constraints -->
-    <!--------------------------------------------------->
-    
-    <!--------------------------------------------------->
     <!-- Reactions -->
     <!--------------------------------------------------->
-    
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
     <!--------------------------------------------------->
     <!-- Events -->
     <!--------------------------------------------------->
-
-
 
             </div>
             <!-- END CONTENT -->
@@ -1111,10 +1582,9 @@
             <div class="footer">
                 <hr/>
                 <p>&copy; 2017 Matthias Koenig.
-                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img
-                            alt="Creative Commons License"
-                            style="border-width:0"
-                            src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"/></a><br/>This
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
                     work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
                                property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
                     under a <a
