@@ -40,6 +40,8 @@ class ReactionTemplate(object):
         self.upperFluxBound = upperFluxBound
 
     def create_sbml(self, model):
+        print("create reaction:", self, self.rid)
+
         from sbmlutils.factory import create_objects
         # parameters and rules
         create_objects(model, 'parameters', self.pars)
@@ -86,7 +88,6 @@ class ReactionTemplate(object):
             if self.lowerFluxBound:
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
 
-
         return r
 
     @staticmethod
@@ -99,6 +100,7 @@ class ReactionTemplate(object):
         check(law.setMath(ast_node), 'set math in kinetic law')
         return law
 
+
 # -----------------------------------------------------------------------------
 # ExchangeReactions
 # -----------------------------------------------------------------------------
@@ -110,14 +112,24 @@ EXCHANGE_EXPORT = 'export'
 
 
 class ExchangeReactionTemplate(object):
-    """ All reactions are instances of the ReactionTemplate. """
+    """ Exchange reactions define substances which can be exchanged.
+     This is important for FBC models.
+
+     EXCHANGE_IMPORT (-INF, 0): is defined as negative flux through the exchange reaction,
+        i.e. the upper bound must be 0, the lower bound some negative value,
+        e.g. -INF
+
+    EXCHANGE_EXPORT (0, INF): is defined as positive flux through the exchange reaction,
+        i.e. the lower bound must be 0, the upper bound some positive value,
+        e.g. INF
+     """
     def __init__(self, species_id, exchange_type=EXCHANGE, flux_unit=None,
-                 lower_bound=None, upper_bound=None):
+                 lowerFluxBound=None, upperFluxBound=None):
         self.species_id = species_id
         self.exchange_type = exchange_type
         self.flux_unit = flux_unit
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
+        self.lower_bound = lowerFluxBound
+        self.upper_bound = upperFluxBound
 
         if exchange_type not in [EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT]:
             raise ValueError("Incorrect exchange_type: {}".format(exchange_type))
@@ -125,7 +137,7 @@ class ExchangeReactionTemplate(object):
     def create_sbml(self, model):
 
         # id (e.g. EX_A)
-        ex_rid = EXCHANGE_REACTION_PREFIX + species_id
+        ex_rid = EXCHANGE_REACTION_PREFIX + self.species_id
 
         rt = ReactionTemplate(
             rid=ex_rid,
@@ -134,4 +146,4 @@ class ExchangeReactionTemplate(object):
             lowerFluxBound=self.lower_bound,
             upperFluxBound=self.upper_bound
         )
-        rt.create_sbml(model)
+        return rt.create_sbml(model)

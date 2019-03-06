@@ -8,7 +8,7 @@ from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, \
 
 import sbmlutils.factory as mc
 from sbmlutils.modelcreator import templates
-from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
+from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate, EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT
 
 # -----------------------------------------------------------------------------
 mid = 'fbc_inf_bounds'
@@ -102,20 +102,26 @@ species.extend([
 # -----------------------------------------------------------------------------
 # Parameters
 # -----------------------------------------------------------------------------
+FLUX_BOUND_ZERO = "zero"
+FLUX_BOUND_PLUS_INF = "ub_inf"
+FLUX_BOUND_PLUS_1000 = "ub_1000"
+FLUX_BOUND_MINUS_INF = "lb_inf"
+FLUX_BOUND_MINUS_1000 = "lb_1000"
+
 parameters.extend([
     # bounds
-    mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX,
+    mc.Parameter(sid=FLUX_BOUND_ZERO, name="zero bound", value=0.0, unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
-    mc.Parameter(sid="ub_inf", name="default upper bound",
+    mc.Parameter(sid=FLUX_BOUND_PLUS_INF, name="default upper bound",
                  value=float("Inf"), unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
-    mc.Parameter(sid="lb_inf", name="default lower bound",
+    mc.Parameter(sid=FLUX_BOUND_MINUS_INF, name="default lower bound",
                  value=-float("Inf"), unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
-    mc.Parameter(sid="ub_1000", name="upper bound 1000",
+    mc.Parameter(sid=FLUX_BOUND_PLUS_1000, name="upper bound 1000",
                  value=1000, unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
-    mc.Parameter(sid="lb_1000", name="lower bound -1000",
+    mc.Parameter(sid=FLUX_BOUND_MINUS_1000, name="lower bound -1000",
                  value=-1000, unit=UNIT_FLUX,
                  constant=True, sboTerm=mc.SBO_FLUX_BOUND),
 ])
@@ -129,48 +135,58 @@ reactions.extend([
         rid='v1',
         name='v1 (39.43 Ac + 35 O2 -> X)',
         equation='39.43 Ac + 35 O2 => X []',
-        compartment='bioreactor',
     ),
     ReactionTemplate(
         rid='v2',
         name='v2 (9.46 Glcxt + 12.92 O2 -> X)',
         equation='9.46 Glcxt + 12.92 O2 => X []',
-        compartment='bioreactor'
     ),
     ReactionTemplate(
         rid='v3',
         name='v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)',
         equation='9.84 Glcxt + 12.73 O2 => 1.24 Ac + X []',
-        compartment='bioreactor'
     ),
     ReactionTemplate(
         rid='v4',
         name='v4 (19.23 Glcxt -> 12.12 Ac + X)',
         equation='19.23 Glcxt => 12.12 Ac + X []',
-        compartment='bioreactor'
     ),
 ])
 
 for rt in reactions:
     if rt.rid in ["v1", "v2", "v3", "v4"]:
-        rt.lowerFluxBound = "zero"
-        rt.upperFluxBound = "ub_inf"
+        rt.compartment = "bioreactor"
+        rt.lowerFluxBound = FLUX_BOUND_ZERO
+        rt.upperFluxBound = FLUX_BOUND_PLUS_INF
+        rt.flux_unit = UNIT_FLUX
+
+# exchange reactions
+reactions.extend([
+    ExchangeReactionTemplate(species_id="Ac",
+                             flux_unit=UNIT_FLUX,
+                             exchange_type=EXCHANGE,
+                             lowerFluxBound=FLUX_BOUND_MINUS_INF,
+                             upperFluxBound=FLUX_BOUND_PLUS_INF),
+    ExchangeReactionTemplate(species_id="O2",
+                             flux_unit=UNIT_FLUX,
+                             exchange_type=EXCHANGE_IMPORT,
+                             lowerFluxBound=FLUX_BOUND_MINUS_INF,
+                             upperFluxBound=FLUX_BOUND_ZERO),
+    ExchangeReactionTemplate(species_id="Glcxt",
+                             flux_unit=UNIT_FLUX,
+                             exchange_type=EXCHANGE_IMPORT,
+                             lowerFluxBound=FLUX_BOUND_MINUS_INF,
+                             upperFluxBound=FLUX_BOUND_ZERO),
+    ExchangeReactionTemplate(species_id="X",
+                             flux_unit=UNIT_FLUX,
+                             exchange_type=EXCHANGE,
+                             lowerFluxBound=FLUX_BOUND_MINUS_INF,
+                             upperFluxBound=FLUX_BOUND_PLUS_INF),
+    ])
+
+
 
 """
-# exchange reactions
-
-# reactions: exchange reactions (this species can be changed by the FBA)
-for sid in ['Ac', 'Glcxt', 'O2', 'X']:
-    builder.create_exchange_reaction(model, species_id=sid,
-                                     flux_unit=UNIT_FLUX_PER_G,
-                                     exchange_type=builder.EXCHANGE)
-# set bounds for the exchange reactions
-p_lb_O2 = model.getParameter("lb_EX_O2")
-p_lb_O2.setValue(
-    -15.0)  # FIXME: this is in mmol/gdw/h (biomass weighting of FBA)
-p_lb_Glcxt = model.getParameter("lb_EX_Glcxt")
-p_lb_Glcxt.setValue(-10.0)  # FIXME: this is in mmol/gdw/h
-
 # objective function
 model_fba = model.getPlugin(builder.SBML_FBC_NAME)
 mc.create_objective(model_fba, oid="biomass_max", otype="maximize",
