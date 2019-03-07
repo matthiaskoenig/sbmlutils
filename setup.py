@@ -47,7 +47,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Cython',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering',
@@ -79,8 +78,8 @@ setup(
 
         # standards
         "python-libsbml-experimental>=5.17.2",
-        "phrasedml>=1.0.9",
-        "antimony>=2.9.4",
+        "phrasedml>=1.0.9",  # not working on py37
+        "antimony>=2.9.4",  # not working on py37
 
         # simulation
         "libroadrunner>=1.5.3",
