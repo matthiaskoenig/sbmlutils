@@ -76,22 +76,17 @@ steps = 10000
 
 -----------------------------------------------
 """
-from __future__ import print_function, absolute_import
-
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+import libsbml
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
+from sbmlutils import fbc
+
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 from sbmlutils import annotation
@@ -241,10 +236,10 @@ def fba_model(sbml_file, directory, annotations=None):
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
 
     # flux bounds: internal fluxes
-    mc.set_flux_bounds(r_v1, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r_v2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r_v3, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v1, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v3, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
 
     # reactions: exchange reactions (this species can be changed by the FBA)
     for sid in ['Ac', 'Glcxt', 'O2', 'X']:
@@ -258,7 +253,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # objective function
     model_fba = model.getPlugin(builder.SBML_FBC_NAME)
-    mc.create_objective(model_fba, oid="biomass_max", otype="maximize",
+    fbc.create_objective(model_fba, oid="biomass_max", otype="maximize",
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # write SBML file

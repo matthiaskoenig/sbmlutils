@@ -1,7 +1,4 @@
-from __future__ import print_function, division
-
 import os
-
 from sbmlutils.modelcreator.creator import Factory
 
 

@@ -16,8 +16,6 @@ Usage:
 # TODO: set tolerances for the ode integration
 
 
-from __future__ import print_function, division, absolute_import
-
 import logging
 import numpy as np
 import pandas as pd
@@ -190,7 +188,7 @@ class DFBASimulator(object):
         # model.solver.configuration.tolerances.feasibility = 1e-8 (absolute tolerances)
 
         # number of steps
-        steps = np.round(1.0 * tend / dt)
+        steps = int(np.round(1.0 * tend / dt))
         if np.abs(steps * dt - tend) > absTol:
             raise ValueError("Stepsize dt={} not compatible to simulation time tend={}".format(dt, tend))
 

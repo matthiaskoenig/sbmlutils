@@ -1,7 +1,7 @@
 """
 Test xpp file
 """
-from __future__ import print_function, absolute_import
+
 import os
 from sbmlutils.report import sbmlreport
 from sbmlutils.converters import xpp

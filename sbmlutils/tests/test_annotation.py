@@ -114,17 +114,17 @@ def test_demo_annotation():
     # parameters
     for p in model.parameters:
         cvterms = p.getCVTerms()
-        if re.match("^Km_\w+$", p.id):
+        if re.match(r"^Km_\w+$", p.id):
             assert p.getSBOTerm() == 27
             assert p.getSBOTermID() == "SBO:0000027"
             assert len(cvterms) == 1
 
-        if re.match("^Keq_\w+$", p.id):
+        if re.match(r"^Keq_\w+$", p.id):
             assert p.getSBOTerm() == 281
             assert p.getSBOTermID() == "SBO:0000281"
             assert len(cvterms) == 1
 
-        if re.match("^Vmax_\w+$", p.id):
+        if re.match(r"^Vmax_\w+$", p.id):
             assert p.getSBOTerm() == 186
             assert p.getSBOTermID() == "SBO:0000186"
             assert len(cvterms) == 1
@@ -132,7 +132,7 @@ def test_demo_annotation():
     # species
     for s in model.species:
         cvterms = s.getCVTerms()
-        if re.match("^\w{1}__[ABC]$", s.id):
+        if re.match(r"^\w{1}__[ABC]$", s.id):
             assert s.getSBOTerm() == 247
             assert s.getSBOTermID() == "SBO:0000247"
             assert len(cvterms) == 1
@@ -140,12 +140,12 @@ def test_demo_annotation():
     # reactions
     for r in model.reactions:
         cvterms = r.getCVTerms()
-        if re.match("^b\w{1}$", r.id):
+        if re.match(r"^b\w{1}$", r.id):
             assert r.getSBOTerm() == 185
             assert r.getSBOTermID() == "SBO:0000185"
             assert len(cvterms) == 1
 
-        if re.match("^v\w{1}$", r.id):
+        if re.match(r"^v\w{1}$", r.id):
             assert r.getSBOTerm() == 176
             assert r.getSBOTermID() == "SBO:0000176"
             assert len(cvterms) == 1

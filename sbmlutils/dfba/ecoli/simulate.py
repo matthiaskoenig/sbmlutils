@@ -1,7 +1,6 @@
 """
 Run ecoli model simulations.
 """
-from __future__ import print_function, division
 import os
 import logging
 import pandas as pd

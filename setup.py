@@ -3,8 +3,6 @@
 """
 sbmlutils pip package
 """
-from __future__ import absolute_import, print_function
-
 import io
 import re
 import os
@@ -81,23 +79,17 @@ setup(
 
         # standards
         "python-libsbml-experimental>=5.17.2",
-        
+        "phrasedml>=1.0.9",
+        "antimony>=2.9.4",
+
         # simulation
         "libroadrunner>=1.5.3",
         "cobra>=0.14.2",
         "optlang>=1.4.4",
 
-        # "tesbml>=5.15.0.1",
-        # "tesedml>=0.4.3",
-        # "tecombine>=0.2.2.1",
-        # "tenuml>=1.1.1",
-        # "phrasedml>=1.0.9",
-        # "antimony>=2.9.4",
-        # "tellurium>=2.1.1",
-        # testing
+        # misc
         "pytest>=4.3.0",
         "pytest-cov>=2.6.1",
-        # misc
         "ipykernel>=5.1.0",
     ],
     extras_require={},

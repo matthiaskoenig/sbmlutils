@@ -1,13 +1,9 @@
 """
 Handles manipulation of the History of SBases.
 """
-from __future__ import print_function, absolute_import
-import datetime
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import datetime
+import libsbml
 
 from sbmlutils.validation import check
 from sbmlutils.annotation import create_metaid

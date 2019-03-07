@@ -7,28 +7,21 @@ process. But the flattening parts also during the simulation
 of the dynamic FBA models.
 """
 
-from __future__ import print_function, division, absolute_import
-
 import os
 import warnings
 import logging
 import time
+import libsbml
+
 from sbmlutils.logutils import bcolors
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
 import sbmlutils.factory as factory
-from sbmlutils.factory import PORT_SUFFIX
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
 
 # Modeling frameworks
 SBO_CONTINOUS_FRAMEWORK = 'SBO:0000293'
 SBO_FLUX_BALANCE_FRAMEWORK = 'SBO:0000624'
-
 
 
 ##########################################################################
@@ -50,7 +43,8 @@ def create_ExternalModelDefinition(doc_comp, emd_id, source):
     return extdef
 
 
-def add_submodel_from_emd(model_comp, submodel_id, emd):
+def add_submodel_from_emd(model_comp: libsbml.CompModelPlugin, submodel_id,
+                          emd: libsbml.ExternalModelDefinition):
     """ Adds submodel to the model from given ExternalModelDefinition.
 
     :param model_comp: Model comp plugin
@@ -58,12 +52,14 @@ def add_submodel_from_emd(model_comp, submodel_id, emd):
     :param emd:
     :return:
     """
+
     model_ref = emd.getModelRef()
     submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
     submodel.setModelRef(model_ref)
+
     model_comp = emd.getReferencedModel()
-    if model_comp.isSetSBOTerm():
+    if model_comp and model_comp.isSetSBOTerm():
         submodel.setSBOTerm(model_comp.getSBOTerm())
     return submodel
 
@@ -637,12 +633,12 @@ def flattenExternalModelDefinitions(doc, validate=False):
 
     comp_doc = doc.getPlugin("comp")
     if comp_doc is None:
-        logging.warn("Model is not a comp model, no ExternalModelDefinitions")
+        logging.warning("Model is not a comp model, no ExternalModelDefinitions")
         return doc
     emd_list = comp_doc.getListOfExternalModelDefinitions()
     if (emd_list is None) or (len(emd_list) == 0):
         # no ExternalModelDefinitions
-        logging.warn("Model does not contain any ExternalModelDefinitions")
+        logging.warning("Model does not contain any ExternalModelDefinitions")
         return doc
     else:
         model = doc.getModel()

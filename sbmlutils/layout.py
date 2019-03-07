@@ -2,24 +2,10 @@
 Utilities for the creation and work with layout models.
 """
 
-from __future__ import print_function, division, absolute_import
-
-import os
-import warnings
-import logging
-import time
-from sbmlutils.logutils import bcolors
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 import sbmlutils.factory as factory
-import sbmlutils.validation as validation
-from sbmlutils.validation import check
-
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
+
 LAYOUT_VERSION = 1
 
 LAYOUT_ROLE_SUBSTRATE = "substrate"
@@ -30,6 +16,7 @@ LAYOUT_ROLE_MODIFIER = "modifier"
 LAYOUT_ROLE_ACTIVATOR = "activator"
 LAYOUT_ROLE_INHIBITOR = "inhibitor"
 LAYOUT_ROLE_UNDEFINED = "undefined"
+
 
 ##########################################################################
 # Layout

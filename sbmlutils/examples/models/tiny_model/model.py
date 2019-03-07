@@ -2,24 +2,15 @@
 """
 Demo kinetic network.
 """
-from __future__ import absolute_import, print_function, division
 
-try:
-    import libsbml
-    from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
-
+import libsbml
+from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
 import sbmlutils.factory as mc
-mc.SBML_LEVEL = 3
-mc.SBML_VERSION = 2
-
 import sbmlutils.layout as layout
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
-##############################################################
+# -----------------------------------------------------------------------------
 mid = 'tiny_example'
 version = 8
 notes = libsbml.XMLNode.convertStringToXMLNode("""
@@ -50,14 +41,7 @@ notes = libsbml.XMLNode.convertStringToXMLNode("""
     </body>
     """)
 creators = templates.creators
-main_units = {
-    'time': UNIT_KIND_SECOND,
-    'extent': 'mmole',
-    'substance': 'mmole',
-    'length': UNIT_KIND_METRE,
-    'area': 'm2',
-    'volume': UNIT_KIND_LITRE,
-}
+
 units = list()
 functions = list()
 compartments = list()
@@ -70,26 +54,33 @@ events = list()
 constraints = list()
 layouts = list()
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Units
-##############################################################
-# units (kind, exponent, scale=0, multiplier=1.0)
+# -----------------------------------------------------------------------------
+main_units = {
+    'time': UNIT_KIND_SECOND,
+    'extent': 'mmole',
+    'substance': 'mmole',
+    'length': UNIT_KIND_METRE,
+    'area': 'm2',
+    'volume': UNIT_KIND_LITRE,
+}
 units.extend([
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
     mc.Unit('mmole', [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
     mc.Unit('mM', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
     mc.Unit('mmole_per_s', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]),
 ])
-##############################################################
+# -----------------------------------------------------------------------------
 # Compartments
-##############################################################
+# -----------------------------------------------------------------------------
 compartments.extend([
     mc.Compartment(sid='c', value=1e-5, unit=UNIT_KIND_LITRE, constant=True, name='cell compartment', port=True),
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Species
-##############################################################
+# -----------------------------------------------------------------------------
 species.extend([
 
     mc.Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
@@ -108,41 +99,45 @@ species.extend([
                boundaryCondition=True, hasOnlySubstanceUnits=False, name='H2O', sboTerm="SBO:0000247")
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Parameters
-##############################################################
+# -----------------------------------------------------------------------------
 parameters.extend([
 
-    mc.Parameter('Vmax_GK', 1.0E-6, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax Glucokinase"),
-    mc.Parameter('Km_glc', 0.5, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km glucose"),
-    mc.Parameter('Km_atp', 0.1, unit='mM', constant=True, sboTerm="SBO:0000371", name="Km ATP"),
-    mc.Parameter('Vmax_ATPASE', 1.0E-6, unit='mmole_per_s', constant=True, sboTerm="SBO:0000186", name="Vmax ATPase"),
+    mc.Parameter('Vmax_GK', 1.0E-6, unit='mmole_per_s', constant=True,
+                 sboTerm="SBO:0000186", name="Vmax Glucokinase"),
+    mc.Parameter('Km_glc', 0.5, unit='mM', constant=True,
+                 sboTerm="SBO:0000371", name="Km glucose"),
+    mc.Parameter('Km_atp', 0.1, unit='mM', constant=True,
+                 sboTerm="SBO:0000371", name="Km ATP"),
+    mc.Parameter('Vmax_ATPASE', 1.0E-6, unit='mmole_per_s', constant=True,
+                 sboTerm="SBO:0000186", name="Vmax ATPase"),
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # FunctionDefinitions
-##############################################################
+# -----------------------------------------------------------------------------
 functions.extend([
     mc.Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Assignments
-##############################################################
+# -----------------------------------------------------------------------------
 assignments.extend([
     mc.InitialAssignment('glc', "4.5 mM")
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Rules
-##############################################################
+# -----------------------------------------------------------------------------
 rules.extend([
     mc.AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Reactions
-##############################################################
+# -----------------------------------------------------------------------------
 reactions.extend([
     ReactionTemplate(
         rid='GK',
@@ -166,26 +161,25 @@ reactions.extend([
     )
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Events
-##############################################################
+# -----------------------------------------------------------------------------
 events.extend([
     mc.Event("event_1", trigger="time%200 second == 0 second", assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
              name="reset concentrations")
 ])
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Constraints
-##############################################################
+# -----------------------------------------------------------------------------
 events.extend([
     mc.Constraint("constraint_1", math="atp >= 0 mM", message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
 ])
 
 
-##############################################################
+# -----------------------------------------------------------------------------
 # Layout
-##############################################################
-
+# -----------------------------------------------------------------------------
 layouts.extend([
     layout.Layout(sid="layout_1", name="Layout 1", width=700.0, height=700.0,
               compartment_glyphs=[
@@ -214,7 +208,3 @@ layouts.extend([
                                      }),
               ])
 ])
-
-
-
-

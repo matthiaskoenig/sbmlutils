@@ -2,17 +2,14 @@
 Check the charge and formula balance of the model.
 Run some simple FBA simulations.
 """
-from __future__ import print_function, division
-
 import os
 
 import model
 import roadrunner
 import pandas as pd
 from matplotlib import pylab as plt
-
-import os
 import libsbml
+
 from sbmlutils.modelcreator.creator import Factory
 
 

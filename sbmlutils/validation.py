@@ -5,16 +5,10 @@ Helper functions for simple validation and display of problems.
 Helper functions if setting sbml information was successful.
 """
 
-from __future__ import print_function, division
-
-from sbmlutils.logutils import bcolors
-
 import logging
 import time
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
+from sbmlutils.logutils import bcolors
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
 

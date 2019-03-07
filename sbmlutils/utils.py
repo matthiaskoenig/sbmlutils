@@ -1,14 +1,10 @@
 """
 Utility functions.
 """
-
-from __future__ import print_function, absolute_import
 import warnings
 import time
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
+import functools
 
 
 def timeit(f):

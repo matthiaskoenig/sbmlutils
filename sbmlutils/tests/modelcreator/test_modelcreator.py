@@ -38,21 +38,6 @@ def test_demo():
     """ Create demo model.
     :return:
     """
-    model_dict = Preprocess.dict_from_modules(['sbmlutils.examples.models.demo.Cell'])
-    cell_model = CoreModel.from_dict(model_dict)
-    cell_model.create_sbml()
-
-
-def test_galactose():
-    """
-    Create galactose model.
-    :return:
-    """
-    model_dict = Preprocess.dict_from_modules(
-        [
-            'sbmlutils.examples.models.hepatocyte',
-            'sbmlutils.examples.models.galactose'
-        ])
-
+    model_dict = Preprocess.dict_from_modules(['sbmlutils.examples.models.demo.model'])
     cell_model = CoreModel.from_dict(model_dict)
     cell_model.create_sbml()

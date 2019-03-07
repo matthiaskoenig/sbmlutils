@@ -1,8 +1,4 @@
-"""
-Create model.
-"""
 import os
-import libsbml
 from sbmlutils.modelcreator.creator import Factory
 
 

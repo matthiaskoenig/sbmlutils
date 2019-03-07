@@ -9,9 +9,6 @@ model information (dictionaries and lists
 
 Uses the importlib to import the information.
 """
-
-from __future__ import print_function, division
-
 import os
 import shutil
 import copy
@@ -20,11 +17,7 @@ import tempfile
 import warnings
 from sbmlutils.logutils import bcolors
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 
 import sbmlutils.annotation as annotation
 import sbmlutils.history as history
@@ -357,7 +350,7 @@ class CoreModel(object):
             if hasattr(self, attr):
                 objects = getattr(self, attr)
                 if objects:
-                    factory.create_objects(self.model, attr, objects)
+                    factory.create_objects(self.model, obj_iter=objects, key=attr)
                 else:
                     logging.warning("Not defined: <{}> ".format(attr))
 

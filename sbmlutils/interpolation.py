@@ -7,19 +7,13 @@ https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
 
 """
-from __future__ import absolute_import, print_function, division
-
 import os.path
 import shutil
 import tempfile
 import warnings
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
 import pandas as pd
+import libsbml
+
 from sbmlutils import validation
 
 ##########################################################################
@@ -115,8 +109,8 @@ class Interpolator(object):
         # create piecewise terms
         items = []
         for k in range(len(x) - 1):
-            x1 = x.ix[k]
-            x2 = x.ix[k + 1]
+            x1 = x.iloc[k]
+            x2 = x.iloc[k + 1]
             (a, b, c, d) = coeffs[k]
             formula = '{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}'.format(a=a, b=b, c=c, d=d, x1=x1)
             condition = 'time >= {x1} && time <= {x2}'.format(x1=x1, x2=x2)
@@ -187,17 +181,17 @@ class Interpolator(object):
         """
         items = []
         for k in range(len(col1) - 1):
-            x1 = col1.ix[k]
-            x2 = col1.ix[k + 1]
-            y1 = col2.ix[k]
-            y2 = col2.ix[k + 1]
+            x1 = col1.iloc[k]
+            x2 = col1.iloc[k + 1]
+            y1 = col2.iloc[k]
+            y2 = col2.iloc[k + 1]
             m = (y2 - y1) / (x2 - x1)
             formula = '{} + {}*(time-{})'.format(y1, m, x1)
             condition = 'time >= {} && time < {}'.format(x1, x2)
             s = '{}, {}'.format(formula, condition)
             items.append(s)
         # last value after last time
-        s = '{}, time >= {}'.format(col2.ix[len(col1) - 1], col1.ix[len(col1) - 1])
+        s = '{}, time >= {}'.format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
         items.append(s)
         # otherwise
         items.append('0.0')
@@ -213,18 +207,18 @@ class Interpolator(object):
         """
         items = []
         # first value before first time
-        s = '{}, time < {}'.format(col2.ix[0], col1.ix[0])
+        s = '{}, time < {}'.format(col2.iloc[0], col1.iloc[0])
         items.append(s)
 
         # intermediate vales
         for k in range(len(col1) - 1):
-            condition = 'time >= {} && time < {}'.format(col1.ix[k], col1.ix[k + 1])
-            formula = '{}'.format(col2.ix[k])
+            condition = 'time >= {} && time < {}'.format(col1.iloc[k], col1.iloc[k + 1])
+            formula = '{}'.format(col2.iloc[k])
             s = '{}, {}'.format(formula, condition)
             items.append(s)
 
         # last value after last time
-        s = '{}, time >= {}'.format(col2.ix[len(col1) - 1], col1.ix[len(col1) - 1])
+        s = '{}, time >= {}'.format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
         items.append(s)
 
         # otherwise

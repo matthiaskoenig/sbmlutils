@@ -1,7 +1,6 @@
 """
 Run toy model simulations.
 """
-from __future__ import print_function, division
 import os
 import logging
 import pandas as pd
@@ -168,6 +167,7 @@ if __name__ == "__main__":
     simulate_toy(sbml_path, out_dir=directory, ode_integrator="gillespie")
 
     # create COMBINE archive
+
     from tellurium.utils import omex
     creators = [
         omex.Creator(givenName="Matthias", familyName="Koenig", organization="Humboldt University Berlin", email="konigmatt@googlemail.com"),
