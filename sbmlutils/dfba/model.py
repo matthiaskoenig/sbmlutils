@@ -1,17 +1,13 @@
 """
 DFBA model structure.
 """
-from __future__ import print_function, absolute_import, division
 import os
 import logging
 import warnings
 import tempfile
 from collections import defaultdict
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 import roadrunner
 import cobra
 

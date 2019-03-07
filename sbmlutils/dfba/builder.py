@@ -1,19 +1,15 @@
 """
 Helper functions and information for building DFBA models.
 """
-
-from __future__ import print_function, absolute_import, division
 import warnings
 import logging
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils import factory as fac
 from sbmlutils import comp
+from sbmlutils import fbc
 from sbmlutils.dfba import utils
+
 
 
 #################################################
@@ -400,7 +396,7 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
                                reactants={species_id: 1}, sboTerm=EXCHANGE_REACTION_SBO)
 
     # exchange bounds
-    fac.set_flux_bounds(ex_r, lb=lb_id, ub=ub_id)
+    fbc.set_flux_bounds(ex_r, lb=lb_id, ub=ub_id)
 
     # create ports
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
@@ -476,7 +472,7 @@ def update_exchange_reactions(model, flux_unit):
         fac.create_objects(model, parameters)
 
         # set bounds
-        fac.set_flux_bounds(r, lb=lb_id, ub=ub_id)
+        fbc.set_flux_bounds(r, lb=lb_id, ub=ub_id)
 
         # create ports for bounds and reaction
         comp.create_ports(model, portType=comp.PORT_TYPE_PORT,

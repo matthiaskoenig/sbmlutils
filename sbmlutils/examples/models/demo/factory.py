@@ -2,11 +2,8 @@
 Create model.
 """
 
-from __future__ import print_function, absolute_import
-
 import os
 from sbmlutils.modelcreator.creator import Factory
-
 from sbmlutils.examples.models.demo import model
 
 

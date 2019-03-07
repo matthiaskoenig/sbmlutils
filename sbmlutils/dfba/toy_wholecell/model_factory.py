@@ -10,23 +10,15 @@ The toy model consists hereby of
 The SBML comp extension is used for hierarchical model composition, i.e. to create
 the main model and the kinetic model parts.
 """
-
-from __future__ import print_function, absolute_import
-
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-
+import libsbml
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import comp
+from sbmlutils import fbc
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
@@ -168,9 +160,9 @@ def fba_model(sbml_file, directory, annotations=None):
                             reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
     # flux bounds
-    mc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
-    mc.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r3, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
+    fbc.set_flux_bounds(r2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r3, lb="zero", ub="ub_default")
 
     # exchange reactions
     builder.create_exchange_reaction(model, species_id="A", flux_unit=UNIT_FLUX)
@@ -178,7 +170,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # objective function
     model_fbc = model.getPlugin("fbc")
-    mc.create_objective(model_fbc, oid="R3_maximize", otype="maximize",
+    fbc.create_objective(model_fbc, oid="R3_maximize", otype="maximize",
                         fluxObjectives={"R3": 1.0}, active=True)
 
     # create ports for kinetic bounds

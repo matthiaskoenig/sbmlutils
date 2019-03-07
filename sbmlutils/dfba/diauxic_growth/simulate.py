@@ -1,7 +1,6 @@
 """
 Simulate the diauxic growth model.
 """
-from __future__ import print_function, division, absolute_import
 import os
 import numpy as np
 import warnings
@@ -10,7 +9,6 @@ import logging
 from matplotlib import pyplot as plt
 
 from sbmlutils.dfba.utils import versioned_directory
-
 from sbmlutils.dfba.diauxic_growth import settings
 from sbmlutils.dfba.diauxic_growth import model_factory
 from sbmlutils.dfba.diauxic_growth import analyse

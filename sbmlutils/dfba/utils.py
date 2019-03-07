@@ -1,14 +1,12 @@
 """
 DFBA utility and helper functions.
 """
-from __future__ import print_function, absolute_import
 import os
 import logging
+import libsbml
 
 from sbmlutils import history
 from sbmlutils import factory
-
-import tesbml as libsbml
 
 
 def set_model_info(model, notes=None, creators=None, units=None, main_units=None):

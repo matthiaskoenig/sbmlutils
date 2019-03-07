@@ -19,15 +19,11 @@ The following SBML core constructs are currently NOT supported:
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 
 import os
-from pprint import pprint
 import re
 from collections import defaultdict
 import jinja2
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+from pprint import pprint
+import libsbml
 
 from sbmlutils.converters.mathml import evaluableMathML
 

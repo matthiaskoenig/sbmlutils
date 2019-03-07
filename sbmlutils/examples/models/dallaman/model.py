@@ -5,18 +5,10 @@ DallaMan2006
 # TODO: encode units for model
 # TODO: T2DM simulations (in current version not working)
 
+import libsbml
+from libsbml import (XMLNode, UNIT_KIND_GRAM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
+                     UNIT_KIND_SECOND, UNIT_KIND_LITRE)
 from sbmlutils import factory as mc
-
-try:
-    import libsbml
-    from libsbml import (XMLNode, UNIT_KIND_GRAM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
-                         UNIT_KIND_SECOND, UNIT_KIND_LITRE)
-except ImportError:
-    import tesbml as libsbml
-    from tebsbml import (XMLNode, UNIT_KIND_GRAM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE, UNIT_KIND_METRE,
-                         UNIT_KIND_SECOND, UNIT_KIND_LITRE)
-
-
 from sbmlutils.modelcreator import templates
 
 ##############################################################

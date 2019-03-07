@@ -1,8 +1,6 @@
 """
 Helper functions for working with FBC and cobrapy models.
 """
-from __future__ import print_function, division, absolute_import
-
 import warnings
 import cobra
 import pandas as pd

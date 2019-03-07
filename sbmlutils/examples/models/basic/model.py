@@ -5,13 +5,8 @@ Mainly volumes which are calculated based on other parameters.
 """
 from __future__ import print_function, division, absolute_import
 
-try:
-    import libsbml
-    from libsbml import XMLNode, UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import XMLNode, UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
-
+import libsbml
+from libsbml import XMLNode, UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE
 
 from sbmlutils.modelcreator import templates
 from sbmlutils import factory as fac

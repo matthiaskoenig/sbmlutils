@@ -1,15 +1,9 @@
 """
 ReactionTemplate.
 """
-from __future__ import print_function
-
 import logging
 from collections import namedtuple
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
@@ -42,8 +36,8 @@ class ReactionTemplate(object):
     def create_sbml(self, model):
         from sbmlutils.factory import create_objects
         # parameters and rules
-        create_objects(model, 'parameters', self.pars)
-        create_objects(model, 'rules',  self.rules)
+        create_objects(model, self.pars, key='parameters')
+        create_objects(model, self.rules, key='rules')
 
         # reaction
         r = model.createReaction()  # type: libsbml.Reaction

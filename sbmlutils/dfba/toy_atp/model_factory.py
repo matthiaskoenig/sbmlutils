@@ -5,22 +5,15 @@ Create SBML models for the ATP submodel.
 * species and fluxes are handled via concentrations
 """
 
-from __future__ import print_function, absolute_import
-
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_LITRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_LITRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-
+import libsbml
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_LITRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import comp
+from sbmlutils import fbc
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils import annotation
@@ -153,10 +146,10 @@ def fba_model(sbml_file, directory, annotations=None):
                             reactants={"pg2": 1, "adp": 2}, products={"pyr": 1, "atp": 2}, compartment='cell')
 
     # flux bounds
-    mc.set_flux_bounds(r1, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r3, lb="zero", ub="ub_R3")
-    # mc.set_flux_bounds(ratp, lb="zero", ub="ub_RATP")
+    fbc.set_flux_bounds(r1, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r3, lb="zero", ub="ub_R3")
+    # fbc.set_flux_bounds(ratp, lb="zero", ub="ub_RATP")
 
     # exchange reactions
     for sid in ['atp', 'adp', 'glc', 'pyr']:
@@ -164,7 +157,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # objective function
     model_fbc = model.getPlugin("fbc")
-    mc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"R3": 1.0}, active=True)
+    fbc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"R3": 1.0}, active=True)
 
     if annotations:
         annotation.annotate_sbml_doc(doc, annotations)

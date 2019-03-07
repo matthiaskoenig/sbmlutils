@@ -15,14 +15,8 @@ To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import logging
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
@@ -36,7 +30,7 @@ SBO_EXCHANGE_REACTION = "SBO:0000627"
 SBO_FLUX_BOUND = "SBO:0000612"
 
 
-def create_objects(model, key, obj_iter, debug=False):
+def create_objects(model, obj_iter, key=None, debug=False):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -44,6 +38,7 @@ def create_objects(model, key, obj_iter, debug=False):
 
     :param model: SBMLModel instance
     :param obj_iter: iterator of given model object classes like Parameter, ...
+    :param key: object key
     :param debug: print list of created objects
     :return:
     """

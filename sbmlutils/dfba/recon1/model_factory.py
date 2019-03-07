@@ -7,16 +7,11 @@ its physiological and patho-physiological states.
 
 https://www.ncbi.nlm.nih.gov/pubmed/21749716
 """
-from __future__ import print_function, absolute_import
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+import libsbml
+from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
 from sbmlutils import sbmlio
 from sbmlutils import comp

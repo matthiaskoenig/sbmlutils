@@ -31,20 +31,14 @@ transformation from reaction extent units to species units can be completely spe
 Note that the unit conversion factor is only applied when calculating the effect of a reaction on a species. It
 is not used in any rules or other SBML constructs that aect the species, and it is also not used when the
 value of the species is referenced in a mathematical expression.
-
-
 """
-from __future__ import print_function, absolute_import
+
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
+import libsbml
+from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
 from sbmlutils import sbmlio
 from sbmlutils import comp

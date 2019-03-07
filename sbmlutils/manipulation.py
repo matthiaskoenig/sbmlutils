@@ -3,14 +3,9 @@ Functions for model manipulation.
 Like model merging.
 
 """
-from __future__ import absolute_import, print_function, division
 import os
 import logging
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils import comp
 from sbmlutils import validation
@@ -47,8 +42,8 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
         else:
             new_dir = os.path.dirname(path)
             if new_dir != base_dir:
-                raise ValueError('All SBML files for merging must be in same directory: {} != {}'.format(
-                    new_dir, base_dir))
+                raise ValueError('All SBML files for merging must be in same '
+                                 'directory: {} != {}'.format(new_dir, base_dir))
 
         # convert to L3V1
         path_L3 = os.path.join(out_dir, "{}_L3.xml".format(model_id))
@@ -91,13 +86,16 @@ def create_merged_doc(model_paths, merged_id="merged"):
     model.setId(merged_id)
 
     # comp plugin
-    comp_doc = doc.getPlugin("comp")
-    comp_model = model.getPlugin("comp")
+    comp_doc = doc.getPlugin("comp")  # type: libsbml.CompSBMLDocumentPlugin
+    comp_model = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
 
     for emd_id, path in model_paths.items():
         # create ExternalModelDefinitions
         emd = comp.create_ExternalModelDefinition(comp_doc, emd_id, source=path)
         # add submodel which references the external model definitions
+        print("emd:", emd)
+        print("emd_id:", emd_id)
+        print("comp_model:", comp_model)
 
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)
 

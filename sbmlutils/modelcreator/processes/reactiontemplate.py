@@ -1,12 +1,12 @@
 """
 Factory methods to create flow and diffusion reactions.
 """
-from __future__ import print_function
-
 import oven.sinusoid.sinnaming as naming
 from .reaction import ReactionTemplate
+from sbmlutils.utils import deprecated
 
 
+@deprecated
 def createFlowReactionTemplate(sid, c_from, c_to, flow, unit='mole_per_s'):
     """ Create ReactionTemplate for flow reaction. """
     sid_from = naming.createLocalizedId(c_from, sid)
@@ -28,7 +28,7 @@ def createFlowReactionTemplate(sid, c_from, c_to, flow, unit='mole_per_s'):
     )
     return rt
 
-
+@deprecated
 def createDiffusionReactionTemplate(sid, c_from, c_to, D, unit="mole_per_s"):
     """ Create ReactionTemplate for diffusion reaction. """
     sid_from = naming.createLocalizedId(c_from, sid)

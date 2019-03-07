@@ -1,7 +1,7 @@
 """
 Script to check the model files.
 """
-from __future__ import print_function, division
+
 import os
 from os import walk
 from sbmlutils.validation import check_sbml

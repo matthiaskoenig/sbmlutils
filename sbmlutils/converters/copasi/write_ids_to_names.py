@@ -1,7 +1,7 @@
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+"""
+Helpers to work with COPASI.
+"""
+import libsbml
 
 
 def write_ids_to_names(input_path, output_path):
