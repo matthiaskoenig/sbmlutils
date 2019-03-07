@@ -1,0 +1,1590 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2" layout:required="false" level="2" metaid="metaid_0000001" version="1" xmlns:layout="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <model id="Suh2004_KCNQ_regulation" metaid="metaid_0000002" name="Suh2004_KCNQ_Regulation">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <p>The model reproduces FIG 11A and FIG 11B of the paper. However, please note that FIG 11B is a plot of normalised amounts versus time. The "stoichiometry" field has been  used to convert fluxes from membrane species to volume species. The value of 0.0009967 is a product of (Surface to Volume_M*(1/Avagadro's number)*1E21. 0.6 is the surface to volume ratio of the plasma membrane, 1E21 is required for a unit surface to volume ratio and the Avagadro's number is present in the denominator to convert molecules to moles. The model was successfully tested using MathSBML and SBML ODESolver.      <br/>
+          All the kinetic laws have the unit      <em>items per second</em>
+          , which requires the one reaction taking place in the cytoplasm -      <em>IP3Phosphatase</em>
+          - to include an explicit conversion factor both in the kinetic law and the stoichiometry of      <em>IP3_C</em>
+          . The kinetic law is multiplied and the stoichiometry divided by the number of molecules per micro-mole. This conversion factor is only required for correct units and can be replaced by 1, if it should lead to numerical problems.      </p>
+      <br/>
+      <p>To the extent possible under law, all copyright and related or neighbouring rights to this encoded model have been dedicated to the public domain worldwide. Please refer to      <a href="http://creativecommons.org/publicdomain/zero/1.0/" title="Creative Commons CC0">CC0 Public Domain Dedication</a>
+          for more information.      </p>
+    <p>In summary, you are entitled to use this encoded model in absolutely any manner you deem suitable, verbatim, or with modification, alone or embedded it in a larger context, redistribute it, commercially or not, in a restricted way or not.</p>
+    <br/>
+    <p>To cite BioModels Database, please use:      <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Novère N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+</p>
+</body>
+</notes>
+    <annotation>
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#metaid_0000002">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Dharuri</vCard:Family>
+	<vCard:Given>Harish</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>hdharuri@cds.caltech.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>California Institute of Technology</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2006-11-09T18:25:52Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2012-07-05T16:29:50Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL4662889298"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000081"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/15173220"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/9606"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.pathway/map04070"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.pathway/map04020"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006629"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0007207"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+  </rdf:RDF>
+</annotation>
+      <listOfUnitDefinitions>
+      <unitDefinition id="micromole" metaid="metaid_0000003">
+        <listOfUnits>
+          <unit kind="mole" metaid="_177417" scale="-6"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="substance" metaid="metaid_0100003" name="items">
+        <listOfUnits>
+          <unit kind="item" metaid="_177430"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="items_per_micromole" metaid="metaid_0100103">
+        <listOfUnits>
+          <unit kind="item" metaid="_177443"/>
+          <unit exponent="-1" kind="mole" metaid="_177456" scale="-6"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="molecules" metaid="metaid_0000004">
+        <listOfUnits>
+          <unit kind="item" metaid="_177469"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="um2" metaid="metaid_0000005">
+        <listOfUnits>
+          <unit exponent="2" kind="metre" metaid="_177482" scale="-6"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="molecules_um_2_s_1" metaid="metaid_0000006">
+        <listOfUnits>
+          <unit exponent="-2" kind="metre" metaid="_177495" scale="-6"/>
+          <unit exponent="-1" kind="second" metaid="_177508"/>
+          <unit kind="item" metaid="_177521"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="molecules_um_2" metaid="metaid_0100006">
+        <listOfUnits>
+          <unit exponent="-2" kind="metre" metaid="_177534" scale="-6"/>
+          <unit kind="item" metaid="_177547"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="uM_s_1" metaid="metaid_0000008">
+        <listOfUnits>
+          <unit exponent="-1" kind="litre" metaid="_177560"/>
+          <unit kind="mole" metaid="_177573" scale="-6"/>
+          <unit exponent="-1" kind="second" metaid="_177586"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="s_1" metaid="metaid_0000009">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" metaid="_177599"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="um2_molecules_1_s_1" metaid="metaid_0000010">
+        <listOfUnits>
+          <unit exponent="-1" kind="item" metaid="_177612"/>
+          <unit exponent="2" kind="metre" metaid="_177625" scale="-6"/>
+          <unit exponent="-1" kind="second" metaid="_177638"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="uM_1_s_1" metaid="metaid_0000011">
+        <listOfUnits>
+          <unit kind="litre" metaid="_177651"/>
+          <unit exponent="-1" kind="mole" metaid="_177664" scale="-6"/>
+          <unit exponent="-1" kind="second" metaid="_177677"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="uM_um_s_1" metaid="metaid_0000013">
+        <listOfUnits>
+          <unit kind="metre" metaid="_177690" scale="-6"/>
+          <unit kind="mole" metaid="_177702" scale="-6"/>
+          <unit exponent="-1" kind="second" metaid="_177714"/>
+          <unit exponent="-1" kind="litre" metaid="_177727"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="microMolar" metaid="metaid_0000076" name="microMolar">
+        <listOfUnits>
+          <unit kind="mole" metaid="_177739" scale="-6"/>
+          <unit exponent="-1" kind="litre" metaid="_177751"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="EX" metaid="metaid_0000015" name="Extracellular" size="1" units="litre">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000015">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005576"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </compartment>
+      <compartment id="M" metaid="metaid_0000016" name="Membrane" outside="EX" size="1" spatialDimensions="2" units="um2">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000016">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005886"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </compartment>
+      <compartment id="Cytoplasm" metaid="metaid_0000014" name="Cytoplasm" outside="M" size="1" units="litre">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000014">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005737"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species compartment="Cytoplasm" id="GTPgS_C" initialConcentration="0" metaid="metaid_0000017" name="GTPgS_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000017">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:5235"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C01806"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="KCNQsites_M" initialConcentration="6.7" metaid="metaid_0000018" name="KCNQsites_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000018">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/O88944"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/O43526"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="PIP2_M" initialConcentration="5000" metaid="metaid_0000019" name="PIP2_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000019">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:18348"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C04637"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGDPbS_M" initialConcentration="0" metaid="metaid_0000020" name="GGDPbS_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000020">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:38309"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="Cytoplasm" id="Mg2_C" initialConcentration="2100" metaid="metaid_0000021" name="Mg2_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000021">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:25107"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00305"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="Cytoplasm" id="ATP_C" initialConcentration="3000" metaid="metaid_0000023" name="ATP_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000023">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:15422"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00002"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="EX" id="oxoM_EX" initialConcentration="0" metaid="metaid_0000024" name="oxoM_EX" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000024">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:38322"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="Cytoplasm" id="GDPbS_C" initialConcentration="0" metaid="metaid_0000025" name="GDPbS_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000025">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:38309"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGTPMg_M" initialConcentration="0.1" metaid="metaid_0000026" name="GGTPMg_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000026">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00305"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00044"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:18420"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:25107"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:15996"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="Cytoplasm" id="GDP_C" initialConcentration="0" metaid="metaid_0000027" name="GDP_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000027">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:17552"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00035"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="Cytoplasm" id="GTP_C" initialConcentration="0" metaid="metaid_0000028" name="GTP_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000028">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:15996"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00044"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGDPAlF4Mg_M" initialConcentration="0" metaid="metaid_0000029" name="GGDPAIF4Mg_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000029">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:17552"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:25107"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:30111"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P29992"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:30111"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P29992"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00305"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00035"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="Cytoplasm" id="ip3_C" initialConcentration="0.48" metaid="metaid_0000030" name="IP3_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000030">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:16595"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C01245"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="Cytoplasm" id="AlF4_C" initialConcentration="0" metaid="metaid_0000031" name="AIF4_C" spatialSizeUnits="litre" substanceUnits="micromole">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000031">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:30111"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="G_M" initialConcentration="0.065" metaid="metaid_0000032" name="G_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000032">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGTP_M" initialConcentration="0.048" metaid="metaid_0000034" name="GGTP_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000034">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00044"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:15996"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:15996"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGDPAlF4_M" initialConcentration="0" metaid="metaid_0000035" name="GGDPAIF4_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000035">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:30111"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00035"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:30111"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:17552"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGTPgS_M" initialConcentration="0" metaid="metaid_0000036" name="GGTPgS_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000036">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:5235"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C01806"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:43000"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="PI_M" initialConcentration="200000" metaid="metaid_0000037" name="PI_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000037">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:16749"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C01194"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="PIP_M" initialConcentration="1150" metaid="metaid_0000038" name="PIP_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000038">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:17526"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C01277"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="PIP2xKCNQ_M" initialConcentration="33.3" metaid="metaid_0000039" name="PIP2xKCNQ_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000039">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:18348"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/O88944"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/O43526"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C04637"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGTPgSMg_M" initialConcentration="0" metaid="metaid_0000040" name="GGTPgSMg_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000040">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00305"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C01806"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:18420"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:5235"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:25107"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+      <species compartment="M" id="GGDP_M" initialConcentration="200" metaid="metaid_0000041" name="GGDP_M" spatialSizeUnits="um2" substanceUnits="molecules">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000041">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00035"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:17552"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.chebi/CHEBI:17552"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005834"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+            </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="MgSat20" metaid="metaid_0000059" name="MgSat20" units="dimensionless"/>
+      <parameter constant="false" id="ATPSat300" metaid="metaid_0000060" name="ATPSat300" units="dimensionless"/>
+      <parameter constant="false" id="MgSat10" metaid="metaid_0000061" name="MgSat10" units="dimensionless"/>
+      <parameter constant="false" id="OxoSat" metaid="metaid_0000064" name="OxoSat" units="dimensionless"/>
+      <parameter constant="false" id="Gactive" metaid="metaid_0000066" name="Gactive" units="molecules_um_2"/>
+      <parameter constant="false" id="ATPSat1000" metaid="metaid_0000068" name="ATPSat1000" units="dimensionless"/>
+      <parameter id="KMgGTPase" metaid="metaid_0000074" name="KMgGTPase" units="microMolar" value="10"/>
+      <parameter id="Koxom" metaid="metaid_0000075" name="Koxom" units="microMolar" value="8"/>
+      <parameter constant="false" id="I_KCNQ" metaid="metaid_0000079" name="I_KCNQ" units="dimensionless"/>
+      <parameter id="nHill" metaid="metaid_0000081" units="dimensionless" value="1.8"/>
+      <parameter constant="false" id="fGactive" metaid="metaid_0000078" name="fGactive" units="dimensionless"/>
+      <parameter id="NA_micro" metaid="metaid_0010078" name="NA(micro)" units="items_per_micromole" value="6.022E17"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="metaid_0000070" variable="MgSat20">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <times/>
+                  <cn> 20 </cn>
+                  <apply>
+                    <divide/>
+                    <cn> 1 </cn>
+                    <ci> Mg2_C </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000071" variable="ATPSat1000">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <times/>
+                  <cn> 1000 </cn>
+                  <apply>
+                    <divide/>
+                    <cn> 1 </cn>
+                    <apply>
+                      <plus/>
+                      <cn> 0.5 </cn>
+                      <ci> ATP_C </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000072" variable="MgSat10">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <cn> 0.2 </cn>
+            <apply>
+              <times/>
+              <cn> 0.8 </cn>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <divide/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <times/>
+                    <ci> KMgGTPase </ci>
+                    <apply>
+                      <divide/>
+                      <cn type="integer"> 1 </cn>
+                      <ci> Mg2_C </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000077" variable="OxoSat">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn type="integer"> 1 </cn>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <apply>
+                <plus/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <times/>
+                  <ci> Koxom </ci>
+                  <apply>
+                    <divide/>
+                    <cn type="integer"> 1 </cn>
+                    <apply>
+                      <plus/>
+                      <cn type="e-notation">1 <sep/> -5 </cn>
+                      <ci> oxoM_EX </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000085" variable="fGactive">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <ci> GGTPMg_M </ci>
+              <ci> GGTPgSMg_M </ci>
+              <ci> GGDPAlF4Mg_M </ci>
+            </apply>
+            <cn type="integer"> 200 </cn>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000086" variable="Gactive">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <ci> GGTPMg_M </ci>
+            <ci> GGTPgSMg_M </ci>
+            <ci> GGDPAlF4Mg_M </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000087" variable="ATPSat300">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <cn> 1 </cn>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <times/>
+                  <cn> 300 </cn>
+                  <apply>
+                    <divide/>
+                    <cn> 1 </cn>
+                    <apply>
+                      <plus/>
+                      <cn> 0.5 </cn>
+                      <ci> ATP_C </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000080" variable="I_KCNQ">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1.33 </cn>
+            <apply>
+              <power/>
+              <apply>
+                <times/>
+                <cn> 0.025 </cn>
+                <ci> PIP2xKCNQ_M </ci>
+              </apply>
+              <ci> nHill </ci>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="metaid_0000084" variable="GTP_C">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <minus/>
+            <cn> 100 </cn>
+            <apply>
+              <times/>
+              <cn> 50 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <cn> 0.00833333333333333 </cn>
+                    <apply>
+                      <plus/>
+                      <cn> 290 </cn>
+                      <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> t </csymbol>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="PIP5kinase" metaid="metaid_0000042" name="PIP5kinase">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000042">
+              <bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R03469"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.1.68"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0016308"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_177763" species="ATP_C" stoichiometry="0.0009967"/>
+          <speciesReference metaid="_177775" species="PIP_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_177787" species="PIP2_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_177799">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn> 0.2 </cn>
+                <apply>
+                  <times/>
+                  <cn> 0.8 </cn>
+                  <ci> MgSat20 </ci>
+                </apply>
+              </apply>
+              <ci> kPIP5Kinase </ci>
+              <ci> PIP_M </ci>
+              <ci> ATPSat300 </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kPIP5Kinase" metaid="_698051" units="s_1" value="0.06"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="IP3Phosphatase" metaid="metaid_0000043" name="IP3Phosphatase">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000043">
+              <bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R03394"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/3.1.3.56"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004445"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_177811" species="ip3_C" stoichiometry="1.666111296E-18"/>
+        </listOfReactants>
+        <kineticLaw metaid="_177823">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> ip3_C </ci>
+              <ci> kIP3ase </ci>
+              <ci> Cytoplasm </ci>
+              <ci> NA_micro </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kIP3ase" metaid="_698052" units="s_1" value="0.3"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PIP2binding" metaid="metaid_0000044" name="PIP2binding">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000044">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005267"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005546"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_177835" species="KCNQsites_M"/>
+          <speciesReference metaid="_177847" species="PIP2_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_177859" species="PIP2xKCNQ_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_177871">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kPIP2on </ci>
+                  <ci> KCNQsites_M </ci>
+                  <ci> PIP2_M </ci>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> kPIP2off </ci>
+                    <ci> PIP2xKCNQ_M </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kPIP2on" metaid="_698054" units="um2_molecules_1_s_1" value="0.00025"/>
+            <parameter id="kPIP2off" metaid="_698057" units="s_1" value="0.25"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="MgonGGTPgS" metaid="metaid_0000045" name="MgonGGTPgS">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000045">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_177883" species="GGTPgS_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_177895" species="GGTPgSMg_M"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_177907" species="Mg2_C"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_177919">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kMg2onGTPgS </ci>
+              <ci> GGTPgS_M </ci>
+              <ci> Mg2_C </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kMg2onGTPgS" metaid="_698058" units="uM_1_s_1" value="0.002"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="GGTPase" metaid="metaid_0000046" name="GGTPase">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000046">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0003924"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_177931" species="GGTPMg_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_177943" species="GGDP_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_177955">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kGGTPase </ci>
+              <ci> MgSat10 </ci>
+              <ci> GGTPMg_M </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kGGTPase" metaid="_698059" name="kGGTPase" units="s_1" value="1.8"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="GTPon" metaid="metaid_0000047" name="GTPon">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000047">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_177967" species="G_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_177979" species="GGTP_M"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_177991" species="GTP_C"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_178003">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kGTPon </ci>
+                  <ci> G_M </ci>
+                  <ci> GTP_C </ci>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> kGTPoff </ci>
+                    <ci> GGTP_M </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kGTPon" metaid="_698060" units="uM_1_s_1" value="0.45"/>
+            <parameter id="kGTPoff" metaid="_698061" units="s_1" value="0.08"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="GTPgSon" metaid="metaid_0000048" name="GTPgSon">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000048">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178015" species="GTPgS_C" stoichiometry="0.0009967"/>
+          <speciesReference metaid="_178027" species="G_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178039" species="GGTPgS_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_178051">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kGTPgSon </ci>
+                  <ci> G_M </ci>
+                  <ci> GTPgS_C </ci>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> kGTPgSoff </ci>
+                    <ci> GGTPgS_M </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kGTPgSon" metaid="_698062" units="uM_1_s_1" value="0.006"/>
+            <parameter id="kGTPgSoff" metaid="_698063" units="s_1" value="0.005"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="GDPbSon" metaid="metaid_0000049" name="GDPbSon">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000049">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178063" species="G_M"/>
+          <speciesReference metaid="_178075" species="GDPbS_C" stoichiometry="0.0009967"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178087" species="GGDPbS_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_178099">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kGDPbSon </ci>
+                  <ci> G_M </ci>
+                  <ci> GDPbS_C </ci>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> kGGDPbSoff </ci>
+                    <apply>
+                      <plus/>
+                      <cn> 1 </cn>
+                      <apply>
+                        <times/>
+                        <cn> 20 </cn>
+                        <ci> OxoSat </ci>
+                      </apply>
+                    </apply>
+                    <ci> GGDPbS_M </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kGDPbSon" metaid="_698064" units="uM_1_s_1" value="0.28"/>
+            <parameter id="kGGDPbSoff" metaid="_698065" units="s_1" value="0.1"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="MgGTPon" metaid="metaid_0000050" name="MgGTPon">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000050">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178111" species="GGTP_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178123" species="GGTPMg_M"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_178135" species="Mg2_C"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_178147">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kMg2onGTP </ci>
+              <ci> GGTP_M </ci>
+              <ci> Mg2_C </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kMg2onGTP" metaid="_698066" units="uM_1_s_1" value="0.003"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="GDPdissoc" metaid="metaid_0000051" name="GDPdissoc">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000051">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178159" species="GGDP_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178171" species="GDP_C" stoichiometry="0.0009967"/>
+          <speciesReference metaid="_178183" species="G_M"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_178195" species="oxoM_EX"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_178207">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kGDPoff </ci>
+                  <ci> GGDP_M </ci>
+                  <apply>
+                    <plus/>
+                    <ci> OxoSat </ci>
+                    <ci> TonicAct </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> kGDPon </ci>
+                    <ci> GDP_C </ci>
+                    <ci> G_M </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kGDPoff" metaid="_698067" units="s_1" value="0.5"/>
+            <parameter id="TonicAct" metaid="_698068" units="dimensionless" value="0.002"/>
+            <parameter id="kGDPon" metaid="_698071" units="uM_1_s_1" value="0.003"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PIP2_5Pase" metaid="metaid_0000052" name="PIP2_5Pase">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000052">
+              <bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R04404"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/3.1.3.36"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004439"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178220" species="PIP2_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178232" species="PIP_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_178244">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> MgSat20 </ci>
+              <ci> kPIP2Pase </ci>
+              <ci> PIP2_M </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kPIP2Pase" metaid="_698072" units="s_1" value="0.005"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PLC" metaid="metaid_0000053" name="PLC">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000053">
+              <bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R03435"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/3.1.4.11"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004435"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0007200"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178256" species="PIP2_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178268" species="ip3_C" stoichiometry="0.0009967"/>
+        </listOfProducts>
+        <kineticLaw metaid="_178280">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kPLC </ci>
+              <apply>
+                <plus/>
+                <ci> fGactive </ci>
+                <ci> PLCspont </ci>
+              </apply>
+              <ci> PIP2_M </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kPLC" metaid="_698073" units="s_1" value="4.8"/>
+            <parameter id="PLCspont" metaid="_698074" units="dimensionless" value="0.00075"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="AlF4on" metaid="metaid_0000054" name="AIF4on">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000054">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178292" species="AlF4_C" stoichiometry="0.0009967"/>
+          <speciesReference metaid="_178304" species="GGDP_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178316" species="GGDPAlF4_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_178328">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kAlF4on </ci>
+                  <ci> AlF4_C </ci>
+                  <ci> GGDP_M </ci>
+                </apply>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> kAlF4off </ci>
+                    <ci> GGDPAlF4_M </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kAlF4on" metaid="_698075" units="uM_1_s_1" value="7E-6"/>
+            <parameter id="kAlF4off" metaid="_698076" units="s_1" value="0.005"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="PI4Kinase" metaid="metaid_0000055" name="PI4Kinase">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000055">
+              <bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.reaction/R03361"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.1.67"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004430"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178340" species="ATP_C" stoichiometry="0.0009967"/>
+          <speciesReference metaid="_178352" species="PI_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178364" species="PIP_M"/>
+        </listOfProducts>
+        <kineticLaw metaid="_178376">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <cn> 0.2 </cn>
+                <apply>
+                  <times/>
+                  <cn> 0.8 </cn>
+                  <ci> MgSat20 </ci>
+                </apply>
+              </apply>
+              <ci> kPI4Kinase </ci>
+              <ci> PI_M </ci>
+              <ci> ATPSat1000 </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kPI4Kinase" metaid="_698077" units="s_1" value="0.0001"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="MgonGDPAlF4" metaid="metaid_0000056" name="MgonGDPAIF4">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000056">
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031684"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_178388" species="GGDPAlF4_M"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_178400" species="GGDPAlF4Mg_M"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_178412" species="Mg2_C"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_178424">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kMgonAlF4 </ci>
+              <ci> GGDPAlF4_M </ci>
+              <ci> Mg2_C </ci>
+              <ci> M </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="kMgonAlF4" metaid="_698078" units="uM_1_s_1" value="0.002"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <listOfEvents>
+      <event id="event_0000001" metaid="metaid_0000082">
+        <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000082">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031789"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+              <trigger metaid="_178436">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <geq/>
+              <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> t </csymbol>
+              <cn> 3 </cn>
+            </apply>
+          </math>
+                </trigger>
+        <listOfEventAssignments>
+          <eventAssignment metaid="_178448" variable="oxoM_EX">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn type="integer"> 10 </cn>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+      <event id="event_0000002" metaid="metaid_0000083">
+        <trigger metaid="_178460">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <geq/>
+              <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> t </csymbol>
+              <cn> 8 </cn>
+            </apply>
+          </math>
+                </trigger>
+        <listOfEventAssignments>
+          <eventAssignment metaid="_178472" variable="oxoM_EX">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn type="integer"> 0 </cn>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>

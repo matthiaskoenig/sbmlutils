@@ -1,0 +1,990 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" metaid="c8053a0b-68a8-4690-bf4b-dc744c673463" version="4">
+  <annotation>
+    <SimBiology xmlns="http://www.mathworks.com">
+      <Version Major="5" Minor="1" Point="0"/>
+    </SimBiology>
+  </annotation>
+  <model id="MODEL1406180001" metaid="_83a724fa-fd3a-42de-b5d0-1c132f0e143e" name="Rosas2015 - Caffeine-induced luminal SR calcium changes">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>This SBML model reproduced the calcium release from SR by application of 20 mM or 2mM caffeine, described in the paper. 
+
+* Ca_i_Total and Ca_SR_Total respectively represent the total calcium concentration in the sarcoplasm and in the sarcoplasmic reticulum. 
+
+* Ca_i  and Ca_SR respectively represent the free calcium concentration in the sarcoplasm and  the sarcoplasmic reticulum.
+
+* J1 is the calcium  flux due to all mechanisms (except SERCA pumps) that remove the excess of calcium from the sarcoplasm.
+
+* J2 is the calcium flux from the reticulum to the sarcoplasm via the ryanodine receptors (RyR) present in the reticulum membrane.
+
+* J3 is the calcium flux from the sarcoplasm to the reticulum by the SERCA pumps located in the reticulum membrane.
+
+*The parameters are a,  b, B c, Ca_i_basal, Ca_SR_basal, caff, csq,  gamma, KC, kf, KR, Ks, nf, ns and nv.
+
+* The value of KC for the model were calculated for J2=J3, after substituting Ca_i=Ca_i_basal, Ca_SR=Ca_SR_basal and caff=0. 
+
+* Po represents the RyR open probability based on CICR. 
+
+* Caffeine (caff)** increases the calcium affinity of smooth muscle's RyR so they open even when calcium is at basal level.
+
+** Due to caffeine-induced calcium release, a 5 seconds  pulse of caffeine (20 mM) was applied (event called Caff_ON) at 10 seconds after the simulation starts. The event called Caff_OFF starts when the pulse of caffeine finished (caff=0).
+
+* PE denotes the concentration of calcium binding sites. 
+
+* Xi=Ca_SR_Total+PE+KR
+
+*In order to reproduce the dynamics of calcium following the application of 2 mM of caffeine, the value of some parameters needs to be change: b=35, Ca_i_basal=9.257e-6, gamma=7.45, caff=0.002 and the initial condition for Ca_i_Total=9.257e-6.
+
+*The unit of the calcium concentration is mol/L.
+
+* The unit of time is second. 
+
+*The original SBML code was exported from COPASI 4.12 (Build 81).</pre>
+          </body>
+        </notes>
+      </body>
+    </notes>
+    <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#_83a724fa-fd3a-42de-b5d0-1c132f0e143e">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Juty</vCard:Family>
+	<vCard:Given>Nick</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>juty@ebi.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Perez-Rosas</vCard:Family>
+	<vCard:Given>Norma Citlalcue</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>ncperez@cinvestav.mx</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>Centro de Investigacion y de Estudios Avanzados del Instituto Politecnico Nacional (CINVESTAV-IPN), Unidad Monterrey, Apodaca, Nuevo Leon, Mexico.</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Kochanowsky</vCard:Family>
+	<vCard:Given>Joshua</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>jkochanowsky@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>McGrath</vCard:Family>
+	<vCard:Given>Julie</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>juliemcgrath@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Merritt</vCard:Family>
+	<vCard:Given>Emily</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>merritte@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Carey</vCard:Family>
+	<vCard:Given>Sara</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>sbcarey@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Mammana</vCard:Family>
+	<vCard:Given>Ryan</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>mammana@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Andrews</vCard:Family>
+	<vCard:Given>Emmet</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>jeacanada@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Macias</vCard:Family>
+	<vCard:Given>Daniel</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>danielmacias@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Gutenkunst</vCard:Family>
+	<vCard:Given>Ryan</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>rgutenk@email.arizona.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Arizona</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Chelliah</vCard:Family>
+	<vCard:Given>Vijayalakshmi</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>viji@ebi.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2016-04-18T13:46:09Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2016-04-18T14:54:42Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1406180001"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000601"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/26390403"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0014808"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/bto/BTO:0001849"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/10141"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+      <listOfCompartments>
+      <compartment id="mw0dac359a_a4cd_40bf_97a0_45006cef2a7c" metaid="_571b69d5-1d5f-441a-853b-a79061d3c438" name="SR" size="0.052">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_571b69d5-1d5f-441a-853b-a79061d3c438">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0016529"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </compartment>
+      <compartment id="mw44539b83_caa2_4da5_bae0_a8dcf7439431" metaid="f2de8beb-8abe-4610-bf37-d8deee221656" name="cytoplasm" size="1">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#f2de8beb-8abe-4610-bf37-d8deee221656">
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005737"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species compartment="mw0dac359a_a4cd_40bf_97a0_45006cef2a7c" id="mwd805cc43_4a96_472f_a894_c119a6aa895f" initialAmount="0.00165" metaid="cd8a7113-4fab-4ac4-a87c-9867c98f8ad9" name="Ca_SR_Total">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#cd8a7113-4fab-4ac4-a87c-9867c98f8ad9">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:29108"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species boundaryCondition="true" compartment="mw0dac359a_a4cd_40bf_97a0_45006cef2a7c" id="mw447078ee_8bc8_4358_abcd_ade10dba93b0" initialAmount="7.8E-6" metaid="b1db5dd8-c2fe-4727-902b-64c3724ec290" name="Ca_SR">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#b1db5dd8-c2fe-4727-902b-64c3724ec290">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:29108"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="mw44539b83_caa2_4da5_bae0_a8dcf7439431" id="mw40a96ef6_32da_46d1_9712_4f53f60bad43" initialAmount="7.5E-6" metaid="_277ade36-3672-47d3-8f81-27657662e055" name="Ca_i_Total">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_277ade36-3672-47d3-8f81-27657662e055">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:29108"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species boundaryCondition="true" compartment="mw44539b83_caa2_4da5_bae0_a8dcf7439431" id="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6" initialAmount="7.5E-8" metaid="_52ec4df1-8de2-455f-a783-de51658b9978" name="Ca_i">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_52ec4df1-8de2-455f-a783-de51658b9978">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:29108"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="mw44539b83_caa2_4da5_bae0_a8dcf7439431" id="mw168e0d8a_b9f7_4d4c_b437_a81206c5d381" initialAmount="0" metaid="_27b0de13-e1ed-45d4-bca3-3a8b6a34cc77" name="caff">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_27b0de13-e1ed-45d4-bca3-3a8b6a34cc77">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:27732"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="parameter_1" metaid="fd734c28-f432-4bf7-833a-d0c464a911ae" name="a" value="35">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>a = 35  [sec^-1]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_2" metaid="d0338e39-68a3-4d36-b28c-af5b3d063da9" name="b" value="65">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>b = 65 [sec^-1]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_3" metaid="_0e15562f-7215-4326-a5fe-7f6db34c7d1d" name="c" value="1.125E-5">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>c = 11.25 e-6 [M/s]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_4" metaid="_73877cf7-fefc-49b4-b002-e23195d2c086" name="Ca_i_basal" value="7.5E-6">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>Ca_i_basal = [M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_5" metaid="_4da124f6-45af-4adf-90bd-9491dd800932" name="gamma" value="0.052">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>gamma = 5.2 [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_6" metaid="_4fb9d9b6-5a9d-4ae1-b5ef-45d52fad7abb" name="nv" value="1.7">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>nv = 1.7 [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_7" metaid="_3ccf57c4-0463-4cf2-8a48-675bdc48a8ba" name="Ks" value="3E-7">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>Ks= 3 E-7[M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_8" metaid="_66cd4a7b-1dc6-477a-a92d-5df128f53862" name="ns" value="2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>ns = 2 [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_9" metaid="f5eb6443-5a21-4495-99e2-8a1df1094b5c" name="B" value="100">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>B = 100 [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_10" metaid="cfbaeea9-db22-4093-8efd-8b3c7a5d4069" name="nf" value="1.8">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>nf= 1.8 [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_11" metaid="_5df33d35-fb81-43c4-b20c-b646d48d4953" name="kf" value="4000">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>kf = 4000 [M^-1]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_14" metaid="d2140193-df2b-43b7-ae4d-3e3f906974e0" name="KR" value="0.0001515">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>KR=151.5E-6 [M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_15" metaid="_11ac8a64-f6d8-4e00-b40d-cf3c432a3884" name="csq" value="10">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>csq = 10 [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter constant="false" id="parameter_22" metaid="d6741082-0b58-4d1a-ab51-12e39e6de412" name="KC" value="9.45128810336575E-7">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>KC= 0.945 E-6 [M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter constant="false" id="parameter_23" metaid="fa062a8a-17be-4b9d-8101-28b8910b9b52" name="Po" value="0.0103445237903673">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>Po = [dimensionless]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter constant="false" id="parameter_24" metaid="_575fa3ff-c329-4971-a147-7b7e2a47b3fd" name="PE" value="1.50000000000001E-5">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>PE = 15 E-6 [M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter id="parameter_25" metaid="dd59548e-e1b0-481c-86ee-649990d0e520" name="Ca_SR_basal" value="0.00015">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>Ca_SR_basal= [M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+      <parameter constant="false" id="parameter_26" metaid="f784a316-2382-4025-9d45-8433fbcb9aca" name="Xi" value="0.0018165">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <notes>
+              <body xmlns="http://www.w3.org/1999/xhtml">
+                <notes>
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <pre>Xi = [M]</pre>
+                  </body>
+                </notes>
+              </body>
+            </notes>
+          </body>
+        </notes>
+      </parameter>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="_76291d8d-5b4d-40b4-b435-b5a7ff9f2fe7" variable="parameter_24">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> parameter_15 </ci>
+            <apply>
+              <minus/>
+              <ci> parameter_14 </ci>
+              <ci> parameter_25 </ci>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="_2a65b924-896d-496d-a2dd-6b24ca39057c" variable="parameter_26">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <ci> mwd805cc43_4a96_472f_a894_c119a6aa895f </ci>
+            <ci> parameter_24 </ci>
+            <ci> parameter_14 </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="f9e918d9-b140-42fa-80a3-578af9fc50c9" variable="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <ci> mw40a96ef6_32da_46d1_9712_4f53f60bad43 </ci>
+            <ci> parameter_9 </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="a3bc42b3-e9b7-41f0-96dd-3389d31e2a85" variable="mw447078ee_8bc8_4358_abcd_ade10dba93b0">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> parameter_26 </ci>
+              <apply>
+                <power/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <power/>
+                    <ci> parameter_26 </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <cn type="integer"> 4 </cn>
+                    <ci> mwd805cc43_4a96_472f_a894_c119a6aa895f </ci>
+                    <ci> parameter_14 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <divide/>
+                  <cn type="integer"> 1 </cn>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+              </apply>
+            </apply>
+            <cn type="integer"> 2 </cn>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="f4bb801c-4aec-4ef7-979a-92922f2b9168" variable="parameter_22">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <power/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> parameter_2 </ci>
+                <apply>
+                  <power/>
+                  <ci> parameter_5 </ci>
+                  <ci> parameter_6 </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <apply>
+                    <divide/>
+                    <ci> parameter_4 </ci>
+                    <ci> parameter_9 </ci>
+                  </apply>
+                  <ci> parameter_10 </ci>
+                </apply>
+                <apply>
+                  <minus/>
+                  <ci> parameter_25 </ci>
+                  <apply>
+                    <divide/>
+                    <ci> parameter_4 </ci>
+                    <ci> parameter_9 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <power/>
+                      <apply>
+                        <divide/>
+                        <ci> parameter_4 </ci>
+                        <ci> parameter_9 </ci>
+                      </apply>
+                      <ci> parameter_8 </ci>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <ci> parameter_7 </ci>
+                      <ci> parameter_8 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> parameter_3 </ci>
+                    <apply>
+                      <power/>
+                      <apply>
+                        <divide/>
+                        <ci> parameter_4 </ci>
+                        <ci> parameter_9 </ci>
+                      </apply>
+                      <ci> parameter_8 </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <power/>
+                <apply>
+                  <divide/>
+                  <ci> parameter_4 </ci>
+                  <ci> parameter_9 </ci>
+                </apply>
+                <ci> parameter_10 </ci>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <cn type="integer"> 1 </cn>
+              <ci> parameter_10 </ci>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="dd2f1c59-52b7-4d3c-b676-f85b83e5b894" variable="parameter_23">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <apply>
+              <power/>
+              <apply>
+                <times/>
+                <ci> mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6 </ci>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <times/>
+                    <ci> parameter_11 </ci>
+                    <ci> mw168e0d8a_b9f7_4d4c_b437_a81206c5d381 </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> parameter_10 </ci>
+            </apply>
+            <apply>
+              <plus/>
+              <apply>
+                <power/>
+                <ci> parameter_22 </ci>
+                <ci> parameter_10 </ci>
+              </apply>
+              <apply>
+                <power/>
+                <apply>
+                  <times/>
+                  <ci> mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6 </ci>
+                  <apply>
+                    <plus/>
+                    <cn type="integer"> 1 </cn>
+                    <apply>
+                      <times/>
+                      <ci> parameter_11 </ci>
+                      <ci> mw168e0d8a_b9f7_4d4c_b437_a81206c5d381 </ci>
+                    </apply>
+                  </apply>
+                </apply>
+                <ci> parameter_10 </ci>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction fast="false" id="mw97ca2b6b_8c30_48ef_80cb_5ce4ebaa420f" metaid="_36612a9c-0efa-4628-84e7-432131e1df75" name="J3" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_36612a9c-0efa-4628-84e7-432131e1df75">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0070296"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051481"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfReactants>
+          <speciesReference metaid="_94c64078-9bf8-42e4-bd9a-00c45b49b6b9" species="mw40a96ef6_32da_46d1_9712_4f53f60bad43"/>
+          <speciesReference metaid="c16e12dd-01bb-45af-8991-84a9009a1637" species="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="cfd04065-8168-48c1-9946-7d96b6d7a8b5" species="mwd805cc43_4a96_472f_a894_c119a6aa895f"/>
+          <speciesReference metaid="ec4ffec5-e9f9-485e-9ecd-a6a87724c2e8" species="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6"/>
+        </listOfProducts>
+        <kineticLaw metaid="_590c8426-6bf3-4e6f-bb19-6ed3e6c226a1">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> parameter_3 </ci>
+                <apply>
+                  <power/>
+                  <ci> mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6 </ci>
+                  <ci> parameter_8 </ci>
+                </apply>
+              </apply>
+              <apply>
+                <plus/>
+                <apply>
+                  <power/>
+                  <ci> parameter_7 </ci>
+                  <ci> parameter_8 </ci>
+                </apply>
+                <apply>
+                  <power/>
+                  <ci> mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6 </ci>
+                  <ci> parameter_8 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="mw18c30692_65ff_4c7a_b820_079f8ddd9b33" metaid="_7824225e-3064-46b6-8518-1d0ee4e712b9" name="J2" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_7824225e-3064-46b6-8518-1d0ee4e712b9">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0060316"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006816"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfReactants>
+          <speciesReference metaid="_628eb030-bd09-4a36-89e2-25ce1cb28b05" species="mwd805cc43_4a96_472f_a894_c119a6aa895f"/>
+          <speciesReference metaid="_6979ab4c-ab41-4516-ad23-282b5bb1d9c9" species="mw447078ee_8bc8_4358_abcd_ade10dba93b0"/>
+          <speciesReference metaid="_627d09fe-1054-4989-b448-8cd751d40004" species="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_4e28ea59-fbc0-41c4-b63b-3f451ea37094" species="mw40a96ef6_32da_46d1_9712_4f53f60bad43"/>
+          <speciesReference metaid="_2a5012dd-bc3c-432c-b4be-659705871f15" species="mw447078ee_8bc8_4358_abcd_ade10dba93b0"/>
+          <speciesReference metaid="_698abacb-b0a4-46ba-afbd-8aa676485880" species="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6"/>
+        </listOfProducts>
+        <kineticLaw metaid="_395db296-b2a4-45cc-ac7e-4063511f5e4c">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> parameter_2 </ci>
+              <apply>
+                <power/>
+                <ci> parameter_5 </ci>
+                <ci> parameter_6 </ci>
+              </apply>
+              <ci> parameter_23 </ci>
+              <apply>
+                <minus/>
+                <ci> mw447078ee_8bc8_4358_abcd_ade10dba93b0 </ci>
+                <ci> mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6 </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="mwf3ceaa7c_ebe4_4e1b_842a_b4446b0aa527" metaid="_79ac4701-16b6-4172-b599-b38db2ce7f17" name="J1" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_79ac4701-16b6-4172-b599-b38db2ce7f17">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006816"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051481"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfReactants>
+          <speciesReference metaid="_20e4104d-ce2a-43ba-96c4-370893abe25e" species="mw40a96ef6_32da_46d1_9712_4f53f60bad43"/>
+          <speciesReference metaid="_5abc32b1-aacf-44f7-bdcc-26394d328161" species="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_48a304f8-2cfb-4257-9bf2-af24bd74bdfa" species="mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6"/>
+        </listOfProducts>
+        <kineticLaw metaid="_8e272ad5-9194-482a-9feb-6a006145df22">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> mw44539b83_caa2_4da5_bae0_a8dcf7439431 </ci>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci> parameter_1 </ci>
+                  <apply>
+                    <minus/>
+                    <ci> mwe1a0a651_d2d5_4f75_8d45_9336c60eb9a6 </ci>
+                    <apply>
+                      <divide/>
+                      <ci> parameter_4 </ci>
+                      <ci> parameter_9 </ci>
+                    </apply>
+                  </apply>
+                </apply>
+                <ci> mw44539b83_caa2_4da5_bae0_a8dcf7439431 </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <listOfEvents>
+      <event id="Caff_ON" metaid="_1572d10a-f3c2-4a93-81a6-213ebba4e55f" name="Caff_ON">
+        <trigger metaid="_446b3e33-bc6e-4956-adf6-4c04716b055c">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <gt/>
+              <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+              <cn type="integer"> 10 </cn>
+            </apply>
+          </math>
+                </trigger>
+        <listOfEventAssignments>
+          <eventAssignment metaid="c726cacc-88e4-4896-8b95-bb748941d3a4" variable="mw168e0d8a_b9f7_4d4c_b437_a81206c5d381">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn> 0.02 </cn>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+      <event id="Caff_OFF" metaid="_07a62947-baf1-48e7-a901-7c2767e18f71" name="Caff_OFF">
+        <trigger metaid="_9330d120-3f45-4c15-b342-e2fb1b5644d9">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <gt/>
+              <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+              <cn type="integer"> 15 </cn>
+            </apply>
+          </math>
+                </trigger>
+        <listOfEventAssignments>
+          <eventAssignment metaid="_8ea50f15-83d6-4052-818c-7caa41861015" variable="mw168e0d8a_b9f7_4d4c_b437_a81206c5d381">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn type="integer"> 0 </cn>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>

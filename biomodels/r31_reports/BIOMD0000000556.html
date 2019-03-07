@@ -1,0 +1,3253 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias Koenig">
+    <!-- <meta http-equiv="refresh" content="5" /> -->
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>Ortega2013</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
+        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
+        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+
+        <!-- JS -->
+        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
+        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
+        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+
+
+    <!-- MathJax not working offline -->
+    <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">'
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+
+<!-- CONTAINER -->
+<div class="container-fluid">
+
+    <!-- ROW -->
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <ul class="nav nav-sidebar">
+                <li><a href="#doc"><b>SBMLDocument</b></a></li>
+                <li><a href="#model">Model</a></li>
+                    <li><a href="#table_functions">FunctionDefinitions</a></li>
+                    <li><a href="#table_units">UnitDefinitions</a></li>
+                    <li><a href="#table_compartments">Compartments</a></li>
+                    <li><a href="#table_species">Species</a></li>
+                    <li><a href="#table_parameters">Parameters</a></li>
+                    <li><a href="#table_rules">Rules</a></li>
+                    <li><a href="#table_reactions">Reactions</a></li>
+                <li>
+                <form class="navbar-form navbar-left">
+                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
+                </form>
+                </li>
+
+            </ul>
+        </div>
+        <!-- END LEFT -->
+
+        <!-- RIGHT -->
+        <div class="col-lg-8 col-lg-offset-2 main">
+
+            <!-- CONTENT -->
+            <div class="content">
+    <!--------------------------------------------------->
+    <!-- SBMLDocument                                  -->
+    <!--------------------------------------------------->
+    <a class="anchor" id="doc"></a>
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <div class="dc:title">Ortega2013 - Interplay between secretases
+determines biphasic amyloid-beta level</div>
+    <div class="dc:bibliographicCitation">
+      <p>This model is described in the article:</p>
+      <div class="bibo:title">
+        <a href="http://identifiers.org/pubmed/23152503" title="Access to this publication">Interplay between ?-, ?-,
+    and ?-secretases determines biphasic amyloid-? protein level in
+    the presence of a ?-secretase inhibitor.</a>
+      </div>
+      <div class="bibo:authorList">Ortega F, Stott J, Visser SA,
+  Bendtsen C.</div>
+      <div class="bibo:Journal">J. Biol. Chem. 2013 Jan; 288(2):
+  785-792</div>
+      <p>Abstract:</p>
+      <div class="bibo:abstract">
+        <p>Amyloid-? (A?) is produced by the consecutive cleavage of
+    amyloid precursor protein (APP) first by ?-secretase,
+    generating C99, and then by ?-secretase. APP is also cleaved by
+    ?-secretase. It is hypothesized that reducing the production of
+    A? in the brain may slow the progression of Alzheimer disease.
+    Therefore, different ?-secretase inhibitors have been developed
+    to reduce A? production. Paradoxically, it has been shown that
+    low to moderate inhibitor concentrations cause a rise in A?
+    production in different cell lines, in different animal models,
+    and also in humans. A mechanistic understanding of the A? rise
+    remains elusive. Here, a minimal mathematical model has been
+    developed that quantitatively describes the A? dynamics in cell
+    lines that exhibit the rise as well as in cell lines that do
+    not. The model includes steps of APP processing through both
+    the so-called amyloidogenic pathway and the so-called
+    non-amyloidogenic pathway. It is shown that the cross-talk
+    between these two pathways accounts for the increase in A?
+    production in response to inhibitor, i.e. an increase in C99
+    will inhibit the non-amyloidogenic pathway, redirecting APP to
+    be cleaved by ?-secretase, leading to an additional increase in
+    C99 that overcomes the loss in ?-secretase activity. With a
+    minor extension, the model also describes plasma A? profiles
+    observed in humans upon dosing with a ?-secretase inhibitor. In
+    conclusion, this mechanistic model rationalizes a series of
+    experimental results that spans from in vitro to in vivo and to
+    humans. This has important implications for the development of
+    drugs targeting A? production in Alzheimer disease.</p>
+      </div>
+    </div>
+    <div class="dc:publisher">
+      <p>This model is hosted on 
+  <a href="http://www.ebi.ac.uk/biomodels/">BioModels Database</a>
+  and identified by: 
+  <a href="http://identifiers.org/biomodels.db/BIOMD0000000556">BIOMD0000000556</a>.</p>
+      <p>To cite BioModels Database, please use: 
+  <a href="http://identifiers.org/pubmed/20587024" title="Latest BioModels Database publication">BioModels Database:
+  An enhanced, curated and annotated resource for published
+  quantitative kinetic models</a>.</p>
+    </div>
+    <div class="dc:license">
+      <p>To the extent possible under law, all copyright and related or
+  neighbouring rights to this encoded model have been dedicated to
+  the public domain worldwide. Please refer to 
+  <a href="http://creativecommons.org/publicdomain/zero/1.0/" title="Access to: CC0 1.0 Universal (CC0 1.0), Public Domain Dedication">CC0
+  Public Domain Dedication</a> for more information.</p>
+    </div>
+  </body>
+</notes><hr />
+    <!--------------------------------------------------->
+    <!-- Model                                         -->
+    <!--------------------------------------------------->
+    <h1 id="model">Model : Ortega2013</h1>
+    <b>Creator</b><br />Audald, Lloret i Villas, EMBL-EBI, <a href="mailto:lloret@ebi.ac.uk" target="_blank">lloret@ebi.ac.uk</a><br />Jonathan, Stott, Computational Biology, Discovery Sciences, AstraZeneca, <a href="mailto:Jonathan.Stott@astrazeneca.com" target="_blank">Jonathan.Stott@astrazeneca.com</a><br /><b>Created:</b> 2014-10-23 11:29<br /><b>Modified:</b> 2016-04-08 17:43<br /><br />
+    <table id="table_model" class="table table-condensed table-nonfluid">
+        <tr>
+        <td>
+                <table class="table table-condensed table-nonfluid table-hover">
+                <tbody>
+                <tr><td class="active">id</td> <td id="Ortega2013" class="active"><span class="package">Ortega2013</span> <code>COPASI0</code></tr>
+                <tr><td class="active">name</td><td>Ortega2013 - Interplay between secretases determines biphasic amyloid-beta level</td></tr>
+                <tr><td class="active">time</td><td></td></tr>
+                <tr><td class="active">substance</td><td></td></tr>
+                <tr><td class="active">extent</td><td></td></tr>
+                <tr><td class="active">volume</td><td></td></tr>
+                <tr><td class="active">area</td><td></td></tr>
+                <tr><td class="active">length</td><td></td></tr>
+                </tbody>
+                </table>
+            </td>
+            <td>
+                <a href="BIOMD0000000556.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="Access SBML model" title="SBML model"/></a>&nbsp;
+                <span class="package">L2V4</span> <span class="package">layout-V1</span> <span class="package">render-V1</span><br />
+                <div class="cvterm"></div><br />
+                <div class="cvterm"><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/MODEL1409240000" target="_blank">MODEL1409240000</a><br /><span class="collection">BQM_IS</span><br /><a href="http://identifiers.org/biomodels.db/BIOMD0000000556" target="_blank">BIOMD0000000556</a><br /><span class="collection">BQM_IS_DESCRIBED_BY</span><br /><a href="http://identifiers.org/pubmed/23152503" target="_blank">23152503</a><br /><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/go/GO:0042987" target="_blank">GO:0042987</a>; <a href="http://identifiers.org/go/GO:0034205" target="_blank">GO:0034205</a><br /><span class="collection">BQB_HAS_PROPERTY</span><br /><a href="http://identifiers.org/doid/DOID:10652" target="_blank">DOID:10652</a><br /><span class="collection">BQB_HAS_TAXON</span><br /><a href="http://identifiers.org/taxonomy/9606" target="_blank">9606</a></div>
+            </td>
+        </tr>
+    </table>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_functions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">FunctionDefinitions [4]</th>
+	<th scope="col">name</th>
+	<th scope="col">math</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	    <td id="Constant_flux__irreversible" class="active"><span class="package">Constant_flux__irreversible</span> <code>_499567d6-0dc6-4ba1-a1af-4912fcdadc62</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Constant_flux__irreversible"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Constant_flux__irreversible" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Constant_flux__irreversible</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="_499567d6-0dc6-4ba1-a1af-4912fcdadc62" id="Constant_flux__irreversible" name="Constant flux (irreversible)">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> v </ci>
+      </bvar>
+      <ci> v </ci>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>Constant flux (irreversible)</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> v </ci>
+    </bvar>
+    <ci> v </ci>
+  </lambda>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	    <td id="VD" class="active"><span class="package">VD</span> <code>COPASI31</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-VD"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-VD" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">VD</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI31" id="VD" name="VD">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI31">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:56:09Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> Vm </ci>
+      </bvar>
+      <bvar>
+        <ci> X </ci>
+      </bvar>
+      <bvar>
+        <ci> Kx </ci>
+      </bvar>
+      <bvar>
+        <ci> S </ci>
+      </bvar>
+      <bvar>
+        <ci> Km </ci>
+      </bvar>
+      <bvar>
+        <ci> Den </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> Vm </ci>
+              <apply>
+                <plus/>
+                <cn> 1 </cn>
+                <apply>
+                  <divide/>
+                  <ci> X </ci>
+                  <ci> Kx </ci>
+                </apply>
+              </apply>
+            </apply>
+            <ci> S </ci>
+          </apply>
+          <ci> Km </ci>
+        </apply>
+        <ci> Den </ci>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>VD</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> Vm </ci>
+    </bvar>
+    <bvar>
+      <ci> X </ci>
+    </bvar>
+    <bvar>
+      <ci> Kx </ci>
+    </bvar>
+    <bvar>
+      <ci> S </ci>
+    </bvar>
+    <bvar>
+      <ci> Km </ci>
+    </bvar>
+    <bvar>
+      <ci> Den </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> Vm </ci>
+            <apply>
+              <plus/>
+              <cn> 1 </cn>
+              <apply>
+                <divide/>
+                <ci> X </ci>
+                <ci> Kx </ci>
+              </apply>
+            </apply>
+          </apply>
+          <ci> S </ci>
+        </apply>
+        <ci> Km </ci>
+      </apply>
+      <ci> Den </ci>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	    <td id="V1_3_4_5" class="active"><span class="package">V1_3_4_5</span> <code>COPASI32</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-V1_3_4_5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-V1_3_4_5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">V1_3_4_5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI32" id="V1_3_4_5" name="V1,3,4,5">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI32">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:43:32Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> Vm </ci>
+      </bvar>
+      <bvar>
+        <ci> S </ci>
+      </bvar>
+      <bvar>
+        <ci> Km1 </ci>
+      </bvar>
+      <bvar>
+        <ci> M </ci>
+      </bvar>
+      <bvar>
+        <ci> Km2 </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> Vm </ci>
+            <ci> S </ci>
+          </apply>
+          <ci> Km1 </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> S </ci>
+            <ci> Km1 </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> M </ci>
+            <ci> Km2 </ci>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>V1,3,4,5</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> Vm </ci>
+    </bvar>
+    <bvar>
+      <ci> S </ci>
+    </bvar>
+    <bvar>
+      <ci> Km1 </ci>
+    </bvar>
+    <bvar>
+      <ci> M </ci>
+    </bvar>
+    <bvar>
+      <ci> Km2 </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> Vm </ci>
+          <ci> S </ci>
+        </apply>
+        <ci> Km1 </ci>
+      </apply>
+      <apply>
+        <plus/>
+        <cn> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> S </ci>
+          <ci> Km1 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <ci> M </ci>
+          <ci> Km2 </ci>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">FunctionDefinition</td>
+	    <td id="V2" class="active"><span class="package">V2</span> <code>COPASI33</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-V2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-V2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">V2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><functionDefinition metaid="COPASI33" id="V2" name="V2">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI33">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:46:54Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <lambda>
+      <bvar>
+        <ci> Vm </ci>
+      </bvar>
+      <bvar>
+        <ci> S </ci>
+      </bvar>
+      <bvar>
+        <ci> Km </ci>
+      </bvar>
+      <apply>
+        <divide/>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <ci> Vm </ci>
+            <ci> S </ci>
+          </apply>
+          <ci> Km </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> S </ci>
+            <ci> Km </ci>
+          </apply>
+        </apply>
+      </apply>
+    </lambda>
+  </math>
+</functionDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>V2</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <lambda>
+    <bvar>
+      <ci> Vm </ci>
+    </bvar>
+    <bvar>
+      <ci> S </ci>
+    </bvar>
+    <bvar>
+      <ci> Km </ci>
+    </bvar>
+    <apply>
+      <divide/>
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <ci> Vm </ci>
+          <ci> S </ci>
+        </apply>
+        <ci> Km </ci>
+      </apply>
+      <apply>
+        <plus/>
+        <cn> 1 </cn>
+        <apply>
+          <divide/>
+          <ci> S </ci>
+          <ci> Km </ci>
+        </apply>
+      </apply>
+    </apply>
+  </lambda>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">UnitDefinitions [2]</th>
+	<th scope="col">name</th>
+	<th scope="col">units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="volume" class="active"><span class="package">volume</span> <code>da093d98-261a-4e81-b300-53f6aaf9e498</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-volume"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-volume" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">volume</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="da093d98-261a-4e81-b300-53f6aaf9e498" id="volume" name="volume">
+  <listOfUnits>
+    <unit metaid="e6afd69e-d3e0-40b2-82c7-78c55aa963c5" kind="litre" exponent="1" scale="-3" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>volume</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="substance" class="active"><span class="package">substance</span> <code>dd4cbbdc-b1fd-4802-8383-ab5e781ca0f0</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-substance"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-substance" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">substance</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition metaid="dd4cbbdc-b1fd-4802-8383-ab5e781ca0f0" id="substance" name="substance">
+  <listOfUnits>
+    <unit metaid="_616118cb-c470-4cbd-8ea4-9cd1b98d88a7" kind="mole" exponent="1" scale="-3" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>substance</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> mole </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [1]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	    <td id="Brain" class="active"><span class="package">Brain</span> <code>COPASI1</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Brain"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Brain" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Brain</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="COPASI1" id="Brain" name="Brain" spatialDimensions="3" size="1" constant="true">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>Brain</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI1">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:25:33Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI1">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/bto/BTO:0000142"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>Brain</td>
+	<td>1.0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/bto/BTO:0000142" target="_blank">BTO:0000142</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [6]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+    <th scope="col">hasOnlySubstanceUnits</th>
+	<th scope="col">boundaryCondition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initialAmount</th>
+	<th scope="col">initialConcentration</th>
+    <th scope="col">conversionFactor</th>
+    <th scope="col">units</th>
+	<th scope="col">substanceUnits</th>
+	<th scope="col">derivedUnits</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="APP" class="active"><span class="package">APP</span> <code>COPASI2</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-APP"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-APP" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">APP</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI2" id="APP" name="APP" compartment="Brain" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>Amyloid protein precursor</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI2">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:33:38Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI2">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P05067"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>APP</td>
+	<td>Brain</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P05067" target="_blank">P05067</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="C83" class="active"><span class="package">C83</span> <code>COPASI3</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-C83"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-C83" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">C83</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI3" id="C83" name="C83" compartment="Brain" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>C83 proteolytic product</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI3">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:34:06Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI3">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P05067"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>C83</td>
+	<td>Brain</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P05067" target="_blank">P05067</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="C99" class="active"><span class="package">C99</span> <code>COPASI4</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-C99"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-C99" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">C99</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI4" id="C99" name="C99" compartment="Brain" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>C99 proteolytic product</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI4">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:34:50Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI4">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P05067"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>C99</td>
+	<td>Brain</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P05067" target="_blank">P05067</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="AB" class="active"><span class="package">AB</span> <code>COPASI5</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-AB"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-AB" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">AB</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI5" id="AB" name="AB" compartment="Brain" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>Amyloid-beta</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI5">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:35:24Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI5">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P05067"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>AB</td>
+	<td>Brain</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P05067" target="_blank">P05067</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="X" class="active"><span class="package">X</span> <code>COPASI6</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-X"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-X" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">X</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI6" id="X" name="X" compartment="Brain" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="true">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>gamma-secretase inhibitor drug</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI6">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:35:36Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI6">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/chembl.compound/CHEMBL177969"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>X</td>
+	<td>Brain</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="http://identifiers.org/chembl.compound/CHEMBL177969" target="_blank">CHEMBL177969</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="p3" class="active"><span class="package">p3</span> <code>COPASI7</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="COPASI7" id="p3" name="p3" compartment="Brain" initialConcentration="0" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
+  <notes>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre>Amyloid-beta p3 fragment</pre>
+    </body>
+  </notes>
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI7">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:25:00Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+      <rdf:Description rdf:about="#COPASI7">
+        <bqbiol:isVersionOf>
+          <rdf:Bag>
+            <rdf:li rdf:resource="http://identifiers.org/uniprot/P05067"/>
+          </rdf:Bag>
+        </bqbiol:isVersionOf>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>p3</td>
+	<td>Brain</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td></td>
+	<td></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS_VERSION_OF</span><br /><a href="http://identifiers.org/uniprot/P05067" target="_blank">P05067</a></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [15]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="v0" class="active"><span class="package">v0</span> <code>COPASI8</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-v0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-v0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">v0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI8" id="v0" name="v0" value="1" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI8">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:12:41Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>v0</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="km1" class="active"><span class="package">km1</span> <code>COPASI9</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-km1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-km1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">km1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI9" id="km1" name="km1" value="0.186" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI9">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:12:45Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>km1</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.186</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="vm1" class="active"><span class="package">vm1</span> <code>COPASI10</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vm1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vm1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vm1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI10" id="vm1" name="vm1" value="1.1" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI10">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:12:52Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>vm1</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.1</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="km3" class="active"><span class="package">km3</span> <code>COPASI11</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-km3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-km3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">km3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI11" id="km3" name="km3" value="28.8" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI11">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:12:57Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>km3</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>28.8</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="vm3" class="active"><span class="package">vm3</span> <code>COPASI12</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vm3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vm3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vm3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI12" id="vm3" name="vm3" value="14.6" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI12">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:13:03Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>vm3</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>14.6</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="km4" class="active"><span class="package">km4</span> <code>COPASI13</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-km4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-km4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">km4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI13" id="km4" name="km4" value="0.915" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI13">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:13:29Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>km4</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.915</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="vm4" class="active"><span class="package">vm4</span> <code>COPASI14</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vm4"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vm4" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vm4</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI14" id="vm4" name="vm4" value="1.71" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI14">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:13:33Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>vm4</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.71</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="km5" class="active"><span class="package">km5</span> <code>COPASI15</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-km5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-km5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">km5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI15" id="km5" name="km5" value="0.0672" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI15">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:13:35Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>km5</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.0672</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="vm5" class="active"><span class="package">vm5</span> <code>COPASI16</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vm5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vm5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vm5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI16" id="vm5" name="vm5" value="0.0223" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI16">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-11T13:13:38Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>vm5</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.0223</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="km2" class="active"><span class="package">km2</span> <code>COPASI17</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-km2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-km2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">km2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI17" id="km2" name="km2" value="1.64" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI17">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:43:42Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>km2</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.64</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="vm2" class="active"><span class="package">vm2</span> <code>COPASI18</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-vm2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-vm2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">vm2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI18" id="vm2" name="vm2" value="0.153" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI18">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:47:24Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>vm2</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.153</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="kic" class="active"><span class="package">kic</span> <code>COPASI19</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kic"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kic" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kic</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI19" id="kic" name="kic" value="0.173" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI19">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:43:48Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>kic</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>0.173</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="kiu1" class="active"><span class="package">kiu1</span> <code>COPASI20</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kiu1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kiu1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kiu1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI20" id="kiu1" name="kiu1" value="145" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI20">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:49:12Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>kiu1</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>145.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="kiu2" class="active"><span class="package">kiu2</span> <code>COPASI21</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kiu2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kiu2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kiu2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI21" id="kiu2" name="kiu2" value="7.31" constant="true">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI21">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:49:19Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>kiu2</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>7.31</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="den" class="active"><span class="package">den</span> <code>COPASI22</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-den"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-den" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">den</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter metaid="COPASI22" id="den" name="den" value="1" constant="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI22">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-10-28T13:19:08Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+</parameter></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>den</td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td></td>
+	<td>None</td>
+
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [6]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">name</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="den" class="active"><span class="package">den</span> <code>_3d846282-8634-4c34-ac24-b7bc34ca5ff6</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-06d2bd8e6bc2417c8f05f4ce4d697eb7"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-06d2bd8e6bc2417c8f05f4ce4d697eb7" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">06d2bd8e6bc2417c8f05f4ce4d697eb7</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule metaid="_3d846282-8634-4c34-ac24-b7bc34ca5ff6" variable="den">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <plus/>
+      <cn> 1 </cn>
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <ci> C83 </ci>
+          <ci> km3 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <plus/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> X </ci>
+              <ci> kiu1 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> X </ci>
+              <ci> kic </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <times/>
+        <apply>
+          <divide/>
+          <ci> C99 </ci>
+          <ci> km4 </ci>
+        </apply>
+        <apply>
+          <divide/>
+          <apply>
+            <plus/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> X </ci>
+              <ci> kiu2 </ci>
+            </apply>
+          </apply>
+          <apply>
+            <plus/>
+            <cn> 1 </cn>
+            <apply>
+              <divide/>
+              <ci> X </ci>
+              <ci> kic </ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <plus/>
+    <cn> 1 </cn>
+    <apply>
+      <times/>
+      <apply>
+        <divide/>
+        <ci> C83 </ci>
+        <ci> km3 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> X </ci>
+            <ci> kiu1 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> X </ci>
+            <ci> kic </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <divide/>
+        <ci> C99 </ci>
+        <ci> km4 </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> X </ci>
+            <ci> kiu2 </ci>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> X </ci>
+            <ci> kic </ci>
+          </apply>
+        </apply>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <cn> 0.001 </cn>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <cn> 0.001 </cn>
+      <ci> litre </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="APP" class="active"><span class="package">d APP/dt</span> <code>_64beeb5a-71c4-43d2-bceb-2ec1b1f188e7</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-024fb28a89704475bfa42449d82f48c3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-024fb28a89704475bfa42449d82f48c3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">024fb28a89704475bfa42449d82f48c3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="_64beeb5a-71c4-43d2-bceb-2ec1b1f188e7" variable="APP">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <minus/>
+        <ci> r0 </ci>
+        <ci> r1 </ci>
+      </apply>
+      <ci> r2 </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <minus/>
+      <ci> r0 </ci>
+      <ci> r1 </ci>
+    </apply>
+    <ci> r2 </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="C83" class="active"><span class="package">d C83/dt</span> <code>_9e8feaa7-690f-486a-bb0f-9f4277364716</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-acc7b873905848d392b4d36581a263ee"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-acc7b873905848d392b4d36581a263ee" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">acc7b873905848d392b4d36581a263ee</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="_9e8feaa7-690f-486a-bb0f-9f4277364716" variable="C83">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <plus/>
+        <ci> r1 </ci>
+        <ci> r5 </ci>
+      </apply>
+      <ci> r3__D </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <plus/>
+      <ci> r1 </ci>
+      <ci> r5 </ci>
+    </apply>
+    <ci> r3__D </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="C99" class="active"><span class="package">d C99/dt</span> <code>a438928d-d958-42aa-ae8f-434c3d695695</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-58b40283140446d08b15c964bdca7a80"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-58b40283140446d08b15c964bdca7a80" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">58b40283140446d08b15c964bdca7a80</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="a438928d-d958-42aa-ae8f-434c3d695695" variable="C99">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <minus/>
+      <apply>
+        <minus/>
+        <ci> r2 </ci>
+        <ci> r5 </ci>
+      </apply>
+      <ci> r4__D </ci>
+    </apply>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <minus/>
+    <apply>
+      <minus/>
+      <ci> r2 </ci>
+      <ci> r5 </ci>
+    </apply>
+    <ci> r4__D </ci>
+  </apply>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="AB" class="active"><span class="package">d AB/dt</span> <code>_6157e5d6-b546-4276-bee8-55d62d607e97</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-e0630093c05d40d8836fdec766ae5307"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-e0630093c05d40d8836fdec766ae5307" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">e0630093c05d40d8836fdec766ae5307</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="_6157e5d6-b546-4276-bee8-55d62d607e97" variable="AB">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> r4__D </ci>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> r4__D </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="p3" class="active"><span class="package">d p3/dt</span> <code>f9420f15-97b1-4469-8506-964b1c244869</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-f3970c92a1d84547b50660916ed4a1ba"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-f3970c92a1d84547b50660916ed4a1ba" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">f3970c92a1d84547b50660916ed4a1ba</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><rateRule metaid="f9420f15-97b1-4469-8506-964b1c244869" variable="p3">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> r3__D </ci>
+  </math>
+</rateRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> r3__D </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead>
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [8]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r0" class="active"><span class="package">r0</span> <code>COPASI23</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r0"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r0" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r0</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI23" id="r0" name="r0" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI23">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:41:44Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfProducts>
+    <speciesReference metaid="_021f06a6-9be1-4c05-ac47-eef7d7a638b0" species="APP" stoichiometry="1"/>
+  </listOfProducts>
+  <kineticLaw metaid="f0bca4dc-847f-44b5-8a1c-fe8e82d3ae45">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> Constant_flux__irreversible </ci>
+          <ci> v0 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r0<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td> &#10142; APP</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> Constant_flux__irreversible </ci>
+      <ci> v0 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <apply>
+      <power/>
+      <cn type="integer"> 10 </cn>
+      <apply>
+        <minus/>
+        <cn type="integer"> 3 </cn>
+      </apply>
+    </apply>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r1" class="active"><span class="package">r1</span> <code>COPASI24</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI24" id="r1" name="r1" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI24">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:45:43Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_099d5f55-1963-4445-9935-6b3b590887fb" species="APP" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_30f48994-b1d9-4e75-94ea-6fb38c701be6" species="C83" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_3a886cf8-c24c-4f58-92af-48c62e94ab9c" species="C99"/>
+    <modifierSpeciesReference metaid="_622e1c59-5663-4980-8ec2-d1863d460964" species="APP"/>
+    <modifierSpeciesReference metaid="d56ef61d-0313-4bb6-8f2a-b7c72d96b589" species="C99"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_58848bd1-fb9f-4425-81c3-14687dbae0a8">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> V1_3_4_5 </ci>
+          <ci> vm1 </ci>
+          <ci> APP </ci>
+          <ci> km1 </ci>
+          <ci> C99 </ci>
+          <ci> km5 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r1<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>APP &#10142; C83</td>
+	<td>C99<br />APP<br />C99</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> V1_3_4_5 </ci>
+      <ci> vm1 </ci>
+      <ci> APP </ci>
+      <ci> km1 </ci>
+      <ci> C99 </ci>
+      <ci> km5 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r2" class="active"><span class="package">r2</span> <code>COPASI25</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI25" id="r2" name="r2" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI25">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:48:19Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_11cc6c80-79fb-4a61-a379-137965e70d91" species="APP" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="bf4096e0-a64f-4640-96d6-5791207176ea" species="C99" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_4fe2c95e-4ca3-4754-a515-a281d5ae26c0" species="APP"/>
+  </listOfModifiers>
+  <kineticLaw metaid="a6c5ae86-d40a-4c70-b900-aecd84d3ddf5">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> V2 </ci>
+          <ci> vm2 </ci>
+          <ci> APP </ci>
+          <ci> km2 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r2<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>APP &#10142; C99</td>
+	<td>APP</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> V2 </ci>
+      <ci> vm2 </ci>
+      <ci> APP </ci>
+      <ci> km2 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r3__ND" class="active"><span class="package">r3__ND</span> <code>COPASI26</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r3__ND"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r3__ND" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r3__ND</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI26" id="r3__ND" name="r3 (ND)" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI26">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:49:50Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_180753bd-8952-491c-86b6-85e9ab95167e" species="C83" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_7c16a352-11f5-49f4-b104-45a4c53a1b0f" species="p3" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_3d9061c2-eca8-4a21-b31f-de5895236f84" species="C99"/>
+    <modifierSpeciesReference metaid="_90053ab3-fb78-4a2f-8db0-105c4f97e03b" species="C83"/>
+    <modifierSpeciesReference metaid="deb3440e-e9ca-4b72-8cf3-1f59f62b5fa7" species="C99"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_952ae5ad-4ac1-46cd-a8a7-10404c4480cb">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> V1_3_4_5 </ci>
+          <ci> vm3 </ci>
+          <ci> C83 </ci>
+          <ci> km3 </ci>
+          <ci> C99 </ci>
+          <ci> km4 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r3 (ND)<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>C83 &#10142; p3</td>
+	<td>C99<br />C83<br />C99</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> V1_3_4_5 </ci>
+      <ci> vm3 </ci>
+      <ci> C83 </ci>
+      <ci> km3 </ci>
+      <ci> C99 </ci>
+      <ci> km4 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r4__ND" class="active"><span class="package">r4__ND</span> <code>COPASI27</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r4__ND"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r4__ND" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r4__ND</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI27" id="r4__ND" name="r4 (ND)" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI27">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:51:32Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_653a5acf-385d-4bd0-a6f6-e5d7da7ba28e" species="C99" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="c69411f0-3aeb-4763-a64d-874f00d64517" species="AB" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_0a3da496-dd21-4b4e-b76b-13026bd8df33" species="C83"/>
+    <modifierSpeciesReference metaid="e130e2e8-589c-49ca-bc26-4751b1aae2ef" species="C99"/>
+    <modifierSpeciesReference metaid="d1d9e8f4-8134-4630-bc34-e47127f2b2d0" species="C83"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_453704c6-5bd7-4607-b38c-560eb8ad2905">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> V1_3_4_5 </ci>
+          <ci> vm4 </ci>
+          <ci> C99 </ci>
+          <ci> km4 </ci>
+          <ci> C83 </ci>
+          <ci> km3 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r4 (ND)<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>C99 &#10142; AB</td>
+	<td>C83<br />C99<br />C83</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> V1_3_4_5 </ci>
+      <ci> vm4 </ci>
+      <ci> C99 </ci>
+      <ci> km4 </ci>
+      <ci> C83 </ci>
+      <ci> km3 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r5" class="active"><span class="package">r5</span> <code>COPASI28</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r5"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r5" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r5</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI28" id="r5" name="r5" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI28">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:52:21Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="e8b5719d-eb50-4a5d-b32a-5be921c32e33" species="C99" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_2431cdd9-71a4-416d-8f48-447744c8e817" species="C83" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="d731cbc6-76ca-4320-ad67-7da738374fdf" species="APP"/>
+    <modifierSpeciesReference metaid="_8d2ca30c-5f9b-412b-a483-c702f86923b7" species="C99"/>
+    <modifierSpeciesReference metaid="_4fd38ffa-2010-4ef7-b2c6-5219c517140c" species="APP"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_73e20bbf-7c3b-4410-928d-277c14a8e1eb">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> V1_3_4_5 </ci>
+          <ci> vm5 </ci>
+          <ci> C99 </ci>
+          <ci> km5 </ci>
+          <ci> APP </ci>
+          <ci> km1 </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r5<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>C99 &#10142; C83</td>
+	<td>APP<br />C99<br />APP</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> V1_3_4_5 </ci>
+      <ci> vm5 </ci>
+      <ci> C99 </ci>
+      <ci> km5 </ci>
+      <ci> APP </ci>
+      <ci> km1 </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r3__D" class="active"><span class="package">r3__D</span> <code>COPASI29</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r3__D"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r3__D" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r3__D</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI29" id="r3__D" name="r3 (D)" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI29">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T11:58:43Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="_96b59da2-4a0e-4375-b8e1-675a8a2f4b68" species="C83" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_510cb758-5eb8-4aac-bff9-3c28c685472c" species="p3" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="ef4a6201-f83f-4287-ab0f-06d3b8016b40" species="X"/>
+    <modifierSpeciesReference metaid="ab2816a3-56e5-423b-9f11-13f99c125d32" species="X"/>
+    <modifierSpeciesReference metaid="_5dfb9d22-9084-419e-81f0-88ecf5084f6a" species="C83"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_97d34ba3-dd3c-4939-963b-42fb2576a75c">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> VD </ci>
+          <ci> vm3 </ci>
+          <ci> X </ci>
+          <ci> kic </ci>
+          <ci> C83 </ci>
+          <ci> km3 </ci>
+          <ci> den </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r3 (D)<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>C83 &#10142; p3</td>
+	<td>X<br />X<br />C83</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> VD </ci>
+      <ci> vm3 </ci>
+      <ci> X </ci>
+      <ci> kic </ci>
+      <ci> C83 </ci>
+      <ci> km3 </ci>
+      <ci> den </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="r4__D" class="active"><span class="package">r4__D</span> <code>COPASI30</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-r4__D"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-r4__D" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">r4__D</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="COPASI30" id="r4__D" name="r4 (D)" reversible="false">
+  <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI30">
+          <dcterms:created>
+            <rdf:Description>
+              <dcterms:W3CDTF>2014-11-13T12:48:48Z</dcterms:W3CDTF>
+            </rdf:Description>
+          </dcterms:created>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+  </annotation>
+  <listOfReactants>
+    <speciesReference metaid="d54f4d85-f67d-44d8-b2f2-46b2f7505283" species="C99" stoichiometry="1"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference metaid="_3d480be2-cd37-4ae7-9006-fd85361bec49" species="AB" stoichiometry="1"/>
+  </listOfProducts>
+  <listOfModifiers>
+    <modifierSpeciesReference metaid="_91eaa8ed-8a53-4c16-b41d-101b5633406a" species="X"/>
+    <modifierSpeciesReference metaid="_70138d52-4faa-4434-bfd6-3ef9fe0ef322" species="X"/>
+    <modifierSpeciesReference metaid="abf4b545-2173-4bc5-8732-4f0c2434ef36" species="C99"/>
+  </listOfModifiers>
+  <kineticLaw metaid="_7726c12a-903d-4bac-9670-7f59ad8f8cd3">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <times/>
+        <ci> Brain </ci>
+        <apply>
+          <ci> VD </ci>
+          <ci> vm4 </ci>
+          <ci> X </ci>
+          <ci> kic </ci>
+          <ci> C99 </ci>
+          <ci> km4 </ci>
+          <ci> den </ci>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>r4 (D)<br />
+	</td>
+	<td class ="danger">&#10142;</td>
+	<td>C99 &#10142; AB</td>
+	<td>X<br />X<br />C99</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> Brain </ci>
+    <apply>
+      <ci> VD </ci>
+      <ci> vm4 </ci>
+      <ci> X </ci>
+      <ci> kic </ci>
+      <ci> C99 </ci>
+      <ci> km4 </ci>
+      <ci> den </ci>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <cn> 0.001 </cn>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"></div></td>
+</tr>
+            </tbody>
+        </table>
+        <hr/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>&copy; 2017 Matthias Koenig.
+                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
+                    </a><br/>This
+                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
+                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
+                    under a <a
+                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                        Attribution-ShareAlike 4.0 International License</a>.
+                    <br/>
+                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
+                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
+                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
+                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
+                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
+                                           target="_blank"><img
+                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
+                </p>
+            </div>
+            <!-- END FOOTER -->
+
+        </div>
+        <!-- END RIGHT -->
+    </div>
+    <!-- END ROW -->
+</div>
+<!-- END CONTAINER -->
+
+</body>
+</html>

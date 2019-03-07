@@ -1,0 +1,1863 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" metaid="_7a6361ee-92c4-4b03-bd40-ab5f12d08b80" version="4">
+  <model id="Zi2011_TGFbeta_Pathway" metaid="TGF_beta_Pathway" name="Zi2011_TGF-beta_Pathway">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <p>This model is from the article:      <br/>
+                <strong>Quantitative analysis of transient and sustained transforming growth factor-β signaling dynamics.</strong>
+                <br/>
+          Zhike Zi, Zipei Feng, Douglas A Chapnick, Markus Dahl, Difan Deng, Edda Klipp, Aristidis Moustakas &amp; Xuedong Liu      <em>Molecular Systems Biology</em>
+          2011 May 24;7:492.      <a href="http://www.ncbi.nlm.nih.gov/pubmed/21613981">21613981</a>
+          ,      <br/>
+                <strong>Abstract:</strong>
+                <br/>
+          Mammalian cells can decode the concentration of extracellular transforming growth factor-β (TGF-β) and transduce this cue into appropriate cell fate decisions. How variable TGF-β ligand doses quantitatively control intracellular signaling dynamics and how continuous ligand doses are translated into discontinuous cellular fate decisions remain poorly understood. Using a combined experimental and mathematical modeling approach, we discovered that cells respond differently to continuous and pulsating TGF-β stimulation. The TGF-β pathway elicits a transient signaling response to a single pulse of TGF-β stimulation, whereas it is capable of integrating repeated pulses of ligand stimulation at short time interval, resulting in sustained phospho-Smad2 and transcriptional responses. Additionally, the TGF-β pathway displays different sensitivities to ligand doses at different time scales. While ligand-induced short-term Smad2 phosphorylation is graded, long-term Smad2 phosphorylation is switch-like to a small change in TGF-β levels. Correspondingly, the short-term Smad7 gene expression is graded, while long-term PAI-1 gene expression is switch-like, as is the long-term growth inhibitory response. Our results suggest that long-term switch-like signaling responses in the TGF-β pathway might be critical for cell fate determination.      </p>
+            <p>      <b>Note:</b>
+                </p>
+            <p>Developer of the model: Zhike Zi</p>
+            <p>Reference: Zi Z. et al., Quantitative Analysis of Transient and Sustained Transforming Growth Factor-beta Signaling Dynamics, Molecular Systems Biology, 2011</p>
+            <p>1. The global parameter that set the type of stimulation</p>
+            <p>(a) for sustained TGF-beta stimulation: set stimulation_type = 1.</p>
+            <p>(b) for single pulse of TGF-beta stimulation: set stimulation_type = 2.</p>
+            <p>parameter "single_pulse_duration" is for the duration of stimulation, for example,</p>
+            <p>single_pulse_duration = 0.5, for 0.5 min (30 seconds) of TGF-beta stimulation.</p>
+            <p>*Note: make sure that the time course cover the time point when the event is triggered.</p>
+            <p>(c) for single pulse of TGF-beta stimulation in COPASI</p>
+            <p>change the trigger of event "single_pulse_TGF_beta_washout"</p>
+            <p>from</p>
+            <p>"and(eq(stimulation_type, 2), eq(time, single_pulse_duration))"   (for SBML-SAT)</p>
+            <p>to</p>
+            <p>"and(eq(stimulation_type, 2), gt(time, single_pulse_duration))"  (for COPASI)</p>
+            <p/>
+            <p>2. Notes for TGF-beta dose in terms of molecules per cell</p>
+            <p>(a) The following equation applies for conversion of TGF-beta dose in molecules per cell</p>
+            <p>TGF_beta_dose_mol_per_cell = initial TGF_beta_ex*1e-9*Vmed*6e23</p>
+            <p>(b) for standard experimental setup 1e6 cells in 2 mL medium</p>
+            <p>0.001 nM initial TGF_beta_ex is approximately equal to the dose of 1200 TGF-beta molecules/cell</p>
+            <p>0.050 nM initial TGF_beta_ex is approximately equal to the dose of 60000 TGF-beta molecules/cell</p>
+            <p>(c) For 1e6 cells in 10 mL medium, please change the initial compartment size of Vmed and the corresponding assignment rule for Vmed.</p>
+            <p>initial Vmed = 1e-8  (1e6 cells in 10 mL medium)</p>
+            <p>Vmed = 0.010/(1e6*exp(log(1.45)*time/1440))  (1e6 cells in 10 mL medium)</p>
+            <p/>
+            <p>3. Please note that this model contains events and the medium compartment size is varied.</p>
+            <p/>
+            <p>4. For the model simulation in SBML-SAT, please remove initialAssignments and save it as SBML Level 2 Verion 1 file.</p>
+            </body>
+      
+    </notes>
+    <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#TGF_beta_Pathway">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Chelliah</vCard:Family>
+	<vCard:Given>Vijayalakshmi</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>viji@ebi.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Zi</vCard:Family>
+	<vCard:Given>Zhike</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>zhike.zi@bioss.uni-freiburg.de</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>BIOSS Centre for Biological Signalling Studies, University of Freiburg</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2011-07-14T12:23:21Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2014-02-24T17:00:59Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1104050000"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000342"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/21613981"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/9606"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/bto/BTO:0000312"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.pathway/map04350"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_6844"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0007179"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+      <listOfUnitDefinitions>
+      <unitDefinition id="substance" metaid="substance" name="substance">
+        <listOfUnits>
+          <unit kind="mole" metaid="CDMT00096" scale="-9"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="volume" metaid="volume" name="volume">
+        <listOfUnits>
+          <unit kind="litre" metaid="CDMT00097"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="area" metaid="area" name="area">
+        <listOfUnits>
+          <unit exponent="2" kind="metre" metaid="CDMT00098"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="length" metaid="length" name="length">
+        <listOfUnits>
+          <unit kind="metre" metaid="CDMT00099"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="time" metaid="time" name="min">
+        <listOfUnits>
+          <unit kind="second" metaid="CDMT00100" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_min" metaid="per_min" name="per min">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" metaid="CDMT00101" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="nM_per_min" metaid="nM_per_min" name="nM per min">
+        <listOfUnits>
+          <unit kind="mole" metaid="CDMT00102" scale="-9"/>
+          <unit exponent="-1" kind="second" metaid="CDMT00103" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="third_order" metaid="third_order" name="third order rate constant">
+        <listOfUnits>
+          <unit exponent="-2" kind="mole" metaid="CDMT00113" scale="-9"/>
+          <unit exponent="-1" kind="second" metaid="CDMT00114" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="second_order" metaid="second_order" name="second order rate constant">
+        <listOfUnits>
+          <unit exponent="-1" kind="mole" metaid="CDMT00136" scale="-9"/>
+          <unit exponent="-1" kind="second" metaid="CDMT00137" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="min" metaid="min" name="minute">
+        <listOfUnits>
+          <unit kind="second" metaid="CDMT00138" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="nM" metaid="nM" name="nanomolar">
+        <listOfUnits>
+          <unit kind="mole" metaid="CDMT00104" scale="-9"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="molecules_per_cell" metaid="mol_per_cell" name="molecules per cell">
+        <listOfUnits>
+          <unit kind="dimensionless" metaid="CDMT00117"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="default" metaid="default" size="1" units="volume"/>
+      <compartment constant="false" id="Vmed" metaid="Vmed" name="Medium" outside="default" sboTerm="SBO:0000290" size="2E-9" units="volume">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Vmed">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/bto/BTO:0000316"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </compartment>
+      <compartment id="Vcyt" metaid="Vcyt" name="Cytoplasm" outside="Vmed" sboTerm="SBO:0000290" size="2.3E-12" units="volume">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Vcyt">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005737"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </compartment>
+      <compartment id="Vnuc" metaid="Vnuc" name="Nucleus" outside="Vcyt" sboTerm="SBO:0000290" size="1E-12" units="volume">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Vnuc">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005634"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species charge="0" compartment="Vmed" id="TGF_beta_ex" initialConcentration="0.05" metaid="TGF_beta_ex" name="TGF_beta_ex" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#TGF_beta_ex">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/bto/BTO:0000316"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="T1R_surf" initialConcentration="0.702494" metaid="T1R_surf" name="T1R_surf" sboTerm="SBO:0000244" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#T1R_surf">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P36897"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0009986"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="T1R_endo" initialConcentration="6.52344" metaid="T1R_endo" name="T1R_endo" sboTerm="SBO:0000244" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#T1R_endo">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P36897"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005769"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="T2R_surf" initialConcentration="0.201077" metaid="T2R_surf" name="T2R_surf" sboTerm="SBO:0000244" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#T2R_surf">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P37173"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0009986"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="T2R_endo" initialConcentration="1.43997" metaid="T2R_endo" name="T2R_endo" sboTerm="SBO:0000244" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#T2R_endo">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P37173"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:encodes>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005769"/>
+	</rdf:Bag>
+	</bqbiol:encodes>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="LRC_surf" initialConcentration="0" metaid="LRC_surf" name="LRC_surf" sboTerm="SBO:0000297" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#LRC_surf">
+              <bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0009986"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0043235"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P36897"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P37173"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="LRC_endo" initialConcentration="0" metaid="LRC_endo" name="LRC_endo" sboTerm="SBO:0000297" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#LRC_endo">
+              <bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005769"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0043235"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P36897"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P37173"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="Smad2c" initialConcentration="60.6" metaid="Smad2c" name="Smad2c" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Smad2c">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vnuc" id="Smad2n" initialConcentration="28.5" metaid="Smad2n" name="Smad2n" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Smad2n">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="Smad4c" initialConcentration="50.8" metaid="Smad4c" name="Smad4c" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Smad4c">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q13485"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vnuc" id="Smad4n" initialConcentration="50.8" metaid="Smad4n" name="Smad4n" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#Smad4n">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q13485"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="PSmad2c" initialConcentration="0" metaid="PSmad2c" name="PSmad2c" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#PSmad2c">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="PSmad2_PSmad2_c" initialConcentration="0" metaid="PSmad2_PSmad2_c" name="PSmad2_PSmad2_c" sboTerm="SBO:0000286" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#PSmad2_PSmad2_c">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="PSmad2_Smad4_c" initialConcentration="0" metaid="PSmad2_Smad4_c" name="PSmad2_Smad4_c" sboTerm="SBO:0000297" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#PSmad2_Smad4_c">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q13485"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vnuc" id="PSmad2n" initialConcentration="0" metaid="PSmad2n" name="PSmad2n" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#PSmad2n">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vnuc" id="PSmad2_PSmad2_n" initialConcentration="0" metaid="PSmad2_PSmad2_n" name="PSmad2_PSmad2_n" sboTerm="SBO:0000286" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#PSmad2_PSmad2_n">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vnuc" id="PSmad2_Smad4_n" initialConcentration="0" metaid="PSmad2_Smad4_n" name="PSmad2_Smad4_n" sboTerm="SBO:0000297" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#PSmad2_Smad4_n">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q15796"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q13485"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasVersion>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:hasVersion>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vcyt" id="TGF_beta_endo" initialConcentration="0" metaid="TGF_beta_endo" name="TGF_beta_endo" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#TGF_beta_endo">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:occursIn>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005769"/>
+	</rdf:Bag>
+	</bqbiol:occursIn>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species charge="0" compartment="Vmed" id="TGF_beta_ns" initialConcentration="0" metaid="TGF_beta_ns" name="TGF_beta_ns" sboTerm="SBO:0000252" substanceUnits="nM">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#TGF_beta_ns">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01137"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" charge="0" compartment="Vcyt" constant="true" id="AA" initialConcentration="0" metaid="AA" name="AA" sboTerm="SBO:0000291" substanceUnits="nM"/>
+      <species boundaryCondition="true" charge="0" compartment="Vcyt" constant="true" id="empty_degraded" initialConcentration="0" metaid="empty_degraded" name="empty_degraded" sboTerm="SBO:0000291" substanceUnits="nM"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="stimulation_type" metaid="stimulation_type" units="dimensionless" value="1"/>
+      <parameter id="single_pulse_duration" metaid="single_pulse_duration" units="min" value="0.5"/>
+      <parameter constant="false" id="totalNumT1R" metaid="totalNumT1R" units="molecules_per_cell" value="10005"/>
+      <parameter constant="false" id="totalNumT2R" metaid="totalNumT2R" units="molecules_per_cell" value="2272"/>
+      <parameter constant="false" id="totalNumLRC" metaid="totalNumLRC" units="molecules_per_cell" value="0"/>
+      <parameter constant="false" id="totalNumPSmad2" metaid="totalNumPSmad2" units="molecules_per_cell" value="0"/>
+      <parameter constant="false" id="totalNuclearPSmad2" metaid="totalNuclearPSmad2" units="nM" value="0"/>
+      <parameter constant="false" id="totalSmad2c" metaid="totalSmad2c" units="nM" value="60.6"/>
+      <parameter constant="false" id="totalSmad2n" metaid="totalSmad2n" units="nM" value="28.5"/>
+      <parameter constant="false" id="medium_TGF_beta_amount" metaid="medium_TGF_beta_amount" units="molecules_per_cell" value="0"/>
+      <parameter constant="false" id="TGF_beta_dose_mol_per_cell" metaid="TGF_beta_dose" units="molecules_per_cell" value="0"/>
+      <parameter id="ki" metaid="ki" units="per_min" value="0.333"/>
+      <parameter id="kr" metaid="kr" units="per_min" value="0.0333"/>
+      <parameter id="k_T1R" metaid="k_T1R" units="nM_per_min" value="0.0167"/>
+      <parameter id="k_T2R" metaid="k_T2R" units="nM_per_min" value="0.0190076"/>
+      <parameter id="kdeg_T1R" metaid="kdeg_T1R" units="per_min" value="0.00256"/>
+      <parameter id="kdeg_T2R" metaid="kdeg_T2R" units="per_min" value="0.0132"/>
+      <parameter id="kdeg_LRC" metaid="kdeg_LRC" units="per_min" value="0.00256"/>
+      <parameter id="kdeg_TGF_beta" metaid="kdeg_TGF_beta" units="per_min" value="0.347"/>
+      <parameter id="klid" metaid="klid" units="per_min" value="0.0233678"/>
+      <parameter id="ka_LRC" metaid="ka_LRC" units="third_order" value="117.897"/>
+      <parameter id="kdiss_LRC" metaid="kdiss_LRC" units="per_min" value="0.0438111"/>
+      <parameter id="kimp_Smad2" metaid="kimp_Smad2" units="per_min" value="0.156"/>
+      <parameter id="kexp_Smad2" metaid="kexp_Smad2" units="per_min" value="0.763"/>
+      <parameter id="kimp_Smad4" metaid="kimp_Smad4" units="per_min" value="0.156"/>
+      <parameter id="kexp_Smad4" metaid="kexp_Smad4" units="per_min" value="0.359"/>
+      <parameter id="kpho_Smad2" metaid="kpho_Smad2" units="second_order" value="0.0488268"/>
+      <parameter id="kon_Smads" metaid="kon_Smads" units="second_order" value="0.198472"/>
+      <parameter id="koff_Smads" metaid="koff_Smads" units="per_min" value="1"/>
+      <parameter id="kimp_Smads" metaid="kimp_Smads" units="per_min" value="0.889"/>
+      <parameter id="kdepho_Smad2" metaid="kdepho_Smad2" units="per_min" value="0.394"/>
+      <parameter id="kon_ns" metaid="kon_ns" units="per_min" value="0.0505413"/>
+      <parameter constant="false" id="koff_ns" metaid="koff_ns" units="per_min" value="2.03306"/>
+      <parameter id="KD_ns" metaid="KD_ns" units="dimensionless" value="40.2257"/>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment metaid="CDMT00132" symbol="T1R_surf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> k_T1R </ci>
+                <ci> kdeg_T1R </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_T1R </ci>
+                <ci> kr </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kdeg_T1R </ci>
+              <ci> ki </ci>
+            </apply>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="CDMT00133" symbol="T1R_endo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <ci> k_T1R </ci>
+            <ci> kdeg_T1R </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="CDMT00134" symbol="T2R_surf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <apply>
+              <plus/>
+              <apply>
+                <times/>
+                <ci> k_T2R </ci>
+                <ci> kdeg_T2R </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k_T2R </ci>
+                <ci> kr </ci>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci> kdeg_T2R </ci>
+              <ci> ki </ci>
+            </apply>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="CDMT00135" symbol="T2R_endo">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <ci> k_T2R </ci>
+            <ci> kdeg_T2R </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="TGF_beta_dose_mol_per_cell" symbol="TGF_beta_dose_mol_per_cell">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> TGF_beta_ex </ci>
+            <cn type="e-notation">1 <sep/> -9 </cn>
+            <ci> Vmed </ci>
+            <cn type="e-notation">6 <sep/> 23 </cn>
+          </apply>
+        </math>
+            </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <assignmentRule metaid="CDMT00110" variable="Vmed">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <cn type="e-notation">2 <sep/> -3 </cn>
+            <apply>
+              <times/>
+              <cn type="e-notation">1 <sep/> 6 </cn>
+              <apply>
+                <exp/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <ln/>
+                      <cn> 1.45 </cn>
+                    </apply>
+                    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+                  </apply>
+                  <cn type="integer"> 1440 </cn>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00116" variable="totalNumPSmad2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> PSmad2c </ci>
+                <apply>
+                  <times/>
+                  <ci> PSmad2_PSmad2_c </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+                <ci> PSmad2_Smad4_c </ci>
+              </apply>
+              <cn> 2.3 </cn>
+              <cn type="integer"> 602 </cn>
+            </apply>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> PSmad2n </ci>
+                <apply>
+                  <times/>
+                  <ci> PSmad2_PSmad2_n </ci>
+                  <cn type="integer"> 2 </cn>
+                </apply>
+                <ci> PSmad2_Smad4_n </ci>
+              </apply>
+              <cn type="integer"> 602 </cn>
+            </apply>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00109" variable="totalNuclearPSmad2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <ci> PSmad2n </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> PSmad2_PSmad2_n </ci>
+            </apply>
+            <ci> PSmad2_Smad4_n </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00105" variable="totalNumT1R">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <ci> T1R_surf </ci>
+              <ci> T1R_endo </ci>
+              <ci> LRC_surf </ci>
+              <ci> LRC_endo </ci>
+            </apply>
+            <cn> 2.3 </cn>
+            <cn type="integer"> 602 </cn>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00106" variable="totalNumT2R">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <ci> T2R_surf </ci>
+              <ci> T2R_endo </ci>
+              <ci> LRC_surf </ci>
+              <ci> LRC_endo </ci>
+            </apply>
+            <cn> 2.3 </cn>
+            <cn type="integer"> 602 </cn>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00107" variable="totalNumLRC">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <ci> LRC_surf </ci>
+              <ci> LRC_endo </ci>
+            </apply>
+            <cn> 2.3 </cn>
+            <cn type="integer"> 602 </cn>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00111" variable="totalSmad2c">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <ci> Smad2c </ci>
+            <ci> PSmad2c </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> PSmad2_PSmad2_c </ci>
+            </apply>
+            <ci> PSmad2_Smad4_c </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00112" variable="totalSmad2n">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <ci> Smad2n </ci>
+            <ci> PSmad2n </ci>
+            <apply>
+              <times/>
+              <cn type="integer"> 2 </cn>
+              <ci> PSmad2_PSmad2_n </ci>
+            </apply>
+            <ci> PSmad2_Smad4_n </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00115" variable="koff_ns">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> kon_ns </ci>
+            <ci> KD_ns </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule metaid="CDMT00108" variable="medium_TGF_beta_amount">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> TGF_beta_ex </ci>
+            <cn type="e-notation">1 <sep/> -9 </cn>
+            <ci> Vmed </ci>
+            <cn type="e-notation">6 <sep/> 23 </cn>
+          </apply>
+        </math>
+            </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction fast="false" id="re1" metaid="re1" name="T1R production" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re1">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032800"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00002" species="AA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00003" species="T1R_surf"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00004">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> k_T1R </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re2" metaid="re2" name="T1R internalization to early endosome" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re2">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0031623"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00005" species="T1R_surf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00006" species="T1R_endo"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00007">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> ki </ci>
+              <ci> T1R_surf </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re3" metaid="re3" name="T1R recycling from early endosome" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re3">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032456"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00008" species="T1R_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00009" species="T1R_surf"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00010">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kr </ci>
+              <ci> T1R_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re4" metaid="re4" name="T1R constitutive degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re4">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032801"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00011" species="T1R_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00012" species="empty_degraded"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00013">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kdeg_T1R </ci>
+              <ci> T1R_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re5" metaid="re5" name="T2R production" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re5">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032800"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00014" species="AA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00015" species="T2R_surf"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00016">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> k_T2R </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re6" metaid="re6" name="T2R internalization to early endosome" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re6">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0031623"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00017" species="T2R_surf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00018" species="T2R_endo"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00019">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> ki </ci>
+              <ci> T2R_surf </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re7" metaid="re7" name="T2R recycling from early endosome" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re7">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032456"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00020" species="T2R_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00021" species="T2R_surf"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00022">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kr </ci>
+              <ci> T2R_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re8" metaid="re8" name="T2R constitutive degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re8">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032801"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00023" species="T2R_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00024" species="empty_degraded"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00025">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kdeg_T2R </ci>
+              <ci> T2R_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re9" metaid="re9" name="LRC activation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re9">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005102"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00026" species="TGF_beta_ex"/>
+          <speciesReference metaid="CDMT00027" species="T2R_surf"/>
+          <speciesReference metaid="CDMT00028" species="T1R_surf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00029" species="LRC_surf"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00030">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> ka_LRC </ci>
+              <ci> TGF_beta_ex </ci>
+              <ci> T2R_surf </ci>
+              <ci> T1R_surf </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re10" metaid="re10" name="LRC internalization to early endosome" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re10">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0031623"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00031" species="LRC_surf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00032" species="LRC_endo"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00033">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> ki </ci>
+              <ci> LRC_surf </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re11" metaid="re11" name="LRC constitutive degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re11">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0032801"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00042" species="LRC_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00043" species="empty_degraded"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00044">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kdeg_LRC </ci>
+              <ci> LRC_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re12" metaid="re12" name="dissociation of LRC in endosome" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re12">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0043241"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00034" species="LRC_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00035" species="T1R_endo"/>
+          <speciesReference metaid="CDMT00036" species="T2R_endo"/>
+          <speciesReference metaid="CDMT00037" species="TGF_beta_endo"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00038">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kdiss_LRC </ci>
+              <ci> LRC_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re13" metaid="re13" name="TGF-beta constitutive degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re13">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0030163"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00039" species="TGF_beta_endo"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00040" species="empty_degraded"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00041">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kdeg_TGF_beta </ci>
+              <ci> TGF_beta_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re14" metaid="re14" name="Smad2 nuclear import" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re14">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00045" species="Smad2c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00046" species="Smad2n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00047">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kimp_Smad2 </ci>
+              <ci> Smad2c </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re15" metaid="re15" name="Smad2 nuclear export" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re15">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00048" species="Smad2n"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00049" species="Smad2c"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00050">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vnuc </ci>
+              <ci> kexp_Smad2 </ci>
+              <ci> Smad2n </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re16" metaid="re16" name="Smad4 nuclear import" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re16">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00051" species="Smad4c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00052" species="Smad4n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00053">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kimp_Smad4 </ci>
+              <ci> Smad4c </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re17" metaid="re17" name="Smad4 nuclear export" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re17">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00054" species="Smad4n"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00055" species="Smad4c"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00056">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vnuc </ci>
+              <ci> kexp_Smad4 </ci>
+              <ci> Smad4n </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re18" metaid="re18" name="Smad2 phosphorylation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re18">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006468"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00057" species="Smad2c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00058" species="PSmad2c"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="CDMT00059" species="LRC_endo"/>
+        </listOfModifiers>
+        <kineticLaw metaid="CDMT00060">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kpho_Smad2 </ci>
+              <ci> Smad2c </ci>
+              <ci> LRC_endo </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re19" metaid="re19" name="PSmad2 nuclear import" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re19">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00061" species="PSmad2c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00062" species="PSmad2n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00063">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kimp_Smad2 </ci>
+              <ci> PSmad2c </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re20" metaid="re20" name="PSmad2 nuclear export" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re20">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00064" species="PSmad2n"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00065" species="PSmad2c"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00066">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vnuc </ci>
+              <ci> kexp_Smad2 </ci>
+              <ci> PSmad2n </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re21" metaid="re21" name="Smad2-Smad4 complex formation">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re21">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006461"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00067" species="PSmad2c"/>
+          <speciesReference metaid="CDMT00068" species="Smad4c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00069" species="PSmad2_Smad4_c"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00070">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kon_Smads </ci>
+                  <ci> PSmad2c </ci>
+                  <ci> Smad4c </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> koff_Smads </ci>
+                  <ci> PSmad2_Smad4_c </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re22" metaid="re22" name="Smad2-Smad4 nuclear import" reversible="false">
+        <listOfReactants>
+          <speciesReference metaid="CDMT00071" species="PSmad2_Smad4_c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00072" species="PSmad2_Smad4_n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00073">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kimp_Smads </ci>
+              <ci> PSmad2_Smad4_c </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re23" metaid="re23" name="Smad2-Smad4 dissociation">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re23">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00074" species="PSmad2_Smad4_n"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00075" species="PSmad2n"/>
+          <speciesReference metaid="CDMT00076" species="Smad4n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00077">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vnuc </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> koff_Smads </ci>
+                  <ci> PSmad2_Smad4_n </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kon_Smads </ci>
+                  <ci> PSmad2n </ci>
+                  <ci> Smad4n </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re24" metaid="re24" name="Smad2 dephosphorylation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re24">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006470"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00078" species="PSmad2n"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00079" species="Smad2n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00080">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vnuc </ci>
+              <ci> kdepho_Smad2 </ci>
+              <ci> PSmad2n </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re25" metaid="re25" name="PSmad2 dimer formation">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re25">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006461"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00081" species="PSmad2c" stoichiometry="2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00082" species="PSmad2_PSmad2_c"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00083">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kon_Smads </ci>
+                  <apply>
+                    <power/>
+                    <ci> PSmad2c </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> koff_Smads </ci>
+                  <ci> PSmad2_PSmad2_c </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re26" metaid="re26" name="PSmad2 dimer nuclear  import" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re26">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051169"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00084" species="PSmad2_PSmad2_c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00085" species="PSmad2_PSmad2_n"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00086">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> kimp_Smads </ci>
+              <ci> PSmad2_PSmad2_c </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re27" metaid="re27" name="PSmad2 dimmer dissociation">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re27">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0043241"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00087" species="PSmad2_PSmad2_n"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00088" species="PSmad2n" stoichiometry="2"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00089">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vnuc </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> koff_Smads </ci>
+                  <ci> PSmad2_PSmad2_n </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kon_Smads </ci>
+                  <apply>
+                    <power/>
+                    <ci> PSmad2n </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re28" metaid="re28" name="negative feedback induced LRC degradation" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re28">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0009057"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00093" species="LRC_surf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00094" species="empty_degraded"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00095">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vcyt </ci>
+              <ci> klid </ci>
+              <ci> LRC_surf </ci>
+              <ci> totalNuclearPSmad2 </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction fast="false" id="re29" metaid="re29" name="non-specific binding of TGF-beta">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#re29">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005102"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="CDMT00090" species="TGF_beta_ex"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="CDMT00091" species="TGF_beta_ns"/>
+        </listOfProducts>
+        <kineticLaw metaid="CDMT00092">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> Vmed </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kon_ns </ci>
+                  <ci> TGF_beta_ex </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> koff_ns </ci>
+                  <ci> TGF_beta_ns </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <listOfEvents>
+      <event id="single_pulse_TGF_beta_washout" metaid="single_pulse_stimulation" name="TGF-beta washout in singel pulse stimulation">
+        <trigger metaid="CDMT00124">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <and/>
+              <apply>
+                <eq/>
+                <ci> stimulation_type </ci>
+                <cn type="integer"> 2 </cn>
+              </apply>
+              <apply>
+                <eq/>
+                <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+                <ci> single_pulse_duration </ci>
+              </apply>
+            </apply>
+          </math>
+                </trigger>
+        <delay metaid="CDMT00125">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <cn type="integer"> 0 </cn>
+          </math>
+                </delay>
+        <listOfEventAssignments>
+          <eventAssignment metaid="CDMT00128" variable="TGF_beta_ex">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn type="integer"> 0 </cn>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>
