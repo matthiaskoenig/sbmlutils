@@ -64,13 +64,13 @@ pip install -e .
 ```
 
 ## Release notes
-### 0.3.0
+
+### 0.3.0a1
 * better comp support
 * layout support
 * improved fbc report
 * bug fixes
 * dropping support for python2
-
 
 ### 0.2.0
 * better comp support
@@ -84,14 +84,12 @@ pip install -e .
 * fixed unit tests
 * bug fixes
 
-
 ### 0.1.8
 * DFBA release
 
 ### 0.1.7a0
 * xpp converter
 * updated SBML reports
-
 
 ### 0.1.6
 * update SBML reports (fbc & comp support)
