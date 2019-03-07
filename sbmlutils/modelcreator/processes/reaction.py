@@ -40,8 +40,6 @@ class ReactionTemplate(object):
         self.upperFluxBound = upperFluxBound
 
     def create_sbml(self, model):
-        print("create reaction:", self, self.rid)
-
         from sbmlutils.factory import create_objects
         # parameters and rules
         create_objects(model, 'parameters', self.pars)

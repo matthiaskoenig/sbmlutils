@@ -64,6 +64,14 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.0
+* better comp support
+* layout support
+* improved fbc report
+* bug fixes
+* dropping support for python2
+
+
 ### 0.2.0
 * better comp support
 * hasOnlySubstanceUnits in sbmlreport added
