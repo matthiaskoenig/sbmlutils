@@ -33,7 +33,7 @@ def create_port_doc():
         fac.Parameter(sid="EX_A", value=1.0, constant=False, sboTerm="SBO:0000613"),
         fac.Parameter(sid="EX_C", value=1.0, constant=False, sboTerm="SBO:0000613"),
     ]
-    fac.create_objects(model, objects)
+    fac.create_objects(model, obj_iter=objects)
     return doc
 
 

@@ -1,8 +1,6 @@
 """
 Helper class to work with the MIRIAM resources.
 """
-from __future__ import print_function, absolute_import
-
 _collections = [
     ["sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
     ["bto", "Brenda Tissue Ontology", "^BTO:\d{7}$"],

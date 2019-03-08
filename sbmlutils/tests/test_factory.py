@@ -20,7 +20,7 @@ def test_event():
 
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
-    fac.create_objects(model, objects)
+    fac.create_objects(model, obj_iter=objects)
 
     events = model.getListOfEvents()
     assert len(events) == 1
@@ -42,7 +42,7 @@ def test_event2():
 
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
-    fac.create_objects(model, objects)
+    fac.create_objects(model, obj_iter=objects)
 
     events = model.getListOfEvents()
     assert len(events) == 1

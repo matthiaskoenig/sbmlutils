@@ -76,22 +76,17 @@ steps = 10000
 
 -----------------------------------------------
 """
-from __future__ import print_function, absolute_import
-
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+import libsbml
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
+from sbmlutils import fbc
+
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
 from sbmlutils import annotation
@@ -213,13 +208,13 @@ def fba_model(sbml_file, directory, annotations=None):
                        spatialDimensions=3),
 
         # species
-        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", initialConcentration=0.0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False,
+        mc.Species(sid='X', name="biomass", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
         # bounds
@@ -241,10 +236,10 @@ def fba_model(sbml_file, directory, annotations=None):
                               reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
 
     # flux bounds: internal fluxes
-    mc.set_flux_bounds(r_v1, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r_v2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r_v3, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v1, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v3, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
 
     # reactions: exchange reactions (this species can be changed by the FBA)
     for sid in ['Ac', 'Glcxt', 'O2', 'X']:
@@ -258,7 +253,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # objective function
     model_fba = model.getPlugin(builder.SBML_FBC_NAME)
-    mc.create_objective(model_fba, oid="biomass_max", otype="maximize",
+    fbc.create_objective(model_fba, oid="biomass_max", otype="maximize",
                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # write SBML file
@@ -298,7 +293,7 @@ def bounds_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
     # bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=True)
@@ -379,7 +374,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
 
     # update reactions
@@ -429,11 +424,11 @@ def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=False)
 
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)

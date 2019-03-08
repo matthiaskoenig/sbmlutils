@@ -5,22 +5,15 @@ Create SBML models for the ATP submodel.
 * species and fluxes are handled via concentrations
 """
 
-from __future__ import print_function, absolute_import
-
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-
+import libsbml
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_LITRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import comp
+from sbmlutils import fbc
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils import annotation
@@ -52,7 +45,7 @@ notes = """
       </div>
 
     <h2>Terms of use</h2>
-      <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+      <div class="dc:rightsHolder">Copyright © 2017-2018 Matthias Koenig</div>
       <div class="dc:license">
       <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
       the following conditions are met:
@@ -74,11 +67,11 @@ creators = [
 ]
 main_units = {
     'time': 'h',
-    'extent': UNIT_KIND_MOLE,
-    'substance': UNIT_KIND_MOLE,
+    'extent': 'mmole',
+    'substance': 'mmole',
     'length': 'm',
     'area': 'm2',
-    'volume': 'm3',
+    'volume': UNIT_KIND_LITRE,
 }
 units = [
     mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name="hour"),
@@ -86,18 +79,19 @@ units = [
     mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
     mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="square meter"),
     mc.Unit('m3', [(UNIT_KIND_METRE, 3.0)], name="cubic meter"),
-    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, 0),
-                   (UNIT_KIND_METRE, -3.0)], name="millimolar"),
-    mc.Unit('mole_per_h', [(UNIT_KIND_MOLE, 1.0),
+    mc.Unit('mmole', [(UNIT_KIND_MOLE, 1.0, -3, 1)]),
+    mc.Unit('mM', [(UNIT_KIND_MOLE, 1.0, -3, 1),
+                   (UNIT_KIND_LITRE, -1.0)], name="millimolar"),
+    mc.Unit('mmole_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1),
                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
 ]
 
 UNIT_TIME = 'h'
-UNIT_AMOUNT = UNIT_KIND_ITEM
 UNIT_AREA = 'm2'
-UNIT_VOLUME = 'm3'
+UNIT_VOLUME = UNIT_KIND_LITRE
+UNIT_AMOUNT = 'mmole'
 UNIT_CONCENTRATION = 'mM'
-UNIT_FLUX = 'mole_per_h'
+UNIT_FLUX = 'mmole_per_h'
 
 
 ####################################################
@@ -126,14 +120,14 @@ def fba_model(sbml_file, directory, annotations=None):
         mc.Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimensions=3),
 
         # exchange species
-        mc.Species(sid='atp', name="ATP", initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='adp', name="ADP", initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='glc', name="Glucose", initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='pyr', name='Pyruvate', initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='atp', name="ATP", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='adp', name="ADP", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='glc', name="Glucose", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='pyr', name='Pyruvate', initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # internal species
-        mc.Species(sid='fru16bp', name='Fructose 1,6-bisphospate', initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
-        mc.Species(sid='pg2', name='2-Phosphoglycerate', initialConcentration=0, unit=UNIT_CONCENTRATION, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='fru16bp', name='Fructose 1,6-bisphospate', initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False, compartment="cell"),
+        mc.Species(sid='pg2', name='2-Phosphoglycerate', initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False, compartment="cell"),
 
         # bounds
         mc.Parameter(sid="ub_R3", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
@@ -152,10 +146,10 @@ def fba_model(sbml_file, directory, annotations=None):
                             reactants={"pg2": 1, "adp": 2}, products={"pyr": 1, "atp": 2}, compartment='cell')
 
     # flux bounds
-    mc.set_flux_bounds(r1, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r3, lb="zero", ub="ub_R3")
-    # mc.set_flux_bounds(ratp, lb="zero", ub="ub_RATP")
+    fbc.set_flux_bounds(r1, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r3, lb="zero", ub="ub_R3")
+    # fbc.set_flux_bounds(ratp, lb="zero", ub="ub_RATP")
 
     # exchange reactions
     for sid in ['atp', 'adp', 'glc', 'pyr']:
@@ -163,7 +157,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # objective function
     model_fbc = model.getPlugin("fbc")
-    mc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"R3": 1.0}, active=True)
+    fbc.create_objective(model_fbc, oid="RATP_maximize", otype="maximize", fluxObjectives={"R3": 1.0}, active=True)
 
     if annotations:
         annotation.annotate_sbml_doc(doc, annotations)
@@ -200,7 +194,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
 
     # species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 hasOnlySubstanceUnits=False, create_port=True)
 
     # exchange bounds
@@ -237,7 +231,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 hasOnlySubstanceUnits=False, create_port=True)
 
     # update reactions
@@ -283,10 +277,10 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     # dynamic species
     model_fba = doc_fba.getModel()
     builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, hasOnlySubstanceUnits=False,
-                                unit=UNIT_CONCENTRATION, create_port=False)
+                                unit_amount=UNIT_AMOUNT, create_port=False)
     # dummy species
     builder.create_dummy_species(model, compartment_id=compartment_id, hasOnlySubstanceUnits=False,
-                                 unit=UNIT_CONCENTRATION)
+                                 unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -306,7 +300,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
         mc.Parameter(sid='k_RATP', value=0.1, unit=UNIT_CONCENTRATION, constant=True),
 
         # balancing rules
-        mc.AssignmentRule(sid="atp_tot", value="atp + adp", unit="mM"),
+        mc.AssignmentRule(sid="atp_tot", value="atp + adp", unit=UNIT_CONCENTRATION),
         mc.AssignmentRule(sid="c3_tot", value="2 dimensionless * glc + pyr", unit="mM")
     ]
     mc.create_objects(model, objects)
@@ -349,7 +343,9 @@ def create_model(output_dir):
 
     # create sbml
     doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
+
     bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
+
     update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
 
     emds = {

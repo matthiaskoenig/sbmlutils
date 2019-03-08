@@ -1,7 +1,6 @@
 """
 Test scipy ode file.
 """
-from __future__ import print_function, absolute_import
 import os
 
 import roadrunner
@@ -221,7 +220,7 @@ def example_scipy(model_id):
 
 
 if __name__ == "__main__":
-    model_id = "limax_pkpd_v48"
+    model_id = "limax_pkpd_v50"
     example_roadrunner(model_id)
     example_scipy(model_id)
 

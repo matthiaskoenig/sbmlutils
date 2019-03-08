@@ -2,7 +2,6 @@
 Transformation of Content MathML to Presentation MathML using stylesheets.
 
 """
-from __future__ import print_function, division
 import lxml.etree as ET
 
 xml_filename = 'test.xml'

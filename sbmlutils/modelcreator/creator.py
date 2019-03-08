@@ -9,9 +9,6 @@ model information (dictionaries and lists
 
 Uses the importlib to import the information.
 """
-
-from __future__ import print_function, division
-
 import os
 import shutil
 import copy
@@ -20,17 +17,14 @@ import tempfile
 import warnings
 from sbmlutils.logutils import bcolors
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 
 import sbmlutils.annotation as annotation
 import sbmlutils.history as history
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
 
+from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 from sbmlutils.report import sbmlreport
 
@@ -68,7 +62,7 @@ class Factory(object):
             if tmp:
                 shutil.rmtree(target_dir)
 
-        return [model_dict, core_model]
+        return [model_dict, core_model, sbml_path]
 
 
 def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, mid=None):
@@ -187,7 +181,7 @@ class Preprocess(object):
                 d[key] = info
             else:
                 # key does not exist in module
-                logging.warning(" ".join(['missing:', key]))
+                logging.info(" ".join(['key not defined:', key]))
         return d
 
 
@@ -216,9 +210,14 @@ class CoreModel(object):
              'rate_rules': list,
              'reactions': list,
              'events': list,
+             'constraints': list,
              'ports': list,
              'replacedElements': list,
              'deletions': list,
+
+             'objectives': list,
+
+             'layouts': list,
              }
 
     def __init__(self):
@@ -289,8 +288,8 @@ class CoreModel(object):
         """ Print information string. """
         print(self.get_info())
 
-    def create_sbml(self, sbml_level=3, sbml_version=1):
-        """ Creats the SBML model
+    def create_sbml(self, sbml_level=SBML_LEVEL, sbml_version=SBML_VERSION):
+        """ Create the SBML model
 
         :return:
         :rtype:
@@ -340,20 +339,20 @@ class CoreModel(object):
             'rate_rules',
             'reactions',
             'events',
+            'constraints',
             'ports',
             'replacedElements',
             'deletions',
+            'objectives',
+            'layouts'
         ]:
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
-                if (objects):
-                    factory.create_objects(self.model, objects)
+                if objects:
+                    factory.create_objects(self.model, obj_iter=objects, key=attr)
                 else:
-                    logging.warn("<{}> attribute not in model".format(attr))
-
-
-
+                    logging.warning("Not defined: <{}> ".format(attr))
 
     def write_sbml(self, filepath, validate=True):
         """ Write sbml to file.

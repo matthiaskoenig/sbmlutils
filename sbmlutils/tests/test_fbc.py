@@ -27,14 +27,14 @@ def test_reaction_info():
     assert df is not None
     print(df)
 
-    assert df.get_value('v1', 'objective_coefficient') == 1
-    assert df.get_value('v2', 'objective_coefficient') == 1
-    assert df.get_value('v3', 'objective_coefficient') == 1
-    assert df.get_value('v4', 'objective_coefficient') == 1
-    assert df.get_value('EX_Ac', 'objective_coefficient') == 0
-    assert df.get_value('EX_Glcxt', 'objective_coefficient') == 0
-    assert df.get_value('EX_O2', 'objective_coefficient') == 0
-    assert df.get_value('EX_X', 'objective_coefficient') == 0
+    assert df.at['v1', 'objective_coefficient'] == 1
+    assert df.at['v2', 'objective_coefficient'] == 1
+    assert df.at['v3', 'objective_coefficient'] == 1
+    assert df.at['v4', 'objective_coefficient'] == 1
+    assert df.at['EX_Ac', 'objective_coefficient'] == 0
+    assert df.at['EX_Glcxt', 'objective_coefficient'] == 0
+    assert df.at['EX_O2', 'objective_coefficient'] == 0
+    assert df.at['EX_X', 'objective_coefficient'] == 0
 
 
 def test_mass_balance():

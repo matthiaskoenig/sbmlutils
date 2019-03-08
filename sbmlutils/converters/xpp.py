@@ -41,16 +41,10 @@ Not supported:
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
-
-from __future__ import print_function, absolute_import
 import warnings
 import re
 from pprint import pprint
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
@@ -303,8 +297,8 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
             line = line.replace('**', '^')
 
             # handle if(...)then(...)else()
-            pattern_ite = re.compile('if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)')
-            pattern_ite_sub = re.compile("if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)")
+            pattern_ite = re.compile(r'if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)')
+            pattern_ite_sub = re.compile(r"if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)")
             groups = re.findall(pattern_ite, line)
             for group in groups:
                 condition = group[0]
@@ -321,7 +315,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
             They can have up to 9 arguments.
             The difference to SBML functions is that xpp functions have access to the global parameter values
             '''
-            f_pattern = re.compile('(.*)\s*\((.*)\)\s*=\s*(.*)')
+            f_pattern = re.compile(r'(.*)\s*\((.*)\)\s*=\s*(.*)')
             groups = re.findall(f_pattern, line)
             if groups:
                 # function definitions found
@@ -505,7 +499,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
                     '''
 
                     # global sign {condition} {name1 = form1; ...}
-                    pattern_global = re.compile('([+,-]{0,1}\d{1})\s+\{{0,1}(.*)\{{0,1}\s+\{(.*)\}')
+                    pattern_global = re.compile(r'([+,-]{0,1}\d{1})\s+\{{0,1}(.*)\{{0,1}\s+\{(.*)\}')
                     groups = re.findall(pattern_global, line)
                     if groups:
                         g = groups[0]
@@ -573,7 +567,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
 
     # create SBML objects
     objects = parameters + initial_assignments + functions + rate_rules + assignment_rules + events
-    fac.create_objects(model, objects, debug=False)
+    fac.create_objects(model, obj_iter=objects, debug=False)
 
     '''
     Parameter values are optional; if not they are set to zero in xpp.

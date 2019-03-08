@@ -1,13 +1,9 @@
 """
 Handles manipulation of the History of SBases.
 """
-from __future__ import print_function, absolute_import
-import datetime
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import datetime
+import libsbml
 
 from sbmlutils.validation import check
 from sbmlutils.annotation import create_metaid
@@ -59,10 +55,14 @@ def _create_history(creators):
     # add all creators
     for creator in values:
         c = libsbml.ModelCreator()
-        c.setFamilyName(creator.familyName)
-        c.setGivenName(creator.givenName)
-        c.setEmail(creator.email)
-        c.setOrganization(creator.organization)
+        if creator.familyName:
+            c.setFamilyName(creator.familyName)
+        if creator.givenName:
+            c.setGivenName(creator.givenName)
+        if creator.email:
+            c.setEmail(creator.email)
+        if creator.organization:
+            c.setOrganization(creator.organization)
         check(h.addCreator(c), 'add creator')
 
     # create time is now

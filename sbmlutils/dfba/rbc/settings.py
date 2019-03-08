@@ -1,8 +1,6 @@
 """
 Definition of constants.
 """
-
-from __future__ import absolute_import, print_function
 import os
 
 
@@ -10,6 +8,7 @@ import os
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
 
 MODEL_ID = 'rbc'
+VERSION = 2
 
 FBA_LOCATION = '{}_fba.xml'.format(MODEL_ID)
 BOUNDS_LOCATION = '{}_bounds.xml'.format(MODEL_ID)
