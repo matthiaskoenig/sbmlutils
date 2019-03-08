@@ -3,7 +3,7 @@ sbmlutils: python utilities for SBML
 
 ``sbmlutils`` is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
-`libSBML <http://sbml.org/Software/libSBML>`__ and other libraries
+`libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
 available from https://github.com/matthiaskoenig/sbmlutils
 
 Features include among others
@@ -14,4 +14,4 @@ Features include among others
 -  implementation of dynamic flux balance analysis (DFBA)
 -  file converters (XPP)
 
-© 2017-2018 Matthias König
+© 2017-2019 Matthias König
