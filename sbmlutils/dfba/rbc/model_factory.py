@@ -7,16 +7,12 @@ its physiological and patho-physiological states.
 
 https://www.ncbi.nlm.nih.gov/pubmed/21749716
 """
-from __future__ import print_function, absolute_import
+
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
+import libsbml
+from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
 from sbmlutils import sbmlio
 from sbmlutils import comp
@@ -35,7 +31,6 @@ libsbml.XMLOutputStream.setWriteTimestamp(False)
 ########################################################################
 # General model information
 ########################################################################
-version = 1
 DT_SIM = 0.1
 notes = """
 <notes>
@@ -75,9 +70,10 @@ notes = """
         <dd>BiGG Models: A platform for integrating, standardizing, and sharing genome-scale models. 
         <i>Nucl Acids Res</i>. 
         <a href="https://dx.doi.org/10.1093/nar/gkv1049" target="_blank" title="Access the publication about BiGG Models knowledge-base">doi:10.1093/nar/gkv1049</a></dd></dt>
-      </dl></body>
+      </dl>
+      </body>
     </notes>
-""".format(version, '{}')
+""".format(settings.VERSION, '{}')
 
 creators = [
     mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
@@ -190,7 +186,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
 
     # bounds
@@ -241,7 +237,7 @@ def update_model(sbml_file, directory, doc_fba=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=True)
 
     # update reactions
@@ -278,10 +274,10 @@ def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_CONCENTRATION,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 create_port=False)
     # dummy species
-    builder.create_dummy_species(model, compartment_id=compartment_id, unit=UNIT_CONCENTRATION)
+    builder.create_dummy_species(model, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -307,7 +303,7 @@ def create_model(output_dir):
 
     :return: directory where SBML files are located
     """
-    directory = utils.versioned_directory(output_dir, version=version)
+    directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     print("FBA")
     doc_fba = fba_model(settings.FBA_LOCATION, directory)
@@ -323,14 +319,14 @@ def create_model(output_dir):
     }
 
     print("TOP")
-    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba, validate=False)
+    top_model(settings.TOP_LOCATION, directory, emds, doc_fba=doc_fba, validate=True)
 
     # flatten top model
     print("FLATTENING")
     comp.flattenSBMLFile(sbml_path=pjoin(directory, settings.TOP_LOCATION),
                          output_path=pjoin(directory, settings.FLATTENED_LOCATION))
 
-    # create omex
+    # create report
     locations = [
         settings.FBA_LOCATION,
         settings.BOUNDS_LOCATION,
@@ -338,29 +334,12 @@ def create_model(output_dir):
         settings.TOP_LOCATION,
         settings.FLATTENED_LOCATION
     ]
-    descriptions = [
-        "FBA submodel (DFBA)",
-        "BOUNDS submodel (DFBA)",
-        "UPDATE submodel (DFBA)",
-        "TOP submodel (DFBA)",
-        "FLATTENED comp model (DFBA)",
-    ]
-
-    utils.create_omex(directory=directory,
-                      omex_location=settings.OMEX_LOCATION,
-                      locations=locations,
-                      descriptions=descriptions,
-                      creators=creators)
-
-    # create report
     sbml_paths = [pjoin(directory, fname) for fname in locations]
     sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
     return directory
 
 
 if __name__ == "__main__":
-
-    from sbmlutils.dfba.rbc.settings import OUT_DIR
-    create_model(output_dir=OUT_DIR)
+    create_model(output_dir=settings.OUT_DIR)
 
 

@@ -1,9 +1,9 @@
 """
 DFBA utility and helper functions.
 """
-from __future__ import print_function, absolute_import
 import os
 import logging
+import libsbml
 
 from sbmlutils import history
 from sbmlutils import factory

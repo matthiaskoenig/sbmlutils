@@ -2,13 +2,9 @@
 Test manipulation functions.
 """
 
-from __future__ import print_function, absolute_import
-
 import os
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
+import pytest
 
 from sbmlutils import comp
 from sbmlutils import validation
@@ -16,6 +12,7 @@ from sbmlutils import manipulation
 from sbmlutils.tests.data import data_dir
 
 
+@pytest.mark.skip
 def test_biomodel_merge():
     """ Test model merging.
 
@@ -54,6 +51,5 @@ def test_biomodel_merge():
 
     Nall, Nerr, Nwarn = validation.check_doc(doc_flat, ucheck=False)
     assert Nerr == 0
-    # FIXME: bug fixed on next SBML release
     assert Nwarn in [0, 74]
     assert Nall in [0, 74]

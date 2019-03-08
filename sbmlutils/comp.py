@@ -7,28 +7,21 @@ process. But the flattening parts also during the simulation
 of the dynamic FBA models.
 """
 
-from __future__ import print_function, division, absolute_import
-
 import os
 import warnings
 import logging
 import time
+import libsbml
+
 from sbmlutils.logutils import bcolors
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
 import sbmlutils.factory as factory
-from sbmlutils.factory import PORT_SUFFIX
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
 
 # Modeling frameworks
 SBO_CONTINOUS_FRAMEWORK = 'SBO:0000293'
 SBO_FLUX_BALANCE_FRAMEWORK = 'SBO:0000624'
-
 
 
 ##########################################################################
@@ -50,7 +43,8 @@ def create_ExternalModelDefinition(doc_comp, emd_id, source):
     return extdef
 
 
-def add_submodel_from_emd(model_comp, submodel_id, emd):
+def add_submodel_from_emd(model_comp: libsbml.CompModelPlugin, submodel_id,
+                          emd: libsbml.ExternalModelDefinition):
     """ Adds submodel to the model from given ExternalModelDefinition.
 
     :param model_comp: Model comp plugin
@@ -58,12 +52,14 @@ def add_submodel_from_emd(model_comp, submodel_id, emd):
     :param emd:
     :return:
     """
+
     model_ref = emd.getModelRef()
     submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
     submodel.setModelRef(model_ref)
+
     model_comp = emd.getReferencedModel()
-    if model_comp.isSetSBOTerm():
+    if model_comp and model_comp.isSetSBOTerm():
         submodel.setSBOTerm(model_comp.getSBOTerm())
     return submodel
 
@@ -216,11 +212,15 @@ class ReplacedElement(SbaseRef):
     def create_sbml(self, model):
 
         # resolve port element
-        element = model.getElementBySId(self.elementRef)
-        if element is None:
-            raise ValueError("SBML element not found for elementRef: {}".format(self.elementRef))
-        # print("elementRef:", self.elementRef, "element:", element)
-        eplugin = element.getPlugin("comp")
+        e = model.getElementBySId(self.elementRef)
+        if not e:
+            logging.warn("Element for sid '{}' not found, falling back to unit definitions.".format(self.elementRef))
+            # fallback to units (only working if no name shadowing)
+            e = model.getUnitDefinition(self.elementRef)
+            if not e:
+                raise ValueError("Neither SBML element nor UnitDefinition found for elementRef: {}".format(self.elementRef))
+
+        eplugin = e.getPlugin("comp")
         obj = eplugin.createReplacedElement()
         self.set_fields(obj)
 
@@ -240,21 +240,22 @@ class ReplacedElement(SbaseRef):
 ##########################################################################
 class Deletion(SbaseRef):
 
-    # TODO: FIXME not implemented yet, this requires a submodel to work.
 
-    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, submodelRef, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
         """ Create a Deletion. """
         super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
                                        name=name, sboTerm=sboTerm, metaId=metaId)
+        self.submodelRef = submodelRef
 
     def create_sbml(self, model):
 
         # Deletions for submodels
-        cmodel = model.getPlugin("comp")
-        p = cmodel.createPort()
-        self.set_fields(p)
+        cmodel = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
+        submodel = cmodel.getSubmodel(self.submodelRef)  # type: libsbml.Submodel
+        deletion = submodel.createDeletion()  # type: libsbml.Deletion
+        self.set_fields(deletion)
 
-        return p
+        return deletion
 
     def set_fields(self, obj):
         super(Deletion, self).set_fields(obj)
@@ -632,12 +633,12 @@ def flattenExternalModelDefinitions(doc, validate=False):
 
     comp_doc = doc.getPlugin("comp")
     if comp_doc is None:
-        logging.warn("Model is not a comp model, no ExternalModelDefinitions")
+        logging.warning("Model is not a comp model, no ExternalModelDefinitions")
         return doc
     emd_list = comp_doc.getListOfExternalModelDefinitions()
     if (emd_list is None) or (len(emd_list) == 0):
         # no ExternalModelDefinitions
-        logging.warn("Model does not contain any ExternalModelDefinitions")
+        logging.warning("Model does not contain any ExternalModelDefinitions")
         return doc
     else:
         model = doc.getModel()

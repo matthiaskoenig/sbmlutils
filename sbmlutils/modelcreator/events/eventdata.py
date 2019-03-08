@@ -9,7 +9,6 @@ even when using variable step sizes.
 Here only the triggers are defined. Part of the events are encoded directly in the model.
 
 """
-from __future__ import print_function
 
 
 class EventData(object):

@@ -4,8 +4,6 @@ Database of information reused in sinusoidal models.
 These are mainly the transport properties.
 Necessary to have a database of all the values used in modelling and their sources.
 """
-from __future__ import print_function
-
 from sbmlutils.factory import Parameter
 
 # -------------------------------------------------------------------------

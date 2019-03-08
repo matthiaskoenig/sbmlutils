@@ -1,0 +1,937 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" metaid="_6da3a266-44cc-43ea-bc31-c0a4f201ff25" version="4">
+  <model id="Nakakuki2010_CellFateDecision_Core" metaid="COPASI1" name="Nakakuki2010_CellFateDecision_Core">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <p>This model describes the activation of immediate early genes such as cFos after EGF or heregulin (HRG) stimulation of the MAPK pathway. Phosphorylated cFos is a key transcription factor triggering downstream cascades of cell fate determination. The model can explain how the switch-like response of p-cFos emerges from the spatiotemporal dynamics. The model comprises lumped reaction kinetics of the signal transduction pathway, the transcriptional and the posttranslational feedback and feedforward loops. The parameter set implemented here corresponds to that used for generating Figs. 4 B,C,D (red curves for 10nM HRG) of the below article in Cell (2010). Moreover, we found that the same model described well the dynamics in different cell types (MCF-7 and PC-12), of different ligands (EGF and HRG) and at different doses (0.1nM, 1nM, 10nM) for a unique set of parameter values (as implemented here and reported in Table SD4_1 of the article) except for four parameters characterising the input, cytoplasmic ppERK. These four parameters K1, K2, tau1 and tau2 are used in the two equations involving species x1 and x2. These two equations define a phenomenological input module to describe the ligand-, dose- and cell type-dependent dynamics of ppERKc which are not modelled in mechanistic detail here. The four parameter values can be adjusted to model a specific ligand, dose and cell type. 8 parameter sets for different experiments are given in Table SD4_2 of the article. This SBML file, however, carries just one such parameter set. We have chosen that of MCF-7 cells stimulated by 10nM of HRG. To reproduce all simulations from the article, please replace the parameter values for K1, K2, tau1, tau2 as needed.            </p>
+        <p>
+          <strong>Ligand-specific c-Fos expression emerges from the spatiotemporal control of ErbB network dynamics.</strong>
+          <br/>Takashi Nakakuki(1), Marc R. Birtwistle(2,3,4), Yuko Saeki(1,5), Noriko Yumoto(1,5), Kaori Ide(1), Takeshi Nagashima(1,5), Lutz Brusch(6), Babatunde A. Ogunnaike(3), Mariko Hatakeyama(1,5), and Boris N. Kholodenko(2,4); Cell  <em>In Press, online 20 May</em> 2010, doi:<a href="http://doi.dx.org/10.1016/j.cell.2010.03.054 ">10.1016/j.cell.2010.03.054 </a>
+          <br/>
+          <small>(1) RIKEN Advanced Science Institute, Computational Systems Biology Research Group, Advanced Computational Sciences Department, 1-7-22 Tsurumi-ku, Yokohama, Kanagawa, 230-0045, Japan </small>
+          <br/>
+          <small>(2) Systems Biology Ireland, University College Dublin, Belfield, Dublin 4, Ireland  </small>
+          <br/>
+          <small>(3) University of Delaware, Department of Chemical Engineering, 150 Academy St., Newark, DE 19716, USA </small>
+          <br/>
+          <small>(4) Thomas Jefferson University, Department of Pathology, Anatomy, and Cell Biology, 1020 Locust Street, Philadelphia, PA 19107, USA </small>
+          <br/>
+          <small>(5) RIKEN Research Center for Allergy and Immunology, Laboratory for Cellular Systems Modeling, 1-7-22 Tsurumi-ku, Yokohama, 230-0045, Japan </small>
+          <br/>
+          <small>(6) Dresden University of Technology, Center for Information Services and High Performance Computing, 01062 Dresden, Germany </small>
+        </p>
+        <p>This model originates from BioModels Database: A Database of Annotated Published Models (http://www.ebi.ac.uk/biomodels/). It is copyright (c) 2005-2011 The BioModels.net Team.<br/>
+For more information see the <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>.<br/>
+To cite BioModels Database, please use: <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Novère N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+      </p>
+    </body>
+  </notes>
+    <annotation>
+    <COPASI xmlns="http://www.copasi.org/static/sbml">
+      <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="#COPASI1">
+          <CopasiMT:isPartOf rdf:resource="http://identifiers.org/kegg.pathway/map04010"/>
+        </rdf:Description>
+      </rdf:RDF>
+    </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#COPASI1">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Endler</vCard:Family>
+	<vCard:Given>Lukas</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>lukas@ebi.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Brusch</vCard:Family>
+	<vCard:Given>Lutz</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>lutz.brusch@tu-dresden.de</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>Dresden University of Technology</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2010-05-24T11:49:05Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2014-06-03T15:00:12Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1003170000"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000251"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/20493519"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqmodel:isDerivedFrom>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000175"/>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/12242336"/>
+	</rdf:Bag>
+	</bqmodel:isDerivedFrom>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/9606"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	<bqbiol:hasVersion>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0035559"/>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0038029"/>
+	</rdf:Bag>
+	</bqbiol:hasVersion>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_9417"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:isPartOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.pathway/hsa04010"/>
+	</rdf:Bag>
+	</bqbiol:isPartOf>
+	<bqbiol:hasVersion>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_634"/>
+	</rdf:Bag>
+	</bqbiol:hasVersion>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+      <listOfUnitDefinitions>
+      <unitDefinition id="volume" metaid="f3eaed8e-5a79-416c-9970-b417e0092508">
+        <listOfUnits>
+          <unit kind="litre" metaid="cb33024b-8df1-44a5-bc51-056341579de9" scale="-3"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="time" metaid="eae6e64d-7c28-44f9-ba45-9e20ae4953f1">
+        <listOfUnits>
+          <unit kind="second" metaid="e672dd93-f8f8-48df-8877-f0a45109a1b1" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="substance" metaid="_42f6e850-bc8c-4986-b943-37c0a15b2d01">
+        <listOfUnits>
+          <unit kind="mole" metaid="cba00e1d-6261-470b-bf2d-eec4cfcac4bd" scale="-3"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="compartment" metaid="_143010" name="compartment" sboTerm="SBO:0000290" size="1">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143010">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0005623"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species compartment="compartment" id="x1" initialConcentration="0" metaid="COPASI2" name="x1" sboTerm="SBO:0000236">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI2">
+              <CopasiMT:isVersionOf rdf:resource="http://identifiers.org/sbo/SBO:0000170"/>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+      </annotation>
+            </species>
+      <species compartment="compartment" id="x2" initialConcentration="0" metaid="COPASI3" name="x2" sboTerm="SBO:0000236">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI3">
+              <CopasiMT:isVersionOf rdf:resource="http://identifiers.org/sbo/SBO:0000170"/>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+      </annotation>
+            </species>
+      <species compartment="compartment" id="ppERKn" initialConcentration="0" metaid="COPASI4" name="ppERK(nucleus)" sboTerm="SBO:0000252">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI4">
+              <CopasiMT:is rdf:resource="http://identifiers.org/reactome/REACT_13301.1"/>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI4">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P28482"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P27361"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_13301.1"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="compartment" id="DUSP" initialConcentration="0" metaid="COPASI5" name="DUSP" sboTerm="SBO:0000252">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI5">
+              <CopasiMT:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.genes/K04459"/>
+                  <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_12976.1"/>
+                </rdf:Bag>
+              </CopasiMT:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI5">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.orthology/K04459"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/interpro/IPR014393"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_12976.1"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q13202"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q9Y6W6"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q16690"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q13115"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q05923"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P28562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="compartment" id="pRSKn" initialConcentration="0" metaid="COPASI6" name="pRSKn" sboTerm="SBO:0000252">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI6">
+              <CopasiMT:is rdf:resource="http://identifiers.org/reactome/REACT_13229.1"/>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI6">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_13229.1"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="compartment" id="cFOSp" initialConcentration="0" metaid="COPASI7" name="cFOS preRNA" sboTerm="SBO:0000250">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI7">
+              <CopasiMT:encodes>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.genes/hsa:2353"/>
+                  <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21788.1"/>
+                </rdf:Bag>
+              </CopasiMT:encodes>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI7">
+              <bqbiol:encodes>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21788.1"/>
+	</rdf:Bag>
+	</bqbiol:encodes>
+	
+	<bqbiol:isEncodedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.genes/hsa:2353"/>
+	</rdf:Bag>
+	</bqbiol:isEncodedBy>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="compartment" id="cFOS" initialConcentration="0" metaid="COPASI8" name="cFOS" sboTerm="SBO:0000252">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI8">
+              <CopasiMT:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.genes/hsa:2353"/>
+                  <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21788.1"/>
+                </rdf:Bag>
+              </CopasiMT:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI8">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01100"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21788.1"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="compartment" id="pcFOS" initialConcentration="0" metaid="COPASI9" name="pc-FOS" sboTerm="SBO:0000252">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI9">
+              <CopasiMT:is rdf:resource="http://identifiers.org/reactome/REACT_21988.1"/>
+              <CopasiMT:isVersionOf rdf:resource="http://identifiers.org/kegg.pathway/2353"/>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI9">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01100"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21988.1"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species compartment="compartment" id="cFOSm" initialConcentration="0" metaid="COPASI10" name="cFOSmRNA" sboTerm="SBO:0000250">
+        <annotation>
+        <COPASI xmlns="http://www.copasi.org/static/sbml">
+          <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description rdf:about="#COPASI10">
+              <CopasiMT:encodes>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.pathway/2353"/>
+                  <rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21788.1"/>
+                </rdf:Bag>
+              </CopasiMT:encodes>
+            </rdf:Description>
+          </rdf:RDF>
+        </COPASI>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#COPASI10">
+              <bqbiol:encodes>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21788.1"/>
+	</rdf:Bag>
+	</bqbiol:encodes>
+	
+	<bqbiol:encodes>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P01100"/>
+	</rdf:Bag>
+	</bqbiol:encodes>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+      <species boundaryCondition="true" compartment="compartment" id="ppERKc" metaid="_143172" name="ppERK(cytosol)" sboTerm="SBO:0000252">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143172">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_2640"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_3037"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+            </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="k7" metaid="_143203" name="k7" value="0.5"/>
+      <parameter id="k11" metaid="_143204" name="k11" value="0.11"/>
+      <parameter id="k13" metaid="_143207" name="k13" value="0.06"/>
+      <parameter id="L" metaid="_143208" name="L" value="1"/>
+      <parameter id="K1" metaid="_143209" name="K1" value="1.09"/>
+      <parameter id="tau1" metaid="_143211" name="tau1" value="3.07"/>
+      <parameter id="K2" metaid="_143212" name="K" value="2.89"/>
+      <parameter id="tau2" metaid="_143213" name="tau" value="472"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule metaid="_143201" variable="ppERKc">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143201">
+	<bqbiol:hasVersion>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0000187"/>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0043407"/>
+	</rdf:Bag>
+	</bqbiol:hasVersion>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <minus/>
+            <ci> x1 </ci>
+            <ci> x2 </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="reaction_1" metaid="_143173" name="1 PhIM 1" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143173">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0000187"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="_66d2fd28-77a6-4b60-978a-705c42f77d5f" species="x1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_49a9c57f-63d2-4b52-93c2-8d613b2df765">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <plus/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> x1 </ci>
+                  </apply>
+                  <ci> tau1 </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> K1 </ci>
+                    <ci> L </ci>
+                  </apply>
+                  <ci> tau1 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_2" metaid="_143174" name="1 PhIM 2" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143174">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0043407"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="_3773f76a-6418-4eb7-86ac-921f08a250dd" species="x2"/>
+        </listOfProducts>
+        <kineticLaw metaid="_34766cf8-af0c-432d-9f66-6dc7c951a9e3">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <plus/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <minus/>
+                    <ci> x2 </ci>
+                  </apply>
+                  <ci> tau2 </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> K2 </ci>
+                    <ci> L </ci>
+                  </apply>
+                  <ci> tau2 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_3" metaid="_143175" name="2a ppERKn" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143175">
+              <bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_12439"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_487"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_1866"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0017017"/>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0000189"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="c25d9aef-9266-4a79-8dda-912b1d1d852d" species="ppERKn"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_41a80de3-59c3-42a5-80e5-038fe1d70210" species="ppERKc"/>
+          <modifierSpeciesReference metaid="_7213ce09-8cc5-419b-b97a-aa00e7fa3c57" species="DUSP"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_8006693f-5c47-4707-be06-3bfd7ea24209">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> k1 </ci>
+                    <ci> ppERKc </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k2 </ci>
+                    <ci> ppERKn </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> DUSP </ci>
+                  <ci> ppERKn </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k1" metaid="_143185" name="k1" value="15"/>
+            <parameter id="k2" metaid="_143186" name="k2" value="50"/>
+            <parameter id="k3" metaid="_143187" name="k3" value="14"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="reaction_4" metaid="_143177" name="2b DUSP" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143177">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0004707"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="bb40211e-761f-409f-a43b-0aa6a6d96eb4" species="DUSP"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_6c1c09fa-aa8b-4ee5-ae69-eb4e18c2e5b2" species="ppERKn"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_0b347812-966d-4cd4-ad3d-c388e25d9cec">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <ci> k </ci>
+              <ci> ppERKn </ci>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k" metaid="_143188" name="k" value="1"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="reaction_5" metaid="_143178" name="3 pRSKn" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143178">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_20510.1"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_20562"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="aa63772d-52a3-4339-a899-86a0d9c69655" species="pRSKn"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_55556e65-fc9b-4e3e-ab8c-91605850ce82" species="ppERKn"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_00c8b7e3-a554-454d-b770-298bbdb537e5">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k4 </ci>
+                  <ci> ppERKn </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k5 </ci>
+                  <ci> pRSKn </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k4" metaid="_143189" name="k4" value="0.1"/>
+            <parameter id="k5" metaid="_143190" name="k5" value="0.15"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="reaction_6" metaid="_143179" name="4 cFOSp" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143179">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0009299"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="_08b51bf5-77df-4b87-b909-5f288e2262b4" species="cFOSp"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_6326a630-ec71-46e5-bac1-2dcac15f6e20" species="ppERKn"/>
+          <modifierSpeciesReference metaid="_317942e5-2ce9-4405-bce7-31c45d28c9df" species="pRSKn"/>
+        </listOfModifiers>
+        <kineticLaw metaid="ef989c58-19c3-4c0f-9896-880028b29b98">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <power/>
+                    <apply>
+                      <times/>
+                      <ci> ppERKn </ci>
+                      <ci> pRSKn </ci>
+                    </apply>
+                    <ci> n </ci>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <apply>
+                      <power/>
+                      <ci> k6 </ci>
+                      <ci> n </ci>
+                    </apply>
+                    <apply>
+                      <power/>
+                      <apply>
+                        <times/>
+                        <ci> ppERKn </ci>
+                        <ci> pRSKn </ci>
+                      </apply>
+                      <ci> n </ci>
+                    </apply>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> cFOSp </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k6" metaid="_143191" name="k6" value="0.13"/>
+            <parameter id="n" metaid="_143192" name="n" value="1.1"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="reaction_7" metaid="_143181" name="5 cFOSm" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143181">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006397"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="e4ec2f29-13ba-44da-9053-58aeadec5e5e" species="cFOSm"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_7f685f88-4278-46a8-83d9-2b991386ad33" species="cFOSp"/>
+        </listOfModifiers>
+        <kineticLaw metaid="fdf8607c-4ef9-4f96-9043-b9951051ea94">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> cFOSp </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k8 </ci>
+                  <ci> cFOSm </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k8" metaid="_143193" name="k8" value="0.08"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="reaction_8" metaid="_143182" name="6 cFOS" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143182">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0006412"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="_8105fc4c-a686-4f54-bd84-31212e84accd" species="cFOS"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="_1f066ffc-fae9-45fb-b040-4d3b643a3677" species="cFOSm"/>
+          <modifierSpeciesReference metaid="a0ee34f4-3176-4d45-b25a-3b9b2d0334b1" species="ppERKc"/>
+          <modifierSpeciesReference metaid="f42c5679-b186-4369-bade-97f1f6fb08c9" species="pcFOS"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_73ddac76-1a62-4876-9f67-88cef691b18d">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <plus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <times/>
+                      <ci> k9 </ci>
+                      <ci> cFOSm </ci>
+                    </apply>
+                    <apply>
+                      <times/>
+                      <ci> k10 </ci>
+                      <ci> cFOS </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k11 </ci>
+                    <ci> cFOS </ci>
+                    <ci> ppERKc </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k13 </ci>
+                  <ci> pcFOS </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k10" metaid="_143195" name="k10" value="0.3"/>
+            <parameter id="k9" metaid="_143197" name="k9" value="0.3"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+      <reaction id="reaction_9" metaid="_143183" name="7 pcFOS" reversible="false">
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_143183">
+              <bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_21251"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.11.24"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+	</rdf:RDF>
+	</annotation>
+              <listOfProducts>
+          <speciesReference metaid="_392bce5d-4dbb-4869-8f6d-f66fe40a3738" species="pcFOS"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference metaid="bb16962e-4095-423e-9b66-83b0e7ec5421" species="cFOS"/>
+          <modifierSpeciesReference metaid="_849af5e8-4e8f-4cb0-ab7a-387a6579b60b" species="ppERKc"/>
+        </listOfModifiers>
+        <kineticLaw metaid="_6f36a678-ead7-46d5-a291-7eb09367608a">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> compartment </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <times/>
+                    <ci> k11 </ci>
+                    <ci> cFOS </ci>
+                    <ci> ppERKc </ci>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> k12 </ci>
+                    <ci> pcFOS </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k13 </ci>
+                  <ci> pcFOS </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                  <listOfParameters>
+            <parameter id="k12" metaid="_143199" name="k12" value="0.001"/>
+          </listOfParameters>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

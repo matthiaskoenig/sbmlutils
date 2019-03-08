@@ -1,7 +1,6 @@
 """
 Generic analysis and plots of DFBA simulations.
 """
-from __future__ import print_function, absolute_import
 import logging
 import warnings
 from matplotlib import pyplot as plt

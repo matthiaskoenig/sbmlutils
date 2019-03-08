@@ -10,23 +10,15 @@ The toy model consists hereby of
 The SBML comp extension is used for hierarchical model composition, i.e. to create
 the main model and the kinetic model parts.
 """
-
-from __future__ import print_function, absolute_import
-
 import os
 from os.path import join as pjoin
 
-try:
-    import libsbml
-    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-except ImportError:
-    import tesbml as libsbml
-    from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
-                         UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
-
+import libsbml
+from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE,
+                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
 
 from sbmlutils import comp
+from sbmlutils import fbc
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
@@ -140,15 +132,15 @@ def fba_model(sbml_file, directory, annotations=None):
         mc.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimensions=2),
 
         # exchange species
-        mc.Species(sid='A', name="A", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='A', name="A", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
-        mc.Species(sid='C', name="C", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='C', name="C", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="extern"),
 
         # internal species
-        mc.Species(sid='B1', name="B1", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='B1', name="B1", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
-        mc.Species(sid='B2', name="B2", initialConcentration=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        mc.Species(sid='B2', name="B2", initialConcentration=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                    compartment="cell"),
 
         # bounds
@@ -168,9 +160,9 @@ def fba_model(sbml_file, directory, annotations=None):
                             reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
     # flux bounds
-    mc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
-    mc.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    mc.set_flux_bounds(r3, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
+    fbc.set_flux_bounds(r2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r3, lb="zero", ub="ub_default")
 
     # exchange reactions
     builder.create_exchange_reaction(model, species_id="A", flux_unit=UNIT_FLUX)
@@ -178,7 +170,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # objective function
     model_fbc = model.getPlugin("fbc")
-    mc.create_objective(model_fbc, oid="R3_maximize", otype="maximize",
+    fbc.create_objective(model_fbc, oid="R3_maximize", otype="maximize",
                         fluxObjectives={"R3": 1.0}, active=True)
 
     # create ports for kinetic bounds
@@ -221,7 +213,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
 
     # species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 hasOnlySubstanceUnits=True, create_port=True)
 
     # exchange bounds
@@ -276,7 +268,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # dynamic species
     model_fba = doc_fba.getModel()
-    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit=UNIT_AMOUNT,
+    builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, unit_amount=UNIT_AMOUNT,
                                 hasOnlySubstanceUnits=True, create_port=True)
 
     # update reactions
@@ -323,10 +315,10 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     # dynamic species
     model_fba = doc_fba.getModel()
     builder.create_dfba_species(model, model_fba, compartment_id=compartment_id, hasOnlySubstanceUnits=True,
-                                unit=UNIT_AMOUNT, create_port=False)
+                                unit_amount=UNIT_AMOUNT, create_port=False)
     # dummy species
     builder.create_dummy_species(model, compartment_id=compartment_id, hasOnlySubstanceUnits=True,
-                                 unit=UNIT_AMOUNT)
+                                 unit_amount=UNIT_AMOUNT)
 
     # exchange flux bounds
     builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX, create_ports=False)
@@ -352,7 +344,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
     # kinetic model
     mc.create_objects(model, [
         # kinetic species
-        mc.Species(sid='D', initialConcentration=0, unit=UNIT_AMOUNT,
+        mc.Species(sid='D', initialConcentration=0, substanceUnit=UNIT_AMOUNT,
                    hasOnlySubstanceUnits=True, compartment="extern"),
 
         # kinetic

@@ -5,16 +5,10 @@ Helper functions for simple validation and display of problems.
 Helper functions if setting sbml information was successful.
 """
 
-from __future__ import print_function, division
-
-from sbmlutils.logutils import bcolors
-
 import logging
 import time
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
+from sbmlutils.logutils import bcolors
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
 
@@ -108,7 +102,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
             "{:<25}: {}".format("validation warnings(s)", Nwarn),
         ]
     lines += [
-        "{:<25}: {:.3f}".format("check time (ms)", time.clock() - current),
+        "{:<25}: {:.3f}".format("check time (s)", time.clock() - current),
         '-' * 120,
     ]
     info = "\n".join(lines)
@@ -170,9 +164,13 @@ def log_errors(doc):
     logging.error("\n".join(header_lines))
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
-        error_str, severity = error_string(error, k)
-        # FIXME: plot depending on logging level
-        logging.error(error_str)
+        msg, severity = error_string(error, k)
+        if severity == libsbml.LIBSBML_SEV_WARNING:
+            logging.warning(msg)
+        elif severity in [libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL]:
+            logging.error(msg)
+        else:
+            logging.info(msg)
     logging.error("\n" + sep_line + "\n\n")
 
 
@@ -186,7 +184,7 @@ def error_string(error, k=None):
     if package == '':
         package = 'core'
 
-    severity = error.getSeverityAsString()
+    severity = error.getSeverity()
     lines = [
         '',
         bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code')+ bcolors.ENDC + bcolors.ENDC,

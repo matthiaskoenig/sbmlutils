@@ -17,7 +17,6 @@ ontology lookup service.
 # TODO: check how the meta id is generated & use general mechanism
 # TODO: add the cv terms from SBO terms
 
-from __future__ import print_function, absolute_import
 
 import logging
 import pyexcel
@@ -25,10 +24,7 @@ import csv
 import re
 import uuid
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 
 def annotate_sbml_doc(doc, annotations):

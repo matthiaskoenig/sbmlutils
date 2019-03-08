@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 import os.path
 
 from sbmlutils.report import sbmlreport

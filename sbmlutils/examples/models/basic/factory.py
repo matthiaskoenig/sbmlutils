@@ -1,7 +1,4 @@
-from __future__ import print_function, division
-
 import os
-
 from sbmlutils.modelcreator.creator import Factory
 
 
@@ -15,9 +12,10 @@ def create(tmp=False):
     print(models_dir)
     print('-' * 80)
 
-    factory = Factory(modules=['sbmlutils.examples.models.basic.Cell'],
+    factory = Factory(modules=['sbmlutils.examples.models.basic.model'],
                       target_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
+
 
 if __name__ == "__main__":
     create()

@@ -83,7 +83,7 @@ features or changes that you can implement yourself.
 4. Install your local copy of sbmlutils into a virtualenv with virtualenvwrapper::
 
     $ cd sbmlutils
-    $ mkvirtualenv sbmlutils
+    $ mkvirtualenv sbmlutils --python3.6
 
    Use the ``--python`` option to select a specific version of Python for the
    virtualenv.
@@ -116,9 +116,9 @@ features or changes that you can implement yourself.
 
     and likely one of::
 
-     (sbmlutils)$ tox -e py27
-     (sbmlutils)$ tox -e py34
      (sbmlutils)$ tox -e py35
+     (sbmlutils)$ tox -e py36
+     (sbmlutils)$ tox -e py37
 
 10. Commit your changes and push your branch to GitHub::
 

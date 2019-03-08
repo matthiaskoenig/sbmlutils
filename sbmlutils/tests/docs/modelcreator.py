@@ -1,4 +1,3 @@
-from __future__ import absolute_import, print_function
 
 
 def test_modelcreator_notebook():
@@ -7,28 +6,16 @@ def test_modelcreator_notebook():
     :return:
     """
 
+    import libsbml
+    from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_ITEM, UNIT_KIND_MOLE,
+                         UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE)
+
     from sbmlutils import comp
+    from sbmlutils import fbc
     from sbmlutils import sbmlio
     from sbmlutils import factory as fac
     from sbmlutils.dfba import builder, utils
 
-    try:
-        import libsbml
-        from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_ITEM, UNIT_KIND_MOLE,
-                             UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE)
-    except ImportError:
-        import tesbml as libsbml
-        from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_ITEM, UNIT_KIND_MOLE,
-                            UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE)
-
-    try:
-        import libsbml
-        from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_ITEM, UNIT_KIND_MOLE,
-                             UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE)
-    except ImportError:
-        import tesbml as libsbml
-        from tesbml import (UNIT_KIND_SECOND, UNIT_KIND_ITEM, UNIT_KIND_MOLE,
-                            UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE)
 
     main_units = {
         'time': 's',
@@ -76,15 +63,15 @@ def test_modelcreator_notebook():
         fac.Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane', spatialDimensions=2),
 
         # exchange species
-        fac.Species(sid='A', name="A", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='A', name="A", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="extern"),
-        fac.Species(sid='C', name="C", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='C', name="C", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="extern"),
 
         # internal species
-        fac.Species(sid='B1', name="B1", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='B1', name="B1", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="cell"),
-        fac.Species(sid='B2', name="B2", value=0, unit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
+        fac.Species(sid='B2', name="B2", value=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
                     compartment="cell"),
 
         # bounds
@@ -104,9 +91,9 @@ def test_modelcreator_notebook():
                              reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
 
     # flux bounds
-    fac.set_flux_bounds(r1, lb="zero", ub="ub_R1")
-    fac.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    fac.set_flux_bounds(r3, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
+    fbc.set_flux_bounds(r2, lb="zero", ub="ub_default")
+    fbc.set_flux_bounds(r3, lb="zero", ub="ub_default")
 
     # exchange reactions
     builder.create_exchange_reaction(model, species_id="A", flux_unit=UNIT_FLUX)

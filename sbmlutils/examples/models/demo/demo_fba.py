@@ -2,19 +2,18 @@
 Check the charge and formula balance of the model.
 Run some simple FBA simulations.
 """
-from __future__ import print_function, division
-
 import os
 
-import Cell
+
 import cobra
 import libsbml
 from sbmlutils import fbc
+from sbmlutils.examples.models.demo import model
 
 # SBML file
 demo_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'results',
-                         '{}_{}.xml'.format(Cell.mid, Cell.version))
+                         '{}_{}.xml'.format(model.mid, model.version))
 
 
 def example(path):

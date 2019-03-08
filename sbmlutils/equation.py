@@ -3,17 +3,17 @@ Parse equation strings into a standard format.
 
 Simplifies the creation of SBML models from given strings.
 """
-from __future__ import print_function, division
+
 import re
 from collections import namedtuple
 
 Part = namedtuple('Part', 'stoichiometry sid')
 
-REV_PATTERN = '<[-=]>'
-IRREV_PATTERN = '[-=]>'
-MOD_PATTERN = '\[.*\]'
-REV_SEP = '<=>'
-IRREV_SEP = '=>'
+REV_PATTERN = r'<[-=]>'
+IRREV_PATTERN = r'[-=]>'
+MOD_PATTERN = r'\[.*\]'
+REV_SEP = r'<=>'
+IRREV_SEP = r'=>'
 
 
 class Equation(object):

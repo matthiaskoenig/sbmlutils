@@ -1,19 +1,15 @@
 """
 Helper functions and information for building DFBA models.
 """
-
-from __future__ import print_function, absolute_import, division
 import warnings
 import logging
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils import factory as fac
 from sbmlutils import comp
+from sbmlutils import fbc
 from sbmlutils.dfba import utils
+
 
 
 #################################################
@@ -243,7 +239,7 @@ def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_por
 
     fac.create_objects(model, [
         fac.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
-        fac.Species(sid='X', value=0.001, compartment='c', name='biomass', unit='g', hasOnlySubstanceUnits=True,
+        fac.Species(sid='X', value=0.001, compartment='c', name='biomass', substanceUnit='g', hasOnlySubstanceUnits=True,
                     conversionFactor='cf_biomass')
     ])
     if create_port:
@@ -261,7 +257,7 @@ def add_biomass_species_to_biomass_reaction(model):
     pass
 
 
-def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit=None, create_port=True,
+def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit_amount=None, create_port=True,
                         exclude_sids=[]):
     """ Add DFBA species and compartments from fba model to model.
     Creates the dynamic species and respetive compartments with
@@ -286,7 +282,7 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
         s = model_fba.getSpecies(sid)
         # exchange species to create
         objects.append(
-            fac.Species(sid=sid, name=s.getName(), initialConcentration=1.0, unit=unit,
+            fac.Species(sid=sid, name=s.getName(), initialConcentration=1.0, substanceUnit=unit_amount,
                         hasOnlySubstanceUnits=hasOnlySubstanceUnits, compartment=compartment_id)
         )
         # port of exchange species
@@ -400,7 +396,7 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
                                reactants={species_id: 1}, sboTerm=EXCHANGE_REACTION_SBO)
 
     # exchange bounds
-    fac.set_flux_bounds(ex_r, lb=lb_id, ub=ub_id)
+    fbc.set_flux_bounds(ex_r, lb=lb_id, ub=ub_id)
 
     # create ports
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
@@ -476,7 +472,7 @@ def update_exchange_reactions(model, flux_unit):
         fac.create_objects(model, parameters)
 
         # set bounds
-        fac.set_flux_bounds(r, lb=lb_id, ub=ub_id)
+        fbc.set_flux_bounds(r, lb=lb_id, ub=ub_id)
 
         # create ports for bounds and reaction
         comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
@@ -650,19 +646,19 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
 ################################
 # Top model
 ################################
-def create_dummy_species(model, compartment_id, unit=None, hasOnlySubstanceUnits=False):
+def create_dummy_species(model, compartment_id, unit_amount=None, hasOnlySubstanceUnits=False):
     """ Creates the dummy species in the top model.
     Adds a deletion in the top model which removes the object again.
 
     :param model: SBML model
     :param compartment_id: compartment
-    :param unit: unit
+    :param unit_amount: unit
     :param hasOnlySubstanceUnits: switch if amount or concentration
     :return:
     """
     # dummy species for dummy reactions (empty set)
     fac.create_objects(model,
-                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0, unit=unit,
+                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0, substanceUnit=unit_amount,
                                     hasOnlySubstanceUnits=hasOnlySubstanceUnits,
                                     compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
                         ])

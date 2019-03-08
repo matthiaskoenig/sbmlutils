@@ -15,14 +15,8 @@ To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import logging
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 from sbmlutils.validation import check
 
 SBML_LEVEL = 3  # default SBML level
@@ -30,7 +24,13 @@ SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 
 
-def create_objects(model, obj_iter, debug=False):
+# TODO: Define recurring SBO terms
+PREFIX_EXCHANGE_REACTION = 'EX_'
+SBO_EXCHANGE_REACTION = "SBO:0000627"
+SBO_FLUX_BOUND = "SBO:0000612"
+
+
+def create_objects(model, obj_iter, key=None, debug=False):
     """ Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -38,15 +38,23 @@ def create_objects(model, obj_iter, debug=False):
 
     :param model: SBMLModel instance
     :param obj_iter: iterator of given model object classes like Parameter, ...
+    :param key: object key
     :param debug: print list of created objects
     :return:
     """
     sbml_objects = {}
-    for obj in obj_iter:
-        if debug:
-            print(obj)
-        sbml_obj = obj.create_sbml(model)
-        sbml_objects[sbml_obj.getId()] = sbml_obj
+    try:
+        for obj in obj_iter:
+            if debug:
+                print(obj)
+            sbml_obj = obj.create_sbml(model)
+            sbml_objects[sbml_obj.getId()] = sbml_obj
+    except Exception as error:
+        logging.error("Error creation SBML objects <{}>: {}".format(key, obj_iter))
+        logging.error(error)
+
+        raise
+
     return sbml_objects
 
 
@@ -277,13 +285,19 @@ class Unit(Sbase):
 # Functions
 ##########################################################################
 class Function(Sbase):
+    """ SBML FunctionDefinitions
+
+    FunctionDefinitions consist of a lambda expression in the value field, e.g.,
+        lambda(x,y, piecewise(x,gt(x,y),y) )  #  definition of minimum function
+        lambda(x, sin(x) )
+    """
 
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
         super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.formula = value
 
     def create_sbml(self, model):
-        f = model.createFunctionDefinition()
+        f = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
         self.set_fields(f, model)
         return f
 
@@ -354,7 +368,7 @@ class Compartment(ValueWithUnit):
 class Species(Sbase):
     """ Species. """
 
-    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, unit=None, constant=False, boundaryCondition=False,
+    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
                  port=None):
         super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
@@ -363,7 +377,7 @@ class Species(Sbase):
             raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
         if initialAmount and initialConcentration:
             raise ValueError("initialAmount and initialConcentration cannot be set on species: {}".format(sid))
-        self.unit = unit
+        self.substanceUnit = Unit.get_unit_string(substanceUnit)
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment
@@ -373,12 +387,12 @@ class Species(Sbase):
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
-        s = model.createSpecies()
+        s = model.createSpecies()  # type: libsbml.Species
         self.set_fields(s)
         # substance unit must be set on the given substance unit
         s.setSubstanceUnits(model.getSubstanceUnits())
-        if self.unit is not None:
-            s.setSubstanceUnits(self.unit)
+        if self.substanceUnit is not None:
+            s.setSubstanceUnits(self.substanceUnit)
         else:
             s.setSubstanceUnits(model.getSubstanceUnits())
 
@@ -393,8 +407,8 @@ class Species(Sbase):
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
-        if self.unit is not None:
-            obj.setUnits(Unit.get_unit_string(self.unit))
+        if self.substanceUnit is not None:
+            obj.setUnits(Unit.get_unit_string(self.substanceUnit))
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
         if self.initialConcentration is not None:
@@ -407,8 +421,11 @@ class Species(Sbase):
 # InitialAssignments
 ##########################################################################
 class InitialAssignment(Value):
-    """ InitialAssignments. """
+    """ InitialAssignments.
 
+    The unit attribute is only for the case where a parameter must be created (which has the unit).
+    In case of an initialAssignment of a value the units have to be defined in the math.
+    """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
         super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
         self.unit = unit
@@ -471,9 +488,18 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            logging.warn('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            logging.warning('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
+
+    def create_sbml(self, model):
+        """ Create Rule in model.
+
+        :param model:
+        :return:
+        """
+        logging.error("Rule cannot be created, use either <AssignmentRule> or <RateRule>.")
+        raise NotImplementedError
 
     @staticmethod
     def _create_rule(model, rule, sid, formula):
@@ -589,10 +615,64 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
 
 
 ##########################################################################
+# Constraint
+##########################################################################
+class Constraint(Sbase):
+    """ Constraint.
+
+    The Constraint object is a mechanism for stating the assumptions under which a model is designed to operate.
+    The constraints are statements about permissible values of different quantities in a model.
+
+    The message must be well formated XHTML, e.g.,
+        message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>'
+    """
+    def __init__(self, sid, math, message=None,
+                 name=None, sboTerm=None, metaId=None):
+        super(Constraint, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
+
+        self.math = math
+        self.message = message
+
+    def create_sbml(self, model: libsbml.Model):
+        """ Create libsbml InitialAssignment.
+
+        Creates a required parameter if not existing.
+
+        :param model:
+        :return:
+        """
+        constraint = model.createConstraint()  # type: libsbml.Constraint
+        self.set_fields(constraint, model)
+        return constraint
+
+    def set_fields(self, obj: libsbml.Constraint, model: libsbml.Model):
+        """ Set fields on given object.
+
+        :param obj: constraint
+        :param model: libsbml.Model instance
+        :return:
+        """
+        super(Constraint, self).set_fields(obj)
+
+        if self.math is not None:
+            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
+            obj.setMath(ast_math)
+        if self.message is not None:
+            check(obj.setMessage(self.message), message="Setting message on constraint: '{}'".format(self.message))
+
+
+##########################################################################
 # Events
 ##########################################################################
 class Event(Sbase):
-    """ InitialAssignments. """
+    """ Event.
+
+    Trigger have the format of a logical expression:
+        time%200 == 0
+    Assignments have the format
+        sid = value
+
+    """
 
     def __init__(self, sid, trigger, assignments={},
                  trigger_persistent=True, trigger_initialValue=False, useValuesFromTriggerTime=True,
@@ -665,7 +745,7 @@ class Event(Sbase):
     def _assignments_dict(species, values):
         return dict(zip(species, values))
 
-
+'''
 def getDeficiencyEventId(deficiency):
     logging.warn('Will be removed.', DeprecationWarning)
     return 'EDEF_{:0>2d}'.format(deficiency)
@@ -704,36 +784,5 @@ def createEventFromEventData(model, edata):
     t.setPersistent(True)
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
+'''
 
-
-##########################################################################
-# FBC
-##########################################################################
-# TODO: FluxBound and Objective class
-def set_flux_bounds(reaction, lb, ub):
-    """ Set flux bounds on given reaction. """
-    rplugin = reaction.getPlugin("fbc")
-    rplugin.setLowerFluxBound(lb)
-    rplugin.setUpperFluxBound(ub)
-
-
-def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
-    """ Create flux optimization objective.
-
-    :param model_fbc: FbcModelPlugin
-    :param oid: objective identifier
-    :param otype:
-    :param fluxObjectives:
-    :param active:
-    :return:
-    """
-    objective = model_fbc.createObjective()
-    objective.setId(oid)
-    objective.setType(otype)
-    if active:
-        model_fbc.setActiveObjectiveId(oid)
-    for rid, coefficient in fluxObjectives.items():
-        fluxObjective = objective.createFluxObjective()
-        fluxObjective.setReaction(rid)
-        fluxObjective.setCoefficient(coefficient)
-    return objective

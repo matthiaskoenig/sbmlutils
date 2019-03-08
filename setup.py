@@ -3,8 +3,6 @@
 """
 sbmlutils pip package
 """
-from __future__ import absolute_import, print_function
-
 import io
 import re
 import os
@@ -47,7 +45,6 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Cython',
@@ -66,35 +63,33 @@ setup(
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "pip>=18.0",
-        "numpy>=1.14.5",
-        "scipy>=1.1.0",
-        "matplotlib>=2.2.2",
-        "pandas>=0.23.1",
-        "tabulate>=0.8.2",
+        "pip>=19.0.3",
+        "numpy>=1.16.2",
+        "scipy>=1.2.1",
+        "matplotlib>=3.0.3",
+        "pandas>=0.24.1",
+        "tabulate>=0.8.3",
         "Jinja2>=2.10",
-        "requests>=2.19.0",
-        "beautifulsoup4>=4.6.0",
-        "xarray>=0.10.7",
-        "pyexcel>=0.5.8",
-        "pyexcel-xlsx>=0.5.6",
-        # fba
-        "cobra>=0.13.0",
-        "optlang>=1.4.2",
+        "requests>=2.21.0",
+        "beautifulsoup4>=4.7.1",
+        "xarray>=0.11.3",
+        "pyexcel>=0.5.12",
+        "pyexcel-xlsx>=0.5.7",
+
         # standards
-        "libroadrunner>=1.4.24",
-        "tesbml>=5.15.0.1",
-        "tesedml>=0.4.3",
-        "tecombine>=0.2.2.1",
-        "tenuml>=1.1.1",
-        "phrasedml>=1.0.9",
-        "antimony>=2.9.4",
-        "tellurium>=2.0.18",
-        # testing
-        "pytest>=3.6.1",
-        "pytest-cov>=2.5.1",
+        "python-libsbml-experimental>=5.17.2",
+        "phrasedml>=1.0.9",  # not working on py37
+        "antimony>=2.9.4",  # not working on py37
+
+        # simulation
+        "libroadrunner>=1.5.3",
+        "cobra>=0.14.2",
+        "optlang>=1.4.4",
+
         # misc
-        "ipykernel>=4.8.2",
+        "pytest>=4.3.0",
+        "pytest-cov>=2.6.1",
+        "ipykernel>=5.1.0",
     ],
     extras_require={},
     **setup_kwargs)

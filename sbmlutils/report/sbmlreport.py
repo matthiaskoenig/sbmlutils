@@ -12,7 +12,6 @@ The basic steps of template creation are
 
 The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
-from __future__ import print_function, division, absolute_import
 import os
 import codecs
 import ntpath
@@ -21,10 +20,7 @@ import jinja2
 import logging
 from distutils import dir_util
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 
 from sbmlutils.report import sbmlfilters

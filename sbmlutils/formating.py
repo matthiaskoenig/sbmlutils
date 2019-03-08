@@ -1,11 +1,7 @@
 """
 Helper functions for formating SBML elements.
 """
-from __future__ import absolute_import, print_function
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 import sbmlutils.annotation as annotation
 
 
