@@ -1,8 +1,7 @@
 # Docker image with latest libsbml-develop branch python bindings
 # build and run container
 #   docker build --tag pylibsbml .
-#   docker run --name pylibsbml pylibsbml
-#    docker run --name pylibsbml -it pylibsbml bash
+#   docker run --name pylibsbml -it pylibsbml bash
 # connect pycharm
 # settings -> interpreter -> docker -> sbmlutils:latest
 
