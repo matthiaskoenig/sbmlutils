@@ -49,15 +49,6 @@ echo "--------------------------------------"
 cd $LIBSBML_BUILD/src/bindings/python/out/
 python setup.py install
 
-# test python bindings
-# cd $DIR
-# ./libsbml_test.py
-# rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-# test that package installed
-# echo pip list | grep libsbml
-
-
 TEND=`date +%s`
 RUNTIME=$((TEND-TSTART))
 echo "runtime: $RUNTIME [s]"

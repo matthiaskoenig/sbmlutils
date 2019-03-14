@@ -174,9 +174,6 @@ class ReactionGlyph(factory.Sbase):
                 x_tot += (x_s - x_r)
                 y_tot += (y_s - y_r)
 
-
-        print("x_tot, ytot")
-        print(x_tot, y_tot)
         if (abs(x_tot) < eps) and (abs(y_tot) < eps):
             direction = "down"
         else:
@@ -191,7 +188,6 @@ class ReactionGlyph(factory.Sbase):
                 elif x_tot > 0:
                     direction = "up"
         print(direction)
-
 
         # create speciesReferenceGlyphs
         for sg_id, role in self.species_glyphs.items():
@@ -236,15 +232,15 @@ class ReactionGlyph(factory.Sbase):
         if direction == "right":
             s_point_substrate = (xs+ws, ys+0.5*hs)
             s_point_product = (xs, ys+0.5*hs)
-            s_point_modifier  = (xs+0.5*ws, y+hs)
+            s_point_modifier = (xs+0.5*ws, y+hs)
 
             r_point_substrate = (x, y+0.5*h)
-            r_point_product   = (x+w, y+0.5*h)
-            r_point_modifier  = (x+0.5*w, y)
+            r_point_product = (x+w, y+0.5*h)
+            r_point_modifier = (x+0.5*w, y)
         elif direction == "left":
             s_point_substrate = (xs, ys+0.5*hs)
-            s_point_product   = (xs+ws, ys+0.5*hs)
-            s_point_modifier  = (xs+0.5*ws, y+hs)
+            s_point_product = (xs+ws, ys+0.5*hs)
+            s_point_modifier = (xs+0.5*ws, y+hs)
 
             r_point_substrate = (x+w, y+0.5*h)
             r_point_product = (x, y+0.5*h)
@@ -265,7 +261,6 @@ class ReactionGlyph(factory.Sbase):
             r_point_substrate = (x + 0.5 * w, y+h)
             r_point_product = (x + 0.5 * w, y)
             r_point_modifier = (x + w, y + 0.5 * h)
-
 
         if role in [LAYOUT_ROLE_ACTIVATOR,
                     LAYOUT_ROLE_INHIBITOR,
