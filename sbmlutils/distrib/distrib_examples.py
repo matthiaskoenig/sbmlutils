@@ -63,7 +63,7 @@ def distrib_all():
     # extended math approach
     formulas_data = [
         ('p_normal_1', 'normal(0, 1)'),
-        ('p_normal_2', 'normal(0, 1, 0, 10'),
+        ('p_normal_2', 'normal(0, 1, 0, 10)'),
         ('p_uniform', 'uniform(5, 10)'),
         ('p_bernoulli', 'bernoulli(0.4)'),
         ('p_binomial_1', 'binomial(100, 0.3)'),
@@ -71,19 +71,19 @@ def distrib_all():
         ('p_cauchy_1', 'cauchy(0, 1)'),
         ('p_cauchy_2', 'cauchy(0, 1, 0, 5)'),
         ('p_chisquare_1', 'chisquare(10)'),
-        ('p_chisquare_2', 'chisquare(10, 0, 10'),
+        ('p_chisquare_2', 'chisquare(10, 0, 10)'),
         ('p_exponential_1', 'exponential(1.0)'),
-        ('p_exponential_2', 'exponential(1.0, 0, 10'),
+        ('p_exponential_2', 'exponential(1.0, 0, 10)'),
         ('p_gamma_1', 'gamma(0, 1)'),
-        ('p_gamma_2', 'gamma(0, 1, 0, 10'),
+        ('p_gamma_2', 'gamma(0, 1, 0, 10)'),
         ('p_laplace_1', 'laplace(0, 1)'),
-        ('p_laplace_2', 'laplace(0, 1, 0, 10'),
+        ('p_laplace_2', 'laplace(0, 1, 0, 10)'),
         ('p_lognormal_1', 'lognormal(0, 1)'),
         ('p_lognormal_2', 'lognormal(0, 1, 0, 10)'),
         ('p_poisson_1', 'poisson(0.5)'),
         ('p_poisson_2', 'poisson(0.5, 0, 10)'),
-        ('p_raleigh_1', 'raleigh(0.5)'),
-        ('p_raleigh_2', 'raleigh(0.5, 0, 10)'),
+        ('p_raleigh_1', 'rayleigh(0.5)'),
+        ('p_raleigh_2', 'rayleigh(0.5, 0, 10)'),
     ]
 
     # create parameters with distribution assignments
@@ -93,7 +93,10 @@ def distrib_all():
         assignment = model.createInitialAssignment()  # type: libsbml.InitialAssignment
         assignment.setSymbol(pid)
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
-        assignment.setMath(ast_node)
+        if ast_node is None:
+            raise IOError("{}, {}".format(formula,
+                                          libsbml.getLastParseL3Error()))
+        assignment.setMath(ast_node), "setting math"
 
     return doc
 
@@ -185,15 +188,16 @@ def uncertainty_uncertspan():
     return doc
 
 
-
 if __name__ == "__main__":
 
-    # for f_creator in
-    f_distrib = [distrib_normal, distrib_all]
-    f_uncertainty = [uncertainty_distribution, uncertainty_uncertvalue, uncertainty_uncertspan]
-    # functions = [uncertainty_distribution, uncertainty_uncertvalue, uncertainty_uncertspan]
-
-    for f_creator in f_uncertainty:
+    functions = [
+        #distrib_normal,
+        distrib_all,
+        #uncertainty_distribution,
+        #uncertainty_uncertvalue,
+        #uncertainty_uncertspan
+    ]
+    for f_creator in functions:
         name = f_creator.__name__
         print(name)
         # distrib_example1()

@@ -1,6 +1,9 @@
 """
-Check the charge and formula balance of the model.
-Run some simple FBA simulations.
+Runs ODE and FBA simulation with the model.
+
+memote model report can be generated via:
+memote report snapshot --filename tiny_example_10_memote.html tiny_example_10.xml
+
 """
 import os
 
@@ -8,11 +11,11 @@ import model
 import roadrunner
 import pandas as pd
 from matplotlib import pylab as plt
-import libsbml
-
 from sbmlutils.modelcreator.creator import Factory
 
-
+# -----------------------------------------------------------------------------
+# create model
+# -----------------------------------------------------------------------------
 models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 print('-'*80)
@@ -25,17 +28,19 @@ factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model'],
 _, _, tiny_sbml = factory.create(tmp=False)
 
 
-# SBML file
-tiny_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         'results',
-                         '{}_{}.xml'.format(model.mid, model.version))
+# -----------------------------------------------------------------------------
+# run ode simulation
+# -----------------------------------------------------------------------------
+# tiny_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+#                         'results',
+#                         '{}_{}.xml'.format(model.mid, model.version))
 
 
 r = roadrunner.RoadRunner(tiny_sbml)
 r.timeCourseSelections = ["time"] + r.model.getBoundarySpeciesIds() + r.model.getFloatingSpeciesIds() + r.model.getReactionIds() + r.model.getGlobalParameterIds()
 r.timeCourseSelections += ["[{}]".format(key) for key in r.model.getFloatingSpeciesIds()]
-print(r)
-s = r.simulate(0, 700, steps=700)
+# print(r)
+s = r.simulate(0, 400, steps=400)
 df = pd.DataFrame(s, columns=s.colnames)
 # r.plot()
 
@@ -50,7 +55,7 @@ ax1.set_ylabel("concentration [mmole/litre]=[mM]")
 
 ax2.set_title("SBML reactions")
 ax2.plot(df.time, 1E6*df.GK)
-ax2.plot(df.time, 1E6*df.ATPASE)
+ax2.plot(df.time, 1E6*df.ATPPROD)
 ax2.set_ylabel("reaction rate 1E6[mmole/s]")
 
 for ax in (ax1, ax2):
@@ -58,7 +63,7 @@ for ax in (ax1, ax2):
     ax.set_xlabel("time [s]")
 
 plt.show()
-f.savefig("tiny_example.png", bbox_inches="tight")
+f.savefig("./results/{}_{}.png".format(model.mid, model.version), bbox_inches="tight")
 
 
 #r = roadrunner.RoadRunner(tiny_sbml)
@@ -67,6 +72,44 @@ f.savefig("tiny_example.png", bbox_inches="tight")
 #s = r.simulate(0, 100, steps=100)
 #df = pd.DataFrame(s, columns=s.colnames)
 #r.plot()
+
+import cobra
+
+# -----------------------------------------------------------------------------
+# fba simulation
+# -----------------------------------------------------------------------------
+import cobra
+from cobra.io import read_sbml_model
+model = read_sbml_model(tiny_sbml)
+print(model)
+
+
+# Iterate through the the objects in the model
+print("Reactions")
+print("---------")
+for x in model.reactions:
+    print("%s : %s [%s<->%s]" % (x.id, x.reaction, x.lower_bound, x.upper_bound))
+
+print("")
+print("Metabolites")
+print("-----------")
+for x in model.metabolites:
+    print('%9s : %s' % (x.id, x.formula))
+
+print("")
+print("Genes")
+print("-----")
+for x in model.genes:
+    associated_ids = (i.id for i in x.reactions)
+    print("%s is associated with reactions: %s" %
+          (x.id, "{" + ", ".join(associated_ids) + "}"))
+
+
+
+
+solution = model.optimize()
+print(solution)
+
 
 
 

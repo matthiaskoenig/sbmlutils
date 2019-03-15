@@ -187,7 +187,6 @@ class ReactionGlyph(factory.Sbase):
                     direction = "down"
                 elif x_tot > 0:
                     direction = "up"
-        print(direction)
 
         # create speciesReferenceGlyphs
         for sg_id, role in self.species_glyphs.items():

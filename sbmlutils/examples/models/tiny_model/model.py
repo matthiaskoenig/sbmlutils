@@ -2,17 +2,18 @@
 """
 Demo kinetic network.
 """
-
+from math import inf
 import libsbml
 from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
 import sbmlutils.factory as mc
+import sbmlutils.fbc as fbc
 import sbmlutils.layout as layout
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 # -----------------------------------------------------------------------------
 mid = 'tiny_example'
-version = 8
+version = 10
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h2>Description</h2>
@@ -84,19 +85,19 @@ compartments.extend([
 species.extend([
 
     mc.Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm="SBO:0000247", port=True),
+               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm=mc.SBO_SIMPLE_CHEMICAL, port=True),
     mc.Species(sid='g6p', compartment='c', initialConcentration=0.1, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm="SBO:0000247"),
+               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm=mc.SBO_SIMPLE_CHEMICAL),
     mc.Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm="SBO:0000247", port=True),
+               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm=mc.SBO_SIMPLE_CHEMICAL, port=True),
     mc.Species(sid='adp', compartment='c', initialConcentration=0.8, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ADP', sboTerm="SBO:0000247", port=True),
+               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ADP', sboTerm=mc.SBO_SIMPLE_CHEMICAL, port=True),
     mc.Species(sid='phos', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='P', sboTerm="SBO:0000247", port=True),
+               boundaryCondition=True, hasOnlySubstanceUnits=False, name='P', sboTerm=mc.SBO_SIMPLE_CHEMICAL, port=True),
     mc.Species(sid='hydron', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm="SBO:0000247"),
+               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm=mc.SBO_SIMPLE_CHEMICAL),
     mc.Species(sid='h2o', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H2O', sboTerm="SBO:0000247")
+               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H2O', sboTerm=mc.SBO_SIMPLE_CHEMICAL)
 ])
 
 # -----------------------------------------------------------------------------
@@ -105,13 +106,28 @@ species.extend([
 parameters.extend([
 
     mc.Parameter('Vmax_GK', 1.0E-6, unit='mmole_per_s', constant=True,
-                 sboTerm="SBO:0000186", name="Vmax Glucokinase"),
+                 sboTerm=mc.SBO_MAXIMAL_VELOCITY, name="Vmax Glucokinase"),
     mc.Parameter('Km_glc', 0.5, unit='mM', constant=True,
-                 sboTerm="SBO:0000371", name="Km glucose"),
+                 sboTerm=mc.SBO_MICHAELIS_CONSTANT, name="Km glucose"),
     mc.Parameter('Km_atp', 0.1, unit='mM', constant=True,
-                 sboTerm="SBO:0000371", name="Km ATP"),
+                 sboTerm=mc.SBO_MICHAELIS_CONSTANT, name="Km ATP"),
+    mc.Parameter('Km_adp', 0.1, unit='mM', constant=True,
+                 sboTerm=mc.SBO_MICHAELIS_CONSTANT, name="Km ADP"),
     mc.Parameter('Vmax_ATPASE', 1.0E-6, unit='mmole_per_s', constant=True,
-                 sboTerm="SBO:0000186", name="Vmax ATPase"),
+                 sboTerm=mc.SBO_MAXIMAL_VELOCITY, name="Vmax ATPase"),
+    mc.Parameter(sid="zero", name="zero bound",
+                 value=0, unit="mmole_per_s",
+                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
+    mc.Parameter(sid="inf", name="upper bound",
+                 value=inf, unit="mmole_per_s",
+                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
+    mc.Parameter(sid="minus_1000",
+                 value=-1000, unit="mmole_per_s",
+                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
+    mc.Parameter(sid="plus_1000",
+                 value=1000, unit="mmole_per_s",
+                 constant=True, sboTerm=mc.SBO_FLUX_BOUND),
+
 ])
 
 # -----------------------------------------------------------------------------
@@ -147,25 +163,60 @@ reactions.extend([
         pars=[],
         rules=[],
         formula=('Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))', 'mmole_per_s'),
-        sboTerm="SBO:0000176"
+        lowerFluxBound="zero",
+        upperFluxBound="inf",
+        sboTerm=mc.SBO_BIOCHEMICAL_REACTION
     ),
     ReactionTemplate(
-        rid='ATPASE',
-        name='ATP consumption',
-        equation='atp + h2o -> adp + phos + hydron []',
+        rid='ATPPROD',
+        name='ATP production',
+        equation='adp + phos + hydron -> atp + h2o []',
         compartment='c',
         pars=[],
         rules=[],
-        formula=('Vmax_ATPASE * (atp/(Km_atp+atp)) * f_oscillation(time/ 1 second)', 'mmole_per_s'),
-        sboTerm="SBO:0000176"
+        formula=('Vmax_ATPASE * (adp/(Km_adp+adp)) * f_oscillation(time/ 1 second)', 'mmole_per_s'),
+        lowerFluxBound="zero",
+        upperFluxBound="inf",
+        sboTerm=mc.SBO_BIOCHEMICAL_REACTION
+    ),
+    ReactionTemplate(
+        rid='EX_glc',
+        name='glucose exchange',
+        equation='glc -> []',
+        compartment='c',
+        pars=[],
+        rules=[],
+        lowerFluxBound="minus_1000",
+        upperFluxBound="plus_1000",
+        sboTerm=mc.SBO_EXCHANGE_REACTION
+    ),
+    ReactionTemplate(
+        rid='EX_g6p',
+        name='glucose-6 phosphate exchange',
+        equation='g6p -> []',
+        compartment='c',
+        pars=[],
+        rules=[],
+        lowerFluxBound="minus_1000",
+        upperFluxBound="plus_1000",
+        sboTerm=mc.SBO_EXCHANGE_REACTION
     )
 ])
+
+# -----------------------------------------------------------------------------
+# Objective function
+# -----------------------------------------------------------------------------
+objectives = [
+    fbc.Objective(sid="atp_consume_max", objectiveType="maximize", active=True,
+                  fluxObjectives={"ATPPROD": 1.0})
+]
 
 # -----------------------------------------------------------------------------
 # Events
 # -----------------------------------------------------------------------------
 events.extend([
-    mc.Event("event_1", trigger="time%200 second == 0 second", assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
+    mc.Event("event_1", trigger="time >= 200 second",
+             assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
              name="reset concentrations")
 ])
 
@@ -201,7 +252,7 @@ layouts.extend([
                                          "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
                                          "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
                                      }),
-                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=650+25, y=250+10, h=0, w=0, text="ATPase",
+                    layout.ReactionGlyph('glyph_ATPPROD', reaction="ATPPROD", x=650+25, y=250+10, h=0, w=0, text="ATPase",
                                      species_glyphs={
                                          "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
                                          "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
