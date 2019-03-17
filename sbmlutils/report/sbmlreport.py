@@ -18,7 +18,6 @@ import ntpath
 import warnings
 import jinja2
 import logging
-from distutils import dir_util
 
 import libsbml
 

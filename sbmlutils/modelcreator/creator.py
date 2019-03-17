@@ -42,10 +42,10 @@ class Factory(object):
         self.mid = mid
 
     def create(self, tmp=False):
-        """ Create the SBML model and returns it.
+        """ Creates SBML model in target directory.
 
         :param tmp: write files in temporary folder. Used for testing.
-        :return:
+        :return: (model_dict, core_model, sbml_path)
         """
         if tmp:
             target_dir = tempfile.mkdtemp()
@@ -195,7 +195,8 @@ class CoreModel(object):
              'version': None,
              'notes': None,
              'creators': list,
-             'main_units': dict,
+             'model_units': None,
+             'main_units': None,
 
              'externalModelDefinitions': list,
              'submodels': list,
@@ -238,6 +239,9 @@ class CoreModel(object):
 
         self.doc = None  # SBMLDocument
         self.model = None  # SBMLModel
+
+        if 'main_units' in CoreModel._keys:
+            logging.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property
     def model_id(self):
@@ -316,14 +320,14 @@ class CoreModel(object):
         check(self.model.setName(self.model_id), 'set name')
         # notes
         if hasattr(self, 'notes') and self.notes is not None:
-            check(self.model.setNotes(self.notes), 'set notes')
+            factory.set_notes(self.model, self.notes)
         # history
         if hasattr(self, 'creators'):
             history.set_model_history(self.model, self.creators)
 
-        # main units
-        if hasattr(self, 'main_units'):
-            factory.set_main_units(self.model, self.main_units)
+        # model units
+        if hasattr(self, 'model_units'):
+            factory.set_model_units(self.model, self.model_units)
 
         # lists ofs
         for attr in [

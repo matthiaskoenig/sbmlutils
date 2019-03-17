@@ -19,26 +19,25 @@ import logging
 import libsbml
 from sbmlutils.validation import check
 
+
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
-
-
-# TODO: Define recurring SBO terms
 PREFIX_EXCHANGE_REACTION = 'EX_'
 
-SBO_EXCHANGE_REACTION = "SBO:0000627"
-SBO_DEMAND_REACTION = "SBO:0000628"
-SBO_SINK_REACTION = "SBO:0000632"
-
-SBO_BIOCHEMICAL_REACTION = "SBO:0000176"
-SBO_SIMPLE_CHEMICAL = "SBO:0000247"
-
-SBO_FLUX_BOUND = "SBO:0000612"
-
-SBO_MAXIMAL_VELOCITY = "SBO:0000186"
-SBO_MICHAELIS_CONSTANT = "SBO:0000371"
-
+__all__ = [
+    'Notes',
+    'ModelUnits',
+    'Compartment',
+    'Unit',
+    'Function',
+    'Species',
+    'Parameter',
+    'InitialAssignment',
+    'AssignmentRule',
+    'RateRule',
+    'Event'
+]
 
 
 def create_objects(model, obj_iter, key=None, debug=False):
@@ -83,7 +82,53 @@ def ast_node_from_formula(model, formula):
     return ast_node
 
 
-def set_main_units(model, main_units):
+#####################################################################
+# Notes
+#####################################################################
+class Notes(object):
+
+    def __init__(self, notes):
+        tokens = ["<body xmlns='http://www.w3.org/1999/xhtml'>"]
+        if isinstance(notes, (dict, list)):
+            tokens.extend(notes)
+        else:
+            tokens.append(notes)
+
+        tokens.append("</body>")
+        notes_str = "\n".join(tokens)
+        self.xml = libsbml.XMLNode.convertStringToXMLNode(notes_str)
+        if self.xml is None:
+            raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+
+
+def set_notes(model, notes):
+    """ Set notes information on model.
+
+    :param model: Model
+    :param notes: notes information (xml string)
+    :return:
+    """
+    if not isinstance(notes, Notes):
+        logging.error("Using notes strings is deprecated, use 'Notes' instead.")
+        notes = Notes(notes)
+
+    check(model.setNotes(notes.xml), message="Setting notes on model")
+
+
+#####################################################################
+# ModelUnits
+#####################################################################
+class ModelUnits(object):
+    def __init__(self, time=None, extent=None, substance=None, length=None, area=None, volume=None):
+        self.time = time
+        self.extent = extent
+        self.substance = substance
+        self.length = length
+        self.area = area
+        self.volume = volume
+
+
+def set_model_units(model, model_units):
     """ Sets the main units in model from dictionary.
 
     Allowed keys are:
@@ -95,14 +140,18 @@ def set_main_units(model, main_units):
         volume
 
     :param model: SBMLModel
-    :param main_units: dict of units
+    :param model_units: dict of units
     :return:
     """
+    if isinstance(model_units, dict):
+        logging.error("Providing model units as dict is deprecated, use 'ModelUnits' instead.")
+        model_units = ModelUnits(**model_units)
+
     for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
-        if key not in main_units:
-            logging.warning('The following key is missing in main_units: {}'.format(key))
+        if getattr(model_units, key) is None:
+            logging.error('The following key is missing in model_units: {}'.format(key))
             continue
-        unit = main_units[key]
+        unit = getattr(model_units, key)
         unit = Unit.get_unit_string(unit)
         # set the values
         if key == 'time':
@@ -119,26 +168,11 @@ def set_main_units(model, main_units):
             model.setVolumeUnits(unit)
 
 
-def set_notes(model, notes):
-    """ Set notes information on model.
-
-    :param model: Model
-    :param notes: notes information (xml string)
-    :return:
-    """
-    xml_node = libsbml.XMLNode.convertStringToXMLNode(notes)
-    if xml_node is None:
-        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
-    check(model.setNotes(xml_node),
-          message="Setting notes on model")
-
-
 #####################################################################
 # Creator
 #####################################################################
 class Creator(object):
     """ Creator in ModelHistory. """
-
     def __init__(self, familyName, givenName, email, organization, site=None):
         self.familyName = familyName
         self.givenName = givenName
@@ -285,11 +319,15 @@ class Unit(Sbase):
 
     @staticmethod
     def get_unit_string(unit):
+        unit_str = None
+        if type(unit) is Unit:
+            unit_str = unit.sid
         if type(unit) is int:
-            unit = libsbml.UnitKind_toString(unit)
+            # libsbml unit
+            unit_str = libsbml.UnitKind_toString(unit)
         if unit == '-':
-            unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
-        return unit
+            unit_str = libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
+        return unit_str
 
 
 ##########################################################################

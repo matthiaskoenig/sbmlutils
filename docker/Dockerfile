@@ -25,6 +25,5 @@ RUN svn checkout http://svn.code.sf.net/p/sbml/code/branches/libsbml-experimenta
 
 WORKDIR /code
 COPY ./libsbml.sh /code/
-COPY ./libsbml_test.py /code/
 
 RUN ./libsbml.sh
