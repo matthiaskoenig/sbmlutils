@@ -338,7 +338,7 @@ class Unit(Sbase):
             else:
                 return unit
         else:
-            raise ValueError("Unit cannot be resolved: %s", unit)
+            return None
 
 
 ##########################################################################

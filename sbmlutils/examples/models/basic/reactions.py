@@ -3,7 +3,7 @@ Reactions and transporters of test model.
 """
 from sbmlutils import factory as mc
 
-from sbmlutils.modelcreator.processes import ReactionTemplate
+from sbmlutils.factory import ReactionTemplate
 
 
 GLUT2_GAL = ReactionTemplate(

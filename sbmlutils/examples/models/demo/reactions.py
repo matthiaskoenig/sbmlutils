@@ -1,7 +1,7 @@
 """
 Reactions and transporters of demo metabolism.
 """
-from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
+from sbmlutils.factory import ReactionTemplate
 
 bA = ReactionTemplate(
     rid='bA',
