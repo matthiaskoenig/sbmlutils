@@ -16,8 +16,6 @@ def create(tmp=False):
     factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model'],
                       target_dir=os.path.join(models_dir, 'results'),
                       annotations=os.path.join(models_dir, 'annotations.xlsx'))
-    # factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model2'],
-    #                  target_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
 

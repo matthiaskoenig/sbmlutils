@@ -7,6 +7,8 @@ import pandas as pd
 import libsbml
 from sbmlutils import factory
 
+__all__ = ['Objective']
+
 
 # -----------------------------------------------------------------------------
 # Objective

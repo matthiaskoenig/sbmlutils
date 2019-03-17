@@ -18,6 +18,7 @@ which takes care of the order of object creation.
 import logging
 import libsbml
 from sbmlutils.validation import check
+from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
 
 
 SBML_LEVEL = 3  # default SBML level
@@ -28,6 +29,7 @@ PREFIX_EXCHANGE_REACTION = 'EX_'
 __all__ = [
     'Notes',
     'ModelUnits',
+    'Creator',
     'Compartment',
     'Unit',
     'Function',
@@ -36,7 +38,10 @@ __all__ = [
     'InitialAssignment',
     'AssignmentRule',
     'RateRule',
-    'Event'
+    'Event',
+    'Constraint',
+    'ReactionTemplate',
+    'ExchangeReactionTemplate',
 ]
 
 

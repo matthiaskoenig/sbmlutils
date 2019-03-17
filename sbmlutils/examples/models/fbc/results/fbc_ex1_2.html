@@ -7,30 +7,228 @@
 
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="SBML report">
-    <meta name="author" content="Matthias Koenig">
-    <!-- <meta http-equiv="refresh" content="5" /> -->
+    <meta name="author" content="Matthias König">
 
     <link rel="icon" href="_report/images/sbml.ico">
-    <title>fbc_ex1_1</title>
+    <title>fbc_ex1_2</title>
 
-        <!-- CSS -->
-        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-3.3.7.min.css">
-        <link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">
-        <link rel="stylesheet" type="text/css" href="_report/css/jquery.dataTables-1.10.15.min.css"/>
-        <link rel="stylesheet" type="text/css" href="_report/css/font-awesome-4.7.0.min.css">
-        <link rel="stylesheet" type="text/css" href="_report/css/report.css"/>
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <!--<link rel="stylesheet" type="text/css" href="_report/css/sbmlreport.css"/>-->
 
-        <!-- JS -->
-        <script type="text/javascript" src="_report/js/jquery-2.2.4.min.js"></script>
-        <script type="text/javascript" src="_report/js/bootstrap-3.3.7.min.js"></script>
-        <script type="text/javascript" src="_report/js/jquery.dataTables-1.10.15.min.js"></script>
+    <style>
+        /* Show it is fixed to the top */
+        body {
+          min-height: 75rem;
+          padding-top: 5.0rem;
+        }
+        a.anchor {
+            display: block;
+            position: relative;
+            top: -5.0rem;
+            visibility: hidden;
+        }
+
+        .table-nonfluid {
+           /* width: auto; */
+            width: 70%;
+        }
+
+        .cvterm {
+            font-size: small;
+        }
+        .blue {
+            color: darkblue;
+        }
+        .darkgray {
+            color: #646464;
+        }
+        .gray {
+            color: #aaaaaa;
+        }
+        .red {
+            color: darkred;
+        }
+        .green {
+            color: darkgreen;
+        }
+
+        /* XML popup */
+        .parent .popup {
+          display: none;
+        }
+
+        .parent:hover .popup {
+            display: block;
+            margin-top: 9px;
+            border: 1px solid #bebebe;
+            padding: 16px 10px 10px 10px;
+            background: #ededed;
+        }
+
+        .ontology{
+            background-color: #5FBDCE;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .collection {
+            background-color: white;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .package {
+            background-color: black;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .identifier{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .purl{
+            color: grey;
+        }
+        .icon-invisible {
+            visibility: hidden;
+        }
+        .icon-black {
+            color: black;
+        }
+
+        /* References */
+        .ref-item {
+            list-style-type: none;
+        }
+        .ref-item a{
+            font-size: 10px;
+        }
+        .ref-title{
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .ref-authors{
+            font-size: 10px;
+        }
+        .ref-journal{
+            font-size: 10px;
+        }
+        .id{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .term{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .item{
+            background-color: gray;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .comment{
+            background-color: gray;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .cvterm{
+            border-radius: 15px;
+            background: #f9f9f9;
+            padding: 5px;
+        }
+        .history{
+            border-radius: 15px;
+            background: #ffffff;
+            padding: 5px;
+        }
+        .qualifier{
+            background-color: #13721c;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .unit{
+            background-color: rgba(200, 200, 200, 0.51);
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            font-family: monospace;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .math{
+            color: black;
+            font-family: monospace;
+        }
+    </style>
+
+
+    <!--<link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">-->
+
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+    <!--https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js-->
 
 
     <!-- MathJax not working offline -->
-    <script type="text/javascript" async
-          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
-    </script>
-
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
       MathML: {
@@ -49,7 +247,8 @@
             var t_modeldefs = $('#table_modeldefs').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_modeldefs.fnFilter($(this).val());
@@ -58,7 +257,8 @@
             var t_submodels = $('#table_submodels').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_submodels.fnFilter($(this).val());
@@ -67,7 +267,8 @@
             var t_ports = $('#table_ports').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_ports.fnFilter($(this).val());
@@ -76,7 +277,8 @@
             var t_functions = $('#table_functions').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_functions.fnFilter($(this).val());
@@ -85,7 +287,8 @@
             var t_units = $('#table_units').dataTable({
                 "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_units.fnFilter($(this).val());
@@ -94,7 +297,9 @@
             var t_compartments = $('#table_compartments').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+
             });
             $('#searchField').keyup(function(){
                 t_compartments.fnFilter($(this).val());
@@ -103,7 +308,8 @@
             var t_species = $('#table_species').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_species.fnFilter($(this).val());
@@ -112,7 +318,8 @@
             var t_geneproducts = $('#table_geneproducts').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_geneproducts.fnFilter($(this).val());
@@ -121,7 +328,8 @@
             var t_parameters = $('#table_parameters').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_parameters.fnFilter($(this).val());
@@ -130,7 +338,8 @@
             var t_assignments = $('#table_assignments').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_assignments.fnFilter($(this).val());
@@ -139,7 +348,8 @@
             var t_rules = $('#table_rules').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_rules.fnFilter($(this).val());
@@ -148,7 +358,8 @@
             var t_reactions = $('#table_reactions').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_reactions.fnFilter($(this).val());
@@ -157,7 +368,8 @@
             var t_objectives = $('#table_objectives').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_objectives.fnFilter($(this).val());
@@ -167,7 +379,8 @@
             var t_constraints = $('#table_constraints').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_constraints.fnFilter($(this).val());
@@ -177,7 +390,8 @@
             var t_events = $('#table_events').dataTable({
                "bPaginate": false,
                 "bInfo": false,
-                "dom": '<"top">rt<"bottom"><"clear">'
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
             });
             $('#searchField').keyup(function(){
                 t_events.fnFilter($(this).val());
@@ -191,73 +405,106 @@
 </head>
 
 <body>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark">
+  <a class="navbar-brand" href="#doc"><td id="fbc_ex1_2" class="active"><span class="package">fbc_ex1_2</span> <code>meta_fbc_ex1_2</code></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-<!-- CONTAINER -->
-<div class="container-fluid">
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-    <!-- ROW -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item"><a class="nav-link" href="#anchor_model">Model</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_units">UnitDefinitions</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_compartments">Compartments</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_species">Species</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_parameters">Parameters</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_reactions">Reactions</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_objectives">fbc:Objectives</a></li>
+    </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <input id="searchField" class="form-control mr-sm-2" accesskey="S" type="search" class="form-control" placeholder="Search" aria-label="Search">
+        <!-- <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+
+    </form>
+       <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils"><i class="fab fa-github fa-2x"></i></a></li>
+       </ul>
+  </div>
+</nav>
+
+
+<main role="main" class="container-fluid">
     <div class="row">
-        <!-- LEFT -->
-        <div class="col-sm-3 col-md-2 sidebar">
-
-            <ul class="nav nav-sidebar">
-                <li><a href="#doc"><b>SBMLDocument</b></a></li>
-                <li><a href="#model">Model</a></li>
-                    <li><a href="#table_units">UnitDefinitions</a></li>
-                    <li><a href="#table_compartments">Compartments</a></li>
-                    <li><a href="#table_species">Species</a></li>
-                    <li><a href="#table_parameters">Parameters</a></li>
-                    <li><a href="#table_reactions">Reactions</a></li>
-                    <li><a href="#table_objectives">fbc:Objectives</a></li>
-                <li>
-                <form class="navbar-form navbar-left">
-                    <input id="searchField" accesskey="S" type="text" class="form-control" placeholder="Search...">
-                </form>
-                </li>
-
-            </ul>
-        </div>
-        <!-- END LEFT -->
-
-        <!-- RIGHT -->
-        <div class="col-lg-8 col-lg-offset-2 main">
-
+        <div class="col-12">
             <!-- CONTENT -->
             <div class="content">
-    <!--------------------------------------------------->
-    <!-- SBMLDocument                                  -->
-    <!--------------------------------------------------->
     <a class="anchor" id="doc"></a>
-
-    <!--------------------------------------------------->
-    <!-- Model                                         -->
-    <!--------------------------------------------------->
-    <h1 id="model">Model : fbc_ex1_1</h1>
-    <b>Creator</b><br />Matthias, Koenig, Humboldt-University Berlin, Institute for Theoretical Biology, <a href="mailto:koenigmx@hu-berlin.de" target="_blank">koenigmx@hu-berlin.de</a><br /><b>Created:</b> 2019-03-06 14:40<br /><b>Modified:</b> 2019-03-06 14:40<br /><br />
-    <table id="table_model" class="table table-condensed table-nonfluid">
-        <tr>
-        <td>
-                <table class="table table-condensed table-nonfluid table-hover">
-                <tbody>
-                <tr><td class="active">id</td> <td id="fbc_ex1_1" class="active"><span class="package">fbc_ex1_1</span> <code>meta_fbc_ex1_1</code></tr>
-                <tr><td class="active">name</td><td>fbc_ex1_1</td></tr>
-                <tr><td class="active">time</td><td>h</td></tr>
-                <tr><td class="active">substance</td><td>mmol</td></tr>
-                <tr><td class="active">extent</td><td>mmol</td></tr>
-                <tr><td class="active">volume</td><td>l</td></tr>
-                <tr><td class="active">area</td><td>m2</td></tr>
-                <tr><td class="active">length</td><td>m</td></tr>
-                </tbody>
-                </table>
-            </td>
+    <div class="row">
+        <div class="col-6">
+        <!--------------------------------------------------->
+        <!-- Model                                         -->
+        <!--------------------------------------------------->
+        <a class="anchor" id="anchor_model"></a>
+        <h1 id="model"><a href="fbc_ex1_2.xml" target="_blank" alt="Access SBML model" title="SBML model"><i class="fas fa-file-code"></i></a>&nbsp;Model : fbc_ex1_2</h1>
+        <b>Creator</b><br />Matthias, Koenig, Humboldt-University Berlin, Institute for Theoretical Biology, <a href="mailto:koenigmx@hu-berlin.de" target="_blank">koenigmx@hu-berlin.de</a><br /><b>Created:</b> 2019-03-17 19:09<br /><b>Modified:</b> 2019-03-17 19:09<br /><br />
+        <table id="table_model" class="table table-condensed table-nonfluid">
+            <tr>
             <td>
-                <a href="fbc_ex1_1.xml" target="_blank"><img src="_report/images/sbml.png" height="20" alt="Access SBML model" title="SBML model"/></a>&nbsp;
-                <span class="package">L3V1</span> <span class="package">fbc-V2</span> <span class="package">comp-V1</span><br />
-                <div class="cvterm"></div><br />
-                <div class="cvterm"></div>
-            </td>
-        </tr>
-    </table>
+                    <table class="compact">
+                    <tbody>
+                    <tr><td class="active">id</td> <td id="fbc_ex1_2" class="active"><span class="package">fbc_ex1_2</span> <code>meta_fbc_ex1_2</code></tr>
+                    <tr><td class="active">name</td><td>fbc_ex1_2</td></tr>
+                    <tr><td class="active">time</td><td>h</td></tr>
+                    <tr><td class="active">substance</td><td>mole</td></tr>
+                    <tr><td class="active">extent</td><td>mole</td></tr>
+                    <tr><td class="active">volume</td><td>m3</td></tr>
+                    <tr><td class="active">area</td><td>m2</td></tr>
+                    <tr><td class="active">length</td><td>m</td></tr>
+                    </tbody>
+                    </table>
+                </td>
+                <td>
+                    <span class="package">L3V1</span> <span class="package">fbc-V2</span> <span class="package">comp-V1</span><br />
+                    <div class="cvterm"></div><br />
+                    <div class="cvterm"></div>
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="col-6">
+        <!--------------------------------------------------->
+        <!-- SBMLDocument                                  -->
+        <!--------------------------------------------------->
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <h1>sbmlutils {}</h1>
+    <h2>Description</h2>
+    <p>Example creating fbc model.</p>
+    <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
+    <div class="dc:publisher">This file has been created by
+    <a href="https://livermetabolism.com" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.</div>
+    <h2>Terms of use</h2>
+    <div class="dc:rightsHolder">Copyright © 2019 Matthias Koenig.</div>
+    <div class="dc:license">
+      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
+        that the following conditions are met:
+        <ol>
+        <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
+          the following disclaimer.</li>
+        <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
+          and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+      </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+        </p>
+    </div>
+  </body>
+</notes><hr />        </div>
+
+    </div>
 
     <!--------------------------------------------------->
     <!-- ExternalModelDefinitions & ModelDefinitions   -->
@@ -278,10 +525,12 @@
     <!--------------------------------------------------->
     <!-- UnitDefinitions -->
     <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_units"></a>
         <table id="table_units" class="table table-condensed table-nonfluid table-hover">
-            <thead>
+            <thead class="bg-secondary">
             <tr>    <th scope="col" class="hidden">type</th>
-	<th scope="col" class="warning">UnitDefinitions [14]</th>
+	<th scope="col" class="warning">UnitDefinitions [15]</th>
 	<th scope="col">name</th>
 	<th scope="col">units</th>
     <th scope="col">sbo</th>
@@ -296,7 +545,7 @@
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">h</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="h" name="hour">
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="h">
   <listOfUnits>
     <unit kind="second" exponent="1" scale="0" multiplier="3600"/>
   </listOfUnits>
@@ -307,13 +556,99 @@
     
     </td>
 
-	<td>hour</td>
+	<td><i class="fa fa-ban gray"></i></td>
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <apply>
     <times/>
     <cn> 3600 </cn>
     <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m" class="active"><span class="package">m</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m">
+  <listOfUnits>
+    <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> m </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m2" class="active"><span class="package">m2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m2">
+  <listOfUnits>
+    <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m3" class="active"><span class="package">m3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m3">
+  <listOfUnits>
+    <unit kind="metre" exponent="3" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
   </apply>
 </math></td>
 	<td></td>
@@ -341,62 +676,6 @@
 	<td><?xml version="1.0" encoding="UTF-8"?>
 <math xmlns="http://www.w3.org/1998/Math/MathML">
   <ci> g </ci>
-</math></td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">UnitDefinition</td>
-	    <td id="m" class="active"><span class="package">m</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-m" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">m</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m" name="meter">
-  <listOfUnits>
-    <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
-  </listOfUnits>
-</unitDefinition></textarea></div>
-          </div>
-        </div>
-      </div>
-    
-    </td>
-
-	<td>meter</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <ci> m </ci>
-</math></td>
-	<td></td>
-	<td></td>
-</tr>
-                <tr>    <td class="hidden">UnitDefinition</td>
-	    <td id="m2" class="active"><span class="package">m2</span> 
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m2"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-m2" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">m2</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m2" name="cubic meter">
-  <listOfUnits>
-    <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
-  </listOfUnits>
-</unitDefinition></textarea></div>
-          </div>
-        </div>
-      </div>
-    
-    </td>
-
-	<td>cubic meter</td>
-	<td><?xml version="1.0" encoding="UTF-8"?>
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-  <apply>
-    <power/>
-    <ci> m </ci>
-    <cn type="integer"> 2 </cn>
-  </apply>
 </math></td>
 	<td></td>
 	<td></td>
@@ -798,13 +1077,15 @@
 </tr>
             </tbody>
         </table>
-        <hr/>
+    </p>
 
     <!--------------------------------------------------->
     <!-- Compartments -->
     <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_compartments"></a>
         <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
-            <thead>
+            <thead class="bg-secondary">
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Compartments [1]</th>
 	<th scope="col">name</th>
@@ -846,13 +1127,15 @@
 </tr>
             </tbody>
         </table>
-        <hr/>
+    </p>
 
     <!--------------------------------------------------->
     <!-- Species -->
     <!--------------------------------------------------->
+    </p>
+        <a class="anchor" id="anchor_species"></a>
         <table id="table_species" class="table table-condensed table-nonfluid table-hover">
-            <thead>
+            <thead class="bg-secondary">
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Species [4]</th>
     <th scope="col">name</th>
@@ -1057,7 +1340,7 @@
 </tr>
             </tbody>
         </table>
-        <hr/>
+    </p>
 
     <!--------------------------------------------------->
     <!-- GeneProducts (fbc) -->
@@ -1066,8 +1349,10 @@
     <!--------------------------------------------------->
     <!-- Parameters -->
     <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_parameters"></a>
         <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
-            <thead>
+            <thead class="bg-secondary">
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Parameters [5]</th>
 	<th scope="col">name</th>
@@ -1307,7 +1592,7 @@
 </tr>
             </tbody>
         </table>
-        <hr/>
+    </p>
     
     <!--------------------------------------------------->
     <!-- InitialAssignments -->
@@ -1320,8 +1605,10 @@
     <!--------------------------------------------------->
     <!-- Reactions -->
     <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_reactions"></a>
         <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
-            <thead>
+            <thead class="bg-secondary">
             <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Reactions [8]</th>
 	<th scope="col">name</th>
@@ -1578,13 +1865,15 @@
 </tr>
             </tbody>
         </table>
-        <hr/>
+    <p/>
 
     <!--------------------------------------------------->
     <!-- Objectives (fbc) -->
     <!--------------------------------------------------->
+    <p>
+    <a class="anchor" id="anchor_objectives"></a>
     <table id="table_objectives" class="table table-condensed table-nonfluid table-hover">
-        <thead>
+        <thead class="bg-secondary">
         <tr>    <th scope="col" class="hidden">type</th>
 	<th scope="col" class="warning">Objectives [1]</th>
 	<th scope="col">name</th>
@@ -1624,7 +1913,7 @@
 </tr>
         </tbody>
     </table>
-    <hr/>
+    </p>
 
     <!--------------------------------------------------->
     <!-- Constraints -->
@@ -1640,33 +1929,11 @@
             <!-- FOOTER -->
             <div class="footer">
                 <hr/>
-                <p>&copy; 2017 Matthias Koenig.
-                    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
-                        <img alt="Creative Commons License" style="border-width:0" src="_report/images/by_sa.png"/>
-                    </a><br/>This
-                    work by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.livermetabolism.com"
-                               property="cc:attributionName" rel="cc:attributionURL">Matthias Koenig</a> is licensed
-                    under a <a
-                            rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
-                        Attribution-ShareAlike 4.0 International License</a>.
-                    <br/>
-                    Powered by jinja2 <a href="http://jinja.pocoo.org/docs/dev/" target="_blank"><img
-                            src="_report/images/jinja2.png" height="15" alt="jinja2"/></a> and
-                    bootstrap <a href="http://getbootstrap.com/" target="_blank"><img
-                            src="_report/images/bootstrap.png" height="15" alt="bootstrap"/></a>.
-                    Source available on <a href="https://github.com/matthiaskoenig/sbmlutils/"
-                                           target="_blank"><img
-                            src="_report/images/github.png" height="20" alt="GitHub"/></a>.
-                </p>
+                <p>Created with <a href="https://github.com/matthiaskoenig/sbmlutils/" target="_blank"><i class="fab fa-github"></i> sbmlutils</a></p>
             </div>
-            <!-- END FOOTER -->
 
         </div>
-        <!-- END RIGHT -->
     </div>
-    <!-- END ROW -->
-</div>
-<!-- END CONTAINER -->
-
+</main>
 </body>
 </html>

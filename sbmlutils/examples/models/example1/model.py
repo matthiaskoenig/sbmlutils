@@ -12,11 +12,9 @@ mid = 'example1'
 version = 1
 notes = Notes([
     """
-    <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>sbmlutils {}</h1>
     <h2>Description</h2>
-    <p>Example model showing how to create compartments, species and reactions.
-    </p>
+    <p>Example model showing how to create compartments, species and reactions.</p>
     """,
     templates.terms_of_use
 ])
@@ -31,14 +29,11 @@ creators = [
 # ---------------------------------------------------------------------------------------------------------------------
 # Units
 # ---------------------------------------------------------------------------------------------------------------------
-UNIT_VOLUME = UNIT_KIND_LITRE
-UNIT_SUBSTANCE = UNIT_mmole
-UNIT_TIME = UNIT_min
-UNIT_FLUX = UNIT_mmole_per_min
-
-model_units = ModelUnits(time=UNIT_TIME, extent=UNIT_SUBSTANCE, substance=UNIT_SUBSTANCE,
-                         length=UNIT_KIND_METER, area=UNIT_m2, volume=UNIT_VOLUME)
+model_units = ModelUnits(time=UNIT_min, extent=UNIT_mmole, substance=UNIT_mmole,
+                         length=UNIT_m, area=UNIT_m2, volume=UNIT_KIND_LITRE)
 units = [
+    UNIT_m,
+    UNIT_m2,
     UNIT_min,
     UNIT_mmole,
     UNIT_mM,
@@ -54,14 +49,14 @@ functions = []
 # Compartments
 # ---------------------------------------------------------------------------------------------------------------------
 compartments = [
-    Compartment("c", 1.0, unit=UNIT_VOLUME)
+    Compartment("c", 1.0, unit=UNIT_KIND_LITRE)
 ]
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Species
 # ---------------------------------------------------------------------------------------------------------------------
 species = [
-    Species("S1", initialConcentration=5.0,  compartment="c", substanceUnit=UNIT_SUBSTANCE, name="S1", hasOnlySubstanceUnits=False,
+    Species("S1", initialConcentration=5.0,  compartment="c", substanceUnit=UNIT_mmole, name="S1", hasOnlySubstanceUnits=False,
             sboTerm=SBO_SIMPLE_CHEMICAL)
 ]
 
@@ -69,15 +64,15 @@ species = [
 # Parameters
 # ---------------------------------------------------------------------------------------------------------------------
 parameters = ([
-    Parameter('R1_Km', name="Km R1", value=0.1, units=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT),
-    Parameter('R1_Vmax', name="Vmax R1", value=10.0, units=UNIT_FLUX, sboTerm=SBO_MAXIMAL_VELOCITY),
+    Parameter('R1_Km', name="Km R1", value=0.1, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT),
+    Parameter('R1_Vmax', name="Vmax R1", value=10.0, unit=UNIT_mmole_per_min, sboTerm=SBO_MAXIMAL_VELOCITY),
 ])
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Assignments
 # ---------------------------------------------------------------------------------------------------------------------
 assignments = [
-    InitialAssignment('S1', '10.0', UNIT_mM),
+    InitialAssignment('S1', '10.0 mM', UNIT_mM),
 ]
 
 # ---------------------------------------------------------------------------------------------------------------------
