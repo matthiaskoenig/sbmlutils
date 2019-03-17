@@ -240,7 +240,7 @@ class CoreModel(object):
         self.doc = None  # SBMLDocument
         self.model = None  # SBMLModel
 
-        if 'main_units' in CoreModel._keys:
+        if 'main_units' in CoreModel._keys and CoreModel._keys['main_units']:
             logging.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property

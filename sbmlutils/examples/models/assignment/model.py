@@ -12,20 +12,22 @@ from sbmlutils.modelcreator import templates
 mid = 'assignment'
 version = 4
 creators = templates.creators
-notes = [
-    """<p>Example model for testing InitialAssignments in roadrunner.</p>"""
-]
+notes = Notes([
+    """<p>Example model for testing InitialAssignments in roadrunner.</p>""",
+    templates.terms_of_use
+])
 # ---------------------------------------------------------------------------------------------------------------------
 # Units
 # ---------------------------------------------------------------------------------------------------------------------
 model_units = ModelUnits(time=UNIT_h,
                          extent=UNIT_mg, substance=UNIT_mg,
-                         length=UNIT_KIND_METER, area=UNIT_m2,
+                         length=UNIT_m, area=UNIT_m2,
                          volume=UNIT_KIND_LITRE)
 units = [
     UNIT_kg,
     UNIT_h,
     UNIT_mg,
+    UNIT_m,
     UNIT_m2,
     Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     Unit('mg_per_litre', [(UNIT_KIND_GRAM, 1.0, -3, 1.0),

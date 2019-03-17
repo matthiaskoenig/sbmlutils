@@ -147,25 +147,28 @@ def set_model_units(model, model_units):
         logging.error("Providing model units as dict is deprecated, use 'ModelUnits' instead.")
         model_units = ModelUnits(**model_units)
 
-    for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
-        if getattr(model_units, key) is None:
-            logging.error('The following key is missing in model_units: {}'.format(key))
-            continue
-        unit = getattr(model_units, key)
-        unit = Unit.get_unit_string(unit)
-        # set the values
-        if key == 'time':
-            model.setTimeUnits(unit)
-        elif key == 'extent':
-            model.setExtentUnits(unit)
-        elif key == 'substance':
-            model.setSubstanceUnits(unit)
-        elif key == 'length':
-            model.setLengthUnits(unit)
-        elif key == 'area':
-            model.setAreaUnits(unit)
-        elif key == 'volume':
-            model.setVolumeUnits(unit)
+    if not model_units:
+        logging.error("Model units should be provided for a model, i.e., set 'model_unit' on model.")
+    else:
+        for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
+            if getattr(model_units, key) is None:
+                logging.error('The following key is missing in model_units: {}'.format(key))
+                continue
+            unit = getattr(model_units, key)
+            unit = Unit.get_unit_string(unit)
+            # set the values
+            if key == 'time':
+                model.setTimeUnits(unit)
+            elif key == 'extent':
+                model.setExtentUnits(unit)
+            elif key == 'substance':
+                model.setSubstanceUnits(unit)
+            elif key == 'length':
+                model.setLengthUnits(unit)
+            elif key == 'area':
+                model.setAreaUnits(unit)
+            elif key == 'volume':
+                model.setVolumeUnits(unit)
 
 
 #####################################################################
@@ -319,15 +322,18 @@ class Unit(Sbase):
 
     @staticmethod
     def get_unit_string(unit):
-        unit_str = None
-        if type(unit) is Unit:
-            unit_str = unit.sid
-        if type(unit) is int:
+        if isinstance(unit, Unit):
+            return unit.sid
+        elif isinstance(unit, int):
             # libsbml unit
-            unit_str = libsbml.UnitKind_toString(unit)
-        if unit == '-':
-            unit_str = libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
-        return unit_str
+            return libsbml.UnitKind_toString(unit)
+        if isinstance(unit, str):
+            if unit == '-':
+                return libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
+            else:
+                return unit
+        else:
+            raise ValueError("Unit cannot be resolved: %s", unit)
 
 
 ##########################################################################
