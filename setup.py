@@ -67,13 +67,13 @@ setup(
         "numpy>=1.16.2",
         "scipy>=1.2.1",
         "matplotlib>=3.0.3",
-        "pandas>=0.24.1",
+        "pandas>=0.24.2",
         "tabulate>=0.8.3",
         "Jinja2>=2.10",
         "requests>=2.21.0",
         "beautifulsoup4>=4.7.1",
         "xarray>=0.11.3",
-        "pyexcel>=0.5.12",
+        "pyexcel>=0.5.13",
         "pyexcel-xlsx>=0.5.7",
 
         # standards
@@ -83,11 +83,11 @@ setup(
 
         # simulation
         "libroadrunner>=1.5.3",
-        "cobra>=0.14.2",
+        "cobra>=0.15.0",
         "optlang>=1.4.4",
 
         # misc
-        "pytest>=4.3.0",
+        "pytest>=4.3.1",
         "pytest-cov>=2.6.1",
         "ipykernel>=5.1.0",
     ],
