@@ -191,11 +191,11 @@ def uncertainty_uncertspan():
 if __name__ == "__main__":
 
     functions = [
-        #distrib_normal,
+        distrib_normal,
         distrib_all,
-        #uncertainty_distribution,
-        #uncertainty_uncertvalue,
-        #uncertainty_uncertspan
+        uncertainty_distribution,
+        uncertainty_uncertvalue,
+        uncertainty_uncertspan
     ]
     for f_creator in functions:
         name = f_creator.__name__
@@ -206,6 +206,8 @@ if __name__ == "__main__":
         print("-" * 80)
         print(sbml)
         print("-" * 80)
-        libsbml.writeSBMLToFile(doc, "./{}.xml".format(name))
+        sbml_path = "./{}.xml".format(name)
 
+        libsbml.writeSBMLToFile(doc, sbml_path)
         validation.check_doc(doc)
+

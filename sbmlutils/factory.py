@@ -26,6 +26,18 @@ SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 PREFIX_EXCHANGE_REACTION = 'EX_'
 
+PACKAGE_COMP = "comp"
+PACKAGE_FBC = "fbc"
+PACKAGE_DISTRIB = "distrib"
+PACKAGE_LAYOUT = "layout"
+
+ALLOWED_PACKAGES = {
+    PACKAGE_COMP,
+    PACKAGE_FBC
+    PACKAGE_DISTRIB,
+    PACKAGE_LAYOUT,
+}
+
 __all__ = [
     'Notes',
     'ModelUnits',

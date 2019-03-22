@@ -4,9 +4,6 @@ Writing report with distrib information.
 
 from sbmlutils.report import sbmlreport
 
-print("Hello world")
-
-
 if __name__ == "__main__":
     for path in ["./distrib_normal.xml",
                  "./distrib_all.xml",

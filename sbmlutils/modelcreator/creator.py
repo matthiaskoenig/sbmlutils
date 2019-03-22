@@ -306,6 +306,11 @@ class CoreModel(object):
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
+
+        # add all the packages
+        # TODO: implement
+        self.packages
+
         sbmlns.addPackageNamespace("fbc", 2)
         sbmlns.addPackageNamespace("comp", 1)
         self.doc = libsbml.SBMLDocument(sbmlns)
