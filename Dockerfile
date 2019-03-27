@@ -9,7 +9,7 @@
 # connect pycharm
 # settings -> interpreter -> docker -> sbmlutils:latest
 # -----------------------------------------------------------------------------
-FROM pylibsbml:latest
+FROM pylibsedml:latest
 
 COPY ./sbmlutils /code/sbmlutils
 COPY ./setup.py /code/

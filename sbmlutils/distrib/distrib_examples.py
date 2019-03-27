@@ -101,8 +101,9 @@ def distrib_all():
     return doc
 
 
-def uncertainty_distribution():
-    """ Create uncertainty based on distribution.
+
+def uncertainty_uncert_parameter():
+    """ Create uncertainty with UncertParameter.
 
     :return:
     """
@@ -113,89 +114,81 @@ def uncertainty_distribution():
     p = _create_parameter("p1", model=model)  # type: libsbml.Parameter
     p_distrib = p.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
 
-    # build uncertainty for the parameter
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
-    distribution = uncertainty.createDistribution()  # type: libsbml.Distribution
-    ast_node = libsbml.parseL3FormulaWithModel("normal(0, 1)", model)  # type: libsbml.ASTNode
-    distribution.setMath(ast_node)
-    return doc
-
-
-def uncertainty_uncertvalue():
-    """ Create uncertainty based on UncertStatisticSpan.
-
-    :return:
-    """
-    doc = _distrib_doc()
-    model = doc.createModel()  # type: libsbml.Model
-
-    # parameter
-    p = _create_parameter("p1", model=model)  # type: libsbml.Parameter
-    p_distrib = p.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
-
-    # build uncertainty for the parameter
+    # --------------------------------------------
+    # Build generic uncertainty for parameter
+    # --------------------------------------------
+    # 5.0 (mean) +- 0.3 (std) [2.0 - 8.0]
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
 
-    # UncertValue
     unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_MOLE)
-    for f in [
-        uncertainty.createCoefficientOfVariation,
-        uncertainty.createKurtosis,
-        uncertainty.createMean,
-        uncertainty.createMedian,
-        uncertainty.createMode,
-        uncertainty.createSampleSize,
-        uncertainty.createSkewness,
-        uncertainty.createStandardDeviation,
-        uncertainty.createStandardError,
-        uncertainty.createVariance,
-        ]:
+    up_mean = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up_mean.setType(libsbml.DISTRIB_UNCERTTYPE_MEAN)
+    up_mean.setValue(5.0)
+    up_mean.setUnits(unit)
 
-        uncert_value = f()  # type: libsbml.UncertValue
-        uncert_value.setValue(1.0)
-        uncert_value.setUnits(unit)
+    up_sd = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up_sd.setType(libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION)
+    up_sd.setValue(0.3)
+    up_sd.setUnits(unit)
 
-    uncertainty = p_distrib.getUncertainty()  # type: libsbml.Uncertainty
-    uncertainty.getMe
+    # up_range = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up_range = libsbml.UncertSpan()
+    up_range.setType(libsbml.DISTRIB_UNCERTTYPE_RANGE)
+    up_range.setValueLower(2.0)
+    up_range.setValueUpper(8.0)
+    up_range.setUnits(unit)
+    check(uncertainty.addUncertParameter(up_range), "add the span")
 
-    return doc
+    # add an annotation with SBO terms
+    # TODO
+
+    # --------------------------------------------
+    # Set of all UncertParameters
+    # --------------------------------------------
+    # create second uncertainty which contains all the individual uncertainties
+    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    for k, parameter_type in enumerate([
+        libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
+        libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
+        libsbml.DISTRIB_UNCERTTYPE_MEAN,
+        libsbml.DISTRIB_UNCERTTYPE_MEDIAN,
+        libsbml.DISTRIB_UNCERTTYPE_MODE,
+        libsbml.DISTRIB_UNCERTTYPE_SAMPLESIZE,
+        libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
+        libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+        libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
+        libsbml.DISTRIB_UNCERTTYPE_VARIANCE]):
+
+        up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+        up.setType(parameter_type)
+        up.setValue(k)
+        up.setUnits(unit)
+
+    # --------------------------------------------
+    # Set of all UncertSpans
+    # --------------------------------------------
 
 
-def uncertainty_uncertspan():
-    """ Create uncertainty based on UncertSpan.
-
-    :return:
-    """
-    doc = _distrib_doc()
-    model = doc.createModel()  # type: libsbml.Model
-
-    p = _create_parameter("p1", model=model)  # type: libsbml.Parameter
-    p_distrib = p.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
-
-    # build uncertainty for the parameter
+    # build generic uncertainty for parameter
+    # 5.0 (mean) +- 0.3 (std) [2.0 - 8.0]
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
 
-    # UncertSpan
-    print("UncertSpan")
     unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_MOLE)
-    uncert_span = uncertainty.createConfidenceInterval()  # type: libsbml.UncertStatisticSpan
-    uncert_span.setValueLower(1.0)
-    uncert_span.setValueUpper(10.0)
+    up_mean = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up_mean.setType(libsbml.DISTRIB_UNCERTTYPE_MEAN)
+    up_mean.setValue(5.0)
+    up_mean.setUnits(unit)
 
-
-    # External Parameter
-    # p_distrib.setUncertainty(uncertainty)
     return doc
 
 
 if __name__ == "__main__":
 
     functions = [
-        distrib_normal,
-        distrib_all,
-        uncertainty_distribution,
-        uncertainty_uncertvalue,
-        uncertainty_uncertspan
+        # distrib_normal,
+        # distrib_all,
+        # uncertainty_distribution,
+        uncertainty_uncert_parameter,
     ]
     for f_creator in functions:
         name = f_creator.__name__
