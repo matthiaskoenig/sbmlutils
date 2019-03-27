@@ -1,25 +1,15 @@
 # Docker image with latest libsbml-develop branch python bindings
 # build and run container
-#   docker build --tag pylibsbml
-#   docker run --name pylibsbml -it pylibsbml bash
-# connect pycharm
-# settings -> interpreter -> docker -> sbmlutils:latest
+#   docker build --tag pysedml --file Dockerfile-pylibsedml .
+#   docker run --name pysedml -it pylibsedml bash
 
 
-# checkout svn code
-RUN mkdir /svn
-WORKDIR /svn
+FROM pylibsbml:latest
 
-# libsbml-stable
-# RUN svn checkout --depth empty http://svn.code.sf.net/p/sbml/code/trunk sbml-code
-# RUN svn update --quiet --set-depth infinity sbml-code/libsbml
-
-# libsbml-experimental branch
-RUN mkdir -p /svn/sbml-code
-WORKDIR /svn/sbml-code
-RUN svn checkout http://svn.code.sf.net/p/sbml/code/branches/libsbml-experimental libsbml
+# checkout git
+RUN mkdir /git
 
 WORKDIR /code
-COPY ./libsbml.sh /code/
+COPY ./libnuml.sh /code/
 
-RUN ./libsbml.sh
+RUN ./libnuml.sh

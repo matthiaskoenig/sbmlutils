@@ -47,7 +47,8 @@ echo "--------------------------------------"
 echo "python bindings"
 echo "--------------------------------------"
 cd $LIBSBML_BUILD/src/bindings/python/out/
-python setup.py install
+# python setup.py install
+python3.6
 
 TEND=`date +%s`
 RUNTIME=$((TEND-TSTART))

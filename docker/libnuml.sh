@@ -50,7 +50,7 @@ NUML_BUILD=$TMP_DIR/numl_build
 mkdir $NUML_BUILD
 cd $NUML_BUILD
 
-cmake -DEXTRA_LIBS="xml2;z;bz2;" -DWITH_JAVA=ON -DWITH_PYTHON=ON -DWITH_R=ON ${GIT_DIR}/$NUMLCODE/libnuml
+cmake -DEXTRA_LIBS="xml2;z;bz2;" -DWITH_JAVA=OFF -DWITH_PYTHON=ON -DWITH_R=OFF ${GIT_DIR}/$NUMLCODE/libnuml
 # cmake -DEXTRA_LIBS="xml2;z;bz2;" -DWITH_JAVA=ON -DWITH_PYTHON=ON -DWITH_R=ON -DPYTHON_EXECUTABLE="/usr/bin/python" -DPYTHON_INCLUDE_DIR="/usr/include/python2.7" -DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython2.7.so" ${GIT_DIR}/$NUMLCODE/libnuml
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
@@ -91,77 +91,3 @@ source /etc/profile.d/libnuml.sh
 cd $DIR
 ../tests/libnuml_test.py
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-echo "--------------------------------------"
-echo "pull libSEDML repository"
-echo "--------------------------------------"
-echo "$GIT_DIR/$SEDMLCODE"
-if [ -d "$GIT_DIR/$SEDMLCODE" ]; then
-	cd $GIT_DIR/$SEDMLCODE
-	git pull
-else
-	cd $GIT_DIR
-	git clone https://github.com/fbergmann/libSEDML.git $SEDMLCODE
-	cd $GIT_DIR/$SEDMLCODE
-fi
-echo "*commit*"
-git rev-parse HEAD
-
-echo "--------------------------------------"
-echo "build libSEDML"
-echo "--------------------------------------"
-SEDML_BUILD=$TMP_DIR/sedml_build
-if [ -d "$SEDML_BUILD" ]; then
-    sudo rm -rf $SEDML_BUILD
-fi
-mkdir $SEDML_BUILD
-cd $SEDML_BUILD
-
-cmake -DEXTRA_LIBS="xml2;z;bz2;" -DWITH_EXAMPLES=ON -DWITH_JAVA=ON -DWITH_PYTHON=ON -DWITH_R=ON ${GIT_DIR}/$SEDMLCODE
-# cmake -DEXTRA_LIBS="xml2;z;bz2;" -DWITH_EXAMPLES=ON -DWITH_JAVA=ON -DWITH_PYTHON=ON -DWITH_R=ON -DPYTHON_EXECUTABLE="/usr/bin/python" -DPYTHON_INCLUDE_DIR="/usr/include/python2.7" -DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython2.7.so" ${GIT_DIR}/$SEDMLCODE
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-make -j8
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-echo "--------------------------------------"
-echo "install libSEDML"
-echo "--------------------------------------"
-# remove old files
-sudo rm -rf /usr/local/share/libsedml
-sudo rm -rf /usr/local/include/sedml
-sudo rm -rf /usr/local/lib/libsedml*
-sudo rm /usr/local/share/java/libsedmlj.jar
-sudo rm /usr/local/lib/libsedml*
-sudo rm /usr/local/lib/libSEDML*
-sudo rm /usr/local/lib/python2.7/site-packages/libsedml/_libsedml.so
-sudo rm /usr/local/lib/python2.7/site-packages/libsedml.pth
-sudo rm /usr/local/lib/python2.7/site-packages/libsedml/libsedml.py
-sudo rm -rf /usr/local/lib/python3.5/site-packages/libsedml
-sudo rm /usr/local/lib/python3.5/site-packages/libsedml.pth
-
-sudo rm /etc/profile.d/libsedml.sh
-
-# installation
-sudo make install
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-# pythonpath
-echo "Adding to PYTHONPATH: /usr/local/lib/python2.7/site-packages/libsedml"
-cat > libsedml.sh << EOF2
-#!/bin/bash
-export PYTHONPATH=\$PYTHONPATH:/usr/local/lib/python2.7/site-packages/libsedml
-EOF2
-sudo mv libsedml.sh /etc/profile.d/
-source /etc/profile.d/libsedml.sh
-
-# TODO: install the R bindings
-
-# testing
-cd $DIR
-../tests/libsedml_test.py
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-TEND=`date +%s`
-RUNTIME=$((TEND-TSTART))
-echo "runtime: $RUNTIME [s]"
