@@ -13,9 +13,9 @@ def create(tmp=False):
                       target_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
-    #factory = Factory(modules=['sbmlutils.examples.models.distrib.uncertainty_ex1'],
-    #                  target_dir=os.path.join(models_dir, 'results'))
-    #factory.create(tmp)
+    factory = Factory(modules=['sbmlutils.examples.models.distrib.uncertainty_ex1'],
+                      target_dir=os.path.join(models_dir, 'results'))
+    factory.create(tmp)
 
 
 if __name__ == "__main__":

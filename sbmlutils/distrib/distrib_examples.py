@@ -101,7 +101,7 @@ def distrib_all():
     return doc
 
 
-def uncertainty_uncert_parameter():
+def uncertainty():
     """ Create uncertainty with UncertParameter.
 
     :return:
@@ -117,6 +117,7 @@ def uncertainty_uncert_parameter():
     # Build generic uncertainty for parameter
     # --------------------------------------------
     # 5.0 (mean) +- 0.3 (std) [2.0 - 8.0]
+
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
     uncertainty.setName("Basic example: 5.0 +- 0.3 [2.0 - 8.0]")
     unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_MOLE)
@@ -253,8 +254,7 @@ if __name__ == "__main__":
     functions = [
         # distrib_normal,
         # distrib_all,
-        # uncertainty_distribution,
-        uncertainty_uncert_parameter,
+        uncertainty,
     ]
     for f_creator in functions:
         name = f_creator.__name__

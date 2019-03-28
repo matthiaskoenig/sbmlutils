@@ -16,7 +16,7 @@ notes = Notes([
     """
     <h1>sbmlutils {}</h1>
     <h2>Description</h2>
-    <p>Example creating fbc model.</p>
+    <p>Example creating distrib model with distribution elements.</p>
     """,
     templates.terms_of_use
 ])

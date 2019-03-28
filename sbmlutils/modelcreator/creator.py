@@ -308,14 +308,17 @@ class CoreModel(object):
         sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
 
         # add all the packages
-        # TODO: implement
-        self.packages
+        # FIXME: only add packages which are required for the model
 
         sbmlns.addPackageNamespace("fbc", 2)
         sbmlns.addPackageNamespace("comp", 1)
+        sbmlns.addPackageNamespace("distrib", 1)
+
         self.doc = libsbml.SBMLDocument(sbmlns)
         self.doc.setPackageRequired("comp", True)
         self.doc.setPackageRequired("fbc", False)
+        self.doc.setPackageRequired("distrib", True)
+
         self.model = self.doc.createModel()
         fbc_plugin = self.model.getPlugin("fbc")
         fbc_plugin.setStrict(False)

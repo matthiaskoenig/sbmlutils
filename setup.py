@@ -77,7 +77,7 @@ setup(
         "pyexcel-xlsx>=0.5.7",
 
         # standards
-        "python-libsbml-experimental>=5.17.2",
+        # "python-libsbml-experimental>=5.17.2",
         "phrasedml>=1.0.9",  # not working on py37
         "antimony>=2.9.4",  # not working on py37
 
