@@ -2,7 +2,7 @@
 """
 Distrib example.
 """
-
+import libsbml
 from sbmlutils.units import *
 from sbmlutils.sbo import *
 from sbmlutils.factory import *
@@ -37,6 +37,10 @@ units = [
 # -----------------------------------------------------------------------------
 parameters = [
     Parameter(sid="p1", value=1.0, unit=UNIT_KIND_MOLE, constant=True, uncertainties=[
-
+        Uncertainty(formula="normal(2.0, 2.0)", uncertParameters=[
+            UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=2.0),
+            UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION, value=2.0),
+            UncertSpan(type=libsbml.DISTRIB_UNCERTTYPE_RANGE, valueLower=1.0, valueUpper=4.0)
+        ])
     ])
 ]
