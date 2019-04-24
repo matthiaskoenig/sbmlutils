@@ -3,7 +3,7 @@ Test the ReactionTemplate
 """
 import unittest
 
-from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
+from sbmlutils.factory import ReactionTemplate
 
 
 class TestReactionTemplate(unittest.TestCase):
@@ -23,6 +23,7 @@ class TestReactionTemplate(unittest.TestCase):
             formula=('scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A', 'mole_per_s')
         )
         self.assertIsNotNone(rt)
+
 
 if __name__ == "__main__":
     unittest.main()

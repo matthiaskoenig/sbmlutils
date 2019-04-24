@@ -50,7 +50,7 @@ def set_main_units(model, main_units):
     :param model: Model
     :param main_units: units info
     """
-    factory.set_main_units(model, main_units)
+    factory.set_model_units(model, main_units)
 
 
 def find_exchange_reactions(model):

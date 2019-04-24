@@ -223,8 +223,3 @@ if __name__ == "__main__":
     model_id = "limax_pkpd_v50"
     example_roadrunner(model_id)
     example_scipy(model_id)
-
-
-
-
-

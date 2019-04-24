@@ -1,0 +1,1525 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias König">
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title></title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <!--<link rel="stylesheet" type="text/css" href="_report/css/sbmlreport.css"/>-->
+
+    <style>
+        /* Show it is fixed to the top */
+        body {
+          min-height: 75rem;
+          padding-top: 5.0rem;
+        }
+        a.anchor {
+            display: block;
+            position: relative;
+            top: -5.0rem;
+            visibility: hidden;
+        }
+
+        .table-nonfluid {
+           /* width: auto; */
+            width: 70%;
+        }
+
+        .cvterm {
+            font-size: small;
+        }
+        .blue {
+            color: darkblue;
+        }
+        .darkgray {
+            color: #646464;
+        }
+        .gray {
+            color: #aaaaaa;
+        }
+        .red {
+            color: darkred;
+        }
+        .green {
+            color: darkgreen;
+        }
+
+        /* XML popup */
+        .parent .popup {
+          display: none;
+        }
+
+        .parent:hover .popup {
+            display: block;
+            margin-top: 9px;
+            border: 1px solid #bebebe;
+            padding: 16px 10px 10px 10px;
+            background: #ededed;
+        }
+
+        .ontology{
+            background-color: #5FBDCE;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .collection {
+            background-color: white;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .package {
+            background-color: black;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .identifier{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .purl{
+            color: grey;
+        }
+        .icon-invisible {
+            visibility: hidden;
+        }
+        .icon-black {
+            color: black;
+        }
+
+        /* References */
+        .ref-item {
+            list-style-type: none;
+        }
+        .ref-item a{
+            font-size: 10px;
+        }
+        .ref-title{
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .ref-authors{
+            font-size: 10px;
+        }
+        .ref-journal{
+            font-size: 10px;
+        }
+        .id{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .term{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .item{
+            background-color: gray;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .comment{
+            background-color: gray;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .cvterm{
+            border-radius: 15px;
+            background: #f9f9f9;
+            padding: 5px;
+        }
+        .history{
+            border-radius: 15px;
+            background: #ffffff;
+            padding: 5px;
+        }
+        .qualifier{
+            background-color: #13721c;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .unit{
+            background-color: rgba(200, 200, 200, 0.51);
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            font-family: monospace;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .math{
+            color: black;
+            font-family: monospace;
+        }
+    </style>
+
+
+    <!--<link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">-->
+
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+    <!--https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js-->
+
+
+    <!-- MathJax not working offline -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark">
+  <a class="navbar-brand" href="#doc"><td class="active"><i class="fa fa-ban gray"></i></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item"><a class="nav-link" href="#anchor_model">Model</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_parameters">Parameters</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_assignments">InitialAssignments</a></li>
+    </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <input id="searchField" class="form-control mr-sm-2" accesskey="S" type="search" class="form-control" placeholder="Search" aria-label="Search">
+        <!-- <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+
+    </form>
+       <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils"><i class="fab fa-github fa-2x"></i></a></li>
+       </ul>
+  </div>
+</nav>
+
+
+<main role="main" class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- CONTENT -->
+            <div class="content">
+    <a class="anchor" id="doc"></a>
+    <div class="row">
+        <div class="col-6">
+        <!--------------------------------------------------->
+        <!-- Model                                         -->
+        <!--------------------------------------------------->
+        <a class="anchor" id="anchor_model"></a>
+        <h1 id="model"><a href="distrib_all.xml" target="_blank" alt="Access SBML model" title="SBML model"><i class="fas fa-file-code"></i></a>&nbsp;Model : </h1>
+        
+        <table id="table_model" class="table table-condensed table-nonfluid">
+            <tr>
+            <td>
+                    <table class="compact">
+                    <tbody>
+                    <tr><td class="active">id</td> <td class="active"><i class="fa fa-ban gray"></i></tr>
+                    <tr><td class="active">name</td><td><i class="fa fa-ban gray"></i></td></tr>
+                    <tr><td class="active">time</td><td></td></tr>
+                    <tr><td class="active">substance</td><td></td></tr>
+                    <tr><td class="active">extent</td><td></td></tr>
+                    <tr><td class="active">volume</td><td></td></tr>
+                    <tr><td class="active">area</td><td></td></tr>
+                    <tr><td class="active">length</td><td></td></tr>
+                    </tbody>
+                    </table>
+                </td>
+                <td>
+                    <span class="package">L3V1</span> <span class="package">distrib-V1</span><br />
+                    <div class="cvterm"></div><br />
+                    <div class="cvterm"></div>
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="col-6">
+        <!--------------------------------------------------->
+        <!-- SBMLDocument                                  -->
+        <!--------------------------------------------------->
+        </div>
+
+    </div>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_parameters"></a>
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [22]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_normal_1" class="active"><span class="package">p_normal_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_normal_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_normal_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_normal_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_normal_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_normal_2" class="active"><span class="package">p_normal_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_normal_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_normal_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_normal_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_normal_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_uniform" class="active"><span class="package">p_uniform</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_uniform"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_uniform" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_uniform</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_uniform" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_bernoulli" class="active"><span class="package">p_bernoulli</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_bernoulli"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_bernoulli" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_bernoulli</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_bernoulli" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_binomial_1" class="active"><span class="package">p_binomial_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_binomial_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_binomial_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_binomial_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_binomial_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_binomial_2" class="active"><span class="package">p_binomial_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_binomial_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_binomial_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_binomial_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_binomial_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_cauchy_1" class="active"><span class="package">p_cauchy_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_cauchy_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_cauchy_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_cauchy_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_cauchy_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_cauchy_2" class="active"><span class="package">p_cauchy_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_cauchy_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_cauchy_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_cauchy_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_cauchy_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_chisquare_1" class="active"><span class="package">p_chisquare_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_chisquare_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_chisquare_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_chisquare_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_chisquare_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_chisquare_2" class="active"><span class="package">p_chisquare_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_chisquare_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_chisquare_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_chisquare_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_chisquare_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_exponential_1" class="active"><span class="package">p_exponential_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_exponential_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_exponential_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_exponential_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_exponential_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_exponential_2" class="active"><span class="package">p_exponential_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_exponential_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_exponential_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_exponential_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_exponential_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_gamma_1" class="active"><span class="package">p_gamma_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_gamma_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_gamma_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_gamma_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_gamma_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_gamma_2" class="active"><span class="package">p_gamma_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_gamma_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_gamma_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_gamma_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_gamma_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_laplace_1" class="active"><span class="package">p_laplace_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_laplace_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_laplace_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_laplace_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_laplace_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_laplace_2" class="active"><span class="package">p_laplace_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_laplace_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_laplace_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_laplace_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_laplace_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_lognormal_1" class="active"><span class="package">p_lognormal_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_lognormal_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_lognormal_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_lognormal_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_lognormal_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_lognormal_2" class="active"><span class="package">p_lognormal_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_lognormal_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_lognormal_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_lognormal_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_lognormal_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_poisson_1" class="active"><span class="package">p_poisson_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_poisson_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_poisson_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_poisson_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_poisson_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_poisson_2" class="active"><span class="package">p_poisson_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_poisson_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_poisson_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_poisson_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_poisson_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_raleigh_1" class="active"><span class="package">p_raleigh_1</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_raleigh_1"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_raleigh_1" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_raleigh_1</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_raleigh_1" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="p_raleigh_2" class="active"><span class="package">p_raleigh_2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-p_raleigh_2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-p_raleigh_2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">p_raleigh_2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="p_raleigh_2" value="1" units="mole" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>1.0</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> mole </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_assignments"></a>
+        <table id="table_assignments" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">InitialAssignments [22]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">assignment</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_normal_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/normal"> normal </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_normal_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/normal"> normal </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_uniform </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/uniform"> uniform </csymbol>
+    <cn type="integer"> 5 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_bernoulli </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/bernoulli"> bernoulli </csymbol>
+    <cn> 0.4 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_binomial_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/binomial"> binomial </csymbol>
+    <cn type="integer"> 100 </cn>
+    <cn> 0.3 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_binomial_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/binomial"> binomial </csymbol>
+    <cn type="integer"> 100 </cn>
+    <cn> 0.3 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_cauchy_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/cauchy"> cauchy </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_cauchy_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/cauchy"> cauchy </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 5 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_chisquare_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/chisquare"> chisquare </csymbol>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_chisquare_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/chisquare"> chisquare </csymbol>
+    <cn type="integer"> 10 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_exponential_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/exponential"> exponential </csymbol>
+    <cn> 1 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_exponential_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/exponential"> exponential </csymbol>
+    <cn> 1 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_gamma_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/gamma"> gamma </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_gamma_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/gamma"> gamma </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_laplace_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/laplace"> laplace </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_laplace_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/laplace"> laplace </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_lognormal_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/lognormal"> lognormal </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_lognormal_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/lognormal"> lognormal </csymbol>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 1 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_poisson_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/poisson"> poisson </csymbol>
+    <cn> 0.5 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_poisson_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/poisson"> poisson </csymbol>
+    <cn> 0.5 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_raleigh_1 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/rayleigh"> rayleigh </csymbol>
+    <cn> 0.5 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">p_raleigh_2 </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/distrib/rayleigh"> rayleigh </csymbol>
+    <cn> 0.5 </cn>
+    <cn type="integer"> 0 </cn>
+    <cn type="integer"> 10 </cn>
+  </apply>
+</math></td>
+	<td>None</td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>Created with <a href="https://github.com/matthiaskoenig/sbmlutils/" target="_blank"><i class="fab fa-github"></i> sbmlutils</a></p>
+            </div>
+
+        </div>
+    </div>
+</main>
+</body>
+</html>

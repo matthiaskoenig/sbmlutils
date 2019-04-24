@@ -18,7 +18,6 @@ import ntpath
 import warnings
 import jinja2
 import logging
-from distutils import dir_util
 
 import libsbml
 
@@ -123,9 +122,6 @@ def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False
                          encoding='utf-8', mode='w')
     f_html.write(html)
     f_html.close()
-
-    # copy the additional files
-    _copy_directory(os.path.join(TEMPLATE_DIR, '_report'), os.path.join(out_dir, '_report'))
 
 
 def _create_html(doc, basename, html_template='report.html', offline=True):
@@ -730,18 +726,3 @@ def derived_units(item):
         return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
     return ''
 
-
-########################################
-
-def _copy_directory(src, dest):
-    """ Copy directory from source to destination.
-    :param src:
-    :type src:
-    :param dest:
-    :type dest:
-    :return:
-    :rtype:
-    """
-
-    # copy
-    dir_util.copy_tree(src, dest)

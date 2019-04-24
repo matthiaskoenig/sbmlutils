@@ -7,6 +7,8 @@ import pandas as pd
 import libsbml
 from sbmlutils import factory
 
+__all__ = ['Objective']
+
 
 # -----------------------------------------------------------------------------
 # Objective
@@ -40,7 +42,6 @@ class Objective(factory.Sbase):
 
     def set_fields(self, obj: libsbml.Layout):
         super(Objective, self).set_fields(obj)
-
 
 
 def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):

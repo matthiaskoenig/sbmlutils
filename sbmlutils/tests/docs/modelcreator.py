@@ -16,7 +16,6 @@ def test_modelcreator_notebook():
     from sbmlutils import factory as fac
     from sbmlutils.dfba import builder, utils
 
-
     main_units = {
         'time': 's',
         'extent': UNIT_KIND_ITEM,

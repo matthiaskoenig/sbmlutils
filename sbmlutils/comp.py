@@ -240,11 +240,14 @@ class ReplacedElement(SbaseRef):
 ##########################################################################
 class Deletion(SbaseRef):
 
-
-    def __init__(self, sid, submodelRef, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
+    def __init__(self, sid, submodelRef, portRef=None, idRef=None,
+                 unitRef=None, metaIdRef=None, name=None,
+                 sboTerm=None, metaId=None):
         """ Create a Deletion. """
-        super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
-                                       name=name, sboTerm=sboTerm, metaId=metaId)
+        super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef,
+                                       unitRef=unitRef, metaIdRef=metaIdRef,
+                                       name=name, sboTerm=sboTerm,
+                                       metaId=metaId)
         self.submodelRef = submodelRef
 
     def create_sbml(self, model):
@@ -575,7 +578,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat')
     # flatten
     current = time.clock()
     result = doc.convert(props)
-    flattened_status = (result==libsbml.LIBSBML_OPERATION_SUCCESS)
+    flattened_status = (result == libsbml.LIBSBML_OPERATION_SUCCESS)
 
     lines = [
         '',

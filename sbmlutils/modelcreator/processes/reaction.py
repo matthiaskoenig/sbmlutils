@@ -7,6 +7,7 @@ import libsbml
 
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
+from sbmlutils.sbo import SBO_EXCHANGE_REACTION
 
 Formula = namedtuple('Formula', 'value unit')
 
@@ -97,10 +98,6 @@ class ReactionTemplate(object):
 # ExchangeReactions
 # -----------------------------------------------------------------------------
 EXCHANGE_REACTION_PREFIX = 'EX_'
-EXCHANGE_REACTION_SBO = "SBO:0000627"
-EXCHANGE = 'exchange'
-EXCHANGE_IMPORT = 'import'
-EXCHANGE_EXPORT = 'export'
 
 
 class ExchangeReactionTemplate(object):
@@ -115,16 +112,12 @@ class ExchangeReactionTemplate(object):
         i.e. the lower bound must be 0, the upper bound some positive value,
         e.g. INF
      """
-    def __init__(self, species_id, exchange_type=EXCHANGE, flux_unit=None,
+    def __init__(self, species_id, flux_unit=None,
                  lowerFluxBound=None, upperFluxBound=None):
         self.species_id = species_id
-        self.exchange_type = exchange_type
         self.flux_unit = flux_unit
         self.lower_bound = lowerFluxBound
         self.upper_bound = upperFluxBound
-
-        if exchange_type not in [EXCHANGE, EXCHANGE_IMPORT, EXCHANGE_EXPORT]:
-            raise ValueError("Incorrect exchange_type: {}".format(exchange_type))
 
     def create_sbml(self, model):
 
@@ -134,7 +127,7 @@ class ExchangeReactionTemplate(object):
         rt = ReactionTemplate(
             rid=ex_rid,
             equation="{} ->".format(self.species_id),
-            sboTerm=EXCHANGE_REACTION_SBO,
+            sboTerm=SBO_EXCHANGE_REACTION,
             lowerFluxBound=self.lower_bound,
             upperFluxBound=self.upper_bound
         )

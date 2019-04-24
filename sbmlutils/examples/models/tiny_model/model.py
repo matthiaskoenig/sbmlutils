@@ -2,19 +2,20 @@
 """
 Demo kinetic network.
 """
-
-import libsbml
-from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE
-import sbmlutils.factory as mc
+from math import inf
+from sbmlutils.units import *
+from sbmlutils.sbo import *
+from sbmlutils.factory import *
+import sbmlutils.fbc as fbc
 import sbmlutils.layout as layout
+
 from sbmlutils.modelcreator import templates
-from sbmlutils.modelcreator.processes.reactiontemplate import ReactionTemplate
 
 # -----------------------------------------------------------------------------
 mid = 'tiny_example'
-version = 8
-notes = libsbml.XMLNode.convertStringToXMLNode("""
-    <body xmlns='http://www.w3.org/1999/xhtml'>
+version = 12
+notes = Notes([
+    """
     <h2>Description</h2>
     <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
     </p>
@@ -38,107 +39,102 @@ notes = libsbml.XMLNode.convertStringToXMLNode("""
         implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
         </p>
     </div>
-    </body>
-    """)
+    """
+])
 creators = templates.creators
-
-units = list()
-functions = list()
-compartments = list()
-species = list()
-parameters = list()
-assignments = list()
-rules = list()
-reactions = list()
-events = list()
-constraints = list()
-layouts = list()
 
 # -----------------------------------------------------------------------------
 # Units
 # -----------------------------------------------------------------------------
-main_units = {
-    'time': UNIT_KIND_SECOND,
-    'extent': 'mmole',
-    'substance': 'mmole',
-    'length': UNIT_KIND_METRE,
-    'area': 'm2',
-    'volume': UNIT_KIND_LITRE,
-}
-units.extend([
-    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
-    mc.Unit('mmole', [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
-    mc.Unit('mM', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
-    mc.Unit('mmole_per_s', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]),
-])
+model_units = ModelUnits(time=UNIT_KIND_SECOND, extent="mmole", substance='mmole', length=UNIT_KIND_METRE,
+                         area='m2', volume=UNIT_KIND_LITRE)
+units = [
+    Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
+    Unit('mmole', [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
+    Unit('mM', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
+    Unit('mmole_per_s', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]),
+]
+
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
-compartments.extend([
-    mc.Compartment(sid='c', value=1e-5, unit=UNIT_KIND_LITRE, constant=True, name='cell compartment', port=True),
-])
+compartments = [
+    Compartment(sid='c', value=1e-5, unit=UNIT_KIND_LITRE, constant=True, name='cell compartment', port=True),
+]
 
 # -----------------------------------------------------------------------------
 # Species
 # -----------------------------------------------------------------------------
-species.extend([
-
-    mc.Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='g6p', compartment='c', initialConcentration=0.1, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm="SBO:0000247"),
-    mc.Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='adp', compartment='c', initialConcentration=0.8, substanceUnit='mmole', constant=False,
-               boundaryCondition=False, hasOnlySubstanceUnits=False, name='ADP', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='phos', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='P', sboTerm="SBO:0000247", port=True),
-    mc.Species(sid='hydron', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm="SBO:0000247"),
-    mc.Species(sid='h2o', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
-               boundaryCondition=True, hasOnlySubstanceUnits=False, name='H2O', sboTerm="SBO:0000247")
-])
+species = [
+    Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
+            boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm=SBO_SIMPLE_CHEMICAL, port=True),
+    Species(sid='g6p', compartment='c', initialConcentration=0.1, substanceUnit='mmole', constant=False,
+            boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm=SBO_SIMPLE_CHEMICAL),
+    Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
+            boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm=SBO_SIMPLE_CHEMICAL, port=True),
+    Species(sid='adp', compartment='c', initialConcentration=0.8, substanceUnit='mmole', constant=False,
+            boundaryCondition=False, hasOnlySubstanceUnits=False, name='ADP', sboTerm=SBO_SIMPLE_CHEMICAL, port=True),
+    Species(sid='phos', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
+            boundaryCondition=True, hasOnlySubstanceUnits=False, name='P', sboTerm=SBO_SIMPLE_CHEMICAL, port=True),
+    Species(sid='hydron', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
+            boundaryCondition=True, hasOnlySubstanceUnits=False, name='H+', sboTerm=SBO_SIMPLE_CHEMICAL),
+    Species(sid='h2o', compartment='c', initialConcentration=0, substanceUnit='mmole', constant=True,
+            boundaryCondition=True, hasOnlySubstanceUnits=False, name='H2O', sboTerm=SBO_SIMPLE_CHEMICAL)
+]
 
 # -----------------------------------------------------------------------------
 # Parameters
 # -----------------------------------------------------------------------------
-parameters.extend([
-
-    mc.Parameter('Vmax_GK', 1.0E-6, unit='mmole_per_s', constant=True,
-                 sboTerm="SBO:0000186", name="Vmax Glucokinase"),
-    mc.Parameter('Km_glc', 0.5, unit='mM', constant=True,
-                 sboTerm="SBO:0000371", name="Km glucose"),
-    mc.Parameter('Km_atp', 0.1, unit='mM', constant=True,
-                 sboTerm="SBO:0000371", name="Km ATP"),
-    mc.Parameter('Vmax_ATPASE', 1.0E-6, unit='mmole_per_s', constant=True,
-                 sboTerm="SBO:0000186", name="Vmax ATPase"),
-])
+parameters = [
+    Parameter('Vmax_GK', 1.0E-6, unit='mmole_per_s', constant=True,
+              sboTerm=SBO_MAXIMAL_VELOCITY, name="Vmax Glucokinase"),
+    Parameter('Km_glc', 0.5, unit='mM', constant=True,
+              sboTerm=SBO_MICHAELIS_CONSTANT, name="Km glucose"),
+    Parameter('Km_atp', 0.1, unit='mM', constant=True,
+              sboTerm=SBO_MICHAELIS_CONSTANT, name="Km ATP"),
+    Parameter('Km_adp', 0.1, unit='mM', constant=True,
+              sboTerm=SBO_MICHAELIS_CONSTANT, name="Km ADP"),
+    Parameter('Vmax_ATPASE', 1.0E-6, unit='mmole_per_s', constant=True,
+              sboTerm=SBO_MAXIMAL_VELOCITY, name="Vmax ATPase"),
+    Parameter(sid="zero", name="zero bound",
+              value=0, unit="mmole_per_s",
+              constant=True, sboTerm=SBO_FLUX_BOUND),
+    Parameter(sid="inf", name="upper bound",
+              value=inf, unit="mmole_per_s",
+              constant=True, sboTerm=SBO_FLUX_BOUND),
+    Parameter(sid="minus_1000",
+              value=-1000, unit="mmole_per_s",
+              constant=True, sboTerm=SBO_FLUX_BOUND),
+    Parameter(sid="plus_1000",
+              value=1000, unit="mmole_per_s",
+              constant=True, sboTerm=SBO_FLUX_BOUND),
+]
 
 # -----------------------------------------------------------------------------
 # FunctionDefinitions
 # -----------------------------------------------------------------------------
-functions.extend([
-    mc.Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
-])
+functions = [
+    Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
+]
 
 # -----------------------------------------------------------------------------
 # Assignments
 # -----------------------------------------------------------------------------
-assignments.extend([
-    mc.InitialAssignment('glc', "4.5 mM")
-])
+assignments = [
+    InitialAssignment('glc', "4.5 mM")
+]
 
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-rules.extend([
-    mc.AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")
-])
+rules = [
+    AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")
+]
 
 # -----------------------------------------------------------------------------
 # Reactions
 # -----------------------------------------------------------------------------
-reactions.extend([
+reactions = [
     ReactionTemplate(
         rid='GK',
         name='Glucokinase',
@@ -147,64 +143,101 @@ reactions.extend([
         pars=[],
         rules=[],
         formula=('Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))', 'mmole_per_s'),
-        sboTerm="SBO:0000176"
+        lowerFluxBound="zero",
+        upperFluxBound="inf",
+        sboTerm=SBO_BIOCHEMICAL_REACTION
     ),
     ReactionTemplate(
-        rid='ATPASE',
-        name='ATP consumption',
-        equation='atp + h2o -> adp + phos + hydron []',
+        rid='ATPPROD',
+        name='ATP production',
+        equation='adp + phos + hydron -> atp + h2o []',
         compartment='c',
         pars=[],
         rules=[],
-        formula=('Vmax_ATPASE * (atp/(Km_atp+atp)) * f_oscillation(time/ 1 second)', 'mmole_per_s'),
-        sboTerm="SBO:0000176"
+        formula=('Vmax_ATPASE * (adp/(Km_adp+adp)) * f_oscillation(time/ 1 second)', 'mmole_per_s'),
+        lowerFluxBound="zero",
+        upperFluxBound="inf",
+        sboTerm=SBO_BIOCHEMICAL_REACTION
+    ),
+    ReactionTemplate(
+        rid='EX_glc',
+        name='glucose exchange',
+        equation='glc -> []',
+        compartment='c',
+        pars=[],
+        rules=[],
+        lowerFluxBound="minus_1000",
+        upperFluxBound="plus_1000",
+        formula=('zero', 'mmole_per_s'),
+        sboTerm=SBO_EXCHANGE_REACTION
+    ),
+    ReactionTemplate(
+        rid='EX_g6p',
+        name='glucose-6 phosphate exchange',
+        equation='g6p -> []',
+        compartment='c',
+        pars=[],
+        rules=[],
+        lowerFluxBound="minus_1000",
+        upperFluxBound="plus_1000",
+        formula=('zero', 'mmole_per_s'),
+        sboTerm=SBO_EXCHANGE_REACTION
     )
-])
+]
+
+# -----------------------------------------------------------------------------
+# Objective function
+# -----------------------------------------------------------------------------
+objectives = [
+    fbc.Objective(sid="atp_consume_max", objectiveType="maximize", active=True,
+                  fluxObjectives={"ATPPROD": 1.0})
+]
 
 # -----------------------------------------------------------------------------
 # Events
 # -----------------------------------------------------------------------------
-events.extend([
-    mc.Event("event_1", trigger="time%200 second == 0 second", assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
-             name="reset concentrations")
-])
+events = [
+    Event("event_1", trigger="time >= 200 second",
+          assignments={"glc": "4.5 mM", "atp": "3.0 mM", "adp": "0.8 mM", "g6p": "0.1 mM"},
+          name="reset concentrations")
+]
 
 # -----------------------------------------------------------------------------
 # Constraints
 # -----------------------------------------------------------------------------
 events.extend([
-    mc.Constraint("constraint_1", math="atp >= 0 mM", message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
+    Constraint("constraint_1", math="atp >= 0 mM", message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
 ])
 
 
 # -----------------------------------------------------------------------------
 # Layout
 # -----------------------------------------------------------------------------
-layouts.extend([
+layouts = [
     layout.Layout(sid="layout_1", name="Layout 1", width=700.0, height=700.0,
-              compartment_glyphs=[
-                layout.CompartmentGlyph("glyph_c", compartment="c", x=5, y=5, w=690, h=690)
-              ],
-              species_glyphs=[
-                    layout.SpeciesGlyph('glyph_atp', species="atp", x=450, y=50, w=50, h=20, text="ATP"),
-                    layout.SpeciesGlyph('glyph_adp', species="adp", x=450, y=450,  w=50, h=20, text="ADP"),
-                    layout.SpeciesGlyph('glyph_glc', species="glc", x=50, y=50,  w=50, h=20, text="glucose"),
-                    layout.SpeciesGlyph('glyph_g6p', species="g6p", x=50, y=450,  w=50, h=20, text="glucose-6-phosphate"),
-                    layout.SpeciesGlyph('glyph_hydron', species="hydron", x=250, y=450,  w=50, h=20, text="hydron"),
-              ],
-              reaction_glyphs=[
-                    layout.ReactionGlyph('glyph_GK', reaction="GK", x=250+25, y=250+10, h=0, w=0, text="GK",
-                                     species_glyphs={
-                                         "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
-                                         "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
-                                         "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
-                                         "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
-                                         "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
-                                     }),
-                    layout.ReactionGlyph('glyph_ATPASE', reaction="ATPASE", x=650+25, y=250+10, h=0, w=0, text="ATPase",
-                                     species_glyphs={
-                                         "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
-                                         "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
-                                     }),
-              ])
-])
+                  compartment_glyphs=[
+                    layout.CompartmentGlyph("glyph_c", compartment="c", x=5, y=5, w=690, h=690)
+                  ],
+                  species_glyphs=[
+                        layout.SpeciesGlyph('glyph_atp', species="atp", x=450, y=50, w=50, h=20, text="ATP"),
+                        layout.SpeciesGlyph('glyph_adp', species="adp", x=450, y=450,  w=50, h=20, text="ADP"),
+                        layout.SpeciesGlyph('glyph_glc', species="glc", x=50, y=50,  w=50, h=20, text="glucose"),
+                        layout.SpeciesGlyph('glyph_g6p', species="g6p", x=50, y=450,  w=50, h=20, text="glucose-6-phosphate"),
+                        layout.SpeciesGlyph('glyph_hydron', species="hydron", x=250, y=450,  w=50, h=20, text="hydron"),
+                  ],
+                  reaction_glyphs=[
+                        layout.ReactionGlyph('glyph_GK', reaction="GK", x=250+25, y=250+10, h=0, w=0, text="GK",
+                                             species_glyphs={
+                                                 "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
+                                                 "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
+                                                 "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
+                                                 "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
+                                                 "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
+                                             }),
+                        layout.ReactionGlyph('glyph_ATPPROD', reaction="ATPPROD", x=650+25, y=250+10, h=0, w=0, text="ATPase",
+                                             species_glyphs={
+                                                 "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
+                                                 "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
+                                             }),
+                      ])
+]

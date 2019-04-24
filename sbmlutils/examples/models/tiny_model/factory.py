@@ -1,3 +1,10 @@
+"""
+Script to create the tiny model SBML.
+The memote report can be created via
+
+    memote report snapshot --filename "report.html" path/to/model.xml
+"""
+
 import os
 from sbmlutils.modelcreator.creator import Factory
 
@@ -16,8 +23,6 @@ def create(tmp=False):
     factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model'],
                       target_dir=os.path.join(models_dir, 'results'),
                       annotations=os.path.join(models_dir, 'annotations.xlsx'))
-    # factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model2'],
-    #                  target_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
 

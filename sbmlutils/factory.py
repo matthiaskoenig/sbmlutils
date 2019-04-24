@@ -18,16 +18,46 @@ which takes care of the order of object creation.
 import logging
 import libsbml
 from sbmlutils.validation import check
+from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
+
 
 SBML_LEVEL = 3  # default SBML level
-SBML_VERSION = 1  # default SBML version
+SBML_VERSION = 2  # default SBML version
 PORT_SUFFIX = "_port"
-
-
-# TODO: Define recurring SBO terms
 PREFIX_EXCHANGE_REACTION = 'EX_'
-SBO_EXCHANGE_REACTION = "SBO:0000627"
-SBO_FLUX_BOUND = "SBO:0000612"
+
+PACKAGE_COMP = "comp"
+PACKAGE_FBC = "fbc"
+PACKAGE_DISTRIB = "distrib"
+PACKAGE_LAYOUT = "layout"
+
+ALLOWED_PACKAGES = {
+    PACKAGE_COMP,
+    PACKAGE_FBC,
+    PACKAGE_DISTRIB,
+    PACKAGE_LAYOUT,
+}
+
+__all__ = [
+    'Notes',
+    'ModelUnits',
+    'Creator',
+    'Compartment',
+    'Unit',
+    'Function',
+    'Species',
+    'Parameter',
+    'InitialAssignment',
+    'AssignmentRule',
+    'RateRule',
+    'Event',
+    'Constraint',
+    'ReactionTemplate',
+    'ExchangeReactionTemplate',
+    'Uncertainty',
+    'UncertParameter',
+    'UncertSpan',
+]
 
 
 def create_objects(model, obj_iter, key=None, debug=False):
@@ -72,7 +102,53 @@ def ast_node_from_formula(model, formula):
     return ast_node
 
 
-def set_main_units(model, main_units):
+#####################################################################
+# Notes
+#####################################################################
+class Notes(object):
+
+    def __init__(self, notes):
+        tokens = ["<body xmlns='http://www.w3.org/1999/xhtml'>"]
+        if isinstance(notes, (dict, list)):
+            tokens.extend(notes)
+        else:
+            tokens.append(notes)
+
+        tokens.append("</body>")
+        notes_str = "\n".join(tokens)
+        self.xml = libsbml.XMLNode.convertStringToXMLNode(notes_str)
+        if self.xml is None:
+            raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+
+
+def set_notes(model, notes):
+    """ Set notes information on model.
+
+    :param model: Model
+    :param notes: notes information (xml string)
+    :return:
+    """
+    if not isinstance(notes, Notes):
+        logging.error("Using notes strings is deprecated, use 'Notes' instead.")
+        notes = Notes(notes)
+
+    check(model.setNotes(notes.xml), message="Setting notes on model")
+
+
+#####################################################################
+# ModelUnits
+#####################################################################
+class ModelUnits(object):
+    def __init__(self, time=None, extent=None, substance=None, length=None, area=None, volume=None):
+        self.time = time
+        self.extent = extent
+        self.substance = substance
+        self.length = length
+        self.area = area
+        self.volume = volume
+
+
+def set_model_units(model, model_units):
     """ Sets the main units in model from dictionary.
 
     Allowed keys are:
@@ -84,42 +160,35 @@ def set_main_units(model, main_units):
         volume
 
     :param model: SBMLModel
-    :param main_units: dict of units
+    :param model_units: dict of units
     :return:
     """
-    for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
-        if key not in main_units:
-            logging.warning('The following key is missing in main_units: {}'.format(key))
-            continue
-        unit = main_units[key]
-        unit = Unit.get_unit_string(unit)
-        # set the values
-        if key == 'time':
-            model.setTimeUnits(unit)
-        elif key == 'extent':
-            model.setExtentUnits(unit)
-        elif key == 'substance':
-            model.setSubstanceUnits(unit)
-        elif key == 'length':
-            model.setLengthUnits(unit)
-        elif key == 'area':
-            model.setAreaUnits(unit)
-        elif key == 'volume':
-            model.setVolumeUnits(unit)
+    if isinstance(model_units, dict):
+        logging.error("Providing model units as dict is deprecated, use 'ModelUnits' instead.")
+        model_units = ModelUnits(**model_units)
 
-
-def set_notes(model, notes):
-    """ Set notes information on model.
-
-    :param model: Model
-    :param notes: notes information (xml string)
-    :return:
-    """
-    xml_node = libsbml.XMLNode.convertStringToXMLNode(notes)
-    if xml_node is None:
-        raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
-    check(model.setNotes(xml_node),
-          message="Setting notes on model")
+    if not model_units:
+        logging.error("Model units should be provided for a model, i.e., set 'model_unit' on model.")
+    else:
+        for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
+            if getattr(model_units, key) is None:
+                logging.error('The following key is missing in model_units: {}'.format(key))
+                continue
+            unit = getattr(model_units, key)
+            unit = Unit.get_unit_string(unit)
+            # set the values
+            if key == 'time':
+                model.setTimeUnits(unit)
+            elif key == 'extent':
+                model.setExtentUnits(unit)
+            elif key == 'substance':
+                model.setSubstanceUnits(unit)
+            elif key == 'length':
+                model.setLengthUnits(unit)
+            elif key == 'area':
+                model.setAreaUnits(unit)
+            elif key == 'volume':
+                model.setVolumeUnits(unit)
 
 
 #####################################################################
@@ -127,7 +196,6 @@ def set_notes(model, notes):
 #####################################################################
 class Creator(object):
     """ Creator in ModelHistory. """
-
     def __init__(self, familyName, givenName, email, organization, site=None):
         self.familyName = familyName
         self.givenName = givenName
@@ -140,12 +208,14 @@ class Creator(object):
 # Base classes
 #####################################################################
 class Sbase(object):
-    def __init__(self, sid, name=None, sboTerm=None, metaId=None, port=None):
+    def __init__(self, sid=None, name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
         self.sid = sid
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
         self.port = port
+        self.uncertainties = uncertainties
 
     def __str__(self):
         tokens = str(self.__class__).split('.')
@@ -157,14 +227,17 @@ class Sbase(object):
             name = ' ' + name
         return '<{}[{}]{}>'.format(class_name, self.sid, name)
 
-    def set_fields(self, obj):
-        obj.setId(self.sid)
+    def set_fields(self, obj: libsbml.SBase):
+        if self.sid is not None:
+            obj.setId(self.sid)
         if self.name is not None:
             obj.setName(self.name)
         if self.sboTerm is not None:
             obj.setSBOTerm(self.sboTerm)
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
+
+        self.create_uncertainties(obj)
 
     def create_port(self, model):
         """ Create port if existing. """
@@ -189,14 +262,23 @@ class Sbase(object):
                 self.port.idRef = self.sid
             self.port.create_sbml(model)
 
+    def create_uncertainties(self, obj):
+        if not self.uncertainties:
+            return
+
+        for uncertainty in self.uncertainties:  # type: Uncertainty
+            uncertainty.create_sbml(obj)
+
 
 class Value(Sbase):
     """ Helper class.
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
-        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
+        super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                    port=port, uncertainties=uncertainties)
         self.value = value
 
     def set_fields(self, obj):
@@ -208,8 +290,11 @@ class ValueWithUnit(Value):
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
-    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
-        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+    def __init__(self, sid, value, unit="-",
+                 name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
+        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
+                                            port=port, uncertainties=uncertainties)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -222,8 +307,10 @@ class ValueWithUnit(Value):
 # Units
 ##########################################################################
 class Unit(Sbase):
-    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None, port=None):
-        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+    def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
+        super(Unit, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                   port=port, uncertainties=uncertainties)
         self.definition = definition
 
     def create_sbml(self, model):
@@ -274,11 +361,18 @@ class Unit(Sbase):
 
     @staticmethod
     def get_unit_string(unit):
-        if type(unit) is int:
-            unit = libsbml.UnitKind_toString(unit)
-        if unit == '-':
-            unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
-        return unit
+        if isinstance(unit, Unit):
+            return unit.sid
+        elif isinstance(unit, int):
+            # libsbml unit
+            return libsbml.UnitKind_toString(unit)
+        if isinstance(unit, str):
+            if unit == '-':
+                return libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)
+            else:
+                return unit
+        else:
+            return None
 
 
 ##########################################################################
@@ -292,8 +386,10 @@ class Function(Sbase):
         lambda(x, sin(x) )
     """
 
-    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None, port=None):
-        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+    def __init__(self, sid, value, name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
+        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                       port=port, uncertainties=uncertainties)
         self.formula = value
 
     def create_sbml(self, model):
@@ -312,8 +408,11 @@ class Function(Sbase):
 ##########################################################################
 class Parameter(ValueWithUnit):
 
-    def __init__(self, sid, value=None, unit=None, constant=True, name=None, sboTerm=None, metaId=None, port=None):
-        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+    def __init__(self, sid, value=None, unit=None, constant=True,
+                 name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
+        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId,
+                                        port=port, uncertainties=uncertainties)
         self.constant = constant
 
     def create_sbml(self, model):
@@ -334,8 +433,9 @@ class Parameter(ValueWithUnit):
 class Compartment(ValueWithUnit):
 
     def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None,
-                 port=None):
-        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+                 port=None, uncertainties=None):
+        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId,
+                                          port=port, uncertainties=uncertainties)
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -354,6 +454,7 @@ class Compartment(ValueWithUnit):
             c.setSize(self.value)
 
         self.create_port(model)
+        self.create_uncertainties(c)
         return c
 
     def set_fields(self, obj):
@@ -370,8 +471,9 @@ class Species(Sbase):
 
     def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
-                 port=None):
-        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+                 port=None, uncertainties=None):
+        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                      port=port, uncertainties=uncertainties)
 
         if (initialAmount is None) and (initialConcentration is None):
             raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
@@ -426,8 +528,10 @@ class InitialAssignment(Value):
     The unit attribute is only for the case where a parameter must be created (which has the unit).
     In case of an initialAssignment of a value the units have to be defined in the math.
     """
-    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None, port=None):
-        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+    def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None,
+                 port=None, uncertainties=None):
+        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
+                                                port=port, uncertainties=uncertainties)
         self.unit = unit
 
     def create_sbml(self, model):
@@ -566,6 +670,123 @@ class RateRule(Rule):
         """
         rule = model.createRateRule()
         return Rule._create_rule(model, rule, sid, formula)
+
+
+##########################################################################
+# Uncertainty
+##########################################################################
+class UncertParameter(object):
+    """UncertParameter
+    # FIXME: add annotation
+    """
+    def __init__(self, type, value=None, var=None, unit=None):
+        if (value is None) and (var is None):
+            raise ValueError("Either 'value' or 'var' have to be set in UncertParameter.")
+        self.type = type
+        self.value = value
+        self.var = var
+        self.unit = unit
+
+
+class UncertSpan(object):
+    def __init__(self, type, valueLower=None, varLower=None, valueUpper=None, varUpper=None, unit=None):
+        if (valueLower is None) and (varLower is None):
+            raise ValueError("Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
+        if (valueUpper is None) and (varUpper is None):
+            raise ValueError("Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
+
+        self.type = type
+        self.valueLower = valueLower
+        self.varLower = varLower
+        self.valueUpper = valueUpper
+        self.varUpper = varUpper
+        self.unit = unit
+
+
+class Uncertainty(Sbase):
+    """ Uncertainty.
+
+    Uncertainty information for Sbase.
+    """
+    def __init__(self, sid=None, formula=None, uncertParameters=[],
+                 name=None, sboTerm=None, metaId=None, port=None):
+        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+
+        # Object on which the uncertainty is written
+        self.formula = formula
+        self.uncertParameters = uncertParameters
+
+    def create_sbml(self, sbase):
+        """ Create libsbml Uncertainty.
+
+        :param model:
+        :return:
+        """
+        sbase_distrib = sbase.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
+        uncertainty = sbase_distrib.createUncertainty()  # type: libsbml.Uncertainty
+
+        for uncertParameter in self.uncertParameters:
+            up = None
+            if uncertParameter.type in [
+                libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
+                libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
+                libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
+                libsbml.DISTRIB_UNCERTTYPE_RANGE,
+            ]:
+
+                up = uncertainty.createUncertSpan()  # type: libsbml.UncertSpan
+                up.setType(uncertParameter.type)
+                if uncertParameter.valueLower is not None:
+                    up.setValueLower(uncertParameter.valueLower)
+                if uncertParameter.valueUpper is not None:
+                    up.setValueUpper(uncertParameter.valueUpper)
+                if uncertParameter.varLower is not None:
+                    up.setVarLower(uncertParameter.varLower)
+                if uncertParameter.varUpper is not None:
+                    up.setValueLower(uncertParameter.varUpper)
+
+            elif uncertParameter.type in [
+                libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
+                libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
+                libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                libsbml.DISTRIB_UNCERTTYPE_MEDIAN,
+                libsbml.DISTRIB_UNCERTTYPE_MODE,
+                libsbml.DISTRIB_UNCERTTYPE_SAMPLESIZE,
+                libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
+                libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
+                libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
+            ]:
+                up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+                up.setType(uncertParameter.type)
+                if uncertParameter.value is not None:
+                    up.setValue(uncertParameter.value)
+                if uncertParameter.var is not None:
+                    up.setValue(uncertParameter.var)
+            else:
+                logging.error("Unsupported UncertParameter or UncertSpan type: %s", uncertParameter.type)
+
+            if up and uncertParameter.unit:
+                up.setUnits(Unit.get_unit_string(self.unit))
+
+        # create a distribution uncertainty
+        if self.formula:
+            model = sbase.getModel()
+            up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+            up.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
+            for key in ["normal", "uniform", "bernoulli",
+                        "binomial", "cauchy", "chisquare",
+                        "exponential", "gamma", "laplace",
+                        "lognormal", "poisson", "raleigh"
+                        ]:
+                if key in self.formula:
+                    up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/{}".format(key))
+                    ast = libsbml.parseL3FormulaWithModel(self.formula, model)
+                    if not ast:
+                        logging.error("Formula could not be parsed in uncertainty: {}".format(self.formula))
+                        up.setMath(ast)
+
+        return uncertainty
 
 
 ##########################################################################
@@ -785,4 +1006,3 @@ def createEventFromEventData(model, edata):
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
 '''
-
