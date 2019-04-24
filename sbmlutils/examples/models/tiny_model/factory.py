@@ -1,3 +1,10 @@
+"""
+Script to create the tiny model SBML.
+The memote report can be created via
+
+    memote report snapshot --filename "report.html" path/to/model.xml
+"""
+
 import os
 from sbmlutils.modelcreator.creator import Factory
 

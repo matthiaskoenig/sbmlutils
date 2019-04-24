@@ -13,7 +13,7 @@ from sbmlutils.modelcreator import templates
 
 # -----------------------------------------------------------------------------
 mid = 'tiny_example'
-version = 11
+version = 12
 notes = Notes([
     """
     <h2>Description</h2>
@@ -168,6 +168,7 @@ reactions = [
         rules=[],
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
+        formula=('zero', 'mmole_per_s'),
         sboTerm=SBO_EXCHANGE_REACTION
     ),
     ReactionTemplate(
@@ -179,6 +180,7 @@ reactions = [
         rules=[],
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
+        formula=('zero', 'mmole_per_s'),
         sboTerm=SBO_EXCHANGE_REACTION
     )
 ]

@@ -22,7 +22,7 @@ from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, Exchange
 
 
 SBML_LEVEL = 3  # default SBML level
-SBML_VERSION = 1  # default SBML version
+SBML_VERSION = 2  # default SBML version
 PORT_SUFFIX = "_port"
 PREFIX_EXCHANGE_REACTION = 'EX_'
 
@@ -454,7 +454,7 @@ class Compartment(ValueWithUnit):
             c.setSize(self.value)
 
         self.create_port(model)
-        self.create_uncertainties(model, c)
+        self.create_uncertainties(c)
         return c
 
     def set_fields(self, obj):

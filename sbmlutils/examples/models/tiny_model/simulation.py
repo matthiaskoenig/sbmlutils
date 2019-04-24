@@ -12,6 +12,8 @@ import roadrunner
 import pandas as pd
 from matplotlib import pylab as plt
 from sbmlutils.modelcreator.creator import Factory
+import cobra
+from cobra.io import read_sbml_model
 
 # -----------------------------------------------------------------------------
 # create model
@@ -56,30 +58,20 @@ ax1.set_ylabel("concentration [mmole/litre]=[mM]")
 ax2.set_title("SBML reactions")
 ax2.plot(df.time, 1E6*df.GK)
 ax2.plot(df.time, 1E6*df.ATPPROD)
-ax2.set_ylabel("reaction rate 1E6[mmole/s]")
+ax2.set_ylabel("reaction rate 1E-6[mmole/s]")
 
 for ax in (ax1, ax2):
     ax.legend()
     ax.set_xlabel("time [s]")
 
 plt.show()
-f.savefig("./results/{}_{}.png".format(model.mid, model.version), bbox_inches="tight")
+f.savefig("./results/{}_{}_roadrunner.png".format(model.mid, model.version), bbox_inches="tight")
 
-
-#r = roadrunner.RoadRunner(tiny_sbml)
-#r.integrator.setValue("relative_tolerance", 1E-18)
-#r.integrator.setValue("absolute_tolerance", 1E-18)
-#s = r.simulate(0, 100, steps=100)
-#df = pd.DataFrame(s, columns=s.colnames)
-#r.plot()
-
-import cobra
 
 # -----------------------------------------------------------------------------
 # fba simulation
 # -----------------------------------------------------------------------------
-import cobra
-from cobra.io import read_sbml_model
+
 model = read_sbml_model(tiny_sbml)
 print(model)
 
@@ -94,7 +86,7 @@ print("")
 print("Metabolites")
 print("-----------")
 for x in model.metabolites:
-    print('%9s : %s' % (x.id, x.formula))
+    print('%9s (%s) : %s, %s, %s' % (x.id, x.compartment, x.formula, x.charge,  x.annotation))
 
 print("")
 print("Genes")
@@ -103,8 +95,6 @@ for x in model.genes:
     associated_ids = (i.id for i in x.reactions)
     print("%s is associated with reactions: %s" %
           (x.id, "{" + ", ".join(associated_ids) + "}"))
-
-
 
 
 solution = model.optimize()
