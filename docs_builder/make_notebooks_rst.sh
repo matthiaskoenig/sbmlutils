@@ -9,7 +9,7 @@ date
 echo "--------------------------------------"
 echo "convert notebooks to rst"
 echo "--------------------------------------"
-NBDIR=$DIR/../sbmlutils/examples/notebooks/docs
+NBDIR=$DIR/notebooks
 NBOUTDIR=$DIR/_notebooks/docs
 
 rm -rf $NBOUTDIR
@@ -19,7 +19,7 @@ cd $NBOUTDIR
 # if errors should abort, remove the --allow-errors option
 # jupyter nbconvert --to=rst --allow-errors --execute $NBDIR/*.ipynb
 # In the process the notebooks are completely executed
-jupyter nbconvert --to=rst --allow-errors --execute $NBDIR/*.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=rst --allow-errors --execute $NBDIR/*.ipynb
 echo "DONE"
 
 echo "--------------------------------------"
@@ -37,14 +37,14 @@ echo "DONE"
 echo "--------------------------------------"
 echo "create python code"
 echo "--------------------------------------"
-PYOUTDIR=$DIR/../sbmlutils/examples/notebooks-py
+PYOUTDIR=$DIR/notebooks-py
 rm -rf $PYOUTDIR
 mkdir -p $PYOUTDIR
 
 # create python files next to the notebooks
 cd $PYOUTDIR
-# jupyter nbconvert --to=python --allow-errors --execute $NBDIR/*.ipynb
-jupyter nbconvert --to=python --execute $NBDIR/*.ipynb
+# jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=python --allow-errors --execute $NBDIR/*.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=python --execute $NBDIR/*.ipynb
 
 # replace the magic & add warning
 sed -i -- "s/get_ipython().magic(u'matplotlib inline')/\#\!\!\! DO NOT CHANGE \!\!\! THIS FILE WAS CREATED AUTOMATICALLY FROM NOTEBOOKS \!\!\! CHANGES WILL BE OVERWRITTEN \!\!\! CHANGE CORRESPONDING NOTEBOOK FILE \!\!\!/g" ./*.py
