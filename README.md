@@ -38,7 +38,6 @@ Matthias König is supported by the Federal Ministry of Education and Research (
 within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054).
 
 
-
 ## Installation
 `sbmlutils` is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and 
 can be installed via 
@@ -64,6 +63,9 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.1
+* libSBML 5.18.0
+* initial distrib support
 
 ### 0.3.0a1
 * better comp support
@@ -120,4 +122,4 @@ pip install -e .
 * initial release
 
 
-&copy; 2017-2018 Matthias König
+&copy; 2017-2019 Matthias König

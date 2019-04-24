@@ -63,8 +63,8 @@ setup(
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "pip>=19.0.3",
-        "numpy>=1.16.2",
+        "pip>=19.1",
+        "numpy>=1.16.3",
         "scipy>=1.2.1",
         "matplotlib>=3.0.3",
         "pandas>=0.24.2",
@@ -77,13 +77,13 @@ setup(
         "pyexcel-xlsx>=0.5.7",
 
         # standards
-        "python-libsbml-experimental>=5.17.2",
+        "python-libsbml>=5.18.0",
         "phrasedml>=1.0.9",  # not working on py37
         "antimony>=2.9.4",  # not working on py37
 
         # simulation
         "libroadrunner>=1.5.3",
-        "cobra>=0.15.0",
+        "cobra @ git+ssh://git@github.com/opencobra/cobrapy@sbml-bugfixes",  # libSBML 5.18.0 dependencies
         "optlang>=1.4.4",
 
         # misc
