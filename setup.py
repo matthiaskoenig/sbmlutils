@@ -83,7 +83,8 @@ setup(
 
         # simulation
         "libroadrunner>=1.5.3",
-        "cobra @ git+ssh://git@github.com/opencobra/cobrapy@sbml-bugfixes",  # libSBML 5.18.0 dependencies
+        # "cobra @ git+ssh://git@github.com/opencobra/cobrapy@sbml-bugfixes",  # libSBML 5.18.0 dependencies
+        "cobra>=0.15.2",
         "optlang>=1.4.4",
 
         # misc
