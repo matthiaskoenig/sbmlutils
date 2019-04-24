@@ -20,7 +20,7 @@ twine upload dist/*
 ```
 * test installation in virtualenv from pypi
 ```
-mkvirtualenv test
+mkvirtualenv test --python=python3.6
 (test) pip install sbmlutils
 ```
 
