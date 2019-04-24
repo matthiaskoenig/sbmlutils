@@ -41,21 +41,21 @@ units = [
     Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
     Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                           (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+                        (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
     Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                            (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
+                         (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
 
     Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                           (UNIT_KIND_LITRE, -1.0)]),
+                        (UNIT_KIND_LITRE, -1.0)]),
     Unit('mmol_per_lg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
-                           (UNIT_KIND_LITRE, -1.0), (UNIT_KIND_GRAM, -1.0)]),
+                         (UNIT_KIND_LITRE, -1.0), (UNIT_KIND_GRAM, -1.0)]),
 
     Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
-                           (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+                        (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
     Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
-                        (UNIT_KIND_LITRE, -1.0)]),
+                     (UNIT_KIND_LITRE, -1.0)]),
     Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
-                           (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+                        (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
 ]
 # -----------------------------------------------------------------------------
 # Compartments
@@ -171,4 +171,3 @@ objectives = [
     Objective(sid="biomass_max", objectiveType="maximize", active=True,
               fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 ]
-

@@ -28,7 +28,7 @@ class DFBAAnalysis(object):
 
     def __init__(self, df, ode_model):
         """ Constructor.
-        
+
         :param df: Solution DataFrame
         :param ode_model: flattened roadrunner ode model
         """

@@ -227,17 +227,17 @@ layouts = [
                   ],
                   reaction_glyphs=[
                         layout.ReactionGlyph('glyph_GK', reaction="GK", x=250+25, y=250+10, h=0, w=0, text="GK",
-                                         species_glyphs={
-                                             "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
-                                             "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
-                                             "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
-                                             "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
-                                             "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
-                                         }),
+                                             species_glyphs={
+                                                 "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
+                                                 "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
+                                                 "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
+                                                 "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
+                                                 "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
+                                             }),
                         layout.ReactionGlyph('glyph_ATPPROD', reaction="ATPPROD", x=650+25, y=250+10, h=0, w=0, text="ATPase",
-                                         species_glyphs={
-                                             "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
-                                             "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
-                                         }),
-                  ])
+                                             species_glyphs={
+                                                 "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
+                                                 "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
+                                             }),
+                      ])
 ]

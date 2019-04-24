@@ -7,6 +7,7 @@ alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 import re
 import libsbml
 
+
 def ast_info(ast):
     print(ast)
     print(ast.getType(), ast.getName())

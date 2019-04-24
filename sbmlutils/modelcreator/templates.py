@@ -35,4 +35,3 @@ terms_of_use = """
     </div>
 """.format(year=datetime.now().year, given_name=creators[0].givenName,
            family_name=creators[0].familyName, site=creators[0].site)
-

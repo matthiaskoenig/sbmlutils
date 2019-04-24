@@ -211,8 +211,6 @@ class ReactionGlyph(factory.Sbase):
         # 1. Find the direction of the reaction (via location of substrates and
         # 2. Orient the curves accordingly (at the bounding box, with all ingoing connecting
         # at same point and all outgoing connecting at same point.
-
-
         r_glyph = layout.getReactionGlyph(r_glyph_id)  # type: libsbml.ReactionGlyph
         s_glyph = layout.getSpeciesGlyph(s_glyph_id)  # type: libsbml.SpeciesGlyph
 
@@ -246,8 +244,8 @@ class ReactionGlyph(factory.Sbase):
             r_point_modifier = (x + 0.5*w, y)
         elif direction == "down":
             s_point_substrate = (xs+0.5*ws, ys+hs)
-            s_point_product   = (xs+0.5*ws, ys)
-            s_point_modifier  = (xs, ys+0.5*hs)
+            s_point_product = (xs+0.5*ws, ys)
+            s_point_modifier = (xs, ys+0.5*hs)
 
             r_point_substrate = (x+0.5*w, y)
             r_point_product = (x+0.5*w, y+h)

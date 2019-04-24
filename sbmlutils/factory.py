@@ -1006,4 +1006,3 @@ def createEventFromEventData(model, edata):
     astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
     t.setMath(astnode)
 '''
-

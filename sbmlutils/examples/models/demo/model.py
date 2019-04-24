@@ -29,7 +29,7 @@ creators = templates.creators
 # Units
 # ---------------------------------------------------------------------------------------------------------------------
 model_units = ModelUnits(time=UNIT_KIND_SECOND, substance=UNIT_KIND_MOLE, extent=UNIT_KIND_MOLE,
-                        length=UNIT_KIND_METRE, area=UNIT_m2, volume=UNIT_m3)
+                         length=UNIT_KIND_METRE, area=UNIT_m2, volume=UNIT_m3)
 units = [
     Unit('s', [(UNIT_KIND_SECOND, 1.0)]),
     Unit('kg', [(UNIT_KIND_KILOGRAM, 1.0)]),

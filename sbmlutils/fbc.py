@@ -44,7 +44,6 @@ class Objective(factory.Sbase):
         super(Objective, self).set_fields(obj)
 
 
-
 def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
     """ Create flux optimization objective.
 

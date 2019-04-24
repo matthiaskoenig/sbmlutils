@@ -33,7 +33,7 @@ def check(value, message):
         else:
             logging.error('Error encountered trying to <' + message + '>.')
             logging.error('LibSBML returned error code {}: {}'.format(str(value),
-                                                              libsbml.OperationReturnValue_toString(value).strip()))
+                          libsbml.OperationReturnValue_toString(value).strip()))
     else:
         return
 
@@ -187,7 +187,7 @@ def error_string(error, k=None):
     severity = error.getSeverity()
     lines = [
         '',
-        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code')+ bcolors.ENDC + bcolors.ENDC,
+        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code') + bcolors.ENDC + bcolors.ENDC,
         bcolors.FAIL + '[{}] {}'.format(error.getSeverityAsString(), error.getShortMessage()) + bcolors.ENDC,
         bcolors.OKBLUE + error.getMessage() + bcolors.ENDC
     ]

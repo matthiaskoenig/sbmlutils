@@ -67,4 +67,3 @@ def test_create_distrib():
 @pytest.mark.skip(reason="Uncertainty currently not supported in libsbml-5.18.0")
 def test_create_distrib():
     distrib_factory.create_distrib(tmp=True)
-

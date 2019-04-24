@@ -96,4 +96,3 @@ if __name__ == "__main__":
     factory = Factory(modules=['sbmlutils.examples.models.example1.model'],
                       target_dir=os.path.join(models_dir, 'results'))
     factory.create()
-

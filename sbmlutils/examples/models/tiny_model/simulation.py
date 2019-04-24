@@ -99,8 +99,3 @@ for x in model.genes:
 
 solution = model.optimize()
 print(solution)
-
-
-
-
-

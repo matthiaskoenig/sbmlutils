@@ -166,16 +166,16 @@ def uncertainty():
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
     uncertainty.setName("UncertParameter example")
     for k, parameter_type in enumerate([
-        libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
-        libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
-        libsbml.DISTRIB_UNCERTTYPE_MEAN,
-        libsbml.DISTRIB_UNCERTTYPE_MEDIAN,
-        libsbml.DISTRIB_UNCERTTYPE_MODE,
-        libsbml.DISTRIB_UNCERTTYPE_SAMPLESIZE,
-        libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
-        libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
-        libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
-        libsbml.DISTRIB_UNCERTTYPE_VARIANCE]):
+            libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
+            libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
+            libsbml.DISTRIB_UNCERTTYPE_MEAN,
+            libsbml.DISTRIB_UNCERTTYPE_MEDIAN,
+            libsbml.DISTRIB_UNCERTTYPE_MODE,
+            libsbml.DISTRIB_UNCERTTYPE_SAMPLESIZE,
+            libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
+            libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+            libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
+            libsbml.DISTRIB_UNCERTTYPE_VARIANCE]):
 
         up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
         up.setType(parameter_type)
@@ -188,10 +188,10 @@ def uncertainty():
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
     uncertainty.setName("UncertSpan example")
     for k, parameter_type in enumerate([
-        libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
-        libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
-        libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
-        libsbml.DISTRIB_UNCERTTYPE_RANGE]):
+            libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
+            libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
+            libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
+            libsbml.DISTRIB_UNCERTTYPE_RANGE]):
 
         up_range = libsbml.UncertSpan()
         up_range.setType(parameter_type)
@@ -269,4 +269,3 @@ if __name__ == "__main__":
 
         libsbml.writeSBMLToFile(doc, sbml_path)
         validation.check_doc(doc)
-
