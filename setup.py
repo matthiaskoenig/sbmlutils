@@ -77,14 +77,13 @@ setup(
         "pyexcel-xlsx>=0.5.7",
 
         # standards
-        "python-libsbml>=5.18.0",
+        "python-libsbml-experimental>=5.18.0",
         "phrasedml>=1.0.9",  # not working on py37
         "antimony>=2.9.4",  # not working on py37
 
         # simulation
         "libroadrunner>=1.5.3",
-        # "cobra @ git+ssh://git@github.com/opencobra/cobrapy@sbml-bugfixes",  # libSBML 5.18.0 dependencies
-        "cobra>=0.15.2",
+        "cobra>=0.15.3",
         "optlang>=1.4.4",
 
         # misc
