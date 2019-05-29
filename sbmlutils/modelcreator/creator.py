@@ -170,6 +170,8 @@ class Preprocess(object):
         # dynamically import module
         import importlib
         module = importlib.import_module(module_name, package=package)
+        # reload quired so that module is evaluated at time of creation
+        importlib.reload(module)
 
         # get attributes from class
         logging.info('Preprocess: <{}>'.format(module_name))
@@ -245,7 +247,11 @@ class CoreModel(object):
 
     @property
     def model_id(self):
-        return '{}_{}'.format(self.mid, self.version)
+        if self.version:
+            return '{}_{}'.format(self.mid, self.version)
+        else:
+            return self.mid
+
 
     @staticmethod
     def from_dict(model_dict):

@@ -214,7 +214,6 @@ class ReplacedElement(SbaseRef):
         # resolve port element
         e = model.getElementBySId(self.elementRef)
         if not e:
-            logging.warn("Element for sid '{}' not found, falling back to unit definitions.".format(self.elementRef))
             # fallback to units (only working if no name shadowing)
             e = model.getUnitDefinition(self.elementRef)
             if not e:
