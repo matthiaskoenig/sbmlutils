@@ -4,7 +4,7 @@ Validation and checking functions.
 Helper functions for simple validation and display of problems.
 Helper functions if setting sbml information was successful.
 """
-
+import os
 import logging
 import time
 import libsbml
@@ -47,6 +47,7 @@ def check_sbml(filepath, name=None, ucheck=True, show_errors=True):
     """
     # FIXME: check if this is also working for SBML strings
     if name is None:
+        filepath = os.path.abspath(filepath)
         if len(filepath) < 100:
             name = filepath
         else:
