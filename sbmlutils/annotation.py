@@ -15,7 +15,6 @@ ontology lookup service.
 # TODO: generic generation
 # TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
 # TODO: check how the meta id is generated & use general mechanism
-# TODO: add the cv terms from SBO terms
 
 
 import logging
@@ -98,9 +97,9 @@ BiologicalQualifierType = {
 }
 
 
-########################################################################
-# Annotation
-########################################################################
+# -----------------------------------------------------------------------------
+# annotation utilities
+# -----------------------------------------------------------------------------
 def create_hash_id(sbase):
     """ Creates unique hash id for sbase in model.
 
@@ -133,14 +132,35 @@ class AnnotationException(Exception):
 
 
 class ModelAnnotation(object):
-    """ Class for single annotation, i.e. a single annotation line from a annotation file. """
+    """ Class for single annotation,
+        i.e. a single annotation line from a annotation file.
+    """
     # possible columns in annotation file
-    _keys = ['pattern', 'sbml_type', 'annotation_type', 'qualifier', 'collection', 'entity', 'name']
-
-    _sbml_types = frozenset(["document", "model", "unit", "reaction", "transporter", "species",
-                             "compartment", "parameter", "rule"])
-
-    _annotation_types = frozenset(["RDF", "Formula", "Charge"])
+    _keys = [
+        'pattern',
+        'sbml_type',
+        'annotation_type',
+        'qualifier',
+        'collection',
+        'entity',
+        'name'
+    ]
+    _sbml_types = frozenset([
+        "document",
+        "model",
+        "unit",
+        "reaction",
+        "transporter",
+        "species",
+        "compartment",
+        "parameter",
+        "rule"
+    ])
+    _annotation_types = frozenset([
+        "RDF",
+        "Formula",
+        "Charge"
+    ])
 
     def __init__(self, d, check_miriam=False):
 
