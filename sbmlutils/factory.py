@@ -18,6 +18,7 @@ which takes care of the order of object creation.
 import logging
 import libsbml
 from sbmlutils.validation import check
+from sbmlutils.annotation import ModelAnnotator, create_metaid
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
 
 
@@ -209,11 +210,13 @@ class Creator(object):
 #####################################################################
 class Sbase(object):
     def __init__(self, sid=None, name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         self.sid = sid
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
+        self.annotations = annotations
         self.port = port
         self.uncertainties = uncertainties
 
@@ -237,6 +240,7 @@ class Sbase(object):
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
+        self.create_annotations(obj)
         self.create_uncertainties(obj)
 
     def create_port(self, model):
@@ -262,6 +266,42 @@ class Sbase(object):
                 self.port.idRef = self.sid
             self.port.create_sbml(model)
 
+    def create_annotations(self, obj):
+        if self.annotations:
+            for a in self.annotations:
+                qualifier, resource = a[0].value, a[1]
+                if not resource.startswith("http"):
+                    resource = "https://identifiers.org/{}".format(resource)
+
+                print(qualifier, resource)
+                cv = libsbml.CVTerm()
+
+                # set correct type of qualifier
+                if qualifier.startswith("BQB"):
+                    cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
+                    sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+                    cv.setBiologicalQualifierType(sbml_qualifier)
+                elif qualifier.startswith('BQM'):
+                    cv.setQualifierType(libsbml.MODEL_QUALIFIER)
+                    sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+                    cv.setModelQualifierType(sbml_qualifier)
+                else:
+                    logging.error('Unsupported qualifier: {}'.format(qualifier))
+
+                cv.addResource(resource)
+
+                # meta id has to be set
+                if not obj.isSetMetaId():
+                    obj.setMetaId(create_metaid(obj))
+
+                success = obj.addCVTerm(cv)
+
+                if success != 0:
+                    logging.error("RDF not written: ", success)
+                    logging.error(libsbml.OperationReturnValue_toString(success))
+                    logging.error("{}, {}, {}".format(object, qualifier, resource))
+
+
     def create_uncertainties(self, obj):
         if not self.uncertainties:
             return
@@ -276,8 +316,10 @@ class Value(Sbase):
     subclasses.
     """
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                    annotations=annotations,
                                     port=port, uncertainties=uncertainties)
         self.value = value
 
@@ -291,10 +333,10 @@ class ValueWithUnit(Value):
     subclasses.
     """
     def __init__(self, sid, value, unit="-",
-                 name=None, sboTerm=None, metaId=None,
+                 name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
-                                            port=port, uncertainties=uncertainties)
+                                            port=port, annotations=annotations, uncertainties=uncertainties)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -432,10 +474,12 @@ class Parameter(ValueWithUnit):
 ##########################################################################
 class Compartment(ValueWithUnit):
 
-    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None,
+    def __init__(self, sid, value, unit=None, constant=True,
+                 spatialDimensions=3, name=None,
+                 sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId,
-                                          port=port, uncertainties=uncertainties)
+                                          annotations=annotations, port=port, uncertainties=uncertainties)
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -471,8 +515,10 @@ class Species(Sbase):
 
     def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                      annotations=annotations,
                                       port=port, uncertainties=uncertainties)
 
         if (initialAmount is None) and (initialConcentration is None):
@@ -529,8 +575,10 @@ class InitialAssignment(Value):
     In case of an initialAssignment of a value the units have to be defined in the math.
     """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
+                                                annotations=annotations,
                                                 port=port, uncertainties=uncertainties)
         self.unit = unit
 
@@ -677,7 +725,6 @@ class RateRule(Rule):
 ##########################################################################
 class UncertParameter(object):
     """UncertParameter
-    # FIXME: add annotation
     """
     def __init__(self, type, value=None, var=None, unit=None):
         if (value is None) and (var is None):
@@ -709,8 +756,11 @@ class Uncertainty(Sbase):
     Uncertainty information for Sbase.
     """
     def __init__(self, sid=None, formula=None, uncertParameters=[],
-                 name=None, sboTerm=None, metaId=None, port=None):
-        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+                 name=None, sboTerm=None, metaId=None,
+                 annotations=None,
+                 port=None):
+        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                          annotations=annotations, port=port)
 
         # Object on which the uncertainty is written
         self.formula = formula

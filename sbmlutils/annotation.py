@@ -368,8 +368,7 @@ class ModelAnnotator(object):
 
         :param element:
         :param qualifier:
-        :param collection:
-        :param entity:
+        :param resource
         :return:
         """
         cv = libsbml.CVTerm()

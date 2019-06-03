@@ -19,9 +19,11 @@ class ReactionTemplate(object):
     """ All reactions are instances of the ReactionTemplate. """
     def __init__(self, rid, equation, formula=None, pars=[], rules=[],
                  name=None, compartment=None, fast=False, sboTerm=None,
+                 metaId=None, annotations = None,
                  lowerFluxBound=None, upperFluxBound=None):
         self.rid = rid
         self.name = name
+        self.metaId = metaId
         self.equation = Equation(equation)
         self.compartment = compartment
         self.pars = pars
@@ -31,6 +33,7 @@ class ReactionTemplate(object):
             self.formula = Formula(*formula)
         self.fast = fast
         self.sboTerm = sboTerm
+        self.annotations = annotations
         self.lowerFluxBound = lowerFluxBound
         self.upperFluxBound = upperFluxBound
 
@@ -43,6 +46,8 @@ class ReactionTemplate(object):
         # reaction
         r = model.createReaction()  # type: libsbml.Reaction
         r.setId(self.rid)
+        if self.metaId:
+            r.setMetaId(self.metaId)
         if self.name:
             r.setName(self.name)
         else:
@@ -80,6 +85,9 @@ class ReactionTemplate(object):
                 r_fbc.setUpperFluxBound(self.upperFluxBound)
             if self.lowerFluxBound:
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
+
+        if self.annotations:
+            logging.error("Annotations not written on reactions.")
 
         return r
 
