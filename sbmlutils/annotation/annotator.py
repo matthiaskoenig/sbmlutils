@@ -24,9 +24,6 @@ from .miriam import IDENTIFIERS_ORG_PREFIX
 class SBaseAnnotation(object):
     """ Class for annotation of SBase objects."""
 
-    def __init__(self, qualifier, collection, term):
-        return SBaseAnnotation(qualifier, "{}/{}".format(collection, term))
-
     def __init__(self, qualifier, resource):
         """ Create new annotation information.
 
@@ -321,8 +318,7 @@ class ModelAnnotator(object):
             if ex_a.annotation_type == 'RDF':
                 sbase_annotation = SBaseAnnotation(
                     qualifier=ex_a.qualifier,
-                    collection=ex_a.collection,
-                    term=ex_a.entity
+                    resource="{}/{}".format(ex_a.collection, ex_a.entity)
                 )
                 sbase_annotation.annotate_sbase(e)
 

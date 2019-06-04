@@ -241,9 +241,10 @@ class Sbase(object):
             obj.setMetaId(self.metaId)
 
         if self.annotations:
-            SBaseAnnotation.annotate_sbase(
-                obj, annotation_data=self.annotations
-            )
+            for a in self.annotations:
+                sbase_annotation = SBaseAnnotation.from_tuple(a)
+                sbase_annotation.annotate_sbase(obj)
+
         self.create_uncertainties(obj)
 
     def create_port(self, model):
