@@ -236,7 +236,6 @@ class ModelAnnotator(object):
 
         :return:
         """
-        # TODO: generic generation
         id_dict = dict()
         id_dict['model'] = [self.model.getId()]
 
@@ -319,24 +318,21 @@ class ModelAnnotator(object):
         :return:
         """
         for e in elements:
-            if a.annotation_type == 'RDF':
-                ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.resource)
-
-                # TODO: fixme
-                sbase_annotation = SBaseAnnotation(ex_a.qualifier, ex_a.collection, ex_a.)
-
-                ''.join(['http://identifiers.org/', collection, '/', entity])
-
-
-
+            if ex_a.annotation_type == 'RDF':
+                sbase_annotation = SBaseAnnotation(
+                    qualifier=ex_a.qualifier,
+                    collection=ex_a.collection,
+                    term=ex_a.entity
+                )
+                sbase_annotation.annotate_sbase(e)
 
                 # write SBO terms based on the SBO RDF
-                if a.collection == 'sbo':
-                    e.setSBOTerm(a.entity)
+                if ex_a.collection == 'sbo':
+                    e.setSBOTerm(ex_a.entity)
 
-            elif a.annotation_type in ['Formula', 'Charge']:
+            elif ex_a.annotation_type in ['Formula', 'Charge']:
                 # via fbc species plugin, so check that species first
-                if a.sbml_type != 'species':
+                if ex_a.sbml_type != 'species':
                     logging.error("Chemical formula or Charge can only be set on species.")
                 else:
                     s = self.model.getSpecies(e.getId())
@@ -344,27 +340,45 @@ class ModelAnnotator(object):
                     if splugin is None:
                         logging.error("FBC SPlugin not found for species, no fbc: {}".format(s))
                     else:
-                        if a.annotation_type == 'Formula':
-                            splugin.setChemicalFormula(a.entity)
+                        if ex_a.annotation_type == 'Formula':
+                            splugin.setChemicalFormula(ex_a.entity)
                         else:
-                            splugin.setCharge(int(a.entity))
+                            splugin.setCharge(int(ex_a.entity))
             else:
-                raise AnnotationException('Annotation type not supported: {}'.format(a.annotation_type))
-
+                raise ValueError(
+                    'Annotation type not supported: '
+                    '{}'.format(ex_a.annotation_type)
+                )
 
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
         """ Lookup of SBMLQualifier for given qualifier string. """
+
+        # FIXME: better lookup with MIRIAM
         if qualifier_str not in libsbml.__dict__:
-            raise AnnotationException('Qualifier not found: {}'.format(qualifier_str))
+            raise ValueError(
+                'Qualifier not supported: {}'.format(qualifier_str)
+            )
         return libsbml.__dict__.get(qualifier_str)
 
     @staticmethod
     def annotations_from_file(file_path, delimiter='\t'):
+        """ Reads annotations from given file.
+
+        Supports either excel files or CSV.
+
+        :param file_path:
+        :param delimiter:
+        :return:
+        """
         if file_path.endswith('.xlsx'):
-            return ModelAnnotator.annotations_from_xlsx(file_path, delimiter=delimiter)
+            return ModelAnnotator.annotations_from_xlsx(
+                file_path, delimiter=delimiter
+            )
         else:
-            return ModelAnnotator.annotations_from_csv(file_path, delimiter=delimiter)
+            return ModelAnnotator.annotations_from_csv(
+                file_path, delimiter=delimiter
+            )
 
     @staticmethod
     def annotations_from_csv(csvfile, delimiter='\t'):
@@ -399,7 +413,8 @@ class ModelAnnotator(object):
         xlsx is converted to csv file and than parsed with csv reader.
         """
         csvfile = "{}.csv".format(xslxfile)
-        pyexcel.save_as(file_name=xslxfile, dest_file_name=csvfile, dest_delimiter=delimiter)
+        pyexcel.save_as(file_name=xslxfile, dest_file_name=csvfile,
+                        dest_delimiter=delimiter)
         res = ModelAnnotator.annotations_from_csv(csvfile, delimiter=delimiter)
 
         if rm_csv:

@@ -1,13 +1,17 @@
 """
 Helper class to work with the MIRIAM resources.
+
+Latest Miriam registry file is available from
+    https://www.ebi.ac.uk/miriam/main/export/xml/
+
 """
 from enum import Enum
-
+import json
 # TODO: parse the latest miriam information and use for annotation checking
 
 IDENTIFIERS_ORG_PREFIX = "https://identifiers.org"
 
-_collections = [
+COLLECTIONS = [
     ["sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
     ["bto", "Brenda Tissue Ontology", "^BTO:\d{7}$"],
     ["chebi", "ChEBI", "^CHEBI:\d+$"],
@@ -32,6 +36,8 @@ _collections = [
      "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
     ["uo", "Ontology of standardized units", "^UO:\d{7}?"],
 ]
+
+# registry
 
 ########################################################################
 # Qualifier
@@ -102,3 +108,6 @@ __all__ = [
     'BQM',
     'BQB',
 ]
+
+
+
