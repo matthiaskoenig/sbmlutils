@@ -19,7 +19,7 @@ from sbmlutils.logutils import bcolors
 
 import libsbml
 
-import sbmlutils.annotation as annotation
+from sbmlutils.annotation import annotator
 import sbmlutils.history as history
 import sbmlutils.factory as factory
 import sbmlutils.sbmlio as sbmlio
@@ -108,7 +108,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     # annotate
     if annotations is not None:
         # overwrite the normal file
-        annotation.annotate_sbml_file(sbml_path, annotations, sbml_path)
+        annotator.annotate_sbml_file(sbml_path, annotations, sbml_path)
 
     # create report
     if create_report:

@@ -11,19 +11,98 @@ model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
-
-# TODO: generic generation
-# TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
-# TODO: check how the meta id is generated & use general mechanism
-
-
-import logging
+import re
 import pyexcel
 import csv
-import re
-import uuid
-
+import logging
 import libsbml
+
+from sbmlutils import utils
+
+
+class SBaseAnnotation(object):
+    """ Class for annotation of SBase objects."""
+
+    def __init__(self, qualifier, collection, term):
+        return SBaseAnnotation(qualifier, "{}/{}".format(collection, term))
+
+    def __init__(self, qualifier, resource):
+        """ Create new annotation information.
+
+        :param qualifier:
+        :param resource:
+        """
+        if not resource.startswith("http"):
+            tokens = resource.split("/")
+            if len(tokens) < 2:
+                # check that consisting of collection and term
+                logging.error(
+                    "Annotation resources have to be of the form"
+                    "'collection/term' or 'http[s]://resourceurl': "
+                    "{}".format(resource))
+
+                resource = "https://identifiers.org/{}".format(resource)
+
+        # TODO: check qualifier from allowed qualifiers
+        # if not isinstance(qualifer,)
+
+        # TODO: check if collection and term that the collection is supported
+        # TODO: check annotations against the MIRIAM info (load miriam info) analoque to the java version
+        # and the term is according to the miriam patterns
+
+        self.qualifier = qualifier
+        self.resource = resource
+
+    @staticmethod
+    def from_tuple(tuple):
+        qualifier, resource = tuple[0], tuple[1]
+        return SBaseAnnotation(qualifier, resource)
+
+    @staticmethod
+    def annotate_sbase(sbase, annotation_data):
+        """ Annotate SBase based on given annotation data
+
+        :param sbase:
+        :param annotation_data:
+        :return:
+        """
+        if not annotation_data:
+            return
+
+        annotations = [
+            SBaseAnnotation.from_tuple(item) for item in annotation_data
+        ]
+
+        for a in annotations:
+            qualifier, resource = a.qualifier.value, a.resource
+            print(qualifier, resource)
+            cv = libsbml.CVTerm()
+
+            # set correct type of qualifier
+            if qualifier.startswith("BQB"):
+                cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
+                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+                cv.setBiologicalQualifierType(sbml_qualifier)
+            elif qualifier.startswith('BQM'):
+                cv.setQualifierType(libsbml.MODEL_QUALIFIER)
+                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+                cv.setModelQualifierType(sbml_qualifier)
+            else:
+                logging.error('Unsupported qualifier: {}'.format(qualifier))
+
+            cv.addResource(resource)
+
+            # meta id has to be set
+            if not sbase.isSetMetaId():
+                sbase.setMetaId(utils.create_metaid(sbase))
+
+            success = sbase.addCVTerm(cv)
+
+            if success != 0:
+                logging.error("RDF not written: ", success)
+                logging.error(libsbml.OperationReturnValue_toString(success))
+                logging.error("{}, {}, {}".format(object, qualifier, resource))
+
 
 
 def annotate_sbml_doc(doc, annotations):
@@ -57,74 +136,6 @@ def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
 
     # Save
     libsbml.writeSBMLToFile(doc, f_sbml_annotated)
-
-########################################################################
-# Qualifier
-########################################################################
-# from libsbmlconstants
-# TODO: use ModelQualifierType_toString
-
-QualifierType = {
-    0: "MODEL_QUALIFIER",
-    1: "BIOLOGICAL_QUALIFIER",
-    2: "UNKNOWN_QUALIFIER"
-}
-
-ModelQualifierType = {
-    0: "BQM_IS",
-    1: "BQM_IS_DESCRIBED_BY",
-    2: "BQM_IS_DERIVED_FROM",
-    3: "BQM_IS_INSTANCE_OF",
-    4: "BQM_HAS_INSTANCE",
-    5: "BQM_UNKNOWN",
-}
-
-BiologicalQualifierType = {
-    0: "BQB_IS",
-    1: "BQB_HAS_PART",
-    2: "BQB_IS_PART_OF",
-    3: "BQB_IS_VERSION_OF",
-    4: "BQB_HAS_VERSION",
-    5: "BQB_IS_HOMOLOG_TO",
-    6: "BQB_IS_DESCRIBED_BY",
-    7: "BQB_IS_ENCODED_BY",
-    8: "BQB_ENCODES",
-    9: "BQB_OCCURS_IN",
-    10: "BQB_HAS_PROPERTY",
-    11: "BQB_IS_PROPERTY_OF",
-    12: "BQB_HAS_TAXON",
-    13: "BQB_UNKNOWN",
-}
-
-
-# -----------------------------------------------------------------------------
-# annotation utilities
-# -----------------------------------------------------------------------------
-def create_hash_id(sbase):
-    """ Creates unique hash id for sbase in model.
-
-    :param sbase:
-    :return:
-    """
-    # FIXME: This must be reproducible, so models don't change on recreation
-    if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
-        hash_id = sbase.getId()
-    else:
-        hash_id = uuid.uuid4().hex
-
-    # the special case of the assignment rules (getId() returns getVariable())
-    if isinstance(sbase, libsbml.AssignmentRule) or isinstance(sbase, libsbml.RateRule):
-        hash_id = uuid.uuid4().hex
-    return hash_id
-
-
-def create_metaid(sbase):
-    """ Creates a unique meta id.
-
-    Meta ids are required to store annotation elements.
-    """
-    hash_id = create_hash_id(sbase)
-    return 'meta_{}'.format(hash_id)
 
 
 class AnnotationException(Exception):
@@ -389,7 +400,7 @@ class ModelAnnotator(object):
 
         # meta id has to be set
         if not element.isSetMetaId():
-            meta_id = create_metaid(element)
+            meta_id = utils.create_metaid(element)
             element.setMetaId(meta_id)
 
         success = element.addCVTerm(cv)

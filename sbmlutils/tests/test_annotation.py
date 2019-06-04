@@ -1,18 +1,22 @@
 """
 Test annotation functions and annotating of SBML models.
 """
-from __future__ import print_function, division
+
 import re
 import tempfile
+import libsbml
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
-from sbmlutils import annotation
-from sbmlutils.annotation import ModelAnnotator, ModelAnnotation
+from sbmlutils.annotation import annotator
+from sbmlutils.annotation.annotator import ModelAnnotator, ModelAnnotation
 from sbmlutils.tests import data
+from sbmlutils.examples.models.annotation import factory as annotation_factory
+
+
+def test_create_annotation():
+    """ Create assignment model.
+    :return:
+    """
+    annotation_factory.create(tmp=True)
 
 
 def test_model_annotation():
@@ -71,7 +75,7 @@ def test_demo_annotation():
     """ Annotate the demo network. """
 
     f_tmp = tempfile.NamedTemporaryFile()
-    annotation.annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
+    annotator.annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
     f_tmp.flush()
 
     # document
@@ -154,7 +158,7 @@ def test_demo_annotation():
 def test_galactose_annotation():
     """ Annotate the galactose network. """
     f_tmp = tempfile.NamedTemporaryFile()
-    annotation.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
-                                  f_annotations=data.GALACTOSE_ANNOTATIONS,
-                                  f_sbml_annotated=f_tmp.name)
+    annotator.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+                                 f_annotations=data.GALACTOSE_ANNOTATIONS,
+                                 f_sbml_annotated=f_tmp.name)
     f_tmp.flush()

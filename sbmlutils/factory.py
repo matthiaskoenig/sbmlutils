@@ -18,7 +18,7 @@ which takes care of the order of object creation.
 import logging
 import libsbml
 from sbmlutils.validation import check
-from sbmlutils.annotation import ModelAnnotator, create_metaid
+from sbmlutils.annotation.annotator import SBaseAnnotation
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
 
 
@@ -240,7 +240,10 @@ class Sbase(object):
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
-        self.create_annotations(obj)
+        if self.annotations:
+            SBaseAnnotation.annotate_sbase(
+                obj, annotation_data=self.annotations
+            )
         self.create_uncertainties(obj)
 
     def create_port(self, model):
@@ -265,42 +268,6 @@ class Sbase(object):
                 # if no reference set id reference to current object
                 self.port.idRef = self.sid
             self.port.create_sbml(model)
-
-    def create_annotations(self, obj):
-        if self.annotations:
-            for a in self.annotations:
-                qualifier, resource = a[0].value, a[1]
-                if not resource.startswith("http"):
-                    resource = "https://identifiers.org/{}".format(resource)
-
-                print(qualifier, resource)
-                cv = libsbml.CVTerm()
-
-                # set correct type of qualifier
-                if qualifier.startswith("BQB"):
-                    cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
-                    sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
-                    cv.setBiologicalQualifierType(sbml_qualifier)
-                elif qualifier.startswith('BQM'):
-                    cv.setQualifierType(libsbml.MODEL_QUALIFIER)
-                    sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
-                    cv.setModelQualifierType(sbml_qualifier)
-                else:
-                    logging.error('Unsupported qualifier: {}'.format(qualifier))
-
-                cv.addResource(resource)
-
-                # meta id has to be set
-                if not obj.isSetMetaId():
-                    obj.setMetaId(create_metaid(obj))
-
-                success = obj.addCVTerm(cv)
-
-                if success != 0:
-                    logging.error("RDF not written: ", success)
-                    logging.error(libsbml.OperationReturnValue_toString(success))
-                    logging.error("{}, {}, {}".format(object, qualifier, resource))
-
 
     def create_uncertainties(self, obj):
         if not self.uncertainties:

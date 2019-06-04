@@ -2,7 +2,7 @@
 Helper functions for formating SBML elements.
 """
 import libsbml
-import sbmlutils.annotation as annotation
+from sbmlutils.annotation import miriam
 
 
 def annotation_to_html(item):
@@ -15,9 +15,9 @@ def annotation_to_html(item):
         cv = item.getCVTerm(kcv)
         q_type = cv.getQualifierType()
         if q_type == 0:
-            qualifier = annotation.ModelQualifierType[cv.getModelQualifierType()]
+            qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
         elif q_type == 1:
-            qualifier = annotation.BiologicalQualifierType[cv.getBiologicalQualifierType()]
+            qualifier = miriam.BiologicalQualifierType[cv.getBiologicalQualifierType()]
         lines.append(''.join(['<span class="collection">', qualifier, '</span>']))
 
         items = []
@@ -31,17 +31,8 @@ def annotation_to_html(item):
     res = "<br />".join(lines)
     return res
 
-
-# noinspection PyCompatibility
 def notesToString(sbase):
-    notes = sbase.getNotesString()
-
-    # only decode in python 2, already utf8 str in python 3
-    if hasattr(notes, "decode"):
-        notes = notes.decode('utf-8')
-
-    return notes
-
+    return sbase.getNotesString()
 
 # ------------------------------
 # Math and formulas

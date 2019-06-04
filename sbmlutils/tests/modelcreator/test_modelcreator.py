@@ -6,6 +6,7 @@ and creation of the SBML.
 """
 import pytest
 
+from sbmlutils.examples.models.annotation import factory as annotation_factory
 from sbmlutils.examples.models.basic import factory as basic_factory
 from sbmlutils.examples.models.demo import factory as demo_factory
 from sbmlutils.examples.models.example1 import factory as example1_factory
@@ -16,6 +17,13 @@ from sbmlutils.modelcreator.creator import CoreModel, Preprocess
 from sbmlutils.examples.models.assignment import factory as assignment_factory
 
 from sbmlutils.examples.models.distrib import factory as distrib_factory
+
+
+def test_create_annotation():
+    """ Create assignment model.
+    :return:
+    """
+    annotation_factory.create(tmp=True)
 
 
 def test_create_assignment():

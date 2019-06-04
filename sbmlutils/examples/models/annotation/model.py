@@ -5,8 +5,8 @@ Mainly volumes which are calculated based on other parameters.
 """
 from sbmlutils.factory import *
 from sbmlutils.units import *
-from sbmlutils.sbo import *
-from sbmlutils.miriam import *
+from sbmlutils.annotation.sbo import *
+from sbmlutils.annotation.miriam import *
 from sbmlutils.modelcreator import templates
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -49,11 +49,13 @@ compartments = [
                 name="cytosol", sboTerm=SBO_PHYSICAL_COMPARTMENT,
                 annotations=[
                     (BQB.IS, "go/GO:0005829"),  # cytosol
+                    (BQB.IS, "https://en.wikipedia.org/wiki/Cytosol"),  # cytosol
                 ]),
     Compartment(sid='pm', value='A_m', unit="m2", constant=True, spatialDimensions=2,
                 name="membrane", sboTerm=SBO_PHYSICAL_COMPARTMENT,
                 annotations=[
                     (BQB.IS, "go/GO:0005886"),  # plasma membrane
+
                 ]),
 ]
 

@@ -7,7 +7,8 @@ import libsbml
 
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
-from sbmlutils.sbo import SBO_EXCHANGE_REACTION
+from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
+from sbmlutils.annotation.annotator import SBaseAnnotation
 
 Formula = namedtuple('Formula', 'value unit')
 
@@ -19,7 +20,7 @@ class ReactionTemplate(object):
     """ All reactions are instances of the ReactionTemplate. """
     def __init__(self, rid, equation, formula=None, pars=[], rules=[],
                  name=None, compartment=None, fast=False, sboTerm=None,
-                 metaId=None, annotations = None,
+                 metaId=None, annotations=None,
                  lowerFluxBound=None, upperFluxBound=None):
         self.rid = rid
         self.name = name
@@ -86,8 +87,9 @@ class ReactionTemplate(object):
             if self.lowerFluxBound:
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
 
+        # annotations
         if self.annotations:
-            logging.error("Annotations not written on reactions.")
+            SBaseAnnotation.annotate_sbase(r, annotation_data=self.annotations)
 
         return r
 

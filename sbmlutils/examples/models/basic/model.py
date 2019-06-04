@@ -4,7 +4,7 @@ Test model to check the update of global depending parameters in Roadrunner.
 Mainly volumes which are calculated based on other parameters.
 """
 from sbmlutils.units import *
-from sbmlutils.sbo import *
+from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
 from . import reactions as Reactions
 
