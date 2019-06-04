@@ -5,6 +5,8 @@ from enum import Enum
 
 # TODO: parse the latest miriam information and use for annotation checking
 
+IDENTIFIERS_ORG_PREFIX = "https://identifiers.org"
+
 _collections = [
     ["sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
     ["bto", "Brenda Tissue Ontology", "^BTO:\d{7}$"],

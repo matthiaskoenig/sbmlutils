@@ -7,7 +7,7 @@ import tempfile
 import libsbml
 
 from sbmlutils.annotation import annotator
-from sbmlutils.annotation.annotator import ModelAnnotator, ModelAnnotation
+from sbmlutils.annotation.annotator import ModelAnnotator, ExternalAnnotation
 from sbmlutils.tests import data
 from sbmlutils.examples.models.annotation import factory as annotation_factory
 
@@ -29,7 +29,7 @@ def test_model_annotation():
          'entity': 'test_entity',
          'name': 'test_name'}
 
-    ma = ModelAnnotation(d)
+    ma = ExternalAnnotation(d)
     assert 'test_pattern' == ma.pattern
     assert 'reaction' == ma.sbml_type
     assert 'RDF' == ma.annotation_type
@@ -50,7 +50,7 @@ def test_model_annotation():
          'entity': 'SBO:0000290',
          'name': 'physical compartment'}
 
-    ma = ModelAnnotation(d)
+    ma = ExternalAnnotation(d)
     assert 'id1' == ma.pattern
     assert 'reaction' == ma.sbml_type
     assert 'RDF' == ma.annotation_type

@@ -18,6 +18,7 @@ import logging
 import libsbml
 
 from sbmlutils import utils
+from .miriam import IDENTIFIERS_ORG_PREFIX
 
 
 class SBaseAnnotation(object):
@@ -41,7 +42,7 @@ class SBaseAnnotation(object):
                     "'collection/term' or 'http[s]://resourceurl': "
                     "{}".format(resource))
 
-                resource = "https://identifiers.org/{}".format(resource)
+                resource = "{}/{}".format(IDENTIFIERS_ORG_PREFIX, resource)
 
         # TODO: check qualifier from allowed qualifiers
         # if not isinstance(qualifer,)
@@ -59,92 +60,89 @@ class SBaseAnnotation(object):
         return SBaseAnnotation(qualifier, resource)
 
     @staticmethod
-    def annotate_sbase(sbase, annotation_data):
+    def annotate_from_tuples(sbase, tuples):
+        if not tuples:
+            return
+
+        for item in tuples:
+            sbase_annotation = SBaseAnnotation.from_tuple(item)
+            sbase_annotation.annotate_sbase(sbase)
+
+    def annotate_sbase(self, sbase):
         """ Annotate SBase based on given annotation data
 
         :param sbase:
         :param annotation_data:
         :return:
         """
-        if not annotation_data:
-            return
+        qualifier, resource = self.qualifier.value, self.resource
+        print(qualifier, resource)
+        cv = libsbml.CVTerm()
 
-        annotations = [
-            SBaseAnnotation.from_tuple(item) for item in annotation_data
-        ]
+        # set correct type of qualifier
+        if qualifier.startswith("BQB"):
+            cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
+            sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+            cv.setBiologicalQualifierType(sbml_qualifier)
+        elif qualifier.startswith('BQM'):
+            cv.setQualifierType(libsbml.MODEL_QUALIFIER)
+            sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+            cv.setModelQualifierType(sbml_qualifier)
+        else:
+            logging.error('Unsupported qualifier: {}'.format(qualifier))
 
-        for a in annotations:
-            qualifier, resource = a.qualifier.value, a.resource
-            print(qualifier, resource)
-            cv = libsbml.CVTerm()
+        cv.addResource(resource)
 
-            # set correct type of qualifier
-            if qualifier.startswith("BQB"):
-                cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
-                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
-                cv.setBiologicalQualifierType(sbml_qualifier)
-            elif qualifier.startswith('BQM'):
-                cv.setQualifierType(libsbml.MODEL_QUALIFIER)
-                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
-                cv.setModelQualifierType(sbml_qualifier)
-            else:
-                logging.error('Unsupported qualifier: {}'.format(qualifier))
+        # meta id has to be set
+        if not sbase.isSetMetaId():
+            sbase.setMetaId(utils.create_metaid(sbase))
 
-            cv.addResource(resource)
+        success = sbase.addCVTerm(cv)
 
-            # meta id has to be set
-            if not sbase.isSetMetaId():
-                sbase.setMetaId(utils.create_metaid(sbase))
-
-            success = sbase.addCVTerm(cv)
-
-            if success != 0:
-                logging.error("RDF not written: ", success)
-                logging.error(libsbml.OperationReturnValue_toString(success))
-                logging.error("{}, {}, {}".format(object, qualifier, resource))
+        if success != 0:
+            logging.error("RDF not written: ", success)
+            logging.error(libsbml.OperationReturnValue_toString(success))
+            logging.error("{}, {}, {}".format(object, qualifier, resource))
 
 
-
-def annotate_sbml_doc(doc, annotations):
-    """ Annotates given SBML document using the annotations file.
-
-    :param doc: SBMLDocument
-    :param annotations: ModelAnnotations
-    :return:
-    """
-
-    # annotate the model
-    annotator = ModelAnnotator(doc, annotations)
-    annotator.annotate_model()
-    return doc
-
-
+# ----------------------------------------------------------
+# External annotation files
+# ----------------------------------------------------------
 def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
     """
     Annotate a given SBML file with the provided annotations.
 
     :param f_sbml: SBML to annotation
-    :param f_annotations: csv file with annotations
+    :param f_annotations: external file with annotations
     :param f_sbml_annotated: annotated file
     """
     # read SBML model
     doc = libsbml.readSBML(f_sbml)
 
     # read annotations
-    annotations = ModelAnnotator.annotations_from_file(f_annotations)
-    doc = annotate_sbml_doc(doc, annotations)
+    external_annotations = ModelAnnotator.annotations_from_file(f_annotations)
+    doc = annotate_sbml_doc(doc, external_annotations)
 
-    # Save
+    # save
     libsbml.writeSBMLToFile(doc, f_sbml_annotated)
 
 
-class AnnotationException(Exception):
-    pass
+def annotate_sbml_doc(doc, external_annotations):
+    """ Annotates given SBML document using the annotations file.
+
+    :param doc: SBMLDocument
+    :param external_annotations: ModelAnnotations
+    :return: libsbml.SBMLDocument
+    """
+    annotator = ModelAnnotator(doc, external_annotations)
+    annotator.annotate_model()
+    return doc
 
 
-class ModelAnnotation(object):
-    """ Class for single annotation,
-        i.e. a single annotation line from a annotation file.
+class ExternalAnnotation(object):
+    """
+        Class for handling SBML annotations defined in external source.
+        This corresponds to a single entry in the external annotation file.
     """
     # possible columns in annotation file
     _keys = [
@@ -156,6 +154,7 @@ class ModelAnnotation(object):
         'entity',
         'name'
     ]
+    # allowed SBML types for annotation
     _sbml_types = frozenset([
         "document",
         "model",
@@ -173,7 +172,7 @@ class ModelAnnotation(object):
         "Charge"
     ])
 
-    def __init__(self, d, check_miriam=False):
+    def __init__(self, d):
 
         self.d = d
         # print(d)
@@ -186,34 +185,7 @@ class ModelAnnotation(object):
                 value = d[key]
             setattr(self, key, value)
 
-        if self.annotation_type == "RDF":
-            # FIXME: this takes much too long, necessary to have local miriam resources for validation
-            # TODO: check against pattern
-            # check with miriam webservices
-            if check_miriam:
-                '''
-                m = Miriam()
-                uri = m.serv.getURI(self.collection, self.entity)
-                resource = m.convertURN(uri)
-                if resource is None:
-                    logging.warn("resource could not be found for {} : {}".format(self.collection, self.entity))
-                '''
-            else:
-                # create identifiers.org resource manually
-                resource = ModelAnnotation.identifiers_resource(self.collection, self.entity)
-            setattr(self, 'resource', resource)
-
         self.check()
-
-    @staticmethod
-    def identifiers_resource(collection, entity):
-        """ Create identifiers.org resource from given collection and entity.
-
-        :param collection:
-        :param entity:
-        :return:
-        """
-        return ''.join(['http://identifiers.org/', collection, '/', entity])
 
     def check(self):
         """ Checks if the annotation is valid. """
@@ -222,7 +194,6 @@ class ModelAnnotation(object):
 
     def __str__(self):
         return str(self.d)
-        # print (("{:<20}"*len(self._keys)).format([getattr(self, k) for k in self._keys]))
 
 
 class ModelAnnotator(object):
@@ -340,18 +311,25 @@ class ModelAnnotator(object):
             elements.append(e)
         return elements
 
-    def _annotate_elements(self, elements, a):
+    def _annotate_elements(self, elements, ex_a: ExternalAnnotation):
         """ Annotate given elements with annotation.
 
         :param elements: SBase elements to annotate
         :param a: annotation
         :return:
         """
-
-        # TODO: warning if element is not found
         for e in elements:
             if a.annotation_type == 'RDF':
                 ModelAnnotator._add_rdf_to_element(e, a.qualifier, a.resource)
+
+                # TODO: fixme
+                sbase_annotation = SBaseAnnotation(ex_a.qualifier, ex_a.collection, ex_a.)
+
+                ''.join(['http://identifiers.org/', collection, '/', entity])
+
+
+
+
                 # write SBO terms based on the SBO RDF
                 if a.collection == 'sbo':
                     e.setSBOTerm(a.entity)
@@ -373,42 +351,6 @@ class ModelAnnotator(object):
             else:
                 raise AnnotationException('Annotation type not supported: {}'.format(a.annotation_type))
 
-    @classmethod
-    def _add_rdf_to_element(cls, element, qualifier, resource):
-        """ Adds RDF information to given element.
-
-        :param element:
-        :param qualifier:
-        :param resource
-        :return:
-        """
-        cv = libsbml.CVTerm()
-
-        # set correct type of qualifier
-        if qualifier.startswith('BQB'):
-            cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
-            sbml_qualifier = cls.get_SBMLQualifier(qualifier)
-            cv.setBiologicalQualifierType(sbml_qualifier)
-        elif qualifier.startswith('BQM'):
-            cv.setQualifierType(libsbml.MODEL_QUALIFIER)
-            sbml_qualifier = cls.get_SBMLQualifier(qualifier)
-            cv.setModelQualifierType(sbml_qualifier)
-        else:
-            raise AnnotationException('Unsupported qualifier: {}'.format(qualifier))
-
-        cv.addResource(resource)
-
-        # meta id has to be set
-        if not element.isSetMetaId():
-            meta_id = utils.create_metaid(element)
-            element.setMetaId(meta_id)
-
-        success = element.addCVTerm(cv)
-
-        if success != 0:
-            logging.error("RDF not written: ", success)
-            logging.error(libsbml.OperationReturnValue_toString(success))
-            logging.error("{}, {}, {}".format(element, qualifier, resource))
 
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
@@ -445,7 +387,7 @@ class ModelAnnotator(object):
                 continue
 
             entry = dict(zip(headers, [item.strip() for item in row]))
-            a = ModelAnnotation(entry)
+            a = ExternalAnnotation(entry)
             res.append(a)
             # logging.debug(str(a))
 
