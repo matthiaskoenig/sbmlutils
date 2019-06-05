@@ -13,6 +13,8 @@ from sbmlutils.annotation.annotator import SBaseAnnotation
 Formula = namedtuple('Formula', 'value unit')
 
 
+# FIXME: integrate into factory and reuse existing SBase code
+
 # -----------------------------------------------------------------------------
 # Reactions
 # -----------------------------------------------------------------------------
@@ -47,6 +49,11 @@ class ReactionTemplate(object):
         # reaction
         r = model.createReaction()  # type: libsbml.Reaction
         r.setId(self.rid)
+        if not libsbml.SyntaxChecker.isValidSBMLSId(self.rid):
+            logging.error(
+                f"The id `{self.rid}` is not a valid SBML SId on Reaction. "
+                "The SId syntax is defined as: SId ::= ( letter | '_' ) idChar*"
+            )
         if self.metaId:
             r.setMetaId(self.metaId)
         if self.name:

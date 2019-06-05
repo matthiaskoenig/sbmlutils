@@ -370,7 +370,7 @@ class CoreModel(object):
                 if objects:
                     factory.create_objects(self.model, obj_iter=objects, key=attr)
                 else:
-                    logging.warning("Not defined: <{}> ".format(attr))
+                    logging.info("Not defined: <{}> ".format(attr))
 
     def write_sbml(self, filepath, validate=True):
         """ Write sbml to file.

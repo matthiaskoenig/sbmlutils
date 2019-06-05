@@ -232,6 +232,15 @@ class Sbase(object):
 
     def set_fields(self, obj: libsbml.SBase):
         if self.sid is not None:
+            if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
+                logging.error(
+                    "The id `{self.sid}` is not a valid SBML SId on `{obj}`. "
+                    "The SId syntax is defined as:"
+                    "\tletter ::= 'a'..'z','A'..'Z'"
+                    "\tdigit  ::= '0'..'9'"
+                    "\tidChar ::= letter | digit | '_'"
+                    "\tSId    ::= ( letter | '_' ) idChar*"
+                )
             obj.setId(self.sid)
         if self.name is not None:
             obj.setName(self.name)
