@@ -63,7 +63,7 @@ pip install -e .
 ```
 
 ## Release notes
-### 0.3.4
+### 0.3.4 - 0.3.5
 * improved annotation support (inline annotations, annotation by url)
 * checking against MIRIAM collections and patterns
 
