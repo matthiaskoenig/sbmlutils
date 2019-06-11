@@ -51,8 +51,8 @@ class ReactionTemplate(object):
         r.setId(self.rid)
         if not libsbml.SyntaxChecker.isValidSBMLSId(self.rid):
             logging.error(
-                f"The id `{self.rid}` is not a valid SBML SId on Reaction. "
-                "The SId syntax is defined as: SId ::= ( letter | '_' ) idChar*"
+                "The id `{}` is not a valid SBML SId on Reaction. "
+                "The SId syntax is defined as: SId ::= ( letter | '_' ) idChar*".format(self.rid)
             )
         if self.metaId:
             r.setMetaId(self.metaId)

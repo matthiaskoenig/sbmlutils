@@ -57,7 +57,7 @@ class Annotation(object):
             if match:
                 # handle identifiers.org pattern
                 self.collection, self.term = match.group(1), match.group(2)
-                self.resource = f"{self.collection}/{self.term}"
+                self.resource = "{}/{}".format(self.collection, self.term)
             else:
                 # other urls are directly stored as resources without collection
                 self.collection = None
@@ -69,8 +69,9 @@ class Annotation(object):
             tokens = resource.split("/")
             if len(tokens) < 2:
                 raise ValueError(
-                    f"resource `{resource}` must be of the form "
-                    f"`collection/term` or an url starting with `http(s)://`)"
+                    "resource `{}` must be of the form "
+                    "`collection/term` or an url starting with "
+                    "`http(s)://`)".format(resource)
                 )
             self.collection = tokens[0]
             self.term = "/".join(tokens[1:])
@@ -88,7 +89,9 @@ class Annotation(object):
         :return:
         """
         if self.collection:
-            return f"{IDENTIFIERS_ORG_PREFIX}/{self.collection}/{self.term}"
+            return "{}/{}/{}".format(
+                IDENTIFIERS_ORG_PREFIX, self.collection, self.term
+            )
         else:
             return self.term
 
@@ -111,16 +114,19 @@ class Annotation(object):
         entry = MIRIAM_COLLECTION.get(collection, None)
         if not entry:
             raise ValueError(
-                f"MIRIAM collection `{collection}` does not exist for "
-                f"term `{term}`"
+                "MIRIAM collection `{}` does not exist for "
+                "term `{}`".format(collection, term)
             )
 
         p = re.compile(entry['pattern'])
         m = p.match(term)
         if not m:
             raise ValueError(
-                f"Term `{term}` did not match pattern "
-                f"`{entry['pattern']}` for collection `{collection}`.")
+                "Term `{}` did not match pattern "
+                "`{}` for collection `{}`.".format(
+                    term, entry['pattern'], collection
+                )
+            )
             return False
 
         return True
