@@ -8,7 +8,7 @@ import libsbml
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
 from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
-from sbmlutils.annotation.annotator import SBaseAnnotation
+from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
 
 Formula = namedtuple('Formula', 'value unit')
 
@@ -96,7 +96,11 @@ class ReactionTemplate(object):
 
         # annotations
         if self.annotations:
-            SBaseAnnotation.annotate_sbase(r, annotation_data=self.annotations)
+            for a_tuple in self.annotations:
+                ModelAnnotator.annotate_sbase(
+                    sbase=r,
+                    annotation=Annotation.from_tuple(a_tuple)
+                )
 
         return r
 

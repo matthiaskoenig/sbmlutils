@@ -10,7 +10,7 @@ from . import reactions as R
 
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'Koenig_demo'
-version = 13
+version = 14
 notes = Notes([
     """
     <h1>Koenig Demo Metabolism</h1>

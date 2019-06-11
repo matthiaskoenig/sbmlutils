@@ -7,6 +7,7 @@ import tempfile
 import libsbml
 
 from sbmlutils.annotation import annotator
+from sbmlutils.annotation.miriam import BQB
 from sbmlutils.annotation.annotator import ModelAnnotator, ExternalAnnotation
 from sbmlutils.tests import data
 from sbmlutils.examples.models.annotation import factory as annotation_factory
@@ -42,23 +43,22 @@ def test_model_annotation():
 
 def test_model_annotation():
     """ Check annotation data structure. """
-    d = {'pattern': 'id1',
-         'sbml_type': 'reaction',
-         'annotation_type': 'RDF',
-         'qualifier': 'BQB_IS',
-         'collection': 'sbo',
-         'entity': 'SBO:0000290',
-         'name': 'physical compartment'}
+    d = {
+        'pattern': 'id1',
+        'sbml_type': 'reaction',
+        'annotation_type': 'RDF',
+        'qualifier': 'BQB_IS',
+        'resource': 'sbo/SBO:0000290',
+        'name': 'physical compartment'
+    }
 
     ma = ExternalAnnotation(d)
     assert 'id1' == ma.pattern
     assert 'reaction' == ma.sbml_type
     assert 'RDF' == ma.annotation_type
-    assert "BQB_IS" == ma.qualifier
-    assert "sbo" == ma.collection
-    assert "SBO:0000290" == ma.entity
+    assert BQB.IS == ma.qualifier
+    assert "sbo/SBO:0000290" == ma.resource
     assert "physical compartment" == ma.name
-    assert "http://identifiers.org/sbo/SBO:0000290" == ma.resource
 
 
 def test_model_annotator():

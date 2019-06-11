@@ -18,7 +18,7 @@ which takes care of the order of object creation.
 import logging
 import libsbml
 from sbmlutils.validation import check
-from sbmlutils.annotation.annotator import SBaseAnnotation
+from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
 
 
@@ -205,9 +205,9 @@ class Creator(object):
         self.site = site
 
 
-#####################################################################
+# -----------------------------------------------------------------------------
 # Base classes
-#####################################################################
+# -----------------------------------------------------------------------------
 class Sbase(object):
     def __init__(self, sid=None, name=None, sboTerm=None, metaId=None,
                  annotations=None,
@@ -250,9 +250,11 @@ class Sbase(object):
             obj.setMetaId(self.metaId)
 
         if self.annotations:
-            for a in self.annotations:
-                sbase_annotation = SBaseAnnotation.from_tuple(a)
-                sbase_annotation.annotate_sbase(obj)
+            for a_tuple in self.annotations:
+                ModelAnnotator.annotate_sbase(
+                    sbase=obj,
+                    annotation=Annotation.from_tuple(a_tuple)
+                )
 
         self.create_uncertainties(obj)
 

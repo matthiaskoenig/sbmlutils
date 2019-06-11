@@ -1,47 +1,34 @@
 """
-Helper class to work with the MIRIAM resources.
+Helper class definining external resources to work with annotations.
+This includes identifiers.org, MIRIAM qualifiers and the
+identifiers.org collections (MIRIAM registry).
 
-Latest Miriam registry file is available from
-    https://www.ebi.ac.uk/miriam/main/export/xml/
-
+For updating the MIRIAM registry see the parse_registry script.
 """
-from enum import Enum
+
+import os
 import json
-# TODO: parse the latest miriam information and use for annotation checking
+import re
+from enum import Enum
+import logging
 
-IDENTIFIERS_ORG_PREFIX = "https://identifiers.org"
-
-COLLECTIONS = [
-    ["sbo", "Systems Biology Ontology", "^SBO:\d{7}$"],
-    ["bto", "Brenda Tissue Ontology", "^BTO:\d{7}$"],
-    ["chebi", "ChEBI", "^CHEBI:\d+$"],
-    ["ec-code", "Enzyme Nomenclature", "^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$"],
-    ["fma", "Foundational Model of Anatomy Ontology", "^FMA:\d+$"],
-    ["go", "Gene Ontology", "^GO:\d{7}$"],
-    ["kegg.compound", "KEGG Compound", "^C\d+$"],
-    ["kegg.pathway", "KEGG Pathway", "^\w{2,4}\d{5}$"],
-    ["kegg.reaction", "KEGG Reaction", "^R\d+$"],
-    ["omim", "OMIM", "^[*#+%^]?\d{6}$"],
-    ["pubmed", "PubMed", "^\d+$"],
-    ["pw", "Pathway Ontology", "^PW:\d{7}$"],
-    ["reactome", "Reactome", "(^(REACTOME:)?R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+$)"],
-    ["rhea", "Rhea", "^\d{5}$"],
-    ["sabiork.kineticrecord", "SABIO-RK Kinetic Record", "^\d+$"],
-    ["smpdb", "Small Molecule Pathway Database", "^SMP\d{5}$"],
-    ["taxonomy", "Taxonomy", "^\d+$"],
-    ["tcdb", "Transport Classification Database", "^\d+\.[A-Z]\.\d+\.\d+\.\d+$"],
-    ["uberon", "UBERON", "^UBERON\:\d+$"],
-    ["uniprot", "UniProt Knowledgebase",
-     "^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9]"
-     "[A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$"],
-    ["uo", "Ontology of standardized units", "^UO:\d{7}?"],
+__all__ = [
+    'BQM',
+    'BQB',
+    'MIRIAM_COLLECTION',
+    'IDENTIFIERS_ORG_PATTERN',
+    'IDENTIFIERS_ORG_PREFIX',
 ]
 
-# registry
+# -----------------------------------------------------------------------------
+# identifiers.org
+# -----------------------------------------------------------------------------
+IDENTIFIERS_ORG_PREFIX = "https://identifiers.org"
+IDENTIFIERS_ORG_PATTERN = re.compile(r"^https?://identifiers.org/(.+?)/(.+)")
 
-########################################################################
-# Qualifier
-########################################################################
+# -----------------------------------------------------------------------------
+# miriam qualifiers
+# -----------------------------------------------------------------------------
 # from libsbmlconstants
 # TODO: use ModelQualifierType_toString
 
@@ -104,10 +91,82 @@ class BQB(Enum):
     UNKNOWN = "BQB_UNKNOWN"
 
 
-__all__ = [
-    'BQM',
-    'BQB',
-]
+# -----------------------------------------------------------------------------
+# identifiers.org collection
+# -----------------------------------------------------------------------------
+def load_miriam():
+    """ Loads miriam registry file.
 
+    :return:
+    """
+    f_miriam = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'resources', 'IdentifiersOrg-Registry.json'
+    )
 
+    with open(f_miriam) as fp:
+        d = json.load(fp)
 
+    return d
+
+MIRIAM_COLLECTION = load_miriam()
+
+# additional ontologies not in miriam
+MIRIAM_COLLECTION["cmo"] = {
+    "id": "cmo",
+    "pattern": "^CMO:\d+$",
+    "name": "Chemical methods ontology",
+    "namespace": "cmo",
+    "definition": "Morphological and physiological measurement records "
+                  "generated from clinical and model "
+                  "organism research and health programs."
+}
+MIRIAM_COLLECTION["chmo"] = {
+    "id": "chmo",
+    "pattern": "^CHMO:\d+$",
+    "name": "Chemical methods ontology",
+    "namespace": "chmo",
+    "definition": "CHMO, the chemical methods ontology"
+}
+MIRIAM_COLLECTION["vto"] = {
+    "id": "vto",
+    "pattern": "^VTO:\d+$",
+    "name": "Vertebrate Taxonomy Ontology",
+    "namespace": "vto",
+    "definition": "VTO Vertebrate Taxonomy Ontology"
+}
+MIRIAM_COLLECTION["opmi"] = {
+    "id": "opmi",
+    "pattern": "^OPMI:\d+$",
+    "name": "Ontology of Precision Medicine and Investigation",
+    "namespace": "opmi",
+    "definition": "OPMI: Ontology of Precision Medicine and Investigation"
+}
+MIRIAM_COLLECTION["mondo"] = {
+    "id": "mondo",
+    "pattern": "^MONDO:\d+$",
+    "name": "MONDO",
+    "namespace": "mondo",
+    "definition": "MONDO"
+}
+MIRIAM_COLLECTION["sio"] = {
+    "id": "sio",
+    "pattern": "^SIO:\d+$",
+    "name": "SIO",
+    "namespace": "sio",
+    "definition": "Semanticscience Integrated Ontology"
+}
+MIRIAM_COLLECTION["atol"] = {
+    "id": "atol",
+    "pattern": "^ATOL:\d+$",
+    "name": "ATOL",
+    "namespace": "atol",
+    "definition": "Animal Trait Ontology for Livestock"
+}
+MIRIAM_COLLECTION["nbo"] = {
+    "id": "nbo",
+    "pattern": "^NBO:\d+$",
+    "name": "NBO",
+    "namespace": "nbo",
+    "definition": "Neuro Behavior Ontology"
+}
