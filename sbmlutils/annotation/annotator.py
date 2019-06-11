@@ -17,6 +17,7 @@ import csv
 import logging
 import libsbml
 from collections import OrderedDict
+import os
 
 from sbmlutils import utils
 from .miriam import *
@@ -69,7 +70,7 @@ class Annotation(object):
             if len(tokens) < 2:
                 raise ValueError(
                     f"resource `{resource}` must be of the form "
-                    f"`collection/term` or an url starting with `http`)"
+                    f"`collection/term` or an url starting with `http(s)://`)"
                 )
             self.collection = tokens[0]
             self.term = "/".join(tokens[1:])
@@ -152,6 +153,14 @@ class ExternalAnnotation(object):
 
         Allows to handle more complex annotation scenarios, e.g. patterns for
         identifiers.
+
+        The columns are:
+            pattern
+            sbml_type
+            annotation_type
+            qualifier
+            resource
+            name
     """
     # possible columns in annotation file
     _keys = [
@@ -186,7 +195,7 @@ class ExternalAnnotation(object):
         # print(d)
         for key in self._keys:
             # optional fields
-            if key in ['qualifier', 'collection', 'name']:
+            if key in ['qualifier', 'name']:
                 value = d.get(key, '')
             # required fields
             else:
@@ -197,6 +206,7 @@ class ExternalAnnotation(object):
             self.qualifier = ExternalAnnotation._parse_qualifier(self.qualifier)
         else:
             self.qualifier = None
+
         self.check()
 
     @staticmethod
@@ -219,16 +229,18 @@ class ExternalAnnotation(object):
     def check(self):
         """ Checks for valid choices """
         if self.sbml_type not in self._sbml_types:
-            LOGGER.error(
-                "sbml_type `{}` not supported in `{}`. "
-                "Supported types are `{}".format(
-                    self.sbml_type, self.d, self._sbml_types)
+            raise ValueError(
+                "Invalid sbml_type `{}`. "
+                "Supported types are `{}\n"
+                "{}".format(
+                    self.sbml_type, self._sbml_types, self.d)
             )
         if self.annotation_type not in self._annotation_types:
-            LOGGER.error(
-                "annotation_type not supported in `{}`. "
-                "Supported types are `{}`".format(
-                    self.sbml_type, self.d, self._annotation_types)
+            raise ValueError(
+                "Invalid annotation_type `{}`. "
+                "Supported types are `{}`\n"
+                "{}".format(
+                    self.annotation_type, self._annotation_types, self.d)
             )
 
     def __str__(self):
@@ -246,6 +258,11 @@ def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
     :param f_annotations: external file with annotations
     :param f_sbml_annotated: annotated file
     """
+    if not os.path.exists(f_sbml):
+        raise IOError("SBML file does not exist: {}".format(f_sbml))
+    if not os.path.exists(f_annotations):
+        raise IOError("Annotation file does not exist: {}".format(f_annotations))
+
     # read SBML model
     doc = libsbml.readSBML(f_sbml)
 

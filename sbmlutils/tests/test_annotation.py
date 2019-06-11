@@ -46,7 +46,7 @@ def test_model_annotation():
     d = {
         'pattern': 'id1',
         'sbml_type': 'reaction',
-        'annotation_type': 'RDF',
+        'annotation_type': 'rdf',
         'qualifier': 'BQB_IS',
         'resource': 'sbo/SBO:0000290',
         'name': 'physical compartment'
@@ -55,7 +55,7 @@ def test_model_annotation():
     ma = ExternalAnnotation(d)
     assert 'id1' == ma.pattern
     assert 'reaction' == ma.sbml_type
-    assert 'RDF' == ma.annotation_type
+    assert 'rdf' == ma.annotation_type
     assert BQB.IS == ma.qualifier
     assert "sbo/SBO:0000290" == ma.resource
     assert "physical compartment" == ma.name

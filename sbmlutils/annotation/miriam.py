@@ -114,7 +114,7 @@ MIRIAM_COLLECTION = load_miriam()
 # additional ontologies not in miriam
 MIRIAM_COLLECTION["cmo"] = {
     "id": "cmo",
-    "pattern": "^CMO:\d+$",
+    "pattern": r"^CMO:\d+$",
     "name": "Chemical methods ontology",
     "namespace": "cmo",
     "definition": "Morphological and physiological measurement records "
@@ -123,50 +123,57 @@ MIRIAM_COLLECTION["cmo"] = {
 }
 MIRIAM_COLLECTION["chmo"] = {
     "id": "chmo",
-    "pattern": "^CHMO:\d+$",
+    "pattern": r"^CHMO:\d+$",
     "name": "Chemical methods ontology",
     "namespace": "chmo",
     "definition": "CHMO, the chemical methods ontology"
 }
 MIRIAM_COLLECTION["vto"] = {
     "id": "vto",
-    "pattern": "^VTO:\d+$",
+    "pattern": r"^VTO:\d+$",
     "name": "Vertebrate Taxonomy Ontology",
     "namespace": "vto",
     "definition": "VTO Vertebrate Taxonomy Ontology"
 }
 MIRIAM_COLLECTION["opmi"] = {
     "id": "opmi",
-    "pattern": "^OPMI:\d+$",
+    "pattern": r"^OPMI:\d+$",
     "name": "Ontology of Precision Medicine and Investigation",
     "namespace": "opmi",
     "definition": "OPMI: Ontology of Precision Medicine and Investigation"
 }
 MIRIAM_COLLECTION["mondo"] = {
     "id": "mondo",
-    "pattern": "^MONDO:\d+$",
+    "pattern": r"^MONDO:\d+$",
     "name": "MONDO",
     "namespace": "mondo",
     "definition": "MONDO"
 }
 MIRIAM_COLLECTION["sio"] = {
     "id": "sio",
-    "pattern": "^SIO:\d+$",
+    "pattern": r"^SIO:\d+$",
     "name": "SIO",
     "namespace": "sio",
     "definition": "Semanticscience Integrated Ontology"
 }
 MIRIAM_COLLECTION["atol"] = {
     "id": "atol",
-    "pattern": "^ATOL:\d+$",
+    "pattern": r"^ATOL:\d+$",
     "name": "ATOL",
     "namespace": "atol",
     "definition": "Animal Trait Ontology for Livestock"
 }
 MIRIAM_COLLECTION["nbo"] = {
     "id": "nbo",
-    "pattern": "^NBO:\d+$",
+    "pattern": r"^NBO:\d+$",
     "name": "NBO",
     "namespace": "nbo",
     "definition": "Neuro Behavior Ontology"
+}
+MIRIAM_COLLECTION["omim"] = {
+    "id": "omim",
+    "pattern": r"^MI:\d+$",
+    "name": "OMIM",
+    "namespace": "omim",
+    "definition": "Molecular Interactions Controlled Vocabulary"
 }

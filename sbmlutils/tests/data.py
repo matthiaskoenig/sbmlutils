@@ -27,8 +27,8 @@ csv_filepath = pjoin(data_dir, 'data', 'test.csv')
 BASIC_SBML = pjoin(data_dir, 'models/basic/basic_7.xml')
 
 # demo -----------------------
-DEMO_SBML = pjoin(data_dir, 'models/demo/Koenig_demo_13.xml')
-DEMO_SBML_NO_ANNOTATIONS = pjoin(data_dir, 'models/demo/Koenig_demo_13_no_annotations.xml')
+DEMO_SBML = pjoin(data_dir, 'models/demo/Koenig_demo_14.xml')
+DEMO_SBML_NO_ANNOTATIONS = pjoin(data_dir, 'models/demo/Koenig_demo_14_no_annotations.xml')
 DEMO_ANNOTATIONS = pjoin(data_dir, 'models/demo/demo_annotations.xlsx')
 
 # galactose ------------------
