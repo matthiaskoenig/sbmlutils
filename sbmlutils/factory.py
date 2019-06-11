@@ -18,6 +18,7 @@ which takes care of the order of object creation.
 import logging
 import libsbml
 from sbmlutils.validation import check
+from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
 from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
 
 
@@ -204,16 +205,18 @@ class Creator(object):
         self.site = site
 
 
-#####################################################################
+# -----------------------------------------------------------------------------
 # Base classes
-#####################################################################
+# -----------------------------------------------------------------------------
 class Sbase(object):
     def __init__(self, sid=None, name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         self.sid = sid
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
+        self.annotations = annotations
         self.port = port
         self.uncertainties = uncertainties
 
@@ -229,6 +232,15 @@ class Sbase(object):
 
     def set_fields(self, obj: libsbml.SBase):
         if self.sid is not None:
+            if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
+                logging.error(
+                    "The id `{self.sid}` is not a valid SBML SId on `{obj}`. "
+                    "The SId syntax is defined as:"
+                    "\tletter ::= 'a'..'z','A'..'Z'"
+                    "\tdigit  ::= '0'..'9'"
+                    "\tidChar ::= letter | digit | '_'"
+                    "\tSId    ::= ( letter | '_' ) idChar*"
+                )
             obj.setId(self.sid)
         if self.name is not None:
             obj.setName(self.name)
@@ -236,6 +248,13 @@ class Sbase(object):
             obj.setSBOTerm(self.sboTerm)
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
+
+        if self.annotations:
+            for a_tuple in self.annotations:
+                ModelAnnotator.annotate_sbase(
+                    sbase=obj,
+                    annotation=Annotation.from_tuple(a_tuple)
+                )
 
         self.create_uncertainties(obj)
 
@@ -276,8 +295,10 @@ class Value(Sbase):
     subclasses.
     """
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         super(Value, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                    annotations=annotations,
                                     port=port, uncertainties=uncertainties)
         self.value = value
 
@@ -291,10 +312,10 @@ class ValueWithUnit(Value):
     subclasses.
     """
     def __init__(self, sid, value, unit="-",
-                 name=None, sboTerm=None, metaId=None,
+                 name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
-                                            port=port, uncertainties=uncertainties)
+                                            port=port, annotations=annotations, uncertainties=uncertainties)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -432,10 +453,12 @@ class Parameter(ValueWithUnit):
 ##########################################################################
 class Compartment(ValueWithUnit):
 
-    def __init__(self, sid, value, unit=None, constant=True, spatialDimensions=3, name=None, sboTerm=None, metaId=None,
+    def __init__(self, sid, value, unit=None, constant=True,
+                 spatialDimensions=3, name=None,
+                 sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId,
-                                          port=port, uncertainties=uncertainties)
+                                          annotations=annotations, port=port, uncertainties=uncertainties)
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -471,8 +494,10 @@ class Species(Sbase):
 
     def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
                  hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                      annotations=annotations,
                                       port=port, uncertainties=uncertainties)
 
         if (initialAmount is None) and (initialConcentration is None):
@@ -529,8 +554,10 @@ class InitialAssignment(Value):
     In case of an initialAssignment of a value the units have to be defined in the math.
     """
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None,
+                 annotations=None,
                  port=None, uncertainties=None):
         super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
+                                                annotations=annotations,
                                                 port=port, uncertainties=uncertainties)
         self.unit = unit
 
@@ -677,7 +704,6 @@ class RateRule(Rule):
 ##########################################################################
 class UncertParameter(object):
     """UncertParameter
-    # FIXME: add annotation
     """
     def __init__(self, type, value=None, var=None, unit=None):
         if (value is None) and (var is None):
@@ -709,8 +735,11 @@ class Uncertainty(Sbase):
     Uncertainty information for Sbase.
     """
     def __init__(self, sid=None, formula=None, uncertParameters=[],
-                 name=None, sboTerm=None, metaId=None, port=None):
-        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId, port=port)
+                 name=None, sboTerm=None, metaId=None,
+                 annotations=None,
+                 port=None):
+        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                          annotations=annotations, port=port)
 
         # Object on which the uncertainty is written
         self.formula = formula

@@ -4,7 +4,6 @@ Distrib example.
 """
 import libsbml
 from sbmlutils.units import *
-from sbmlutils.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 

@@ -3,7 +3,6 @@
 Demo kinetic network.
 """
 from sbmlutils.units import *
-from sbmlutils.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 
@@ -11,7 +10,7 @@ from . import reactions as R
 
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'Koenig_demo'
-version = 13
+version = 14
 notes = Notes([
     """
     <h1>Koenig Demo Metabolism</h1>

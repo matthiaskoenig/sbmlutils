@@ -6,7 +6,7 @@ import datetime
 import libsbml
 
 from sbmlutils.validation import check
-from sbmlutils.annotation import create_metaid
+from sbmlutils.utils import create_metaid
 
 
 def date_now():

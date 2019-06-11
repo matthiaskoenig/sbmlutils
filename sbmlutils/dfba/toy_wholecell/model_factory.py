@@ -22,7 +22,7 @@ from sbmlutils import fbc
 from sbmlutils import sbmlio
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
-from sbmlutils import annotation
+from sbmlutils.annotation import annotator
 
 
 from sbmlutils.dfba import builder
@@ -179,7 +179,7 @@ def fba_model(sbml_file, directory, annotations=None):
 
     # write SBML
     if annotations:
-        annotation.annotate_sbml_doc(doc, annotations)
+        annotator.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
     return doc
 
@@ -240,7 +240,7 @@ def bounds_model(sbml_file, directory, doc_fba, annotations=None):
     comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
                       idRefs=["ub_R1"])
     if annotations:
-        annotation.annotate_sbml_doc(doc, annotations)
+        annotator.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
@@ -278,7 +278,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     # write SBML file
     if annotations:
-        annotation.annotate_sbml_doc(doc, annotations)
+        annotator.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
 
@@ -364,7 +364,7 @@ def top_model(sbml_file, directory, emds, doc_fba, annotations=None):
 
     # write SBML file
     if annotations:
-        annotation.annotate_sbml_doc(doc, annotations)
+        annotator.annotate_sbml_doc(doc, annotations)
     sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back the working dir
@@ -380,8 +380,10 @@ def create_model(output_dir):
     """
     directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
-    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.ANNOTATIONS_LOCATION)
-    annotations = annotation.ModelAnnotator.annotations_from_file(f_annotations)
+    f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 settings.ANNOTATIONS_LOCATION)
+    annotations = annotator.ModelAnnotator.annotations_from_file(f_annotations)
+
 
     # create sbml
     doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
@@ -420,6 +422,5 @@ def create_model(output_dir):
     return directory
 
 
-########################################################################################################################
 if __name__ == "__main__":
     create_model(output_dir=settings.OUT_DIR)

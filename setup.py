@@ -63,7 +63,7 @@ setup(
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "pip>=19.1",
+        "pip>=19.1.1",
         "numpy>=1.16.3",
         "scipy>=1.2.1",
         "matplotlib>=3.0.3",
@@ -75,6 +75,8 @@ setup(
         "xarray>=0.11.3",
         "pyexcel>=0.5.13",
         "pyexcel-xlsx>=0.5.7",
+
+        "xmlschema",
 
         # standards
         "python-libsbml-experimental>=5.18.0",

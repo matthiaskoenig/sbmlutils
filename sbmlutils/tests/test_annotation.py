@@ -1,18 +1,23 @@
 """
 Test annotation functions and annotating of SBML models.
 """
-from __future__ import print_function, division
+
 import re
 import tempfile
+import libsbml
 
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
-from sbmlutils import annotation
-from sbmlutils.annotation import ModelAnnotator, ModelAnnotation
+from sbmlutils.annotation import annotator
+from sbmlutils.annotation.miriam import BQB
+from sbmlutils.annotation.annotator import ModelAnnotator, ExternalAnnotation
 from sbmlutils.tests import data
+from sbmlutils.examples.models.annotation import factory as annotation_factory
+
+
+def test_create_annotation():
+    """ Create assignment model.
+    :return:
+    """
+    annotation_factory.create(tmp=True)
 
 
 def test_model_annotation():
@@ -25,7 +30,7 @@ def test_model_annotation():
          'entity': 'test_entity',
          'name': 'test_name'}
 
-    ma = ModelAnnotation(d)
+    ma = ExternalAnnotation(d)
     assert 'test_pattern' == ma.pattern
     assert 'reaction' == ma.sbml_type
     assert 'RDF' == ma.annotation_type
@@ -38,23 +43,22 @@ def test_model_annotation():
 
 def test_model_annotation():
     """ Check annotation data structure. """
-    d = {'pattern': 'id1',
-         'sbml_type': 'reaction',
-         'annotation_type': 'RDF',
-         'qualifier': 'BQB_IS',
-         'collection': 'sbo',
-         'entity': 'SBO:0000290',
-         'name': 'physical compartment'}
+    d = {
+        'pattern': 'id1',
+        'sbml_type': 'reaction',
+        'annotation_type': 'rdf',
+        'qualifier': 'BQB_IS',
+        'resource': 'sbo/SBO:0000290',
+        'name': 'physical compartment'
+    }
 
-    ma = ModelAnnotation(d)
+    ma = ExternalAnnotation(d)
     assert 'id1' == ma.pattern
     assert 'reaction' == ma.sbml_type
-    assert 'RDF' == ma.annotation_type
-    assert "BQB_IS" == ma.qualifier
-    assert "sbo" == ma.collection
-    assert "SBO:0000290" == ma.entity
+    assert 'rdf' == ma.annotation_type
+    assert BQB.IS == ma.qualifier
+    assert "sbo/SBO:0000290" == ma.resource
     assert "physical compartment" == ma.name
-    assert "http://identifiers.org/sbo/SBO:0000290" == ma.resource
 
 
 def test_model_annotator():
@@ -71,7 +75,7 @@ def test_demo_annotation():
     """ Annotate the demo network. """
 
     f_tmp = tempfile.NamedTemporaryFile()
-    annotation.annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
+    annotator.annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
     f_tmp.flush()
 
     # document
@@ -154,7 +158,7 @@ def test_demo_annotation():
 def test_galactose_annotation():
     """ Annotate the galactose network. """
     f_tmp = tempfile.NamedTemporaryFile()
-    annotation.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
-                                  f_annotations=data.GALACTOSE_ANNOTATIONS,
-                                  f_sbml_annotated=f_tmp.name)
+    annotator.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+                                 f_annotations=data.GALACTOSE_ANNOTATIONS,
+                                 f_sbml_annotated=f_tmp.name)
     f_tmp.flush()

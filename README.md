@@ -63,6 +63,10 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.4
+* improved annotation support (inline annotations, annotation by url)
+* checking against MIRIAM collections and patterns
+
 ### 0.3.1 - 0.3.3
 * libSBML 5.18.0
 * initial distrib support

@@ -3,7 +3,7 @@
 FBA example with exchange reactions & boundaryCondition=True
 """
 from sbmlutils.units import *
-from sbmlutils.sbo import *
+from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.fbc import Objective
 from sbmlutils.modelcreator import templates

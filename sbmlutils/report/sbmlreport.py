@@ -25,8 +25,7 @@ import libsbml
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
 from sbmlutils.validation import check_sbml
-from sbmlutils.utils import promote_local_variables
-from sbmlutils import annotation
+from sbmlutils import utils
 
 # template location
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -106,7 +105,7 @@ def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False
     # read sbml
     doc = libsbml.readSBML(sbml_path)
     if promote:
-        promote_local_variables(doc)
+        utils.promote_local_variables(doc)
 
     # write sbml to output folder
     basename = os.path.basename(sbml_path)
@@ -698,7 +697,7 @@ def xml_modal(item):
     if type(item) is libsbml.Model:
         return ''
 
-    hash_id = annotation.create_hash_id(item)
+    hash_id = utils._create_hash_id(item)
 
     info = '''
       <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{}"><i class="fa fa-code"></i></button>

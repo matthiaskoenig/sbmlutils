@@ -7,10 +7,13 @@ import libsbml
 
 from sbmlutils.validation import check
 from sbmlutils.equation import Equation
-from sbmlutils.sbo import SBO_EXCHANGE_REACTION
+from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
+from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
 
 Formula = namedtuple('Formula', 'value unit')
 
+
+# FIXME: integrate into factory and reuse existing SBase code
 
 # -----------------------------------------------------------------------------
 # Reactions
@@ -19,9 +22,11 @@ class ReactionTemplate(object):
     """ All reactions are instances of the ReactionTemplate. """
     def __init__(self, rid, equation, formula=None, pars=[], rules=[],
                  name=None, compartment=None, fast=False, sboTerm=None,
+                 metaId=None, annotations=None,
                  lowerFluxBound=None, upperFluxBound=None):
         self.rid = rid
         self.name = name
+        self.metaId = metaId
         self.equation = Equation(equation)
         self.compartment = compartment
         self.pars = pars
@@ -31,6 +36,7 @@ class ReactionTemplate(object):
             self.formula = Formula(*formula)
         self.fast = fast
         self.sboTerm = sboTerm
+        self.annotations = annotations
         self.lowerFluxBound = lowerFluxBound
         self.upperFluxBound = upperFluxBound
 
@@ -43,6 +49,13 @@ class ReactionTemplate(object):
         # reaction
         r = model.createReaction()  # type: libsbml.Reaction
         r.setId(self.rid)
+        if not libsbml.SyntaxChecker.isValidSBMLSId(self.rid):
+            logging.error(
+                "The id `{}` is not a valid SBML SId on Reaction. "
+                "The SId syntax is defined as: SId ::= ( letter | '_' ) idChar*".format(self.rid)
+            )
+        if self.metaId:
+            r.setMetaId(self.metaId)
         if self.name:
             r.setName(self.name)
         else:
@@ -80,6 +93,14 @@ class ReactionTemplate(object):
                 r_fbc.setUpperFluxBound(self.upperFluxBound)
             if self.lowerFluxBound:
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
+
+        # annotations
+        if self.annotations:
+            for a_tuple in self.annotations:
+                ModelAnnotator.annotate_sbase(
+                    sbase=r,
+                    annotation=Annotation.from_tuple(a_tuple)
+                )
 
         return r
 

@@ -67,9 +67,10 @@ class Equation(object):
             eq_string = tokens[0].strip()
         elif len(mod_list) > 1:
             raise self.EquationException(
-                f"Invalid equation: {self.raw}. "
-                f"Modifier list could not be parsed."
-                + Equation.help())
+                "Invalid equation: {}. "
+                "Modifier list could not be parsed. "
+                "{}".format(self.raw, Equation.help())
+            )
 
         # now parse the equation without modifiers
         items = re.split(REV_PATTERN, eq_string)
@@ -81,18 +82,20 @@ class Equation(object):
             self.reversible = False
         else:
             raise self.EquationException(
-                f"Invalid equation: {self.raw}. "
-                f"Equation could not be split into left "
-                f"and right side. " + Equation.help())
+                "Invalid equation: {}. "
+                "Equation could not be split into left "
+                "and right side. {}".format(self.raw, Equation.help())
+            )
 
         # remove whitespaces
         items = [o.strip() for o in items]
         if len(items) < 2:
             raise self.EquationException(
-                f"Invalid equation: {self.raw}. "
-                f"Equation could not be split into left "
-                f"and right side. Use '<=>' or '=>' as separator. "
-                + Equation.help())
+                "Invalid equation: {}. "
+                "Equation could not be split into left "
+                "and right side. Use '<=>' or '=>' as separator. "
+                "{}".format(self.raw, Equation.help())
+            )
         left, right = items[0], items[1]
         if len(left) > 0:
             self.reactants = self._parse_half_equation(left)

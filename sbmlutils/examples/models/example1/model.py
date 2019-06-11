@@ -3,7 +3,7 @@
 Example model for creating an SBML ODE model.
 """
 from sbmlutils.units import *
-from sbmlutils.sbo import *
+from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 

@@ -3,21 +3,20 @@
 Test model to check the update of global depending parameters in Roadrunner.
 Mainly volumes which are calculated based on other parameters.
 """
+from sbmlutils.factory import *
 from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
-from sbmlutils.factory import *
-from . import reactions as Reactions
-
+from sbmlutils.annotation.miriam import *
 from sbmlutils.modelcreator import templates
 
 # ---------------------------------------------------------------------------------------------------------------------
-mid = 'basic'
+mid = 'annotation_example'
 version = 8
 notes = Notes([
     """
-    <h1>Koenig Test Model</h1>
+    <h1>Model with inline annotations</h1>
     <h2>Description</h2>
-    <p>Test model.
+    <p>Test model demonstrating inline annotations.
     </p>
     """,
     templates.terms_of_use
@@ -41,9 +40,23 @@ units = [
 # Compartments
 # ---------------------------------------------------------------------------------------------------------------------
 compartments = [
-    Compartment(sid='ext', value='Vol_e', unit='m3', constant=True, name="external"),
-    Compartment(sid='cyto', value='Vol_c', unit='m3', constant=False, name="cytosol"),
-    Compartment(sid='pm', value='A_m', unit="m2", constant=True, spatialDimensions=2, name="membrane"),
+    Compartment(sid='ext', value='Vol_e', unit='m3', constant=True,
+                name="external", sboTerm=SBO_PHYSICAL_COMPARTMENT,
+                annotations=[
+                    (BQB.IS, "bto/BTO:0000089"),  # blood
+                ]),
+    Compartment(sid='cyto', value='Vol_c', unit='m3', constant=False,
+                name="cytosol", sboTerm=SBO_PHYSICAL_COMPARTMENT,
+                annotations=[
+                    (BQB.IS, "go/GO:0005829"),  # cytosol
+                    (BQB.IS, "https://en.wikipedia.org/wiki/Cytosol"),  # cytosol
+                ]),
+    Compartment(sid='pm', value='A_m', unit="m2", constant=True, spatialDimensions=2,
+                name="membrane", sboTerm=SBO_PHYSICAL_COMPARTMENT,
+                annotations=[
+                    (BQB.IS, "go/GO:0005886"),  # plasma membrane
+
+                ]),
 ]
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -52,7 +65,13 @@ compartments = [
 species = [
     Species(sid='e__gal', compartment='ext', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
-                name='D-galactose', sboTerm=SBO_SIMPLE_CHEMICAL),
+                name='D-galactose', sboTerm=SBO_SIMPLE_CHEMICAL,
+                annotations=[
+                    (BQB.IS, "bigg.metabolite/gal"),  # galactose
+                    (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
+                    (BQB.IS, "vmhmetabolite/gal"),
+                ]
+            ),
     Species(sid='c__gal', compartment='cyto', initialConcentration=0.00012,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=False,
                 name='D-galactose', sboTerm=SBO_SIMPLE_CHEMICAL),
@@ -83,5 +102,24 @@ rules = []
 # Reactions
 # ---------------------------------------------------------------------------------------------------------------------
 reactions = [
-    Reactions.GLUT2_GAL
+
+    ReactionTemplate(
+        rid='e__GLUT2_GAL',
+        name='galactose transport [e__]',
+        equation='e__gal <-> c__gal []',
+        # C6H1206 (0) <-> C6H1206 (0)
+        compartment='pm',
+        pars=[
+            Parameter(sid='GLUT2_Vmax', value=1E-13, unit='mole_per_s'),
+            Parameter('GLUT2_k_gal', 1.0, 'mM'),
+            Parameter('GLUT2_keq', 1.0, '-'),
+        ],
+        formula=('GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/'
+                 '(1 dimensionless + c__gal/GLUT2_k_gal + e__gal/GLUT2_k_gal)',
+                 'mole_per_s'),
+        annotations=[
+            (BQB.IS, "sbo/SBO:0000284"),  # transporter
+        ]
+    )
+
 ]

@@ -1,0 +1,1610 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="SBML report">
+    <meta name="author" content="Matthias König">
+
+    <link rel="icon" href="_report/images/sbml.ico">
+    <title>annotation_example_8</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <!--<link rel="stylesheet" type="text/css" href="_report/css/sbmlreport.css"/>-->
+
+    <style>
+        /* Show it is fixed to the top */
+        body {
+          min-height: 75rem;
+          padding-top: 5.0rem;
+        }
+        a.anchor {
+            display: block;
+            position: relative;
+            top: -5.0rem;
+            visibility: hidden;
+        }
+
+        .table-nonfluid {
+           /* width: auto; */
+            width: 70%;
+        }
+
+        .cvterm {
+            font-size: small;
+        }
+        .blue {
+            color: darkblue;
+        }
+        .darkgray {
+            color: #646464;
+        }
+        .gray {
+            color: #aaaaaa;
+        }
+        .red {
+            color: darkred;
+        }
+        .green {
+            color: darkgreen;
+        }
+
+        /* XML popup */
+        .parent .popup {
+          display: none;
+        }
+
+        .parent:hover .popup {
+            display: block;
+            margin-top: 9px;
+            border: 1px solid #bebebe;
+            padding: 16px 10px 10px 10px;
+            background: #ededed;
+        }
+
+        .ontology{
+            background-color: #5FBDCE;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .collection {
+            background-color: white;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .package {
+            background-color: black;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .identifier{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .purl{
+            color: grey;
+        }
+        .icon-invisible {
+            visibility: hidden;
+        }
+        .icon-black {
+            color: black;
+        }
+
+        /* References */
+        .ref-item {
+            list-style-type: none;
+        }
+        .ref-item a{
+            font-size: 10px;
+        }
+        .ref-title{
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .ref-authors{
+            font-size: 10px;
+        }
+        .ref-journal{
+            font-size: 10px;
+        }
+        .id{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .term{
+            background-color: #ffac1b;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .item{
+            background-color: gray;
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .comment{
+            background-color: gray;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .cvterm{
+            border-radius: 15px;
+            background: #f9f9f9;
+            padding: 5px;
+        }
+        .history{
+            border-radius: 15px;
+            background: #ffffff;
+            padding: 5px;
+        }
+        .qualifier{
+            background-color: #13721c;
+            padding:2px;
+            padding-right:4px;
+            color: white;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .unit{
+            background-color: rgba(200, 200, 200, 0.51);
+            padding:2px;
+            padding-right:4px;
+            color: black;
+            font-family: monospace;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .math{
+            color: black;
+            font-family: monospace;
+        }
+    </style>
+
+
+    <!--<link rel="stylesheet" type="text/css" href="_report/css/bootstrap-theme-3.3.7.min.css">-->
+
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+    <!--https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js-->
+
+
+    <!-- MathJax not working offline -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      MathML: {
+        extensions: ["content-mathml.js"]
+      }
+    });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            $.extend( $.fn.dataTable.defaults, {
+                "searching": true,
+                "ordering": true
+            } );
+
+            var t_modeldefs = $('#table_modeldefs').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_modeldefs.fnFilter($(this).val());
+            });
+
+            var t_submodels = $('#table_submodels').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_submodels.fnFilter($(this).val());
+            });
+
+            var t_ports = $('#table_ports').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_ports.fnFilter($(this).val());
+            });
+
+            var t_functions = $('#table_functions').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_functions.fnFilter($(this).val());
+            });
+
+            var t_units = $('#table_units').dataTable({
+                "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_units.fnFilter($(this).val());
+            });
+
+            var t_compartments = $('#table_compartments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+
+            });
+            $('#searchField').keyup(function(){
+                t_compartments.fnFilter($(this).val());
+            });
+
+            var t_species = $('#table_species').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_species.fnFilter($(this).val());
+            });
+
+            var t_geneproducts = $('#table_geneproducts').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_geneproducts.fnFilter($(this).val());
+            });
+
+            var t_parameters = $('#table_parameters').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_parameters.fnFilter($(this).val());
+            });
+
+            var t_assignments = $('#table_assignments').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_assignments.fnFilter($(this).val());
+            });
+
+            var t_rules = $('#table_rules').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_rules.fnFilter($(this).val());
+            });
+
+            var t_reactions = $('#table_reactions').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_reactions.fnFilter($(this).val());
+            });
+
+            var t_objectives = $('#table_objectives').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_objectives.fnFilter($(this).val());
+            });
+
+
+            var t_constraints = $('#table_constraints').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_constraints.fnFilter($(this).val());
+            });
+
+
+            var t_events = $('#table_events').dataTable({
+               "bPaginate": false,
+                "bInfo": false,
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "aoColumnDefs": [{ "bVisible": false, "aTargets": [0] }]
+            });
+            $('#searchField').keyup(function(){
+                t_events.fnFilter($(this).val());
+            });
+
+            $('#searchField').val('');
+            $('#searchField').focus();
+
+        });
+    </script>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark">
+  <a class="navbar-brand" href="#doc"><td id="annotation_example_8" class="active"><span class="package">annotation_example_8</span> <code>meta_annotation_example_8</code></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item"><a class="nav-link" href="#anchor_model">Model</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_units">UnitDefinitions</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_compartments">Compartments</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_species">Species</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_parameters">Parameters</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_assignments">InitialAssignments</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_rules">Rules</a></li>
+            <li class="nav-item"><a class="nav-link" href="#anchor_reactions">Reactions</a></li>
+    </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <input id="searchField" class="form-control mr-sm-2" accesskey="S" type="search" class="form-control" placeholder="Search" aria-label="Search">
+        <!-- <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+
+    </form>
+       <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils"><i class="fab fa-github fa-2x"></i></a></li>
+       </ul>
+  </div>
+</nav>
+
+
+<main role="main" class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- CONTENT -->
+            <div class="content">
+    <a class="anchor" id="doc"></a>
+    <div class="row">
+        <div class="col-6">
+        <!--------------------------------------------------->
+        <!-- Model                                         -->
+        <!--------------------------------------------------->
+        <a class="anchor" id="anchor_model"></a>
+        <h1 id="model"><a href="annotation_example_8.xml" target="_blank" alt="Access SBML model" title="SBML model"><i class="fas fa-file-code"></i></a>&nbsp;Model : annotation_example_8</h1>
+        <b>Creator</b><br />Matthias, Koenig, Humboldt-University Berlin, Institute for Theoretical Biology, <a href="mailto:koenigmx@hu-berlin.de" target="_blank">koenigmx@hu-berlin.de</a><br /><b>Created:</b> 2019-06-04 12:36<br /><b>Modified:</b> 2019-06-04 12:36<br /><br />
+        <table id="table_model" class="table table-condensed table-nonfluid">
+            <tr>
+            <td>
+                    <table class="compact">
+                    <tbody>
+                    <tr><td class="active">id</td> <td id="annotation_example_8" class="active"><span class="package">annotation_example_8</span> <code>meta_annotation_example_8</code></tr>
+                    <tr><td class="active">name</td><td>annotation_example_8</td></tr>
+                    <tr><td class="active">time</td><td>s</td></tr>
+                    <tr><td class="active">substance</td><td>mole</td></tr>
+                    <tr><td class="active">extent</td><td>mole</td></tr>
+                    <tr><td class="active">volume</td><td>m3</td></tr>
+                    <tr><td class="active">area</td><td>m2</td></tr>
+                    <tr><td class="active">length</td><td>m</td></tr>
+                    </tbody>
+                    </table>
+                </td>
+                <td>
+                    <span class="package">L3V1</span> <span class="package">fbc-V2</span> <span class="package">comp-V1</span><br />
+                    <div class="cvterm"></div><br />
+                    <div class="cvterm"></div>
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="col-6">
+        <!--------------------------------------------------->
+        <!-- SBMLDocument                                  -->
+        <!--------------------------------------------------->
+<notes>
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <h1>Model with inline annotations</h1>
+    <h2>Description</h2>
+    <p>Test model demonstrating inline annotations.
+    </p>
+    <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
+    <div class="dc:publisher">This file has been created by
+    <a href="https://livermetabolism.com" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.</div>
+    <h2>Terms of use</h2>
+    <div class="dc:rightsHolder">Copyright © 2019 Matthias Koenig.</div>
+    <div class="dc:license">
+      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
+        that the following conditions are met:
+        <ol>
+        <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
+          the following disclaimer.</li>
+        <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
+          and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+      </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+        </p>
+    </div>
+  </body>
+</notes><hr />        </div>
+
+    </div>
+
+    <!--------------------------------------------------->
+    <!-- ExternalModelDefinitions & ModelDefinitions   -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Submodels -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Ports -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- FunctionDefinitions -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- UnitDefinitions -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_units"></a>
+        <table id="table_units" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">UnitDefinitions [7]</th>
+	<th scope="col">name</th>
+	<th scope="col">units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="kg" class="active"><span class="package">kg</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-kg"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-kg" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">kg</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="kg">
+  <listOfUnits>
+    <unit kind="kilogram" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> kg </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="s" class="active"><span class="package">s</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-s"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-s" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">s</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="s">
+  <listOfUnits>
+    <unit kind="second" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> s </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m" class="active"><span class="package">m</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m">
+  <listOfUnits>
+    <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> m </ci>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m2" class="active"><span class="package">m2</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m2"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m2" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m2</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m2">
+  <listOfUnits>
+    <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="m3" class="active"><span class="package">m3</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-m3"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-m3" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">m3</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="m3">
+  <listOfUnits>
+    <unit kind="metre" exponent="3" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="mM" class="active"><span class="package">mM</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mM"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mM" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mM</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mM">
+  <listOfUnits>
+    <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+    <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">UnitDefinition</td>
+	    <td id="mole_per_s" class="active"><span class="package">mole_per_s</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-mole_per_s"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-mole_per_s" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">mole_per_s</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><unitDefinition id="mole_per_s">
+  <listOfUnits>
+    <unit kind="mole" exponent="1" scale="0" multiplier="1"/>
+    <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+  </listOfUnits>
+</unitDefinition></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+
+    <!--------------------------------------------------->
+    <!-- Compartments -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_compartments"></a>
+        <table id="table_compartments" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Compartments [3]</th>
+	<th scope="col">name</th>
+	<th scope="col">size</th>
+	<th scope="col">constant</th>
+	<th scope="col">spatial dimensions</th>
+	<th scope="col">units</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Compartment</td>
+	    <td id="ext" class="active"><span class="package">ext</span> <code>meta_ext</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-ext"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-ext" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">ext</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="meta_ext" sboTerm="SBO:0000290" id="ext" name="external" spatialDimensions="3" units="m3" constant="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_ext">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="bto/BTO:0000089"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>external</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> Vol_e </ci>
+</math></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>3</td>
+	<td>m3</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="bto/BTO:0000089" target="_blank">BTO:0000089</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Compartment</td>
+	    <td id="cyto" class="active"><span class="package">cyto</span> <code>meta_cyto</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-cyto"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-cyto" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">cyto</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="meta_cyto" sboTerm="SBO:0000290" id="cyto" name="cytosol" spatialDimensions="3" units="m3" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_cyto">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="go/GO:0005829"/>
+            <rdf:li rdf:resource="https://en.wikipedia.org/wiki/Cytosol"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>cytosol</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> Vol_c </ci>
+</math></td>
+	<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td>3</td>
+	<td>m3</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="go/GO:0005829" target="_blank">GO:0005829</a>; <a href="https://en.wikipedia.org/wiki/Cytosol" target="_blank">Cytosol</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Compartment</td>
+	    <td id="pm" class="active"><span class="package">pm</span> <code>meta_pm</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-pm"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-pm" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">pm</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><compartment metaid="meta_pm" sboTerm="SBO:0000290" id="pm" name="membrane" spatialDimensions="2" units="m2" constant="true">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_pm">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="go/GO:0005886"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</compartment></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>membrane</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> A_m </ci>
+</math></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>2</td>
+	<td>m2</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000290" target="_blank">SBO:0000290</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="go/GO:0005886" target="_blank">GO:0005886</a></div></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+
+    <!--------------------------------------------------->
+    <!-- Species -->
+    <!--------------------------------------------------->
+    </p>
+        <a class="anchor" id="anchor_species"></a>
+        <table id="table_species" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Species [2]</th>
+    <th scope="col">name</th>
+	<th scope="col">compartment</th>
+    <th scope="col">hasOnlySubstanceUnits</th>
+	<th scope="col">boundaryCondition</th>
+	<th scope="col">constant</th>
+	<th scope="col">initialAmount</th>
+	<th scope="col">initialConcentration</th>
+    <th scope="col">conversionFactor</th>
+    <th scope="col">units</th>
+	<th scope="col">substanceUnits</th>
+	<th scope="col">derivedUnits</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="e__gal" class="active"><span class="package">e__gal</span> <code>meta_e__gal</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-e__gal"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-e__gal" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">e__gal</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species metaid="meta_e__gal" sboTerm="SBO:0000247" id="e__gal" name="D-galactose" compartment="ext" initialConcentration="3" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_e__gal">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="bigg.metabolite/gal"/>
+            <rdf:li rdf:resource="chebi/CHEBI:28061"/>
+            <rdf:li rdf:resource="vmhmetabolite/gal"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+</species></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>D-galactose</td>
+	<td>ext</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>3.0</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td>mole</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="bigg.metabolite/gal" target="_blank">gal</a>; <a href="chebi/CHEBI:28061" target="_blank">CHEBI:28061</a>; <a href="vmhmetabolite/gal" target="_blank">gal</a></div></td>
+</tr>
+                <tr>    <td class="hidden">Species</td>
+	    <td id="c__gal" class="active"><span class="package">c__gal</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-c__gal"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-c__gal" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">c__gal</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><species sboTerm="SBO:0000247" id="c__gal" name="D-galactose" compartment="cyto" initialConcentration="0.00012" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>D-galactose</td>
+	<td>cyto</td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+    <td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td>0.00012</td>
+    <td><i class="fa fa-ban gray"></i></td>
+    <td>mole</td>
+	<td>mole</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <apply>
+      <power/>
+      <ci> m </ci>
+      <cn type="integer"> 3 </cn>
+    </apply>
+  </apply>
+</math></td>
+	<td><div class="cvterm"><a href="http://identifiers.org/biomodels.sbo/SBO:0000247" target="_blank">SBO:0000247</a></div></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+
+    <!--------------------------------------------------->
+    <!-- GeneProducts (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Parameters -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_parameters"></a>
+        <table id="table_parameters" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Parameters [7]</th>
+	<th scope="col">name</th>
+	<th scope="col">constant</th>
+	<th scope="col">value</th>
+	<th scope="col">unit</th>
+	<th scope="col">derived unit</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="x_cell" class="active"><span class="package">x_cell</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-x_cell"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-x_cell" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">x_cell</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="x_cell" name="cell diameter" value="2.5e-05" units="m" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>cell diameter</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>2.5e-05</td>
+	<td>m</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> m </ci>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="Vol_e" class="active"><span class="package">Vol_e</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Vol_e"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Vol_e" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Vol_e</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="Vol_e" name="external volume" value="1e-12" units="m3" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>external volume</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1e-12</td>
+	<td>m3</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="A_m" class="active"><span class="package">A_m</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-A_m"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-A_m" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">A_m</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="A_m" name="membrane area" value="1" units="m2" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>membrane area</td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td>m2</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="Vol_c" class="active"><span class="package">Vol_c</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-Vol_c"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-Vol_c" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">Vol_c</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="Vol_c" units="m3" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> x_cell </ci>
+    <ci> x_cell </ci>
+    <ci> x_cell </ci>
+  </apply>
+</math></td>
+	<td>m3</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="GLUT2_Vmax" class="active"><span class="package">GLUT2_Vmax</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-GLUT2_Vmax"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-GLUT2_Vmax" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">GLUT2_Vmax</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="GLUT2_Vmax" value="1e-13" units="mole_per_s" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1e-13</td>
+	<td>mole_per_s</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <ci> mole </ci>
+    <ci> s </ci>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="GLUT2_k_gal" class="active"><span class="package">GLUT2_k_gal</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-GLUT2_k_gal"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-GLUT2_k_gal" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">GLUT2_k_gal</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="GLUT2_k_gal" value="1" units="mM" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td>mM</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <cn type="integer"> 10 </cn>
+        <apply>
+          <minus/>
+          <cn type="integer"> 3 </cn>
+        </apply>
+      </apply>
+      <ci> mole </ci>
+    </apply>
+    <ci> litre </ci>
+  </apply>
+</math></td>
+
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">Parameter</td>
+	    <td id="GLUT2_keq" class="active"><span class="package">GLUT2_keq</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-GLUT2_keq"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-GLUT2_keq" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">GLUT2_keq</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><parameter id="GLUT2_keq" value="1" units="dimensionless" constant="true"/></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>
+	<td>1.0</td>
+	<td>dimensionless</td>
+	<td>None</td>
+
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+    
+    <!--------------------------------------------------->
+    <!-- InitialAssignments -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_assignments"></a>
+        <table id="table_assignments" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">InitialAssignments [3]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">assignment</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">ext </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> Vol_e </ci>
+</math></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">pm </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> A_m </ci>
+</math></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 2 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+                <tr>    <td class="hidden">InitialAssignment</td>
+    <td class="active">Vol_c </td>
+    <td><i class="fa fa-ban gray"></i></td>
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <times/>
+    <ci> x_cell </ci>
+    <ci> x_cell </ci>
+    <ci> x_cell </ci>
+  </apply>
+</math></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+    
+    <!--------------------------------------------------->
+    <!-- Rules -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_rules"></a>
+        <table id="table_rules" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Rules [1]</th>
+	<th scope="col">&nbsp;</th>
+	<th scope="col">assignment</th>
+	<th scope="col">name</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Rule</td>
+	    <td id="cyto" class="active"><span class="package">cyto</span> 
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-6dd275a311de479e8cd15142da8cde60"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-6dd275a311de479e8cd15142da8cde60" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">6dd275a311de479e8cd15142da8cde60</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><assignmentRule variable="cyto">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <ci> Vol_c </ci>
+  </math>
+</assignmentRule></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>=</td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <ci> Vol_c </ci>
+</math></td>
+	<td><i class="fa fa-ban gray"></i>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <power/>
+    <ci> m </ci>
+    <cn type="integer"> 3 </cn>
+  </apply>
+</math></td>
+	<td></td>
+	<td></td>
+</tr>
+            </tbody>
+        </table>
+    </p>
+    
+    <!--------------------------------------------------->
+    <!-- Reactions -->
+    <!--------------------------------------------------->
+    <p>
+        <a class="anchor" id="anchor_reactions"></a>
+        <table id="table_reactions" class="table table-condensed table-nonfluid table-hover">
+            <thead class="bg-secondary">
+            <tr>    <th scope="col" class="hidden">type</th>
+	<th scope="col" class="warning">Reactions [1]</th>
+	<th scope="col">name</th>
+	<th scope="col"></th>
+	<th scope="col">equation</th>
+	<th scope="col">modifiers</th>
+    <th scope="col">kinetic law</th>
+	<th scope="col">derived units</th>
+    <th scope="col">sbo</th>
+    <th scope="col">cvterm</th>
+</tr>
+            </thead>
+            <tbody>
+                <tr>    <td class="hidden">Reaction</td>
+	    <td id="e__GLUT2_GAL" class="active"><span class="package">e__GLUT2_GAL</span> <code>meta_e__GLUT2_GAL</code>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-e__GLUT2_GAL"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-e__GLUT2_GAL" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">e__GLUT2_GAL</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'"><reaction metaid="meta_e__GLUT2_GAL" id="e__GLUT2_GAL" name="galactose transport [e__]" reversible="true" fast="false" compartment="pm">
+  <annotation>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+      <rdf:Description rdf:about="#meta_e__GLUT2_GAL">
+        <bqbiol:is>
+          <rdf:Bag>
+            <rdf:li rdf:resource="sbo/SBO:0000284"/>
+          </rdf:Bag>
+        </bqbiol:is>
+      </rdf:Description>
+    </rdf:RDF>
+  </annotation>
+  <listOfReactants>
+    <speciesReference species="e__gal" stoichiometry="1" constant="true"/>
+  </listOfReactants>
+  <listOfProducts>
+    <speciesReference species="c__gal" stoichiometry="1" constant="true"/>
+  </listOfProducts>
+  <kineticLaw>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <ci> GLUT2_Vmax </ci>
+            <ci> GLUT2_k_gal </ci>
+          </apply>
+          <apply>
+            <minus/>
+            <ci> e__gal </ci>
+            <apply>
+              <divide/>
+              <ci> c__gal </ci>
+              <ci> GLUT2_keq </ci>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <plus/>
+          <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+          <apply>
+            <divide/>
+            <ci> c__gal </ci>
+            <ci> GLUT2_k_gal </ci>
+          </apply>
+          <apply>
+            <divide/>
+            <ci> e__gal </ci>
+            <ci> GLUT2_k_gal </ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </kineticLaw>
+</reaction></textarea></div>
+          </div>
+        </div>
+      </div>
+    
+    </td>
+
+	<td>galactose transport [e__]<br />
+	</td>
+	<td class ="success">&#8646;</td>
+	<td>e__gal &#8646; c__gal</td>
+	<td><i class="fa fa-ban gray"></i></td>
+	<td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <apply>
+        <divide/>
+        <ci> GLUT2_Vmax </ci>
+        <ci> GLUT2_k_gal </ci>
+      </apply>
+      <apply>
+        <minus/>
+        <ci> e__gal </ci>
+        <apply>
+          <divide/>
+          <ci> c__gal </ci>
+          <ci> GLUT2_keq </ci>
+        </apply>
+      </apply>
+    </apply>
+    <apply>
+      <plus/>
+      <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+      <apply>
+        <divide/>
+        <ci> c__gal </ci>
+        <ci> GLUT2_k_gal </ci>
+      </apply>
+      <apply>
+        <divide/>
+        <ci> e__gal </ci>
+        <ci> GLUT2_k_gal </ci>
+      </apply>
+    </apply>
+  </apply>
+</math></td>
+    <td><?xml version="1.0" encoding="UTF-8"?>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+  <apply>
+    <divide/>
+    <apply>
+      <times/>
+      <ci> litre </ci>
+      <ci> mole </ci>
+    </apply>
+    <apply>
+      <times/>
+      <apply>
+        <power/>
+        <ci> m </ci>
+        <cn type="integer"> 3 </cn>
+      </apply>
+      <cn> 0.001 </cn>
+      <ci> s </ci>
+    </apply>
+  </apply>
+</math></td>
+	<td></td>
+	<td><div class="cvterm"><span class="collection">BQB_IS</span><br /><a href="sbo/SBO:0000284" target="_blank">SBO:0000284</a></div></td>
+</tr>
+            </tbody>
+        </table>
+    <p/>
+
+    <!--------------------------------------------------->
+    <!-- Objectives (fbc) -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Constraints -->
+    <!--------------------------------------------------->
+
+    <!--------------------------------------------------->
+    <!-- Events -->
+    <!--------------------------------------------------->
+
+            </div>
+            <!-- END CONTENT -->
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <hr/>
+                <p>Created with <a href="https://github.com/matthiaskoenig/sbmlutils/" target="_blank"><i class="fab fa-github"></i> sbmlutils</a></p>
+            </div>
+
+        </div>
+    </div>
+</main>
+</body>
+</html>

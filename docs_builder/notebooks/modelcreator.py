@@ -10,14 +10,12 @@
 # In[1]:
 
 
-from sbmlutils import comp
 from sbmlutils import fbc
 from sbmlutils import sbmlio
 from sbmlutils import factory
 from sbmlutils.dfba import builder
 
 from sbmlutils.units import *
-from sbmlutils.sbo import *
 from sbmlutils.factory import *
 
 
