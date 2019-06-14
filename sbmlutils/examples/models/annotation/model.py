@@ -103,8 +103,8 @@ rules = []
 # ---------------------------------------------------------------------------------------------------------------------
 reactions = [
 
-    ReactionTemplate(
-        rid='e__GLUT2_GAL',
+    Reaction(
+        sid='e__GLUT2_GAL',
         name='galactose transport [e__]',
         equation='e__gal <-> c__gal []',
         # C6H1206 (0) <-> C6H1206 (0)

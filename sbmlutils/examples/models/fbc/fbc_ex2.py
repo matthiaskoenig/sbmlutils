@@ -32,14 +32,9 @@ UNIT_TIME = 'h'
 UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
 
-main_units = {
-    'time': UNIT_TIME,
-    'extent': UNIT_AMOUNT,
-    'substance': UNIT_AMOUNT,
-    'length': 'm',
-    'area': UNIT_AREA,
-    'volume': UNIT_VOLUME,
-}
+
+model_units = ModelUnits(time=UNIT_h, extent=UNIT_AMOUNT, substance=UNIT_AMOUNT,
+                         length=UNIT_m, area=UNIT_m2, volume=UNIT_VOLUME)
 
 units = [
     Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name='hour'),
@@ -125,30 +120,30 @@ parameters = [
 # -----------------------------------------------------------------------------
 # metabolic reactions
 reactions = [
-    ReactionTemplate(
-        rid='v1',
+    Reaction(
+        sid='v1',
         name='v1 (39.43 Ac + 35 O2 -> X)',
         equation='39.43 Ac + 35 O2 => X []',
     ),
-    ReactionTemplate(
-        rid='v2',
+    Reaction(
+        sid='v2',
         name='v2 (9.46 Glcxt + 12.92 O2 -> X)',
         equation='9.46 Glcxt + 12.92 O2 => X []',
     ),
-    ReactionTemplate(
-        rid='v3',
+    Reaction(
+        sid='v3',
         name='v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)',
         equation='9.84 Glcxt + 12.73 O2 => 1.24 Ac + X []',
     ),
-    ReactionTemplate(
-        rid='v4',
+    Reaction(
+        sid='v4',
         name='v4 (19.23 Glcxt -> 12.12 Ac + X)',
         equation='19.23 Glcxt => 12.12 Ac + X []',
     ),
 ]
 
 for rt in reactions:
-    if rt.rid in ["v1", "v2", "v3", "v4"]:
+    if rt.sid in ["v1", "v2", "v3", "v4"]:
         rt.compartment = "bioreactor"
         rt.lowerFluxBound = FLUX_BOUND_ZERO
         rt.upperFluxBound = FLUX_BOUND_PLUS_INF
@@ -156,14 +151,12 @@ for rt in reactions:
 
 # exchange reactions
 reactions.extend([
-    ExchangeReactionTemplate(species_id="Glcxt",
-                             flux_unit=UNIT_FLUX,
-                             lowerFluxBound=FLUX_BOUND_GLC_IMPORT,
-                             upperFluxBound=FLUX_BOUND_ZERO),
-    ExchangeReactionTemplate(species_id="O2",
-                             flux_unit=UNIT_FLUX,
-                             lowerFluxBound=FLUX_BOUND_O2_IMPORT,
-                             upperFluxBound=FLUX_BOUND_ZERO),
+    ExchangeReaction(species_id="Glcxt",
+                     lowerFluxBound=FLUX_BOUND_GLC_IMPORT,
+                     upperFluxBound=FLUX_BOUND_ZERO),
+    ExchangeReaction(species_id="O2",
+                     lowerFluxBound=FLUX_BOUND_O2_IMPORT,
+                     upperFluxBound=FLUX_BOUND_ZERO),
 ])
 
 

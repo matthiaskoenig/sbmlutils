@@ -2,20 +2,9 @@
 Tests for the builder.
 """
 
-from __future__ import print_function, absolute_import
-
-import matplotlib
-
+import libsbml
 from sbmlutils import factory as fac
 from sbmlutils.dfba import builder
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
-
-matplotlib.use('Agg')
 
 
 def create_fba_doc():

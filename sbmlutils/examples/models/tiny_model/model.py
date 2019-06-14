@@ -135,8 +135,8 @@ rules = [
 # Reactions
 # -----------------------------------------------------------------------------
 reactions = [
-    ReactionTemplate(
-        rid='GK',
+    Reaction(
+        sid='GK',
         name='Glucokinase',
         equation='glc + atp -> g6p + adp + hydron []',
         compartment='c',
@@ -147,8 +147,8 @@ reactions = [
         upperFluxBound="inf",
         sboTerm=SBO_BIOCHEMICAL_REACTION
     ),
-    ReactionTemplate(
-        rid='ATPPROD',
+    Reaction(
+        sid='ATPPROD',
         name='ATP production',
         equation='adp + phos + hydron -> atp + h2o []',
         compartment='c',
@@ -159,8 +159,8 @@ reactions = [
         upperFluxBound="inf",
         sboTerm=SBO_BIOCHEMICAL_REACTION
     ),
-    ReactionTemplate(
-        rid='EX_glc',
+    Reaction(
+        sid='EX_glc',
         name='glucose exchange',
         equation='glc -> []',
         compartment='c',
@@ -171,8 +171,8 @@ reactions = [
         formula=('zero', 'mmole_per_s'),
         sboTerm=SBO_EXCHANGE_REACTION
     ),
-    ReactionTemplate(
-        rid='EX_g6p',
+    Reaction(
+        sid='EX_g6p',
         name='glucose-6 phosphate exchange',
         equation='g6p -> []',
         compartment='c',

@@ -40,7 +40,7 @@ units = [
 # Compartments
 # ---------------------------------------------------------------------------------------------------------------------
 compartments = [
-    Compartment(sid='cyto', value='1.0', unit='m3', constant=False,
+    Compartment(sid='cyto', value='1.0 m3', unit='m3', constant=False,
                 name="cytosol", sboTerm=SBO_PHYSICAL_COMPARTMENT,
                 annotations=[
                     (BQB.IS, "go/GO:0005829"),  # cytosol
@@ -94,9 +94,17 @@ species = [
             ),
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# Parameters
+# -------------------------------------------------------------------------------------------------
+parameters = [
+    Parameter(sid='HEX1_v', value=1.0, unit='mole_per_s'),
+]
+
+# -------------------------------------------------------------------------------------------------
 # Reactions
-# ---------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+reactions = []
 reactions = [
     Reaction(
         sid='HEX1',
@@ -105,14 +113,13 @@ reactions = [
         sboTerm=SBO_BIOCHEMICAL_REACTION,
         compartment='cyto',
         pars=[
-            Parameter(sid='HEX1_v', value=1.0, unit='mole_per_s'),
+
         ],
         formula=('HEX1_v', 'mole_per_s'),
         annotations=[
             (BQB.IS, "vmhreaction/HEX1", )
         ]
     )
-
 ]
 
 # write custom annotations:
