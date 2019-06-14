@@ -62,7 +62,7 @@ class Annotation(object):
             if match:
                 # handle identifiers.org pattern
                 self.collection, self.term = match.group(1), match.group(2)
-                self.resource = "{}/{}".format(self.collection, self.term)
+                self.term = "{}/{}".format(self.collection, self.term)
             else:
                 # other urls are directly stored as resources without collection
                 self.collection = None
