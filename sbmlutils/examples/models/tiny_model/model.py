@@ -46,8 +46,8 @@ creators = templates.creators
 # -----------------------------------------------------------------------------
 # Units
 # -----------------------------------------------------------------------------
-model_units = ModelUnits(time=UNIT_KIND_SECOND, extent="mmole", substance='mmole', length=UNIT_KIND_METRE,
-                         area='m2', volume=UNIT_KIND_LITRE)
+model_units = ModelUnits(time=UNIT_KIND_SECOND, extent="mmole", substance='mmole',
+                         length=UNIT_KIND_METRE, area='m2', volume=UNIT_KIND_LITRE)
 units = [
     Unit('m2', [(UNIT_KIND_METRE, 2.0)]),
     Unit('mmole', [(UNIT_KIND_MOLE, 1, -3, 1.0)]),

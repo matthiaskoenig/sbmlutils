@@ -55,6 +55,7 @@ species = [
     Species(sid='glc', compartment='cyto', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
                 name='D-glucose', sboTerm=SBO_SIMPLE_CHEMICAL,
+                charge=0, chemicalFormula="C6H12O6",
                 annotations=[
                     (BQB.IS, "vmhmetabolite/glc_D")
                 ]
@@ -62,6 +63,7 @@ species = [
     Species(sid='atp', compartment='cyto', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
                 name='ATP', sboTerm=SBO_SIMPLE_CHEMICAL,
+                charge=-4, chemicalFormula="C10H12N5O13P3",
                 annotations=[
                     (BQB.IS, "vmhmetabolite/atp")
                 ]
@@ -69,6 +71,7 @@ species = [
     Species(sid='glc6p', compartment='cyto', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
                 name='glucose-6 phosphate', sboTerm=SBO_SIMPLE_CHEMICAL,
+                charge=-2, chemicalFormula="C6H11O9P",
                 annotations=[
                     (BQB.IS, "vmhmetabolite/g6p")
                 ]
@@ -76,6 +79,7 @@ species = [
     Species(sid='adp', compartment='cyto', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
                 name='ADP', sboTerm=SBO_SIMPLE_CHEMICAL,
+                charge=-3, chemicalFormula="C10H12N5O10P2",
                 annotations=[
                     (BQB.IS, "vmhmetabolite/adp")
                 ]
@@ -83,6 +87,7 @@ species = [
     Species(sid='h', compartment='cyto', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
                 name='H+', sboTerm=SBO_SIMPLE_CHEMICAL,
+                charge=1, chemicalFormula="H",
                 annotations=[
                     (BQB.IS, "vmhmetabolite/h")
                 ]
@@ -97,13 +102,13 @@ reactions = [
         sid='HEX1',
         name='Hexokinase (D-Glucose:ATP)',
         equation='glc + atp -> glc6p + adp + h',
+        sboTerm=SBO_BIOCHEMICAL_REACTION,
         compartment='cyto',
         pars=[
             Parameter(sid='HEX1_v', value=1.0, unit='mole_per_s'),
         ],
         formula=('HEX1_v', 'mole_per_s'),
         annotations=[
-            (BQB.IS, SBO_BIOCHEMICAL_REACTION),
             (BQB.IS, "vmhreaction/HEX1", )
         ]
     )

@@ -494,9 +494,12 @@ class Compartment(ValueWithUnit):
 class Species(Sbase):
     """ Species. """
 
-    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
-                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
-                 annotations=None,
+    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None,
+                 substanceUnit=None, hasOnlySubstanceUnits=False,
+                 constant=False, boundaryCondition=False,
+                 charge=None, chemicalFormula=None,
+                 conversionFactor=None,
+                 name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
                                       annotations=annotations,
@@ -513,6 +516,8 @@ class Species(Sbase):
         self.constant = constant
         self.boundaryCondition = boundaryCondition
         self.hasOnlySubstanceUnits = hasOnlySubstanceUnits
+        self.charge = charge
+        self.chemicalFormula = chemicalFormula
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
@@ -545,6 +550,18 @@ class Species(Sbase):
             obj.setInitialConcentration(self.initialConcentration)
         if self.conversionFactor is not None:
             obj.setConversionFactor(self.conversionFactor)
+
+        # fbc
+        if (self.charge is not None) or (self.chemicalFormula is not None):
+            obj_fbc = obj.getPlugin("fbc")  # type: libsbml.FbcSpeciesPlugin
+            if obj_fbc is None:
+                logging.error("FBC SPlugin not found for species, "
+                              "no fbc: {}".format(obj))
+            else:
+                if self.charge is not None:
+                    obj_fbc.setCharge(int(self.charge))
+                if self.chemicalFormula is not None:
+                    obj_fbc.setChemicalFormula(self.chemicalFormula)
 
 
 ##########################################################################
