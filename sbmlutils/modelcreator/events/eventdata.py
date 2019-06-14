@@ -96,3 +96,45 @@ class EventData(object):
                            {'PP__gal': '{} mM'.format(gal)})
             event_data.append(ed)
         return event_data
+
+
+'''
+def getDeficiencyEventId(deficiency):
+    logging.warn('Will be removed.', DeprecationWarning)
+    return 'EDEF_{:0>2d}'.format(deficiency)
+
+
+def createDeficiencyEvent(model, deficiency):
+    logging.warn('Will be removed.', DeprecationWarning)
+    eid = getDeficiencyEventId(deficiency)
+    e = model.createEvent()
+    e.setId(eid)
+    e.setUseValuesFromTriggerTime(True)
+    t = e.createTrigger()
+    t.setInitialValue(False)  # ! not supported by Copasi -> lame fix via time
+    t.setPersistent(True)  # ! not supported by Copasi -> careful with usage
+    formula = '(time>0) && (deficiency=={:d})'.format(deficiency)
+    astnode = libsbml.parseL3FormulaWithModel(formula, model)
+    t.setMath(astnode)
+    return e
+
+
+def createSimulationEvents(model, elist):
+    logging.warn('Will be removed.', DeprecationWarning)
+    """ Simulation Events (Peaks & Challenges). """
+    for edata in elist:
+        createEventFromEventData(model, edata)
+
+
+def createEventFromEventData(model, edata):
+    logging.warn('Will be removed.', DeprecationWarning)
+    e = model.createEvent()
+    e.setId(edata.eid)
+    e.setName(edata.key)
+    e.setUseValuesFromTriggerTime(True)
+    t = e.createTrigger()
+    t.setInitialValue(False)
+    t.setPersistent(True)
+    astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
+    t.setMath(astnode)
+'''

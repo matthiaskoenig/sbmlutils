@@ -5,16 +5,18 @@ import warnings
 import logging
 import libsbml
 
-from sbmlutils import factory as fac
+from sbmlutils import factory
+from sbmlutils.factory import *
+from sbmlutils.factory import PORT_SUFFIX
 from sbmlutils import comp
 from sbmlutils import fbc
 from sbmlutils.dfba import utils
 
 
 
-#################################################
+# -----------------------------------------------
 # Builder constants
-#################################################
+# -----------------------------------------------
 MODEL_FRAMEWORK_FBA = 'fba'
 MODEL_FRAMEWORK_ODE = 'ode'
 # MODEL_FRAMEWORK_STOCHASTIC = 'stochastic'
@@ -71,7 +73,7 @@ SBML_COMP_VERSION = 1
 
 libsbml.CompExtension_getPackageName()
 
-#################################################
+# -----------------------------------------------
 
 
 def get_framework(model):
@@ -84,7 +86,8 @@ def get_framework(model):
     """
 
     if type(model) not in [libsbml.Model, libsbml.ModelDefinition]:
-        raise ValueError("Framework must be defined on either Model/ModelDefinition, but given: {}".format(model))
+        raise ValueError("Framework must be defined on either Model/ModelDefinition, "
+                         "but given: {}".format(model))
 
     framework = None
     if model.isSetSBOTerm():
@@ -145,10 +148,10 @@ def template_doc_bounds(model_id, create_min_max=True):
     if create_min_max:
         objects = [
             # definition of min and max
-            fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
-            fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
+            Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='min'),
+            Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='max'),
         ]
-        fac.create_objects(model, objects)
+        factory.create_objects(model, objects)
 
     return doc
 
@@ -218,13 +221,11 @@ def create_dfba_compartment(model, compartment_id, unit_volume=None, create_port
     :return: created libsbml.Compartment
     """
     objects = [
-        fac.Compartment(sid=compartment_id, value=1.0, unit=unit_volume, constant=True, name=compartment_id,
-                        spatialDimensions=3),
+        Compartment(sid=compartment_id, value=1.0, unit=unit_volume, constant=True, name=compartment_id,
+                    spatialDimensions=3, port=create_port),
     ]
-    c = fac.create_objects(model, objects)
-    if create_port:
-        comp.create_ports(model, idRefs=[compartment_id])
-    return c
+    sbml_objects = factory.create_objects(model, objects)
+    return next(iter(sbml_objects.values()))
 
 
 def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_port=True):
@@ -240,24 +241,13 @@ def create_biomass_species(model, sid, unit, cf_unit, compartment_id, create_por
     fac.create_objects(model, [
         fac.Parameter(sid='cf_X', value=1.0, unit="g_per_mmol", name="biomass conversion factor", constant=True),
         fac.Species(sid='X', value=0.001, compartment='c', name='biomass', substanceUnit='g', hasOnlySubstanceUnits=True,
-                    conversionFactor='cf_biomass')
+                    conversionFactor='cf_biomass', port=create_port)
     ])
-    if create_port:
-        comp.create_ports(model, idRefs=['X'])
 
 
-def add_biomass_species_to_biomass_reaction(model):
-    """ Adds the
 
-    :param model:
-    :return:
-    """
-    # FIXME: implement
-    raise NotImplementedError
-    pass
-
-
-def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False, unit_amount=None, create_port=True,
+def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=False,
+                        unit_amount=None, create_port=True,
                         exclude_sids=[]):
     """ Add DFBA species and compartments from fba model to model.
     Creates the dynamic species and respetive compartments with
@@ -270,7 +260,6 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
     :return:
     """
     objects = []
-    port_sids = []
     ex_rids = utils.find_exchange_reactions(model_fba)
     for ex_rid in ex_rids:
 
@@ -279,18 +268,15 @@ def create_dfba_species(model, model_fba, compartment_id, hasOnlySubstanceUnits=
         if sid in exclude_sids:
             continue
 
+        # exchange species
         s = model_fba.getSpecies(sid)
-        # exchange species to create
         objects.append(
-            fac.Species(sid=sid, name=s.getName(), initialConcentration=1.0, substanceUnit=unit_amount,
-                        hasOnlySubstanceUnits=hasOnlySubstanceUnits, compartment=compartment_id)
+            Species(sid=sid, name=s.getName(), initialConcentration=1.0, substanceUnit=unit_amount,
+                    hasOnlySubstanceUnits=hasOnlySubstanceUnits, compartment=compartment_id,
+                    port=create_port)
         )
-        # port of exchange species
-        port_sids.append(sid)
 
-    fac.create_objects(model, objects)
-    if create_port:
-        comp.create_ports(model, idRefs=port_sids)
+    factory.create_objects(model, objects)
 
 
 def create_dfba_dt(model, step_size=DT_SIM, time_unit=None, create_port=True):
@@ -303,11 +289,10 @@ def create_dfba_dt(model, step_size=DT_SIM, time_unit=None, create_port=True):
     :return:
     """
     objects = [
-        fac.Parameter(sid=DT_ID, value=step_size, unit=time_unit, constant=True, sboTerm=DT_SBO)
+        Parameter(sid=DT_ID, value=step_size, unit=time_unit, constant=True, sboTerm=DT_SBO,
+                  port=create_port)
     ]
-    fac.create_objects(model, objects)
-    if create_port:
-        comp.create_ports(model, idRefs=[DT_ID])
+    factory.create_objects(model, objects)
 
 
 def check_exchange_reaction(model, reaction_id):
@@ -340,13 +325,14 @@ def check_exchange_reaction(model, reaction_id):
         sid = sref.getSpecies()
     if sid is not None:
         if reaction_id != EXCHANGE_REACTION_PREFIX + sid:
-            warnings.warn("exchange reaction id does not follow EX_sid: {} != {}".format(reaction_id,
-                                                                                         EXCHANGE_REACTION_PREFIX + sid))
+            warnings.warn("exchange reaction id does not follow "
+                          "EX_sid: {} != {}".format(reaction_id, EXCHANGE_REACTION_PREFIX + sid))
     if not r.isSetSBOTerm():
         warnings.warn("no SBOTerm set on exchange reaction".format(r))
     else:
         if r.getSBOTermID() != EXCHANGE_REACTION_SBO:
-            warnings.warn("exchange reaction id {} != {}:".format(r.getSBOTermId(), EXCHANGE_REACTION_SBO))
+            warnings.warn("exchange reaction id "
+                          "{} != {}:".format(r.getSBOTermId(), EXCHANGE_REACTION_SBO))
     if not r.getReversible():
         warnings.warn("exchange reaction is not reversible: {}".format(r))
     return valid
@@ -382,28 +368,22 @@ def create_exchange_reaction(model, species_id, exchange_type=EXCHANGE, flux_uni
         lb_value = ZERO_BOUND
 
     parameters = [
-        fac.Parameter(sid=lb_id,
-                      value=lb_value,
-                      unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
-        fac.Parameter(sid=ub_id,
-                      value=ub_value,
-                      unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
+        Parameter(sid=lb_id,
+                  value=lb_value,
+                  unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO, port=True),
+        Parameter(sid=ub_id,
+                  value=ub_value,
+                  unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO, port=True),
     ]
-    fac.create_objects(model, parameters)
+    factory.create_objects(model, parameters)
 
-    # exchange reactions are all reversible (it depends on the bounds in which direction they operate)
-    ex_r = fac.create_reaction(model, rid=ex_rid, reversible=True,
-                               reactants={species_id: 1}, sboTerm=EXCHANGE_REACTION_SBO)
-
-    # exchange bounds
-    fbc.set_flux_bounds(ex_r, lb=lb_id, ub=ub_id)
-
-    # create ports
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=[ex_rid, lb_id, ub_id])
-
-    return ex_r
-
+    reactions = [
+        ExchangeReaction(species_id, reversible=True,
+                         lowerFluxBound=lb_id, upperFluxBound=ub_id, port=True)
+    ]
+    ex_reactions = factory.create_objects(model, reactions)
+    # only one element in dictionary, get first value
+    return next(iter(ex_reactions.values()))
 
 ################################
 # Update model
@@ -462,14 +442,14 @@ def update_exchange_reactions(model, flux_unit):
         ub_id = UPPER_BOUND_PREFIX + ex_rid
 
         parameters = [
-            fac.Parameter(sid=lb_id,
+            Parameter(sid=lb_id,
                           value=lb_value,
                           unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
-            fac.Parameter(sid=ub_id,
+            Parameter(sid=ub_id,
                           value=ub_value,
                           unit=flux_unit, constant=True, sboTerm=FLUX_BOUND_SBO),
         ]
-        fac.create_objects(model, parameters)
+        factory.create_objects(model, parameters)
 
         # set bounds
         fbc.set_flux_bounds(r, lb=lb_id, ub=ub_id)
@@ -521,9 +501,14 @@ def create_update_reaction(model, sid, modifiers=None, formula="-{}"):
 
     # format the formula
     formula = formula.format(FLUX_PARAMETER_PREFIX + sid)
-    fac.create_reaction(model, rid=rid_update, sboTerm=UPDATE_REACTION_SBO,
-                        reactants={sid: 1}, modifiers=modifiers,
-                        formula=formula)
+
+    factory.create_objects(model, [
+        Reaction(
+            sid=rid_update, sboTerm=UPDATE_REACTION_SBO,
+            equation="{} -> {}".format(sid, modifiers),
+            formula=(formula, None)
+        )
+    ])
 
 
 def create_update_parameter(model, sid, unit_flux):
@@ -537,15 +522,14 @@ def create_update_parameter(model, sid, unit_flux):
     :type sid:
     :param unit_flux:
     :type unit_flux:
-    :return:
+    :return: id of parameter
     :rtype:
     """
     pid = FLUX_PARAMETER_PREFIX + sid
-    parameter = fac.Parameter(sid=pid, value=1.0, constant=True, unit=unit_flux, sboTerm=UPDATE_PARAMETER_SBO)
-    fac.create_objects(model, [parameter])
-    # create port
-    comp.create_ports(model, portType=comp.PORT_TYPE_PORT,
-                      idRefs=[pid])
+    factory.create_objects(model, [
+        Parameter(sid=pid, value=1.0, constant=True, unit=unit_flux,
+                  sboTerm=UPDATE_PARAMETER_SBO, port=True)
+    ])
     return pid
 
 
@@ -582,13 +566,13 @@ def create_exchange_bounds(model_bounds, model_fba, unit_flux=None, create_ports
         # constant fba bounds
         objects.extend([
             # for assignments
-            fac.Parameter(sid=lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
-            fac.Parameter(sid=ub_id, value=ub_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
+            Parameter(sid=lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
+            Parameter(sid=ub_id, value=ub_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
         ])
         port_sids.extend([lb_id, ub_id])
 
     # create bounds
-    fac.create_objects(model_bounds, objects)
+    factory.create_objects(model_bounds, objects)
     # create ports
     if create_ports:
         comp.create_ports(model_bounds, idRefs=port_sids)
@@ -619,8 +603,8 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
         ub_value = model_fba.getParameter(ub_id).getValue()
         ub_formula = "{}".format(fba_ub_id)
         objects.extend([
-            fac.Parameter(sid=fba_ub_id, value=ub_value, unit=unit_flux, constant=True, sboTerm=FLUX_BOUND_SBO),
-            fac.AssignmentRule(sid=ub_id, value=ub_formula, name="fba export bound ({})".format(sid)),
+            Parameter(sid=fba_ub_id, value=ub_value, unit=unit_flux, constant=True, sboTerm=FLUX_BOUND_SBO),
+            AssignmentRule(sid=ub_id, value=ub_formula, name="fba export bound ({})".format(sid)),
         ])
 
         # lower bound parameter (import to FBA, i.e decrease concentration)
@@ -636,11 +620,11 @@ def create_dynamic_bounds(model_bounds, model_fba, unit_flux=None):
 
         objects.extend([
             # default bounds from fba
-            fac.Parameter(sid=fba_lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
+            Parameter(sid=fba_lb_id, value=lb_value, unit=unit_flux, constant=False, sboTerm=FLUX_BOUND_SBO),
             # uptake bounds (lower bound)
-            fac.AssignmentRule(sid=lb_id, value=lb_formula, name="dfba import bound ({})".format(sid)),
+            AssignmentRule(sid=lb_id, value=lb_formula, name="dfba import bound ({})".format(sid)),
         ])
-    fac.create_objects(model_bounds, objects)
+    factory.create_objects(model_bounds, objects)
 
 
 ################################
@@ -657,11 +641,13 @@ def create_dummy_species(model, compartment_id, unit_amount=None, hasOnlySubstan
     :return:
     """
     # dummy species for dummy reactions (empty set)
-    fac.create_objects(model,
-                       [fac.Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0, substanceUnit=unit_amount,
-                                    hasOnlySubstanceUnits=hasOnlySubstanceUnits,
-                                    compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
-                        ])
+    objects = [
+        Species(sid=DUMMY_SPECIES_ID, name=DUMMY_SPECIES_ID, initialConcentration=0,
+                substanceUnit=unit_amount,
+                hasOnlySubstanceUnits=hasOnlySubstanceUnits,
+                compartment=compartment_id, sboTerm=DUMMY_SPECIES_SBO),
+    ]
+    factory.create_objects(model, objects)
 
 
 def create_dummy_reactions(model, model_fba, unit_flux=None):
@@ -680,21 +666,23 @@ def create_dummy_reactions(model, model_fba, unit_flux=None):
         pid_flux = FLUX_PARAMETER_PREFIX + sid
         rid_flux = DUMMY_REACTION_PREFIX + sid
 
-        objects.append(
-            # flux parameter: fluxe from fba (rate of reaction)
-            fac.Parameter(sid=pid_flux, value=1.0, constant=True, unit=unit_flux, sboTerm=FLUX_PARAMETER_SBO),
-        )
+        objects = [
+            # flux parameter: flux from fba (rate of reaction)
+            Parameter(sid=pid_flux, value=1.0, constant=True, unit=unit_flux,
+                      sboTerm=FLUX_PARAMETER_SBO),
 
-        # dummy reaction (pseudoreaction)
-        fac.create_reaction(model, rid=rid_flux, reversible=False,
-                            products={DUMMY_SPECIES_ID: 1}, sboTerm=DUMMY_REACTION_SBO,
-                            formula='0 {}'.format(unit_flux))
 
-        # flux assignment rule
-        objects.append(
-            fac.AssignmentRule(pid_flux, value=rid_flux, sboTerm=FLUX_ASSIGNMENTRULE_SBO),
-        )
-    fac.create_objects(model, objects)
+            # dummy reaction (pseudoreaction)
+            Reaction(sid=rid_flux, reversible=False,
+                     equation=" -> {}".format(DUMMY_SPECIES_ID),
+                     sboTerm=DUMMY_REACTION_SBO,
+                     formula=('0 {}'.format(unit_flux), unit_flux)
+                     ),
+
+            # flux assignment rule
+            AssignmentRule(pid_flux, value=rid_flux, sboTerm=FLUX_ASSIGNMENTRULE_SBO),
+        ]
+    factory.create_objects(model, objects)
 
 
 def create_top_replacedBy(model, model_fba):

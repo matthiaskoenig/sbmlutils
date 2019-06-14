@@ -87,7 +87,9 @@ from sbmlutils import sbmlio
 from sbmlutils import comp
 from sbmlutils import fbc
 
-from sbmlutils import factory as mc
+from sbmlutils.factory import *
+from sbmlutils import factory
+
 from sbmlutils.report import sbmlreport
 from sbmlutils.annotation import annotator
 
@@ -139,7 +141,7 @@ the biomass concentration (X), and the oxygen concentration (O2) in the gas phas
 """.format(settings.VERSION, '{}')
 
 creators = [
-    mc.Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
+    Creator(familyName='Koenig', givenName='Matthias', email='konigmatt@googlemail.com',
                organization='Humboldt University Berlin', site='http://livermetabolism.com')
 ]
 
@@ -152,28 +154,28 @@ main_units = {
     'volume': 'l',
 }
 units = [
-    mc.Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name='hour'),
-    mc.Unit('g', [(UNIT_KIND_GRAM, 1.0)], name="gram"),
-    mc.Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
-    mc.Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="cubic meter"),
-    mc.Unit('l', [(UNIT_KIND_LITRE, 1.0)], name="liter"),
-    mc.Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
-    mc.Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+   Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name='hour'),
+   Unit('g', [(UNIT_KIND_GRAM, 1.0)], name="gram"),
+   Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
+   Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="cubic meter"),
+   Unit('l', [(UNIT_KIND_LITRE, 1.0)], name="liter"),
+   Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
+   Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+   Unit('mmol_per_h', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    mc.Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+   Unit('mmol_per_hg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                             (UNIT_KIND_SECOND, -1.0, 0, 3600), (UNIT_KIND_GRAM, -1.0)]),
 
-    mc.Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+   Unit('mmol_per_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_LITRE, -1.0)]),
-    mc.Unit('mmol_per_lg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+   Unit('mmol_per_lg', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
                            (UNIT_KIND_LITRE, -1.0), (UNIT_KIND_GRAM, -1.0)]),
 
-    mc.Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
+   Unit('l_per_mmol', [(UNIT_KIND_LITRE, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
-    mc.Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
+   Unit('g_per_l', [(UNIT_KIND_GRAM, 1.0),
                         (UNIT_KIND_LITRE, -1.0)]),
-    mc.Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
+   Unit('g_per_mmol', [(UNIT_KIND_GRAM, 1.0),
                            (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
 ]
 
@@ -203,42 +205,42 @@ def fba_model(sbml_file, directory, annotations=None):
 
     objects = [
         # compartments
-        mc.Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
+        Compartment(sid='bioreactor', value=1.0, unit=UNIT_VOLUME, constant=True, name='bioreactor',
                        spatialDimensions=3),
 
         # species
-        mc.Species(sid='Glcxt', name="glucose", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        Species(sid='Glcxt', name="glucose", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='Ac', name="acetate", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        Species(sid='Ac', name="acetate", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='O2', name="oxygen", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        Species(sid='O2', name="oxygen", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
-        mc.Species(sid='X', name="biomass", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
+        Species(sid='X', name="biomass", initialConcentration=0.0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=False,
                    compartment="bioreactor"),
 
         # bounds
-        mc.Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX_PER_G, constant=True, sboTerm="SBO:0000612"),
-        mc.Parameter(sid="ub_default", name="default upper bound", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX_PER_G,
+        Parameter(sid="zero", name="zero bound", value=0.0, unit=UNIT_FLUX_PER_G, constant=True, sboTerm="SBO:0000612"),
+        Parameter(sid="ub_default", name="default upper bound", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX_PER_G,
                      constant=True, sboTerm="SBO:0000612"),
+
+        Reaction(sid="v1", name="v1 (39.43 Ac + 35 O2 -> X)", reversible=False,
+                 equation="39.43 Ac + 35 O2 -> X",
+                 compartment='bioreactor',
+                 lowerFluxBound="zero", upperFluxBound="ub_default"),
+        Reaction(sid="v2", name="v2 (9.46 Glcxt + 12.92 O2 -> X)", reversible=False,
+                 equation="9.46 Glcxt + 12.92 O2 -> X",
+                 compartment='bioreactor',
+                 lowerFluxBound = "zero", upperFluxBound = "ub_default"),
+        Reaction(sid="v3", name="v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)", reversible=False,
+                 equation="9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X",
+                 compartment='bioreactor',
+                 lowerFluxBound="zero", upperFluxBound="ub_default"),
+        Reaction(sid="v4", name="v4 (19.23 Glcxt -> 12.12 Ac + X)", reversible=False,
+                 equation="19.23 Glcxt -> 12.12 Ac + X",
+                 compartment='bioreactor',
+                 lowerFluxBound="zero", upperFluxBound="ub_default"),
     ]
-    mc.create_objects(model, objects)
-
-    # reactions
-    r_v1 = mc.create_reaction(model, rid="v1", name="v1 (39.43 Ac + 35 O2 -> X)", reversible=False,
-                              reactants={"Ac": 39.43, "O2": 35}, products={"X": 1}, compartment='bioreactor')
-    r_v2 = mc.create_reaction(model, rid="v2", name="v2 (9.46 Glcxt + 12.92 O2 -> X)", reversible=False,
-                              reactants={"Glcxt": 9.46, "O2": 12.92}, products={"X": 1}, compartment='bioreactor')
-    r_v3 = mc.create_reaction(model, rid="v3", name="v3 (9.84 Glcxt + 12.73 O2 -> 1.24 Ac + X)", reversible=False,
-                              reactants={"Glcxt": 9.84, "O2": 12.73}, products={"Ac": 1.24, "X": 1},
-                              compartment='bioreactor')
-    r_v4 = mc.create_reaction(model, rid="v4", name="v4 (19.23 Glcxt -> 12.12 Ac + X)", reversible=False,
-                              reactants={"Glcxt": 19.23}, products={"Ac": 12.12, "X": 1}, compartment='bioreactor')
-
-    # flux bounds: internal fluxes
-    fbc.set_flux_bounds(r_v1, lb="zero", ub="ub_default")
-    fbc.set_flux_bounds(r_v2, lb="zero", ub="ub_default")
-    fbc.set_flux_bounds(r_v3, lb="zero", ub="ub_default")
-    fbc.set_flux_bounds(r_v4, lb="zero", ub="ub_default")
+    factory.create_objects(model, objects)
 
     # reactions: exchange reactions (this species can be changed by the FBA)
     for sid in ['Ac', 'Glcxt', 'O2', 'X']:
@@ -253,7 +255,7 @@ def fba_model(sbml_file, directory, annotations=None):
     # objective function
     model_fba = model.getPlugin(builder.SBML_FBC_NAME)
     fbc.create_objective(model_fba, oid="biomass_max", otype="maximize",
-                        fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
+                         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0})
 
     # write SBML file
     if annotations:
@@ -313,37 +315,37 @@ def bounds_model(sbml_file, directory, doc_fba=None, annotations=None):
 
         objects.extend([
             # default bounds from fba
-            mc.Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
+            Parameter(sid=fba_lb_id, value=lb_value, unit=UNIT_FLUX, constant=False),
         ])
-    mc.create_objects(model, objects)
+    factory.create_objects(model, objects)
 
     objects = [
 
         # kinetic lower bounds
-        mc.Parameter(sid="lb_kin_EX_Glcxt", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+        Parameter(sid="lb_kin_EX_Glcxt", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
                      sboTerm="SBO:0000612"),
-        mc.Parameter(sid="lb_kin_EX_O2", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
+        Parameter(sid="lb_kin_EX_O2", value=builder.LOWER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=False,
                      sboTerm="SBO:0000612"),
 
         # parameters for kinetic bounds
-        mc.Parameter(sid='Vmax_EX_O2', value=15, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid='Vmax_EX_Glcxt', value=10, unit=UNIT_FLUX, constant=True),
-        mc.Parameter(sid='Km_EX_Glcxt', value=0.015, unit=UNIT_CONCENTRATION, name="Km_vGlcxt", constant=True),
+        Parameter(sid='Vmax_EX_O2', value=15, unit=UNIT_FLUX, constant=True),
+        Parameter(sid='Vmax_EX_Glcxt', value=10, unit=UNIT_FLUX, constant=True),
+        Parameter(sid='Km_EX_Glcxt', value=0.015, unit=UNIT_CONCENTRATION, name="Km_vGlcxt", constant=True),
 
         # kinetic bounds (unintuitive direction due to the identical concentrations in bioreactor and model)
-        mc.AssignmentRule(sid="lb_kin_EX_Glcxt", value="-Vmax_EX_Glcxt * Glcxt/(Km_EX_Glcxt + Glcxt)"),
-        mc.AssignmentRule(sid="lb_kin_EX_O2", value="-Vmax_EX_O2"),
+        AssignmentRule(sid="lb_kin_EX_Glcxt", value="-Vmax_EX_Glcxt * Glcxt/(Km_EX_Glcxt + Glcxt)"),
+        AssignmentRule(sid="lb_kin_EX_O2", value="-Vmax_EX_O2"),
 
         # exchange reaction bounds
         # uptake bounds (lower bound)
         # TODO: FIXME the X hack
         # the bounds for the fba model have to be in mmol/h/gdw
-        mc.AssignmentRule(sid="lb_EX_Ac", value="max(lb_fba_EX_Ac, -Ac/X/1 l_per_mmol*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_X", value="max(lb_fba_EX_X, -X/X/1 l_per_mmol*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X/1 l_per_mmol*bioreactor/dt)"),
-        mc.AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X/1 l_per_mmol*bioreactor/dt)"),
+        AssignmentRule(sid="lb_EX_Ac", value="max(lb_fba_EX_Ac, -Ac/X/1 l_per_mmol*bioreactor/dt)"),
+        AssignmentRule(sid="lb_EX_X", value="max(lb_fba_EX_X, -X/X/1 l_per_mmol*bioreactor/dt)"),
+        AssignmentRule(sid="lb_EX_Glcxt", value="max(lb_kin_EX_Glcxt, -Glcxt/X/1 l_per_mmol*bioreactor/dt)"),
+        AssignmentRule(sid="lb_EX_O2", value="max(lb_kin_EX_O2, -O2/X/1 l_per_mmol*bioreactor/dt)"),
     ]
-    mc.create_objects(model, objects)
+    factory.create_objects(model, objects)
 
     if annotations:
         annotator.annotate_sbml_doc(doc, annotations)
@@ -454,15 +456,15 @@ def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
 
     objects = [
         # biomass conversion factor
-        # mc.Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
+        # Parameter(sid="Y", name="biomass [g_per_l]", value=1.0, unit="g_per_l"),
         # oxygen exchange parameters
-        mc.Parameter(sid="O2_ref", name="O2 reference", value=0.21, unit=UNIT_CONCENTRATION),
-        mc.Parameter(sid="kLa", name="O2 mass transfer", value=7.5, unit='per_h'),
+        Parameter(sid="O2_ref", name="O2 reference", value=0.21, unit=UNIT_CONCENTRATION),
+        Parameter(sid="kLa", name="O2 mass transfer", value=7.5, unit='per_h'),
     ]
-    mc.create_objects(model, objects)
+    factory.create_objects(model, objects)
 
     # oxygen transfer reaction
-    mc.create_reaction(model, rid="vO2_transfer", name="oxygen transfer", reversible=True,
+    create_reaction(model, rid="vO2_transfer", name="oxygen transfer", reversible=True,
                        reactants={}, products={"O2": 1}, formula="kLa * (O2_ref-O2) * bioreactor",
                        compartment="bioreactor")
 

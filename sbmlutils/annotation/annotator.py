@@ -50,6 +50,11 @@ class Annotation(object):
         :param resource:
         """
         self.qualifier = qualifier
+        if not self.qualifier:
+            LOGGER.error(
+                "MIRIAM qualifiers are required for annotations, but no qualifier for resource"
+                "`{}` was given.".format(resource)
+            )
 
         # handle urls
         if resource.startswith("http"):
@@ -68,13 +73,17 @@ class Annotation(object):
             # get term and collection
             tokens = resource.split("/")
             if len(tokens) < 2:
-                raise ValueError(
-                    "resource `{}` must be of the form "
+                LOGGER.error(
+                    "Resource `{}` could not be split in collection and term. "
+                    "A given resource must be of the form "
                     "`collection/term` or an url starting with "
                     "`http(s)://`)".format(resource)
                 )
-            self.collection = tokens[0]
-            self.term = "/".join(tokens[1:])
+                self.collection = None
+                self.term = resource
+            else:
+                self.collection = tokens[0]
+                self.term = "/".join(tokens[1:])
 
         self.validate()
 
@@ -113,15 +122,16 @@ class Annotation(object):
         """
         entry = MIRIAM_COLLECTION.get(collection, None)
         if not entry:
-            raise ValueError(
-                "MIRIAM collection `{}` does not exist for "
-                "term `{}`".format(collection, term)
+            logging.error(
+                "The given MIRIAM collection `{}` in annotation"
+                "`{}/{}` does not exist.".format(collection, collection, term)
             )
+            return False
 
         p = re.compile(entry['pattern'])
         m = p.match(term)
         if not m:
-            raise ValueError(
+            logging.error(
                 "Term `{}` did not match pattern "
                 "`{}` for collection `{}`.".format(
                     term, entry['pattern'], collection
