@@ -63,6 +63,12 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.6
+* support for mass and charge
+* refactored and simplified Reactions
+* better port support
+* Exchange reaction template
+
 ### 0.3.4 - 0.3.5
 * improved annotation support (inline annotations, annotation by url)
 * checking against MIRIAM collections and patterns
