@@ -19,7 +19,9 @@ import logging
 import libsbml
 from sbmlutils.validation import check
 from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
-from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
+from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
+from collections import namedtuple
+from sbmlutils.equation import Equation
 
 
 SBML_LEVEL = 3  # default SBML level
@@ -53,8 +55,8 @@ __all__ = [
     'RateRule',
     'Event',
     'Constraint',
-    'ReactionTemplate',
-    'ExchangeReactionTemplate',
+    'Reaction',
+    'ExchangeReaction',
     'Uncertainty',
     'UncertParameter',
     'UncertSpan',
@@ -169,7 +171,8 @@ def set_model_units(model, model_units):
         model_units = ModelUnits(**model_units)
 
     if not model_units:
-        logging.error("Model units should be provided for a model, i.e., set 'model_unit' on model.")
+        logging.error("Model units should be provided for a model, i.e., set the 'model_units' "
+                      "field on model.")
     else:
         for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
             if getattr(model_units, key) is None:
@@ -263,16 +266,19 @@ class Sbase(object):
         if self.port is None:
             return
 
-        if isinstance(self.port, bool) and self.port is True:
-            # manually create port for the id
-            cmodel = model.getPlugin("comp")
-            p = cmodel.createPort()
-            port_sid = '{}{}'.format(self.sid, PORT_SUFFIX)
-            p.setId(port_sid)
-            p.setName(port_sid)
-            p.setMetaId(port_sid)
-            p.setSBOTerm(599)  # port
-            p.setIdRef(self.sid)
+        if isinstance(self.port, bool):
+            if self.port is True:
+                # manually create port for the id
+                cmodel = model.getPlugin("comp")
+                p = cmodel.createPort()
+                port_sid = '{}{}'.format(self.sid, PORT_SUFFIX)
+                p.setId(port_sid)
+                p.setName(port_sid)
+                p.setMetaId(port_sid)
+                p.setSBOTerm(599)  # port
+                p.setIdRef(self.sid)
+            else:
+                pass
 
         else:
             # use the port object
@@ -342,7 +348,7 @@ class Unit(Sbase):
         :param model:
         :return:
         """
-        unit_def = model.createUnitDefinition()
+        obj = model.createUnitDefinition()  # type: libsbml.UnitDefinition
 
         for data in self.definition:
             kind = data[0]
@@ -354,10 +360,12 @@ class Unit(Sbase):
             if len(data) > 3:
                 multiplier = data[3]
 
-            Unit._create(unit_def, kind, exponent, scale, multiplier)
+            Unit._create(obj, kind, exponent, scale, multiplier)
 
-        self.set_fields(unit_def)
-        return unit_def
+        self.set_fields(obj)
+        self.create_port(model)
+        self.create_uncertainties(obj)
+        return obj
 
     def set_fields(self, obj):
         super(Unit, self).set_fields(obj)
@@ -414,9 +422,12 @@ class Function(Sbase):
         self.formula = value
 
     def create_sbml(self, model):
-        f = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
-        self.set_fields(f, model)
-        return f
+        obj = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
+        self.set_fields(obj, model)
+
+        self.create_port(model)
+        self.create_uncertainties(obj)
+        return obj
 
     def set_fields(self, obj, model):
         super(Function, self).set_fields(obj)
@@ -432,14 +443,18 @@ class Parameter(ValueWithUnit):
     def __init__(self, sid, value=None, unit=None, constant=True,
                  name=None, sboTerm=None, metaId=None,
                  port=None, uncertainties=None):
-        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId,
+        super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name,
+                                        sboTerm=sboTerm, metaId=metaId,
                                         port=port, uncertainties=uncertainties)
         self.constant = constant
 
     def create_sbml(self, model):
-        p = model.createParameter()
-        self.set_fields(p)
-        return p
+        obj = model.createParameter()  # type: libsbml.Parameter
+        self.set_fields(obj)
+
+        self.create_port(model)
+        self.create_uncertainties(obj)
+        return obj
 
     def set_fields(self, obj):
         super(Parameter, self).set_fields(obj)
@@ -463,8 +478,8 @@ class Compartment(ValueWithUnit):
         self.spatialDimensions = spatialDimensions
 
     def create_sbml(self, model):
-        c = model.createCompartment()
-        self.set_fields(c)
+        obj = model.createCompartment()  # type: libsbml.Compartment
+        self.set_fields(obj)
 
         if type(self.value) is str:
             if self.constant:
@@ -474,11 +489,11 @@ class Compartment(ValueWithUnit):
                 AssignmentRule(self.sid, self.value).create_sbml(model)
                 # AssignmentRule._create(model, sid=self.sid, formula=self.value)
         else:
-            c.setSize(self.value)
+            obj.setSize(self.value)
 
         self.create_port(model)
-        self.create_uncertainties(c)
-        return c
+        self.create_uncertainties(obj)
+        return obj
 
     def set_fields(self, obj):
         super(Compartment, self).set_fields(obj)
@@ -492,9 +507,12 @@ class Compartment(ValueWithUnit):
 class Species(Sbase):
     """ Species. """
 
-    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None, substanceUnit=None, constant=False, boundaryCondition=False,
-                 hasOnlySubstanceUnits=False, conversionFactor=None, name=None, sboTerm=None, metaId=None,
-                 annotations=None,
+    def __init__(self, sid, compartment, initialAmount=None, initialConcentration=None,
+                 substanceUnit=None, hasOnlySubstanceUnits=False,
+                 constant=False, boundaryCondition=False,
+                 charge=None, chemicalFormula=None,
+                 conversionFactor=None,
+                 name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
                                       annotations=annotations,
@@ -511,20 +529,23 @@ class Species(Sbase):
         self.constant = constant
         self.boundaryCondition = boundaryCondition
         self.hasOnlySubstanceUnits = hasOnlySubstanceUnits
+        self.charge = charge
+        self.chemicalFormula = chemicalFormula
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model):
-        s = model.createSpecies()  # type: libsbml.Species
-        self.set_fields(s)
+        obj = model.createSpecies()  # type: libsbml.Species
+        self.set_fields(obj)
         # substance unit must be set on the given substance unit
-        s.setSubstanceUnits(model.getSubstanceUnits())
+        obj.setSubstanceUnits(model.getSubstanceUnits())
         if self.substanceUnit is not None:
-            s.setSubstanceUnits(self.substanceUnit)
+            obj.setSubstanceUnits(self.substanceUnit)
         else:
-            s.setSubstanceUnits(model.getSubstanceUnits())
+            obj.setSubstanceUnits(model.getSubstanceUnits())
 
         self.create_port(model)
-        return s
+        self.create_uncertainties(obj)
+        return obj
 
     def set_fields(self, obj):
         super(Species, self).set_fields(obj)
@@ -536,12 +557,25 @@ class Species(Sbase):
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
         if self.substanceUnit is not None:
             obj.setUnits(Unit.get_unit_string(self.substanceUnit))
+
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
         if self.initialConcentration is not None:
             obj.setInitialConcentration(self.initialConcentration)
         if self.conversionFactor is not None:
             obj.setConversionFactor(self.conversionFactor)
+
+        # fbc
+        if (self.charge is not None) or (self.chemicalFormula is not None):
+            obj_fbc = obj.getPlugin("fbc")  # type: libsbml.FbcSpeciesPlugin
+            if obj_fbc is None:
+                logging.error("FBC SPlugin not found for species, "
+                              "no fbc: {}".format(obj))
+            else:
+                if self.charge is not None:
+                    obj_fbc.setCharge(int(self.charge))
+                if self.chemicalFormula is not None:
+                    obj_fbc.setChemicalFormula(self.chemicalFormula)
 
 
 ##########################################################################
@@ -576,12 +610,15 @@ class InitialAssignment(Value):
                 and (not model.getCompartment(sid)):
             Parameter(sid=sid, value=None, unit=self.unit, constant=True, name=self.name).create_sbml(model)
 
-        a = model.createInitialAssignment()
-        self.set_fields(a)
-        a.setSymbol(sid)
+        obj = model.createInitialAssignment()  # type: libsbml.InitialAssignment
+        self.set_fields(obj)
+        obj.setSymbol(sid)
         ast_node = ast_node_from_formula(model, self.value)
-        a.setMath(ast_node)
-        return a
+        obj.setMath(ast_node)
+
+        self.create_port(model)
+        self.create_uncertainties(obj)
+        return obj
 
 
 ##########################################################################
@@ -605,7 +642,6 @@ class Rule(ValueWithUnit):
                 and (not model.getSpecies(sid)) \
                 and (not model.getCompartment(sid)):
 
-            # Parameter._create(model, sid, unit=rule.unit, name=rule.name, value=None, constant=False)
             Parameter(sid, unit=rule.unit, name=rule.name, value=value, constant=False).create_sbml(model)
 
         # Make sure the parameter is const=False
@@ -656,9 +692,11 @@ class AssignmentRule(Rule):
         :param model:
         :return:
         """
-        rule = Rule._rule_factory(model, self, rule_type="AssignmentRule")
-        self.set_fields(rule)
-        return rule
+        obj = Rule._rule_factory(model, self, rule_type="AssignmentRule")  # type: libsbml.AssignmentRule
+        self.set_fields(obj)
+        self.create_port(model)
+        self.create_uncertainties(obj)
+        return obj
 
     @staticmethod
     def _create(model, sid, formula):
@@ -682,9 +720,11 @@ class RateRule(Rule):
         :param model:
         :return:
         """
-        rule = Rule._rule_factory(model, self, rule_type="RateRule")
-        self.set_fields(rule)
-        return rule
+        obj = Rule._rule_factory(model, self, rule_type="RateRule")
+        self.set_fields(obj)
+        self.create_port(model)
+        self.create_uncertainties(obj)
+        return obj
 
     @staticmethod
     def _create(model, sid, formula):
@@ -821,47 +861,127 @@ class Uncertainty(Sbase):
 ##########################################################################
 # Reactions
 ##########################################################################
+Formula = namedtuple('Formula', 'value unit')
 
-# TODO: Reaction class
 
-def create_reaction(model, rid, name=None, fast=False, reversible=True, reactants={}, products={}, modifiers=[],
-                    formula=None, compartment=None, sboTerm=None):
-    """ Create basic reaction structure. """
-    r = model.createReaction()
-    r.setId(rid)
-    if name:
-        r.setName(name)
-    if sboTerm is not None:
-        r.setSBOTerm(sboTerm)
-    r.setFast(fast)
-    r.setReversible(reversible)
+class Reaction(Sbase):
+    """ Reaction class."""
+    def __init__(self, sid, equation, formula=None, pars=[], rules=[],
+                 name=None, compartment=None, fast=False, reversible=None,
+                 sboTerm=None, metaId=None, annotations=None,
+                 lowerFluxBound=None, upperFluxBound=None, uncertainties=None, port=None):
+        super(Reaction, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                       port=port, uncertainties=uncertainties)
 
-    for sid, stoichiometry in reactants.items():
-        rt = r.createReactant()
-        rt.setSpecies(sid)
-        rt.setStoichiometry(abs(stoichiometry))
-        rt.setConstant(True)
+        self.equation = Equation(equation)
+        self.compartment = compartment
+        self.reversible = reversible
+        self.pars = pars
+        self.rules = rules
+        self.formula = formula
+        if formula is not None:
+            self.formula = Formula(*formula)
+        self.fast = fast
+        self.sboTerm = sboTerm
+        self.annotations = annotations
+        self.lowerFluxBound = lowerFluxBound
+        self.upperFluxBound = upperFluxBound
 
-    for sid, stoichiometry in products.items():
-        rt = r.createProduct()
-        rt.setSpecies(sid)
-        rt.setStoichiometry(abs(stoichiometry))
-        rt.setConstant(True)
+    def create_sbml(self, model: libsbml.Model):
 
-    for sid in modifiers:
-        rt = r.createModifier()
-        rt.setSpecies(sid)
+        # parameters and rules
+        create_objects(model, self.pars, key='parameters')
+        create_objects(model, self.rules, key='rules')
 
-    if formula is not None:
-        # set formula in reaction
-        ast_node = ast_node_from_formula(model=model, formula=formula)
-        law = r.createKineticLaw()
-        law.setMath(ast_node)
+        # reaction
+        r = model.createReaction()  # type: libsbml.Reaction
+        self.set_fields(r)
 
-    if compartment is not None:
-        r.setCompartment(compartment)
+        # equation
+        for reactant in self.equation.reactants:  # type: libsbml.SpeciesReference
+            sref = r.createReactant()
+            sref.setSpecies(reactant.sid)
+            sref.setStoichiometry(reactant.stoichiometry)
+            sref.setConstant(True)
+        for product in self.equation.products:  # type: libsbml.SpeciesReference
+            sref = r.createProduct()
+            sref.setSpecies(product.sid)
+            sref.setStoichiometry(product.stoichiometry)
+            sref.setConstant(True)
+        for modifier in self.equation.modifiers:
+            sref = r.createModifier()
+            sref.setSpecies(modifier)
 
-    return r
+        # kinetics
+        if self.formula:
+            Reaction.set_kinetic_law(model, r, self.formula.value)
+
+        # add fbc bounds
+        if self.upperFluxBound or self.lowerFluxBound:
+            r_fbc = r.getPlugin("fbc")  # type: libsbml.FbcReactionPlugin
+            if self.upperFluxBound:
+                r_fbc.setUpperFluxBound(self.upperFluxBound)
+            if self.lowerFluxBound:
+                r_fbc.setLowerFluxBound(self.lowerFluxBound)
+
+        self.create_port(model)
+        self.create_uncertainties(r)
+        return r
+
+    def set_fields(self, obj):
+        super(Reaction, self).set_fields(obj)
+
+        if self.compartment:
+            obj.setCompartment(self.compartment)
+        obj.setReversible(self.equation.reversible)
+        obj.setFast(self.fast)
+
+    @staticmethod
+    def set_kinetic_law(model, reaction, formula):
+        """ Sets the kinetic law in reaction based on given formula. """
+        law = reaction.createKineticLaw()
+        ast_node = libsbml.parseL3FormulaWithModel(formula, model)
+        if ast_node is None:
+            logging.error(libsbml.getLastParseL3Error())
+        check(law.setMath(ast_node), 'set math in kinetic law')
+        return law
+
+
+class ExchangeReaction(Reaction):
+    """ Exchange reactions define substances which can be exchanged.
+     This is important for FBC models.
+
+     EXCHANGE_IMPORT (-INF, 0): is defined as negative flux through the exchange reaction,
+        i.e. the upper bound must be 0, the lower bound some negative value,
+        e.g. -INF
+
+    EXCHANGE_EXPORT (0, INF): is defined as positive flux through the exchange reaction,
+        i.e. the lower bound must be 0, the upper bound some positive value,
+        e.g. INF
+     """
+    PREFIX = 'EX_'
+
+    def __init__(self, species_id,
+                 name=None, compartment=None, fast=False, reversible=None,
+                 metaId=None, annotations=None,
+                 lowerFluxBound=None, upperFluxBound=None,
+                 uncertainties=None, port=None):
+
+        super(ExchangeReaction, self).__init__(
+            sid=ExchangeReaction.PREFIX + species_id,
+            equation="{} ->".format(species_id),
+            sboTerm=SBO_EXCHANGE_REACTION,
+            name=name,
+            compartment=compartment,
+            fast=fast,
+            reversible=reversible,
+            metaId=metaId,
+            annotations=annotations,
+            lowerFluxBound=lowerFluxBound,
+            upperFluxBound=upperFluxBound,
+            uncertainties=uncertainties,
+            port=port
+        )
 
 
 ##########################################################################
@@ -995,43 +1115,3 @@ class Event(Sbase):
     def _assignments_dict(species, values):
         return dict(zip(species, values))
 
-'''
-def getDeficiencyEventId(deficiency):
-    logging.warn('Will be removed.', DeprecationWarning)
-    return 'EDEF_{:0>2d}'.format(deficiency)
-
-
-def createDeficiencyEvent(model, deficiency):
-    logging.warn('Will be removed.', DeprecationWarning)
-    eid = getDeficiencyEventId(deficiency)
-    e = model.createEvent()
-    e.setId(eid)
-    e.setUseValuesFromTriggerTime(True)
-    t = e.createTrigger()
-    t.setInitialValue(False)  # ! not supported by Copasi -> lame fix via time
-    t.setPersistent(True)  # ! not supported by Copasi -> careful with usage
-    formula = '(time>0) && (deficiency=={:d})'.format(deficiency)
-    astnode = libsbml.parseL3FormulaWithModel(formula, model)
-    t.setMath(astnode)
-    return e
-
-
-def createSimulationEvents(model, elist):
-    logging.warn('Will be removed.', DeprecationWarning)
-    """ Simulation Events (Peaks & Challenges). """
-    for edata in elist:
-        createEventFromEventData(model, edata)
-
-
-def createEventFromEventData(model, edata):
-    logging.warn('Will be removed.', DeprecationWarning)
-    e = model.createEvent()
-    e.setId(edata.eid)
-    e.setName(edata.key)
-    e.setUseValuesFromTriggerTime(True)
-    t = e.createTrigger()
-    t.setInitialValue(False)
-    t.setPersistent(True)
-    astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
-    t.setMath(astnode)
-'''

@@ -6,7 +6,6 @@ Mainly volumes which are calculated based on other parameters.
 from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
-from . import reactions as Reactions
 
 from sbmlutils.modelcreator import templates
 
@@ -83,5 +82,20 @@ rules = []
 # Reactions
 # ---------------------------------------------------------------------------------------------------------------------
 reactions = [
-    Reactions.GLUT2_GAL
+    Reaction(
+        sid='e__GLUT2_GAL',
+        name='galactose transport [e__]',
+        equation='e__gal <-> c__gal []',
+        # C6H1206 (0) <-> C6H1206 (0)
+        compartment='pm',
+        pars=[
+            Parameter(sid='GLUT2_Vmax', value=1E-13, unit='mole_per_s'),
+            Parameter('GLUT2_k_gal', 1.0, 'mM'),
+            Parameter('GLUT2_keq', 1.0, '-'),
+        ],
+        formula=('GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/'
+                 '(1 dimensionless + c__gal/GLUT2_k_gal + e__gal/GLUT2_k_gal)',
+                 'mole_per_s')
+    )
+
 ]
