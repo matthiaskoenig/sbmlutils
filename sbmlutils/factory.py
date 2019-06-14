@@ -19,7 +19,9 @@ import logging
 import libsbml
 from sbmlutils.validation import check
 from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
-from sbmlutils.modelcreator.processes.reaction import ReactionTemplate, ExchangeReactionTemplate
+from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
+from collections import namedtuple
+from sbmlutils.equation import Equation
 
 
 SBML_LEVEL = 3  # default SBML level
@@ -53,7 +55,7 @@ __all__ = [
     'RateRule',
     'Event',
     'Constraint',
-    'ReactionTemplate',
+    'Reaction',
     'ExchangeReactionTemplate',
     'Uncertainty',
     'UncertParameter',
@@ -536,6 +538,7 @@ class Species(Sbase):
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
         if self.substanceUnit is not None:
             obj.setUnits(Unit.get_unit_string(self.substanceUnit))
+
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
         if self.initialConcentration is not None:
@@ -821,9 +824,129 @@ class Uncertainty(Sbase):
 ##########################################################################
 # Reactions
 ##########################################################################
+Formula = namedtuple('Formula', 'value unit')
 
-# TODO: Reaction class
 
+class Reaction(Sbase):
+    """ Reaction class."""
+    def __init__(self, sid, equation, formula=None, pars=[], rules=[],
+                 name=None, compartment=None, fast=False, reversible=None,
+                 sboTerm=None, metaId=None, annotations=None,
+                 lowerFluxBound=None, upperFluxBound=None, uncertainties=None, port=None):
+        super(Reaction, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                                       port=port, uncertainties=uncertainties)
+
+        self.equation = Equation(equation)
+        self.compartment = compartment
+        self.reversible = reversible
+        self.pars = pars
+        self.rules = rules
+        self.formula = formula
+        if formula is not None:
+            self.formula = Formula(*formula)
+        self.fast = fast
+        self.sboTerm = sboTerm
+        self.annotations = annotations
+        self.lowerFluxBound = lowerFluxBound
+        self.upperFluxBound = upperFluxBound
+
+    def create_sbml(self, model: libsbml.Model):
+
+        # parameters and rules
+        create_objects(model, self.pars, key='parameters')
+        create_objects(model, self.rules, key='rules')
+
+        # reaction
+        r = model.createReaction()  # type: libsbml.Reaction
+        self.set_fields(r)
+
+        # equation
+        for reactant in self.equation.reactants:  # type: libsbml.SpeciesReference
+            sref = r.createReactant()
+            sref.setSpecies(reactant.sid)
+            sref.setStoichiometry(reactant.stoichiometry)
+            sref.setConstant(True)
+        for product in self.equation.products:  # type: libsbml.SpeciesReference
+            sref = r.createProduct()
+            sref.setSpecies(product.sid)
+            sref.setStoichiometry(product.stoichiometry)
+            sref.setConstant(True)
+        for modifier in self.equation.modifiers:
+            sref = r.createModifier()
+            sref.setSpecies(modifier)
+
+        # kinetics
+        if self.formula:
+            Reaction.set_kinetic_law(model, r, self.formula.value)
+
+        # add fbc bounds
+        if self.upperFluxBound or self.lowerFluxBound:
+            r_fbc = r.getPlugin("fbc")  # type: libsbml.FbcReactionPlugin
+            if self.upperFluxBound:
+                r_fbc.setUpperFluxBound(self.upperFluxBound)
+            if self.lowerFluxBound:
+                r_fbc.setLowerFluxBound(self.lowerFluxBound)
+
+        return r
+
+    def set_fields(self, obj):
+        super(Reaction, self).set_fields(obj)
+
+        if self.compartment:
+            obj.setCompartment(self.compartment)
+        obj.setReversible(self.equation.reversible)
+        obj.setFast(self.fast)
+
+    @staticmethod
+    def set_kinetic_law(model, reaction, formula):
+        """ Sets the kinetic law in reaction based on given formula. """
+        law = reaction.createKineticLaw()
+        ast_node = libsbml.parseL3FormulaWithModel(formula, model)
+        if ast_node is None:
+            logging.error(libsbml.getLastParseL3Error())
+        check(law.setMath(ast_node), 'set math in kinetic law')
+        return law
+
+
+class ExchangeReactionTemplate(object):
+    """ Exchange reactions define substances which can be exchanged.
+     This is important for FBC models.
+
+     EXCHANGE_IMPORT (-INF, 0): is defined as negative flux through the exchange reaction,
+        i.e. the upper bound must be 0, the lower bound some negative value,
+        e.g. -INF
+
+    EXCHANGE_EXPORT (0, INF): is defined as positive flux through the exchange reaction,
+        i.e. the lower bound must be 0, the upper bound some positive value,
+        e.g. INF
+     """
+    # FIXME: update with reaction class
+
+    PREFIX = 'EX_'
+
+    def __init__(self, species_id, flux_unit=None,
+                 lowerFluxBound=None, upperFluxBound=None):
+        self.species_id = species_id
+        self.flux_unit = flux_unit
+        self.lower_bound = lowerFluxBound
+        self.upper_bound = upperFluxBound
+
+    def create_sbml(self, model):
+
+        # id (e.g. EX_A)
+        ex_sid = ExchangeReactionTemplate.PREFIX + self.species_id
+
+        rt = Reaction(
+            sid=ex_sid,
+            equation="{} ->".format(self.species_id),
+            sboTerm=SBO_EXCHANGE_REACTION,
+            lowerFluxBound=self.lower_bound,
+            upperFluxBound=self.upper_bound
+        )
+        return rt.create_sbml(model)
+
+
+'''
 def create_reaction(model, rid, name=None, fast=False, reversible=True, reactants={}, products={}, modifiers=[],
                     formula=None, compartment=None, sboTerm=None):
     """ Create basic reaction structure. """
@@ -862,6 +985,7 @@ def create_reaction(model, rid, name=None, fast=False, reversible=True, reactant
         r.setCompartment(compartment)
 
     return r
+'''
 
 
 ##########################################################################
@@ -995,43 +1119,3 @@ class Event(Sbase):
     def _assignments_dict(species, values):
         return dict(zip(species, values))
 
-'''
-def getDeficiencyEventId(deficiency):
-    logging.warn('Will be removed.', DeprecationWarning)
-    return 'EDEF_{:0>2d}'.format(deficiency)
-
-
-def createDeficiencyEvent(model, deficiency):
-    logging.warn('Will be removed.', DeprecationWarning)
-    eid = getDeficiencyEventId(deficiency)
-    e = model.createEvent()
-    e.setId(eid)
-    e.setUseValuesFromTriggerTime(True)
-    t = e.createTrigger()
-    t.setInitialValue(False)  # ! not supported by Copasi -> lame fix via time
-    t.setPersistent(True)  # ! not supported by Copasi -> careful with usage
-    formula = '(time>0) && (deficiency=={:d})'.format(deficiency)
-    astnode = libsbml.parseL3FormulaWithModel(formula, model)
-    t.setMath(astnode)
-    return e
-
-
-def createSimulationEvents(model, elist):
-    logging.warn('Will be removed.', DeprecationWarning)
-    """ Simulation Events (Peaks & Challenges). """
-    for edata in elist:
-        createEventFromEventData(model, edata)
-
-
-def createEventFromEventData(model, edata):
-    logging.warn('Will be removed.', DeprecationWarning)
-    e = model.createEvent()
-    e.setId(edata.eid)
-    e.setName(edata.key)
-    e.setUseValuesFromTriggerTime(True)
-    t = e.createTrigger()
-    t.setInitialValue(False)
-    t.setPersistent(True)
-    astnode = libsbml.parseL3FormulaWithModel(edata.trigger, model)
-    t.setMath(astnode)
-'''
