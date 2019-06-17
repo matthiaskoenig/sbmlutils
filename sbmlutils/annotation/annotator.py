@@ -49,12 +49,20 @@ class Annotation(object):
         :param qualifier: BQM or BQB term
         :param resource:
         """
-        self.qualifier = qualifier
-        if not self.qualifier:
-            LOGGER.error(
-                "MIRIAM qualifiers are required for annotations, but no qualifier for resource"
+        if not qualifier:
+            raise ValueError(
+                "MIRIAM qualifiers are required for annotation, but no qualifier for resource "
                 "`{}` was given.".format(resource)
             )
+        if not resource:
+            raise ValueError(
+                "resource is required for annotation, but the resource "
+                "`{} {}` was given.".format(qualifier, resource)
+            )
+
+        self.qualifier = qualifier
+        self.collection = None
+        self.term = None
 
         # handle urls
         if resource.startswith("http"):
@@ -62,7 +70,6 @@ class Annotation(object):
             if match:
                 # handle identifiers.org pattern
                 self.collection, self.term = match.group(1), match.group(2)
-                self.term = "{}/{}".format(self.collection, self.term)
             else:
                 # other urls are directly stored as resources without collection
                 self.collection = None
@@ -84,6 +91,14 @@ class Annotation(object):
             else:
                 self.collection = tokens[0]
                 self.term = "/".join(tokens[1:])
+
+        '''
+        print("self.collection:", self.collection)
+        print("self.term:", self.term)
+        print("resource:", resource)
+        print("self.resource:", self.resource)
+        print("-"*80)
+        '''
 
         self.validate()
 
