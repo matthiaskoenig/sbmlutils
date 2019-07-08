@@ -674,9 +674,9 @@ def math(item):
 
 def boolean(condition):
     if condition:
-        return '<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>'
+        return '<td><span class="fas fa-check-circle green"></span><span class="invisible">T</span></td>'
     else:
-        return '<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>'
+        return '<td><span class=""><span class="invisible">F</span></span></td>'
 
 
 def annotation_xml(item):
