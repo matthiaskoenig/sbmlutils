@@ -270,13 +270,17 @@ class Sbase(object):
             if self.port is True:
                 # manually create port for the id
                 cmodel = model.getPlugin("comp")
-                p = cmodel.createPort()
+                p = cmodel.createPort()  # type: libsbml.Port
                 port_sid = '{}{}'.format(self.sid, PORT_SUFFIX)
                 p.setId(port_sid)
                 p.setName(port_sid)
                 p.setMetaId(port_sid)
                 p.setSBOTerm(599)  # port
-                p.setIdRef(self.sid)
+
+                if isinstance(self, Unit):
+                    p.setUnitRef(self.sid)
+                else:
+                    p.setIdRef(self.sid)
             else:
                 pass
 
