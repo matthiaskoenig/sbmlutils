@@ -445,10 +445,11 @@ class Function(Sbase):
 class Parameter(ValueWithUnit):
 
     def __init__(self, sid, value=None, unit=None, constant=True,
-                 name=None, sboTerm=None, metaId=None,
+                 name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
         super(Parameter, self).__init__(sid=sid, value=value, unit=unit, name=name,
                                         sboTerm=sboTerm, metaId=metaId,
+                                        annotations=annotations,
                                         port=port, uncertainties=uncertainties)
         self.constant = constant
 

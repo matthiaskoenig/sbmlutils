@@ -65,7 +65,8 @@ class Factory(object):
         return [model_dict, core_model, sbml_path]
 
 
-def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, mid=None):
+def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, 
+                 validate=True, mid=None):
     """ Create SBML model from module information.
 
     This is the entry point for creating models.
@@ -78,6 +79,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     :param annotations: list of annotations for SBML
     :param suffix: Suffix for SBML filename
     :param create_report: boolean switch to create SBML report
+    :param validate: validates the SBML file
     :param mid: model id to use for saving file
     :return:
     """
@@ -103,7 +105,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
         filename = '{}.xml'.format(mid)
     sbml_path = os.path.join(target_dir, filename)
 
-    core_model.write_sbml(sbml_path, validate=True)
+    core_model.write_sbml(sbml_path, validate=validate)
 
     # annotate
     if annotations is not None:
@@ -113,6 +115,7 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     # create report
     if create_report:
         logging.info("Create SBML report:'{}'".format(sbml_path))
+        # file is already validated, no validation on report needed
         sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
