@@ -231,6 +231,11 @@ class ExternalAnnotation(object):
             # required fields
             else:
                 value = d[key]
+                if key in ["sbml_type", "annotation_type"]:
+                    value = value.lower()
+                if key in ["qualifer"]:
+                    value = value.upper()
+
             setattr(self, key, value)
 
         if self.annotation_type == "rdf":
