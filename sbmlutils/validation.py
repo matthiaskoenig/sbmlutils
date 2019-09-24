@@ -38,14 +38,20 @@ def check(value, message):
         return
 
 
-def check_sbml(filepath, name=None, ucheck=True, show_errors=True):
-    """ Checks the given SBML file path or String for validation errors.
+def check_sbml(filepath, name=None, log_errors=True,
+              units_consistency=True,
+              modeling_practice=True,
+              internal_consistency=True):
+    """ Checks the given SBML filepath or string.
 
-    :param filepath: path of SBML file
-    :param ucheck: boolen if unit checks should be performed
-    :return: number of errors
+    :param doc: SBMLDocument to check
+    :param name: identifier or path for report
+    :param units_consistency: boolean flag units consistency
+    :param modeling_practice: boolean flag modeling practise
+    :param internal_consistency: boolean flag internal consistency
+    :param log_errors: boolean flag of errors should be logged
+    :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
     """
-    # FIXME: check if this is also working for SBML strings
     if name is None:
         filepath = os.path.abspath(filepath)
         if len(filepath) < 100:
@@ -54,36 +60,42 @@ def check_sbml(filepath, name=None, ucheck=True, show_errors=True):
             name = filepath[0:99] + '...'
 
     doc = libsbml.readSBML(filepath)
-    return check_doc(doc, name=name, ucheck=ucheck, show_errors=show_errors)
+    return check_doc(doc, name=name, log_errors=log_errors,
+                     units_consistency=units_consistency,
+                     modeling_practice=modeling_practice,
+                     internal_consistency=internal_consistency)
 
 
-def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors=True):
+def check_doc(doc, name=None, log_errors=True,
+              units_consistency=True,
+              modeling_practice=True,
+              internal_consistency=True):
+    """ Checks document and logs errors.
+
+    :param doc: SBMLDocument to check
+    :param name: identifier or path for report
+    :param log_errors: boolean flag of errors should be logged
+    :param units_consistency: boolean flag units consistency
+    :param modeling_practice: boolean flag modeling practise
+    :param internal_consistency: boolean flag internal consistency
+    :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
     """
-        Checks the given SBML document and prints errors of the given severity.
-
-        Individual checks can be changed via the categories
-            doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, False)
-            doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, False)
-
-        :param sbml: SBML file or str
-        :type sbml: file | str
-        :return: list of number of messages, number of errors, number of warnings
-        """
-    if name is None:
+    if not name:
         name = str(doc)
 
     # set the unit checking, similar for the other settings
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, ucheck)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, units_consistency)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, modeling_practice)
 
     # time
     current = time.clock()
 
     # all, error, warn
-    if internalConsistency:
-        Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internalConsistency=True, show_errors=show_errors)
+    if internal_consistency:
+        Nall_in, Nerr_in, Nwarn_in = _check_consistency(doc, internal_consistency=True)
     else:
         Nall_in, Nerr_in, Nwarn_in = (0, 0, 0)
-    Nall_noin, Nerr_noin, Nwarn_noin = _check_consistency(doc, internalConsistency=False, show_errors=show_errors)
+    Nall_noin, Nerr_noin, Nwarn_noin = _check_consistency(doc, internal_consistency=False)
 
     # sum up
     Nall = Nall_in + Nall_noin
@@ -93,7 +105,7 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
 
     lines = [
         '',
-        '-' * 120,
+        '-' * 80,
         name,
         "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
@@ -104,7 +116,8 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
         ]
     lines += [
         "{:<25}: {:.3f}".format("check time (s)", time.clock() - current),
-        '-' * 120,
+        '-' * 80,
+        '',
     ]
     info = "\n".join(lines)
 
@@ -114,21 +127,32 @@ def check_doc(doc, name=None, ucheck=True, internalConsistency=True, show_errors
         info = bcolors.FAIL + info + bcolors.ENDC
     info = bcolors.BOLD+info+bcolors.ENDC
 
+    # overall validation report
     if Nall > 0:
         if Nerr > 0:
             logging.error(info)
         else:
             logging.warning(info)
     else:
-        logging.info(info)
+        print(info)
+
+    # individual error and warning report
+    if log_errors:
+        log_doc_errors(doc)
 
     return Nall, Nerr, Nwarn
 
 
-def _check_consistency(doc, internalConsistency=False, show_errors=True):
+def _check_consistency(doc, internal_consistency=False):
+    """ Calculates the type of errors.
+
+    :param doc:
+    :param internal_consistency:
+    :return:
+    """
     Nerr = 0  # error count
     Nwarn = 0  # warning count
-    if internalConsistency:
+    if internal_consistency:
         Nall = doc.checkInternalConsistency()
     else:
         Nall = doc.checkConsistency()
@@ -141,28 +165,15 @@ def _check_consistency(doc, internalConsistency=False, show_errors=True):
             else:
                 Nwarn += 1
 
-        if show_errors:
-            log_errors(doc)
-
     return Nall, Nerr, Nwarn
 
 
-def log_errors(doc):
+def log_doc_errors(doc):
     """ Prints errors of SBMLDocument.
 
     :param doc:
     :return:
     """
-    model = doc.getModel()
-
-    sep_line = bcolors.BGWHITE + bcolors.BLACK + '-'*120 + bcolors.ENDC + bcolors.ENDC
-    header_lines = [
-        '', '',
-        sep_line,
-        bcolors.BGWHITE + bcolors.BLACK + str(model) + bcolors.ENDC + bcolors.ENDC,
-        sep_line
-    ]
-    logging.error("\n".join(header_lines))
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
         msg, severity = error_string(error, k)
@@ -172,7 +183,6 @@ def log_errors(doc):
             logging.error(msg)
         else:
             logging.info(msg)
-    logging.error("\n" + sep_line + "\n\n")
 
 
 def error_string(error, k=None):
@@ -187,7 +197,6 @@ def error_string(error, k=None):
 
     severity = error.getSeverity()
     lines = [
-        '',
         bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code') + bcolors.ENDC + bcolors.ENDC,
         bcolors.FAIL + '[{}] {}'.format(error.getSeverityAsString(), error.getShortMessage()) + bcolors.ENDC,
         bcolors.OKBLUE + error.getMessage() + bcolors.ENDC

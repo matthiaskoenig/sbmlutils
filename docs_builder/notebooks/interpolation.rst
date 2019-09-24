@@ -1,4 +1,3 @@
-
 Interpolation
 =============
 
@@ -81,6 +80,41 @@ write the resulting SBML models with the interpolation functions.
     # natural cubic spline
     ip_cubic = Interpolation(data=data, method=INTERPOLATION_CUBIC_SPLINE)
     ip_cubic.write_sbml_to_file("./tmp/data1_cubic.xml")
+
+
+::
+
+
+    ---------------------------------------------------------------------------
+
+    TypeError                                 Traceback (most recent call last)
+
+    <ipython-input-3-a3dbe7da757d> in <module>
+          7 # constant interpolation
+          8 ip_constant = Interpolation(data=data, method=INTERPOLATION_CONSTANT)
+    ----> 9 ip_constant.write_sbml_to_file("./tmp/data1_constant.xml")
+         10 
+         11 # linear interpolation
+
+
+    ~/git/sbmlutils/sbmlutils/interpolation.py in write_sbml_to_file(self, sbml_out)
+        301         :rtype:
+        302         """
+    --> 303         self._create_sbml()
+        304         libsbml.writeSBMLToFile(self.doc, sbml_out)
+        305 
+
+
+    ~/git/sbmlutils/sbmlutils/interpolation.py in _create_sbml(self)
+        333             tmp_f = os.path.join(temp_dir, 'validated.xml')
+        334             libsbml.writeSBMLToFile(self.doc, tmp_f)
+    --> 335             validation.check_sbml(tmp_f, ucheck=False)
+        336         finally:
+        337             shutil.rmtree(temp_dir)
+
+
+    TypeError: check_sbml() got an unexpected keyword argument 'ucheck'
+
 
 Simulate
 --------

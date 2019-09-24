@@ -58,7 +58,7 @@ def write_sbml(doc, filepath, validate=True, program_name=None, program_version=
         if validate is True:
             validation.check_sbml(filepath)
         elif validate is validation.VALIDATION_NO_UNITS:
-            validation.check_sbml(filepath, ucheck=False, show_errors=True)
+            validation.check_sbml(filepath, units_consistency=False, log_errors=True)
 
 
 def writeModelToSBML(model, filepath):

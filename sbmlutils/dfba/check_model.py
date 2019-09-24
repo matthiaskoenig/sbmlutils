@@ -25,4 +25,4 @@ for sbml_file in xml_files:
 # create the model reports
 
 for sbml_file in xml_files:
-    sbmlreport.create_sbml_report(sbml_file, directory)
+    sbmlreport.create_report(sbml_file, directory)

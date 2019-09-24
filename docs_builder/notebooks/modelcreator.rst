@@ -1,4 +1,3 @@
-
 Modelcreator
 ============
 
@@ -22,6 +21,24 @@ scratch.
     from sbmlutils.units import *
     from sbmlutils.sbo import *
     from sbmlutils.factory import *
+
+
+::
+
+
+    ---------------------------------------------------------------------------
+
+    ModuleNotFoundError                       Traceback (most recent call last)
+
+    <ipython-input-1-2ae9e0b03520> in <module>
+          6 
+          7 from sbmlutils.units import *
+    ----> 8 from sbmlutils.sbo import *
+          9 from sbmlutils.factory import *
+
+
+    ModuleNotFoundError: No module named 'sbmlutils.sbo'
+
 
 Unit definitions
 ~~~~~~~~~~~~~~~~
@@ -57,6 +74,25 @@ Units for the model are defined in the following manner.
     UNIT_VOLUME = 'm3'
     UNIT_CONCENTRATION = 'item_per_m3'
     UNIT_FLUX = 'item_per_s'
+
+
+::
+
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    <ipython-input-2-1474738da384> in <module>
+    ----> 1 model_units = ModelUnits(time=UNIT_KIND_SECOND, 
+          2                          extent=UNIT_KIND_ITEM,
+          3                          substance=UNIT_KIND_ITEM,
+          4                          length=UNIT_KIND_METRE,
+          5                          area='m2',
+
+
+    NameError: name 'ModelUnits' is not defined
+
 
 Model building
 ~~~~~~~~~~~~~~
@@ -127,13 +163,21 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
     sbmlio.write_sbml(doc=doc, filepath=sbml_file.name)
 
 
-.. parsed-literal::
+::
 
-    INFO:root:[1m[92m
-    ------------------------------------------------------------------------------------------------------------------------
-    /tmp/tmpsar7tzf_.xml
-    valid                    : TRUE
-    check time (s)           : 0.012
-    ------------------------------------------------------------------------------------------------------------------------[0m[0m
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    <ipython-input-3-5766e260b70a> in <module>
+          3 model = doc.getModel()
+          4 
+    ----> 5 factory.create_objects(model, units)
+          6 factory.set_model_units(model, model_units)
+          7 
+
+
+    NameError: name 'units' is not defined
 
 

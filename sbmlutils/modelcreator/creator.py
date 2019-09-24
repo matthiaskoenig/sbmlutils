@@ -119,7 +119,7 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
     if create_report:
         logging.info("Create SBML report:'{}'".format(sbml_path))
         # file is already validated, no validation on report needed
-        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir, validate=False)
+        sbmlreport.create_report(sbml_path=sbml_path, report_dir=target_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
 

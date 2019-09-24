@@ -1,19 +1,7 @@
-Introduction
+Overview
 ============
 **sbmlutils** are python utilities for working with `SBML <http://www.sbml.org>`_.
-This provides handy features like HTML reports of SBML models, helper functions for model creation and manipulation,
-interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA).
-
-To cite sbmlutils use the following BibTex or equivalent::
-
-    @MISC{sbmlutils,
-      author        = {Matthias König},
-      title         = {sbmlutils: python utilities for SBML},
-      month         = {Mar.},
-      year          = {2017},
-      doi           = "{10.5281/zenodo.439006}",
-      url           = "{http://dx.doi.org/10.5281/zenodo.439006}"
-    }
+This python package provides handy features like HTML reports of SBML models, helper functions for model creation and manipulation, interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA) to name a few.
 
 Source code is available from
 `https://github.com/matthiaskoenig/sbmlutils
@@ -31,18 +19,13 @@ The libsbgn-python package is available from `pypi
     pip install sbmlutils
 
 
-For detailed installation instructions and how to install the develop version see
+For more detailed installation instructions see
 `https://github.com/matthiaskoenig/sbmlutils
 <https://github.com/matthiaskoenig/sbmlutils>`_.
 
 Features
 --------
 The following lists the main features. For examples see the examples section.
-
-DFBA
-~~~~
-Simulator for dynamic flux balance analysis (DFBA) of SBML model.
-For more information see also `<https://github.com/matthiaskoenig/dfba>`_.
 
 SBML report
 ~~~~~~~~~~~
@@ -70,22 +53,13 @@ SBML interpolation
 ~~~~~~~~~~~~~~~~~~
 Helper functions for working with data interpolation in SBML models.
 
+DFBA
+~~~~
+Simulator for dynamic flux balance analysis (DFBA) of SBML model.
+For more information see also `<https://github.com/matthiaskoenig/dfba>`_.
 
-Examples
+Citation
 --------
-In the following sections examples are provided. All examples are available as
-interactive `jupyter notebooks <http://jupyter.readthedocs.org/en/latest/install.html>`_.
-
-To run the examples clone the git repository
-::
-
-    git clone https://github.com/matthiaskoenig/sbmlutils.git
-
-and start jupyter in the notebooks folder
-::
-
-    cd sbmlutils/docs_builder/notebooks
-    jupyter notebook index.ipynb
-
-We are working on updating the examples. A more complete documentation will be available with the next release.
-
+To cite sbmlutils reference the latest zenodo release available from
+`https://doi.org/10.5281/zenodo.597149
+<https://doi.org/10.5281/zenodo.597149>`_.

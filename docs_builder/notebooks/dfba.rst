@@ -1,4 +1,3 @@
-
 DFBA
 ====
 
@@ -39,408 +38,61 @@ To run an existing DFBA model call use ``simulate_dfba``.
 
 .. parsed-literal::
 
-    WARNING:cobra.io.sbml:SBML package 'comp' not supported by cobrapy,information is not parsed
-    INFO:root:--------------------------------------------------------------------------------
-    <Model toy_wholecell_top "toy_wholecell (TOP)"> [ode]
-    --------------------------------------------------------------------------------
-    ode        : [<Submodel bounds>, <Submodel update>]
-    fba        : [<Submodel fba>]
-    dt         : 0.1
-    flux rules :
-    	      EX_A <-> pEX_A
-    	      EX_C <-> pEX_C
-    
-    <Submodel fba> toy_wholecell_fba.xml
-    --------------------------------------------------------------------------------
-    	obj. direction        : maximize
-    	cobra obj. direction  : max
-    	fba2top reactions     : {'EX_C': 'EX_C', 'EX_A': 'EX_A'}
-    	ub_pid2rid            : {'ub_EX_C': 'EX_C', 'ub_EX_A': 'EX_A', 'ub_R1': 'R1'}
-    	lb_pid2rid            : {'lb_EX_C': 'EX_C', 'lb_EX_A': 'EX_A'}
-    	top2flat reactions    : {'EX_C': 'EX_C', 'R2': 'fba__R2', 'R3': 'fba__R3', 'R1': 'fba__R1', 'EX_A': 'EX_A'}
-    --------------------------------------------------------------------------------
-    
-    INFO:root:        lb    ub reversibility boundary objective_coefficient  \
-    R1       0     1         False    False                     0   
-    R2       0  1000         False    False                     0   
-    R3       0  1000         False    False                     1   
-    EX_A -1000  1000          True     True                     0   
-    EX_C -1000  1000          True     True                     0   
-    
-             forward_variable                   reverse_variable  
-    R1         0 <= R1 <= 1.0      0 <= R1_reverse_cda52 <= -0.0  
-    R2      0 <= R2 <= 1000.0      0 <= R2_reverse_8c6d2 <= -0.0  
-    R3      0 <= R3 <= 1000.0      0 <= R3_reverse_5c108 <= -0.0  
-    EX_A  0 <= EX_A <= 1000.0  0 <= EX_A_reverse_b86fb <= 1000.0  
-    EX_C  0 <= EX_C <= 1000.0  0 <= EX_C_reverse_69b38 <= 1000.0  
-    INFO:root:dt set from old value <0.1> to new value: dt=5.0
-    INFO:root:	lower: lb_EX_C    = 0.0 set to 0.0
+    /home/mkoenig/git/sbmlutils/sbmlutils/dfba/toy_wholecell/results/v15/toy_wholecell_top.xml
 
 
 .. parsed-literal::
 
-    /home/mkoenig/git/sbmlutils/sbmlutils/dfba/toy_wholecell/results/v15/toy_wholecell_top.xml
-    --------------------------------------------------------------------------------
-    ODE integrator settings
-    --------------------------------------------------------------------------------
-    <roadrunner.RoadRunner() { 
-    'this' : 0x660bd00
-    'modelLoaded' : true
-    'modelName' : toy_wholecell (TOP)
-    'libSBMLVersion' : LibSBML Version: 5.17.2
-    'jacobianStepSize' : 1e-05
-    'conservedMoietyAnalysis' : false
-    'simulateOptions' : 
-    < roadrunner.SimulateOptions() 
-    { 
-    'this' : 0x658f6b0, 
-    'reset' : 0,
-    'structuredResult' : 0,
-    'copyResult' : 1,
-    'steps' : 50,
-    'start' : 0,
-    'duration' : 5
-    }>, 
-    'integrator' : 
-    < roadrunner.Integrator() >
-      name: cvode
-      settings:
-          relative_tolerance: 0.000001
-          absolute_tolerance: 0.000001
-                       stiff: true
-           maximum_bdf_order: 5
-         maximum_adams_order: 12
-           maximum_num_steps: 20000
-           maximum_time_step: 0
-           minimum_time_step: 0
-           initial_time_step: 0
-              multiple_steps: false
-          variable_step_size: false
-    
-    }>
-    --------------------------------------------------------------------------------
-    
-    Simulation time     : 3.765 [s]
-    Total time          : 3.847 [s]
-    Overhead time       : 0.082 [s] (2.1 %)
-    
+    /home/mkoenig/git/sbmlutils/sbmlutils/dfba/model.py:125 [1;31mUserWarning[0m: No top level model found.
 
 
+::
 
 
-.. raw:: html
+    ---------------------------------------------------------------------------
 
-    <div>
-    <style scoped>
-        .dataframe tbody tr th:only-of-type {
-            vertical-align: middle;
-        }
-    
-        .dataframe tbody tr th {
-            vertical-align: top;
-        }
-    
-        .dataframe thead th {
-            text-align: right;
-        }
-    </style>
-    <table border="1" class="dataframe">
-      <thead>
-        <tr style="text-align: right;">
-          <th></th>
-          <th>time</th>
-          <th>[A]</th>
-          <th>[C]</th>
-          <th>[D]</th>
-          <th>[dummy_S]</th>
-          <th>[fba__A]</th>
-          <th>[fba__B1]</th>
-          <th>[fba__B2]</th>
-          <th>[fba__C]</th>
-          <th>EX_A</th>
-          <th>...</th>
-          <th>fba__ub_default</th>
-          <th>fba__zero</th>
-          <th>k_R4</th>
-          <th>lb_EX_A</th>
-          <th>lb_EX_C</th>
-          <th>pEX_A</th>
-          <th>pEX_C</th>
-          <th>ub_EX_A</th>
-          <th>ub_EX_C</th>
-          <th>ub_R1</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>0.0</th>
-          <td>0.0</td>
-          <td>10.000000</td>
-          <td>0.000000</td>
-          <td>0.000000</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-1.000000</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-100.000000</td>
-          <td>0.000000</td>
-          <td>-1.000000</td>
-          <td>1.000000</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>1.000000</td>
-        </tr>
-        <tr>
-          <th>5.0</th>
-          <td>5.0</td>
-          <td>5.000000</td>
-          <td>3.934702</td>
-          <td>1.065298</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.367874</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-50.000000</td>
-          <td>-39.347018</td>
-          <td>-0.367874</td>
-          <td>0.367874</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.367874</td>
-        </tr>
-        <tr>
-          <th>10.0</th>
-          <td>10.0</td>
-          <td>3.160630</td>
-          <td>3.833989</td>
-          <td>3.005381</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.135346</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-31.606304</td>
-          <td>-38.339893</td>
-          <td>-0.135346</td>
-          <td>0.135346</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.135346</td>
-        </tr>
-        <tr>
-          <th>15.0</th>
-          <td>15.0</td>
-          <td>2.483901</td>
-          <td>2.857979</td>
-          <td>4.658121</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.049792</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-24.839010</td>
-          <td>-28.579785</td>
-          <td>-0.049792</td>
-          <td>0.049792</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.049792</td>
-        </tr>
-        <tr>
-          <th>20.0</th>
-          <td>20.0</td>
-          <td>2.234939</td>
-          <td>1.929372</td>
-          <td>5.835689</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.018318</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-22.349392</td>
-          <td>-19.293716</td>
-          <td>-0.018318</td>
-          <td>0.018318</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.018318</td>
-        </tr>
-        <tr>
-          <th>25.0</th>
-          <td>25.0</td>
-          <td>2.143347</td>
-          <td>1.242302</td>
-          <td>6.614351</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.006739</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-21.433472</td>
-          <td>-12.423016</td>
-          <td>-0.006739</td>
-          <td>0.006739</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.006739</td>
-        </tr>
-        <tr>
-          <th>30.0</th>
-          <td>30.0</td>
-          <td>2.109651</td>
-          <td>0.780016</td>
-          <td>7.110334</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.002480</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-21.096505</td>
-          <td>-7.800162</td>
-          <td>-0.002480</td>
-          <td>0.002480</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.002480</td>
-        </tr>
-        <tr>
-          <th>35.0</th>
-          <td>35.0</td>
-          <td>2.097252</td>
-          <td>0.482855</td>
-          <td>7.419893</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.000912</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-20.972519</td>
-          <td>-4.828550</td>
-          <td>-0.000912</td>
-          <td>0.000912</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.000912</td>
-        </tr>
-        <tr>
-          <th>40.0</th>
-          <td>40.0</td>
-          <td>2.092691</td>
-          <td>0.296460</td>
-          <td>7.610849</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.000336</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-20.926908</td>
-          <td>-2.964599</td>
-          <td>-0.000336</td>
-          <td>0.000336</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.000336</td>
-        </tr>
-        <tr>
-          <th>45.0</th>
-          <td>45.0</td>
-          <td>2.091012</td>
-          <td>0.181129</td>
-          <td>7.727859</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.000123</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-20.910125</td>
-          <td>-1.811288</td>
-          <td>-0.000123</td>
-          <td>0.000123</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.000123</td>
-        </tr>
-        <tr>
-          <th>50.0</th>
-          <td>50.0</td>
-          <td>2.090395</td>
-          <td>0.110338</td>
-          <td>7.799267</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>0.0</td>
-          <td>-0.000045</td>
-          <td>...</td>
-          <td>1000.0</td>
-          <td>0.0</td>
-          <td>0.1</td>
-          <td>-20.903950</td>
-          <td>-1.103377</td>
-          <td>-0.000045</td>
-          <td>0.000045</td>
-          <td>1000.0</td>
-          <td>1000.0</td>
-          <td>0.000045</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>11 rows × 30 columns</p>
-    </div>
+    ValueError                                Traceback (most recent call last)
 
+    <ipython-input-3-54c1d0606a90> in <module>
+         10 # run simulation with the top model
+         11 from sbmlutils.dfba.simulator import simulate_dfba
+    ---> 12 df, dfba_model, dfba_simulator = simulate_dfba(sbml_path, tend=50, dt=5.0)
+         13 df
+
+
+    ~/git/sbmlutils/sbmlutils/dfba/simulator.py in simulate_dfba(sbml_path, tstart, tend, dt, pfba, abs_tol, rel_tol, lp_solver, ode_integrator, **kwargs)
+         40     start_time = timeit.default_timer()
+         41     # Load model
+    ---> 42     dfba_model = DFBAModel(sbml_path=sbml_path)
+         43 
+         44     # simulation
+
+
+    ~/git/sbmlutils/sbmlutils/dfba/model.py in __init__(self, sbml_path)
+         53             self.dt = None
+         54 
+    ---> 55             self._process_top()
+         56             self._process_models()
+         57             self._process_dt()
+
+
+    ~/git/sbmlutils/sbmlutils/dfba/model.py in _process_top(self)
+        125             warnings.warn("No top level model found.")
+        126 
+    --> 127         self.framework_top = builder.get_framework(self.model_top)
+        128         if self.framework_top is not builder.MODEL_FRAMEWORK_ODE:
+        129             warnings.warn("The top level model framework is not ode: {}".format(self.framework_top))
+
+
+    ~/git/sbmlutils/sbmlutils/dfba/builder.py in get_framework(model)
+         88     if type(model) not in [libsbml.Model, libsbml.ModelDefinition]:
+         89         raise ValueError("Framework must be defined on either Model/ModelDefinition, "
+    ---> 90                          "but given: {}".format(model))
+         91 
+         92     framework = None
+
+
+    ValueError: Framework must be defined on either Model/ModelDefinition, but given: None
 
 
 Toy example
@@ -471,186 +123,47 @@ Toy example
 
 .. parsed-literal::
 
-    Create directory: /tmp/tmpgr58razr/v15
+    Create directory: /tmp/tmpnedacr15/v15
 
 
 .. parsed-literal::
 
     ERROR:root:Providing model units as dict is deprecated, use 'ModelUnits' instead.
     ERROR:root:Using notes strings is deprecated, use 'Notes' instead.
-    INFO:root:[1m[92m
-    ------------------------------------------------------------------------------------------------------------------------
-    /tmp/tmpgr58razr/v15/toy_wholecell_fba.xml
-    valid                    : TRUE
-    check time (s)           : 0.009
-    ------------------------------------------------------------------------------------------------------------------------[0m[0m
-    ERROR:root:Providing model units as dict is deprecated, use 'ModelUnits' instead.
-    ERROR:root:Using notes strings is deprecated, use 'Notes' instead.
-    INFO:root:[1m[92m
-    ------------------------------------------------------------------------------------------------------------------------
-    /tmp/tmpgr58razr/v15/toy_wholecell_bounds.xml
-    valid                    : TRUE
-    check time (s)           : 0.012
-    ------------------------------------------------------------------------------------------------------------------------[0m[0m
-    ERROR:root:Providing model units as dict is deprecated, use 'ModelUnits' instead.
-    ERROR:root:Using notes strings is deprecated, use 'Notes' instead.
-    INFO:root:[1m[92m
-    ------------------------------------------------------------------------------------------------------------------------
-    /tmp/tmpgr58razr/v15/toy_wholecell_update.xml
-    valid                    : TRUE
-    check time (s)           : 0.006
-    ------------------------------------------------------------------------------------------------------------------------[0m[0m
-    ERROR:root:Providing model units as dict is deprecated, use 'ModelUnits' instead.
-    ERROR:root:Using notes strings is deprecated, use 'Notes' instead.
-    INFO:root:[1m[92m
-    ------------------------------------------------------------------------------------------------------------------------
-    /tmp/tmpgr58razr/v15/toy_wholecell_top.xml
-    valid                    : TRUE
-    check time (s)           : 0.037
-    ------------------------------------------------------------------------------------------------------------------------[0m[0m
-    INFO:root:[92m[1m
-    ------------------------------------------------------------------------------------------------------------------------
-    <SBMLDocument>
-    flattened                : TRUE
-    flatten time (ms)        : 0.039
-    ------------------------------------------------------------------------------------------------------------------------[0m[0m
-    INFO:root:Flattened model written to /tmp/tmpgr58razr/v15/toy_wholecell_flattened.xml
-    INFO:root:/tmp/tmpgr58razr/v15/toy_wholecell_fba.xml
-    INFO:root:/tmp/tmpgr58razr/v15/toy_wholecell_bounds.xml
-    INFO:root:/tmp/tmpgr58razr/v15/toy_wholecell_update.xml
-    INFO:root:/tmp/tmpgr58razr/v15/toy_wholecell_top.xml
-    INFO:root:/tmp/tmpgr58razr/v15/toy_wholecell_flattened.xml
-    WARNING:cobra.io.sbml:SBML package 'comp' not supported by cobrapy,information is not parsed
-    INFO:root:--------------------------------------------------------------------------------
-    <Model toy_wholecell_top "toy_wholecell (TOP)"> [ode]
-    --------------------------------------------------------------------------------
-    ode        : [<Submodel bounds>, <Submodel update>]
-    fba        : [<Submodel fba>]
-    dt         : 0.1
-    flux rules :
-    	      EX_A <-> pEX_A
-    	      EX_C <-> pEX_C
-    
-    <Submodel fba> toy_wholecell_fba.xml
-    --------------------------------------------------------------------------------
-    	obj. direction        : maximize
-    	cobra obj. direction  : max
-    	fba2top reactions     : {'EX_C': 'EX_C', 'EX_A': 'EX_A'}
-    	ub_pid2rid            : {'ub_EX_C': 'EX_C', 'ub_EX_A': 'EX_A', 'ub_R1': 'R1'}
-    	lb_pid2rid            : {'lb_EX_C': 'EX_C', 'lb_EX_A': 'EX_A'}
-    	top2flat reactions    : {'EX_C': 'EX_C', 'R2': 'fba__R2', 'R3': 'fba__R3', 'R1': 'fba__R1', 'EX_A': 'EX_A'}
-    --------------------------------------------------------------------------------
-    
-    INFO:root:        lb    ub reversibility boundary objective_coefficient  \
-    R1       0     1         False    False                     0   
-    R2       0  1000         False    False                     0   
-    R3       0  1000         False    False                     1   
-    EX_A -1000  1000          True     True                     0   
-    EX_C -1000  1000          True     True                     0   
-    
-             forward_variable                   reverse_variable  
-    R1         0 <= R1 <= 1.0      0 <= R1_reverse_cda52 <= -0.0  
-    R2      0 <= R2 <= 1000.0      0 <= R2_reverse_8c6d2 <= -0.0  
-    R3      0 <= R3 <= 1000.0      0 <= R3_reverse_5c108 <= -0.0  
-    EX_A  0 <= EX_A <= 1000.0  0 <= EX_A_reverse_b86fb <= 1000.0  
-    EX_C  0 <= EX_C <= 1000.0  0 <= EX_C_reverse_69b38 <= 1000.0  
-    INFO:root:dt set from old value <0.1> to new value: dt=1.0
-    INFO:root:	lower: lb_EX_C    = 0.0 set to 0.0
 
 
-.. parsed-literal::
-
-    /tmp/tmpgr58razr/v15/dfba_simulation.xml
-    /tmp/tmpgr58razr/v15/toy_wholecell_top.xml
-    --------------------------------------------------------------------------------
-    ODE integrator settings
-    --------------------------------------------------------------------------------
-    <roadrunner.RoadRunner() { 
-    'this' : 0x74aede0
-    'modelLoaded' : true
-    'modelName' : toy_wholecell (TOP)
-    'libSBMLVersion' : LibSBML Version: 5.17.2
-    'jacobianStepSize' : 1e-05
-    'conservedMoietyAnalysis' : false
-    'simulateOptions' : 
-    < roadrunner.SimulateOptions() 
-    { 
-    'this' : 0x7302c50, 
-    'reset' : 0,
-    'structuredResult' : 0,
-    'copyResult' : 1,
-    'steps' : 50,
-    'start' : 0,
-    'duration' : 5
-    }>, 
-    'integrator' : 
-    < roadrunner.Integrator() >
-      name: cvode
-      settings:
-          relative_tolerance: 0.000001
-          absolute_tolerance: 0.000001
-                       stiff: true
-           maximum_bdf_order: 5
-         maximum_adams_order: 12
-           maximum_num_steps: 20000
-           maximum_time_step: 0
-           minimum_time_step: 0
-           initial_time_step: 0
-              multiple_steps: false
-          variable_step_size: false
-    
-    }>
-    --------------------------------------------------------------------------------
-    
-    Simulation time     : 17.780 [s]
-    Total time          : 17.863 [s]
-    Overhead time       : 0.083 [s] (0.5 %)
-    
-    * DFBA Solution is UNIQUE *
+::
 
 
+    ---------------------------------------------------------------------------
 
-.. image:: dfba_files/dfba_6_3.png
+    AttributeError                            Traceback (most recent call last)
 
-
-.. parsed-literal::
-
-    INFO:root:print_species: None
-
-
-
-.. image:: dfba_files/dfba_6_5.png
-
-
-.. parsed-literal::
-
-    INFO:root:print_fluxes: None
+    <ipython-input-4-a5f5520095be> in <module>
+          7 
+          8 # create the toy model
+    ----> 9 toyfactory.create_model(test_dir)
+         10 # here the files are generated
+         11 sbml_path = os.path.join(utils.versioned_directory(test_dir, toysettings.VERSION),
 
 
-.. parsed-literal::
+    ~/git/sbmlutils/sbmlutils/dfba/toy_wholecell/model_factory.py in create_model(output_dir)
+        387 
+        388     # create sbml
+    --> 389     doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
+        390     bounds_model(settings.BOUNDS_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
+        391     update_model(settings.UPDATE_LOCATION, directory, doc_fba=doc_fba, annotations=annotations)
 
-         time        [A]       [C]       [D]  [dummy_S]  [fba__A]  [fba__B1]  \
-    0.0   0.0  10.000000  0.000000  0.000000        0.0       0.0        0.0   
-    1.0   1.0   9.000000  0.951639  0.048362        0.0       0.0        0.0   
-    2.0   2.0   8.181278  1.640202  0.178520        0.0       0.0        0.0   
-    3.0   3.0   7.510973  2.122005  0.367022        0.0       0.0        0.0   
-    4.0   4.0   6.962185  2.442313  0.595502        0.0       0.0        0.0   
-    
-         [fba__B2]  [fba__C]      EX_A  ...  fba__ub_default  fba__zero  k_R4  \
-    0.0        0.0       0.0 -1.000000  ...           1000.0        0.0   0.1   
-    1.0        0.0       0.0 -0.818722  ...           1000.0        0.0   0.1   
-    2.0        0.0       0.0 -0.670305  ...           1000.0        0.0   0.1   
-    3.0        0.0       0.0 -0.548788  ...           1000.0        0.0   0.1   
-    4.0        0.0       0.0 -0.449304  ...           1000.0        0.0   0.1   
-    
-            lb_EX_A    lb_EX_C     pEX_A     pEX_C  ub_EX_A  ub_EX_C     ub_R1  
-    0.0 -100.000000   0.000000 -1.000000  1.000000   1000.0   1000.0  1.000000  
-    1.0  -90.000000  -9.516386 -0.818722  0.818722   1000.0   1000.0  0.818722  
-    2.0  -81.812784 -16.402019 -0.670305  0.670305   1000.0   1000.0  0.670305  
-    3.0  -75.109734 -21.220050 -0.548788  0.548788   1000.0   1000.0  0.548788  
-    4.0  -69.621850 -24.423134 -0.449304  0.449304   1000.0   1000.0  0.449304  
-    
-    [5 rows x 30 columns]
+
+    ~/git/sbmlutils/sbmlutils/dfba/toy_wholecell/model_factory.py in fba_model(sbml_file, directory, annotations)
+        153 
+        154     # reactions
+    --> 155     r1 = mc.create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
+        156                             reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
+        157     r2 = mc.create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
+
+
+    AttributeError: module 'sbmlutils.factory' has no attribute 'create_reaction'
 
 
 Diauxic growth

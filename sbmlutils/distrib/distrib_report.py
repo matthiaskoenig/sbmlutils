@@ -11,4 +11,4 @@ if __name__ == "__main__":
                  "./uncertainty_uncertspan.xml",
                  "./uncertainty_uncertvalue.xml"]:
         print(path)
-        sbmlreport.create_sbml_report(path, out_dir="./results/")
+        sbmlreport.create_report(path, target_dir="./results/")

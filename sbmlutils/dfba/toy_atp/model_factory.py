@@ -369,7 +369,7 @@ def create_model(output_dir):
     ]
 
     sbml_paths = [pjoin(directory, fname) for fname in locations]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+    sbmlreport.create_reports(sbml_paths, directory, validate=False)
 
     # create sedml
     from sbmlutils.dfba.sedml import create_sedml

@@ -19,6 +19,7 @@ echo "--------------------------------------"
 rm -rf _apidoc
 rm -rf _built
 rm -rf _notebooks
+rm -rf _static
 echo "DONE"
 
 # create rst & python files from the notebooks
