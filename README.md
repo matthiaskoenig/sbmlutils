@@ -23,8 +23,7 @@ Features include among others
 * implementation of dynamic flux balance analysis (DFBA)
 * file converters (XPP)
 
-For a more detailed description and examples see the documentation at   
-<a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
+For a documentation and examples see https://sbmlutils.readthedocs.io 
   
 ### How to cite
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  
