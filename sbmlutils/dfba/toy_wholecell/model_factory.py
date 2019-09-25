@@ -382,7 +382,7 @@ def create_model(output_dir):
 
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  settings.ANNOTATIONS_LOCATION)
-    annotations = annotator.ModelAnnotator.annotations_from_file(f_annotations)
+    annotations = annotator.ModelAnnotator.read_annotations(f_annotations)
 
 
     # create sbml

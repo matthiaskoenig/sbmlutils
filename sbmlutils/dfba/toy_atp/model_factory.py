@@ -337,7 +337,7 @@ def create_model(output_dir):
     :return directory in which model files exist.
     """
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'annotations.xlsx')
-    annotations = annotator.ModelAnnotator.annotations_from_file(f_annotations)
+    annotations = annotator.ModelAnnotator.read_annotations(f_annotations)
 
     directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 

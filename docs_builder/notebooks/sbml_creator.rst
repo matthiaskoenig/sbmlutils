@@ -1,4 +1,4 @@
-Modelcreator
+SBML creator
 ============
 
 ``sbmlutils`` provides helpers for the creation of SBML models from

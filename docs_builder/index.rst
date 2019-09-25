@@ -16,9 +16,10 @@ Contents:
    :maxdepth: 2
 
    introduction.rst
-   notebooks/modelreport
-   notebooks/modelcreator
-   notebooks/interpolation
+   notebooks/sbml_report
+   notebooks/sbml_creator
+   notebooks/sbml_annotator
+   notebooks/sbml_interpolation
    notebooks/dfba
 
 

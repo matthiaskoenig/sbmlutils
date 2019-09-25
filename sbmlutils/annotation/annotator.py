@@ -11,19 +11,54 @@ model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
+import os
 import re
-import pyexcel
-import csv
+import pandas as pd
 import logging
 import libsbml
 from collections import OrderedDict
-import os
+
 
 from sbmlutils import utils
 from .miriam import *
 
-
 LOGGER = logging.getLogger(__name__)
+
+
+def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
+    """
+    Annotate a given SBML file with the provided annotations.
+
+    :param f_sbml: SBML to annotation
+    :param f_annotations: external file with annotations
+    :param f_sbml_annotated: annotated file
+    """
+    if not os.path.exists(f_sbml):
+        raise IOError("SBML file does not exist: {}".format(f_sbml))
+    if not os.path.exists(f_annotations):
+        raise IOError("Annotation file does not exist: {}".format(f_annotations))
+
+    # read SBML model
+    doc = libsbml.readSBML(f_sbml)
+
+    # read annotations
+    external_annotations = ModelAnnotator.read_annotations(f_annotations, format="*")
+    doc = annotate_sbml_doc(doc, external_annotations)
+
+    # save
+    libsbml.writeSBMLToFile(doc, f_sbml_annotated)
+
+
+def annotate_sbml_doc(doc, external_annotations):
+    """ Annotates given SBML document using the annotations file.
+
+    :param doc: SBMLDocument
+    :param external_annotations: ModelAnnotations
+    :return: libsbml.SBMLDocument
+    """
+    annotator = ModelAnnotator(doc, external_annotations)
+    annotator.annotate_model()
+    return doc
 
 
 class Annotation(object):
@@ -91,14 +126,6 @@ class Annotation(object):
             else:
                 self.collection = tokens[0]
                 self.term = "/".join(tokens[1:])
-
-        '''
-        print("self.collection:", self.collection)
-        print("self.term:", self.term)
-        print("resource:", resource)
-        print("self.resource:", self.resource)
-        print("-"*80)
-        '''
 
         self.validate()
 
@@ -283,45 +310,6 @@ class ExternalAnnotation(object):
         return str(self.d)
 
 
-# ----------------------------------------------------------
-# External annotation files
-# ----------------------------------------------------------
-def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
-    """
-    Annotate a given SBML file with the provided annotations.
-
-    :param f_sbml: SBML to annotation
-    :param f_annotations: external file with annotations
-    :param f_sbml_annotated: annotated file
-    """
-    if not os.path.exists(f_sbml):
-        raise IOError("SBML file does not exist: {}".format(f_sbml))
-    if not os.path.exists(f_annotations):
-        raise IOError("Annotation file does not exist: {}".format(f_annotations))
-
-    # read SBML model
-    doc = libsbml.readSBML(f_sbml)
-
-    # read annotations
-    external_annotations = ModelAnnotator.annotations_from_file(f_annotations)
-    doc = annotate_sbml_doc(doc, external_annotations)
-
-    # save
-    libsbml.writeSBMLToFile(doc, f_sbml_annotated)
-
-
-def annotate_sbml_doc(doc, external_annotations):
-    """ Annotates given SBML document using the annotations file.
-
-    :param doc: SBMLDocument
-    :param external_annotations: ModelAnnotations
-    :return: libsbml.SBMLDocument
-    """
-    annotator = ModelAnnotator(doc, external_annotations)
-    annotator.annotate_model()
-    return doc
-
-
 class ModelAnnotator(object):
     """ Helper class for annotating SBML models. """
 
@@ -491,25 +479,6 @@ class ModelAnnotator(object):
         return libsbml.__dict__.get(qualifier_str)
 
     @staticmethod
-    def annotations_from_file(file_path, delimiter='\t'):
-        """ Reads annotations from given file.
-
-        Supports either excel files or CSV.
-
-        :param file_path:
-        :param delimiter:
-        :return:
-        """
-        if file_path.endswith('.xlsx'):
-            return ModelAnnotator.annotations_from_xlsx(
-                file_path, delimiter=delimiter
-            )
-        else:
-            return ModelAnnotator.annotations_from_csv(
-                file_path, delimiter=delimiter
-            )
-
-    @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation):
         """ Annotate SBase based on given annotation data
 
@@ -545,44 +514,60 @@ class ModelAnnotator(object):
             LOGGER.error(libsbml.OperationReturnValue_toString(success))
             LOGGER.error("{}, {}, {}".format(object, qualifier, resource))
 
-    @staticmethod
-    def annotations_from_csv(csvfile, delimiter='\t'):
-        """ Read annotations from csv in annotation data structure. """
-        res = []
-        f = open(csvfile, 'rt')
-        reader = csv.reader(f, delimiter=delimiter, quoting=csv.QUOTE_NONE)
-
-        # first line is headers line
-        headers = next(reader)
-        logging.debug('Headers: {}'.format(headers))
-
-        # read entries
-        for row in reader:
-            # skip empty lines
-            if not ''.join(row).strip():
-                continue
-            # skip comments
-            if row[0].startswith('#'):
-                continue
-
-            entry = dict(zip(headers, [item.strip() for item in row]))
-            a = ExternalAnnotation(entry)
-            res.append(a)
-            # logging.debug(str(a))
-
-        return res
+    # --- File IO ---
 
     @staticmethod
-    def annotations_from_xlsx(xslxfile, delimiter='\t', rm_csv=False):
-        """Read annotations from xlsx file.
-        xlsx is converted to csv file and than parsed with csv reader.
+    def read_annotations_df(file_path, format="*"):
+        """ Reads annotations from given file into DataFrame.
+
+        Supports "xlsx", "tsv", "csv", "json", "*"
+
+        :param file_path: either path to file, or data in dict format
+        :param format: annotation file format
+        :return: pandas.DataFrame
         """
-        csvfile = "{}.csv".format(xslxfile)
-        pyexcel.save_as(file_name=xslxfile, dest_file_name=csvfile,
-                        dest_delimiter=delimiter)
-        res = ModelAnnotator.annotations_from_csv(csvfile, delimiter=delimiter)
+        filename, file_extension = os.path.splitext(file_path)
+        if format == "*":
+            format = file_extension[1:]  # remove leading dot
 
-        if rm_csv:
-            import os
-            os.remove(csvfile)
-        return res
+        formats = ["xlsx", "tsv", "csv", "json"]
+        if format not in formats:
+            raise IOError("Annotation format '{}' not in supported formats: '{}'".format(
+                format, formats))
+
+        if file_extension != ("." + format):
+            logging.warning("format '{}' not matching file extension '{}' for file_path '{}'".format(
+                format, file_extension, file_path
+            ))
+
+        if format == "tsv":
+            df = pd.read_csv(file_path, sep="\t", comment='#', skip_blank_lines=True)
+        elif format == "csv":
+            df = pd.read_csv(file_path, sep=",", comment='#', skip_blank_lines=True)
+        elif format == "json":
+            df = pd.read_json(file_path)
+        elif format == "xlsx":
+            df = pd.read_excel(file_path, comment="#")
+
+        df.dropna(axis='index', inplace=True)
+        return df
+
+    @staticmethod
+    def read_annotations(file_path, format="*"):
+        """ Reads annotations from given file into DataFrame.
+
+        Supports "xlsx", "tsv", "csv", "json", "*"
+
+        :param file_path: either path to file, or data in dict format
+        :param format: annotation file format
+        :return: list of annotation objects
+        """
+        df = ModelAnnotator.read_annotations_df(file_path=file_path, format=format)
+        entries = df.to_dict('records')
+        annotations = []
+        for entry in entries:
+            annotations.append(
+                ExternalAnnotation(entry)
+            )
+
+        return annotations
