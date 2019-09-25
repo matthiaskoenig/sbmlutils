@@ -332,7 +332,7 @@ class Interpolation(object):
             temp_dir = tempfile.mkdtemp()
             tmp_f = os.path.join(temp_dir, 'validated.xml')
             libsbml.writeSBMLToFile(self.doc, tmp_f)
-            validation.check_sbml(tmp_f, ucheck=False)
+            validation.check_sbml(tmp_f, units_consistency=False)
         finally:
             shutil.rmtree(temp_dir)
 

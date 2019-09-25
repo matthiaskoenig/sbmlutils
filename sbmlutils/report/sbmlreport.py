@@ -31,7 +31,7 @@ from sbmlutils import utils
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 
-def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=False, validate=True):
+def create_reports(sbml_paths, out_dir, template='report.html', promote=False, validate=True):
     """ Creates individual reports and an overview file.
 
     :param sbmls:
@@ -44,13 +44,71 @@ def create_sbml_reports(sbml_paths, out_dir, template='report.html', promote=Fal
     # individual reports
     for sbml_path in sbml_paths:
         logging.info(sbml_path)
-        create_sbml_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
+        create_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
 
     # write index html (unicode)
     html = _create_index_html(sbml_paths)
     f_index = codecs.open(os.path.join(out_dir, 'index.html'), encoding='utf-8', mode='w')
     f_index.write(html)
     f_index.close()
+
+
+def create_report(sbml_path, report_dir,
+                  promote=False, template='report.html',
+                  validate=True,
+                  log_errors=True,
+                  units_consistency=True,
+                  modeling_practice=True):
+    """ Create a HTML report for a given SBML file.
+
+    The SBML file can be validated during report generation.
+    Local parameters can be promoted during report generation.
+
+    :param sbml_path: path to SBML file
+    :param report_dir: target directory where the report is written
+    :param promote: boolean flag to promote local parameters
+    :param template: which template file to use for rendering
+    :param validate: boolean flag if SBML file be validated (warnings and errors are logged)
+    :param log_errors: boolean flag of errors should be logged
+    :param units_consistency: boolean flag units consistency
+    :param modeling_practice: boolean flag modeling practise
+
+    :return:
+    """
+    # check paths
+    if not os.path.exists(sbml_path):
+        raise IOError("'sbml_path' does not exist: '{}'".format(sbml_path))
+    if not os.path.exists(report_dir):
+        raise IOError("'report_dir' does not exist: '{}'".format(report_dir))
+    if not os.path.isdir(report_dir):
+        raise IOError("'report_dir' is not a directory: '{}'".format(report_dir))
+
+    # validate SBML
+    if validate:
+        check_sbml(sbml_path, log_errors=log_errors,
+                   units_consistency=units_consistency, modeling_practice=modeling_practice)
+
+    # read SBML
+    doc = libsbml.readSBML(sbml_path)
+
+    # promote parameters
+    if promote:
+        utils.promote_local_variables(doc)
+
+    # write SBML to report directory
+    basename = os.path.basename(sbml_path)
+    tokens = basename.split('.')
+    name = '.'.join(tokens[:-1])
+    f_sbml = os.path.join(report_dir, basename)
+    libsbml.writeSBMLToFile(doc, f_sbml)
+
+    # write html (unicode)
+    html = _create_html(doc, basename, html_template=template)
+    path_html = os.path.join(report_dir, '{}.html'.format(name))
+    f_html = codecs.open(path_html, encoding='utf-8', mode='w')
+    f_html.write(html)
+    f_html.close()
+    print("SBML report created: {}".format(path_html))
 
 
 def _create_index_html(sbml_paths, html_template='index.html', offline=True):
@@ -80,47 +138,6 @@ def _create_index_html(sbml_paths, html_template='index.html', offline=True):
         'sbml_links': sbml_links,
     }
     return template.render(c)
-
-
-def create_sbml_report(sbml_path, out_dir, template='report.html', promote=False, validate=True):
-    """ Creates the SBML report in the out_dir
-
-    :param validate:
-    :param promote:
-    :param template:
-    :param sbml_path:
-    :param doc:
-    :param out_dir:
-    :return:
-    :rtype:
-    """
-    # check if sbml_file exists
-    if not os.path.exists(sbml_path):
-        warnings.warn('SBML file does not exist: {}'.format(sbml_path))
-
-    # check sbml file
-    if validate:
-        check_sbml(sbml_path)
-
-    # read sbml
-    doc = libsbml.readSBML(sbml_path)
-    if promote:
-        utils.promote_local_variables(doc)
-
-    # write sbml to output folder
-    basename = os.path.basename(sbml_path)
-    tokens = basename.split('.')
-    name = '.'.join(tokens[:-1])
-
-    f_sbml = os.path.join(out_dir, basename)
-    libsbml.writeSBMLToFile(doc, f_sbml)
-
-    # write html (unicode)
-    html = _create_html(doc, basename, html_template=template)
-    f_html = codecs.open(os.path.join(out_dir, '{}.html'.format(name)),
-                         encoding='utf-8', mode='w')
-    f_html.write(html)
-    f_html.close()
 
 
 def _create_html(doc, basename, html_template='report.html', offline=True):
@@ -674,9 +691,9 @@ def math(item):
 
 def boolean(condition):
     if condition:
-        return '<td><span class="glyphicon glyphicon-ok green"></span><span class="invisible">T</span></td>'
+        return '<td><span class="fas fa-check-circle green"></span><span class="invisible">T</span></td>'
     else:
-        return '<td><span class="glyphicon glyphicon-remove red"><span class="invisible">F</span></span></td>'
+        return '<td><span class=""><span class="invisible">F</span></span></td>'
 
 
 def annotation_xml(item):
@@ -724,4 +741,3 @@ def derived_units(item):
     if item:
         return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
     return ''
-

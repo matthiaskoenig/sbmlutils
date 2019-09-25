@@ -10,7 +10,8 @@ import sbmlutils.tests.data as data
 
 
 def test_check_sbml():
-    Nall, Nerr, Nwarn = validation.check_sbml(data.DEMO_SBML, ucheck=True)
+    Nall, Nerr, Nwarn = validation.check_sbml(data.DEMO_SBML,
+                                              units_consistency=True)
     assert Nall == 0
 
 

@@ -63,6 +63,13 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.7
+* documentation updated
+* additional annotation formats supported
+* support of formula and charge on species
+* fixed tests
+* bug fixes
+
 ### 0.3.6
 * support for mass and charge
 * refactored and simplified Reactions

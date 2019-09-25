@@ -28,8 +28,8 @@ def model_reports(biomodels_folder, reports_folder):
                 sbml_paths.append(f_path)
     pprint(sbml_paths)
 
-    sbmlreport.create_sbml_reports(sorted(sbml_paths)[:10], out_dir=reports_folder,
-                                   validate=False)
+    sbmlreport.create_reports(sorted(sbml_paths)[:10], out_dir=reports_folder,
+                              validate=False)
 
 
 if __name__ == "__main__":

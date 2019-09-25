@@ -177,3 +177,17 @@ MIRIAM_COLLECTION["omim"] = {
     "namespace": "omim",
     "definition": "Molecular Interactions Controlled Vocabulary"
 }
+MIRIAM_COLLECTION["brenda.ligand"] = {
+    "id": "brenda.ligand",
+    "pattern": r"^\d+$",
+    "name": "BRENDA Ligand",
+    "namespace": "brenda.ligand",
+    "definition": "BRENDA Ligand Information"
+}
+MIRIAM_COLLECTION["metabolights.compound"] = {
+    "id": "metabolights.compound",
+    "pattern": r"^MTBLC\d+$",
+    "name": "Metabolights compound",
+    "namespace": "metabolights compound",
+    "definition": "Metabolights Compound"
+}

@@ -8,7 +8,6 @@ import functools
 import uuid
 
 
-
 def create_metaid(sbase):
     """ Creates a unique meta id.
 
@@ -34,9 +33,6 @@ def _create_hash_id(sbase):
     if isinstance(sbase, libsbml.AssignmentRule) or isinstance(sbase, libsbml.RateRule):
         hash_id = uuid.uuid4().hex
     return hash_id
-
-
-
 
 
 def timeit(f):

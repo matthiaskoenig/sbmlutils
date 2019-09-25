@@ -217,7 +217,8 @@ class ReplacedElement(SbaseRef):
             # fallback to units (only working if no name shadowing)
             e = model.getUnitDefinition(self.elementRef)
             if not e:
-                raise ValueError("Neither SBML element nor UnitDefinition found for elementRef: {}".format(self.elementRef))
+                raise ValueError("Neither SBML element nor UnitDefinition found for elementRef: '{}' in '{}'".format(
+                    self.elementRef, self))
 
         eplugin = e.getPlugin("comp")
         obj = eplugin.createReplacedElement()

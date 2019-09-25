@@ -58,6 +58,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinx.ext.autosectionlabel',
 ]
 # execution of notebooks
 if on_rtd:
@@ -82,7 +83,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'sbmlutils'
-copyright = u'2017, Matthias König'
+copyright = u'2017-2019, Matthias König'
 author = u'Matthias König'
 
 # The version info for the project you're documenting, acts as replacement for

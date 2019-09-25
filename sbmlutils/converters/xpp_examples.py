@@ -17,7 +17,7 @@ def example(model_id):
     xpp_file = os.path.join(xpp_dir, "{}.ode".format(model_id))
     sbml_file = os.path.join(out_dir, "{}.xml".format(model_id))
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
+    sbmlreport.create_report(sbml_file, target_dir=out_dir, validate=False)
 
     # test simulation
     r = roadrunner.RoadRunner(sbml_file)

@@ -22,16 +22,16 @@ SBML_FILES = [
 class TestValidation(unittest.TestCase):
     """ Unittests for the validation module."""
 
-    def validate_file(self, sbmlpath, ucheck=True, Nall=0):
+    def validate_file(self, sbmlpath, units_consistency=True, Nall=0):
         """ Validate given SBML file.
 
         Helper function called by the other tests.
 
         :param sbmlpath:
-        :param ucheck:
+        :param units_consistency:
         :return:
         """
-        Nall, Nerr, Nwarn = check_sbml(sbmlpath, ucheck=ucheck)
+        Nall, Nerr, Nwarn = check_sbml(sbmlpath, units_consistency=units_consistency)
         self.assertIsNotNone(Nall)
         # There is an SBOfix for model framework in the develop version,
         # with the wheel steel 3 warnings
@@ -44,7 +44,7 @@ class TestValidation(unittest.TestCase):
         :return:
         """
         for d in SBML_FILES:
-            self.validate_file(sbmlpath=d['path'], ucheck=d['ucheck'], Nall=d['N'])
+            self.validate_file(sbmlpath=d['path'], units_consistency=d['ucheck'], Nall=d['N'])
 
 
 if __name__ == '__main__':

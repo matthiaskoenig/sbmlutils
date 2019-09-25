@@ -65,20 +65,23 @@ class Factory(object):
         return [model_dict, core_model, sbml_path]
 
 
-def create_model(modules, target_dir, annotations=None, suffix=None, create_report=True, mid=None):
+def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
+                 annotations=None, create_report=True, validate=True):
     """ Create SBML model from module information.
 
     This is the entry point for creating models.
     The model information is provided as a list of importable python modules.
-
+    If no filename is provided the filename is created from the id and suffix.
     Additional model annotations can be provided.
 
     :param modules: iteratable of strings of python modules
-    :param target_dir: directory in which to create SBML files
+    :param target_dir: directory in which to create SBML file
+    :param filename: filename to write to, if not provided mid and suffix are used
+    :param mid: model id to use for filename
+    :param suffix: suffix for SBML filename
     :param annotations: list of annotations for SBML
-    :param suffix: Suffix for SBML filename
     :param create_report: boolean switch to create SBML report
-    :param mid: model id to use for saving file
+    :param validate: validates the SBML file
     :return:
     """
     # preprocess
@@ -95,15 +98,17 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
         logging.warning("Target directory does not exist and is created: {}".format(target_dir))
         os.makedirs(target_dir)
 
-    if mid is None:
-        mid = core_model.model.getId()
-    if suffix is not None:
-        filename = '{}{}.xml'.format(mid, suffix)
-    else:
-        filename = '{}.xml'.format(mid)
+    if not filename:
+        # create filename
+        if mid is None:
+            mid = core_model.model.getId()
+        if suffix is not None:
+            filename = '{}{}.xml'.format(mid, suffix)
+        else:
+            filename = '{}.xml'.format(mid)
     sbml_path = os.path.join(target_dir, filename)
 
-    core_model.write_sbml(sbml_path, validate=True)
+    core_model.write_sbml(sbml_path, validate=validate)
 
     # annotate
     if annotations is not None:
@@ -113,7 +118,8 @@ def create_model(modules, target_dir, annotations=None, suffix=None, create_repo
     # create report
     if create_report:
         logging.info("Create SBML report:'{}'".format(sbml_path))
-        sbmlreport.create_sbml_report(sbml_path=sbml_path, out_dir=target_dir, validate=False)
+        # file is already validated, no validation on report needed
+        sbmlreport.create_report(sbml_path=sbml_path, report_dir=target_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
 
@@ -251,7 +257,6 @@ class CoreModel(object):
             return '{}_{}'.format(self.mid, self.version)
         else:
             return self.mid
-
 
     @staticmethod
     def from_dict(model_dict):

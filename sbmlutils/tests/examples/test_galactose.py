@@ -7,7 +7,8 @@ from sbmlutils.tests import data
 
 
 def test_validate_sbml():
-    Nall, Nerr, Nwarn = validation.check_sbml(data.GALACTOSE_SINGLECELL_SBML, ucheck=True)
+    Nall, Nerr, Nwarn = validation.check_sbml(data.GALACTOSE_SINGLECELL_SBML,
+                                              units_consistency=True)
     assert Nerr == 0
 
 

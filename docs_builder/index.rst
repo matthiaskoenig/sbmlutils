@@ -5,6 +5,10 @@ Welcome to sbmlutils documentation!
 
 **sbmlutils**: Python utilities for working with `SBML <http://www.sbml.org>`_ models.
 
+Source code available from
+`https://github.com/matthiaskoenig/sbmlutils
+<https://github.com/matthiaskoenig/sbmlutils>`_.
+
 
 Contents:
 
@@ -12,9 +16,12 @@ Contents:
    :maxdepth: 2
 
    introduction.rst
+   notebooks/sbml_report
+   notebooks/sbml_creator
+   notebooks/sbml_annotator
+   notebooks/sbml_converters
+   notebooks/sbml_interpolation
    notebooks/dfba
-   notebooks/modelcreator
-   notebooks/interpolation
 
 
 

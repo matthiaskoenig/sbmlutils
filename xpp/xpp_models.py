@@ -181,8 +181,8 @@ if __name__ == "__main__":
             print('[{}]'.format(k))
             xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, validate=False, debug=debug)
             success = True
-            sbmlreport.create_sbml_report(sbml_file, out_dir=out_dir, validate=False)
-            Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, show_errors=show_errors)
+            sbmlreport.create_report(sbml_file, target_dir=out_dir, validate=False)
+            Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, log_errors=show_errors)
             valid = (Nerr == 0)
             simulates = False
             if valid:

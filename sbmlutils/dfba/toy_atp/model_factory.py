@@ -337,7 +337,7 @@ def create_model(output_dir):
     :return directory in which model files exist.
     """
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'annotations.xlsx')
-    annotations = annotator.ModelAnnotator.annotations_from_file(f_annotations)
+    annotations = annotator.ModelAnnotator.read_annotations(f_annotations)
 
     directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
@@ -369,7 +369,7 @@ def create_model(output_dir):
     ]
 
     sbml_paths = [pjoin(directory, fname) for fname in locations]
-    sbmlreport.create_sbml_reports(sbml_paths, directory, validate=False)
+    sbmlreport.create_reports(sbml_paths, directory, validate=False)
 
     # create sedml
     from sbmlutils.dfba.sedml import create_sedml

@@ -22,7 +22,7 @@ class XPPTestCase(unittest.TestCase):
         xpp_file = os.path.join(xpp_dir, "{}.ode".format(ode_id))
 
         xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-        Nall_res, Nerr_res, Nwarn_res = validation.check_sbml(sbml_file, ucheck=False)
+        Nall_res, Nerr_res, Nwarn_res = validation.check_sbml(sbml_file, units_consistency=False)
         assert Nall_res == Nall
         assert Nerr_res == Nerr
         assert Nwarn_res == Nwarn

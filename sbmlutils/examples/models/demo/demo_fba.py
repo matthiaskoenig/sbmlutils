@@ -4,7 +4,6 @@ Run some simple FBA simulations.
 """
 import os
 
-
 import cobra
 import libsbml
 from sbmlutils import fbc

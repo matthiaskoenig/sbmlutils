@@ -73,8 +73,7 @@ setup(
         "requests>=2.21.0",
         "beautifulsoup4>=4.7.1",
         "xarray>=0.11.3",
-        "pyexcel>=0.5.13",
-        "pyexcel-xlsx>=0.5.7",
+        "xlrd",
 
         "xmlschema",
 
