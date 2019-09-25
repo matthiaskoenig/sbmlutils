@@ -14,4 +14,6 @@ Features include among others
 -  implementation of dynamic flux balance analysis (DFBA)
 -  file converters (XPP)
 
+Documentation is available at https://sbmlutils.readthedocs.io
+
 © 2017-2019 Matthias König

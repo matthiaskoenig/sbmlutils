@@ -18,7 +18,6 @@ def create_miriam_json():
     d = xs.to_dict('./resources/IdentifiersOrg-Registry.xml')
     # pprint(d['datatype'][1])
 
-
     datatypes = {}
     for entry in d['datatype']:
         datatypes[entry["namespace"]] = {
@@ -42,4 +41,3 @@ if __name__ == "__main__":
     with open('./resources/IdentifiersOrg-Registry.json', 'r') as fp:
         d = json.load(fp)
     print(d)
-

@@ -150,4 +150,3 @@ for r in reactions:
             r.annotations.append(
                 (BQB.IS, item)
             )
-

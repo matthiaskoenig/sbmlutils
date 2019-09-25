@@ -177,7 +177,6 @@ class Equation(object):
         """ Help information. """
         return """
         For information on the supported equation format use
-        
             from sbmlutils import equation
             help(equation)
         """

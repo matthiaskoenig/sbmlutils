@@ -34,6 +34,5 @@ if __name__ == "__main__":
     else:
         logging.error("DistribSBasePlugin not working for fbc:GeneProduct.")
 
-
     # store model with gene expression data
     libsbml.writeSBMLToFile(doc, "e_coli_core_expression.xml")

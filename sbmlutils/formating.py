@@ -31,8 +31,10 @@ def annotation_to_html(item):
     res = "<br />".join(lines)
     return res
 
+
 def notesToString(sbase):
     return sbase.getNotesString()
+
 
 # ------------------------------
 # Math and formulas

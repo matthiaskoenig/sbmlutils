@@ -91,7 +91,7 @@ class DFBATestCase(unittest.TestCase):
         # self.file_exists("species.png")
         # self.file_exists("simulation.csv")
 
-    #FIXME: what is wrong with this test?
+        # FIXME: what is wrong with this test?
 
     @unittest.skip
     def test_diauxic_simulation(self):

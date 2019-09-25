@@ -258,7 +258,6 @@ class CoreModel(object):
         else:
             return self.mid
 
-
     @staticmethod
     def from_dict(model_dict):
         """ Creates the CoreModel instance from given dictionary.

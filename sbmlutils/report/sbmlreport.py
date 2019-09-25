@@ -741,4 +741,3 @@ def derived_units(item):
     if item:
         return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
     return ''
-

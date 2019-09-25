@@ -1119,4 +1119,3 @@ class Event(Sbase):
     @staticmethod
     def _assignments_dict(species, values):
         return dict(zip(species, values))
-

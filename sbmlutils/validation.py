@@ -39,9 +39,9 @@ def check(value, message):
 
 
 def check_sbml(filepath, name=None, log_errors=True,
-              units_consistency=True,
-              modeling_practice=True,
-              internal_consistency=True):
+               units_consistency=True,
+               modeling_practice=True,
+               internal_consistency=True):
     """ Checks the given SBML filepath or string.
 
     :param doc: SBMLDocument to check

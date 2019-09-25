@@ -73,7 +73,7 @@ setup(
         "requests>=2.21.0",
         "beautifulsoup4>=4.7.1",
         "xarray>=0.11.3",
-        "xlrd>=1.2.0",
+        "xlrd",
 
         "xmlschema",
 
