@@ -123,7 +123,7 @@ Toy example
 
 .. parsed-literal::
 
-    Create directory: /tmp/tmp7zfs8w_k/v15
+    Create directory: /tmp/tmphq_jsv_y/v15
 
 
 .. parsed-literal::
