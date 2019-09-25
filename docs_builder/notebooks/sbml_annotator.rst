@@ -8,9 +8,6 @@ biological databases.
 
 .. code:: ipython3
 
-    %load_ext autoreload
-    %autoreload 2
-    
     from sbmlutils.report import sbmlreport
 
 Annotate existing model
@@ -290,7 +287,7 @@ For the full example see
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/annotation_example_8.xml
     valid                    : TRUE
-    check time (s)           : 0.012
+    check time (s)           : 0.011
     --------------------------------------------------------------------------------
     [0m[0m
     SBML report created: ./models/annotation_example_8.html

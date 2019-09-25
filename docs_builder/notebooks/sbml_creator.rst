@@ -19,26 +19,8 @@ scratch.
     from sbmlutils.dfba import builder
     
     from sbmlutils.units import *
-    from sbmlutils.sbo import *
+    from sbmlutils.annotation.sbo import *
     from sbmlutils.factory import *
-
-
-::
-
-
-    ---------------------------------------------------------------------------
-
-    ModuleNotFoundError                       Traceback (most recent call last)
-
-    <ipython-input-1-2ae9e0b03520> in <module>
-          6 
-          7 from sbmlutils.units import *
-    ----> 8 from sbmlutils.sbo import *
-          9 from sbmlutils.factory import *
-
-
-    ModuleNotFoundError: No module named 'sbmlutils.sbo'
-
 
 Unit definitions
 ~~~~~~~~~~~~~~~~
@@ -74,25 +56,6 @@ Units for the model are defined in the following manner.
     UNIT_VOLUME = 'm3'
     UNIT_CONCENTRATION = 'item_per_m3'
     UNIT_FLUX = 'item_per_s'
-
-
-::
-
-
-    ---------------------------------------------------------------------------
-
-    NameError                                 Traceback (most recent call last)
-
-    <ipython-input-2-1474738da384> in <module>
-    ----> 1 model_units = ModelUnits(time=UNIT_KIND_SECOND, 
-          2                          extent=UNIT_KIND_ITEM,
-          3                          substance=UNIT_KIND_ITEM,
-          4                          length=UNIT_KIND_METRE,
-          5                          area='m2',
-
-
-    NameError: name 'ModelUnits' is not defined
-
 
 Model building
 ~~~~~~~~~~~~~~
@@ -132,21 +95,20 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
         Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=builder.FLUX_BOUND_SBO),
         Parameter(sid="ub_default", value=builder.UPPER_BOUND_DEFAULT, unit=UNIT_FLUX, constant=True,
                      sboTerm=builder.FLUX_BOUND_SBO),
+        
+        # reactions
+        Reaction(sid="R1", name="A import (R1)",
+                 equation="A <-> B1", compartment='membrane', lowerFluxBound="zero", upperFluxBound="ub_R1"),
+        Reaction(sid="R2", name="B1 <-> B2 (R2)",
+                 equation="B1 <-> B2", compartment='cell',
+                 lowerFluxBound="zero", upperFluxBound="ub_default"),
+        Reaction(sid="R3", name="B2 export (R3)", fast=False, reversible=True,
+                 equation="B2 <-> C", compartment='membrane',
+                 lowerFluxBound="zero", upperFluxBound="ub_default"
+        ),
+        
     ]
     factory.create_objects(model, objects)
-    
-    # reactions
-    r1 = factory.create_reaction(model, rid="R1", name="A import (R1)", fast=False, reversible=True,
-                            reactants={"A": 1}, products={"B1": 1}, compartment='membrane')
-    r2 = factory.create_reaction(model, rid="R2", name="B1 <-> B2 (R2)", fast=False, reversible=True,
-                            reactants={"B1": 1}, products={"B2": 1}, compartment='cell')
-    r3 = factory.create_reaction(model, rid="R3", name="B2 export (R3)", fast=False, reversible=True,
-                            reactants={"B2": 1}, products={"C": 1}, compartment='membrane')
-    
-    # flux bounds
-    fbc.set_flux_bounds(r1, lb="zero", ub="ub_R1")
-    fbc.set_flux_bounds(r2, lb="zero", ub="ub_default")
-    fbc.set_flux_bounds(r3, lb="zero", ub="ub_default")
     
     # exchange reactions
     builder.create_exchange_reaction(model, species_id="A", flux_unit=UNIT_FLUX)
@@ -163,21 +125,14 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
     sbmlio.write_sbml(doc=doc, filepath=sbml_file.name)
 
 
-::
+.. parsed-literal::
 
-
-    ---------------------------------------------------------------------------
-
-    NameError                                 Traceback (most recent call last)
-
-    <ipython-input-3-5766e260b70a> in <module>
-          3 model = doc.getModel()
-          4 
-    ----> 5 factory.create_objects(model, units)
-          6 factory.set_model_units(model, model_units)
-          7 
-
-
-    NameError: name 'units' is not defined
+    [1m[92m
+    --------------------------------------------------------------------------------
+    /tmp/tmpjdcbys41.xml
+    valid                    : TRUE
+    check time (s)           : 0.010
+    --------------------------------------------------------------------------------
+    [0m[0m
 
 

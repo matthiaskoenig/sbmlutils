@@ -1,5 +1,5 @@
-Interpolation
-=============
+SBML interpolation
+==================
 
 ``sbmlutils`` provides functionality for creating interpolated functions
 in SBML models. This allows to drive the model with experimental data
@@ -86,21 +86,21 @@ write the resulting SBML models with the interpolation functions.
 
     [1m[92m
     --------------------------------------------------------------------------------
-    /tmp/tmp_weia0k1/validated.xml
+    /tmp/tmpiuvzsakx/validated.xml
+    valid                    : TRUE
+    check time (s)           : 0.002
+    --------------------------------------------------------------------------------
+    [0m[0m
+    [1m[92m
+    --------------------------------------------------------------------------------
+    /tmp/tmpw0fgfkrg/validated.xml
     valid                    : TRUE
     check time (s)           : 0.003
     --------------------------------------------------------------------------------
     [0m[0m
     [1m[92m
     --------------------------------------------------------------------------------
-    /tmp/tmpms6ltvmo/validated.xml
-    valid                    : TRUE
-    check time (s)           : 0.003
-    --------------------------------------------------------------------------------
-    [0m[0m
-    [1m[92m
-    --------------------------------------------------------------------------------
-    /tmp/tmp7fkgm6eg/validated.xml
+    /tmp/tmpvl8pnm7k/validated.xml
     valid                    : TRUE
     check time (s)           : 0.005
     --------------------------------------------------------------------------------

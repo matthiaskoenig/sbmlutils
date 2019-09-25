@@ -42,7 +42,7 @@ The created SBML report can be accessed from
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/BIOMD0000000012.xml
     valid                    : TRUE
-    check time (s)           : 0.012
+    check time (s)           : 0.011
     --------------------------------------------------------------------------------
     [0m[0m
     SBML report created: ./reports/BIOMD0000000012.html
@@ -73,7 +73,7 @@ The created SBML report can be accessed from
     valid                    : FALSE
     validation error(s)      : 1
     validation warnings(s)   : 0
-    check time (s)           : 1.288
+    check time (s)           : 1.289
     --------------------------------------------------------------------------------
     [0m[0m
     ERROR:root:[47m[30mE0: SBML component consistency (fbc, L76, code)[0m[0m

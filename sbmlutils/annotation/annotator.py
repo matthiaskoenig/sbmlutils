@@ -130,8 +130,9 @@ class Annotation(object):
         self.validate()
 
     @staticmethod
-    def from_tuple(tuple):
-        qualifier, resource = tuple[0], tuple[1]
+    def from_tuple(t):
+        """Constructor from tuple."""
+        qualifier, resource = t[0], t[1]
         return Annotation(qualifier=qualifier, resource=resource)
 
     @property
@@ -331,6 +332,7 @@ class ModelAnnotator(object):
         """
         # writes all annotations
         for a in self.annotations:
+            print(a)
             pattern = a.pattern
             if a.sbml_type == "document":
                 elements = [self.doc]
@@ -430,7 +432,7 @@ class ModelAnnotator(object):
         """ Annotate given elements with annotation.
 
         :param elements: SBase elements to annotate
-        :param a: annotation
+        :param ex_a: annotation
         :return:
         """
         for e in elements:
@@ -549,7 +551,7 @@ class ModelAnnotator(object):
         elif format == "xlsx":
             df = pd.read_excel(file_path, comment="#")
 
-        df.dropna(axis='index', inplace=True)
+        df.dropna(axis='index', inplace=True, how="all")
         return df
 
     @staticmethod

@@ -58,6 +58,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinx.ext.autosectionlabel',
 ]
 # execution of notebooks
 if on_rtd:
