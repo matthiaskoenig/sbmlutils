@@ -1,5 +1,5 @@
-SBML Model report
-=================
+SBML report
+===========
 
 ``sbmlutils`` can create HTML reports from given SBML files. Such an
 HTML report provides a simple entry point to get an overview over an
@@ -32,7 +32,7 @@ The created SBML report can be accessed from
 .. code:: ipython3
 
     # create SBML report without performing units checks
-    sbmlreport.create_sbml_report("./models/BIOMD0000000012.xml", report_dir="./reports", 
+    sbmlreport.create_report("./models/BIOMD0000000012.xml", report_dir="./reports", 
                                   units_consistency=False)
 
 
@@ -42,7 +42,7 @@ The created SBML report can be accessed from
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/BIOMD0000000012.xml
     valid                    : TRUE
-    check time (s)           : 0.008
+    check time (s)           : 0.012
     --------------------------------------------------------------------------------
     [0m[0m
     SBML report created: ./reports/BIOMD0000000012.html
@@ -61,7 +61,7 @@ The created SBML report can be accessed from
 .. code:: ipython3
 
     # create SBML report without performing units checks
-    sbmlreport.create_sbml_report("./models/iAT_PLT_636.xml.gz", report_dir="./reports", 
+    sbmlreport.create_report("./models/iAT_PLT_636.xml.gz", report_dir="./reports", 
                                   units_consistency=False, modeling_practice=False)
 
 
@@ -73,7 +73,7 @@ The created SBML report can be accessed from
     valid                    : FALSE
     validation error(s)      : 1
     validation warnings(s)   : 0
-    check time (s)           : 1.264
+    check time (s)           : 1.288
     --------------------------------------------------------------------------------
     [0m[0m
     ERROR:root:[47m[30mE0: SBML component consistency (fbc, L76, code)[0m[0m

@@ -485,7 +485,7 @@ def create_model(output_dir):
     directory = utils.versioned_directory(output_dir, version=settings.VERSION)
 
     f_annotations = os.path.join(os.path.dirname(os.path.abspath(__file__)), settings.ANNOTATIONS_LOCATION)
-    annotations = annotator.ModelAnnotator.annotations_from_file(f_annotations)
+    annotations = annotator.ModelAnnotator.read_annotations(f_annotations)
 
     # create sbml
     doc_fba = fba_model(settings.FBA_LOCATION, directory, annotations=annotations)
