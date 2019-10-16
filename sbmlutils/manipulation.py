@@ -1,7 +1,9 @@
 """
-Functions for model manipulation.
-Like model merging.
+Functions for SBML model manipulation.
+These functions take an existing SBML model and manipulate it in a clever way.
 
+For instance:
+- merge existing models in a combined model
 """
 import os
 import logging
@@ -15,7 +17,7 @@ SBML_VERSION = 1
 SBML_COMP_VERSION = 1
 
 
-def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
+def merge_models(model_paths, out_dir=None, merged_id="merged", validate: bool = True) -> libsbml.SBMLDocument:
     """ Merge models in model path.
     All models must be in the same subfolder.
     Relative paths are set in the merged models.
@@ -26,8 +28,6 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
     :return:
     """
     # necessary to convert models to SBML L3V1
-
-    # FIXME: the path should not be changed by functions (this will create problems if run concurrently)
     cur_dir = os.getcwd()
     os.chdir(out_dir)
 
@@ -42,8 +42,8 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
         else:
             new_dir = os.path.dirname(path)
             if new_dir != base_dir:
-                raise ValueError('All SBML files for merging must be in same '
-                                 'directory: {} != {}'.format(new_dir, base_dir))
+                raise IOError('All SBML files for merging must be in same '
+                              'directory: {} != {}'.format(new_dir, base_dir))
 
         # convert to L3V1
         path_L3 = os.path.join(out_dir, "{}_L3.xml".format(model_id))
@@ -58,7 +58,7 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate=True):
             validation.check_sbml(path, name=path)
 
     # create comp model
-    merged_doc = create_merged_doc(model_paths, merged_id=merged_id)
+    merged_doc = create_merged_doc(model_paths, merged_id=merged_id)  # type: libsbml.SBMLDocument
     if validate is True:
         validation.check_sbml(path, name=path)
 
@@ -78,11 +78,11 @@ def create_merged_doc(model_paths, merged_id="merged"):
     """
     sbmlns = libsbml.SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("comp", 1)
-    doc = libsbml.SBMLDocument(sbmlns)
+    doc = libsbml.SBMLDocument(sbmlns)  # type: libsbml.SBMLDocument
     doc.setPackageRequired("comp", True)
 
     # model
-    model = doc.createModel()
+    model = doc.createModel()  # type: libsbml.Model
     model.setId(merged_id)
 
     # comp plugin
@@ -91,12 +91,11 @@ def create_merged_doc(model_paths, merged_id="merged"):
 
     for emd_id, path in model_paths.items():
         # create ExternalModelDefinitions
-        emd = comp.create_ExternalModelDefinition(comp_doc, emd_id, source=path)
-        # add submodel which references the external model definitions
-        print("emd:", emd)
-        print("emd_id:", emd_id)
-        print("comp_model:", comp_model)
+        emd = comp.create_ExternalModelDefinition(
+            comp_doc, emd_id, source=path
+        )  # type: libsbml.ExternalModelDefinition
 
+        # add submodel which references the external model definitions
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)
 
     return doc

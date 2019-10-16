@@ -8,6 +8,7 @@ Main features of **sbmlutils** are
 - :ref:`SBML report` : HTML report of SBML models. This provides overview of the model contents.
 - :ref:`SBML creator` : The modelcreator provides utilities for the creation of SBML models. Supports `comp` and `fbc` models. Model information is managed in python data structures which are used to create the models.
 - :ref:`SBML annotator` : Helper functions for the annotation of SBML models. Annotations are hereby defined in separate annotation files with annotations being matched to ids based on regular expression matching.
+- :ref:`SBML manipulation` : Helper functions for the manipulation of existing SBML models, e.g., merging of SBML models.
 - :ref:`SBML converters` : Converters from and to SBML, e.g. xpp.
 - :ref:`SBML interpolation` : Helper functions for working with data interpolation in SBML models.
 .. - :ref:`DFBA` : Simulator for dynamic flux balance analysis (DFBA) of SBML model. For more information see also `<https://github.com/matthiaskoenig/dfba>`_.

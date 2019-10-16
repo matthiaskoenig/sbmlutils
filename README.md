@@ -62,6 +62,9 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.8
+* model manipulation (merging of models)
+
 ### 0.3.7
 * documentation updated
 * additional annotation formats supported

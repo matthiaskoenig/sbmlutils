@@ -60,6 +60,15 @@ identifiers which match the given pattern.
       </thead>
       <tbody>
         <tr>
+          <th>0</th>
+          <td>NaN</td>
+          <td>document</td>
+          <td>rdf</td>
+          <td>BQM_IS</td>
+          <td>sbo/SBO:0000293</td>
+          <td>non-spatial continuous framework</td>
+        </tr>
+        <tr>
           <th>1</th>
           <td>^demo_\d+$</td>
           <td>model</td>
@@ -204,6 +213,24 @@ identifiers which match the given pattern.
           <td>simple chemical</td>
         </tr>
         <tr>
+          <th>22</th>
+          <td>^\w{1}__\w+$</td>
+          <td>species</td>
+          <td>formula</td>
+          <td>NaN</td>
+          <td>C6H12O6</td>
+          <td>NaN</td>
+        </tr>
+        <tr>
+          <th>23</th>
+          <td>^\w{1}__\w+$</td>
+          <td>species</td>
+          <td>charge</td>
+          <td>NaN</td>
+          <td>0</td>
+          <td>NaN</td>
+        </tr>
+        <tr>
           <th>24</th>
           <td>^b\w{1}$</td>
           <td>reaction</td>
@@ -235,6 +262,32 @@ identifiers which match the given pattern.
     annotate_sbml_file(f_sbml="./annotations/demo.xml", 
                        f_annotations="./annotations/demo_annotations.xlsx", 
                        f_sbml_annotated="./annotations/demo_annotated.xml")
+
+
+.. parsed-literal::
+
+    {'pattern': nan, 'sbml_type': 'document', 'annotation_type': 'rdf', 'qualifier': 'BQM_IS', 'resource': 'sbo/SBO:0000293', 'name': 'non-spatial continuous framework'}
+    {'pattern': '^demo_\\d+$', 'sbml_type': 'model', 'annotation_type': 'rdf', 'qualifier': 'BQM_IS', 'resource': 'go/GO:0008152', 'name': 'metabolic process'}
+    {'pattern': 'e', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000290', 'name': 'physical compartment'}
+    {'pattern': 'e', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'go/GO:0005615', 'name': 'extracellular space'}
+    {'pattern': 'e', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'fma/FMA:70022', 'name': 'extracellular space'}
+    {'pattern': 'm', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000290', 'name': 'physical compartment'}
+    {'pattern': 'm', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'go/GO:0005886', 'name': 'plasma membrane'}
+    {'pattern': 'm', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'fma/FMA:63841', 'name': 'plasma membrane'}
+    {'pattern': 'c', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000290', 'name': 'physical compartment'}
+    {'pattern': 'c', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'go/GO:0005623', 'name': 'cell'}
+    {'pattern': 'c', 'sbml_type': 'compartment', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'fma/FMA:68646', 'name': 'cell'}
+    {'pattern': '^Km_\\w+$', 'sbml_type': 'parameter', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000027', 'name': 'Michaelis constant'}
+    {'pattern': '^Keq_\\w+$', 'sbml_type': 'parameter', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000281', 'name': 'equilibrium constant'}
+    {'pattern': '^Vmax_\\w+$', 'sbml_type': 'parameter', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000186', 'name': 'maximal velocity'}
+    {'pattern': '^\\w{1}__A$', 'sbml_type': 'species', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000247', 'name': 'simple chemical'}
+    {'pattern': '^\\w{1}__B$', 'sbml_type': 'species', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000247', 'name': 'simple chemical'}
+    {'pattern': '^\\w{1}__C$', 'sbml_type': 'species', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000247', 'name': 'simple chemical'}
+    {'pattern': '^\\w{1}__\\w+$', 'sbml_type': 'species', 'annotation_type': 'formula', 'qualifier': nan, 'resource': 'C6H12O6', 'name': nan}
+    {'pattern': '^\\w{1}__\\w+$', 'sbml_type': 'species', 'annotation_type': 'charge', 'qualifier': nan, 'resource': '0', 'name': nan}
+    {'pattern': '^b\\w{1}$', 'sbml_type': 'reaction', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000185', 'name': 'transport reaction'}
+    {'pattern': '^v\\w{1}$', 'sbml_type': 'reaction', 'annotation_type': 'rdf', 'qualifier': 'BQB_IS', 'resource': 'sbo/SBO:0000176', 'name': 'biochemical reaction'}
+
 
 Annotate during model creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,7 +340,7 @@ For the full example see
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/annotation_example_8.xml
     valid                    : TRUE
-    check time (s)           : 0.011
+    check time (s)           : 0.012
     --------------------------------------------------------------------------------
     [0m[0m
     SBML report created: ./models/annotation_example_8.html

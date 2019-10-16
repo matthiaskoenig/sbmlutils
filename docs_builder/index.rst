@@ -19,6 +19,7 @@ Contents:
    notebooks/sbml_report
    notebooks/sbml_creator
    notebooks/sbml_annotator
+   notebooks/sbml_manipulation
    notebooks/sbml_converters
    notebooks/sbml_interpolation
    notebooks/dfba
