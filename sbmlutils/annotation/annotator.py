@@ -251,7 +251,6 @@ class ExternalAnnotation(object):
     def __init__(self, d):
 
         self.d = d
-        # print(d)
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'name']:
@@ -332,7 +331,6 @@ class ModelAnnotator(object):
         """
         # writes all annotations
         for a in self.annotations:
-            print(a)
             pattern = a.pattern
             if a.sbml_type == "document":
                 elements = [self.doc]
