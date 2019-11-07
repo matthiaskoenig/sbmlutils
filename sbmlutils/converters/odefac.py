@@ -446,23 +446,3 @@ class SBML2ODE(object):
             dxids_idx[key] = k + index_offset
 
         return (pids_idx, yids_idx, dxids_idx)
-
-
-#####################################################################################
-if __name__ == "__main__":
-
-    # convert xpp to sbml
-    model_id = "limax_pkpd_v50"
-    in_dir = './odefac_example'
-    out_dir = './odefac_example/results'
-    sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
-    py_file = os.path.join(in_dir, "{}.py".format(model_id))
-    r_file = os.path.join(in_dir, "{}.R".format(model_id))
-
-    # create python code
-    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
-    sbml2ode.to_python(py_file=py_file)
-
-    # create R code
-    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
-    sbml2ode.to_R(r_file=r_file)
