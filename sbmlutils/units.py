@@ -19,14 +19,14 @@ UNIT_mole_per_s = Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, 
 
 UNIT_s = Unit('s', [(UNIT_KIND_SECOND, 1.0)])
 UNIT_min = Unit('min', [(UNIT_KIND_SECOND, 1.0, 0, 60)])
-UNIT_h = Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)])
+UNIT_hr = Unit('hr', [(UNIT_KIND_SECOND, 1.0, 0, 3600)])
 
 UNIT_per_s = Unit('per_s', [(UNIT_KIND_SECOND, -1.0)])
-UNIT_per_min = Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 60)])
-UNIT_per_h = Unit('per_h', [(UNIT_KIND_SECOND, -1.0, 0, 3600)])
+UNIT_per_min = Unit('per_hr', [(UNIT_KIND_SECOND, -1.0, 0, 60)])
+UNIT_per_hr = Unit('per_hr', [(UNIT_KIND_SECOND, -1.0, 0, 3600)])
 
 UNIT_mg = Unit('mg', [(UNIT_KIND_GRAM, 1.0, -3, 1.0)])
-UNIT_mg_per_h = Unit('mg_per_h', [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)])
+UNIT_mg_per_hr = Unit('mg_per_hr', [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)])
 
 
 __all__ = [
@@ -47,10 +47,10 @@ __all__ = [
     'UNIT_kg',
     'UNIT_s',
     'UNIT_min',
-    'UNIT_h',
+    'UNIT_hr',
     'UNIT_per_s',
     'UNIT_per_min',
-    'UNIT_per_h',
+    'UNIT_per_hr',
     'UNIT_mg',
-    'UNIT_mg_per_h',
+    'UNIT_mg_per_hr',
 ]
