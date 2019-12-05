@@ -13,7 +13,8 @@ UNIT_m3 = Unit('m3', [(UNIT_KIND_METRE, 3.0)])
 
 UNIT_mM = Unit('mM', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)])
 UNIT_mmole = Unit('mmole', [(UNIT_KIND_MOLE, 1, -3, 1.0)])
-UNIT_mmole_per_min = Unit('mole_per_min', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)])
+UNIT_mole_per_min = Unit('mole_per_min', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)])
+UNIT_mmole_per_min = Unit('mmole_per_min', [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)])
 UNIT_mmole_per_s = Unit('mmole_per_s', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)])
 UNIT_mole_per_s = Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)])
 
@@ -42,6 +43,7 @@ __all__ = [
     'UNIT_mM',
     'UNIT_mmole',
     'UNIT_mmole_per_min',
+    'UNIT_mole_per_min',
     'UNIT_mmole_per_s',
     'UNIT_mole_per_s',
     'UNIT_kg',
