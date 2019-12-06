@@ -22,6 +22,12 @@
           <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
         </listOfUnits>
       </unitDefinition>
+      <unitDefinition id="mM">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
       <unitDefinition id="mmole_per_min">
         <listOfUnits>
           <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
@@ -41,6 +47,11 @@
     </listOfSpecies>
     <listOfParameters>
       <parameter id="MIDIM_Vmax" value="1" units="mmole_per_min" constant="true"/>
+      <parameter id="MIDIM_Km" value="1" units="mM" constant="true"/>
+      <parameter id="MIDOH_Vmax" value="1" units="mmole_per_min" constant="true"/>
+      <parameter id="MIDOH_Km" value="1" units="mM" constant="true"/>
+      <parameter id="MID1OHEX_Vmax" value="1" units="mmole_per_min" constant="true"/>
+      <parameter id="MID1OHEX_Km" value="1" units="mM" constant="true"/>
     </listOfParameters>
     <listOfReactions>
       <reaction sboTerm="SBO:0000655" id="MIDIM" reversible="true" fast="false">
@@ -52,7 +63,44 @@
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <ci> MIDIM_Vmax </ci>
+            <apply>
+              <times/>
+              <ci> MIDIM_Vmax </ci>
+              <apply>
+                <divide/>
+                <ci> mid_ext </ci>
+                <apply>
+                  <plus/>
+                  <ci> mid_ext </ci>
+                  <ci> MIDIM_Km </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000176" id="MIDOH" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="mid" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> MIDOH_Vmax </ci>
+              <apply>
+                <divide/>
+                <ci> mid </ci>
+                <apply>
+                  <plus/>
+                  <ci> mid </ci>
+                  <ci> MIDOH_Km </ci>
+                </apply>
+              </apply>
+            </apply>
           </math>
         </kineticLaw>
       </reaction>
@@ -63,14 +111,23 @@
         <listOfProducts>
           <speciesReference species="mid1oh_ext" stoichiometry="1" constant="true"/>
         </listOfProducts>
-      </reaction>
-      <reaction sboTerm="SBO:0000176" id="MIDOH" reversible="false" fast="false">
-        <listOfReactants>
-          <speciesReference species="mid" stoichiometry="1" constant="true"/>
-        </listOfReactants>
-        <listOfProducts>
-          <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
-        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> MID1OHEX_Vmax </ci>
+              <apply>
+                <divide/>
+                <ci> mid1oh </ci>
+                <apply>
+                  <plus/>
+                  <ci> mid1oh </ci>
+                  <ci> MID1OHEX_Km </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
     </listOfReactions>
   </model>

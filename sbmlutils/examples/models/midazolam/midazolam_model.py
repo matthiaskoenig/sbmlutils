@@ -19,6 +19,7 @@ units = [
     UNIT_min,
     UNIT_m,
     UNIT_m2,
+    UNIT_mM,
     UNIT_mmole_per_min,
 ]
 
@@ -47,16 +48,29 @@ reactions = [
              sboTerm=SBO_TRANSPORT_REACTION,
              pars=[
                  Parameter("MIDIM_Vmax", 1.0, unit=UNIT_mmole_per_min),
+                 Parameter("MIDIM_Km", 3E-3, unit=UNIT_mM),
              ],
-             formula=("MIDIM_Vmax * (", UNIT_mmole_per_min)),
+             formula=("MIDIM_Vmax * (mid_ext/(mid_ext + MIDIM_Km))", UNIT_mmole_per_min)),
+
+    Reaction("MIDOH",
+             equation="mid -> mid1oh",
+             sboTerm=SBO_BIOCHEMICAL_REACTION,
+             pars=[
+                       Parameter("MIDOH_Vmax", 1.0, unit=UNIT_mmole_per_min),
+                       Parameter("MIDOH_Km", 3E-3, unit=UNIT_mM),
+                   ],
+             formula=("MIDOH_Vmax * (mid/(mid + MIDOH_Km))", UNIT_mmole_per_min),
+             ),
 
     Reaction("MID1OHEX",
              equation="mid1oh <-> mid1oh_ext",
-             sboTerm=SBO_TRANSPORT_REACTION),
-    Reaction("MIDOH",
-             equation="mid -> mid1oh",
-             sboTerm=SBO_BIOCHEMICAL_REACTION),
-
+             sboTerm=SBO_TRANSPORT_REACTION,
+             pars=[
+               Parameter("MID1OHEX_Vmax", 1.0, unit=UNIT_mmole_per_min),  # 500 - 1500 pmol/min/mg
+               Parameter("MID1OHEX_Km", 2.8E-3, unit=UNIT_mM),  # Thummel1996 (liver microsomes), 2-6µm
+             ],
+             formula=("MID1OHEX_Vmax * (mid1oh/(mid1oh + MID1OHEX_Km))", UNIT_mmole_per_min),
+             ),
 ]
 
 def create_model(target_dir):
