@@ -5,7 +5,7 @@ from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 
 
-mid = "paracetamol_model"
+mid = "paracetamol_model_liver"
 model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
@@ -36,25 +36,25 @@ species = [
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
     Species("apap_glu_ext", initialConcentration=0.0, name="paracetamol glucuronide (extern)",
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_sul_ext", initialConcentration=0.0, name="paracetamol sulfate (extern)",
+    Species("apap_sul_ext", initialConcentration=0.0, name="paracetamol sulfate (extern)",
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_cys_ext", initialConcentration=0.0, name="paracetamol cysteine (extern)",
+    Species("apap_cys_ext", initialConcentration=0.0, name="paracetamol cysteine (extern)",
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_gsh_ext", initialConcentration=0.0, name="paracetamol glutathione (extern)",
+    Species("apap_gsh_ext", initialConcentration=0.0, name="paracetamol glutathione (extern)",
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_mer_ext", initialConcentration=0.0, name="paracetamol mercapturate (extern)",
+    Species("apap_mer_ext", initialConcentration=0.0, name="paracetamol mercapturate (extern)",
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
     Species("apap", initialConcentration=0.0, name="paracetamol",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
     Species("apap_glu", initialConcentration=0.0, name="paracetamol glucuronide",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_sul", initialConcentration=0.0, name="paracetamol sulfate",
+    Species("apap_sul", initialConcentration=0.0, name="paracetamol sulfate",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_cys", initialConcentration=0.0, name="paracetamol cysteine",
+    Species("apap_cys", initialConcentration=0.0, name="paracetamol cysteine",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_gsh", initialConcentration=0.0, name="paracetamol glutathione",
+    Species("apap_gsh", initialConcentration=0.0, name="paracetamol glutathione",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-     Species("apap_mer", initialConcentration=0.0, name="paracetamol mercapturate",
+    Species("apap_mer", initialConcentration=0.0, name="paracetamol mercapturate",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
 ]
 
@@ -151,7 +151,7 @@ reactions = [
 
 def create_model(target_dir):
     return creator.create_model(
-        modules=['paracetamol_model'],
+        modules=['paracetamol_model_liver'],
         target_dir=target_dir,
         create_report=True
     )
