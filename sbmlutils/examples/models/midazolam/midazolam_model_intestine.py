@@ -24,7 +24,7 @@ units = [
 ]
 
 compartments = [
-    Compartment("Vex", 1.0, name="stomach", sboTerm=SBO_PHYSICAL_COMPARTMENT,
+    Compartment("Vex", 1.0, name="extern", sboTerm=SBO_PHYSICAL_COMPARTMENT,
                 unit=UNIT_KIND_LITRE, ),
     Compartment("Vint", 1, name="intestine", sboTerm=SBO_PHYSICAL_COMPARTMENT,
                 unit=UNIT_KIND_LITRE),

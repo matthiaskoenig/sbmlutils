@@ -60,7 +60,7 @@ reactions = [
 
     #export reactions
     Reaction("MID1OHEX",
-             equation="mid1oh <-> mid1oh_urine",
+             equation="mid1oh -> mid1oh_urine",
              sboTerm=SBO_TRANSPORT_REACTION,
              pars=[
                Parameter("MID1OHEX_Vmax", 1.0, unit=UNIT_mmole_per_min),
