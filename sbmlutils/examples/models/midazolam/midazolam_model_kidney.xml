@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
+  <model metaid="meta_midazolam_model_kidney" id="midazolam_model_kidney" name="midazolam_model_kidney" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole" fbc:strict="false">
+    <listOfUnitDefinitions>
+      <unitDefinition id="mmole">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="min">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m2">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mM">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment sboTerm="SBO:0000290" id="Vext" name="extern" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vkid" name="kidney" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vurine" name="urine" spatialDimensions="3" size="1" units="litre" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="mid1oh_ext" name="1-hydroxy-midazolam (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="mid1oh" name="1-hydroxy-midazolam (kidney)" compartment="Vkid" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="mid1oh_urine" name="1-hydroxy-midazolam (urine)" compartment="Vurine" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="MID1OHIM_Vmax" value="1" units="mmole_per_min" constant="true"/>
+      <parameter id="MID1OHIM_Km" value="1" units="mM" constant="true"/>
+      <parameter id="MID1OHEX_Vmax" value="1" units="mmole_per_min" constant="true"/>
+      <parameter id="MID1OHEX_Km" value="1" units="mM" constant="true"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction sboTerm="SBO:0000655" id="MID1OHIM" reversible="true" fast="false">
+        <listOfReactants>
+          <speciesReference species="mid1oh_ext" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> MID1OHIM_Vmax </ci>
+              <apply>
+                <divide/>
+                <ci> mid1oh_ext </ci>
+                <apply>
+                  <plus/>
+                  <ci> mid1oh_ext </ci>
+                  <ci> MID1OHIM_Km </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000655" id="MID1OHEX" reversible="true" fast="false">
+        <listOfReactants>
+          <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="mid1oh_urine" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> MID1OHEX_Vmax </ci>
+              <apply>
+                <divide/>
+                <ci> mid1oh </ci>
+                <apply>
+                  <plus/>
+                  <ci> mid1oh </ci>
+                  <ci> MID1OHEX_Km </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
