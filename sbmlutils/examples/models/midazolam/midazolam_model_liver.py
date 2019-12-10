@@ -1,11 +1,11 @@
 from sbmlutils.modelcreator import creator
 from sbmlutils.factory import *
-
 from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 
 
-mid = "midazolam_model"
+mid = "midazolam_model_liver"
+
 model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
@@ -36,13 +36,14 @@ species = [
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
     Species("mid1oh_ext", initialConcentration=0.0, name="1-hydroxy-midazolam (extern)",
             compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-    Species("mid", initialConcentration=0.0, name="midazolam",
+    Species("mid", initialConcentration=0.0, name="midazolam (liver)",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
-    Species("mid1oh", initialConcentration=0.0, name="1-hydroxy-midazolam",
+    Species("mid1oh", initialConcentration=0.0, name="1-hydroxy-midazolam (liver)",
             compartment="Vli", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
 ]
 
 reactions = [
+    #Transport reactions
     Reaction("MIDIM",
              equation="mid_ext <-> mid",
              sboTerm=SBO_TRANSPORT_REACTION,
@@ -50,16 +51,7 @@ reactions = [
                  Parameter("MIDIM_Vmax", 1.0, unit=UNIT_mmole_per_min),
                  Parameter("MIDIM_Km", 3E-3, unit=UNIT_mM),
              ],
-             formula=("MIDIM_Vmax * (mid_ext/(mid_ext + MIDIM_Km))", UNIT_mmole_per_min)),
-
-    Reaction("MIDOH",
-             equation="mid -> mid1oh",
-             sboTerm=SBO_BIOCHEMICAL_REACTION,
-             pars=[
-                       Parameter("MIDOH_Vmax", 1.0, unit=UNIT_mmole_per_min),
-                       Parameter("MIDOH_Km", 3E-3, unit=UNIT_mM),
-                   ],
-             formula=("MIDOH_Vmax * (mid/(mid + MIDOH_Km))", UNIT_mmole_per_min),
+             formula=("MIDIM_Vmax * (mid_ext/(mid_ext + MIDIM_Km))", UNIT_mmole_per_min)
              ),
 
     Reaction("MID1OHEX",
@@ -71,11 +63,22 @@ reactions = [
              ],
              formula=("MID1OHEX_Vmax * (mid1oh/(mid1oh + MID1OHEX_Km))", UNIT_mmole_per_min),
              ),
+
+    #Biochemical reactions
+    Reaction("MIDOH",
+             equation="mid -> mid1oh",
+             sboTerm=SBO_BIOCHEMICAL_REACTION,
+             pars=[
+                 Parameter("MIDOH_Vmax", 1.0, unit=UNIT_mmole_per_min),
+                 Parameter("MIDOH_Km", 3E-3, unit=UNIT_mM),
+             ],
+             formula=("MIDOH_Vmax * (mid/(mid + MIDOH_Km))", UNIT_mmole_per_min),
+             ),
 ]
 
 def create_model(target_dir):
     return creator.create_model(
-        modules=['midazolam_model'],
+        modules=['midazolam_model_liver'],
         target_dir=target_dir,
         create_report=True
     )

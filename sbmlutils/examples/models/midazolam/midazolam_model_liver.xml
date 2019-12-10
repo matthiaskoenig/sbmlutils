@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
-  <model metaid="meta_midazolam_model" id="midazolam_model" name="midazolam_model" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole" fbc:strict="false">
+  <model metaid="meta_midazolam_model_liver" id="midazolam_model_liver" name="midazolam_model_liver" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole" fbc:strict="false">
     <listOfUnitDefinitions>
       <unitDefinition id="mmole">
         <listOfUnits>
@@ -42,16 +42,16 @@
     <listOfSpecies>
       <species id="mid_ext" name="midazolam (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="mid1oh_ext" name="1-hydroxy-midazolam (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="mid" name="midazolam" compartment="Vli" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="mid1oh" name="1-hydroxy-midazolam" compartment="Vli" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="mid" name="midazolam (liver)" compartment="Vli" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="mid1oh" name="1-hydroxy-midazolam (liver)" compartment="Vli" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
     <listOfParameters>
       <parameter id="MIDIM_Vmax" value="1" units="mmole_per_min" constant="true"/>
-      <parameter id="MIDIM_Km" value="1" units="mM" constant="true"/>
+      <parameter id="MIDIM_Km" value="0.003" units="mM" constant="true"/>
+      <parameter id="MID1OHEX_Vmax" value="1e-06" units="mmole_per_min" constant="true"/>
+      <parameter id="MID1OHEX_Km" value="0.0028" units="mM" constant="true"/>
       <parameter id="MIDOH_Vmax" value="1" units="mmole_per_min" constant="true"/>
-      <parameter id="MIDOH_Km" value="1" units="mM" constant="true"/>
-      <parameter id="MID1OHEX_Vmax" value="1" units="mmole_per_min" constant="true"/>
-      <parameter id="MID1OHEX_Km" value="1" units="mM" constant="true"/>
+      <parameter id="MIDOH_Km" value="0.003" units="mM" constant="true"/>
     </listOfParameters>
     <listOfReactions>
       <reaction sboTerm="SBO:0000655" id="MIDIM" reversible="true" fast="false">
@@ -79,31 +79,6 @@
           </math>
         </kineticLaw>
       </reaction>
-      <reaction sboTerm="SBO:0000176" id="MIDOH" reversible="false" fast="false">
-        <listOfReactants>
-          <speciesReference species="mid" stoichiometry="1" constant="true"/>
-        </listOfReactants>
-        <listOfProducts>
-          <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
-        </listOfProducts>
-        <kineticLaw>
-          <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-              <times/>
-              <ci> MIDOH_Vmax </ci>
-              <apply>
-                <divide/>
-                <ci> mid </ci>
-                <apply>
-                  <plus/>
-                  <ci> mid </ci>
-                  <ci> MIDOH_Km </ci>
-                </apply>
-              </apply>
-            </apply>
-          </math>
-        </kineticLaw>
-      </reaction>
       <reaction sboTerm="SBO:0000655" id="MID1OHEX" reversible="true" fast="false">
         <listOfReactants>
           <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
@@ -123,6 +98,31 @@
                   <plus/>
                   <ci> mid1oh </ci>
                   <ci> MID1OHEX_Km </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000176" id="MIDOH" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="mid" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="mid1oh" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> MIDOH_Vmax </ci>
+              <apply>
+                <divide/>
+                <ci> mid </ci>
+                <apply>
+                  <plus/>
+                  <ci> mid </ci>
+                  <ci> MIDOH_Km </ci>
                 </apply>
               </apply>
             </apply>
