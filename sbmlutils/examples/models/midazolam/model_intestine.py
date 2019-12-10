@@ -1,27 +1,14 @@
+from copy import deepcopy
+from sbmlutils.examples.models.midazolam import templates
+
 from sbmlutils.modelcreator import creator
 from sbmlutils.factory import *
 from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 
-
-mid = "midazolam_model_intestine"
-
-model_units = ModelUnits(
-    time=UNIT_min,
-    extent=UNIT_mmole,
-    substance=UNIT_mmole,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE)
-
-units = [
-    UNIT_mmole,
-    UNIT_min,
-    UNIT_m,
-    UNIT_m2,
-    UNIT_mM,
-    UNIT_mmole_per_min,
-]
+mid = "midazolam_intestine"
+model_units = deepcopy(templates.MODEL_UNITS)
+units = deepcopy(templates.UNITS)
 
 compartments = [
     Compartment("Vex", 1.0, name="extern", sboTerm=SBO_PHYSICAL_COMPARTMENT,
@@ -74,11 +61,7 @@ reactions = [
 
 def create_model(target_dir):
     return creator.create_model(
-        modules=['midazolam_model_intestine'],
+        modules=['model_intestine'],
         target_dir=target_dir,
         create_report=True
     )
-
-
-if __name__ == "__main__":
-    create_model(target_dir=".")

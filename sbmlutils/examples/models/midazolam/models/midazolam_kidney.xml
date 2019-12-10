@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
-  <model metaid="meta_midazolam_model_kidney" id="midazolam_model_kidney" name="midazolam_model_kidney" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole" fbc:strict="false">
+  <model metaid="meta_midazolam_kidney" id="midazolam_kidney" name="midazolam_kidney" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole" fbc:strict="false">
     <listOfUnitDefinitions>
       <unitDefinition id="mmole">
         <listOfUnits>
@@ -37,13 +37,13 @@
     </listOfUnitDefinitions>
     <listOfCompartments>
       <compartment sboTerm="SBO:0000290" id="Vext" name="extern" spatialDimensions="3" size="1" units="litre" constant="true"/>
-      <compartment sboTerm="SBO:0000290" id="Vkid" name="kidney" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vki" name="kidney" spatialDimensions="3" size="1" units="litre" constant="true"/>
       <compartment sboTerm="SBO:0000290" id="Vurine" name="urine" spatialDimensions="3" size="1" units="litre" constant="true"/>
     </listOfCompartments>
     <listOfSpecies>
-      <species id="mid1oh_ext" name="1-hydroxy-midazolam (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="mid1oh" name="1-hydroxy-midazolam (kidney)" compartment="Vkid" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="mid1oh_urine" name="1-hydroxy-midazolam (urine)" compartment="Vurine" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="mid1oh_ext" name="1-hydroxy-midazolam (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="mid1oh" name="1-hydroxy-midazolam (kidney)" compartment="Vki" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="mid1oh_urine" name="1-hydroxy-midazolam (urine)" compartment="Vurine" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
     <listOfParameters>
       <parameter id="MID1OHIM_Vmax" value="1" units="mmole_per_min" constant="true"/>
@@ -66,10 +66,18 @@
               <ci> MID1OHIM_Vmax </ci>
               <apply>
                 <divide/>
-                <ci> mid1oh_ext </ci>
+                <apply>
+                  <divide/>
+                  <ci> mid1oh_ext </ci>
+                  <ci> Vext </ci>
+                </apply>
                 <apply>
                   <plus/>
-                  <ci> mid1oh_ext </ci>
+                  <apply>
+                    <divide/>
+                    <ci> mid1oh_ext </ci>
+                    <ci> Vext </ci>
+                  </apply>
                   <ci> MID1OHIM_Km </ci>
                 </apply>
               </apply>
@@ -91,10 +99,18 @@
               <ci> MID1OHEX_Vmax </ci>
               <apply>
                 <divide/>
-                <ci> mid1oh </ci>
+                <apply>
+                  <divide/>
+                  <ci> mid1oh </ci>
+                  <ci> Vki </ci>
+                </apply>
                 <apply>
                   <plus/>
-                  <ci> mid1oh </ci>
+                  <apply>
+                    <divide/>
+                    <ci> mid1oh </ci>
+                    <ci> Vki </ci>
+                  </apply>
                   <ci> MID1OHEX_Km </ci>
                 </apply>
               </apply>
@@ -103,5 +119,18 @@
         </kineticLaw>
       </reaction>
     </listOfReactions>
+    <comp:listOfPorts>
+      <comp:port metaid="mmole_port" sboTerm="SBO:0000599" comp:unitRef="mmole" comp:id="mmole_port" comp:name="mmole_port"/>
+      <comp:port metaid="min_port" sboTerm="SBO:0000599" comp:unitRef="min" comp:id="min_port" comp:name="min_port"/>
+      <comp:port metaid="m_port" sboTerm="SBO:0000599" comp:unitRef="m" comp:id="m_port" comp:name="m_port"/>
+      <comp:port metaid="m2_port" sboTerm="SBO:0000599" comp:unitRef="m2" comp:id="m2_port" comp:name="m2_port"/>
+      <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
+      <comp:port metaid="mmole_per_min_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min" comp:id="mmole_per_min_port" comp:name="mmole_per_min_port"/>
+      <comp:port metaid="Vext_port" sboTerm="SBO:0000599" comp:idRef="Vext" comp:id="Vext_port" comp:name="Vext_port"/>
+      <comp:port metaid="Vki_port" sboTerm="SBO:0000599" comp:idRef="Vki" comp:id="Vki_port" comp:name="Vki_port"/>
+      <comp:port metaid="Vurine_port" sboTerm="SBO:0000599" comp:idRef="Vurine" comp:id="Vurine_port" comp:name="Vurine_port"/>
+      <comp:port metaid="mid1oh_ext_port" sboTerm="SBO:0000599" comp:idRef="mid1oh_ext" comp:id="mid1oh_ext_port" comp:name="mid1oh_ext_port"/>
+      <comp:port metaid="mid1oh_urine_port" sboTerm="SBO:0000599" comp:idRef="mid1oh_urine" comp:id="mid1oh_urine_port" comp:name="mid1oh_urine_port"/>
+    </comp:listOfPorts>
   </model>
 </sbml>

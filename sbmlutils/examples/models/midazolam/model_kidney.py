@@ -1,50 +1,41 @@
+from copy import deepcopy
+from sbmlutils.examples.models.midazolam import templates
+
 from sbmlutils.modelcreator import creator
 from sbmlutils.factory import *
 from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 
 
-mid = "midazolam_model_kidney"
+mid = "midazolam_kidney"
+model_units = deepcopy(templates.MODEL_UNITS)
+units = deepcopy(templates.UNITS)
+ports = []
 
-model_units = ModelUnits(
-    time=UNIT_min,
-    extent=UNIT_mmole,
-    substance=UNIT_mmole,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE)
-
-units = [
-    UNIT_mmole,
-    UNIT_min,
-    UNIT_m,
-    UNIT_m2,
-    UNIT_mM,
-    UNIT_mmole_per_min,
-]
 
 compartments = [
     Compartment("Vext", 1.0, name="extern", sboTerm=SBO_PHYSICAL_COMPARTMENT,
-                unit=UNIT_KIND_LITRE, ),
-    Compartment("Vkid", 1.0, name="kidney", sboTerm=SBO_PHYSICAL_COMPARTMENT,
-                unit=UNIT_KIND_LITRE),
+                unit=UNIT_KIND_LITRE, port=True),
+    Compartment("Vki", 1.0, name="kidney", sboTerm=SBO_PHYSICAL_COMPARTMENT,
+                unit=UNIT_KIND_LITRE, port=True),
     Compartment("Vurine", 1.0, name="urine", sboTerm=SBO_PHYSICAL_COMPARTMENT,
-                unit=UNIT_KIND_LITRE)
+                unit=UNIT_KIND_LITRE, port=True)
 ]
 
 species = [
     #external species
     Species("mid1oh_ext", initialConcentration=0.0, name="1-hydroxy-midazolam (extern)",
-            compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
+            compartment="Vext", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=True, port=True),
 
     #Species in kidney
     Species("mid1oh", initialConcentration=0.0, name="1-hydroxy-midazolam (kidney)",
-            compartment="Vkid", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
+            compartment="Vki", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=True),
 
     #Species in urine
     Species("mid1oh_urine", initialConcentration=0.0, name="1-hydroxy-midazolam (urine)",
-            compartment="Vurine", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=False),
+            compartment="Vurine", substanceUnit=UNIT_mmole, hasOnlySubstanceUnits=True, port=True),
 ]
+# create concentration variables
 
 reactions = [
     #import reactions
@@ -55,7 +46,7 @@ reactions = [
                  Parameter("MID1OHIM_Vmax", 1.0, unit=UNIT_mmole_per_min),
                  Parameter("MID1OHIM_Km", 1.0, unit=UNIT_mM)
                  ],
-             formula=("MID1OHIM_Vmax * (mid1oh_ext / (mid1oh_ext + MID1OHIM_Km))", UNIT_mmole_per_min)
+             formula=("MID1OHIM_Vmax * (mid1oh_ext/Vext / (mid1oh_ext/Vext + MID1OHIM_Km))", UNIT_mmole_per_min)
              ),
 
     #export reactions
@@ -66,17 +57,14 @@ reactions = [
                Parameter("MID1OHEX_Vmax", 1.0, unit=UNIT_mmole_per_min),
                Parameter("MID1OHEX_Km", 1.0, unit=UNIT_mM),
              ],
-             formula=("MID1OHEX_Vmax * (mid1oh / (mid1oh + MID1OHEX_Km))", UNIT_mmole_per_min),
+             formula=("MID1OHEX_Vmax * (mid1oh/Vki / (mid1oh/Vki + MID1OHEX_Km))", UNIT_mmole_per_min),
              ),
 ]
 
 def create_model(target_dir):
     return creator.create_model(
-        modules=['midazolam_model_kidney'],
+        modules=['model_kidney'],
         target_dir=target_dir,
         create_report=True
     )
 
-
-if __name__ == "__main__":
-    create_model(target_dir=".")
