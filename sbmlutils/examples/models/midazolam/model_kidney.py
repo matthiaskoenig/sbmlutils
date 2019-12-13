@@ -54,7 +54,7 @@ reactions = [
              equation="mid1oh -> mid1oh_urine",
              sboTerm=SBO_TRANSPORT_REACTION,
              pars=[
-               Parameter("MID1OHEX_Vmax", 445E-20, unit=UNIT_mmole_per_min),
+               Parameter("MID1OHEX_Vmax", 445E-6, unit=UNIT_mmole_per_min),
                Parameter("MID1OHEX_Km", 9E-3, unit=UNIT_mM),
              ],
              formula=("MID1OHEX_Vmax * (mid1oh/Vki / (mid1oh/Vki + MID1OHEX_Km))", UNIT_mmole_per_min),
