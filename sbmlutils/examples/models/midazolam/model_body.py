@@ -44,19 +44,23 @@ COMPARTMENTS_BODY = {
 SUBMODEL_SID_DICT = {  # tissue to submodel mapping
     "ki": "KI",     # kidney
     "li": "LI",     # liver
+    "gu": "GU",     # Gut
 }
 
 kidney_id = 'midazolam_kidney'
 liver_id = 'midazolam_liver'
+gut_id = 'midazolam_intestine'
 
 externalModelDefinitions = [
     mcomp.ExternalModelDefinition(sid="kidney", source=f"{kidney_id}.xml", modelRef=kidney_id),
     mcomp.ExternalModelDefinition(sid="liver", source=f"{liver_id}.xml", modelRef=liver_id),
+    mcomp.ExternalModelDefinition(sid="gut", source=f"{gut_id}.xml", modelRef=gut_id),
 ]
 
 submodels = [
     mcomp.Submodel(sid=SUBMODEL_SID_DICT['ki'], modelRef="kidney"),
     mcomp.Submodel(sid=SUBMODEL_SID_DICT['li'], modelRef="liver"),
+    mcomp.Submodel(sid=SUBMODEL_SID_DICT['gu'], modelRef="gut"),
 ]
 
 for emd in externalModelDefinitions:
@@ -221,6 +225,11 @@ replacedElements.extend([
                           submodelRef=SUBMODEL_SID_DICT['li'], portRef=f"Vli{PORT_SUFFIX}"),
     mcomp.ReplacedElement(sid="Vli_blood_RE", metaId="Vli_blood_RE", elementRef="Vli_blood",
                           submodelRef=SUBMODEL_SID_DICT['li'], portRef=f"Vext{PORT_SUFFIX}"),
+    #intestine
+    mcomp.ReplacedElement(sid="Vgu_tissue_RE", metaId="Vgu_tissue_RE", elementRef="Vgu_tissue",
+                          submodelRef=SUBMODEL_SID_DICT['gu'], portRef=f"Vint{PORT_SUFFIX}"),
+    mcomp.ReplacedElement(sid="Vgu_blood_RE", metaId="Vgu_blood_RE", elementRef="Vgu_blood",
+                          submodelRef=SUBMODEL_SID_DICT['gu'], portRef=f"Vext{PORT_SUFFIX}"),
 
 ])
 
@@ -261,6 +270,7 @@ for s_id, s_dict in SUBSTANCES_BODY.items():
 # replace species
 replaced_species = {
     "li": ['mid', 'mid1oh'],
+    "gu": ['mid', 'mid1oh'],
     "ki": ['mid1oh'],
 
 }
