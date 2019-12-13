@@ -38,8 +38,8 @@ reactions = [
              equation="mid_ext <-> mid",
              sboTerm=SBO_TRANSPORT_REACTION,
              pars=[
-                 Parameter("MIDIM_Vmax", 1.0, unit=UNIT_mmole_per_min),
-                 Parameter("MIDIM_Km", 3E-3, unit=UNIT_mM),
+                 Parameter("MIDIM_Vmax", 3E-3, unit=UNIT_mmole_per_min),
+                 Parameter("MIDIM_Km", 6E-2, unit=UNIT_mM),
              ],
              formula=("MIDIM_Vmax * (mid_ext/Vext/(mid_ext/Vext + MIDIM_Km))", UNIT_mmole_per_min)
              ),
@@ -48,8 +48,8 @@ reactions = [
              equation="mid1oh <-> mid1oh_ext",
              sboTerm=SBO_TRANSPORT_REACTION,
              pars=[
-               Parameter("MID1OHEX_Vmax", 1.0, unit=UNIT_mmole_per_min),  # 500 - 1500 pmol/min/mg
-               Parameter("MID1OHEX_Km", 2.8E-3, unit=UNIT_mM),  # Thummel1996 (liver microsomes), 2-6µm
+               Parameter("MID1OHEX_Vmax", 3E-3, unit=UNIT_mmole_per_min),  # 500 - 1500 pmol/min/mg
+               Parameter("MID1OHEX_Km", 6E-2, unit=UNIT_mM),  # Thummel1996 (liver microsomes), 2-6µm
              ],
              formula=("MID1OHEX_Vmax * (mid1oh/Vli/(mid1oh/Vli + MID1OHEX_Km))", UNIT_mmole_per_min),
              ),
@@ -59,8 +59,8 @@ reactions = [
              equation="mid -> mid1oh",
              sboTerm=SBO_BIOCHEMICAL_REACTION,
              pars=[
-                 Parameter("MIDOH_Vmax", 1.0, unit=UNIT_mmole_per_min),
-                 Parameter("MIDOH_Km", 3E-3, unit=UNIT_mM),
+                 Parameter("MIDOH_Vmax", 2.5E-3, unit=UNIT_mmole_per_min),
+                 Parameter("MIDOH_Km", 6E-2, unit=UNIT_mM),
              ],
              formula=("MIDOH_Vmax * (mid/Vli/(mid/Vli + MIDOH_Km))", UNIT_mmole_per_min),
              ),
