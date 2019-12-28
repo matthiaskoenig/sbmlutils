@@ -251,12 +251,13 @@ class ExternalAnnotation(object):
     def __init__(self, d):
 
         self.d = d
+        
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'name']:
                 value = d.get(key, '')
-            # required fields
             else:
+                # required fields
                 value = d[key]
                 if key in ["sbml_type", "annotation_type"]:
                     value = value.lower()
