@@ -87,12 +87,16 @@ class Annotation(object):
         if not qualifier:
             raise ValueError(
                 "MIRIAM qualifiers are required for annotation, but no qualifier for resource "
-                "`{}` was given.".format(resource)
+                "'{}' was provided.".format(resource)
             )
         if not resource:
             raise ValueError(
-                "resource is required for annotation, but the resource "
-                "`{} {}` was given.".format(qualifier, resource)
+                "resource is required for annotation, but resource is emtpy "
+                "'{} {}'.".format(qualifier, resource)
+            )
+        if not isinstance(resource, str):
+            raise ValueError(
+                "resource must be string, but found '{} {}'.".format(resource, type(resource))
             )
 
         self.qualifier = qualifier
