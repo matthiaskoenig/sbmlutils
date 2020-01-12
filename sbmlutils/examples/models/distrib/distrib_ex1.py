@@ -24,10 +24,10 @@ notes = Notes([
 # Units
 # -----------------------------------------------------------------------------
 
-model_units = ModelUnits(time=UNIT_h, extent=UNIT_KIND_MOLE, substance=UNIT_KIND_MOLE,
+model_units = ModelUnits(time=UNIT_hr, extent=UNIT_KIND_MOLE, substance=UNIT_KIND_MOLE,
                          length=UNIT_m, area=UNIT_m2, volume=UNIT_KIND_LITRE)
 units = [
-    UNIT_h, UNIT_m, UNIT_m2,
+    UNIT_hr, UNIT_m, UNIT_m2,
 ]
 
 # -----------------------------------------------------------------------------
