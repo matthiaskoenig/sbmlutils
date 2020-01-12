@@ -73,7 +73,7 @@ The created SBML report can be accessed from
     valid                    : FALSE
     validation error(s)      : 1
     validation warnings(s)   : 0
-    check time (s)           : 1.250
+    check time (s)           : 1.271
     --------------------------------------------------------------------------------
     [0m[0m
     ERROR:root:[47m[30mE0: SBML component consistency (fbc, L76, code)[0m[0m
