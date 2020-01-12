@@ -23,7 +23,7 @@ Features include among others
 * implementation of dynamic flux balance analysis (DFBA)
 * file converters (XPP)
 
-For documentation and examples see https://sbmlutils.readthedocs.io 
+For documentation and examples see https://sbmlutils.readthedocs.io. `sbmlutils` is working and tested with `py3.5`, `py3.6` and `py3.7`.  
   
 ### How to cite
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  

@@ -9,36 +9,9 @@ matrix:
       sudo: required
       python: 3.6
 
-#    - os: osx
-#      osx_image: xcode10
-#      language: generic
-#      env: PYTHON=36
-
-# For OS X
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    brew install swig;
-    curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci;
-    source ./macports-ci install;
-    fi
-
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    yes | sudo port install python$PYTHON;
-    yes | sudo port install py$PYTHON-pip;
-    sudo port select --set python3 python$PYTHON;
-    sudo port select --set pip pip$PYTHON;
-    pip install pyinstaller --user;
-    export PATH=$PATH:/Users/travis/Library/Python/$PYTHON/bin;
-    fi
-
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    python3 --version;
-    pip --version;
-    fi
-
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    pip install -r requirements.txt --user;
-    fi
+    - os: linux
+        sudo: required
+        python: 3.7
 
 install:
   pip install -r requirements.txt
