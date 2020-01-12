@@ -45,7 +45,6 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Cython',
@@ -62,7 +61,7 @@ setup(
     },
     include_package_data=True,
     zip_safe=False,
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
         "pip>=19.3.1",
