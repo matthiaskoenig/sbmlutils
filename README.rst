@@ -16,4 +16,4 @@ Features include among others
 
 Documentation is available at https://sbmlutils.readthedocs.io
 
-© 2017-2019 Matthias König
+© 2017-2020 Matthias König

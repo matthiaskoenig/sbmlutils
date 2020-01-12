@@ -142,4 +142,4 @@ pip install -e .
 * initial release
 
 
-&copy; 2017-2019 Matthias König
+&copy; 2017-2020 Matthias König
