@@ -3,6 +3,8 @@ Helper functions to create SED-ML.
 """
 import os
 import phrasedml
+# FIXME: no support of phrasedml on python 3.8 (only used for creating DFBA simulations)
+# => remove all the DFBA and create new simple repository for manuscript
 
 
 def create_sedml(sedml_location, sbml_location, directory, dt, tend, species_ids, reaction_ids):

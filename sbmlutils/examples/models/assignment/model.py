@@ -18,13 +18,13 @@ notes = Notes([
 # ---------------------------------------------------------------------------------------------------------------------
 # Units
 # ---------------------------------------------------------------------------------------------------------------------
-model_units = ModelUnits(time=UNIT_h,
+model_units = ModelUnits(time=UNIT_hr,
                          extent=UNIT_mg, substance=UNIT_mg,
                          length=UNIT_m, area=UNIT_m2,
                          volume=UNIT_KIND_LITRE)
 units = [
     UNIT_kg,
-    UNIT_h,
+    UNIT_hr,
     UNIT_mg,
     UNIT_m,
     UNIT_m2,

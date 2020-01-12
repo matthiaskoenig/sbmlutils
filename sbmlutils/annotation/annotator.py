@@ -87,12 +87,16 @@ class Annotation(object):
         if not qualifier:
             raise ValueError(
                 "MIRIAM qualifiers are required for annotation, but no qualifier for resource "
-                "`{}` was given.".format(resource)
+                "'{}' was provided.".format(resource)
             )
         if not resource:
             raise ValueError(
-                "resource is required for annotation, but the resource "
-                "`{} {}` was given.".format(qualifier, resource)
+                "resource is required for annotation, but resource is emtpy "
+                "'{} {}'.".format(qualifier, resource)
+            )
+        if not isinstance(resource, str):
+            raise ValueError(
+                "resource must be string, but found '{} {}'.".format(resource, type(resource))
             )
 
         self.qualifier = qualifier
@@ -251,13 +255,13 @@ class ExternalAnnotation(object):
     def __init__(self, d):
 
         self.d = d
-        # print(d)
+        
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'name']:
                 value = d.get(key, '')
-            # required fields
             else:
+                # required fields
                 value = d[key]
                 if key in ["sbml_type", "annotation_type"]:
                     value = value.lower()
@@ -332,7 +336,6 @@ class ModelAnnotator(object):
         """
         # writes all annotations
         for a in self.annotations:
-            print(a)
             pattern = a.pattern
             if a.sbml_type == "document":
                 elements = [self.doc]

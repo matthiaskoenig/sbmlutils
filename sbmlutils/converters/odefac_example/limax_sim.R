@@ -6,7 +6,7 @@ library(deSolve)
 # ----------------------
 # setwd(getSrcDirectory()[1])
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-model_id = "limax_pkpd_v50"
+model_id = "limax_53"
 source(paste0(model_id, ".R"))
 
 # ----------------------

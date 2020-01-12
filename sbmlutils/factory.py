@@ -321,6 +321,9 @@ class ValueWithUnit(Value):
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
+    def __repr__(self):
+        return "{} = {} [{}]".format(self.sid, self.value, self.unit)
+
     def __init__(self, sid, value, unit="-",
                  name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
@@ -630,6 +633,10 @@ class InitialAssignment(Value):
 # Rules
 ##########################################################################
 class Rule(ValueWithUnit):
+
+    def __repr__(self):
+        return super(Rule, self).__repr__()
+
     @staticmethod
     def _rule_factory(model, rule, rule_type, value=None):
         """ Creates libsbml rule of given rule_type.
@@ -690,6 +697,9 @@ class Rule(ValueWithUnit):
 
 class AssignmentRule(Rule):
     """ AssignmentRule. """
+
+    def __repr__(self):
+        return "<AssignmentRule({})>".format(super(AssignmentRule, self).__repr__())
 
     def create_sbml(self, model):
         """ Create AssignmentRule in model.

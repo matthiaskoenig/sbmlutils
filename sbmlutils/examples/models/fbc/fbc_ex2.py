@@ -33,7 +33,7 @@ UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
 
 
-model_units = ModelUnits(time=UNIT_h, extent=UNIT_AMOUNT, substance=UNIT_AMOUNT,
+model_units = ModelUnits(time=UNIT_hr, extent=UNIT_AMOUNT, substance=UNIT_AMOUNT,
                          length=UNIT_m, area=UNIT_m2, volume=UNIT_VOLUME)
 
 units = [

@@ -23,8 +23,7 @@ Features include among others
 * implementation of dynamic flux balance analysis (DFBA)
 * file converters (XPP)
 
-For a more detailed description and examples see the documentation at   
-<a href="https://sbmlutils.readthedocs.io/en/latest/" alt="sbmlutils logo"><img alt="sbmlutils logo" src="./docs_builder/images/readthedocs-logo.png" height="20" /></a>
+For documentation and examples see https://sbmlutils.readthedocs.io. `sbmlutils` is working and tested with `py3.6` and `py3.7`. We only support the latest version, i.e. with the release of a new version all support for older versions is stopped. 
   
 ### How to cite
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  
@@ -63,6 +62,10 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.8
+* python 3.7 support (dropping py3.5)
+* model manipulation (merging of models)
+
 ### 0.3.7
 * documentation updated
 * additional annotation formats supported

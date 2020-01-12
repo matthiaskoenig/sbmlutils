@@ -32,10 +32,10 @@ UNIT_TIME = 'h'
 UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
 
-model_units = ModelUnits(time=UNIT_h, extent=UNIT_KIND_MOLE, substance=UNIT_KIND_MOLE,
+model_units = ModelUnits(time=UNIT_hr, extent=UNIT_KIND_MOLE, substance=UNIT_KIND_MOLE,
                          length=UNIT_m, area=UNIT_m2, volume=UNIT_m3)
 units = [
-    UNIT_h, UNIT_m, UNIT_m2, UNIT_m3,
+    UNIT_hr, UNIT_m, UNIT_m2, UNIT_m3,
     Unit('g', [(UNIT_KIND_GRAM, 1.0)], name="gram"),
     Unit('l', [(UNIT_KIND_LITRE, 1.0)], name="liter"),
     Unit('mmol', [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),

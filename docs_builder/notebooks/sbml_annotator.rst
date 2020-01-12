@@ -60,6 +60,15 @@ identifiers which match the given pattern.
       </thead>
       <tbody>
         <tr>
+          <th>0</th>
+          <td>NaN</td>
+          <td>document</td>
+          <td>rdf</td>
+          <td>BQM_IS</td>
+          <td>sbo/SBO:0000293</td>
+          <td>non-spatial continuous framework</td>
+        </tr>
+        <tr>
           <th>1</th>
           <td>^demo_\d+$</td>
           <td>model</td>
@@ -204,6 +213,24 @@ identifiers which match the given pattern.
           <td>simple chemical</td>
         </tr>
         <tr>
+          <th>22</th>
+          <td>^\w{1}__\w+$</td>
+          <td>species</td>
+          <td>formula</td>
+          <td>NaN</td>
+          <td>C6H12O6</td>
+          <td>NaN</td>
+        </tr>
+        <tr>
+          <th>23</th>
+          <td>^\w{1}__\w+$</td>
+          <td>species</td>
+          <td>charge</td>
+          <td>NaN</td>
+          <td>0</td>
+          <td>NaN</td>
+        </tr>
+        <tr>
           <th>24</th>
           <td>^b\w{1}$</td>
           <td>reaction</td>
@@ -287,7 +314,7 @@ For the full example see
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/annotation_example_8.xml
     valid                    : TRUE
-    check time (s)           : 0.011
+    check time (s)           : 0.016
     --------------------------------------------------------------------------------
     [0m[0m
     SBML report created: ./models/annotation_example_8.html

@@ -220,6 +220,27 @@ def example_scipy(model_id):
 
 
 if __name__ == "__main__":
-    model_id = "limax_pkpd_v50"
+
+    from sbmlutils.converters.odefac import SBML2ODE
+
+    model_id = "limax_53"
+    in_dir = '.'
+    out_dir = './results'
+
+    sbml_file = os.path.join(in_dir, "{}.xml".format(model_id))
+    py_file = os.path.join(in_dir, "{}.py".format(model_id))
+    r_file = os.path.join(in_dir, "{}.R".format(model_id))
+
+    # create python code
+    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
+    sbml2ode.to_python(py_file=py_file)
+
+    # create R code
+    sbml2ode = SBML2ODE.from_file(sbml_file=sbml_file)
+    sbml2ode.to_R(r_file=r_file)
+
+    # run roadrunner simulation
     example_roadrunner(model_id)
+
+    # run scipy simulation
     example_scipy(model_id)

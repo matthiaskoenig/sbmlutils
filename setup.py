@@ -45,8 +45,8 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Cython',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering',
@@ -61,36 +61,36 @@ setup(
     },
     include_package_data=True,
     zip_safe=False,
+    python_requires='>=3.6',
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "pip>=19.1.1",
-        "numpy>=1.16.3",
-        "scipy>=1.2.1",
-        "matplotlib>=3.0.3",
-        "pandas>=0.24.2",
-        "tabulate>=0.8.3",
-        "Jinja2>=2.10",
-        "requests>=2.21.0",
-        "beautifulsoup4>=4.7.1",
-        "xarray>=0.11.3",
-        "xlrd",
-
-        "xmlschema",
+        "pip>=19.3.1",
+        "numpy>=1.18.1",
+        "scipy>=1.4.1",
+        "matplotlib>=3.1",
+        "pandas>=0.25.3",
+        "tabulate>=0.8.6",
+        "Jinja2>=2.10.3",
+        "requests>=2.22.0",
+        "beautifulsoup4>=4.8.2",
+        "xarray>=0.14.1",
+        "xlrd>=1.2.0",
+        "xmlschema>=1.0.18",
 
         # standards
-        "python-libsbml-experimental>=5.18.0",
+        "python-libsbml-experimental>=5.18.1",
         "phrasedml>=1.0.9",  # not working on py37
-        "antimony>=2.9.4",  # not working on py37
+        "antimony>=2.11.0",  # not working on py37
 
         # simulation
-        "libroadrunner>=1.5.3",
-        "cobra>=0.15.3",
+        "libroadrunner>=1.5.4",
+        "cobra>=0.17.1",
         "optlang>=1.4.4",
 
         # misc
-        "pytest>=4.3.1",
-        "pytest-cov>=2.6.1",
-        "ipykernel>=5.1.0",
+        "pytest>=5.3.2",
+        "pytest-cov>=2.8.1",
+        "ipykernel>=5.1.3",
     ],
     extras_require={},
     **setup_kwargs)
