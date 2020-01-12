@@ -68,7 +68,7 @@ setup(
         "pip>=19.3.1",
         "numpy>=1.18.1",
         "scipy>=1.4.1",
-        "matplotlib>=3.1.2",
+        "matplotlib>=3.1",
         "pandas>=0.25.3",
         "tabulate>=0.8.6",
         "Jinja2>=2.10.3",
