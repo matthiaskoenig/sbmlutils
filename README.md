@@ -62,6 +62,8 @@ pip install -e .
 ```
 
 ## Release notes
+### 0.3.9
+
 ### 0.3.8
 * python 3.7 support (dropping py3.5)
 * model manipulation (merging of models)
