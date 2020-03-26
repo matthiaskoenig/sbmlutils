@@ -36,7 +36,7 @@ In this example a given xpp model is converted to SBML.
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/xpp/SkM_AP_KCa.xml
     valid                    : TRUE
-    check time (s)           : 0.008
+    check time (s)           : 0.011
     --------------------------------------------------------------------------------
     [0m[0m
 

@@ -371,7 +371,6 @@ class Unit(Sbase):
 
         self.set_fields(obj)
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -433,7 +432,6 @@ class Function(Sbase):
         self.set_fields(obj, model)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj, model):
@@ -461,7 +459,6 @@ class Parameter(ValueWithUnit):
         self.set_fields(obj)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -500,7 +497,6 @@ class Compartment(ValueWithUnit):
             obj.setSize(self.value)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -552,7 +548,6 @@ class Species(Sbase):
             obj.setSubstanceUnits(model.getSubstanceUnits())
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -625,7 +620,6 @@ class InitialAssignment(Value):
         obj.setMath(ast_node)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
 
@@ -710,7 +704,6 @@ class AssignmentRule(Rule):
         obj = Rule._rule_factory(model, self, rule_type="AssignmentRule")  # type: libsbml.AssignmentRule
         self.set_fields(obj)
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     @staticmethod
@@ -738,7 +731,6 @@ class RateRule(Rule):
         obj = Rule._rule_factory(model, self, rule_type="RateRule")
         self.set_fields(obj)
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     @staticmethod
@@ -873,9 +865,10 @@ class Uncertainty(Sbase):
                 if key in self.formula:
                     up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/{}".format(key))
                     ast = libsbml.parseL3FormulaWithModel(self.formula, model)
-                    if not ast:
-                        logging.error("Formula could not be parsed in uncertainty: {}".format(self.formula))
-                        up.setMath(ast)
+                    if ast is None:
+                        logging.error(libsbml.getLastParseL3Error())
+                    else:
+                        check(up.setMath(ast), 'set math in distrib formula')
 
         return uncertainty
 
@@ -947,7 +940,6 @@ class Reaction(Sbase):
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
 
         self.create_port(model)
-        self.create_uncertainties(r)
         return r
 
     def set_fields(self, obj):

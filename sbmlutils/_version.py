@@ -1,7 +1,7 @@
 """
 Definition of version string.
 """
-__version__ = "0.3.9a1"
+__version__ = "0.3.9a2"
 
 PROGRAM_VERSION = __version__
 PROGRAM_NAME = 'sbmlutils'
