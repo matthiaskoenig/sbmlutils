@@ -13,6 +13,7 @@ from sbmlutils.modelcreator import templates
 
 # -----------------------------------------------------------------------------
 mid = 'tiny_example'
+packages = ["fbc"]
 version = 12
 notes = Notes([
     """

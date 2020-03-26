@@ -10,6 +10,7 @@ from sbmlutils.modelcreator import templates
 
 # -----------------------------------------------------------------------------
 mid = 'fbc_ex2'
+packages = ["fbc"]
 version = 2
 creators = templates.creators
 notes = Notes([
@@ -28,7 +29,7 @@ notes = Notes([
 UNIT_AMOUNT = 'mmol'
 UNIT_AREA = 'm2'
 UNIT_VOLUME = 'l'
-UNIT_TIME = 'h'
+UNIT_TIME = UNIT_hr
 UNIT_CONCENTRATION = 'mmol_per_l'
 UNIT_FLUX = 'mmol_per_h'
 
@@ -37,7 +38,7 @@ model_units = ModelUnits(time=UNIT_hr, extent=UNIT_AMOUNT, substance=UNIT_AMOUNT
                          length=UNIT_m, area=UNIT_m2, volume=UNIT_VOLUME)
 
 units = [
-    Unit('h', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name='hour'),
+    Unit('hr', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], name='hour'),
     Unit('g', [(UNIT_KIND_GRAM, 1.0)], name="gram"),
     Unit('m', [(UNIT_KIND_METRE, 1.0)], name="meter"),
     Unit('m2', [(UNIT_KIND_METRE, 2.0)], name="cubic meter"),
