@@ -76,6 +76,7 @@ setup(
         "xarray>=0.14.1",
         "xlrd>=1.2.0",
         "xmlschema>=1.0.18",
+        "xmltodict>=0.12.0",
 
         # standards
         "python-libsbml-experimental>=5.18.1",

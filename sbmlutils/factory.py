@@ -757,6 +757,7 @@ class RateRule(Rule):
 ##########################################################################
 # Uncertainty
 ##########################################################################
+
 class UncertParameter(object):
     """UncertParameter
     """
@@ -767,6 +768,12 @@ class UncertParameter(object):
         self.value = value
         self.var = var
         self.unit = unit
+
+
+# class UncertMean(UncertParameter):
+#    def __init__(self, value=None, var=None, unit=None):
+#        super(UncertMean, self).__init__(
+#            type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=value, var=var, unit=unit)
 
 
 class UncertSpan(object):
@@ -851,7 +858,7 @@ class Uncertainty(Sbase):
                 logging.error("Unsupported UncertParameter or UncertSpan type: %s", uncertParameter.type)
 
             if up and uncertParameter.unit:
-                up.setUnits(Unit.get_unit_string(self.unit))
+                up.setUnits(Unit.get_unit_string(uncertParameter.unit))
 
         # create a distribution uncertainty
         if self.formula:
@@ -1092,7 +1099,7 @@ class Event(Sbase):
 
         return event
 
-    def set_fields(self, obj, model):
+    def set_fields(self, obj: libsbml.Event, model):
         """ Set fields on given object.
 
         :param obj: event
@@ -1111,7 +1118,9 @@ class Event(Sbase):
 
         if self.priority is not None:
             ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
-            obj.setPriority(ast_priority)
+            priority = obj.createPriority()  # type: libsbml.Priority
+            priority.setMath(ast_priority)
+
         if self.delay is not None:
             ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
             obj.setDelay(ast_delay)
