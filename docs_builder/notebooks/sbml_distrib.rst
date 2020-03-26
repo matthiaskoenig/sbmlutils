@@ -17,8 +17,8 @@ distrib information.
     from sbmlutils.modelcreator.creator import CoreModel
     from sbmlutils.validation import check_doc
 
-Distribution: Assigning a distribution to a parameter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Assigning a distribution to a parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here we create a parameter
 
@@ -198,8 +198,8 @@ and ``standard deviation=1``
     [0m
 
 
-Distribution: Using a normal distribution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using a normal distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this example, the initial value of y is set as a draw from the normal
 distribution ``normal(z,10)``:
@@ -348,8 +348,8 @@ distribution ``normal(z,10)``:
     [0m
 
 
-Distribution: Defining a truncated normal distribution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Defining a truncated normal distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When used with four arguments instead of two, the normal distribution is
 truncated to ``normal(z, 10, z-2, z+2)``. This use would apply a draw
@@ -511,8 +511,8 @@ to the SBML symbol ``y``.
     [0m
 
 
-Distribution: Defining conditional events
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Defining conditional events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Simultaneous events in SBML are ordered based on their Priority values,
 with higher values being executed first, and potentially cancelling
@@ -743,8 +743,8 @@ the value of ``x`` to ``3`` instead.
     [0m
 
 
-Distribution: Overview of all distributions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Overview of all distributions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following gives an example how to use all of the various
 distributions
@@ -1130,8 +1130,8 @@ distributions
     [0m
 
 
-Uncertainty: Basic uncertainty example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Basic uncertainty example
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here, the species with an initial amount of ``3.22`` is described as
 having a ``standard deviation`` of ``0.3``, a value that might be
@@ -1438,8 +1438,8 @@ a variance of ``0.09``.
     [0m
 
 
-Uncertainty: Multiple uncertainties
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multiple uncertainties
+~~~~~~~~~~~~~~~~~~~~~~
 
 The following gives an example how to encode multiple uncertainties for
 a parameter. Here the two uncertainties
@@ -1641,29 +1641,8 @@ a parameter. Here the two uncertainties
     [0m
 
 
-.. code:: ipython3
-
-    ### Uncertainty via distribution
-    The following gives an example how to encode multiple uncertainties for a parameter.
-    Here the two uncertainties 
-    `5.0 (mean) +- 0.3 (std) [2.0 - 8.0]` 
-    and 
-    `4.5 (mean) +- 1.1 (std) [1.0 - 10.0]` 
-    are set.
-
-
-::
-
-
-      File "<ipython-input-11-8f32a6fcd669>", line 2
-        The following gives an example how to encode multiple uncertainties for a parameter.
-                    ^
-    SyntaxError: invalid syntax
-
-
-
-Uncertainty: Defining a random variable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Defining a random variable
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In addition to describing the uncertainty about an experimental
 observation one can also use this mechanism to describe a parameter as a
@@ -1825,8 +1804,8 @@ random variable.
     [0m
 
 
-Uncertainty: Overview over parameters and spans
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Overview over UncertParameters and UncertSpans
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example provides an overview over the available fields.
 
