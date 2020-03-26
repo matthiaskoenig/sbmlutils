@@ -63,6 +63,7 @@ pip install -e .
 
 ## Release notes
 ### 0.3.9
+* full support for distrib (distributions and uncertainty)
 
 ### 0.3.8
 * python 3.7 support (dropping py3.5)
