@@ -85,7 +85,7 @@ Merge multiple models into a combined model using the ``comp`` package.
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    check time (s)           : 0.027
+    check time (s)           : 0.028
     --------------------------------------------------------------------------------
     [0m[0m
 

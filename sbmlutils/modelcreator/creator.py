@@ -199,35 +199,37 @@ class CoreModel(object):
     of information.
     """
     # keys of possible information in the modules.
-    _keys = {'mid': None,
-             'version': None,
-             'notes': None,
-             'creators': list,
-             'model_units': None,
-             'main_units': None,
+    _keys = {
+        'packages': list,
+        'mid': None,
+        'version': None,
+        'notes': None,
+        'creators': list,
+        'model_units': None,
+        'main_units': None,
 
-             'externalModelDefinitions': list,
-             'submodels': list,
+        'externalModelDefinitions': list,
+        'submodels': list,
 
-             'units': list,
-             'functions': list,
-             'compartments': list,
-             'species': list,
-             'parameters': list,
-             'assignments': list,
-             'rules': list,
-             'rate_rules': list,
-             'reactions': list,
-             'events': list,
-             'constraints': list,
-             'ports': list,
-             'replacedElements': list,
-             'deletions': list,
+        'units': list,
+        'functions': list,
+        'compartments': list,
+        'species': list,
+        'parameters': list,
+        'assignments': list,
+        'rules': list,
+        'rate_rules': list,
+        'reactions': list,
+        'events': list,
+        'constraints': list,
+        'ports': list,
+        'replacedElements': list,
+        'deletions': list,
 
-             'objectives': list,
+        'objectives': list,
 
-             'layouts': list,
-             }
+        'layouts': list,
+    }
 
     def __init__(self):
         """
@@ -320,19 +322,26 @@ class CoreModel(object):
 
         # add all the packages
         # FIXME: only add packages which are required for the model
-
-        sbmlns.addPackageNamespace("fbc", 2)
+        supported_packages = {'fbc', 'comp', 'distrib'}
         sbmlns.addPackageNamespace("comp", 1)
-        # sbmlns.addPackageNamespace("distrib", 1)
+        for package in self.packages:
+            if package not in supported_packages:
+                raise ValueError(f"Supported packages are: '{supported_packages}', "
+                                 f"but package '{package}' found.")
+            if package == "fbc":
+                sbmlns.addPackageNamespace("fbc", 2)
+            if package == "distrib":
+                sbmlns.addPackageNamespace("distrib", 1)
 
         self.doc = libsbml.SBMLDocument(sbmlns)
-        self.doc.setPackageRequired("comp", True)
-        self.doc.setPackageRequired("fbc", False)
-        # self.doc.setPackageRequired("distrib", True)
-
         self.model = self.doc.createModel()
-        fbc_plugin = self.model.getPlugin("fbc")
-        fbc_plugin.setStrict(False)
+        self.doc.setPackageRequired("comp", True)
+        if "fbc" in self.packages:
+            self.doc.setPackageRequired("fbc", False)
+            fbc_plugin = self.model.getPlugin("fbc")
+            fbc_plugin.setStrict(False)
+        if "distrib" in self.packages:
+            self.doc.setPackageRequired("distrib", True)
 
         # name & id
         check(self.model.setId(self.model_id), 'set id')
@@ -377,6 +386,19 @@ class CoreModel(object):
                 else:
                     logging.info("Not defined: <{}> ".format(attr))
 
+    def get_sbml(self) -> str:
+        """Return SBML string of the model.
+        :return: SBML string
+        """
+        if self.doc is None:
+            self.create_sbml()
+        return libsbml.writeSBMLToString(self.doc)
+
+    def get_json(self):
+        import xmltodict, json
+        o = xmltodict.parse(self.get_sbml())
+        return json.dumps(o, indent=2)
+
     def write_sbml(self, filepath, validate=True):
         """ Write sbml to file.
 
@@ -385,5 +407,8 @@ class CoreModel(object):
         :return:
         :rtype:
         """
+        if self.doc is None:
+            self.create_sbml()
         sbmlio.write_sbml(self.doc, filepath, validate=validate,
                           program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)
+

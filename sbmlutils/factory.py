@@ -371,7 +371,6 @@ class Unit(Sbase):
 
         self.set_fields(obj)
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -433,7 +432,6 @@ class Function(Sbase):
         self.set_fields(obj, model)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj, model):
@@ -461,7 +459,6 @@ class Parameter(ValueWithUnit):
         self.set_fields(obj)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -500,7 +497,6 @@ class Compartment(ValueWithUnit):
             obj.setSize(self.value)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -552,7 +548,6 @@ class Species(Sbase):
             obj.setSubstanceUnits(model.getSubstanceUnits())
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     def set_fields(self, obj):
@@ -625,7 +620,6 @@ class InitialAssignment(Value):
         obj.setMath(ast_node)
 
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
 
@@ -710,7 +704,6 @@ class AssignmentRule(Rule):
         obj = Rule._rule_factory(model, self, rule_type="AssignmentRule")  # type: libsbml.AssignmentRule
         self.set_fields(obj)
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     @staticmethod
@@ -738,7 +731,6 @@ class RateRule(Rule):
         obj = Rule._rule_factory(model, self, rule_type="RateRule")
         self.set_fields(obj)
         self.create_port(model)
-        self.create_uncertainties(obj)
         return obj
 
     @staticmethod
@@ -757,6 +749,7 @@ class RateRule(Rule):
 ##########################################################################
 # Uncertainty
 ##########################################################################
+
 class UncertParameter(object):
     """UncertParameter
     """
@@ -767,6 +760,12 @@ class UncertParameter(object):
         self.value = value
         self.var = var
         self.unit = unit
+
+
+# class UncertMean(UncertParameter):
+#    def __init__(self, value=None, var=None, unit=None):
+#        super(UncertMean, self).__init__(
+#            type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=value, var=var, unit=unit)
 
 
 class UncertSpan(object):
@@ -851,7 +850,7 @@ class Uncertainty(Sbase):
                 logging.error("Unsupported UncertParameter or UncertSpan type: %s", uncertParameter.type)
 
             if up and uncertParameter.unit:
-                up.setUnits(Unit.get_unit_string(self.unit))
+                up.setUnits(Unit.get_unit_string(uncertParameter.unit))
 
         # create a distribution uncertainty
         if self.formula:
@@ -866,9 +865,10 @@ class Uncertainty(Sbase):
                 if key in self.formula:
                     up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/{}".format(key))
                     ast = libsbml.parseL3FormulaWithModel(self.formula, model)
-                    if not ast:
-                        logging.error("Formula could not be parsed in uncertainty: {}".format(self.formula))
-                        up.setMath(ast)
+                    if ast is None:
+                        logging.error(libsbml.getLastParseL3Error())
+                    else:
+                        check(up.setMath(ast), 'set math in distrib formula')
 
         return uncertainty
 
@@ -940,7 +940,6 @@ class Reaction(Sbase):
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
 
         self.create_port(model)
-        self.create_uncertainties(r)
         return r
 
     def set_fields(self, obj):
@@ -1092,7 +1091,7 @@ class Event(Sbase):
 
         return event
 
-    def set_fields(self, obj, model):
+    def set_fields(self, obj: libsbml.Event, model):
         """ Set fields on given object.
 
         :param obj: event
@@ -1111,7 +1110,9 @@ class Event(Sbase):
 
         if self.priority is not None:
             ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
-            obj.setPriority(ast_priority)
+            priority = obj.createPriority()  # type: libsbml.Priority
+            priority.setMath(ast_priority)
+
         if self.delay is not None:
             ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
             obj.setDelay(ast_delay)

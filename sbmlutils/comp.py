@@ -530,6 +530,8 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None, suffix='_flat
     :param suffix to add to model id
     :return:
     """
+    # FIXME: not working with relative paths
+
     # necessary to change the working directory to the sbml file directory
     # to resolve relative links to external model definitions.
     working_dir = os.getcwd()

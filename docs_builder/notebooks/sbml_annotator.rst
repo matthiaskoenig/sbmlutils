@@ -314,7 +314,7 @@ For the full example see
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/annotation_example_8.xml
     valid                    : TRUE
-    check time (s)           : 0.016
+    check time (s)           : 0.011
     --------------------------------------------------------------------------------
     [0m[0m
     SBML report created: ./models/annotation_example_8.html

@@ -93,7 +93,7 @@ class DFBATestCase(unittest.TestCase):
 
         # FIXME: what is wrong with this test?
 
-    @unittest.skip
+    @pytest.mark.skip
     def test_diauxic_simulation(self):
 
         dgfactory.create_model(self.test_dir)

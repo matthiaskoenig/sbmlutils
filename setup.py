@@ -76,14 +76,15 @@ setup(
         "xarray>=0.14.1",
         "xlrd>=1.2.0",
         "xmlschema>=1.0.18",
+        "xmltodict>=0.12.0",
 
         # standards
         "python-libsbml-experimental>=5.18.1",
-        "phrasedml>=1.0.9",  # not working on py37
-        "antimony>=2.11.0",  # not working on py37
+        "phrasedml>=1.0.9",  # not working on py38
+        "antimony>=2.11.0",  # not working on py38
 
         # simulation
-        "libroadrunner>=1.5.4",
+        "libroadrunner>=1.5.4",  # not working on py3.8
         "cobra>=0.17.1",
         "optlang>=1.4.4",
 

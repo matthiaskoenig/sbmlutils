@@ -18,6 +18,7 @@ Contents:
    introduction.rst
    notebooks/sbml_report
    notebooks/sbml_creator
+   notebooks/sbml_distrib
    notebooks/sbml_annotator
    notebooks/sbml_manipulation
    notebooks/sbml_converters

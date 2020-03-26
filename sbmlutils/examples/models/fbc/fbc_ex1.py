@@ -11,6 +11,7 @@ from sbmlutils.modelcreator import templates
 
 # -----------------------------------------------------------------------------
 mid = 'fbc_ex1'
+packages = ["fbc"]
 version = 2
 creators = templates.creators
 notes = Notes([
