@@ -371,6 +371,74 @@ print_xml(core_model.get_sbml())
 check_doc(core_model.doc, units_consistency=False);
 
 
+# ### Information on experimental parameters (SABIO-RK)
+# In the following example we store the experimental information which was used for setting the parameter in the model.
+
+# In[13]:
+
+
+import libsbml
+from sbmlutils.annotation import *
+model_dict = {
+    'mid': 'sabiork_parameter',
+    'packages': ['distrib'],
+    'model_units': ModelUnits(time=UNIT_hr, extent=UNIT_KIND_MOLE,
+                              substance=UNIT_KIND_MOLE,
+                              length=UNIT_m, area=UNIT_m2,
+                              volume=UNIT_KIND_LITRE),
+    'units': [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
+    'parameters': [
+        Parameter(
+            sid="Km_glc", name="Michelis-Menten constant glucose",
+            value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
+            uncertainties=[
+                Uncertainty(
+                  uncertParameters=[
+                      UncertParameter(
+                          type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                          value=5.07),
+                      UncertParameter(
+                          type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                          value=0.97),
+                  ], annotations=[
+                        (BQB.IS, "sabiork.kineticrecord/793"),  # entry in SABIO-RK
+                        (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                        (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                        (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                        (BQB.IS, "bto/BTO:0000075"),  # liver
+                    ]),
+                Uncertainty(
+                    uncertParameters=[
+                        UncertParameter(
+                            type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                            value=2.7),
+                        UncertParameter(
+                            type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                            value=0.11),
+                    ], annotations=[
+                        (BQB.IS, "sabiork.kineticrecord/2581"),
+                        # entry in SABIO-RK
+                        (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                        (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                        (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                        (BQB.IS, "bto/BTO:0000075"),  # liver
+                    ]),
+            ])
+    ]
+}
+
+# create model and print SBML
+core_model = CoreModel.from_dict(model_dict=model_dict)
+print_xml(core_model.get_sbml())
+
+# validate model
+check_doc(core_model.doc, units_consistency=False);
+filepath = "./distrib/sabiork_parameter.xml"
+core_model.write_sbml(filepath)
+from sbmlutils.report import sbmlreport
+sbmlreport.create_report(filepath, report_dir="./distrib/", validate=False)
+
+
 # In[ ]:
 
 

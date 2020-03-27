@@ -808,6 +808,8 @@ class Uncertainty(Sbase):
         sbase_distrib = sbase.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
         uncertainty = sbase_distrib.createUncertainty()  # type: libsbml.Uncertainty
 
+        self.set_fields(uncertainty)
+
         for uncertParameter in self.uncertParameters:
             up = None
             if uncertParameter.type in [

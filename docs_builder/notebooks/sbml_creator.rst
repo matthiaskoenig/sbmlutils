@@ -129,9 +129,9 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
 
     [1m[92m
     --------------------------------------------------------------------------------
-    /tmp/tmpxjfc_okb.xml
+    /tmp/tmpn7s97i27.xml
     valid                    : TRUE
-    check time (s)           : 0.012
+    check time (s)           : 0.011
     --------------------------------------------------------------------------------
     [0m[0m
 

@@ -1,12 +1,14 @@
 import pytest
-
+import libsbml
+from typing import Dict
+from sbmlutils.annotation import *
 from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.validation import check_doc
 
 
-def check_model_dict(d):
+def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
     """Check that no errors."""
     # create model and print SBML
     core_model = CoreModel.from_dict(model_dict=d)
@@ -14,6 +16,7 @@ def check_model_dict(d):
     assert core_model.doc is not None
     [Nall, Nerr, Nwar] = check_doc(core_model.doc, units_consistency=False)
     assert Nerr == 0
+    return core_model.doc
 
 
 def test_assign_distribution():
@@ -186,7 +189,22 @@ def test_multiple_uncertainties():
             InitialAssignment('p1', 'normal(0 mM, 1 mM)'),
         ]
     }
-    check_model_dict(model_dict)
+    doc = check_model_dict(model_dict)  # type: libsbml.SBMLDocument
+    assert doc
+    model = doc.getModel()  # type: libsbml.Model
+    assert model
+    p = model.getParameter('p1')  # type: libsbml.Parameter
+    assert p
+    p_distrib = p.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
+    assert p_distrib
+    list_uncertainties = p_distrib.getListOfUncertainties()  # type: libsbml.ListOfUncertainties
+    assert list_uncertainties
+    n_uncertainties = p_distrib.getNumUncertainties()
+    assert  n_uncertainties== 2
+    for k in range(n_uncertainties):
+        uc = p_distrib.getUncertainty(k)  # type: libsbml.Uncertainty
+        assert uc
+        assert uc.isSetId()
 
 
 def test_define_random_variable():
@@ -214,7 +232,7 @@ def test_define_random_variable():
     check_model_dict(model_dict)
 
 
-def test_paramerts_and_spans():
+def test_parameters_and_spans():
     import libsbml
     model_dict = {
         'mid': 'parameters_spans',
@@ -269,6 +287,58 @@ def test_paramerts_and_spans():
                                       valueLower=4.0, valueUpper=5.0),
                               ])
                       ])
+        ]
+    }
+    check_model_dict(model_dict)
+
+
+def test_sabiork_uncertainty():
+
+    model_dict = {
+        'mid': 'sabiork_parameter',
+        'packages': ['distrib'],
+        'model_units': ModelUnits(time=UNIT_hr, extent=UNIT_KIND_MOLE,
+                                  substance=UNIT_KIND_MOLE,
+                                  length=UNIT_m, area=UNIT_m2,
+                                  volume=UNIT_KIND_LITRE),
+        'units': [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
+        'parameters': [
+            Parameter(
+                sid="Km_glc", name="Michelis-Menten constant glucose",
+                value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
+                uncertainties=[
+                    Uncertainty(
+                      uncertParameters=[
+                          UncertParameter(
+                              type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                              value=5.07),
+                          UncertParameter(
+                              type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                              value=0.97),
+                      ], annotations=[
+                            (BQB.IS, "sabiork.kineticrecord/793"),  # entry in SABIO-RK
+                            (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                            (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                            (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                            (BQB.IS, "bto/BTO:000075"),  # liver
+                        ]),
+                    Uncertainty(
+                        uncertParameters=[
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                                value=2.7),
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                                value=0.11),
+                        ], annotations=[
+                            (BQB.IS, "sabiork.kineticrecord/2581"),
+                            # entry in SABIO-RK
+                            (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                            (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                            (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                            (BQB.IS, "bto/BTO:000075"),  # liver
+                        ]),
+                ])
         ]
     }
     check_model_dict(model_dict)
