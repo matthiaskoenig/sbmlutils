@@ -94,6 +94,7 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
     core_model.create_sbml()
 
     # write file
+    target_dir = str(target_dir)
     if not os.path.exists(target_dir):
         logging.warning("Target directory does not exist and is created: {}".format(target_dir))
         os.makedirs(target_dir)
@@ -130,8 +131,9 @@ class Preprocess(object):
     @staticmethod
     def dict_from_modules(modules):
         """
-        Creates one information dictionary from various modules by combining the information.
-        Information in earlier modules if overwritten by information in later modules.
+        Creates one information dictionary from various modules by
+        combining the information. Information in earlier modules is either
+        extended or overwritten depending on data type.
         """
         cdict = dict()
 
