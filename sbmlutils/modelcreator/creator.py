@@ -14,7 +14,6 @@ import shutil
 import copy
 import logging
 import tempfile
-import warnings
 from sbmlutils.logutils import bcolors
 
 import libsbml
@@ -27,6 +26,8 @@ import sbmlutils.sbmlio as sbmlio
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 from sbmlutils.report import sbmlreport
+
+logger = logging.getLogger(__name__)
 
 
 class Factory(object):
@@ -281,7 +282,8 @@ class CoreModel(object):
             if key in CoreModel._keys:
                 setattr(m, key, value)
             else:
-                warnings.warn('Unsupported key for CoreModel: {}'.format(key))
+                logger.warning("Unsupported key for CoreModel: '{}'. "
+                               "Supported keys are: {}".format(key, CoreModel._keys))
         return m
 
     def get_info(self):

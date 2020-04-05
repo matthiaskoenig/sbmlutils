@@ -98,6 +98,10 @@ def ast_node_from_formula(model, formula):
     :param formula: formula str
     :return:
     """
+    # sanitize formula (allow double and int assignments)
+    if not isinstance(formula, str):
+        formula = str(formula)
+
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
         logging.error("Formula could not be parsed: '{}'".format(formula))
@@ -654,6 +658,7 @@ class Rule(ValueWithUnit):
         p = model.getParameter(sid)
         if p is not None:
             p.setConstant(False)
+
         # Add rule if not existing
         if not model.getRule(sid):
             if rule_type == "RateRule":
@@ -661,7 +666,8 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            logging.warning('Rule with sid already exists in model: {}. Rule not updated with "{}"'.format(sid, rule.value))
+            logging.warning('Rule with sid already exists in model: {}. '
+                            'Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
 
