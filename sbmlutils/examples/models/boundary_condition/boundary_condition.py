@@ -13,7 +13,7 @@ m1_dict = {
     'species': [
         Species(
             sid="S1", initialConcentration=10.0, compartment="C",
-            hasOnlySubstanceUnits=False, boundaryCondition=False
+            hasOnlySubstanceUnits=False, boundaryCondition=True
         )
     ],
     'parameters': [
@@ -21,7 +21,7 @@ m1_dict = {
     ],
     'reactions': [
         Reaction(sid="R1", equation="S1 ->",
-                 formula=("k1 * S1", None))
+                 formula=("k1 * S1 * sin(time)", None))
     ],
     'assignments': [
     ]
