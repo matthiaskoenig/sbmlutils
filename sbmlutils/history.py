@@ -39,11 +39,15 @@ def set_model_history(model, creators):
         check(model.setModelHistory(h), 'set model history')
 
 
-def _create_history(creators):
+def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHistory:
     """ Creates the model history.
 
     Sets the create and modified date to the current time.
     Creators are a list or dictionary with values as
+
+    :param creators:
+    :param set_timestamps:
+    :return:
     """
     h = libsbml.ModelHistory()
 
@@ -66,7 +70,11 @@ def _create_history(creators):
         check(h.addCreator(c), 'add creator')
 
     # create time is now
-    date = date_now()
-    check(h.setCreatedDate(date), 'set creation date')
-    check(h.setModifiedDate(date), 'set modified date')
+    if set_timestamps:
+        datetime = date_now()
+    else:
+        datetime = libsbml.Date('1900-01-01T00:00:00')
+    check(h.setCreatedDate(datetime), 'set creation date')
+    check(h.setModifiedDate(datetime), 'set modified date')
+
     return h
