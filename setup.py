@@ -64,7 +64,6 @@ setup(
     python_requires='>=3.6',
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "pip>=19.3.1",
         "numpy>=1.18.1",
         "scipy>=1.4.1",
         "matplotlib>=3.1",
@@ -73,7 +72,6 @@ setup(
         "Jinja2>=2.10.3",
         "requests>=2.22.0",
         "beautifulsoup4>=4.8.2",
-        "xarray>=0.14.1",
         "xlrd>=1.2.0",
         "xmlschema>=1.0.18",
         "xmltodict>=0.12.0",

@@ -15,6 +15,10 @@ def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
     core_model.create_sbml()
     assert core_model.doc is not None
     [Nall, Nerr, Nwar] = check_doc(core_model.doc, units_consistency=False)
+    if Nerr > 0:
+        doc = core_model.doc  # type: libsbml.SBMLDocument
+        error_log = doc.getErrorLog()  # type: libsbml.SBMLErrorLog
+        print(error_log.toString())
     assert Nerr == 0
     return core_model.doc
 
@@ -307,7 +311,7 @@ def test_sabiork_uncertainty():
                 sid="Km_glc", name="Michelis-Menten constant glucose",
                 value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
                 uncertainties=[
-                    Uncertainty(
+                    Uncertainty(sid="uncertainty1",
                       uncertParameters=[
                           UncertParameter(
                               type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
@@ -322,7 +326,7 @@ def test_sabiork_uncertainty():
                             (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
                             (BQB.IS, "bto/BTO:000075"),  # liver
                         ]),
-                    Uncertainty(
+                    Uncertainty(sid="uncertainty2",
                         uncertParameters=[
                             UncertParameter(
                                 type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
