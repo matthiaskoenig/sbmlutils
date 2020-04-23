@@ -15,6 +15,7 @@ def create_metaid(sbase: libsbml.SBase) -> str:
     """
     return f"meta_{_create_hash_id(sbase)}"
 
+
 def _create_hash_id(sbase: libsbml.SBase) -> str:
     if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
         hash_key = sbase.getId()
