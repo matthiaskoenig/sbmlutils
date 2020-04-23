@@ -5,34 +5,25 @@ import warnings
 import time
 import libsbml
 import functools
-import uuid
+import hashlib
 
 
-def create_metaid(sbase):
-    """ Creates a unique meta id.
+def create_metaid(sbase: libsbml.SBase) -> str:
+    """ Creates a globally unique meta id.
 
-    Meta ids are required to store annotation elements.
+    Meta ids are required to store annotations on elements.
     """
-    hash_id = _create_hash_id(sbase)
-    return 'meta_{}'.format(hash_id)
+    return f"meta_{_create_hash_id(sbase)}"
 
-
-def _create_hash_id(sbase):
-    """ Creates unique hash id for sbase in model.
-
-    :param sbase:
-    :return:
-    """
-    # FIXME: This must be reproducible, so models don't change on recreation
+def _create_hash_id(sbase: libsbml.SBase) -> str:
     if sbase and hasattr(sbase, 'getId') and sbase.isSetId():
-        hash_id = sbase.getId()
+        hash_key = sbase.getId()
     else:
-        hash_id = uuid.uuid4().hex
-
-    # the special case of the assignment rules (getId() returns getVariable())
-    if isinstance(sbase, libsbml.AssignmentRule) or isinstance(sbase, libsbml.RateRule):
-        hash_id = uuid.uuid4().hex
-    return hash_id
+        # hash the xml_node
+        xml_node = sbase.toXMLNode()  # type: libsbml.XMLNode
+        xml_str = xml_node.toString().encode('utf-8')
+        hash_key = hashlib.md5(xml_str).hexdigest()
+    return hash_key
 
 
 def timeit(f):

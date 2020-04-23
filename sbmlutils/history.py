@@ -1,7 +1,6 @@
 """
 Handles manipulation of the History of SBases.
 """
-
 import datetime
 import libsbml
 
