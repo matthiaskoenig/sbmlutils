@@ -24,6 +24,8 @@ from collections import namedtuple
 from sbmlutils.equation import Equation
 
 
+logger = logging.getLogger(__name__)
+
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
@@ -83,8 +85,8 @@ def create_objects(model, obj_iter, key=None, debug=False):
             sbml_obj = obj.create_sbml(model)
             sbml_objects[sbml_obj.getId()] = sbml_obj
     except Exception as error:
-        logging.error("Error creation SBML objects <{}>: {}".format(key, obj_iter))
-        logging.error(error)
+        logger.error("Error creation SBML objects <{}>: {}".format(key, obj_iter))
+        logger.error(error)
 
         raise
 
@@ -104,8 +106,8 @@ def ast_node_from_formula(model, formula):
 
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        logging.error("Formula could not be parsed: '{}'".format(formula))
-        logging.error(libsbml.getLastParseL3Error())
+        logger.error("Formula could not be parsed: '{}'".format(formula))
+        logger.error(libsbml.getLastParseL3Error())
     return ast_node
 
 
@@ -136,7 +138,7 @@ def set_notes(model, notes):
     :return:
     """
     if not isinstance(notes, Notes):
-        logging.error("Using notes strings is deprecated, use 'Notes' instead.")
+        logger.error("Using notes strings is deprecated, use 'Notes' instead.")
         notes = Notes(notes)
 
     check(model.setNotes(notes.xml), message="Setting notes on model")
@@ -171,16 +173,16 @@ def set_model_units(model, model_units):
     :return:
     """
     if isinstance(model_units, dict):
-        logging.error("Providing model units as dict is deprecated, use 'ModelUnits' instead.")
+        logger.error("Providing model units as dict is deprecated, use 'ModelUnits' instead.")
         model_units = ModelUnits(**model_units)
 
     if not model_units:
-        logging.error("Model units should be provided for a model, i.e., set the 'model_units' "
+        logger.error("Model units should be provided for a model, i.e., set the 'model_units' "
                       "field on model.")
     else:
         for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
             if getattr(model_units, key) is None:
-                logging.error('The following key is missing in model_units: {}'.format(key))
+                logger.error('The following key is missing in model_units: {}'.format(key))
                 continue
             unit = getattr(model_units, key)
             unit = Unit.get_unit_string(unit)
@@ -240,7 +242,7 @@ class Sbase(object):
     def set_fields(self, obj: libsbml.SBase):
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
-                logging.error(
+                logger.error(
                     "The id `{self.sid}` is not a valid SBML SId on `{obj}`. "
                     "The SId syntax is defined as:"
                     "\tletter ::= 'a'..'z','A'..'Z'"
@@ -576,7 +578,7 @@ class Species(Sbase):
         if (self.charge is not None) or (self.chemicalFormula is not None):
             obj_fbc = obj.getPlugin("fbc")  # type: libsbml.FbcSpeciesPlugin
             if obj_fbc is None:
-                logging.error("FBC SPlugin not found for species, "
+                logger.error("FBC SPlugin not found for species, "
                               "no fbc: {}".format(obj))
             else:
                 if self.charge is not None:
@@ -636,7 +638,7 @@ class Rule(ValueWithUnit):
         return super(Rule, self).__repr__()
 
     @staticmethod
-    def _rule_factory(model, rule, rule_type, value=None):
+    def _rule_factory(model: libsbml.Model, rule, rule_type, value=None):
         """ Creates libsbml rule of given rule_type.
 
         :param model:
@@ -653,6 +655,11 @@ class Rule(ValueWithUnit):
                 and (not model.getCompartment(sid)):
 
             Parameter(sid, unit=rule.unit, name=rule.name, value=value, constant=False).create_sbml(model)
+        else:
+            # object exists, units do not mean anything
+            if rule.unit:
+                logger.warning(f"Units '{rule.unit}' are not used if object "
+                               f"exists for AssignmentRule: '{rule}'.")
 
         # Make sure the parameter is const=False
         p = model.getParameter(sid)
@@ -666,7 +673,7 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            logging.warning('Rule with sid already exists in model: {}. '
+            logger.warninging('Rule with sid already exists in model: {}. '
                             'Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
@@ -677,7 +684,7 @@ class Rule(ValueWithUnit):
         :param model:
         :return:
         """
-        logging.error("Rule cannot be created, use either <AssignmentRule> or <RateRule>.")
+        logger.error("Rule cannot be created, use either <AssignmentRule> or <RateRule>.")
         raise NotImplementedError
 
     @staticmethod
@@ -855,7 +862,7 @@ class Uncertainty(Sbase):
                 if uncertParameter.var is not None:
                     up.setValue(uncertParameter.var)
             else:
-                logging.error("Unsupported UncertParameter or UncertSpan type: %s", uncertParameter.type)
+                logger.error("Unsupported UncertParameter or UncertSpan type: %s", uncertParameter.type)
 
             if up and uncertParameter.unit:
                 up.setUnits(Unit.get_unit_string(uncertParameter.unit))
@@ -874,7 +881,7 @@ class Uncertainty(Sbase):
                     up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/{}".format(key))
                     ast = libsbml.parseL3FormulaWithModel(self.formula, model)
                     if ast is None:
-                        logging.error(libsbml.getLastParseL3Error())
+                        logger.error(libsbml.getLastParseL3Error())
                     else:
                         check(up.setMath(ast), 'set math in distrib formula')
 
@@ -964,7 +971,7 @@ class Reaction(Sbase):
         law = reaction.createKineticLaw()
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
-            logging.error(libsbml.getLastParseL3Error())
+            logger.error(libsbml.getLastParseL3Error())
         check(law.setMath(ast_node), 'set math in kinetic law')
         return law
 
@@ -1076,7 +1083,7 @@ class Event(Sbase):
 
         # assignments
         if type(assignments) is not dict:
-            logging.warn("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
+            logger.warning("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
         self.assignments = assignments
 
         self.trigger_persistent = trigger_persistent
@@ -1086,7 +1093,7 @@ class Event(Sbase):
         self.priority = priority
         self.delay = delay
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Event:
         """ Create libsbml InitialAssignment.
 
         Creates a required parameter if not existing.
@@ -1094,7 +1101,7 @@ class Event(Sbase):
         :param model:
         :return:
         """
-        event = model.createEvent()
+        event = model.createEvent()  # type: libsbml.Event
         self.set_fields(event, model)
 
         return event
