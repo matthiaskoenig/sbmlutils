@@ -77,7 +77,7 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
 
     :param modules: iteratable of strings of python modules
     :param target_dir: directory in which to create SBML file
-    :param filename: filename to write to, if not provided mid and suffix are used
+    :param filename: filename to write to with suffix, if not provided mid and suffix are used
     :param mid: model id to use for filename
     :param suffix: suffix for SBML filename
     :param annotations: list of annotations for SBML

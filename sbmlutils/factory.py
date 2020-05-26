@@ -80,6 +80,10 @@ def create_objects(model, obj_iter, key=None, debug=False):
     sbml_objects = {}
     try:
         for obj in obj_iter:
+            if obj is None:
+                logger.error(f"Trying to create None object, "
+                             f"check for incorrect terminating ',' on objects: "
+                             f"'{sbml_objects}'")
             if debug:
                 print(obj)
             sbml_obj = obj.create_sbml(model)
@@ -658,7 +662,7 @@ class Rule(ValueWithUnit):
         else:
             # object exists, units do not mean anything
             if rule.unit:
-                logger.warning(f"Units '{rule.unit}' are not used if object "
+                logger.debug(f"Units '{rule.unit}' are not used if object "
                                f"exists for AssignmentRule: '{rule}'.")
 
         # Make sure the parameter is const=False
