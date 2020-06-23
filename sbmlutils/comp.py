@@ -521,6 +521,8 @@ def _set_ref(object, ref_id, ref_type):
 ##########################################################################
 # flatten model
 ##########################################################################
+# FIXME: not working with relative paths !!!
+
 def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten given SBML file.
 
@@ -541,14 +543,15 @@ def flattenSBMLFile(sbml_path, leave_ports=True, output_path=None, suffix='_flat
 
     reader = libsbml.SBMLReader()
     check(reader, 'create an SBMLReader object.')
-    doc = reader.readSBML(sbml_path)
-    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=output_path, suffix=suffix)
+    doc = reader.readSBML(str(sbml_path))
+    flat_doc = flattenSBMLDocument(doc, leave_ports=leave_ports, output_path=str(output_path), suffix=suffix)
 
     # change back the working dir
     os.chdir(working_dir)
 
     return flat_doc
 
+# FIXME: documentation & path handling
 
 def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat'):
     """ Flatten the given SBMLDocument.

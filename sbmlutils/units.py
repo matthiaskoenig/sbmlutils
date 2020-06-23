@@ -31,6 +31,10 @@ UNIT_mg_per_hr = Unit('mg_per_hr', [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_S
 
 UNIT_ml = Unit('ml', [(UNIT_KIND_LITRE, 1.0, -3, 1.0)], metaId='meta_ml', port=True)
 
+UNIT_litre_per_min = Unit(
+    'litre_per_min',
+    [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True
+)
 
 __all__ = [
     'UNIT_KIND_AMPERE', 'UNIT_KIND_AVOGADRO',
@@ -58,4 +62,5 @@ __all__ = [
     'UNIT_mg',
     'UNIT_mg_per_hr',
     'UNIT_ml',
+    'UNIT_litre_per_min',
 ]
