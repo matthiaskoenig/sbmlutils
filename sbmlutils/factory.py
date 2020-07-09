@@ -677,7 +677,7 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            logger.warninging('Rule with sid already exists in model: {}. '
+            logger.warning('Rule with sid already exists in model: {}. '
                             'Rule not updated with "{}"'.format(sid, rule.value))
             obj = model.getRule(sid)
         return obj
