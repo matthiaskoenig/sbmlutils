@@ -108,7 +108,7 @@ def create_report(sbml_path, report_dir,
     f_html = codecs.open(path_html, encoding='utf-8', mode='w')
     f_html.write(html)
     f_html.close()
-    print("SBML report created: {}".format(path_html))
+    print("SBML report created: {}".format(os.path.abspath(path_html)))
 
 
 def _create_index_html(sbml_paths, html_template='index.html', offline=True):
