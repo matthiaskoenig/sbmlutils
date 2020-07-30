@@ -154,6 +154,12 @@ def test_demo_annotation():
             assert r.getSBOTermID() == "SBO:0000176"
             assert len(cvterms) == 1
 
+    # fbc:geneProduct
+    modelFBCPlugin = model.getPlugin("fbc")
+    for geneProduct in modelFBCPlugin.getListOfGeneProducts():
+        if geneProduct.getId() == 'PSHA_RS08100':
+            cvterms = geneProduct.getCVTerms()
+            assert len(cvterms) == 1
 
 def test_galactose_annotation():
     """ Annotate the galactose network. """
