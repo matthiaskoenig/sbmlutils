@@ -15,6 +15,8 @@ UNIT_mM = Unit('mM', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], po
 UNIT_mmole = Unit('mmole', [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
 UNIT_mole_per_min = Unit('mole_per_min', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True)
 UNIT_mmole_per_min = Unit('mmole_per_min', [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True)
+UNIT_mmole_per_min_l = Unit('mmole_per_min_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
+                                                (UNIT_KIND_SECOND, -1.0, 0, 60), (UNIT_KIND_LITRE, -1.0, 0, 1)], port=True)
 UNIT_mmole_per_s = Unit('mmole_per_s', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True)
 UNIT_mole_per_s = Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True)
 
@@ -49,6 +51,7 @@ __all__ = [
     'UNIT_mM',
     'UNIT_mmole',
     'UNIT_mmole_per_min',
+    'UNIT_mmole_per_min_l',
     'UNIT_mole_per_min',
     'UNIT_mmole_per_s',
     'UNIT_mole_per_s',
