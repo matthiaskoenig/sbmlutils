@@ -4,9 +4,12 @@ Validation and checking functions.
 Helper functions for simple validation and display of problems.
 Helper functions if setting sbml information was successful.
 """
+from pathlib import Path
 import os
 import logging
 import time
+from typing import Union
+
 import libsbml
 from sbmlutils.logutils import bcolors
 
@@ -38,13 +41,13 @@ def check(value, message):
         return
 
 
-def check_sbml(filepath, name=None, log_errors=True,
+def check_sbml(sbml: Union[str, Path], name=None, log_errors=True,
                units_consistency=True,
                modeling_practice=True,
                internal_consistency=True):
-    """ Checks the given SBML filepath or string.
+    """ Checks the given SBML path or SBMLstring.
 
-    :param doc: SBMLDocument to check
+    :param sbml: SBML to check
     :param name: identifier or path for report
     :param units_consistency: boolean flag units consistency
     :param modeling_practice: boolean flag modeling practise
@@ -52,6 +55,11 @@ def check_sbml(filepath, name=None, log_errors=True,
     :param log_errors: boolean flag of errors should be logged
     :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
     """
+
+    if not isinstance(sbml_path, Path):
+        logger.warning(f"All paths should be of type 'Path', but '{type(sbml_path)}' found for: {sbml_path}")
+        sbml_path = Path(sbml_path)
+
     if name is None:
         filepath = os.path.abspath(filepath)
         if len(filepath) < 100:

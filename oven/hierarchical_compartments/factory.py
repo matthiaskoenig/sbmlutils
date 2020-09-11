@@ -32,7 +32,7 @@ def create_models(results_path):
     flattenSBMLFile(str(sbml_path.resolve()), output_path=str(sbml_path_flat.resolve()))
 
     # create model report
-    sbmlreport.create_report(str(sbml_path_flat), report_dir=str(results_path))
+    sbmlreport.create_report(str(sbml_path_flat), output_dir=str(results_path))
 
 
 if __name__ == "__main__":

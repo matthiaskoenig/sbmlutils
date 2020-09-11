@@ -24,8 +24,8 @@ from sbmlutils.report import sbmlreport
 
 
 # create SBML report without performing units checks
-sbmlreport.create_report("./models/BIOMD0000000012.xml", report_dir="./reports", 
-                              units_consistency=False)
+sbmlreport.create_report("./models/BIOMD0000000012.xml", output_dir="./reports",
+                         units_consistency=False)
 
 
 # ### Platelet metabolism
@@ -38,6 +38,6 @@ sbmlreport.create_report("./models/BIOMD0000000012.xml", report_dir="./reports",
 
 
 # create SBML report without performing units checks
-sbmlreport.create_report("./models/iAT_PLT_636.xml.gz", report_dir="./reports", 
-                              units_consistency=False, modeling_practice=False)
+sbmlreport.create_report("./models/iAT_PLT_636.xml.gz", output_dir="./reports",
+                         units_consistency=False, modeling_practice=False)
 

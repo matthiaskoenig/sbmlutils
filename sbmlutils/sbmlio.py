@@ -2,10 +2,13 @@
 Utility functions for reading and writing SBML files and models.
 Helper functions for path and filename manipulation.
 """
-import os
+from pathlib import Path
+from typing import Union
 import logging
+from sbmlutils import __version__
 import libsbml
 from sbmlutils import validation
+
 
 
 def read_sbml(filepath):
@@ -14,10 +17,22 @@ def read_sbml(filepath):
     :param filepath:
     :return: SBMLDocument
     """
+
+    if not isinstance(sbml_path, Path):
+        logger.warning(f"All paths should be of type 'Path', but '{type(sbml_path)}' found for: {sbml_path}")
+        sbml_path = Path(sbml_path)
+
+    if name is None:
+        filepath = os.path.abspath(filepath)
+        if len(filepath) < 100:
+            name = filepath
+        else:
+            name = filepath[0:99] + '...'
+
+    doc = libsbml.readSBML(filepath)
+
+
     reader = libsbml.SBMLReader()
-    if reader is None:
-        # Handle the truly exceptional case of no object created here.
-        logging.error("SBMLReader could not be created.")
 
     doc = reader.readSBMLFromFile(filepath)
     if doc.getNumErrors() > 0:
@@ -34,54 +49,46 @@ def read_sbml(filepath):
     return doc
 
 
-def write_sbml(doc, filepath, validate=True, program_name=None, program_version=None, show_errors=True):
-    """
-    Write SBMLDocument to file.
+def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
+               validate: bool = True,
+               program_name: str = 'sbmlutils',
+               program_version: str = str(__version__),
+               **kwargs  # optional validate arguments
+               ) -> None:
+    """ Write SBMLDocument to file.
+
+    Optional validation with validate flag.
 
     :param doc: SBMLDocument to write
     :param filepath: output file to write
     :param validate: flag for validation (True: full validation, False: no validation)
     :param program_name: Program name for SBML file
     :param program_version: Program version for SBML file
-    :return:
+
+    :return: None
     """
     writer = libsbml.SBMLWriter()
     if program_name:
         writer.setProgramName(program_name)
     if program_version:
         writer.setProgramVersion(program_version)
-    writer.writeSBMLToFile(doc, filepath)
+    writer.writeSBMLToFile(doc, str(filepath))
 
-    # validate the model with units (only for small models)
     # This validates the written file
     if validate:
-        if validate is True:
-            validation.check_sbml(filepath)
-        elif validate is validation.VALIDATION_NO_UNITS:
-            validation.check_sbml(filepath, units_consistency=False, log_errors=True)
+        validation.check_sbml(sbml=filepath, **kwargs)
 
 
-def writeModelToSBML(model, filepath):
-    """
-    Write SBML Model to output file.
+def write_model_to_sbml(model: libsbml.Model, filepath: Path) -> None:
+    """Write SBML Model to file.
+
     An empty SBMLDocument is created for the model.
 
     :param model: SBML Model
-    :param filepath: output file path
-    :return:
+    :param filepath: output path
+
+    :return: None
     """
-    writer = libsbml.SBMLWriter()
     doc = libsbml.SBMLDocument()
     doc.setModel(model)
-    writer.writeSBMLToFile(doc, filepath)
-
-
-def filepath_from_model_id(model_id, directory):
-    """
-    Create a filepath from model_id in given directory.
-
-    :param model_id:
-    :param directory:
-    :return: filepath
-    """
-    return os.path.join(directory, '{}.xml'.format(model_id))
+    write_sbml(doc=doc, filepath=filepath)

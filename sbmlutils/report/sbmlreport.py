@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Create an SBML Report from given SBML file or set of SBML files (for instance for comp models).
 
@@ -12,7 +11,8 @@ The basic steps of template creation are
 
 The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
-import os
+from pathlib import Path
+from typing import List, Iterable
 import codecs
 import ntpath
 import warnings
@@ -21,21 +21,21 @@ import logging
 
 import libsbml
 
-
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
 from sbmlutils.validation import check_sbml
 from sbmlutils import utils
 
-# template location
-TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+logger = logging.getLogger(__name__)
+
+TEMPLATE_DIR = Path('.').parent / 'templates'  # template location
 
 
-def create_reports(sbml_paths, out_dir, template='report.html', promote=False, validate=True):
+def create_reports(sbml_paths: Iterable[Path], output_dir: Path, template='report.html', promote=False, validate=True):
     """ Creates individual reports and an overview file.
 
-    :param sbmls:
-    :param out_dir:
+    :param sbml_paths: paths to SBML files
+    :param output_dir:
     :param template:
     :param promote:
     :param validate:
@@ -43,29 +43,36 @@ def create_reports(sbml_paths, out_dir, template='report.html', promote=False, v
     """
     # individual reports
     for sbml_path in sbml_paths:
-        logging.info(sbml_path)
-        create_report(sbml_path, out_dir, template=template, promote=promote, validate=validate)
+        logger.info(sbml_path)
+        create_report(
+            sbml_path=sbml_path, output_dir=output_dir,
+            template=template, promote=promote, validate=validate
+        )
 
     # write index html (unicode)
     html = _create_index_html(sbml_paths)
-    f_index = codecs.open(os.path.join(out_dir, 'index.html'), encoding='utf-8', mode='w')
+    index_path = output_dir / 'index.html'
+    # FIXME: is this still necessary in python 3?
+    f_index = codecs.open(index_path, encoding='utf-8', mode='w')
     f_index.write(html)
     f_index.close()
 
 
-def create_report(sbml_path, report_dir,
-                  promote=False, template='report.html',
-                  validate=True,
-                  log_errors=True,
-                  units_consistency=True,
-                  modeling_practice=True):
+def create_report(sbml_path: Path,
+                  output_dir: Path,
+                  promote: bool=False,
+                  template: str='report.html',
+                  validate: bool=True,
+                  log_errors: bool=True,
+                  units_consistency: bool=True,
+                  modeling_practice: bool=True):
     """ Create a HTML report for a given SBML file.
 
     The SBML file can be validated during report generation.
     Local parameters can be promoted during report generation.
 
     :param sbml_path: path to SBML file
-    :param report_dir: target directory where the report is written
+    :param output_dir: target directory where the report is written
     :param promote: boolean flag to promote local parameters
     :param template: which template file to use for rendering
     :param validate: boolean flag if SBML file be validated (warnings and errors are logged)
@@ -75,21 +82,31 @@ def create_report(sbml_path, report_dir,
 
     :return:
     """
+    if not isinstance(sbml_path, Path):
+        logger.warning(f"All paths should be of type 'Path', but '{type(sbml_path)}' found for: {sbml_path}")
+        sbml_path = Path(sbml_path)
+    if not isinstance(output_dir, Path):
+        logger.warning(f"All paths should be of type 'Path', but '{type(output_dir)}' found for: {output_dir}")
+        output_dir = Path(output_dir)
+
     # check paths
-    if not os.path.exists(sbml_path):
-        raise IOError("'sbml_path' does not exist: '{}'".format(sbml_path))
-    if not os.path.exists(report_dir):
-        raise IOError("'report_dir' does not exist: '{}'".format(report_dir))
-    if not os.path.isdir(report_dir):
-        raise IOError("'report_dir' is not a directory: '{}'".format(report_dir))
+    if not sbml_path.exists():
+        raise IOError(f"'sbml_path' does not exist: '{sbml_path}'")
+    if not output_dir.exists():
+        raise IOError(f"'output_dir' does not exist: '{output_dir}'")
+    if not output_dir.is_dir():
+        raise IOError(f"'output_dir' is not a directory: '{output_dir}'")
 
     # validate SBML
     if validate:
-        check_sbml(sbml_path, log_errors=log_errors,
-                   units_consistency=units_consistency, modeling_practice=modeling_practice)
+        check_sbml(
+            sbml_path=sbml_path,
+            log_errors=log_errors,
+            units_consistency=units_consistency, modeling_practice=modeling_practice
+        )
 
     # read SBML
-    doc = libsbml.readSBML(sbml_path)
+    doc = libsbml.readSBML(sbml_path.resolve())
 
     # promote parameters
     if promote:
@@ -99,12 +116,13 @@ def create_report(sbml_path, report_dir,
     basename = os.path.basename(sbml_path)
     tokens = basename.split('.')
     name = '.'.join(tokens[:-1])
-    f_sbml = os.path.join(report_dir, basename)
+    f_sbml = os.path.join(output_dir, basename)
     libsbml.writeSBMLToFile(doc, f_sbml)
 
     # write html (unicode)
     html = _create_html(doc, basename, html_template=template)
-    path_html = os.path.join(report_dir, '{}.html'.format(name))
+    path_html = os.path.join(output_dir, '{}.html'.format(name))
+    # FIXME: ist this still necessary
     f_html = codecs.open(path_html, encoding='utf-8', mode='w')
     f_html.write(html)
     f_html.close()
@@ -112,8 +130,7 @@ def create_report(sbml_path, report_dir,
 
 
 def _create_index_html(sbml_paths, html_template='index.html', offline=True):
-    """Create index for sbml_paths.
-    """
+    """Create overview index.htl for sbml_paths."""
 
     # template environment
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
