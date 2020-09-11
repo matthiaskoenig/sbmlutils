@@ -62,22 +62,3 @@ def deprecated(func):
     return new_func
 
 
-def promote_local_variables(doc):
-    """ Promotes local variables in SBMLDocument.
-
-    :param doc:
-    :return:
-    """
-    model = doc.getModel()
-    mid = model.id
-    mid = '{}_{}'.format(mid, 'promoted')
-    model.setId(mid)
-
-    # promote local parameters
-    props = libsbml.ConversionProperties()
-    props.addOption("promoteLocalParameters", True, "Promotes all Local Parameters to Global ones")
-    if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
-        warnings.warn("SBML Conversion failed...")
-    else:
-        print("SBML Conversion successful")
-    return doc

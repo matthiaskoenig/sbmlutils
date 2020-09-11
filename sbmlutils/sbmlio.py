@@ -1,59 +1,82 @@
 """
-Utility functions for reading and writing SBML files and models.
-Helper functions for path and filename manipulation.
+Utility functions for reading, writing and validating SBML.
 """
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 import logging
-from sbmlutils import __version__
+
 import libsbml
+
+from sbmlutils.utils import deprecated
+from sbmlutils import __version__
 from sbmlutils import validation
 
+logger = logging.getLogger(__name__)
 
 
-def read_sbml(filepath):
-    """ Reads an SBMLDocument.
+def read_sbml(source: Union[Path, str],
+              validate: bool = True,
+              log_errors: bool = True,
+              units_consistency: bool = True,
+              modeling_practice: bool = True,
+              internal_consistency: bool = True
+              ) -> libsbml.SBMLDocument:
+    """Read SBMLDocument from given source.
 
-    :param filepath:
+    :param source: SBML path or string
+    :param validate:
+    :param log_errors: validation flag
+    :param units_consistency: validation flag
+    :param modeling_practice: validation flag
+    :param internal_consistency: validation flag
+
     :return: SBMLDocument
     """
-
-    if not isinstance(sbml_path, Path):
-        logger.warning(f"All paths should be of type 'Path', but '{type(sbml_path)}' found for: {sbml_path}")
-        sbml_path = Path(sbml_path)
-
-    if name is None:
-        filepath = os.path.abspath(filepath)
-        if len(filepath) < 100:
-            name = filepath
-        else:
-            name = filepath[0:99] + '...'
-
-    doc = libsbml.readSBML(filepath)
-
-
     reader = libsbml.SBMLReader()
+    if isinstance(source, str) and "<sbml" in source:
+        doc = reader.readSBMLFromString(source)
+    else:
+        if not isinstance(source, Path):
+            logger.error(f"All SBML paths should be of type 'Path', but "
+                         f"'{type(source)}' found for: {source}")
+            source = Path(source)
 
-    doc = reader.readSBMLFromFile(filepath)
+        doc = reader.readSBMLFromFile(str(source))
+
+    # check for errors
     if doc.getNumErrors() > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
-            # Handle case of unreadable file here.
-            logging.error("Unreadable SBML file.")
+            err_message = f"Unreadable SBML file"
         elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
-            # Handle case of other file error here.
-            logging.error("Problems reading SBML file: XMLFileOperationError")
+            err_message = "Problems reading SBML file: XMLFileOperationError"
         else:
-            logging.error("Problems reading SBML file.")
-        raise IOError
+            err_message = "Problems reading SBML file."
+
+        err_message = f"read_sbml error '{source}': {err_message}"
+        logger.error(err_message)
+        raise IOError(err_message)
+
+    # validate file
+    if validate:
+        validation.check_doc(
+            doc=doc,
+            log_errors=log_errors,
+            units_consistency=units_consistency,
+            modeling_practice=modeling_practice,
+            internal_consistency=internal_consistency
+        )
 
     return doc
 
 
 def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
-               validate: bool = True,
                program_name: str = 'sbmlutils',
                program_version: str = str(__version__),
-               **kwargs  # optional validate arguments
+               validate: bool = True,
+               log_errors: bool = True,
+               units_consistency: bool = True,
+               modeling_practice: bool = True,
+               internal_consistency: bool = True
                ) -> None:
     """ Write SBMLDocument to file.
 
@@ -64,6 +87,10 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
     :param validate: flag for validation (True: full validation, False: no validation)
     :param program_name: Program name for SBML file
     :param program_version: Program version for SBML file
+    :param log_errors: validation flag
+    :param units_consistency: validation flag 
+    :param modeling_practice: validation flag
+    :param internal_consistency: validation flag 
 
     :return: None
     """
@@ -76,9 +103,41 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
 
     # This validates the written file
     if validate:
-        validation.check_sbml(sbml=filepath, **kwargs)
+        validate_sbml(
+            source=filepath,
+            log_errors=log_errors,
+            units_consistency=units_consistency,
+            modeling_practice=modeling_practice,
+            internal_consistency=internal_consistency
+        )
 
 
+def validate_sbml(source: Union[str, Path], name: str = None,
+                  log_errors: bool = True,
+                  units_consistency: bool = True,
+                  modeling_practice: bool = True,
+                  internal_consistency: bool = True) -> List[int]:
+    """ Checks given SBML source.
+
+    :param source: SBML path or string
+    :param name: identifier or path for report
+    :param units_consistency: boolean flag units consistency
+    :param modeling_practice: boolean flag modeling practise
+    :param internal_consistency: boolean flag internal consistency
+    :param log_errors: boolean flag of errors should be logged
+    :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
+    """
+    doc = read_sbml(source)
+    return validation.check_doc(
+        doc, name=name,
+        log_errors=log_errors,
+        units_consistency=units_consistency,
+        modeling_practice=modeling_practice,
+        internal_consistency=internal_consistency
+    )
+
+
+@deprecated
 def write_model_to_sbml(model: libsbml.Model, filepath: Path) -> None:
     """Write SBML Model to file.
 

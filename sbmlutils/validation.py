@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
 """
-Validation and checking functions.
-Helper functions for simple validation and display of problems.
-Helper functions if setting sbml information was successful.
+Helpers for validation and checking of SBML and libsbml operations.
 """
-from pathlib import Path
-import os
 import logging
 import time
-from typing import Union
+from typing import Union, List
 
 import libsbml
 from sbmlutils.logutils import bcolors
 
+logger = logging.getLogger(__name__)
+
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
 
 
-def check(value, message):
-    """
-    Checks the libsbml return value and prints message if something happened.
+def check(value: int, message: str) -> bool:
+    """Checks the libsbml return value and prints message if something happened.
 
     If 'value' is None, prints an error message constructed using
       'message' and then exits with status code 1. If 'value' is an integer,
@@ -26,58 +22,25 @@ def check(value, message):
       LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
       prints an error message constructed using 'message' along with text from
       libSBML explaining the meaning of the code, and exits with status code 1.
-
     """
+    valid = True
     if value is None:
-        logging.error('Error: LibSBML returned a null value trying to <' + message + '>.')
-    elif type(value) is int:
-        if value == libsbml.LIBSBML_OPERATION_SUCCESS:
-            return
-        else:
-            logging.error('Error encountered trying to <' + message + '>.')
-            logging.error('LibSBML returned error code {}: {}'.format(str(value),
-                          libsbml.OperationReturnValue_toString(value).strip()))
-    else:
-        return
+        logger.error('Error: LibSBML returned a null value trying to <' + message + '>.')
+        valid = False
+    elif isinstance(value, int):
+        if value != libsbml.LIBSBML_OPERATION_SUCCESS:
+            logger.error(f'Error encountered trying to <{message}>.')
+            logger.error(f'LibSBML returned error code {str(value)}: '
+                         f'{libsbml.OperationReturnValue_toString(value).strip()}')
+            valid = False
 
-
-def check_sbml(sbml: Union[str, Path], name=None, log_errors=True,
-               units_consistency=True,
-               modeling_practice=True,
-               internal_consistency=True):
-    """ Checks the given SBML path or SBMLstring.
-
-    :param sbml: SBML to check
-    :param name: identifier or path for report
-    :param units_consistency: boolean flag units consistency
-    :param modeling_practice: boolean flag modeling practise
-    :param internal_consistency: boolean flag internal consistency
-    :param log_errors: boolean flag of errors should be logged
-    :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
-    """
-
-    if not isinstance(sbml_path, Path):
-        logger.warning(f"All paths should be of type 'Path', but '{type(sbml_path)}' found for: {sbml_path}")
-        sbml_path = Path(sbml_path)
-
-    if name is None:
-        filepath = os.path.abspath(filepath)
-        if len(filepath) < 100:
-            name = filepath
-        else:
-            name = filepath[0:99] + '...'
-
-    doc = libsbml.readSBML(filepath)
-    return check_doc(doc, name=name, log_errors=log_errors,
-                     units_consistency=units_consistency,
-                     modeling_practice=modeling_practice,
-                     internal_consistency=internal_consistency)
+    return valid
 
 
 def check_doc(doc, name=None, log_errors=True,
               units_consistency=True,
               modeling_practice=True,
-              internal_consistency=True):
+              internal_consistency=True) -> List[int]:
     """ Checks document and logs errors.
 
     :param doc: SBMLDocument to check

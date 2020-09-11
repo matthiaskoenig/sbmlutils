@@ -1,16 +1,19 @@
 """
 Functions for SBML model manipulation.
-These functions take an existing SBML model and manipulate it in a clever way.
 
-For instance:
-- merge existing models in a combined model
+These functions take existing SBML model(s) and provide common manipulations.
+For example merging of models or promoting of local parameters.
 """
 import os
 import logging
+import warnings
+
 import libsbml
 
 from sbmlutils import comp
 from sbmlutils import validation
+
+logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3
 SBML_VERSION = 1
@@ -98,4 +101,26 @@ def create_merged_doc(model_paths, merged_id="merged"):
         # add submodel which references the external model definitions
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)
 
+    return doc
+
+
+def promote_local_variables(doc: libsbml.SBMLDocument, suffix: str="_promoted") -> libsbml.SBMLDocument:
+    """ Promotes local variables in SBMLDocument.
+
+    Manipulates SBMLDocument in place!
+
+    :param doc: SBMLDocument
+    :return: SBMLDocument with promoted parameters
+    """
+    model = doc.getModel()  # type: libsbml.Model
+    model.setId(f"{model.id}{suffix}")
+
+    # promote local parameters
+    props = libsbml.ConversionProperties()
+    props.addOption("promoteLocalParameters", True, "Promotes all Local Parameters to Global ones")
+
+    if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
+        logger.error(f"Promotion of local parameters failed: {doc}")
+    else:
+        logger.info(f"Promotion of local paramters successful: {doc}")
     return doc

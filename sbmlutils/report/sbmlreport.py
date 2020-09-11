@@ -21,6 +21,7 @@ import logging
 
 import libsbml
 
+import sbmlutils.manipulation
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
 from sbmlutils.validation import check_sbml
@@ -110,7 +111,7 @@ def create_report(sbml_path: Path,
 
     # promote parameters
     if promote:
-        utils.promote_local_variables(doc)
+        sbmlutils.manipulation.promote_local_variables(doc)
 
     # write SBML to report directory
     basename = os.path.basename(sbml_path)
