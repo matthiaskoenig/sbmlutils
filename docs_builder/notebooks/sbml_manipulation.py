@@ -44,7 +44,7 @@ print(libsbml.writeSBMLToString(doc))
 libsbml.writeSBMLToFile(doc, os.path.join(output_dir, "merged.xml"))
 
 # flatten the merged model
-doc_flat = comp.flattenSBMLDocument(doc)
+doc_flat = comp.flatten_sbml(doc)
 Nall, Nerr, Nwarn = validation.check_doc(doc_flat, units_consistency=False)
 libsbml.writeSBMLToFile(doc_flat, os.path.join(output_dir, "merged_flat.xml"));
 

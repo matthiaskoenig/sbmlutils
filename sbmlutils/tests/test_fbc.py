@@ -1,19 +1,21 @@
 """
 Unit tests for fbc.
 """
-import sbmlutils.fbc as fbc
+
+from sbmlutils.fbc.fbc import add_default_flux_bounds
+from sbmlutils.fbc.cobra import load_cobra_model, cobra_reaction_info, check_mass_balance
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.tests import FBC_SBML, DEMO_SBML
 
 
 def test_load_cobra_model():
-    model = fbc.load_cobra_model(FBC_SBML)
+    model = load_cobra_model(FBC_SBML)
     assert model
 
 
 def test_reaction_info():
-    cobra_model = fbc.load_cobra_model(FBC_SBML)
-    df = fbc.cobra_reaction_info(cobra_model)
+    cobra_model = load_cobra_model(FBC_SBML)
+    df = cobra_reaction_info(cobra_model)
     assert df is not None
 
     assert df.at['v1', 'objective_coefficient'] == 1
@@ -30,11 +32,11 @@ def test_mass_balance(tmp_path):
     doc = read_sbml(DEMO_SBML)
 
     # add defaults
-    fbc.add_default_flux_bounds(doc)
+    add_default_flux_bounds(doc)
 
     filepath = tmp_path / "test.xml"
     write_sbml(doc, filepath=filepath)
-    model = fbc.load_cobra_model(filepath)
+    model = load_cobra_model(filepath)
 
     # mass/charge balance
     for r in model.reactions:

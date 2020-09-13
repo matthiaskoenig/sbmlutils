@@ -20,7 +20,6 @@ Features include among others
 * HTML reports of SBML models
 * helper functions for model creation, manipulation, and annotation
 * interpolation functions to add experimental data to models
-* implementation of dynamic flux balance analysis (DFBA)
 * file converters (XPP)
 
 For documentation and examples see https://sbmlutils.readthedocs.io. `sbmlutils` is working and tested with `py3.6` and `py3.7`. We only support the latest version, i.e. with the release of a new version all support for older versions is stopped. 
@@ -64,6 +63,7 @@ pip install -e .
 ## Release notes
 ### 0.3.11
 * python 3.8 support
+* refactored DFBA to https://github.com/matthiaskoenig/dfba
 
 ### 0.3.9
 * full support for distrib (distributions and uncertainty)

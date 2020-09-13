@@ -11,7 +11,6 @@ Features include among others
 -  HTML reports of SBML models
 -  helper functions for model creation, manipulation, and annotation
 -  interpolation functions to add experimental data to models
--  implementation of dynamic flux balance analysis (DFBA)
 -  file converters (XPP)
 
 Documentation is available at https://sbmlutils.readthedocs.io

@@ -62,6 +62,8 @@ __all__ = [
     'Uncertainty',
     'UncertParameter',
     'UncertSpan',
+    'SBML_LEVEL',
+    'SBML_VERSION',
 ]
 
 

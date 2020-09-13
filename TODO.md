@@ -1,0 +1,4 @@
+- [ ] fix pep8 issues
+- [ ] fix and update documentation
+- [x] clean oven
+- [ ] new release

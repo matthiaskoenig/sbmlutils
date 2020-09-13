@@ -28,8 +28,6 @@ FBC_SBML = MODELS_DIR / 'fbc' / 'diauxic_fba.xml'
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / 'omex' / 'CombineArchiveShowCase.omex'
 
-# --- comp ---
-DFBA_EMD_SBML = DATA_DIR / 'dfba' / 'diauxic_top.xml'
 
 # --- Data ---
 csv_filepath = DATA_DIR / 'data' / 'test.csv'

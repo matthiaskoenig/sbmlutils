@@ -1,16 +1,12 @@
 """
 Test manipulation functions.
 """
-import os
-import libsbml
 
 from sbmlutils import comp
 from sbmlutils import validation
-from sbmlutils import manipulation
+from sbmlutils.manipulation import merge
+from sbmlutils.io import write_sbml
 from sbmlutils.tests import DATA_DIR
-
-# FIXME: update to paths
-# FIXME: add model promotion test
 
 
 def test_biomodel_merge():
@@ -20,21 +16,22 @@ def test_biomodel_merge():
     :param tmpdir:
     :return:
     """
-    merge_dir = os.path.join(DATA_DIR, 'manipulation', 'merge')
+    merge_dir = DATA_DIR / 'manipulation' / 'merge'
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels
     model_ids = ["BIOMD000000000{}".format(k) for k in range(1, 5)]
-    model_paths = dict(zip(model_ids,
-                           [os.path.join(merge_dir, "{}.xml".format(mid)) for mid in model_ids])
-                       )
+    model_paths = dict(zip(
+        model_ids,
+        [merge_dir / f"{mid}.xml" for mid in model_ids]
+    ))
 
     # merge model
-    out_dir = os.path.join(merge_dir, 'output')
-    if not os.path.exists(out_dir):
-        os.mkdir(out_dir)
+    out_dir = merge_dir / 'output'
+    if not out_dir.exists():
+        out_dir.mkdir()
 
-    doc = manipulation.merge_models(model_paths, out_dir=out_dir,  validate=False)
+    doc = merge.merge_models(model_paths, out_dir=out_dir,  validate=False)
     assert doc is not None
 
     Nall, Nerr, Nwarn = validation.check_doc(doc, units_consistency=False)
@@ -43,9 +40,9 @@ def test_biomodel_merge():
     assert Nall == 0
 
     # flatten the model
-    doc_flat = comp.flattenSBMLDocument(doc)
+    doc_flat = comp.flatten_sbml_doc(doc)
     assert doc_flat is not None
-    libsbml.writeSBMLToFile(doc_flat, os.path.join(out_dir, "merged_flat.xml"))
+    write_sbml(doc_flat, filepath=out_dir / "merged_flat.xml")
 
     Nall, Nerr, Nwarn = validation.check_doc(doc_flat, units_consistency=False)
     assert Nerr == 0

@@ -3,12 +3,9 @@ Tests for the comp module.
 """
 import libsbml
 
-from sbmlutils.comp import flattenExternalModelDefinitions
-from sbmlutils.io import sbml
-from sbmlutils import validation
-from sbmlutils.tests import DFBA_EMD_SBML
 from sbmlutils import comp
 from sbmlutils import factory as fac
+from sbmlutils.annotation.sbo import SBO_CONTINOUS_FRAMEWORK
 
 
 def create_port_doc():
@@ -18,7 +15,7 @@ def create_port_doc():
     model = doc.createModel()
     model.setId("toy_update")
     model.setName("toy (UPDATE submodel)")
-    model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    model.setSBOTerm(SBO_CONTINOUS_FRAMEWORK)
 
     objects = [
         fac.Compartment(sid='extern', value=1.0, unit="m3", constant=True, name='external compartment'),
@@ -71,32 +68,3 @@ def test_create_ports_list():
     assert comp_model.getPort("EX_A_port")
     assert comp_model.getPort("EX_C_port")
     assert comp_model.getPort("test") is None
-
-
-def test_flattenExternalModelDefinition():
-    sbml_path = DFBA_EMD_SBML
-    print(sbml_path)
-    doc = sbml.read_sbml(sbml_path)
-
-    # test that resource could be read
-    assert doc is not None
-    # test that model in document
-    assert doc.getModel() is not None
-    print(doc)
-    print(doc.getModel().getId())
-
-    # check that model exists
-    doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)
-    assert doc_no_emd is not None
-
-    # check that there are no external model definitions
-    comp_doc_no_emd = doc_no_emd.getPlugin("comp")
-    assert 0 == comp_doc_no_emd.getNumExternalModelDefinitions()
-
-    # check that all model definitions are still there
-    assert 3 == comp_doc_no_emd.getNumModelDefinitions()
-
-    # check model consistency
-    Nall, Nerr, Nwarn = validation.check_doc(doc_no_emd)
-    # assert Nall == 0
-    # FIXME: currently not possible to flatten, add test when fixing method
