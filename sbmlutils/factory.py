@@ -298,7 +298,8 @@ class Sbase(object):
 
         else:
             # use the port object
-            if (not self.port.portRef) and (not self.port.idRef) and (not self.port.unitRef) and (not self.port.metaIdRef):
+            if (not self.port.portRef) and (not self.port.idRef) and (not self.port.unitRef) and \
+                    (not self.port.metaIdRef):
                 # if no reference set id reference to current object
                 self.port.idRef = self.sid
             self.port.create_sbml(model)
@@ -439,14 +440,14 @@ class Function(Sbase):
                                        port=port, uncertainties=uncertainties)
         self.formula = value
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model):
         obj = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
         self.set_fields(obj, model)
 
         self.create_port(model)
         return obj
 
-    def set_fields(self, obj, model):
+    def set_fields(self, obj, model: libsbml.Model):
         super(Function, self).set_fields(obj)
         ast_node = ast_node_from_formula(model, self.formula)
         obj.setMath(ast_node)
@@ -665,7 +666,7 @@ class Rule(ValueWithUnit):
             # object exists, units do not mean anything
             if rule.unit:
                 logger.debug(f"Units '{rule.unit}' are not used if object "
-                               f"exists for AssignmentRule: '{rule}'.")
+                             f"exists for AssignmentRule: '{rule}'.")
 
         # Make sure the parameter is const=False
         p = model.getParameter(sid)
@@ -679,12 +680,12 @@ class Rule(ValueWithUnit):
             elif rule_type == "AssignmentRule":
                 obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
         else:
-            logger.warning('Rule with sid already exists in model: {}. '
-                            'Rule not updated with "{}"'.format(sid, rule.value))
+            logger.warning(f"Rule with sid already exists in model: {sid}. "
+                           f"Rule not updated with '{rule.variable}'")
             obj = model.getRule(sid)
         return obj
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model):
         """ Create Rule in model.
 
         :param model:

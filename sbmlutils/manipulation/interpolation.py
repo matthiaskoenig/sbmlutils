@@ -8,7 +8,6 @@ https://github.com/allyhume/SBMLDataTools.git
 
 """
 import logging
-import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -18,12 +17,6 @@ from sbmlutils.io.sbml import write_sbml
 
 logger = logging.getLogger(__name__)
 
-
-
-
-##########################################################################
-# Model information
-##########################################################################
 
 notes = libsbml.XMLNode.convertStringToXMLNode("""
     <body xmlns='http://www.w3.org/1999/xhtml'>
@@ -258,18 +251,18 @@ class Interpolation(object):
         """
         # more than 1 column required
         if len(self.data.columns) < 2:
-            warnings.warn("Interpolation data has <2 columns. At least 2 columns required.")
+            logger.warning("Interpolation data has <2 columns. At least 2 columns required.")
 
         # at least 3 rows required
         if len(self.data) < 3:
-            warnings.warn("Interpolation data <3 rows. At least 3 rows required.")
+            logger.warning("Interpolation data <3 rows. At least 3 rows required.")
 
         # first column has to be ascending (times)
         def is_sorted(df, colname):
             return pd.Index(df[colname]).is_monotonic
 
         if not is_sorted(self.data, colname=self.data.columns[0]):
-            warnings.warn("First column should contain ascending values.")
+            logger.warning("First column should contain ascending values.")
             self.data = self.data.sort_values(by=self.data.columns[0])
 
     @staticmethod
@@ -298,28 +291,19 @@ class Interpolation(object):
     def write_sbml_to_file(self, sbml_out: Path):
         """ Write the SBML file.
 
-        First create clean SBML file.
-
-        :param sbml_out:
-        :type sbml_out:
+        :param sbml_out: Path to SBML file
         :return:
-        :rtype:
         """
         self._create_sbml()
         write_sbml(doc=self.doc, filepath=sbml_out)
 
-    def write_sbml_to_string(self):
+    def write_sbml_to_string(self) -> str:
         """ Write the SBML file.
 
-        First create clean SBML file.
-
-        :param sbml_out:
-        :type sbml_out:
-        :return:
-        :rtype:
+        :return: SBML str
         """
         self._create_sbml()
-        return write_sbml(self.doc)
+        return write_sbml(self.doc, filepath=None)
 
     def _create_sbml(self):
         """ Create the SBMLDocument.
@@ -371,13 +355,12 @@ class Interpolation(object):
         return interpolators
 
     @staticmethod
-    def add_interpolator_to_model(interpolator, model):
+    def add_interpolator_to_model(interpolator, model: libsbml.Model) -> None:
         """ The parameters, formulas and rules have to be added to the SBML model.
 
         :param interpolator:
-        :type interpolator:
+        :param model: Model
         :return:
-        :rtype:
         """
 
         # create parameter
@@ -385,7 +368,7 @@ class Interpolation(object):
 
         # if parameter exists remove it
         if model.getParameter(pid):
-            warnings.warn("Model contains parameter: {}. Parameter is removed.".format(pid))
+            logger.warning("Model contains parameter: {}. Parameter is removed.".format(pid))
             model.removeParameter(pid)
 
         # if assignment rule exists remove it
@@ -406,7 +389,7 @@ class Interpolation(object):
         formula = interpolator.formula()
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
-            warnings.warn(libsbml.getLastParseL3Error())
+            logger.warning(libsbml.getLastParseL3Error())
         else:
             rule.setMath(ast_node)
 
