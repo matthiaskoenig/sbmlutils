@@ -13,8 +13,7 @@ import logging
 import time
 import libsbml
 
-from sbmlutils.logutils import bcolors
-
+from sbmlutils.utils import bcolors
 import sbmlutils.factory as factory
 import sbmlutils.validation as validation
 from sbmlutils.validation import check

@@ -1,19 +1,13 @@
 """
 Unit tests for fbc.
 """
-from __future__ import print_function, absolute_import
+
 import os
 import cobra
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
-
+import libsbml
 import sbmlutils.fbc as fbc
-from sbmlutils.tests import data
-
-FBC_SBML = os.path.join(data.data_dir, 'fbc/diauxic_fba.xml')
+from sbmlutils.sbmlio import read_sbml, write_sbml
+from sbmlutils.tests import FBC_SBML, DEMO_SBML
 
 
 def test_load_cobra_model():
@@ -37,8 +31,8 @@ def test_reaction_info():
     assert df.at['EX_X', 'objective_coefficient'] == 0
 
 
-def test_mass_balance():
-    doc = libsbml.readSBMLFromFile(data.DEMO_SBML)
+def test_mass_balance(tmp_path):
+    doc = read_sbml(DEMO_SBML)
 
     # add defaults
     fbc.add_default_flux_bounds(doc)
@@ -47,7 +41,10 @@ def test_mass_balance():
     f = tempfile.NamedTemporaryFile('w', suffix='xml')
     libsbml.writeSBMLToFile(doc, f.name)
     f.flush()
-    model = cobra.io.read_sbml_model(f.name)
+    filepath = tmp_path / "test.xml"
+    write_sbml(doc, filepath=filepath)
+
+    model = cobra.io.read_sbml_model(str(filepath))
 
     # mass/charge balance
     for r in model.reactions:

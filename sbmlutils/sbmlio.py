@@ -7,14 +7,16 @@ import logging
 
 import libsbml
 
-from sbmlutils.utils import deprecated
+
 from sbmlutils import __version__
 from sbmlutils import validation
+from sbmlutils.utils import deprecated
 
 logger = logging.getLogger(__name__)
 
 
 def read_sbml(source: Union[Path, str],
+              promote: bool = False,
               validate: bool = True,
               log_errors: bool = True,
               units_consistency: bool = True,
@@ -24,7 +26,8 @@ def read_sbml(source: Union[Path, str],
     """Read SBMLDocument from given source.
 
     :param source: SBML path or string
-    :param validate:
+    :param promote: promote local parameters to global parameters
+    :param validate: validate file
     :param log_errors: validation flag
     :param units_consistency: validation flag
     :param modeling_practice: validation flag
@@ -42,6 +45,10 @@ def read_sbml(source: Union[Path, str],
             source = Path(source)
 
         doc = reader.readSBMLFromFile(str(source))
+
+    # promote local parameters
+    if promote:
+        doc = promote_local_variables(doc)
 
     # check for errors
     if doc.getNumErrors() > 0:
@@ -135,6 +142,28 @@ def validate_sbml(source: Union[str, Path], name: str = None,
         modeling_practice=modeling_practice,
         internal_consistency=internal_consistency
     )
+
+
+def promote_local_variables(doc: libsbml.SBMLDocument, suffix: str="_promoted") -> libsbml.SBMLDocument:
+    """ Promotes local variables in SBMLDocument.
+
+    Manipulates SBMLDocument in place!
+
+    :param doc: SBMLDocument
+    :return: SBMLDocument with promoted parameters
+    """
+    model = doc.getModel()  # type: libsbml.Model
+    model.setId(f"{model.id}{suffix}")
+
+    # promote local parameters
+    props = libsbml.ConversionProperties()
+    props.addOption("promoteLocalParameters", True, "Promotes all Local Parameters to Global ones")
+
+    if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
+        logger.error(f"Promotion of local parameters failed: {doc}")
+    else:
+        logger.info(f"Promotion of local paramters successful: {doc}")
+    return doc
 
 
 @deprecated

@@ -3,7 +3,7 @@ Resources for testing
 """
 from pathlib import Path
 
-TEST_DIR = Path(".").parent  # directory of test files
+TEST_DIR = Path(__file__).parent  # directory of test files
 DATA_DIR = TEST_DIR / 'data'  # directory of data for tests
 MODELS_DIR = DATA_DIR / 'models'
 
@@ -23,6 +23,7 @@ GLUCOSE_SBML = MODELS_DIR / 'glucose' / 'Hepatic_glucose_3.xml'
 
 VDP_SBML = MODELS_DIR / 'van_der_pol' / 'van_der_pol.xml'
 
+FBC_SBML = MODELS_DIR / 'fbc' / 'diauxic_fba.xml'
 
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / 'omex' / 'CombineArchiveShowCase.omex'

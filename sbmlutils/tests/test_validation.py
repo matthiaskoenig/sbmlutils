@@ -1,51 +1,32 @@
-from __future__ import print_function, division
+import pytest
 
-import unittest
+from sbmlutils.sbmlio import validate_sbml
+from sbmlutils.tests import DFBA_EMD_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML, BASIC_SBML, VDP_SBML
 
-from sbmlutils.validation import check_sbml
-from sbmlutils.tests import data
-
-##################################################################################
-# These files are validated. All of them are valid and have no warnings or errors.
-# dictionary of filenames, with setting for ucheck
+# FIXME: implement paramtrized test
 SBML_FILES = [
-    {'path': data.DFBA_EMD_SBML, 'ucheck': True, 'N': 0},
-    {'path': data.DEMO_SBML, 'ucheck': True, 'N': 0},
-    {'path': data.GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
-    {'path': data.BASIC_SBML, 'ucheck': True, 'N': 0},
-    {'path': data.VDP_SBML, 'ucheck': False, 'N': 10},
+    {'path': DFBA_EMD_SBML, 'ucheck': True, 'N': 0},
+    {'path': DEMO_SBML, 'ucheck': True, 'N': 0},
+    {'path': GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
+    {'path': BASIC_SBML, 'ucheck': True, 'N': 0},
+    {'path': VDP_SBML, 'ucheck': False, 'N': 0},
 ]
 
 
-##################################################################################
+def _validate_file(sbmlpath, units_consistency=True, Nall=0):
+    """ Validate given SBML file.
 
-class TestValidation(unittest.TestCase):
-    """ Unittests for the validation module."""
+    Helper function called by the other tests.
 
-    def validate_file(self, sbmlpath, units_consistency=True, Nall=0):
-        """ Validate given SBML file.
-
-        Helper function called by the other tests.
-
-        :param sbmlpath:
-        :param units_consistency:
-        :return:
-        """
-        Nall, Nerr, Nwarn = check_sbml(sbmlpath, units_consistency=units_consistency)
-        self.assertIsNotNone(Nall)
-        # There is an SBOfix for model framework in the develop version,
-        # with the wheel steel 3 warnings
-        # FIXME: update to 0 with next libsbml wheel release
-        self.assertTrue(Nall in [0, 3])
-
-    def test_files(self):
-        """ Test all files provided in SBML_FILES
-
-        :return:
-        """
-        for d in SBML_FILES:
-            self.validate_file(sbmlpath=d['path'], units_consistency=d['ucheck'], Nall=d['N'])
+    :param sbmlpath:
+    :param units_consistency:
+    :return:
+    """
+    _Nall, _Nerr, _Nwarn = validate_sbml(sbmlpath, units_consistency=units_consistency)
+    assert Nall is not None
+    assert Nall == _Nall
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_files():
+    for d in SBML_FILES:
+        _validate_file(sbmlpath=d['path'], units_consistency=d['ucheck'], Nall=d['N'])

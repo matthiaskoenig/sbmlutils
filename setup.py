@@ -87,7 +87,7 @@ setup(
         "optlang>=1.4.4",
 
         # misc
-        "pytest>=5.3.2",
+        "pytest>=6.0",
         "pytest-cov>=2.8.1",
         "ipykernel>=5.1.3",
     ],

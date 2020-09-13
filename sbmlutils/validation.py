@@ -3,10 +3,10 @@ Helpers for validation and checking of SBML and libsbml operations.
 """
 import logging
 import time
-from typing import Union, List
-
+from typing import List
 import libsbml
-from sbmlutils.logutils import bcolors
+
+from sbmlutils.utils import bcolors
 
 logger = logging.getLogger(__name__)
 

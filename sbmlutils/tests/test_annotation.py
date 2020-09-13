@@ -1,16 +1,16 @@
 """
 Test annotation functions and annotating of SBML models.
 """
-
 import re
-import tempfile
 import libsbml
 
+from sbmlutils.sbmlio import read_sbml
 from sbmlutils.annotation import annotator
 from sbmlutils.annotation.miriam import BQB
 from sbmlutils.annotation.annotator import ModelAnnotator, ExternalAnnotation
-from sbmlutils.tests import data
 from sbmlutils.examples.models.annotation import factory as annotation_factory
+from sbmlutils.tests import DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS, \
+    GALACTOSE_ANNOTATIONS
 
 
 def test_create_annotation():
@@ -71,15 +71,14 @@ def test_model_annotator():
     annotator.annotate_model()
 
 
-def test_demo_annotation():
+def test_demo_annotation(tmp_path):
     """ Annotate the demo network. """
 
-    f_tmp = tempfile.NamedTemporaryFile()
-    annotator.annotate_sbml_file(data.DEMO_SBML_NO_ANNOTATIONS, data.DEMO_ANNOTATIONS, f_sbml_annotated=f_tmp.name)
-    f_tmp.flush()
+    tmp_sbml_path = tmp_path / "sbml_annotated.xml"
+    annotator.annotate_sbml(DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, f_sbml_annotated=tmp_sbml_path)
 
     # document
-    doc = libsbml.readSBMLFromFile(f_tmp.name)
+    doc = read_sbml(source=tmp_sbml_path)
     assert doc.getSBOTerm() == 293
     assert doc.getSBOTermID() == "SBO:0000293"
     cvterms = doc.getCVTerms()
@@ -155,10 +154,9 @@ def test_demo_annotation():
             assert len(cvterms) == 1
 
 
-def test_galactose_annotation():
+def test_galactose_annotation(tmp_path):
     """ Annotate the galactose network. """
-    f_tmp = tempfile.NamedTemporaryFile()
-    annotator.annotate_sbml_file(data.GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
-                                 f_annotations=data.GALACTOSE_ANNOTATIONS,
-                                 f_sbml_annotated=f_tmp.name)
-    f_tmp.flush()
+    tmp_sbml_path = tmp_path / "sbml_annotated.xml"
+    annotator.annotate_sbml(GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+                            f_annotations=GALACTOSE_ANNOTATIONS,
+                            f_sbml_annotated=tmp_sbml_path)

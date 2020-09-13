@@ -43,6 +43,7 @@ Not supported:
 
 import warnings
 import re
+from pathlib import Path
 from pprint import pprint
 import libsbml
 
@@ -171,7 +172,8 @@ def sid_value_from_part(part):
 ##################################
 # Converter
 ##################################
-def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDATION_NO_UNITS, debug=False):
+def xpp2sbml(xpp_file: Path, sbml_file: Path,
+             force_lower: bool=False, validate: bool = True, debug: bool=False):
     """ Reads given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
@@ -577,4 +579,7 @@ def xpp2sbml(xpp_file, sbml_file, force_lower=False, validate=validation.VALIDAT
         if not p.isSetValue():
             p.setValue(0.0)
 
-    sbmlio.write_sbml(doc, sbml_file, validate=validate, program_name="sbmlutils", program_version=__version__)
+    sbmlio.write_sbml(doc, sbml_file, validate=validate,
+                      program_name="sbmlutils", program_version=__version__,
+                      units_consistency=False,
+                      )

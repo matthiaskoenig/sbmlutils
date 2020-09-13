@@ -7,7 +7,6 @@ import libsbml
 from sbmlutils import comp
 from sbmlutils import validation
 from sbmlutils import manipulation
-from sbmlutils.sbmlio import read_sbml, write_sbml
 from sbmlutils.tests import DATA_DIR
 
 # FIXME: update to paths

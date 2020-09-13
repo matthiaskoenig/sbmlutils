@@ -20,16 +20,17 @@ import jinja2
 import logging
 
 import libsbml
+from jinja2 import TemplateNotFound
 
 import sbmlutils.manipulation
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
-from sbmlutils.validation import check_sbml
+from sbmlutils.sbmlio import validate_sbml, write_sbml, read_sbml
 from sbmlutils import utils
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_DIR = Path('.').parent / 'templates'  # template location
+TEMPLATE_DIR = Path(__file__).parent / 'templates'  # template location
 
 
 def create_reports(sbml_paths: Iterable[Path], output_dir: Path, template='report.html', promote=False, validate=True):
@@ -61,12 +62,12 @@ def create_reports(sbml_paths: Iterable[Path], output_dir: Path, template='repor
 
 def create_report(sbml_path: Path,
                   output_dir: Path,
-                  promote: bool=False,
-                  template: str='report.html',
-                  validate: bool=True,
-                  log_errors: bool=True,
-                  units_consistency: bool=True,
-                  modeling_practice: bool=True):
+                  promote: bool = False,
+                  template: str = 'report.html',
+                  validate: bool = True,
+                  log_errors: bool = True,
+                  units_consistency: bool = True,
+                  modeling_practice: bool = True):
     """ Create a HTML report for a given SBML file.
 
     The SBML file can be validated during report generation.
@@ -98,40 +99,37 @@ def create_report(sbml_path: Path,
     if not output_dir.is_dir():
         raise IOError(f"'output_dir' is not a directory: '{output_dir}'")
 
-    # validate SBML
-    if validate:
-        check_sbml(
-            sbml_path=sbml_path,
-            log_errors=log_errors,
-            units_consistency=units_consistency, modeling_practice=modeling_practice
-        )
+    # read sbml
+    doc = read_sbml(
+        source=sbml_path,
+        promote=promote,
+        validate=validate,
+        log_errors=log_errors,
+        units_consistency=units_consistency,
+        modeling_practice=modeling_practice
+    )
 
-    # read SBML
-    doc = libsbml.readSBML(sbml_path.resolve())
-
-    # promote parameters
-    if promote:
-        sbmlutils.manipulation.promote_local_variables(doc)
-
-    # write SBML to report directory
-    basename = os.path.basename(sbml_path)
-    tokens = basename.split('.')
-    name = '.'.join(tokens[:-1])
-    f_sbml = os.path.join(output_dir, basename)
-    libsbml.writeSBMLToFile(doc, f_sbml)
+    # write sbml to report directory
+    basename = sbml_path.name
+    name = '.'.join(basename.split('.')[:-1])
+    write_sbml(doc, filepath=output_dir / basename)
 
     # write html (unicode)
     html = _create_html(doc, basename, html_template=template)
-    path_html = os.path.join(output_dir, '{}.html'.format(name))
+    path_html = output_dir / f'{name}.html'
     # FIXME: ist this still necessary
     f_html = codecs.open(path_html, encoding='utf-8', mode='w')
     f_html.write(html)
     f_html.close()
-    print("SBML report created: {}".format(os.path.abspath(path_html)))
+
+    logger.info(f"SBML report created: {path_html.resolve()}")
 
 
-def _create_index_html(sbml_paths, html_template='index.html', offline=True):
-    """Create overview index.htl for sbml_paths."""
+def _create_index_html(sbml_paths: List[Path],
+                       html_template: str = 'index.html',
+                       offline: bool=True
+    ):
+    """Create index.html for given sbml_paths."""
 
     # template environment
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
@@ -151,7 +149,6 @@ def _create_index_html(sbml_paths, html_template='index.html', offline=True):
     # Context
     c = {
         'offline': offline,
-
         'sbml_basenames': sbml_basenames,
         'sbml_links': sbml_links,
     }
@@ -179,7 +176,11 @@ def _create_html(doc, basename, html_template='report.html', offline=True):
 
     model = doc.getModel()
     if model is not None:
-        template = env.get_template(html_template)
+        try:
+            template = env.get_template(html_template)
+        except TemplateNotFound as err:
+            logger.error(f"TemplateNotFound: {TEMPLATE_DIR} / {html_template}; {err}")
+
         values = _create_value_dictionary(model)
 
         # Context

@@ -109,12 +109,12 @@ df
 # In[5]:
 
 
-from sbmlutils.annotation.annotator import annotate_sbml_file
+from sbmlutils.annotation.annotator import annotate_sbml
 
 # create SBML report without performing units checks
-annotate_sbml_file(f_sbml="./annotations/demo.xml", 
-                   f_annotations="./annotations/demo_annotations.xlsx", 
-                   f_sbml_annotated="./annotations/demo_annotated.xml")
+annotate_sbml(f_sbml="./annotations/demo.xml",
+              f_annotations="./annotations/demo_annotations.xlsx",
+              f_sbml_annotated="./annotations/demo_annotated.xml")
 
 
 # In[ ]:

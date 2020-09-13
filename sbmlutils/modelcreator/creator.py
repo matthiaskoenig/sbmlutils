@@ -14,7 +14,7 @@ import shutil
 import copy
 import logging
 import tempfile
-from sbmlutils.logutils import bcolors
+from sbmlutils.utils import bcolors
 
 import libsbml
 
@@ -115,7 +115,7 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
     # annotate
     if annotations is not None:
         # overwrite the normal file
-        annotator.annotate_sbml_file(sbml_path, annotations, sbml_path)
+        annotator.annotate_sbml(sbml_path, annotations, sbml_path)
 
     # create report
     if create_report:
