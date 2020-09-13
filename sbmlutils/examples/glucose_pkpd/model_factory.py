@@ -1,12 +1,11 @@
 """
 PKPD model creator for whole-body glucose model.
 """
-from __future__ import print_function, division
 import os
 import logging
 
 from sbmlutils.modelcreator import creator
-from sbmlutils.comp import flattenSBMLFile
+from sbmlutils.comp import flatten_sbml
 from sbmlutils.report import sbmlreport
 
 import coloredlogs

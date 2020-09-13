@@ -72,10 +72,13 @@ pip install -e .
 
 ## Release notes
 ### 0.3.11
+* support and CI-CD for Mac-OS and Windows
 * python 3.8 support
-* refactored DFBA to https://github.com/matthiaskoenig/dfba
 * fixed pep8 issues
 * type annotations and documentations
+* removed __future__ imports
+* refactored unittest to pytest
+* refactored DFBA to https://github.com/matthiaskoenig/dfba
 
 ### 0.3.9
 * full support for distrib (distributions and uncertainty)

@@ -1,19 +1,11 @@
 """
 Hepatocyte template model.
 """
-from __future__ import print_function, division
-
-try:
-    import libsbml
-    from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_PASCAL
-except ImportError:
-    import tesbml as libsbml
-    from tebsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_PASCAL
-
+import libsbml
+from libsbml import UNIT_KIND_MOLE, UNIT_KIND_SECOND, UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_PASCAL
 
 from sbmlutils import factory as mc
 
-##############################################################
 mid = 'hepatocyte'
 version = 1
 main_units = {

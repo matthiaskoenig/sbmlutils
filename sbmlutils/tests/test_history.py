@@ -1,13 +1,7 @@
 """
 Test annotation functions and annotating of SBML models.
 """
-from __future__ import absolute_import, print_function
-
-import pytest
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils import factory
 from sbmlutils import history
@@ -15,7 +9,7 @@ from sbmlutils import history
 
 def test_date_now():
     now = history.date_now()
-    assert now is not None
+    assert now
 
 
 def test_set_model_history():
