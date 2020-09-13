@@ -3,10 +3,23 @@ Utility functions.
 """
 import warnings
 import time
-import libsbml
 import functools
 import hashlib
+import libsbml
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    BGWHITE = '\033[47m'
+    BGBLACK = '\033[49m'
+    WHITE = '\033[37m'
+    BLACK = '\033[30m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def create_metaid(sbase: libsbml.SBase) -> str:
     """ Creates a globally unique meta id.
@@ -62,22 +75,3 @@ def deprecated(func):
     return new_func
 
 
-def promote_local_variables(doc):
-    """ Promotes local variables in SBMLDocument.
-
-    :param doc:
-    :return:
-    """
-    model = doc.getModel()
-    mid = model.id
-    mid = '{}_{}'.format(mid, 'promoted')
-    model.setId(mid)
-
-    # promote local parameters
-    props = libsbml.ConversionProperties()
-    props.addOption("promoteLocalParameters", True, "Promotes all Local Parameters to Global ones")
-    if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
-        warnings.warn("SBML Conversion failed...")
-    else:
-        print("SBML Conversion successful")
-    return doc

@@ -1,21 +1,20 @@
-# -*- coding: utf-8 -*-
 """
-Validation and checking functions.
-Helper functions for simple validation and display of problems.
-Helper functions if setting sbml information was successful.
+Helpers for validation and checking of SBML and libsbml operations.
 """
-import os
 import logging
 import time
+from typing import List
 import libsbml
-from sbmlutils.logutils import bcolors
+
+from sbmlutils.utils import bcolors
+
+logger = logging.getLogger(__name__)
 
 VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
 
 
-def check(value, message):
-    """
-    Checks the libsbml return value and prints message if something happened.
+def check(value: int, message: str) -> bool:
+    """Checks the libsbml return value and prints message if something happened.
 
     If 'value' is None, prints an error message constructed using
       'message' and then exits with status code 1. If 'value' is an integer,
@@ -23,53 +22,25 @@ def check(value, message):
       LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
       prints an error message constructed using 'message' along with text from
       libSBML explaining the meaning of the code, and exits with status code 1.
-
     """
+    valid = True
     if value is None:
-        logging.error('Error: LibSBML returned a null value trying to <' + message + '>.')
-    elif type(value) is int:
-        if value == libsbml.LIBSBML_OPERATION_SUCCESS:
-            return
-        else:
-            logging.error('Error encountered trying to <' + message + '>.')
-            logging.error('LibSBML returned error code {}: {}'.format(str(value),
-                          libsbml.OperationReturnValue_toString(value).strip()))
-    else:
-        return
+        logger.error('Error: LibSBML returned a null value trying to <' + message + '>.')
+        valid = False
+    elif isinstance(value, int):
+        if value != libsbml.LIBSBML_OPERATION_SUCCESS:
+            logger.error(f'Error encountered trying to <{message}>.')
+            logger.error(f'LibSBML returned error code {str(value)}: '
+                         f'{libsbml.OperationReturnValue_toString(value).strip()}')
+            valid = False
 
-
-def check_sbml(filepath, name=None, log_errors=True,
-               units_consistency=True,
-               modeling_practice=True,
-               internal_consistency=True):
-    """ Checks the given SBML filepath or string.
-
-    :param doc: SBMLDocument to check
-    :param name: identifier or path for report
-    :param units_consistency: boolean flag units consistency
-    :param modeling_practice: boolean flag modeling practise
-    :param internal_consistency: boolean flag internal consistency
-    :param log_errors: boolean flag of errors should be logged
-    :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
-    """
-    if name is None:
-        filepath = os.path.abspath(filepath)
-        if len(filepath) < 100:
-            name = filepath
-        else:
-            name = filepath[0:99] + '...'
-
-    doc = libsbml.readSBML(filepath)
-    return check_doc(doc, name=name, log_errors=log_errors,
-                     units_consistency=units_consistency,
-                     modeling_practice=modeling_practice,
-                     internal_consistency=internal_consistency)
+    return valid
 
 
 def check_doc(doc, name=None, log_errors=True,
               units_consistency=True,
               modeling_practice=True,
-              internal_consistency=True):
+              internal_consistency=True) -> List[int]:
     """ Checks document and logs errors.
 
     :param doc: SBMLDocument to check
@@ -88,7 +59,7 @@ def check_doc(doc, name=None, log_errors=True,
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, modeling_practice)
 
     # time
-    current = time.clock()
+    current = time.perf_counter()
 
     # all, error, warn
     if internal_consistency:
@@ -101,12 +72,12 @@ def check_doc(doc, name=None, log_errors=True,
     Nall = Nall_in + Nall_noin
     Nerr = Nerr_in + Nerr_noin
     Nwarn = Nwarn_in + Nwarn_noin
-    valid_status = (Nerr is 0)
+    valid_status = Nerr == 0
 
     lines = [
         '',
         '-' * 80,
-        name,
+        str(name),
         "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
     if Nall > 0:
@@ -115,7 +86,7 @@ def check_doc(doc, name=None, log_errors=True,
             "{:<25}: {}".format("validation warnings(s)", Nwarn),
         ]
     lines += [
-        "{:<25}: {:.3f}".format("check time (s)", time.clock() - current),
+        "{:<25}: {:.3f}".format("check time (s)", time.perf_counter() - current),
         '-' * 80,
         '',
     ]

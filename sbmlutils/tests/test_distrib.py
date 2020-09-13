@@ -1,6 +1,6 @@
-import pytest
-import libsbml
 from typing import Dict
+import libsbml
+
 from sbmlutils.annotation import *
 from sbmlutils.units import *
 from sbmlutils.factory import *
@@ -14,7 +14,7 @@ def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
     core_model = CoreModel.from_dict(model_dict=d)
     core_model.create_sbml()
     assert core_model.doc is not None
-    [Nall, Nerr, Nwar] = check_doc(core_model.doc, units_consistency=False)
+    [_, Nerr, _] = check_doc(core_model.doc, units_consistency=False)
     if Nerr > 0:
         doc = core_model.doc  # type: libsbml.SBMLDocument
         error_log = doc.getErrorLog()  # type: libsbml.SBMLErrorLog
@@ -130,6 +130,7 @@ def test_overview_distributions():
     }
     check_model_dict(model_dict)
 
+
 def test_basic_uncertainty_example():
     import libsbml
     model_dict = {
@@ -204,7 +205,7 @@ def test_multiple_uncertainties():
     list_uncertainties = p_distrib.getListOfUncertainties()  # type: libsbml.ListOfUncertainties
     assert list_uncertainties
     n_uncertainties = p_distrib.getNumUncertainties()
-    assert  n_uncertainties== 2
+    assert n_uncertainties == 2
     for k in range(n_uncertainties):
         uc = p_distrib.getUncertainty(k)  # type: libsbml.Uncertainty
         assert uc
@@ -297,7 +298,6 @@ def test_parameters_and_spans():
 
 
 def test_sabiork_uncertainty():
-
     model_dict = {
         'mid': 'sabiork_parameter',
         'packages': ['distrib'],
@@ -312,36 +312,36 @@ def test_sabiork_uncertainty():
                 value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
                 uncertainties=[
                     Uncertainty(sid="uncertainty1",
-                      uncertParameters=[
-                          UncertParameter(
-                              type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
-                              value=5.07),
-                          UncertParameter(
-                              type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
-                              value=0.97),
-                      ], annotations=[
-                            (BQB.IS, "sabiork.kineticrecord/793"),  # entry in SABIO-RK
-                            (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
-                            (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
-                            (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
-                            (BQB.IS, "bto/BTO:000075"),  # liver
-                        ]),
+                                uncertParameters=[
+                                    UncertParameter(
+                                        type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                                        value=5.07),
+                                    UncertParameter(
+                                        type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                                        value=0.97),
+                                ], annotations=[
+                                    (BQB.IS, "sabiork.kineticrecord/793"),  # entry in SABIO-RK
+                                    (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                                    (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                                    (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                                    (BQB.IS, "bto/BTO:000075"),  # liver
+                                ]),
                     Uncertainty(sid="uncertainty2",
-                        uncertParameters=[
-                            UncertParameter(
-                                type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
-                                value=2.7),
-                            UncertParameter(
-                                type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
-                                value=0.11),
-                        ], annotations=[
-                            (BQB.IS, "sabiork.kineticrecord/2581"),
-                            # entry in SABIO-RK
-                            (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
-                            (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
-                            (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
-                            (BQB.IS, "bto/BTO:000075"),  # liver
-                        ]),
+                                uncertParameters=[
+                                    UncertParameter(
+                                        type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                                        value=2.7),
+                                    UncertParameter(
+                                        type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                                        value=0.11),
+                                ], annotations=[
+                                    (BQB.IS, "sabiork.kineticrecord/2581"),
+                                    # entry in SABIO-RK
+                                    (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                                    (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                                    (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                                    (BQB.IS, "bto/BTO:000075"),  # liver
+                                ]),
                 ])
         ]
     }

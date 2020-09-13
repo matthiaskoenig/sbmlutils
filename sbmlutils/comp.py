@@ -13,8 +13,7 @@ import logging
 import time
 import libsbml
 
-from sbmlutils.logutils import bcolors
-
+from sbmlutils.utils import bcolors
 import sbmlutils.factory as factory
 import sbmlutils.validation as validation
 from sbmlutils.validation import check
@@ -582,7 +581,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat')
     props.addOption("leave_ports", leave_ports)  # Indicates whether to leave ports
 
     # flatten
-    current = time.clock()
+    current = time.perf_counter()
     result = doc.convert(props)
     flattened_status = (result == libsbml.LIBSBML_OPERATION_SUCCESS)
 
@@ -591,7 +590,7 @@ def flattenSBMLDocument(doc, leave_ports=True, output_path=None, suffix='_flat')
         '-' * 120,
         str(doc),
         "{:<25}: {}".format("flattened", str(flattened_status).upper()),
-        "{:<25}: {:.3f}".format("flatten time (ms)", time.clock() - current),
+        "{:<25}: {:.3f}".format("flatten time (ms)", time.perf_counter() - current),
         '-' * 120,
     ]
     info = bcolors.BOLD + "\n".join(lines) + bcolors.ENDC
@@ -637,8 +636,7 @@ def flattenExternalModelDefinitions(doc, validate=False):
     logging.debug('* flattenExternalModelDefinitions')
 
     # FIXME: handle multiple levels of hierarchies. Recursively to handle the ExternalModelDefinitions of submodels
-    warnings.warn("flattenExternalModelDefinitions does not work recursively!")
-    warnings.warn("flattenExternalModelDefinitions: THIS DOES NOT WORK - ONLY USE IF YOU KNOW WHAT YOU ARE DOING")
+    warnings.warn("flattenExternalModelDefinitions is experimental and does not work recursively!")
 
     comp_doc = doc.getPlugin("comp")
     if comp_doc is None:
@@ -695,7 +693,7 @@ def flattenExternalModelDefinitions(doc, validate=False):
 
 if __name__ == "__main__":
     from sbmlutils.tests import data
-    from sbmlutils import sbmlio
+    from sbmlutils.io import sbml
 
-    doc = sbmlio.read_sbml(data.DFBA_EMD_SBML)
+    doc = sbml.read_sbml(data.DFBA_EMD_SBML)
     doc_no_emd = flattenExternalModelDefinitions(doc, validate=True)

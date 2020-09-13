@@ -20,6 +20,9 @@ UNIT_mmole_per_min_l = Unit('mmole_per_min_l', [(UNIT_KIND_MOLE, 1.0, -3, 1.0),
 UNIT_mmole_per_s = Unit('mmole_per_s', [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True)
 UNIT_mole_per_s = Unit('mole_per_s', [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True)
 
+
+
+
 UNIT_s = Unit('s', [(UNIT_KIND_SECOND, 1.0)], port=True)
 UNIT_min = Unit('min', [(UNIT_KIND_SECOND, 1.0, 0, 60)], port=True)
 UNIT_hr = Unit('hr', [(UNIT_KIND_SECOND, 1.0, 0, 3600)], port=True)
@@ -37,6 +40,11 @@ UNIT_litre_per_min = Unit(
     'litre_per_min',
     [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True
 )
+UNIT_litre_per_mmole = Unit(
+    'litre_per_mmole',
+    [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_MOLE, -1, -3, 1)], port=True
+)
+
 
 __all__ = [
     'UNIT_KIND_AMPERE', 'UNIT_KIND_AVOGADRO',
@@ -66,4 +74,5 @@ __all__ = [
     'UNIT_mg_per_hr',
     'UNIT_ml',
     'UNIT_litre_per_min',
+    'UNIT_litre_per_mmole',
 ]

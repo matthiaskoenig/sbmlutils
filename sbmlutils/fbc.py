@@ -1,19 +1,21 @@
 """
 Helper functions for working with FBC and cobrapy models.
 """
+import logging
 import warnings
+from pathlib import Path
+
 import cobra
 import pandas as pd
 import libsbml
 from sbmlutils import factory
+logger = logging.getLogger(__name__)
 
 __all__ = ['Objective']
 
 
-# -----------------------------------------------------------------------------
-# Objective
-# -----------------------------------------------------------------------------
 class Objective(factory.Sbase):
+    """Objective."""
 
     def __init__(self, sid,
                  objectiveType=libsbml.OBJECTIVE_TYPE_MAXIMIZE,
@@ -69,26 +71,25 @@ def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
 # -----------------------------------------------------------------------------
 # FluxBounds
 # -----------------------------------------------------------------------------
-def set_flux_bounds(reaction, lb, ub):
+def set_flux_bounds(reaction: libsbml.Reaction, lb: float, ub: float) -> None:
     """ Set flux bounds on given reaction. """
     rplugin = reaction.getPlugin("fbc")
     rplugin.setLowerFluxBound(lb)
     rplugin.setUpperFluxBound(ub)
 
 
-def load_cobra_model(sbml_path):
+def load_cobra_model(sbml_path: Path) -> cobra.core.Model:
     """ Loads cobra model from path.
+
     Sets default flux bounds to allow loading and changes all boundaryConditions to False.
 
-    :param sbml_path:
-    :type sbml_path:
-    :return:
-    :rtype:
+    :param sbml_path: str path
+    :return: cobra model
     """
-    return cobra.io.read_sbml_model(sbml_path)
+    return cobra.io.read_sbml_model(str(sbml_path))
 
 
-def cobra_reaction_info(cobra_model):
+def cobra_reaction_info(cobra_model: cobra.core.Model):
     """ Creates data frame with bound and objective information.
 
     :param cobra_model:
@@ -101,14 +102,6 @@ def cobra_reaction_info(cobra_model):
     # FIXME: better filling of DataFrame
     for rid in rids:
         r = cobra_model.reactions.get_by_id(rid)
-
-        # print('#'*80)
-        # print('COBRA REACTION', r, type(r), cobra.__version__)
-        # print('#' * 80)
-        # import inspect
-        # from pprint import pprint
-        # pprint(inspect.getmembers(type(r)))
-
         df.loc[rid] = [r.lower_bound, r.upper_bound, r.reversibility, r.boundary, r.objective_coefficient,
                        r.forward_variable, r.reverse_variable]
     return df
@@ -193,7 +186,7 @@ def no_boundary_conditions(doc):
             s.setBoundaryCondition(False)
 
 
-def check_balance(sbml_path):
+def check_balance(sbml_path: str):
     """Check mass and charge balance of the model.
 
     :param sbml_path:

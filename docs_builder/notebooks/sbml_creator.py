@@ -10,14 +10,12 @@
 # In[1]:
 
 
-from sbmlutils import comp
 from sbmlutils import fbc
-from sbmlutils import sbmlio
+from sbmlutils.io import sbml
 from sbmlutils import factory
 from sbmlutils.dfba import builder
 
 from sbmlutils.units import *
-from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
 
 
@@ -120,7 +118,7 @@ fbc.create_objective(model_fbc, oid="R3_maximize", otype="maximize",
 # write SBML file
 import tempfile
 sbml_file = tempfile.NamedTemporaryFile(suffix=".xml")
-sbmlio.write_sbml(doc=doc, filepath=sbml_file.name)
+sbml.write_sbml(doc=doc, filepath=sbml_file.name)
 
 
 # In[ ]:

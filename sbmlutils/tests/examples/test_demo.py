@@ -1,27 +1,23 @@
 """
 Test the demo network.
 """
-
-from __future__ import print_function, absolute_import
-
 import roadrunner
-from sbmlutils import validation
-import sbmlutils.tests.data as data
+from sbmlutils.io.sbml import validate_sbml
+from sbmlutils.tests import DEMO_SBML
 
 
 def test_check_sbml():
-    Nall, Nerr, Nwarn = validation.check_sbml(data.DEMO_SBML,
-                                              units_consistency=True)
+    Nall, Nerr, Nwarn = validate_sbml(DEMO_SBML, units_consistency=True)
     assert Nall == 0
 
 
 def test_roadrunner_selections():
-    rr = roadrunner.RoadRunner(data.DEMO_SBML)
+    rr = roadrunner.RoadRunner(str(DEMO_SBML))
     assert len(rr.selections) > 1
 
 
 def test_fixed_step_simulation():
-    rr = roadrunner.RoadRunner(data.DEMO_SBML)
+    rr = roadrunner.RoadRunner(str(DEMO_SBML))
     tend = 10.0
     steps = 100
     s = rr.simulate(start=0, end=tend, steps=steps)

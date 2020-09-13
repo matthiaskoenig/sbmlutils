@@ -7,7 +7,10 @@ import libsbml
 from sbmlutils import comp
 from sbmlutils import validation
 from sbmlutils import manipulation
-from sbmlutils.tests.data import data_dir
+from sbmlutils.tests import DATA_DIR
+
+# FIXME: update to paths
+# FIXME: add model promotion test
 
 
 def test_biomodel_merge():
@@ -17,7 +20,7 @@ def test_biomodel_merge():
     :param tmpdir:
     :return:
     """
-    merge_dir = os.path.join(data_dir, 'manipulation', 'merge')
+    merge_dir = os.path.join(DATA_DIR, 'manipulation', 'merge')
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels
@@ -25,13 +28,11 @@ def test_biomodel_merge():
     model_paths = dict(zip(model_ids,
                            [os.path.join(merge_dir, "{}.xml".format(mid)) for mid in model_ids])
                        )
-    print(model_paths)
 
     # merge model
     out_dir = os.path.join(merge_dir, 'output')
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
-    print('out_dir:', out_dir)
 
     doc = manipulation.merge_models(model_paths, out_dir=out_dir,  validate=False)
     assert doc is not None

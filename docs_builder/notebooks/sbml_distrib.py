@@ -436,7 +436,7 @@ check_doc(core_model.doc, units_consistency=False);
 filepath = "./distrib/sabiork_parameter.xml"
 core_model.write_sbml(filepath)
 from sbmlutils.report import sbmlreport
-sbmlreport.create_report(filepath, report_dir="./distrib/", validate=False)
+sbmlreport.create_report(filepath, output_dir="./distrib/", validate=False)
 
 
 # In[ ]:

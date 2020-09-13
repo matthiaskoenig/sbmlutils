@@ -14,14 +14,14 @@ import shutil
 import copy
 import logging
 import tempfile
-from sbmlutils.logutils import bcolors
+from sbmlutils.utils import bcolors
 
 import libsbml
 
 from sbmlutils.annotation import annotator
 import sbmlutils.history as history
 import sbmlutils.factory as factory
-import sbmlutils.sbmlio as sbmlio
+import sbmlutils.io.sbml as sbmlio
 
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
@@ -115,13 +115,13 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
     # annotate
     if annotations is not None:
         # overwrite the normal file
-        annotator.annotate_sbml_file(sbml_path, annotations, sbml_path)
+        annotator.annotate_sbml(sbml_path, annotations, sbml_path)
 
     # create report
     if create_report:
         logging.info("Create SBML report:'{}'".format(sbml_path))
         # file is already validated, no validation on report needed
-        sbmlreport.create_report(sbml_path=sbml_path, report_dir=target_dir, validate=False)
+        sbmlreport.create_report(sbml_path=sbml_path, output_dir=target_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
 

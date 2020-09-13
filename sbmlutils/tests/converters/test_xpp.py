@@ -1,38 +1,24 @@
 """
 Test XPP generation
 """
-
-import tempfile
-import unittest
-import os
-
 from sbmlutils.converters import xpp
-from sbmlutils.tests import data
-from sbmlutils import validation
+from sbmlutils.tests import DATA_DIR
+from sbmlutils.io.sbml import validate_sbml
 
 
-xpp_dir = os.path.join(data.data_dir, 'xpp')
+def xpp_check(tmp_path, ode_id, Nall=0, Nerr=0, Nwarn=0):
+    sbml_file = tmp_path / f"{ode_id}.xml"
+    xpp_file = DATA_DIR / 'xpp' / f"{ode_id}.ode"
+    xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
+    Nall_res, Nerr_res, Nwarn_res = validate_sbml(sbml_file, units_consistency=False)
+    assert Nall_res == Nall
+    assert Nerr_res == Nerr
+    assert Nwarn_res == Nwarn
 
 
-class XPPTestCase(unittest.TestCase):
-
-    def xpp_check(self, ode_id, Nall=0, Nerr=0, Nwarn=0):
-        tmp_dir = tempfile.mkdtemp(suffix="_xpp")
-        sbml_file = os.path.join(tmp_dir, "{}.xml".format(ode_id))
-        xpp_file = os.path.join(xpp_dir, "{}.ode".format(ode_id))
-
-        xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-        Nall_res, Nerr_res, Nwarn_res = validation.check_sbml(sbml_file, units_consistency=False)
-        assert Nall_res == Nall
-        assert Nerr_res == Nerr
-        assert Nwarn_res == Nwarn
-
-    def test_PLoSCompBiol_Fig1(self):
-        self.xpp_check(ode_id="PLoSCompBiol_Fig1")
-
-    def test_SkM_AP_KCa(self):
-        self.xpp_check(ode_id="SkM_AP_KCa")
+def test_PLoSCompBiol_Fig1(tmp_path):
+    xpp_check(tmp_path=tmp_path, ode_id="PLoSCompBiol_Fig1")
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_SkM_AP_KCa(tmp_path):
+    xpp_check(tmp_path=tmp_path, ode_id="SkM_AP_KCa")

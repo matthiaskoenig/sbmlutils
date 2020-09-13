@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function, division
 
 import libsbml
 
-from sbmlutils import sbmlio
+from sbmlutils.io import sbml
 from sbmlutils.utils import timeit
 from sbmlutils import validation
 
@@ -47,7 +47,7 @@ def rename_restriced_sids(in_path, out_path,
 
     print('writing SBML')
     # libsbml.writeSBMLToFile(doc, out_path)
-    sbmlio.write_sbml(doc, out_path, validate=validation.VALIDATION_NO_UNITS)
+    sbml.write_sbml(doc, out_path, validate=validation.VALIDATION_NO_UNITS)
 
 
 sbml_id = "MODEL1603150001"

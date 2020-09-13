@@ -13,43 +13,43 @@ ontology lookup service.
 """
 import os
 import re
+from pathlib import Path
+from typing import Union
+
 import pandas as pd
 import logging
 import libsbml
 from collections import OrderedDict
 
-
 from sbmlutils import utils
+from sbmlutils.io.sbml import read_sbml, write_sbml
 from .miriam import *
 
 LOGGER = logging.getLogger(__name__)
 
 
-def annotate_sbml_file(f_sbml, f_annotations, f_sbml_annotated):
+def annotate_sbml(source: Union[Path, str], f_annotations: Path, f_sbml_annotated: Path):
     """
     Annotate a given SBML file with the provided annotations.
 
-    :param f_sbml: SBML to annotation
+    :param source: SBML to annotation
     :param f_annotations: external file with annotations
     :param f_sbml_annotated: annotated file
     """
-    if not os.path.exists(f_sbml):
-        raise IOError("SBML file does not exist: {}".format(f_sbml))
-    if not os.path.exists(f_annotations):
-        raise IOError("Annotation file does not exist: {}".format(f_annotations))
+    doc = read_sbml(source=source)
 
-    # read SBML model
-    doc = libsbml.readSBML(f_sbml)
-
-    # read annotations
+    # annotate
+    if not os.path.exists(str(f_annotations)):
+        raise IOError(f"Annotation file does not exist: {f_annotations}")
     external_annotations = ModelAnnotator.read_annotations(f_annotations, format="*")
-    doc = annotate_sbml_doc(doc, external_annotations)
+    doc = annotate_sbml_doc(doc, external_annotations)  # type: libsbml.SBMLDocument
 
-    # save
-    libsbml.writeSBMLToFile(doc, f_sbml_annotated)
+    # write annotated sbml
+    write_sbml(doc, filepath=f_sbml_annotated)
+    return doc
 
 
-def annotate_sbml_doc(doc, external_annotations):
+def annotate_sbml_doc(doc: libsbml.SBMLDocument, external_annotations) -> libsbml.SBMLDocument:
     """ Annotates given SBML document using the annotations file.
 
     :param doc: SBMLDocument
@@ -153,8 +153,8 @@ class Annotation(object):
 
     def to_dict(self):
         return OrderedDict([
-            ("qualifier", self.qualifier.value)
-            ("collection", self.collection)
+            ("qualifier", self.qualifier.value),
+            ("collection", self.collection),
             ("term", self.term),
             ("resource", self.resource),
         ])

@@ -40,11 +40,10 @@ from os.path import join as pjoin
 import libsbml
 from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
-from sbmlutils import sbmlio
+from sbmlutils.io import sbml
 from sbmlutils import comp
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
-from sbmlutils.validation import check
 
 from sbmlutils.dfba import builder
 from sbmlutils.dfba import utils
@@ -167,7 +166,7 @@ def fba_model(sbml_file, directory):
     """
     # Read the model
     fba_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/ecoli_fba.xml')
-    doc_fba = sbmlio.read_sbml(fba_path)
+    doc_fba = sbml.read_sbml(fba_path)
 
     # add comp
     doc_fba.enablePackage("http://www.sbml.org/sbml/level3/version1/comp/version1", "comp", True)
@@ -234,7 +233,7 @@ def fba_model(sbml_file, directory):
     else:
         builder.create_exchange_reaction(model, species_id='X', flux_unit=UNIT_FLUX_PER_G, exchange_type=builder.EXCHANGE_EXPORT)
     # write SBML file
-    sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
 
     # Set kinetic laws to zero for kinetic simulation
     '''
@@ -294,7 +293,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         builder.create_exchange_bounds(model, model_fba=model_fba, unit_flux=UNIT_FLUX_PER_G, create_ports=True)
         builder.create_dynamic_bounds(model, model_fba, unit_flux=UNIT_FLUX_PER_G)
 
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def update_model(sbml_file, directory, doc_fba=None):
@@ -336,7 +335,7 @@ def update_model(sbml_file, directory, doc_fba=None):
                                     modifiers=[])
 
     # write SBML file
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def top_model(sbml_file, directory, emds, doc_fba=None):
@@ -411,7 +410,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None):
     builder.create_top_replacements(model, model_fba, compartment_id=compartment_id)
 
     # write SBML file
-    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back into working dir
     os.chdir(working_dir)

@@ -1,24 +1,23 @@
 
-from __future__ import print_function
-
 import roadrunner
-from sbmlutils import validation
-from sbmlutils.tests import data
+from sbmlutils.io.sbml import validate_sbml
+from sbmlutils.tests import GALACTOSE_SINGLECELL_SBML
 
 
 def test_validate_sbml():
-    Nall, Nerr, Nwarn = validation.check_sbml(data.GALACTOSE_SINGLECELL_SBML,
-                                              units_consistency=True)
+    Nall, Nerr, Nwarn = validate_sbml(
+        GALACTOSE_SINGLECELL_SBML, units_consistency=True
+    )
     assert Nerr == 0
 
 
 def test_roadrunner_selections():
-    rr = roadrunner.RoadRunner(data.GALACTOSE_SINGLECELL_SBML)
+    rr = roadrunner.RoadRunner(str(GALACTOSE_SINGLECELL_SBML))
     assert len(rr.timeCourseSelections) == 27
 
 
 def test_fixed_step_simulation():
-    rr = roadrunner.RoadRunner(data.GALACTOSE_SINGLECELL_SBML)
+    rr = roadrunner.RoadRunner(str(GALACTOSE_SINGLECELL_SBML))
 
     tend = 10.0
     steps = 100

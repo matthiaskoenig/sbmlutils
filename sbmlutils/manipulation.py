@@ -1,16 +1,18 @@
 """
 Functions for SBML model manipulation.
-These functions take an existing SBML model and manipulate it in a clever way.
 
-For instance:
-- merge existing models in a combined model
+These functions take existing SBML model(s) and provide common manipulations.
+For example merging of models or promoting of local parameters.
 """
 import os
 import logging
+
 import libsbml
 
 from sbmlutils import comp
 from sbmlutils import validation
+
+logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3
 SBML_VERSION = 1

@@ -6,13 +6,11 @@ def test_modelcreator_notebook():
     :return:
     """
 
-    import libsbml
     from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_ITEM, UNIT_KIND_MOLE,
-                         UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_LITRE)
+                         UNIT_KIND_KILOGRAM, UNIT_KIND_METRE)
 
-    from sbmlutils import comp
     from sbmlutils import fbc
-    from sbmlutils import sbmlio
+    from sbmlutils.io import sbml
     from sbmlutils import factory as fac
     from sbmlutils.dfba import builder, utils
 
@@ -106,4 +104,4 @@ def test_modelcreator_notebook():
     # write SBML file
     import tempfile
     sbml_file = tempfile.NamedTemporaryFile(suffix=".xml")
-    sbmlio.write_sbml(doc=doc, filepath=sbml_file.name)
+    sbml.write_sbml(doc=doc, filepath=sbml_file.name)
