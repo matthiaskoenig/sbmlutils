@@ -1,12 +1,22 @@
 
 <h1><img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" /> sbmlutils: python utilities for SBML</h1>
 
-[![PyPI version](https://badge.fury.io/py/sbmlutils.svg)](https://badge.fury.io/py/sbmlutils)
-[![GitHub version](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils.svg)](https://badge.fury.io/gh/matthiaskoenig%2Fsbmlutils)
-[![Build Status](https://travis-ci.org/matthiaskoenig/sbmlutils.svg?branch=develop)](https://travis-ci.org/matthiaskoenig/sbmlutils)
+.. image:: https://img.shields.io/pypi/v/sbmlutils.svg
+   :target: https://pypi.org/project/sbmlutils/
+   :alt: Current PyPI Version
+
+.. image:: https://img.shields.io/pypi/pyversions/sbmlutils.svg
+   :target: https://pypi.org/project/sbmlutils/
+   :alt: Supported Python Versions
+
+[![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
+
+.. image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
+   :target: https://github.com/sbmlutils/sbmlutils/workflows/CI-CD
+   :alt: GitHub Actions CI/CD Status
+
 [![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)
 [![codecov](https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg)](https://codecov.io/gh/matthiaskoenig/sbmlutils)
-[![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
 
 
