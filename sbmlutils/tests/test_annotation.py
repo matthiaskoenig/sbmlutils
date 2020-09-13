@@ -160,6 +160,7 @@ def test_demo_annotation(tmp_path):
             cvterms = geneProduct.getCVTerms()
             assert len(cvterms) == 1
 
+
 def test_galactose_annotation(tmp_path):
     """ Annotate the galactose network. """
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"

@@ -77,8 +77,8 @@ setup(
         "xmltodict>=0.12.0",
 
         # standards
-        "python-libsbml-experimental>=5.18.1",  # mac-os & win dependencies
-        "phrasedml>=1.0.10.3",
+        "python-libsbml-experimental>=5.18.1",  # mac-os & win dependencies (ubuntu: 5.18.3)
+        "phrasedml>=1.0.9",  # mac-os & win dependencies (ubuntu: 1.0.10.3)
         "antimony>=2.12.0.2",
 
         # simulation

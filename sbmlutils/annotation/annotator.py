@@ -387,10 +387,9 @@ class ModelAnnotator(object):
         if lof:
             id_dict['event'] = [item.getId() for item in lof]
 
-
-        modelFBCPlugin = self.model.getPlugin('fbc')
-        if modelFBCPlugin != None:
-            lof = modelFBCPlugin.getListOfGeneProducts()
+        fbc_model = self.model.getPlugin('fbc')
+        if fbc_model is not None:
+            lof = fbc_model.getListOfGeneProducts()
             if lof:
                 id_dict['fbc:geneproduct'] = [item.getId() for item in lof]
 
@@ -528,7 +527,7 @@ class ModelAnnotator(object):
     # --- File IO ---
 
     @staticmethod
-    def read_annotations_df(file_path, format="*"):
+    def read_annotations_df(file_path: Path, format: str = "*"):
         """ Reads annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
@@ -564,7 +563,7 @@ class ModelAnnotator(object):
         return df
 
     @staticmethod
-    def read_annotations(file_path, format="*"):
+    def read_annotations(file_path, format: str = "*"):
         """ Reads annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
