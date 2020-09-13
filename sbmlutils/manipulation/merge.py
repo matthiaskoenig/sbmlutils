@@ -6,6 +6,8 @@ For example merging of models or promoting of local parameters.
 """
 import os
 import logging
+from pathlib import Path
+from typing import Iterable, Dict
 
 import libsbml
 
@@ -20,9 +22,11 @@ SBML_VERSION = 1
 SBML_COMP_VERSION = 1
 
 
-def merge_models(model_paths, out_dir=None, merged_id="merged", validate: bool = True) -> libsbml.SBMLDocument:
+def merge_models(model_paths: Dict[str, Path], out_dir: Path=None,
+                 merged_id: str = "merged", validate: bool = True) -> libsbml.SBMLDocument:
     """ Merge models in model path.
-    All models must be in the same subfolder.
+
+    All models must exist in the same subfolder.
     Relative paths are set in the merged models.
 
     Output directory must exist.
@@ -36,20 +40,20 @@ def merge_models(model_paths, out_dir=None, merged_id="merged", validate: bool =
 
     base_dir = None
     for model_id, path in model_paths.items():
-        if not os.path.exists(path):
-            logging.error('Path for SBML file does not exist: {}'.format(path))
+        if path.exists():
+            logging.error(f'Path for SBML file does not exist: {path}')
 
         # get base dir of all model files from first file
         if base_dir is None:
-            base_dir = os.path.dirname(path)
+            base_dir = path.parent
         else:
-            new_dir = os.path.dirname(path)
-            if new_dir != base_dir:
-                raise IOError('All SBML files for merging must be in same '
-                              'directory: {} != {}'.format(new_dir, base_dir))
+            new_dir = path.parent
+            if not new_dir != base_dir:
+                raise IOError(f'All SBML files for merging must be in same '
+                              f'directory: {new_dir} != {base_dir}')
 
         # convert to L3V1
-        path_L3 = os.path.join(out_dir, "{}_L3.xml".format(model_id))
+        path_L3 = out_dir / f"{model_id}_L3.xml"
         doc = read_sbml(path_L3)
         if doc.getLevel() < SBML_LEVEL:
             doc.setLevelAndVersion(SBML_LEVEL, SBML_VERSION)
