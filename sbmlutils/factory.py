@@ -184,7 +184,7 @@ def set_model_units(model, model_units):
 
     if not model_units:
         logger.error("Model units should be provided for a model, i.e., set the 'model_units' "
-                      "field on model.")
+                     "field on model.")
     else:
         for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
             if getattr(model_units, key) is None:
@@ -585,7 +585,7 @@ class Species(Sbase):
             obj_fbc = obj.getPlugin("fbc")  # type: libsbml.FbcSpeciesPlugin
             if obj_fbc is None:
                 logger.error("FBC SPlugin not found for species, "
-                              "no fbc: {}".format(obj))
+                             "no fbc: {}".format(obj))
             else:
                 if self.charge is not None:
                     obj_fbc.setCharge(int(self.charge))
