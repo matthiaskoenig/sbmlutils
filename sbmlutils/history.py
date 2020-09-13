@@ -18,18 +18,17 @@ def date_now():
     return libsbml.Date(timestr)
 
 
-def set_model_history(model, creators):
+def set_model_history(model: libsbml.Model, creators) -> None:
     """ Sets the model history from given creators.
 
     :param model: SBML model
-    :type model: libsbml.Model
     :param creators: list of creators
-    :type creators:
+    :return None
     """
     if not model.isSetMetaId():
         model.setMetaId(create_metaid(sbase=model))
 
-    if creators is None or len(creators) is 0:
+    if (creators is None) or (len(creators) == 0):
         # at least on
         return
     else:

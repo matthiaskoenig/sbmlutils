@@ -1,4 +1,4 @@
-- [ ] fix pep8 issues
+- [x] fix pep8 issues
 - [ ] refactor dfba (issues)
 - [ ] update examples
 - [ ] fix and update documentation
