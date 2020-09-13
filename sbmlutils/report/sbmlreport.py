@@ -22,8 +22,7 @@ import logging
 import libsbml
 from jinja2 import TemplateNotFound
 
-from sbmlutils.report import sbmlfilters
-from sbmlutils import formating
+from sbmlutils.report import sbmlfilters, formating
 from sbmlutils.io.sbml import write_sbml, read_sbml
 from sbmlutils import utils
 
@@ -396,7 +395,7 @@ def listOfUnits_dict(model):
     items = []
     for item in model.getListOfUnitDefinitions():
         info = infoSbase(item)
-        info['units'] = formating.stringToMathML(formating.unitDefinitionToString(item))
+        info['units'] = formating.formula_to_mathml(formating.unitDefinitionToString(item))
         items.append(info)
     return items
 
@@ -621,7 +620,7 @@ def listOfEvents_dict(model):
 ##############################
 def notes(item):
     if item.isSetNotes():
-        return formating.notesToString(item)
+        return formating.notes_to_string(item)
     return ''
 
 
@@ -702,7 +701,7 @@ def annotation_html(item):
 
 def math(item):
     if item:
-        return formating.astnodeToMathML(item.getMath())
+        return formating.astnode_to_mathml(item.getMath())
     return empty_html()
 
 
@@ -756,5 +755,5 @@ def xml(item):
 
 def derived_units(item):
     if item:
-        return formating.stringToMathML(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
+        return formating.formula_to_mathml(formating.unitDefinitionToString(item.getDerivedUnitDefinition()))
     return ''

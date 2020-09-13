@@ -51,12 +51,12 @@ def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHist
     h = libsbml.ModelHistory()
 
     if isinstance(creators, dict):
-        values = creators.values()
+        items = creators.values()
     else:
-        values = creators
+        items = creators
 
     # add all creators
-    for creator in values:
+    for creator in items:
         c = libsbml.ModelCreator()
         if creator.familyName:
             c.setFamilyName(creator.familyName)

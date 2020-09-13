@@ -47,7 +47,7 @@ plt.show()
 
 
 # import the interpolation functionality
-from sbmlutils.interpolation import *
+from sbmlutils.manipulation.interpolation import *
 import os
 if not os.path.exists('tmp'):
     os.mkdir('tmp')

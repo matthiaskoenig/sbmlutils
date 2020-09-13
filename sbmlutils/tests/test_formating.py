@@ -5,7 +5,7 @@ try:
 except ImportError:
     import tesbml as libsbml
 
-import sbmlutils.formating as formating
+import sbmlutils.report.formating as formating
 
 
 class FormatingTestCase(unittest.TestCase):

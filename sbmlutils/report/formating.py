@@ -32,27 +32,26 @@ def annotation_to_html(item):
     return res
 
 
-def notesToString(sbase):
+def notes_to_string(sbase: libsbml.SBase) -> str:
+    """Notes to string."""
     return sbase.getNotesString()
 
 
-# ------------------------------
-# Math and formulas
-# ------------------------------
-def stringToMathML(string):
+def formula_to_mathml(string: str) -> str:
     """Parses formula string. """
     astnode = libsbml.parseL3Formula(str(string))
     mathml = libsbml.writeMathMLToString(astnode)
     return mathml
 
 
-def astnodeToString(astnode):
+def astnode_to_string(astnode) -> str:
+    """Convert to string representation."""
     return libsbml.formulaToString(astnode)
 
 
-def astnodeToMathML(astnode):
-    mathml = libsbml.writeMathMLToString(astnode)
-    return mathml
+def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
+    """Convert to MathML string representation."""
+    return libsbml.writeMathMLToString(astnode)
 
 
 # ------------------------------
