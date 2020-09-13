@@ -8,7 +8,7 @@ import tempfile
 import pandas as pd
 import roadrunner
 
-from sbmlutils import interpolation as ip
+from sbmlutils.manipulation import interpolation as ip
 
 
 class InterpolationTestCase(unittest.TestCase):

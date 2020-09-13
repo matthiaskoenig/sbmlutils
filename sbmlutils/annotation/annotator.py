@@ -254,9 +254,7 @@ class ExternalAnnotation(object):
     ])
 
     def __init__(self, d):
-
         self.d = d
-
         for key in self._keys:
             # optional fields
             if key in ['qualifier', 'name']:

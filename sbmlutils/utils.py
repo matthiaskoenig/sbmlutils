@@ -7,6 +7,7 @@ import functools
 import hashlib
 import libsbml
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -20,6 +21,7 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 
 def create_metaid(sbase: libsbml.SBase) -> str:
     """ Creates a globally unique meta id.
@@ -73,5 +75,3 @@ def deprecated(func):
         )
         return func(*args, **kwargs)
     return new_func
-
-

@@ -1,9 +1,7 @@
 from sbmlutils.io.sbml import validate_sbml
-from sbmlutils.tests import DFBA_EMD_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML, BASIC_SBML, VDP_SBML
+from sbmlutils.tests import DEMO_SBML, GALACTOSE_SINGLECELL_SBML, BASIC_SBML, VDP_SBML
 
-# FIXME: implement paramtrized test
 SBML_FILES = [
-    {'path': DFBA_EMD_SBML, 'ucheck': True, 'N': 0},
     {'path': DEMO_SBML, 'ucheck': True, 'N': 0},
     {'path': GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
     {'path': BASIC_SBML, 'ucheck': True, 'N': 0},

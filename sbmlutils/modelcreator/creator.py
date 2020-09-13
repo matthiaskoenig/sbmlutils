@@ -9,11 +9,15 @@ model information (dictionaries and lists
 
 Uses the importlib to import the information.
 """
-import os
 import shutil
 import copy
 import logging
 import tempfile
+from pathlib import Path
+from typing import List
+import xmltodict
+import json
+
 from sbmlutils.utils import bcolors
 
 import libsbml
@@ -21,10 +25,8 @@ import libsbml
 from sbmlutils.annotation import annotator
 import sbmlutils.history as history
 import sbmlutils.factory as factory
-import sbmlutils.io.sbml as sbmlio
-
+from sbmlutils.io import write_sbml
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
-from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION
 from sbmlutils.report import sbmlreport
 
 logger = logging.getLogger(__name__)
@@ -66,8 +68,9 @@ class Factory(object):
         return [model_dict, core_model, sbml_path]
 
 
-def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
-                 annotations=None, create_report=True, validate=True):
+def create_model(modules: List[str], target_dir: Path,
+                 filename: str = None, mid: str = None, suffix: str = None,
+                 annotations=None, create_report: bool = True, validate: bool = True):
     """ Create SBML model from module information.
 
     This is the entry point for creating models.
@@ -95,20 +98,23 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
     core_model.create_sbml()
 
     # write file
-    target_dir = str(target_dir)
-    if not os.path.exists(target_dir):
-        logging.warning("Target directory does not exist and is created: {}".format(target_dir))
-        os.makedirs(target_dir)
+    if isinstance(target_dir, str):
+        target_dir = Path(target_dir)
+        logger.warning(f"'target_dir' should be a Path: {target_dir}")
+
+    if not target_dir.exists():
+        logger.warning(f"'target_dir' does not exist and is created: {target_dir}")
+        target_dir.mkdir(parents=True)
 
     if not filename:
         # create filename
         if mid is None:
             mid = core_model.model.getId()
         if suffix is not None:
-            filename = '{}{}.xml'.format(mid, suffix)
+            filename = f'{mid}{suffix}.xml'
         else:
-            filename = '{}.xml'.format(mid)
-    sbml_path = os.path.join(target_dir, filename)
+            filename = '{mid}.xml'
+    sbml_path = target_dir / filename
 
     core_model.write_sbml(sbml_path, validate=validate)
 
@@ -119,7 +125,7 @@ def create_model(modules, target_dir, filename=None, mid=None, suffix=None,
 
     # create report
     if create_report:
-        logging.info("Create SBML report:'{}'".format(sbml_path))
+        logger.info(f"Create SBML report: '{sbml_path}'")
         # file is already validated, no validation on report needed
         sbmlreport.create_report(sbml_path=sbml_path, output_dir=target_dir, validate=False)
 
@@ -399,20 +405,16 @@ class CoreModel(object):
         return libsbml.writeSBMLToString(self.doc)
 
     def get_json(self):
-        import xmltodict, json
+
         o = xmltodict.parse(self.get_sbml())
         return json.dumps(o, indent=2)
 
-    def write_sbml(self, filepath, validate=True):
+    def write_sbml(self, filepath: Path, validate: bool = True) -> None:
         """ Write sbml to file.
 
-        :param filepath:
-        :type filepath:
-        :return:
-        :rtype:
+        :param filepath: Path to sbml file.
+        :return: None
         """
         if self.doc is None:
             self.create_sbml()
-        sbmlio.write_sbml(self.doc, filepath, validate=validate,
-                          program_name=PROGRAM_NAME, program_version=PROGRAM_VERSION)
-
+        write_sbml(doc=self.doc, filepath=filepath, validate=validate)

@@ -10,8 +10,6 @@ from sbmlutils.utils import bcolors
 
 logger = logging.getLogger(__name__)
 
-VALIDATION_NO_UNITS = "VALIDATION_NO_UNITS"
-
 
 def check(value: int, message: str) -> bool:
     """Checks the libsbml return value and prints message if something happened.
@@ -37,7 +35,7 @@ def check(value: int, message: str) -> bool:
     return valid
 
 
-def check_doc(doc, name=None, log_errors=True,
+def check_doc(doc: libsbml.SBMLDocument, name=None, log_errors=True,
               units_consistency=True,
               modeling_practice=True,
               internal_consistency=True) -> List[int]:
@@ -139,27 +137,28 @@ def _check_consistency(doc, internal_consistency=False):
     return Nall, Nerr, Nwarn
 
 
-def log_doc_errors(doc):
+def log_doc_errors(doc: libsbml.SBMLDocument):
     """ Prints errors of SBMLDocument.
 
-    :param doc:
+    :param doc: SBMLDocument
     :return:
     """
     for k in range(doc.getNumErrors()):
         error = doc.getError(k)
         msg, severity = error_string(error, k)
         if severity == libsbml.LIBSBML_SEV_WARNING:
-            logging.warning(msg)
+            logger.warning(msg)
         elif severity in [libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL]:
-            logging.error(msg)
+            logger.error(msg)
         else:
-            logging.info(msg)
+            logger.info(msg)
 
 
-def error_string(error, k=None):
+def error_string(error: libsbml.SBMLError, k: int = None) -> tuple:
     """ String representation of SBMLError.
 
-    :param error:
+    :param error: SBML error
+    :param k: index of error
     :return:
     """
     package = error.getPackage()
@@ -168,7 +167,8 @@ def error_string(error, k=None):
 
     severity = error.getSeverity()
     lines = [
-        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(), package, error.getLine(), 'code') + bcolors.ENDC + bcolors.ENDC,
+        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(k, error.getCategoryAsString(),
+                                                                         package, error.getLine(), 'code') + bcolors.ENDC + bcolors.ENDC,
         bcolors.FAIL + '[{}] {}'.format(error.getSeverityAsString(), error.getShortMessage()) + bcolors.ENDC,
         bcolors.OKBLUE + error.getMessage() + bcolors.ENDC
     ]

@@ -8,7 +8,8 @@ import logging
 import libsbml
 
 
-from sbmlutils import __version__
+from sbmlutils import __version__, program_name
+
 from sbmlutils import validation
 from sbmlutils.utils import deprecated
 
@@ -78,7 +79,7 @@ def read_sbml(source: Union[Path, str],
 
 
 def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
-               program_name: str = 'sbmlutils',
+               program_name: str = program_name,
                program_version: str = str(__version__),
                validate: bool = True,
                log_errors: bool = True,
