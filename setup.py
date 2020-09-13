@@ -79,7 +79,7 @@ setup(
         # standards
         "python-libsbml-experimental>=5.18.1",  # mac-os & win dependencies (ubuntu: 5.18.3)
         "phrasedml>=1.0.9",  # mac-os & win dependencies (ubuntu: 1.0.10.3)
-        "antimony>=2.12.0.2",
+        "antimony>=2.12.0",  # mac-os & win dependencies (ubuntu: 2.12.0.2)
 
         # simulation
         "libroadrunner>=2.0.0",
