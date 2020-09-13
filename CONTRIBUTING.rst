@@ -83,7 +83,7 @@ features or changes that you can implement yourself.
 4. Install your local copy of sbmlutils into a virtualenv with virtualenvwrapper::
 
     $ cd sbmlutils
-    $ mkvirtualenv sbmlutils --python3.6
+    $ mkvirtualenv sbmlutils --python3.7
 
    Use the ``--python`` option to select a specific version of Python for the
    virtualenv.
@@ -116,9 +116,9 @@ features or changes that you can implement yourself.
 
     and likely one of::
 
-     (sbmlutils)$ tox -e py35
      (sbmlutils)$ tox -e py36
      (sbmlutils)$ tox -e py37
+     (sbmlutils)$ tox -e py38
 
 10. Commit your changes and push your branch to GitHub::
 
@@ -182,12 +182,10 @@ Branching model
 Please use concise descriptive commit messages and consider using
 ``git pull --rebase`` when you update your own fork to avoid merge commits.
 
-1. Tests are in the ``sbmlutils/test`` directory. They are automatically run
-   through continuous integration services on both python 2 and python 3
+1. Tests are in the ``sbmlutils/tests`` directory. They are automatically run
+   through continuous integration services on supported python 3 versions
    when pull requests are made.
 2. Please write tests for new functions. Writing documentation as well
    would also be very helpful.
-3. Ensure code will work with both python 2 and python 3. For example,
-   instead of ``my_dict.iteritems()`` use ``my_dict.items(my_dict)``
 
 Thank you very much for contributing to sbmlutils!
