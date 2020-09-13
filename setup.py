@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 """
 sbmlutils pip package
 """
@@ -64,32 +63,32 @@ setup(
     python_requires='>=3.6',
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
-        "numpy>=1.18.1",
+        "numpy>=1.19.2",
         "scipy>=1.4.1",
-        "matplotlib>=3.1",
-        "pandas>=0.25.3",
-        "tabulate>=0.8.6",
-        "Jinja2>=2.10.3",
-        "requests>=2.22.0",
-        "beautifulsoup4>=4.8.2",
+        "matplotlib>=3.3.1",
+        "pandas>=1.1.2",
+        "tabulate>=0.8.7",
+        "Jinja2>=2.11.2",
+        "requests>=2.24.0",
+        "beautifulsoup4>=4.9.1",
         "xlrd>=1.2.0",
-        "xmlschema>=1.0.18",
+        "xmlschema>=1.2.3",
         "xmltodict>=0.12.0",
 
         # standards
-        "python-libsbml-experimental>=5.18.1",
-        "phrasedml>=1.0.9",  # not working on py38
-        "antimony>=2.11.0",  # not working on py38
+        "python-libsbml-experimental>=5.18.3",
+        "phrasedml>=1.0.10.3",
+        "antimony>=2.12.0.2",
 
         # simulation
-        "libroadrunner>=1.5.4",  # not working on py3.8
-        "cobra>=0.17.1",
+        "libroadrunner>=2.0.0",
+        "cobra>=0.19.0",
         "optlang>=1.4.4",
 
         # misc
-        "pytest>=6.0",
-        "pytest-cov>=2.8.1",
-        "ipykernel>=5.1.3",
+        "pytest>=6.0.2",
+        "pytest-cov>=2.10.1",
+        "ipykernel>=5.3.4",
     ],
     extras_require={},
     **setup_kwargs)

@@ -1,18 +1,12 @@
 """
-Unit tests for the comp module.
+Tests for the comp module.
 """
-
-from __future__ import print_function, absolute_import
-
-try:
-    import libsbml
-except ImportError:
-    import tesbml as libsbml
+import libsbml
 
 from sbmlutils.comp import flattenExternalModelDefinitions
 from sbmlutils import sbmlio
 from sbmlutils import validation
-from sbmlutils.tests import data
+from sbmlutils.tests import DFBA_EMD_SBML
 from sbmlutils import comp
 from sbmlutils import factory as fac
 
@@ -80,7 +74,7 @@ def test_create_ports_list():
 
 
 def test_flattenExternalModelDefinition():
-    sbml_path = data.DFBA_EMD_SBML
+    sbml_path = DFBA_EMD_SBML
     print(sbml_path)
     doc = sbmlio.read_sbml(sbml_path)
 

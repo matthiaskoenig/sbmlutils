@@ -84,8 +84,10 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
                units_consistency: bool = True,
                modeling_practice: bool = True,
                internal_consistency: bool = True
-               ) -> None:
-    """ Write SBMLDocument to file.
+               ) -> str:
+    """ Write SBMLDocument to file or string.
+
+    If filepath is None the SBML string is returned
 
     Optional validation with validate flag.
 
@@ -99,24 +101,32 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
     :param modeling_practice: validation flag
     :param internal_consistency: validation flag 
 
-    :return: None
+    :return: None or SBML string
     """
     writer = libsbml.SBMLWriter()
     if program_name:
         writer.setProgramName(program_name)
     if program_version:
         writer.setProgramVersion(program_version)
-    writer.writeSBMLToFile(doc, str(filepath))
 
-    # This validates the written file
+    if filepath is None:
+        sbml_str = writer.writeSBMLToString(doc)
+        source = sbml_str
+    else:
+        writer.writeSBMLToFile(doc, str(filepath))
+        sbml_str = None
+        source = filepath
+
+    # This validates the written file or sbml string
     if validate:
         validate_sbml(
-            source=filepath,
+            source=source,
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,
             internal_consistency=internal_consistency
         )
+    return sbml_str
 
 
 def validate_sbml(source: Union[str, Path], name: str = None,

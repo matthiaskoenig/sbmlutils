@@ -7,14 +7,19 @@ https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
 
 """
-import os.path
-import shutil
-import tempfile
+import logging
 import warnings
+from pathlib import Path
+
 import pandas as pd
 import libsbml
+from sbmlutils.validation import check_doc
+from sbmlutils.sbmlio import validate_sbml, read_sbml, write_sbml
 
-from sbmlutils import validation
+logger = logging.getLogger(__name__)
+
+
+
 
 ##########################################################################
 # Model information
@@ -31,7 +36,7 @@ notes = libsbml.XMLNode.convertStringToXMLNode("""
       </div>
 
     <h2>Terms of use</h2>
-      <div class="dc:rightsHolder">Copyright © 2016 sbmlutils.</div>
+      <div class="dc:rightsHolder">Copyright © 2016-2020 sbmlutils.</div>
       <div class="dc:license">
       <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
       the following conditions are met:
@@ -290,7 +295,7 @@ class Interpolation(object):
 
     # --- SBML & Interpolation --------------------
 
-    def write_sbml_to_file(self, sbml_out):
+    def write_sbml_to_file(self, sbml_out: Path):
         """ Write the SBML file.
 
         First create clean SBML file.
@@ -301,7 +306,7 @@ class Interpolation(object):
         :rtype:
         """
         self._create_sbml()
-        libsbml.writeSBMLToFile(self.doc, sbml_out)
+        write_sbml(doc=self.doc, filepath=sbml_out)
 
     def write_sbml_to_string(self):
         """ Write the SBML file.
@@ -314,7 +319,7 @@ class Interpolation(object):
         :rtype:
         """
         self._create_sbml()
-        return libsbml.writeSBMLToString(self.doc)
+        return write_sbml(self.doc)
 
     def _create_sbml(self):
         """ Create the SBMLDocument.
@@ -328,13 +333,7 @@ class Interpolation(object):
             Interpolation.add_interpolator_to_model(interpolator, self.model)
 
         # validation of SBML document
-        try:
-            temp_dir = tempfile.mkdtemp()
-            tmp_f = os.path.join(temp_dir, 'validated.xml')
-            libsbml.writeSBMLToFile(self.doc, tmp_f)
-            validation.check_sbml(tmp_f, units_consistency=False)
-        finally:
-            shutil.rmtree(temp_dir)
+        check_doc(self.doc)
 
     def _init_sbml_model(self):
         """ Initializes the SBML model.
