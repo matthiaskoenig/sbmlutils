@@ -6,6 +6,22 @@ import libsbml
 import sbmlutils.factory as factory
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 
+__all__ = [
+    'LAYOUT_VERSION',
+    'LAYOUT_ROLE_SUBSTRATE',
+    'LAYOUT_ROLE_PRODUCT',
+    'LAYOUT_ROLE_SIDESUBSTRATE',
+    'LAYOUT_ROLE_SIDEPRODUCT',
+    'LAYOUT_ROLE_MODIFIER',
+    'LAYOUT_ROLE_ACTIVATOR',
+    'LAYOUT_ROLE_INHIBITOR',
+    'LAYOUT_ROLE_UNDEFINED',
+    'Layout',
+    'SpeciesGlyph',
+    'ReactionGlyph',
+    'CompartmentGlyph',
+]
+
 LAYOUT_VERSION = 1
 
 LAYOUT_ROLE_SUBSTRATE = "substrate"
