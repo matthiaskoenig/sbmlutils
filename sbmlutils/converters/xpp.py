@@ -49,8 +49,7 @@ import libsbml
 
 from sbmlutils._version import __version__
 from sbmlutils import factory as fac
-from sbmlutils import sbmlio
-from sbmlutils import validation
+from sbmlutils.io import sbml
 from sbmlutils.converters import xpp_helpers
 
 XPP_ODE = "ode"
@@ -579,7 +578,7 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
         if not p.isSetValue():
             p.setValue(0.0)
 
-    sbmlio.write_sbml(doc, sbml_file, validate=validate,
-                      program_name="sbmlutils", program_version=__version__,
-                      units_consistency=False,
-                      )
+    sbml.write_sbml(doc, sbml_file, validate=validate,
+                    program_name="sbmlutils", program_version=__version__,
+                    units_consistency=False,
+                    )

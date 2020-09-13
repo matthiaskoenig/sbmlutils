@@ -22,7 +22,7 @@ import libsbml
 from collections import OrderedDict
 
 from sbmlutils import utils
-from sbmlutils.sbmlio import read_sbml, write_sbml
+from sbmlutils.io.sbml import read_sbml, write_sbml
 from .miriam import *
 
 LOGGER = logging.getLogger(__name__)
@@ -153,8 +153,8 @@ class Annotation(object):
 
     def to_dict(self):
         return OrderedDict([
-            ("qualifier", self.qualifier.value)
-            ("collection", self.collection)
+            ("qualifier", self.qualifier.value),
+            ("collection", self.collection),
             ("term", self.term),
             ("resource", self.resource),
         ])

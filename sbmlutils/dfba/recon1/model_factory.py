@@ -13,7 +13,7 @@ from os.path import join as pjoin
 import libsbml
 from libsbml import UNIT_KIND_SECOND, UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE, UNIT_KIND_MOLE
 
-from sbmlutils import sbmlio
+from sbmlutils.io import sbml
 from sbmlutils import comp
 from sbmlutils import factory as mc
 from sbmlutils.report import sbmlreport
@@ -120,18 +120,18 @@ def clip_prefixes(path_in, path_out):
     :param path_out:
     :return:
     """
-    doc_fba = sbmlio.read_sbml(path_in)
+    doc_fba = sbml.read_sbml(path_in)
     model = doc_fba.getModel()
     # clip R_ reaction and M_ metabolite prefixes
     utils.clip_prefixes_in_model(model)
-    sbmlio.write_sbml(doc_fba, filepath=path_out, validate=False)
+    sbml.write_sbml(doc_fba, filepath=path_out, validate=False)
 
 
 def fba_model(sbml_file, directory):
     """ Create FBA submodel."""
     # Read the model
     fba_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/RECON1_clipped.xml')
-    doc_fba = sbmlio.read_sbml(fba_path)
+    doc_fba = sbml.read_sbml(fba_path)
 
     # add comp
     doc_fba.enablePackage("http://www.sbml.org/sbml/level3/version1/comp/version1", "comp", True)
@@ -163,7 +163,7 @@ def fba_model(sbml_file, directory):
     builder.update_exchange_reactions(model, flux_unit=UNIT_FLUX)
 
     # write SBML file
-    sbmlio.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc_fba, filepath=pjoin(directory, sbml_file), validate=True)
 
     return doc_fba
 
@@ -223,7 +223,7 @@ def bounds_model(sbml_file, directory, doc_fba=None):
         ])
     mc.create_objects(model, objects)
 
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def update_model(sbml_file, directory, doc_fba=None):
@@ -255,7 +255,7 @@ def update_model(sbml_file, directory, doc_fba=None):
                                     modifiers=[])
 
     # write SBML file
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
@@ -301,7 +301,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None, validate=True):
     builder.create_top_replacements(model, model_fba, compartment_id=compartment_id)
 
     # write SBML file
-    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=validate)
+    sbml.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=validate)
 
     # change back into working dir
     os.chdir(working_dir)

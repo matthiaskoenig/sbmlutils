@@ -59,7 +59,7 @@ def check_doc(doc, name=None, log_errors=True,
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, modeling_practice)
 
     # time
-    current = time.clock()
+    current = time.perf_counter()
 
     # all, error, warn
     if internal_consistency:
@@ -72,12 +72,12 @@ def check_doc(doc, name=None, log_errors=True,
     Nall = Nall_in + Nall_noin
     Nerr = Nerr_in + Nerr_noin
     Nwarn = Nwarn_in + Nwarn_noin
-    valid_status = (Nerr is 0)
+    valid_status = Nerr == 0
 
     lines = [
         '',
         '-' * 80,
-        name,
+        str(name),
         "{:<25}: {}".format("valid", str(valid_status).upper()),
     ]
     if Nall > 0:
@@ -86,7 +86,7 @@ def check_doc(doc, name=None, log_errors=True,
             "{:<25}: {}".format("validation warnings(s)", Nwarn),
         ]
     lines += [
-        "{:<25}: {:.3f}".format("check time (s)", time.clock() - current),
+        "{:<25}: {:.3f}".format("check time (s)", time.perf_counter() - current),
         '-' * 80,
         '',
     ]

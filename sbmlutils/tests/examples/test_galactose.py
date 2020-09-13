@@ -1,6 +1,6 @@
 
 import roadrunner
-from sbmlutils.sbmlio import validate_sbml
+from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.tests import GALACTOSE_SINGLECELL_SBML
 
 

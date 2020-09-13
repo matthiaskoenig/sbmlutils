@@ -21,7 +21,7 @@ import libsbml
 from sbmlutils.annotation import annotator
 import sbmlutils.history as history
 import sbmlutils.factory as factory
-import sbmlutils.sbmlio as sbmlio
+import sbmlutils.io.sbml as sbmlio
 
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils._version import PROGRAM_NAME, PROGRAM_VERSION

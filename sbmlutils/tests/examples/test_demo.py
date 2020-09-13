@@ -2,7 +2,7 @@
 Test the demo network.
 """
 import roadrunner
-from sbmlutils.sbmlio import validate_sbml
+from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.tests import DEMO_SBML
 
 

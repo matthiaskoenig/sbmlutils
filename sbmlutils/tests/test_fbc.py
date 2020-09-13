@@ -2,7 +2,7 @@
 Unit tests for fbc.
 """
 import sbmlutils.fbc as fbc
-from sbmlutils.sbmlio import read_sbml, write_sbml
+from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.tests import FBC_SBML, DEMO_SBML
 
 

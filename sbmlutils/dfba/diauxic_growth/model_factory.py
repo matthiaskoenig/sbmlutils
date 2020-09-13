@@ -81,9 +81,9 @@ from os.path import join as pjoin
 
 import libsbml
 from libsbml import (UNIT_KIND_SECOND, UNIT_KIND_METRE, UNIT_KIND_GRAM, UNIT_KIND_LITRE,
-                     UNIT_KIND_ITEM, UNIT_KIND_KILOGRAM, UNIT_KIND_MOLE)
+                     UNIT_KIND_MOLE)
 
-from sbmlutils import sbmlio
+from sbmlutils.io import sbml
 from sbmlutils import comp
 from sbmlutils import fbc
 
@@ -260,7 +260,7 @@ def fba_model(sbml_file, directory, annotations=None):
     # write SBML file
     if annotations:
         annotator.annotate_sbml_doc(doc, annotations)
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
     return doc
 
@@ -349,7 +349,7 @@ def bounds_model(sbml_file, directory, doc_fba=None, annotations=None):
 
     if annotations:
         annotator.annotate_sbml_doc(doc, annotations)
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 ####################################################
@@ -386,7 +386,7 @@ def update_model(sbml_file, directory, doc_fba=None, annotations=None):
     # write SBML file
     if annotations:
         annotator.annotate_sbml_doc(doc, annotations)
-    sbmlio.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=pjoin(directory, sbml_file), validate=True)
 
 
 def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
@@ -471,7 +471,7 @@ def top_model(sbml_file, directory, emds, doc_fba=None, annotations=None):
     # write SBML file
     if annotations:
         annotator.annotate_sbml_doc(doc, annotations)
-    sbmlio.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
+    sbml.write_sbml(doc, filepath=os.path.join(directory, sbml_file), validate=True)
 
     # change back into working dir
     os.chdir(working_dir)

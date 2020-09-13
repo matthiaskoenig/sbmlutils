@@ -4,7 +4,7 @@ Tests for the comp module.
 import libsbml
 
 from sbmlutils.comp import flattenExternalModelDefinitions
-from sbmlutils import sbmlio
+from sbmlutils.io import sbml
 from sbmlutils import validation
 from sbmlutils.tests import DFBA_EMD_SBML
 from sbmlutils import comp
@@ -76,7 +76,7 @@ def test_create_ports_list():
 def test_flattenExternalModelDefinition():
     sbml_path = DFBA_EMD_SBML
     print(sbml_path)
-    doc = sbmlio.read_sbml(sbml_path)
+    doc = sbml.read_sbml(sbml_path)
 
     # test that resource could be read
     assert doc is not None

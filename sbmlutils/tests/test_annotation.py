@@ -4,7 +4,7 @@ Test annotation functions and annotating of SBML models.
 import re
 import libsbml
 
-from sbmlutils.sbmlio import read_sbml
+from sbmlutils.io.sbml import read_sbml
 from sbmlutils.annotation import annotator
 from sbmlutils.annotation.miriam import BQB
 from sbmlutils.annotation.annotator import ModelAnnotator, ExternalAnnotation

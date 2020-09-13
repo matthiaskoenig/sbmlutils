@@ -67,6 +67,7 @@ def read_sbml(source: Union[Path, str],
     if validate:
         validation.check_doc(
             doc=doc,
+            name=source,
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,
@@ -97,9 +98,9 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
     :param program_name: Program name for SBML file
     :param program_version: Program version for SBML file
     :param log_errors: validation flag
-    :param units_consistency: validation flag 
+    :param units_consistency: validation flag
     :param modeling_practice: validation flag
-    :param internal_consistency: validation flag 
+    :param internal_consistency: validation flag
 
     :return: None or SBML string
     """
@@ -121,6 +122,7 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
     if validate:
         validate_sbml(
             source=source,
+            name=source,
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,
@@ -154,12 +156,13 @@ def validate_sbml(source: Union[str, Path], name: str = None,
     )
 
 
-def promote_local_variables(doc: libsbml.SBMLDocument, suffix: str="_promoted") -> libsbml.SBMLDocument:
+def promote_local_variables(doc: libsbml.SBMLDocument, suffix: str = "_promoted") -> libsbml.SBMLDocument:
     """ Promotes local variables in SBMLDocument.
 
     Manipulates SBMLDocument in place!
 
     :param doc: SBMLDocument
+    :param suffix: str suffix for promoted SBML
     :return: SBMLDocument with promoted parameters
     """
     model = doc.getModel()  # type: libsbml.Model

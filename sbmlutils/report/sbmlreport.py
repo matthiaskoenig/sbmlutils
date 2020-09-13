@@ -22,10 +22,9 @@ import logging
 import libsbml
 from jinja2 import TemplateNotFound
 
-import sbmlutils.manipulation
 from sbmlutils.report import sbmlfilters
 from sbmlutils import formating
-from sbmlutils.sbmlio import validate_sbml, write_sbml, read_sbml
+from sbmlutils.io.sbml import write_sbml, read_sbml
 from sbmlutils import utils
 
 logger = logging.getLogger(__name__)
@@ -127,8 +126,7 @@ def create_report(sbml_path: Path,
 
 def _create_index_html(sbml_paths: List[Path],
                        html_template: str = 'index.html',
-                       offline: bool=True
-    ):
+                       offline: bool = True):
     """Create index.html for given sbml_paths."""
 
     # template environment
@@ -463,7 +461,7 @@ def listOfSpecies_dict(model):
                 info['fbc_formula'] = sfbc.getChemicalFormula()
             if sfbc.isSetCharge():
                 c = sfbc.getCharge()
-                if c is not 0:
+                if c != 0:
                     info['fbc_charge'] = '({})'.format(sfbc.getCharge())
             if ('fbc_formula' in info) or ('fbc_charge' in info):
                 info['fbc'] = "<br /><code>{} {}</code>".format(info.get('fbc_formula', ''), info.get('fbc_charge', ''))
@@ -471,7 +469,7 @@ def listOfSpecies_dict(model):
     return items
 
 
-def listOfGeneProducts_dict(model):
+def listOfGeneProducts_dict(model: libsbml.Model):
     items = []
     mfbc = model.getPlugin("fbc")
     if mfbc:

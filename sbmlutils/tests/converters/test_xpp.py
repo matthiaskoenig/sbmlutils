@@ -3,7 +3,7 @@ Test XPP generation
 """
 from sbmlutils.converters import xpp
 from sbmlutils.tests import DATA_DIR
-from sbmlutils.sbmlio import validate_sbml
+from sbmlutils.io.sbml import validate_sbml
 
 
 def xpp_check(tmp_path, ode_id, Nall=0, Nerr=0, Nwarn=0):

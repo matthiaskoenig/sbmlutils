@@ -1,6 +1,4 @@
-import pytest
-
-from sbmlutils.sbmlio import validate_sbml
+from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.tests import DFBA_EMD_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML, BASIC_SBML, VDP_SBML
 
 # FIXME: implement paramtrized test

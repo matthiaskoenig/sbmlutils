@@ -14,7 +14,7 @@ from pathlib import Path
 import pandas as pd
 import libsbml
 from sbmlutils.validation import check_doc
-from sbmlutils.sbmlio import validate_sbml, read_sbml, write_sbml
+from sbmlutils.io.sbml import write_sbml
 
 logger = logging.getLogger(__name__)
 
