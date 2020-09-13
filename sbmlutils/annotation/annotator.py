@@ -244,7 +244,8 @@ class ExternalAnnotation(object):
         "species",
         "compartment",
         "parameter",
-        "rule"
+        "rule",
+        "fbc:geneproduct"
     ])
     _annotation_types = frozenset([
         "rdf",
@@ -385,6 +386,13 @@ class ModelAnnotator(object):
         lof = self.model.getListOfEvents()
         if lof:
             id_dict['event'] = [item.getId() for item in lof]
+
+
+        modelFBCPlugin = self.model.getPlugin('fbc')
+        if modelFBCPlugin != None:
+            lof = modelFBCPlugin.getListOfGeneProducts()
+            if lof:
+                id_dict['fbc:geneproduct'] = [item.getId() for item in lof]
 
         return id_dict
 
