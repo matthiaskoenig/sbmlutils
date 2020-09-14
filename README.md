@@ -32,7 +32,7 @@ Features include among others
 * interpolation functions to add experimental data to models
 * file converters (XPP)
 
-For documentation and examples see https://sbmlutils.readthedocs.io. `sbmlutils` is working and tested with `py3.6` and `py3.7`. We only support the latest version, i.e. with the release of a new version all support for older versions is stopped. 
+For documentation and examples see https://sbmlutils.readthedocs.io.
   
 ### How to cite
 [![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)  

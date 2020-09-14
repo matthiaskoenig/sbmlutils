@@ -66,7 +66,7 @@ def create_report(sbml_path: Path,
                   log_errors: bool = True,
                   units_consistency: bool = True,
                   modeling_practice: bool = True):
-    """ Create a HTML report for a given SBML file.
+    """ Creates HTML report for SBML file.
 
     The SBML file can be validated during report generation.
     Local parameters can be promoted during report generation.
