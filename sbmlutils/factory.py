@@ -64,6 +64,7 @@ __all__ = [
     'UncertSpan',
     'SBML_LEVEL',
     'SBML_VERSION',
+    'PORT_SUFFIX',
 ]
 
 
