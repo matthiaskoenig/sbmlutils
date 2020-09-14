@@ -120,7 +120,7 @@ def create_report(sbml_path: Path,
     f_html.write(html)
     f_html.close()
 
-    logger.info(f"SBML report created: {path_html.resolve()}")
+    logger.info(f"SBML report created: '{path_html.resolve()}'")
 
 
 def _create_index_html(sbml_paths: List[Path],

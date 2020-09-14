@@ -18,7 +18,7 @@ from typing import List, Iterable
 import xmltodict
 import json
 
-from sbmlutils.utils import bcolors
+
 
 import libsbml
 
@@ -26,8 +26,10 @@ from sbmlutils.annotation import annotator
 import sbmlutils.history as history
 import sbmlutils.factory as factory
 from sbmlutils.io import write_sbml
+from sbmlutils.utils import bcolors
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils.report import sbmlreport
+from sbmlutils.validation import check
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +77,15 @@ class Factory:
         return [model_dict, core_model, sbml_path]
 
 
-def create_model(modules: List[str], output_dir: Path,
-                 filename: str = None, mid: str = None, suffix: str = None,
-                 annotations=None, create_report: bool = True, validate: bool = True):
+def create_model(
+        modules: List[str], output_dir: Path,
+        filename: str = None, mid: str = None, suffix: str = None,
+        annotations=None, create_report: bool = True, validate: bool = True,
+        log_errors: bool = True,
+        units_consistency: bool = True,
+        modeling_practice: bool = True,
+        internal_consistency: bool = True
+    ):
     """ Create SBML model from module information.
 
     This is the entry point for creating models.
@@ -96,21 +104,21 @@ def create_model(modules: List[str], output_dir: Path,
     :return:
     """
     # preprocess
-    logging.info(bcolors.OKBLUE + '\n\n' + '-'*120 + '\n' + str(modules) + '\n' + '-'*120 + bcolors.ENDC)
+    logger.info(bcolors.OKBLUE + '\n\n' + '-'*120 + '\n' + str(modules) + '\n' + '-'*120 + bcolors.ENDC)
     model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
     core_model = CoreModel.from_dict(model_dict=model_dict)
-    logging.debug(core_model.get_info())
+    logger.debug(core_model.get_info())
     core_model.create_sbml()
 
     # write file
     if isinstance(output_dir, str):
         output_dir = Path(output_dir)
-        logger.warning(f"'target_dir' should be a Path: {output_dir}")
+        logger.warning(f"'output_dir' should be a Path: {output_dir}")
 
     if not output_dir.exists():
-        logger.warning(f"'target_dir' does not exist and is created: {output_dir}")
+        logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
         output_dir.mkdir(parents=True)
 
     if not filename:
@@ -121,9 +129,13 @@ def create_model(modules: List[str], output_dir: Path,
             suffix = ""
         filename = f'{mid}{suffix}.xml'
 
+    # write sbml
     sbml_path = output_dir / filename
-
-    core_model.write_sbml(sbml_path, validate=validate)
+    if core_model.doc is None:
+        core_model.create_sbml()
+    write_sbml(doc=core_model.doc, filepath=sbml_path, validate=validate,
+               log_errors=log_errors, units_consistency=units_consistency, modeling_practice=modeling_practice,
+               internal_consistency=internal_consistency)
 
     # annotate
     if annotations is not None:
@@ -136,7 +148,6 @@ def create_model(modules: List[str], output_dir: Path,
 
     # create report
     if create_report:
-        logger.info(f"Create SBML report: '{sbml_path}'")
         # file is already validated, no validation on report needed
         sbmlreport.create_report(sbml_path=sbml_path, output_dir=output_dir, validate=False)
 
@@ -200,7 +211,7 @@ class Preprocess:
         importlib.reload(module)
 
         # get attributes from class
-        logging.info('Preprocess: <{}>'.format(module_name))
+        logger.info(f"preprocess: '{module_name}'")
 
         d = dict()
         for key in CoreModel._keys:
@@ -209,7 +220,7 @@ class Preprocess:
                 d[key] = info
             else:
                 # key does not exist in module
-                logging.info(" ".join(['key not defined:', key]))
+                logger.debug(f"key not defined: '{key}'")
         return d
 
 
@@ -271,7 +282,7 @@ class CoreModel(object):
         self.model = None  # SBMLModel
 
         if 'main_units' in CoreModel._keys and CoreModel._keys['main_units']:
-            logging.error("'main_units' is deprecated, use 'model_units' instead.")
+            logger.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property
     def model_id(self):
@@ -299,8 +310,8 @@ class CoreModel(object):
             if key in CoreModel._keys:
                 setattr(m, key, value)
             else:
-                logger.warning("Unsupported key for CoreModel: '{}'. "
-                               "Supported keys are: {}".format(key, CoreModel._keys))
+                logger.warning(f"Unsupported key for CoreModel: '{key}'. "
+                               f"Supported keys are: {CoreModel._keys}")
         return m
 
     def get_info(self):
@@ -332,11 +343,8 @@ class CoreModel(object):
         :return:
         :rtype:
         """
-        from sbmlutils.validation import check
 
-        logging.info('*'*40)
-        logging.info(self.model_id)
-        logging.info('*' * 40)
+        logger.info(f"create_sbml: '{self.model_id}'")
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
@@ -405,7 +413,7 @@ class CoreModel(object):
                 if objects:
                     factory.create_objects(self.model, obj_iter=objects, key=attr)
                 else:
-                    logging.info("Not defined: <{}> ".format(attr))
+                    logger.debug(f"Not defined: <{attr}>")
 
     def get_sbml(self) -> str:
         """Return SBML string of the model.
@@ -419,13 +427,3 @@ class CoreModel(object):
 
         o = xmltodict.parse(self.get_sbml())
         return json.dumps(o, indent=2)
-
-    def write_sbml(self, filepath: Path, validate: bool = True) -> None:
-        """ Write sbml to file.
-
-        :param filepath: Path to sbml file.
-        :return: None
-        """
-        if self.doc is None:
-            self.create_sbml()
-        write_sbml(doc=self.doc, filepath=filepath, validate=validate)
