@@ -75,7 +75,7 @@ def test_demo_annotation(tmp_path):
     """ Annotate the demo network. """
 
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
-    annotator.annotate_sbml(DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, f_sbml_annotated=tmp_sbml_path)
+    annotator.annotate_sbml(DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, filepath=tmp_sbml_path)
 
     # document
     doc = read_sbml(source=tmp_sbml_path)
@@ -165,5 +165,5 @@ def test_galactose_annotation(tmp_path):
     """ Annotate the galactose network. """
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
     annotator.annotate_sbml(GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
-                            f_annotations=GALACTOSE_ANNOTATIONS,
-                            f_sbml_annotated=tmp_sbml_path)
+                            annotations_path=GALACTOSE_ANNOTATIONS,
+                            filepath=tmp_sbml_path)

@@ -14,7 +14,7 @@ ontology lookup service.
 import os
 import re
 from pathlib import Path
-from typing import Union
+from typing import Union, Dict, Iterable, List
 
 import pandas as pd
 import logging
@@ -28,40 +28,48 @@ from .miriam import *
 LOGGER = logging.getLogger(__name__)
 
 
-def annotate_sbml(source: Union[Path, str], f_annotations: Path, f_sbml_annotated: Path):
+def annotate_sbml(
+        source: Union[Path, str],
+        annotations_path: Path,
+        filepath: Path
+) -> libsbml.SBMLDocument:
     """
     Annotate a given SBML file with the provided annotations.
 
     :param source: SBML to annotation
-    :param f_annotations: external file with annotations
-    :param f_sbml_annotated: annotated file
+    :param annotations_path: external file with annotations
+    :param filepath: annotated SBML file
+    :return: annotated SBMLDocument
     """
     doc = read_sbml(source=source)
 
     # annotate
-    if not os.path.exists(str(f_annotations)):
-        raise IOError(f"Annotation file does not exist: {f_annotations}")
-    external_annotations = ModelAnnotator.read_annotations(f_annotations, format="*")
+    if not os.path.exists(str(annotations_path)):
+        raise IOError(f"Annotation file does not exist: {annotations_path}")
+    external_annotations = ModelAnnotator.read_annotations(annotations_path, file_format="*")
     doc = annotate_sbml_doc(doc, external_annotations)  # type: libsbml.SBMLDocument
 
     # write annotated sbml
-    write_sbml(doc, filepath=f_sbml_annotated)
+    write_sbml(doc, filepath=filepath)
     return doc
 
 
-def annotate_sbml_doc(doc: libsbml.SBMLDocument, external_annotations) -> libsbml.SBMLDocument:
+def annotate_sbml_doc(
+        doc: libsbml.SBMLDocument,
+        external_annotations: List['ExternalAnnotation']
+) -> libsbml.SBMLDocument:
     """ Annotates given SBML document using the annotations file.
 
     :param doc: SBMLDocument
     :param external_annotations: ModelAnnotations
-    :return: libsbml.SBMLDocument
+    :return: annotated SBMLDocument
     """
     annotator = ModelAnnotator(doc, external_annotations)
     annotator.annotate_model()
     return doc
 
 
-class Annotation(object):
+class Annotation:
     """ Annotation class.
 
     Basic storage of annotation information. This consists of the relation
@@ -199,8 +207,8 @@ class Annotation(object):
             supported_qualifiers = [e.value for e in BQB] + [e.value for e in BQM]
 
             raise ValueError(
-                "qualifier `{}`> is not in supported qualifiers: "
-                "{}".format(qualifier, supported_qualifiers)
+                f"qualifier '{qualifier}' is not in supported qualifiers: "
+                f"{supported_qualifiers}"
             )
 
     def validate(self):
@@ -209,21 +217,20 @@ class Annotation(object):
             self.check_term(collection=self.collection, term=self.term)
 
 
-class ExternalAnnotation(object):
-    """
-        Class for handling SBML annotations defined in external source.
-        This corresponds to a single entry in the external annotation file.
+class ExternalAnnotation:
+    """ Class for handling SBML annotations defined in external source.
 
-        Allows to handle more complex annotation scenarios, e.g. patterns for
-        identifiers.
+    This corresponds to a single entry in the external annotation file.
+    Allows to handle more complex annotation scenarios, e.g. patterns for
+    identifiers.
 
-        The columns are:
-            pattern
-            sbml_type
-            annotation_type
-            qualifier
-            resource
-            name
+    The columns are:
+        pattern
+        sbml_type
+        annotation_type
+        qualifier
+        resource
+        name
     """
     # possible columns in annotation file
     _keys = [
@@ -297,27 +304,25 @@ class ExternalAnnotation(object):
         """ Checks for valid choices """
         if self.sbml_type not in self._sbml_types:
             raise ValueError(
-                "Invalid sbml_type `{}`. "
-                "Supported types are `{}\n"
-                "{}".format(
-                    self.sbml_type, self._sbml_types, self.d)
+                f"Invalid sbml_type '{self.sbml_type}'. "
+                f"Supported types are '{self._sbml_types}'\n"
+                f"{self.d}"
             )
         if self.annotation_type not in self._annotation_types:
             raise ValueError(
-                "Invalid annotation_type `{}`. "
-                "Supported types are `{}`\n"
-                "{}".format(
-                    self.annotation_type, self._annotation_types, self.d)
+                f"Invalid annotation_type '{self.annotation_type}'. "
+                f"Supported types are '{self._annotation_types}'\n"
+                f"{self.d}"
             )
 
     def __str__(self):
         return str(self.d)
 
 
-class ModelAnnotator(object):
+class ModelAnnotator:
     """ Helper class for annotating SBML models. """
 
-    def __init__(self, doc, annotations):
+    def __init__(self, doc: libsbml.SBMLDocument, annotations: Iterable[ExternalAnnotation]):
         """ Constructor.
 
         :param doc: SBMLDocument
@@ -326,6 +331,7 @@ class ModelAnnotator(object):
         self.doc = doc
         self.model = doc.getModel()
         self.annotations = annotations
+
         # prepare dictionary for lookup of ids
         self.id_dict = self._get_ids_from_model()
 
@@ -396,26 +402,22 @@ class ModelAnnotator(object):
         return id_dict
 
     @staticmethod
-    def _get_matching_ids(ids, pattern):
-        """
-        Finds the model ids based on the regular expression pattern.
-        """
-        match_ids = []
-        for string in ids:
-            match = re.match(pattern, string)
-            if match:
-                # print 'Match: ', pattern, '<->', string
-                match_ids.append(string)
-        return match_ids
+    def _get_matching_ids(ids: Iterable[str], pattern: str) -> List[str]:
+        """Ids matching the regular expression."""
+        return [s for s in ids if re.match(pattern, s)]
 
     @staticmethod
-    def _elements_from_ids(model, sbml_ids, sbml_type=None):
+    def _elements_from_ids(
+            model: libsbml.Model,
+            sbml_ids: Iterable[str],
+            sbml_type: str = None
+    ) -> List[libsbml.SBase]:
         """
         Get list of SBML elements from given ids.
 
-        :param model:
-        :param sbml_ids:
-        :param sbml_type:
+        :param model: SBML model
+        :param sbml_ids: SBML SIds
+        :param sbml_type: type of SBML objects
         :return:
         """
         elements = []
@@ -431,7 +433,7 @@ class ModelAnnotator(object):
                 if sid == model.getId():
                     e = model
                 else:
-                    logging.warning('Element could not be found: {}'.format(sid))
+                    logging.warning(f"Element not found for sid: '{sid}'.")
                     continue
             elements.append(e)
         return elements
@@ -527,52 +529,52 @@ class ModelAnnotator(object):
     # --- File IO ---
 
     @staticmethod
-    def read_annotations_df(file_path: Path, format: str = "*"):
+    def read_annotations_df(file_path: Path, file_format: str = "*"):
         """ Reads annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
 
         :param file_path: either path to file, or data in dict format
-        :param format: annotation file format
+        :param file_format: annotation file format
         :return: pandas.DataFrame
         """
         filename, file_extension = os.path.splitext(file_path)
-        if format == "*":
-            format = file_extension[1:]  # remove leading dot
+        if file_format == "*":
+            file_format = file_extension[1:]  # remove leading dot
 
         formats = ["xlsx", "tsv", "csv", "json"]
-        if format not in formats:
+        if file_format not in formats:
             raise IOError("Annotation format '{}' not in supported formats: '{}'".format(
-                format, formats))
+                file_format, formats))
 
-        if file_extension != ("." + format):
+        if file_extension != ("." + file_format):
             logging.warning("format '{}' not matching file extension '{}' for file_path '{}'".format(
-                format, file_extension, file_path
+                file_format, file_extension, file_path
             ))
 
-        if format == "tsv":
+        if file_format == "tsv":
             df = pd.read_csv(file_path, sep="\t", comment='#', skip_blank_lines=True)
-        elif format == "csv":
+        elif file_format == "csv":
             df = pd.read_csv(file_path, sep=",", comment='#', skip_blank_lines=True)
-        elif format == "json":
+        elif file_format == "json":
             df = pd.read_json(file_path)
-        elif format == "xlsx":
+        elif file_format == "xlsx":
             df = pd.read_excel(file_path, comment="#")
 
         df.dropna(axis='index', inplace=True, how="all")
         return df
 
     @staticmethod
-    def read_annotations(file_path, format: str = "*"):
+    def read_annotations(file_path: [Path, Dict], file_format: str = "*") -> List[ExternalAnnotation]:
         """ Reads annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
 
         :param file_path: either path to file, or data in dict format
-        :param format: annotation file format
+        :param file_format: annotation file format
         :return: list of annotation objects
         """
-        df = ModelAnnotator.read_annotations_df(file_path=file_path, format=format)
+        df = ModelAnnotator.read_annotations_df(file_path=file_path, file_format=file_format)
         entries = df.to_dict('records')
         annotations = []
         for entry in entries:

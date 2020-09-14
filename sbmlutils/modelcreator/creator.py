@@ -14,7 +14,7 @@ import copy
 import logging
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import List, Iterable
 import xmltodict
 import json
 
@@ -32,15 +32,22 @@ from sbmlutils.report import sbmlreport
 logger = logging.getLogger(__name__)
 
 
-class Factory(object):
+class Factory:
     """
     Generic model factory, which should be subclassed by the individual
     ModelFactories.
     """
 
-    def __init__(self, modules, target_dir, annotations=None, mid=None):
+    def __init__(self, modules: Iterable[str], output_dir: Path, annotations=None, mid=None):
+        """
+
+        :param modules: iterable of module strings; should be importable as is
+        :param output_dir: path to output directory
+        :param annotations:
+        :param mid:
+        """
         self.modules = modules
-        self.target_dir = target_dir
+        self.target_dir = output_dir
         self.annotations = annotations
         self.mid = mid
 
@@ -51,24 +58,24 @@ class Factory(object):
         :return: (model_dict, core_model, sbml_path)
         """
         if tmp:
-            target_dir = tempfile.mkdtemp()
+            output_dir = tempfile.mkdtemp()
         else:
-            target_dir = self.target_dir
+            output_dir = self.target_dir
 
         try:
             [model_dict, core_model, sbml_path] = create_model(
                 modules=self.modules,
-                target_dir=target_dir,
+                output_dir=output_dir,
                 annotations=self.annotations,
                 mid=self.mid)
         finally:
             if tmp:
-                shutil.rmtree(target_dir)
+                shutil.rmtree(output_dir)
 
         return [model_dict, core_model, sbml_path]
 
 
-def create_model(modules: List[str], target_dir: Path,
+def create_model(modules: List[str], output_dir: Path,
                  filename: str = None, mid: str = None, suffix: str = None,
                  annotations=None, create_report: bool = True, validate: bool = True):
     """ Create SBML model from module information.
@@ -79,7 +86,7 @@ def create_model(modules: List[str], target_dir: Path,
     Additional model annotations can be provided.
 
     :param modules: iteratable of strings of python modules
-    :param target_dir: directory in which to create SBML file
+    :param output_dir: directory in which to create SBML file
     :param filename: filename to write to with suffix, if not provided mid and suffix are used
     :param mid: model id to use for filename
     :param suffix: suffix for SBML filename
@@ -98,41 +105,45 @@ def create_model(modules: List[str], target_dir: Path,
     core_model.create_sbml()
 
     # write file
-    if isinstance(target_dir, str):
-        target_dir = Path(target_dir)
-        logger.warning(f"'target_dir' should be a Path: {target_dir}")
+    if isinstance(output_dir, str):
+        output_dir = Path(output_dir)
+        logger.warning(f"'target_dir' should be a Path: {output_dir}")
 
-    if not target_dir.exists():
-        logger.warning(f"'target_dir' does not exist and is created: {target_dir}")
-        target_dir.mkdir(parents=True)
+    if not output_dir.exists():
+        logger.warning(f"'target_dir' does not exist and is created: {output_dir}")
+        output_dir.mkdir(parents=True)
 
     if not filename:
         # create filename
         if mid is None:
             mid = core_model.model.getId()
-        if suffix is not None:
-            filename = f'{mid}{suffix}.xml'
-        else:
-            filename = '{mid}.xml'
-    sbml_path = target_dir / filename
+        if suffix is None:
+            suffix = ""
+        filename = f'{mid}{suffix}.xml'
+
+    sbml_path = output_dir / filename
 
     core_model.write_sbml(sbml_path, validate=validate)
 
     # annotate
     if annotations is not None:
         # overwrite the normal file
-        annotator.annotate_sbml(sbml_path, annotations, sbml_path)
+        annotator.annotate_sbml(
+            source=sbml_path,
+            annotations_path=annotations,
+            filepath=sbml_path
+        )
 
     # create report
     if create_report:
         logger.info(f"Create SBML report: '{sbml_path}'")
         # file is already validated, no validation on report needed
-        sbmlreport.create_report(sbml_path=sbml_path, output_dir=target_dir, validate=False)
+        sbmlreport.create_report(sbml_path=sbml_path, output_dir=output_dir, validate=False)
 
     return [model_dict, core_model, sbml_path]
 
 
-class Preprocess(object):
+class Preprocess:
     """ Helper class for preprocessing model modules."""
 
     @staticmethod

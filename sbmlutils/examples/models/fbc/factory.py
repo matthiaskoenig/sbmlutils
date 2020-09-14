@@ -10,11 +10,11 @@ def create(tmp=False):
     models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
     factory = Factory(modules=['sbmlutils.examples.models.fbc.fbc_ex1'],
-                      target_dir=os.path.join(models_dir, 'results'))
+                      output_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
     factory = Factory(modules=['sbmlutils.examples.models.fbc.fbc_ex2'],
-                      target_dir=os.path.join(models_dir, 'results'))
+                      output_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
 

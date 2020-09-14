@@ -12,7 +12,7 @@ def create(tmp=False):
     print(models_dir)
     print('-' * 80)
     factory = Factory(modules=['sbmlutils.examples.models.assignment.model'],
-                      target_dir=os.path.join(models_dir, 'results'))
+                      output_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
 

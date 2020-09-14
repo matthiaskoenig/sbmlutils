@@ -25,7 +25,7 @@ print(models_dir)
 print('-' * 80)
 
 factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model'],
-                  target_dir=os.path.join(models_dir, 'results'),
+                  output_dir=os.path.join(models_dir, 'results'),
                   annotations=os.path.join(models_dir, 'annotations.xlsx'))
 _, _, tiny_sbml = factory.create(tmp=False)
 

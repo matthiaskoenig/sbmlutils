@@ -121,7 +121,7 @@ def ast_node_from_formula(model, formula):
 #####################################################################
 # Notes
 #####################################################################
-class Notes(object):
+class Notes:
 
     def __init__(self, notes):
         tokens = ["<body xmlns='http://www.w3.org/1999/xhtml'>"]
@@ -154,7 +154,7 @@ def set_notes(model, notes):
 #####################################################################
 # ModelUnits
 #####################################################################
-class ModelUnits(object):
+class ModelUnits:
     def __init__(self, time=None, extent=None, substance=None, length=None, area=None, volume=None):
         self.time = time
         self.extent = extent
@@ -211,7 +211,7 @@ def set_model_units(model, model_units):
 #####################################################################
 # Creator
 #####################################################################
-class Creator(object):
+class Creator:
     """ Creator in ModelHistory. """
     def __init__(self, familyName, givenName, email, organization, site=None):
         self.familyName = familyName
@@ -224,7 +224,7 @@ class Creator(object):
 # -----------------------------------------------------------------------------
 # Base classes
 # -----------------------------------------------------------------------------
-class Sbase(object):
+class Sbase:
     def __init__(self, sid=None, name=None, sboTerm=None, metaId=None,
                  annotations=None,
                  port=None, uncertainties=None):
@@ -771,7 +771,7 @@ class RateRule(Rule):
 # Uncertainty
 ##########################################################################
 
-class UncertParameter(object):
+class UncertParameter:
     """UncertParameter
     """
     def __init__(self, type, value=None, var=None, unit=None):
@@ -789,7 +789,7 @@ class UncertParameter(object):
 #            type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=value, var=var, unit=unit)
 
 
-class UncertSpan(object):
+class UncertSpan:
     def __init__(self, type, valueLower=None, varLower=None, valueUpper=None, varUpper=None, unit=None):
         if (valueLower is None) and (varLower is None):
             raise ValueError("Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
@@ -820,7 +820,7 @@ class Uncertainty(Sbase):
         self.formula = formula
         self.uncertParameters = uncertParameters
 
-    def create_sbml(self, sbase):
+    def create_sbml(self, sbase: libsbml.SBase):
         """ Create libsbml Uncertainty.
 
         :param model:

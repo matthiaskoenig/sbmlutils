@@ -52,7 +52,7 @@ INTERPOLATION_LINEAR = "linear"
 INTERPOLATION_CUBIC_SPLINE = "cubic spline"
 
 
-class Interpolator(object):
+class Interpolator:
     """ Interpolator class handles the interpolation of given data series
 
     Two data series and the type of interpolation are provided.
@@ -224,7 +224,7 @@ class Interpolator(object):
         return 'piecewise({})'.format(', '.join(items))
 
 
-class Interpolation(object):
+class Interpolation:
     """ Creates SBML which interpolates the given data.
 
     The second to last components are interpolated against the first component.

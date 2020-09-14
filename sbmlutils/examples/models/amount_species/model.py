@@ -63,7 +63,7 @@ def create(tmp=False):
     models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
     factory = Factory(modules=['model'],
-                      target_dir=os.path.join(models_dir, 'results'))
+                      output_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
 

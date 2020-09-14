@@ -13,7 +13,7 @@ def create(tmp=False):
     print('-' * 80)
 
     factory = Factory(modules=['sbmlutils.examples.models.annotation.model'],
-                      target_dir=os.path.join(models_dir, 'results'))
+                      output_dir=os.path.join(models_dir, 'results'))
     factory.create(tmp)
 
 

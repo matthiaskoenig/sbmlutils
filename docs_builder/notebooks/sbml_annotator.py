@@ -80,7 +80,7 @@ validate_doc(core_model.doc, units_consistency=False);
 import os
 from sbmlutils.modelcreator.creator import Factory
 factory = Factory(modules=['model_with_annotations'],
-                  target_dir='./models')
+                  output_dir='./models')
 [_, _, sbml_path] = factory.create()
 
 # check the annotations on the species
@@ -102,7 +102,7 @@ print(s1.toSBML())
 
 
 from sbmlutils.annotation.annotator import ModelAnnotator
-df = ModelAnnotator.read_annotations_df("./annotations/demo_annotations.xlsx", format="xlsx")
+df = ModelAnnotator.read_annotations_df("./annotations/demo_annotations.xlsx", file_format="xlsx")
 df
 
 
@@ -113,8 +113,8 @@ from sbmlutils.annotation.annotator import annotate_sbml
 
 # create SBML report without performing units checks
 annotate_sbml(f_sbml="./annotations/demo.xml",
-              f_annotations="./annotations/demo_annotations.xlsx",
-              f_sbml_annotated="./annotations/demo_annotated.xml")
+              annotations_path="./annotations/demo_annotations.xlsx",
+              filepath="./annotations/demo_annotated.xml")
 
 
 # In[ ]:

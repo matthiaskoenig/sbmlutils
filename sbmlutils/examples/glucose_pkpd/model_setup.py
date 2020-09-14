@@ -163,7 +163,7 @@ def set_initial_amounts(r, sid, value):
 # -----------------------------
 # Dosing
 # -----------------------------
-class Dosing(object):
+class Dosing:
     def __init__(self, substance, route, dose, unit):
         self.substance = substance
         self.route = route

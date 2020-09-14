@@ -40,7 +40,7 @@ REV_SEP = r'<=>'
 IRREV_SEP = r'=>'
 
 
-class Equation(object):
+class Equation:
     """ Representation of stoichiometric equations with modifiers. """
 
     class EquationException(Exception):

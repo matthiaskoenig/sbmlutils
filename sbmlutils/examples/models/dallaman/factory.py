@@ -7,4 +7,4 @@ target_dir = os.path.join(base_dir, 'results')
 
 if __name__ == "__main__":
     creator.create_model(modules=['sbmlutils.examples.models.dallaman.model'],
-                         target_dir=target_dir)
+                         output_dir=target_dir)

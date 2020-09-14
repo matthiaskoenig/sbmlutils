@@ -24,5 +24,5 @@ if __name__ == "__main__":
     print('-' * 80)
 
     # brain
-    creator.create_model(modules=['pylimax.models.glucose.glucose_liver_model'], target_dir=target_dir,
+    creator.create_model(modules=['pylimax.models.glucose.glucose_liver_model'], output_dir=target_dir,
                          annotations=os.path.join(base_dir, 'glucose_annotations.xlsx'), create_report=True)

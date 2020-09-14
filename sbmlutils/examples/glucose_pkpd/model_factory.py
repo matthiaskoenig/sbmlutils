@@ -35,21 +35,21 @@ if __name__ == "__main__":
     if build_submodels:
 
         # brain
-        creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_brain_model'], target_dir=target_dir,
+        creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_brain_model'], output_dir=target_dir,
                              annotations=None, create_report=create_report)
 
 
         # rbc
-        creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_rbc_model'], target_dir=target_dir,
+        creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_rbc_model'], output_dir=target_dir,
                              annotations=None, create_report=create_report)
 
         # liver
-        creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_liver_model'], target_dir=target_dir,
+        creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_liver_model'], output_dir=target_dir,
                              annotations=None, create_report=create_report)
 
     # exit()
     # create comp model
-    [_, _, body_path] = creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_pkpd_model'], target_dir=target_dir,
+    [_, _, body_path] = creator.create_model(modules=['pylimax.models.glucose_pkpd.glucose_pkpd_model'], output_dir=target_dir,
                                              annotations=None, create_report=create_report)
 
     from pylimax.models.glucose_pkpd.glucose_pkpd_model import mid, version

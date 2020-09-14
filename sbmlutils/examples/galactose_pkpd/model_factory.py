@@ -8,6 +8,6 @@ from sbmlutils.modelcreator import creator
 if __name__ == "__main__":
     creator.create_model(
         modules=['pylimax.models.galactose_pkpd.galactose_pkpd_model'],
-        target_dir=Path(__file__).parent / 'results',
+        output_dir=Path(__file__).parent / 'results',
         annotations=None
     )

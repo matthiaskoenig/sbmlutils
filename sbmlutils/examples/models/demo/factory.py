@@ -18,14 +18,14 @@ def create(tmp=False):
     print('-' * 80)
 
     factory = Factory(modules=['sbmlutils.examples.models.demo.model'],
-                      target_dir=os.path.join(models_dir, 'results'),
+                      output_dir=os.path.join(models_dir, 'results'),
                       annotations=os.path.join(models_dir, 'demo_annotations.xlsx'))
     factory.create(tmp)
 
     # without annotations
     factory_no_annotations = Factory(
         modules=['sbmlutils.examples.models.demo.model'],
-        target_dir=os.path.join(models_dir, 'results'),
+        output_dir=os.path.join(models_dir, 'results'),
         mid="{}_{}_{}".format(model.mid, model.version, "no_annotations"))
     factory_no_annotations.create(tmp)
 

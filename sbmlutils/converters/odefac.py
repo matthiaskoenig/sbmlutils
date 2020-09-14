@@ -29,10 +29,11 @@ from sbmlutils.converters.mathml import evaluableMathML
 
 
 # template location (for language templates)
+# FIXME: swich to pathlib
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 
-class SBML2ODE(object):
+class SBML2ODE:
     """ SBML to ODE converter.
 
     Writes out python or R ODE files which can be solved with standard

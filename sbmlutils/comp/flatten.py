@@ -15,11 +15,11 @@ from sbmlutils.utils import bcolors
 logger = logging.getLogger(__name__)
 
 
-def flatten_sbml(sbml_path: Path, output_path=None, leave_ports=True) -> libsbml.SBMLDocument:
+def flatten_sbml(sbml_path: Path, filepath=None, leave_ports=True) -> libsbml.SBMLDocument:
     """ Flatten given SBML file.
 
     :param sbml_path: Comp SBML Path
-    :param output_path: SBML file to write to
+    :param filepath: SBML file to write to
     :param leave_ports: flat to leave ports in flattened model.
 
     :return: flattened SBMLDocument
@@ -34,7 +34,7 @@ def flatten_sbml(sbml_path: Path, output_path=None, leave_ports=True) -> libsbml
     os.chdir(str(sbml_path.parent))
 
     doc = read_sbml(source=sbml_path)
-    flat_doc = flatten_sbml_doc(doc, leave_ports=leave_ports, output_path=output_path)
+    flat_doc = flatten_sbml_doc(doc, leave_ports=leave_ports, output_path=filepath)
 
     # change back the working dir
     os.chdir(working_dir)
