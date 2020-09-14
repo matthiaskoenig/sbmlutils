@@ -34,7 +34,7 @@ output_dir = os.path.join(merge_dir, 'output')
 doc = manipulation.merge_models(model_paths, out_dir=output_dir, validate=False)
 
 # validate
-Nall, Nerr, Nwarn = validation.check_doc(doc, units_consistency=False)
+Nall, Nerr, Nwarn = validation.validate_doc(doc, units_consistency=False)
 assert Nerr == 0
 assert Nwarn == 0
 assert Nall == 0
@@ -45,7 +45,7 @@ libsbml.writeSBMLToFile(doc, os.path.join(output_dir, "merged.xml"))
 
 # flatten the merged model
 doc_flat = comp.flatten_sbml(doc)
-Nall, Nerr, Nwarn = validation.check_doc(doc_flat, units_consistency=False)
+Nall, Nerr, Nwarn = validation.validate_doc(doc_flat, units_consistency=False)
 libsbml.writeSBMLToFile(doc_flat, os.path.join(output_dir, "merged_flat.xml"));
 
 

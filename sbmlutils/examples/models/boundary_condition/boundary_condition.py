@@ -3,7 +3,7 @@ from sbmlutils.annotation import *
 from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator.creator import CoreModel
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 
 m1_dict = {
     'mid': 'm1_boundary_condition',
@@ -37,11 +37,11 @@ m2_dict["assignments"] = [
 core_model = CoreModel.from_dict(model_dict=m1_dict)
 core_model.create_sbml()
 core_model.write_sbml("m1_boundary_condition.xml")
-[Nall, Nerr, Nwar] = check_doc(core_model.doc, units_consistency=False)
+[Nall, Nerr, Nwar] = validate_doc(core_model.doc, units_consistency=False)
 
 core_model = CoreModel.from_dict(model_dict=m2_dict)
 core_model.create_sbml()
 core_model.write_sbml("m2_boundary_condition.xml")
-[Nall, Nerr, Nwar] = check_doc(core_model.doc, units_consistency=False)
+[Nall, Nerr, Nwar] = validate_doc(core_model.doc, units_consistency=False)
 
 

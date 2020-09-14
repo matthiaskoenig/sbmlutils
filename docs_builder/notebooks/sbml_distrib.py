@@ -18,7 +18,7 @@ from notebook_utils import print_xml
 from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator.creator import CoreModel
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 
 
 # ### Assigning a distribution to a parameter
@@ -48,7 +48,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Using a normal distribution
@@ -74,7 +74,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Defining a truncated normal distribution
@@ -100,7 +100,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Defining conditional events 
@@ -138,7 +138,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Overview of all distributions
@@ -181,7 +181,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Basic uncertainty example
@@ -213,7 +213,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # It is also possible to include additional information about the species, should more be known. In this example, the initial amount of `3.22` is noted as having a mean of `3.2`, a standard deviation of `0.3`, and a variance
@@ -246,7 +246,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Multiple uncertainties
@@ -292,7 +292,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Defining a random variable
@@ -325,7 +325,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Overview over UncertParameters and UncertSpans
@@ -368,7 +368,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Information on experimental parameters (SABIO-RK)
@@ -432,7 +432,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 filepath = "./distrib/sabiork_parameter.xml"
 core_model.write_sbml(filepath)
 from sbmlutils.report import sbmlreport

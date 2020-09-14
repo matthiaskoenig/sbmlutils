@@ -10,10 +10,10 @@ def xpp_check(tmp_path, ode_id, Nall=0, Nerr=0, Nwarn=0):
     sbml_file = tmp_path / f"{ode_id}.xml"
     xpp_file = DATA_DIR / 'xpp' / f"{ode_id}.ode"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    Nall_res, Nerr_res, Nwarn_res = validate_sbml(sbml_file, units_consistency=False)
-    assert Nall_res == Nall
-    assert Nerr_res == Nerr
-    assert Nwarn_res == Nwarn
+    vresults = validate_sbml(sbml_file, units_consistency=False)
+    assert vresults.all_count == Nall
+    assert vresults.error_count == Nerr
+    assert vresults.warning_count == Nwarn
 
 
 def test_PLoSCompBiol_Fig1(tmp_path):

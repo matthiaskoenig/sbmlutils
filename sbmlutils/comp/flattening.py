@@ -8,7 +8,7 @@ from pathlib import Path
 
 import libsbml
 
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 from sbmlutils.io import write_sbml, read_sbml
 from sbmlutils.utils import bcolors
 
@@ -162,5 +162,5 @@ def flatten_external_model_definitions(doc: libsbml.SBMLDocument, validate: bool
 
     # validate
     if validate:
-        check_doc(doc)
+        validate_doc(doc)
     return doc

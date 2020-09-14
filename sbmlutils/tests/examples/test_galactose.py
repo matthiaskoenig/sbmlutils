@@ -5,10 +5,8 @@ from sbmlutils.tests import GALACTOSE_SINGLECELL_SBML
 
 
 def test_validate_sbml():
-    Nall, Nerr, Nwarn = validate_sbml(
-        GALACTOSE_SINGLECELL_SBML, units_consistency=True
-    )
-    assert Nerr == 0
+    vresults = validate_sbml(GALACTOSE_SINGLECELL_SBML, units_consistency=True)
+    assert vresults.is_valid()
 
 
 def test_roadrunner_selections():

@@ -18,9 +18,9 @@ def _validate_file(sbmlpath, units_consistency=True, Nall=0):
     :param units_consistency:
     :return:
     """
-    _Nall, _Nerr, _Nwarn = validate_sbml(sbmlpath, units_consistency=units_consistency)
-    assert Nall is not None
-    assert Nall == _Nall
+    v_results = validate_sbml(sbmlpath, units_consistency=units_consistency)
+    assert v_results
+    assert Nall == v_results.all_count
 
 
 def test_files():

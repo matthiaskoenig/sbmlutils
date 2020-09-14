@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 import libsbml
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 from sbmlutils.io.sbml import write_sbml
 
 logger = logging.getLogger(__name__)
@@ -317,7 +317,7 @@ class Interpolation(object):
             Interpolation.add_interpolator_to_model(interpolator, self.model)
 
         # validation of SBML document
-        check_doc(self.doc)
+        validate_doc(self.doc)
 
     def _init_sbml_model(self):
         """ Initializes the SBML model.

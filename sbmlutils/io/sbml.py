@@ -7,9 +7,7 @@ import logging
 
 import libsbml
 
-
 from sbmlutils import __version__, program_name
-
 from sbmlutils import validation
 from sbmlutils.utils import deprecated
 
@@ -66,7 +64,7 @@ def read_sbml(source: Union[Path, str],
 
     # validate file
     if validate:
-        validation.check_doc(
+        validation.validate_doc(
             doc=doc,
             name=source,
             log_errors=log_errors,
@@ -136,7 +134,7 @@ def validate_sbml(source: Union[str, Path], name: str = None,
                   log_errors: bool = True,
                   units_consistency: bool = True,
                   modeling_practice: bool = True,
-                  internal_consistency: bool = True) -> List[int]:
+                  internal_consistency: bool = True) -> validation.ValidationResult:
     """ Checks given SBML source.
 
     :param source: SBML path or string
@@ -148,7 +146,7 @@ def validate_sbml(source: Union[str, Path], name: str = None,
     :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
     """
     doc = read_sbml(source)
-    return validation.check_doc(
+    return validation.validate_doc(
         doc, name=name,
         log_errors=log_errors,
         units_consistency=units_consistency,

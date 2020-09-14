@@ -7,8 +7,8 @@ from sbmlutils.tests import DEMO_SBML
 
 
 def test_check_sbml():
-    Nall, Nerr, Nwarn = validate_sbml(DEMO_SBML, units_consistency=True)
-    assert Nall == 0
+    vresults = validate_sbml(DEMO_SBML, units_consistency=True)
+    assert vresults.is_perfect()
 
 
 def test_roadrunner_selections():

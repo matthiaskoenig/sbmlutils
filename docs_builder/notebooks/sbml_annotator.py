@@ -34,7 +34,7 @@ from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.annotation import *
 from sbmlutils.modelcreator.creator import CoreModel
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 
 model_dict = {
     'mid': 'example_annotation',
@@ -58,7 +58,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # For a more complete example see [model_with_annotations.py](./model_with_annotations.py) which creates annotations of the form

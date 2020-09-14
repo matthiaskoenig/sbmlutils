@@ -36,7 +36,7 @@ def test_biomodel_merge(tmp_path):
     doc = merge.merge_models(model_paths, out_dir=out_dir,  validate=False)
     assert doc is not None
 
-    Nall, Nerr, Nwarn = validation.check_doc(doc, units_consistency=False)
+    Nall, Nerr, Nwarn = validation.validate_doc(doc, units_consistency=False)
     assert Nerr == 0
     assert Nwarn == 0
     assert Nall == 0
@@ -45,7 +45,7 @@ def test_biomodel_merge(tmp_path):
     doc_flat = comp.flatten_sbml_doc(doc)
     assert doc_flat is not None
 
-    Nall, Nerr, Nwarn = validation.check_doc(doc_flat, units_consistency=False)
+    Nall, Nerr, Nwarn = validation.validate_doc(doc_flat, units_consistency=False)
     assert Nerr == 0
     assert Nwarn in [0, 74]
     assert Nall in [0, 74]

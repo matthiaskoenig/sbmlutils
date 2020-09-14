@@ -268,4 +268,4 @@ if __name__ == "__main__":
         sbml_path = "./{}.xml".format(name)
 
         libsbml.writeSBMLToFile(doc, sbml_path)
-        validation.check_doc(doc)
+        validation.validate_doc(doc)

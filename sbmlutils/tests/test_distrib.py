@@ -5,7 +5,7 @@ from sbmlutils.annotation import *
 from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator.creator import CoreModel
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 
 
 def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
@@ -14,12 +14,15 @@ def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
     core_model = CoreModel.from_dict(model_dict=d)
     core_model.create_sbml()
     assert core_model.doc is not None
-    [_, Nerr, _] = check_doc(core_model.doc, units_consistency=False)
-    if Nerr > 0:
+    vresults = validate_doc(core_model.doc, units_consistency=False)
+
+    # debugging
+    if vresults.error_count > 0:
         doc = core_model.doc  # type: libsbml.SBMLDocument
         error_log = doc.getErrorLog()  # type: libsbml.SBMLErrorLog
         print(error_log.toString())
-    assert Nerr == 0
+
+    assert vresults.is_valid()
     return core_model.doc
 
 
