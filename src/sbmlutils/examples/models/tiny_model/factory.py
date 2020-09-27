@@ -11,15 +11,15 @@ from sbmlutils.modelcreator.creator import Factory
 
 
 def create(tmp=False):
-    """ Create demo model.
+    """Create demo model.
 
     :return:
     """
     models_dir = Path(__file__).parent
     factory = Factory(
-        modules=['sbmlutils.examples.models.tiny_model.model'],
+        modules=["sbmlutils.examples.models.tiny_model.model"],
         output_dir=models_dir / "results",
-        annotations=models_dir / 'annotations.xlsx'
+        annotations=models_dir / "annotations.xlsx",
     )
     factory.create(tmp)
 

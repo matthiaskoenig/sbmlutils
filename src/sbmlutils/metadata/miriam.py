@@ -14,11 +14,11 @@ from enum import Enum
 
 
 __all__ = [
-    'BQM',
-    'BQB',
-    'MIRIAM_COLLECTION',
-    'IDENTIFIERS_ORG_PATTERN',
-    'IDENTIFIERS_ORG_PREFIX',
+    "BQM",
+    "BQB",
+    "MIRIAM_COLLECTION",
+    "IDENTIFIERS_ORG_PATTERN",
+    "IDENTIFIERS_ORG_PREFIX",
 ]
 
 # -----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ IDENTIFIERS_ORG_PATTERN = re.compile(r"^https?://identifiers.org/(.+?)/(.+)")
 QualifierType = {
     0: "MODEL_QUALIFIER",
     1: "BIOLOGICAL_QUALIFIER",
-    2: "UNKNOWN_QUALIFIER"
+    2: "UNKNOWN_QUALIFIER",
 }
 
 ModelQualifierType = {
@@ -96,19 +96,21 @@ class BQB(Enum):
 # identifiers.org collection
 # -----------------------------------------------------------------------------
 def load_miriam():
-    """ Loads miriam registry file.
+    """Loads miriam registry file.
 
     :return:
     """
     f_miriam = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'resources', 'IdentifiersOrg-Registry.json'
+        "resources",
+        "IdentifiersOrg-Registry.json",
     )
 
     with open(f_miriam) as fp:
         d = json.load(fp)
 
     return d
+
 
 MIRIAM_COLLECTION = load_miriam()
 
@@ -119,76 +121,76 @@ MIRIAM_COLLECTION["cmo"] = {
     "name": "Chemical methods ontology",
     "namespace": "cmo",
     "definition": "Morphological and physiological measurement records "
-                  "generated from clinical and model "
-                  "organism research and health programs."
+    "generated from clinical and model "
+    "organism research and health programs.",
 }
 MIRIAM_COLLECTION["chmo"] = {
     "id": "chmo",
     "pattern": r"^CHMO:\d+$",
     "name": "Chemical methods ontology",
     "namespace": "chmo",
-    "definition": "CHMO, the chemical methods ontology"
+    "definition": "CHMO, the chemical methods ontology",
 }
 MIRIAM_COLLECTION["vto"] = {
     "id": "vto",
     "pattern": r"^VTO:\d+$",
     "name": "Vertebrate Taxonomy Ontology",
     "namespace": "vto",
-    "definition": "VTO Vertebrate Taxonomy Ontology"
+    "definition": "VTO Vertebrate Taxonomy Ontology",
 }
 MIRIAM_COLLECTION["opmi"] = {
     "id": "opmi",
     "pattern": r"^OPMI:\d+$",
     "name": "Ontology of Precision Medicine and Investigation",
     "namespace": "opmi",
-    "definition": "OPMI: Ontology of Precision Medicine and Investigation"
+    "definition": "OPMI: Ontology of Precision Medicine and Investigation",
 }
 MIRIAM_COLLECTION["mondo"] = {
     "id": "mondo",
     "pattern": r"^MONDO:\d+$",
     "name": "MONDO",
     "namespace": "mondo",
-    "definition": "MONDO"
+    "definition": "MONDO",
 }
 MIRIAM_COLLECTION["sio"] = {
     "id": "sio",
     "pattern": r"^SIO:\d+$",
     "name": "SIO",
     "namespace": "sio",
-    "definition": "Semanticscience Integrated Ontology"
+    "definition": "Semanticscience Integrated Ontology",
 }
 MIRIAM_COLLECTION["atol"] = {
     "id": "atol",
     "pattern": r"^ATOL:\d+$",
     "name": "ATOL",
     "namespace": "atol",
-    "definition": "Animal Trait Ontology for Livestock"
+    "definition": "Animal Trait Ontology for Livestock",
 }
 MIRIAM_COLLECTION["nbo"] = {
     "id": "nbo",
     "pattern": r"^NBO:\d+$",
     "name": "NBO",
     "namespace": "nbo",
-    "definition": "Neuro Behavior Ontology"
+    "definition": "Neuro Behavior Ontology",
 }
 MIRIAM_COLLECTION["omim"] = {
     "id": "omim",
     "pattern": r"^MI:\d+$",
     "name": "OMIM",
     "namespace": "omim",
-    "definition": "Molecular Interactions Controlled Vocabulary"
+    "definition": "Molecular Interactions Controlled Vocabulary",
 }
 MIRIAM_COLLECTION["brenda.ligand"] = {
     "id": "brenda.ligand",
     "pattern": r"^\d+$",
     "name": "BRENDA Ligand",
     "namespace": "brenda.ligand",
-    "definition": "BRENDA Ligand Information"
+    "definition": "BRENDA Ligand Information",
 }
 MIRIAM_COLLECTION["metabolights.compound"] = {
     "id": "metabolights.compound",
     "pattern": r"^MTBLC\d+$",
     "name": "Metabolights compound",
     "namespace": "metabolights compound",
-    "definition": "Metabolights Compound"
+    "definition": "Metabolights Compound",
 }

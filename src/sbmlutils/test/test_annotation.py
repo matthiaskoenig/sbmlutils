@@ -19,7 +19,7 @@ from sbmlutils.test import (
 
 
 def test_create_annotation():
-    """ Create assignment model.
+    """Create assignment model.
     :return:
     """
     annotation_factory.create(tmp=True)
@@ -27,40 +27,42 @@ def test_create_annotation():
 
 def test_model_annotation():
     """ Check annotation data structure. """
-    d = {'pattern': 'test_pattern',
-         'sbml_type': 'reaction',
-         'annotation_type': 'RDF',
-         'qualifier': 'test_qualifier',
-         'collection': 'test_collection',
-         'entity': 'test_entity',
-         'name': 'test_name'}
+    d = {
+        "pattern": "test_pattern",
+        "sbml_type": "reaction",
+        "annotation_type": "RDF",
+        "qualifier": "test_qualifier",
+        "collection": "test_collection",
+        "entity": "test_entity",
+        "name": "test_name",
+    }
 
     ma = ExternalAnnotation(d)
-    assert 'test_pattern' == ma.pattern
-    assert 'reaction' == ma.sbml_type
-    assert 'RDF' == ma.annotation_type
-    assert 'test_qualifier' == ma.qualifier
-    assert 'test_collection' == ma.collection
-    assert 'test_entity' == ma.entity
-    assert 'test_name' == ma.name
+    assert "test_pattern" == ma.pattern
+    assert "reaction" == ma.sbml_type
+    assert "RDF" == ma.annotation_type
+    assert "test_qualifier" == ma.qualifier
+    assert "test_collection" == ma.collection
+    assert "test_entity" == ma.entity
+    assert "test_name" == ma.name
     assert ma.resource is None
 
 
 def test_model_annotation():
     """ Check annotation data structure. """
     d = {
-        'pattern': 'id1',
-        'sbml_type': 'reaction',
-        'annotation_type': 'rdf',
-        'qualifier': 'BQB_IS',
-        'resource': 'sbo/SBO:0000290',
-        'name': 'physical compartment'
+        "pattern": "id1",
+        "sbml_type": "reaction",
+        "annotation_type": "rdf",
+        "qualifier": "BQB_IS",
+        "resource": "sbo/SBO:0000290",
+        "name": "physical compartment",
     }
 
     ma = ExternalAnnotation(d)
-    assert 'id1' == ma.pattern
-    assert 'reaction' == ma.sbml_type
-    assert 'rdf' == ma.annotation_type
+    assert "id1" == ma.pattern
+    assert "reaction" == ma.sbml_type
+    assert "rdf" == ma.annotation_type
     assert BQB.IS == ma.qualifier
     assert "sbo/SBO:0000290" == ma.resource
     assert "physical compartment" == ma.name
@@ -80,7 +82,9 @@ def test_demo_annotation(tmp_path):
     """ Annotate the demo network. """
 
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
-    annotator.annotate_sbml(DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, filepath=tmp_sbml_path)
+    annotator.annotate_sbml(
+        DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, filepath=tmp_sbml_path
+    )
 
     # document
     doc = read_sbml(source=tmp_sbml_path)
@@ -97,7 +101,7 @@ def test_demo_annotation(tmp_path):
     assert len(cvterms) == 0
 
     # compartments
-    ce = model.getCompartment('e')
+    ce = model.getCompartment("e")
     assert ce.getSBOTerm() == 290
     assert ce.getSBOTermID() == "SBO:0000290"
     cvterms = ce.getCVTerms()
@@ -105,14 +109,14 @@ def test_demo_annotation(tmp_path):
     assert len(cvterms) == 1
     assert cvterms[0].getNumResources() == 3
 
-    cm = model.getCompartment('m')
+    cm = model.getCompartment("m")
     assert cm.getSBOTerm() == 290
     assert cm.getSBOTermID() == "SBO:0000290"
     cvterms = cm.getCVTerms()
     assert len(cvterms) == 1
     assert cvterms[0].getNumResources() == 3
 
-    cc = model.getCompartment('c')
+    cc = model.getCompartment("c")
     assert cc.getSBOTerm() == 290
     assert cc.getSBOTermID() == "SBO:0000290"
     cvterms = cm.getCVTerms()
@@ -161,7 +165,7 @@ def test_demo_annotation(tmp_path):
     # fbc:geneProduct
     modelFBCPlugin = model.getPlugin("fbc")
     for geneProduct in modelFBCPlugin.getListOfGeneProducts():
-        if geneProduct.getId() == 'PSHA_RS08100':
+        if geneProduct.getId() == "PSHA_RS08100":
             cvterms = geneProduct.getCVTerms()
             assert len(cvterms) == 1
 
@@ -169,6 +173,8 @@ def test_demo_annotation(tmp_path):
 def test_galactose_annotation(tmp_path):
     """ Annotate the galactose network. """
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
-    annotator.annotate_sbml(GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
-                            annotations_path=GALACTOSE_ANNOTATIONS,
-                            filepath=tmp_sbml_path)
+    annotator.annotate_sbml(
+        GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+        annotations_path=GALACTOSE_ANNOTATIONS,
+        filepath=tmp_sbml_path,
+    )

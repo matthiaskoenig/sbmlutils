@@ -5,9 +5,9 @@ from sbmlutils.modelcreator.events.eventdata import EventData
 
 
 def test_eventdata():
-    eid = 'test'
-    name = 'E01'
-    trigger = 'time == 0'
+    eid = "test"
+    name = "E01"
+    trigger = "time == 0"
     assignments = []
     e = EventData(eid, name, trigger, assignments)
 

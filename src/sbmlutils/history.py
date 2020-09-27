@@ -10,17 +10,17 @@ from sbmlutils.validation import check
 
 
 def date_now():
-    """ Get current time stamp for history.
+    """Get current time stamp for history.
 
     :return: current libsbml Date
     """
     time = datetime.datetime.now()
-    timestr = time.strftime('%Y-%m-%dT%H:%M:%S')
+    timestr = time.strftime("%Y-%m-%dT%H:%M:%S")
     return libsbml.Date(timestr)
 
 
 def set_model_history(model: libsbml.Model, creators) -> None:
-    """ Sets the model history from given creators.
+    """Sets the model history from given creators.
 
     :param model: SBML model
     :param creators: list of creators
@@ -35,11 +35,11 @@ def set_model_history(model: libsbml.Model, creators) -> None:
     else:
         # create and set model history
         h = _create_history(creators)
-        check(model.setModelHistory(h), 'set model history')
+        check(model.setModelHistory(h), "set model history")
 
 
 def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHistory:
-    """ Creates the model history.
+    """Creates the model history.
 
     Sets the create and modified date to the current time.
     Creators are a list or dictionary with values as
@@ -66,14 +66,14 @@ def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHist
             c.setEmail(creator.email)
         if creator.organization:
             c.setOrganization(creator.organization)
-        check(h.addCreator(c), 'add creator')
+        check(h.addCreator(c), "add creator")
 
     # create time is now
     if set_timestamps:
         datetime = date_now()
     else:
-        datetime = libsbml.Date('1900-01-01T00:00:00')
-    check(h.setCreatedDate(datetime), 'set creation date')
-    check(h.setModifiedDate(datetime), 'set modified date')
+        datetime = libsbml.Date("1900-01-01T00:00:00")
+    check(h.setCreatedDate(datetime), "set creation date")
+    check(h.setModifiedDate(datetime), "set modified date")
 
     return h

@@ -11,27 +11,24 @@ from sbmlutils.test import DATA_DIR
 
 @pytest.mark.skip(reason="Model merging currently not working")
 def test_biomodel_merge(tmp_path):
-    """ Test model merging.
+    """Test model merging.
 
     Using the pytest tmpdir fixture
     :param tmpdir:
     :return:
     """
-    merge_dir = DATA_DIR / 'manipulation' / 'merge'
+    merge_dir = DATA_DIR / "manipulation" / "merge"
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels
     model_ids = ["BIOMD000000000{}".format(k) for k in range(1, 5)]
-    model_paths = dict(zip(
-        model_ids,
-        [merge_dir / f"{mid}.xml" for mid in model_ids]
-    ))
+    model_paths = dict(zip(model_ids, [merge_dir / f"{mid}.xml" for mid in model_ids]))
 
     # merge model
-    out_dir = tmp_path / 'output'
+    out_dir = tmp_path / "output"
     out_dir.mkdir()
 
-    doc = merge.merge_models(model_paths, out_dir=out_dir,  validate=False)
+    doc = merge.merge_models(model_paths, out_dir=out_dir, validate=False)
     assert doc is not None
 
     Nall, Nerr, Nwarn = validation.validate_doc(doc, units_consistency=False)

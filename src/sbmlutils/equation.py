@@ -32,13 +32,13 @@ import re
 from collections import namedtuple
 
 
-Part = namedtuple('Part', 'stoichiometry sid')
+Part = namedtuple("Part", "stoichiometry sid")
 
-REV_PATTERN = r'<[-=]>'
-IRREV_PATTERN = r'[-=]>'
-MOD_PATTERN = r'\[.*\]'
-REV_SEP = r'<=>'
-IRREV_SEP = r'=>'
+REV_PATTERN = r"<[-=]>"
+IRREV_PATTERN = r"[-=]>"
+MOD_PATTERN = r"\[.*\]"
+REV_SEP = r"<=>"
+IRREV_SEP = r"=>"
 
 
 class Equation:
@@ -64,7 +64,7 @@ class Equation:
         mod_list = re.findall(MOD_PATTERN, eq_string)
         if len(mod_list) == 1:
             self._parse_modifiers(mod_list[0])
-            tokens = eq_string.split('[')
+            tokens = eq_string.split("[")
             eq_string = tokens[0].strip()
         elif len(mod_list) > 1:
             raise self.EquationException(
@@ -104,18 +104,18 @@ class Equation:
             self.products = self._parse_half_equation(right)
 
     def _parse_modifiers(self, s):
-        s = s.replace('[', '')
-        s = s.replace(']', '')
+        s = s.replace("[", "")
+        s = s.replace("]", "")
         s = s.strip()
-        tokens = re.split('[,;]', s)
+        tokens = re.split("[,;]", s)
         modifiers = [t.strip() for t in tokens]
         self.modifiers = [t for t in modifiers if len(t) > 0]
 
     def _parse_half_equation(self, string):
-        """ Only '+ supported in equation !, do not use negative
-            stoichiometries.
+        """Only '+ supported in equation !, do not use negative
+        stoichiometries.
         """
-        items = re.split('[+-]', string)
+        items = re.split("[+-]", string)
         items = [item.strip() for item in items]
         return [self._parse_reactant(item) for item in items]
 
@@ -128,7 +128,7 @@ class Equation:
             sid = tokens[0]
         else:
             stoichiometry = float(tokens[0])
-            sid = ' '.join(tokens[1:])
+            sid = " ".join(tokens[1:])
         return Part(stoichiometry, sid)
 
     @staticmethod
@@ -136,14 +136,14 @@ class Equation:
         tokens = []
         for item in items:
             stoichiometry, sid = item[0], item[1]
-            if abs(1.0 - stoichiometry) < 1E-10:
+            if abs(1.0 - stoichiometry) < 1e-10:
                 tokens.append(sid)
             else:
-                tokens.append(' '.join([str(stoichiometry), sid]))
-        return ' + '.join(tokens)
+                tokens.append(" ".join([str(stoichiometry), sid]))
+        return " + ".join(tokens)
 
     def _to_string_modifiers(self):
-        return '[{}]'.format(', '.join(self.modifiers))
+        return "[{}]".format(", ".join(self.modifiers))
 
     def to_string(self, modifiers=False):
         """ String representation of equation. """
@@ -156,22 +156,22 @@ class Equation:
 
         if modifiers:
             mod = self._to_string_modifiers()
-            return ' '.join([left, sep, right, mod])
+            return " ".join([left, sep, right, mod])
         else:
-            return ' '.join([left, sep, right])
+            return " ".join([left, sep, right])
 
     def info(self):
         """ Overview of parsed equation. """
         lines = [
-            '{:<10s} : {}'.format('raw', self.raw),
-            '{:<10s} : {}'.format('parsed', self.to_string()),
-            '{:<10s} : {}'.format('reversible', self.reversible),
-            '{:<10s} : {}'.format('reactants', self.reactants),
-            '{:<10s} : {}'.format('products', self.products),
-            '{:<10s} : {}'.format('modifiers', self.modifiers),
-            '\n'
+            "{:<10s} : {}".format("raw", self.raw),
+            "{:<10s} : {}".format("parsed", self.to_string()),
+            "{:<10s} : {}".format("reversible", self.reversible),
+            "{:<10s} : {}".format("reactants", self.reactants),
+            "{:<10s} : {}".format("products", self.products),
+            "{:<10s} : {}".format("modifiers", self.modifiers),
+            "\n",
         ]
-        print('\n'.join(lines))
+        print("\n".join(lines))
 
     @staticmethod
     def help():
@@ -184,22 +184,22 @@ class Equation:
 
 
 # -----------------------------------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     tests = [
-        '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
-        'c__gal1p => c__gal + c__phos',
-        'e__h2oM <-> c__h2oM',
-        '3 atp + 2.0 phos + ki <-> 16.98 tet',
-        'c__gal1p => c__gal + c__phos [c__udp, c__utp]',
-        'A_ext => A []',
-        '=> cit',
-        'acoa =>',
+        "1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]",
+        "c__gal1p => c__gal + c__phos",
+        "e__h2oM <-> c__h2oM",
+        "3 atp + 2.0 phos + ki <-> 16.98 tet",
+        "c__gal1p => c__gal + c__phos [c__udp, c__utp]",
+        "A_ext => A []",
+        "=> cit",
+        "acoa =>",
     ]
 
     for test in tests:
-        print('-' * 40)
+        print("-" * 40)
         print(test)
-        print('-' * 40)
+        print("-" * 40)
         eq = Equation(test)
         eq.info()

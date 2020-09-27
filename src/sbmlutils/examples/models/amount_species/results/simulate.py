@@ -37,14 +37,14 @@ from matplotlib import pyplot as plt
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
 print(s1.columns)
-ax1.plot(s1.time, s1.Aglc, '-', label="r1")
-ax1.plot(s2.time, s2.Aglc, '-', label="r2")
-ax1.plot(s3.time, s3.Aglc, '-', label="r3")
+ax1.plot(s1.time, s1.Aglc, "-", label="r1")
+ax1.plot(s2.time, s2.Aglc, "-", label="r2")
+ax1.plot(s3.time, s3.Aglc, "-", label="r3")
 ax1.set_ylabel("amount")
 
-ax2.plot(s1.time, s1.Vc, '-', label="r1")
-ax2.plot(s2.time, s2.Vc, '-', label="r2")
-ax2.plot(s3.time, s3.Vc, '-', label="r3")
+ax2.plot(s1.time, s1.Vc, "-", label="r1")
+ax2.plot(s2.time, s2.Vc, "-", label="r2")
+ax2.plot(s3.time, s3.Vc, "-", label="r3")
 
 for ax in (ax1, ax2):
     ax.set_xlabel("time")

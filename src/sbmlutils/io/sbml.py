@@ -14,14 +14,15 @@ from sbmlutils.utils import deprecated
 logger = logging.getLogger(__name__)
 
 
-def read_sbml(source: Union[Path, str],
-              promote: bool = False,
-              validate: bool = False,
-              log_errors: bool = True,
-              units_consistency: bool = True,
-              modeling_practice: bool = True,
-              internal_consistency: bool = True
-              ) -> libsbml.SBMLDocument:
+def read_sbml(
+    source: Union[Path, str],
+    promote: bool = False,
+    validate: bool = False,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
+) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
     :param source: SBML path or string
@@ -38,8 +39,10 @@ def read_sbml(source: Union[Path, str],
         doc = libsbml.readSBMLFromString(source)
     else:
         if not isinstance(source, Path):
-            logger.error(f"All SBML paths should be of type 'Path', but "
-                         f"'{type(source)}' found for: {source}")
+            logger.error(
+                f"All SBML paths should be of type 'Path', but "
+                f"'{type(source)}' found for: {source}"
+            )
             source = Path(source)
 
         doc = libsbml.readSBMLFromFile(str(source))  # type: libsbml.SBMLDocument
@@ -69,23 +72,24 @@ def read_sbml(source: Union[Path, str],
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,
-            internal_consistency=internal_consistency
+            internal_consistency=internal_consistency,
         )
 
     return doc
 
 
-def write_sbml(doc: libsbml.SBMLDocument,
-               filepath: Union[Path] = None,
-               program_name: str = program_name,
-               program_version: str = str(__version__),
-               validate: bool = False,
-               log_errors: bool = True,
-               units_consistency: bool = True,
-               modeling_practice: bool = True,
-               internal_consistency: bool = True
-               ) -> str:
-    """ Write SBMLDocument to file or string.
+def write_sbml(
+    doc: libsbml.SBMLDocument,
+    filepath: Union[Path] = None,
+    program_name: str = program_name,
+    program_version: str = str(__version__),
+    validate: bool = False,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
+) -> str:
+    """Write SBMLDocument to file or string.
 
     To write the SBML to string use 'filepath=None', which returns the SBML string.
 
@@ -125,17 +129,20 @@ def write_sbml(doc: libsbml.SBMLDocument,
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,
-            internal_consistency=internal_consistency
+            internal_consistency=internal_consistency,
         )
     return sbml_str
 
 
-def validate_sbml(source: Union[str, Path], name: str = None,
-                  log_errors: bool = True,
-                  units_consistency: bool = True,
-                  modeling_practice: bool = True,
-                  internal_consistency: bool = True) -> validation.ValidationResult:
-    """ Checks given SBML source.
+def validate_sbml(
+    source: Union[str, Path],
+    name: str = None,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
+) -> validation.ValidationResult:
+    """Checks given SBML source.
 
     :param source: SBML path or string
     :param name: identifier or path for report
@@ -147,16 +154,19 @@ def validate_sbml(source: Union[str, Path], name: str = None,
     """
     doc = read_sbml(source)
     return validation.validate_doc(
-        doc, name=name,
+        doc,
+        name=name,
         log_errors=log_errors,
         units_consistency=units_consistency,
         modeling_practice=modeling_practice,
-        internal_consistency=internal_consistency
+        internal_consistency=internal_consistency,
     )
 
 
-def promote_local_variables(doc: libsbml.SBMLDocument, suffix: str = "_promoted") -> libsbml.SBMLDocument:
-    """ Promotes local variables in SBMLDocument.
+def promote_local_variables(
+    doc: libsbml.SBMLDocument, suffix: str = "_promoted"
+) -> libsbml.SBMLDocument:
+    """Promotes local variables in SBMLDocument.
 
     Manipulates SBMLDocument in place!
 
@@ -169,7 +179,9 @@ def promote_local_variables(doc: libsbml.SBMLDocument, suffix: str = "_promoted"
 
     # promote local parameters
     props = libsbml.ConversionProperties()
-    props.addOption("promoteLocalParameters", True, "Promotes all Local Parameters to Global ones")
+    props.addOption(
+        "promoteLocalParameters", True, "Promotes all Local Parameters to Global ones"
+    )
 
     if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
         logger.error(f"Promotion of local parameters failed: {doc}")

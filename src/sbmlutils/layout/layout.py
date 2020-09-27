@@ -9,19 +9,19 @@ from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 
 
 __all__ = [
-    'LAYOUT_VERSION',
-    'LAYOUT_ROLE_SUBSTRATE',
-    'LAYOUT_ROLE_PRODUCT',
-    'LAYOUT_ROLE_SIDESUBSTRATE',
-    'LAYOUT_ROLE_SIDEPRODUCT',
-    'LAYOUT_ROLE_MODIFIER',
-    'LAYOUT_ROLE_ACTIVATOR',
-    'LAYOUT_ROLE_INHIBITOR',
-    'LAYOUT_ROLE_UNDEFINED',
-    'Layout',
-    'SpeciesGlyph',
-    'ReactionGlyph',
-    'CompartmentGlyph',
+    "LAYOUT_VERSION",
+    "LAYOUT_ROLE_SUBSTRATE",
+    "LAYOUT_ROLE_PRODUCT",
+    "LAYOUT_ROLE_SIDESUBSTRATE",
+    "LAYOUT_ROLE_SIDEPRODUCT",
+    "LAYOUT_ROLE_MODIFIER",
+    "LAYOUT_ROLE_ACTIVATOR",
+    "LAYOUT_ROLE_INHIBITOR",
+    "LAYOUT_ROLE_UNDEFINED",
+    "Layout",
+    "SpeciesGlyph",
+    "ReactionGlyph",
+    "CompartmentGlyph",
 ]
 
 LAYOUT_VERSION = 1
@@ -40,8 +40,19 @@ LAYOUT_ROLE_UNDEFINED = "undefined"
 # Layout
 ##########################################################################
 class Layout(factory.Sbase):
-
-    def __init__(self, sid, width, height, compartment_glyphs=[], species_glyphs=[], reaction_glyphs=[], depth=0, name=None, sboTerm=None, metaId=None):
+    def __init__(
+        self,
+        sid,
+        width,
+        height,
+        compartment_glyphs=[],
+        species_glyphs=[],
+        reaction_glyphs=[],
+        depth=0,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
         """ Create a layout. """
         super(Layout, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.width = float(width)
@@ -55,7 +66,13 @@ class Layout(factory.Sbase):
         layout_model = model.getPlugin("layout")  # type: libsbml.LayoutModelPlugin
         if not layout_model:
             doc = model.getSBMLDocument()  # type: libsbml.SBMLDocument
-            doc.enablePackage("http://www.sbml.org/sbml/level3/version1/layout/version{}".format(LAYOUT_VERSION), "layout", True)
+            doc.enablePackage(
+                "http://www.sbml.org/sbml/level3/version1/layout/version{}".format(
+                    LAYOUT_VERSION
+                ),
+                "layout",
+                True,
+            )
             doc.setPackageRequired("layout", False)
             layout_model = model.getPlugin("layout")  # type: libsbml.LayoutModelPlugin
 
@@ -66,7 +83,9 @@ class Layout(factory.Sbase):
 
     def set_fields(self, obj: libsbml.Layout):
         super(Layout, self).set_fields(obj)
-        dim = libsbml.Dimensions(SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION)  # type: libsbml.Dimensions
+        dim = libsbml.Dimensions(
+            SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION
+        )  # type: libsbml.Dimensions
         dim.setWidth(self.width)
         dim.setHeight(self.height)
         dim.setDepth(self.depth)
@@ -85,8 +104,24 @@ class Layout(factory.Sbase):
 # SpeciesGlyph
 ##########################################################################
 class SpeciesGlyph(factory.Sbase):
-    def __init__(self, sid, species, x, y, z=0, w=50, h=20, d=0, text=None, name=None, sboTerm=None, metaId=None):
-        super(SpeciesGlyph, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self,
+        sid,
+        species,
+        x,
+        y,
+        z=0,
+        w=50,
+        h=20,
+        d=0,
+        text=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
+        super(SpeciesGlyph, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
         self.species = species
         self.x = x
         self.y = y
@@ -99,14 +134,28 @@ class SpeciesGlyph(factory.Sbase):
     def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
         super(SpeciesGlyph, self).set_fields(obj)
         obj.setSpeciesId(self.species)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=self.width, height=self.height, depth=self.depth)
+        bb = _create_bounding_box(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            width=self.width,
+            height=self.height,
+            depth=self.depth,
+        )
         obj.setBoundingBox(bb)
         # text glyph
         t_glyph = layout.createTextGlyph()
         t_glyph.setId("tglyph_{}".format(self.sid))
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=self.width, height=self.height, depth=self.depth)
+        bb = _create_bounding_box(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            width=self.width,
+            height=self.height,
+            depth=self.depth,
+        )
         t_glyph.setBoundingBox(bb)
 
 
@@ -114,8 +163,24 @@ class SpeciesGlyph(factory.Sbase):
 # CompartmentGlyph
 ##########################################################################
 class CompartmentGlyph(factory.Sbase):
-    def __init__(self, sid, compartment, x, y, z=0, w=200, h=200, d=0, text=None, name=None, sboTerm=None, metaId=None):
-        super(CompartmentGlyph, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self,
+        sid,
+        compartment,
+        x,
+        y,
+        z=0,
+        w=200,
+        h=200,
+        d=0,
+        text=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
+        super(CompartmentGlyph, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
         self.compartment = compartment
         self.x = x
         self.y = y
@@ -128,14 +193,28 @@ class CompartmentGlyph(factory.Sbase):
     def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
         super(CompartmentGlyph, self).set_fields(obj)
         obj.setCompartmentId(self.compartment)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=self.width, height=self.height, depth=self.depth)
+        bb = _create_bounding_box(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            width=self.width,
+            height=self.height,
+            depth=self.depth,
+        )
         obj.setBoundingBox(bb)
         # text glyph
         t_glyph = layout.createTextGlyph()
         t_glyph.setId("tglyph_{}".format(self.sid))
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=self.width, height=self.height, dpeth=self.depth)
+        bb = _create_bounding_box(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            width=self.width,
+            height=self.height,
+            dpeth=self.depth,
+        )
         t_glyph.setBoundingBox(bb)
 
 
@@ -143,9 +222,25 @@ class CompartmentGlyph(factory.Sbase):
 # ReactionGlyph
 ##########################################################################
 class ReactionGlyph(factory.Sbase):
-
-    def __init__(self, sid, reaction, x, y, z=0, species_glyphs=[], w=20, h=20, d=0, text=None, name=None, sboTerm=None, metaId=None):
-        super(ReactionGlyph, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self,
+        sid,
+        reaction,
+        x,
+        y,
+        z=0,
+        species_glyphs=[],
+        w=20,
+        h=20,
+        d=0,
+        text=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
+        super(ReactionGlyph, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
         self.reaction = reaction
         self.x = x
         self.y = y
@@ -163,7 +258,14 @@ class ReactionGlyph(factory.Sbase):
         super(ReactionGlyph, self).set_fields(obj)
         self.layout = layout
         obj.setReactionId(self.reaction)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=self.width, height=self.height, depth=self.depth)
+        bb = _create_bounding_box(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            width=self.width,
+            height=self.height,
+            depth=self.depth,
+        )
         obj.setBoundingBox(bb)
 
         # text glyph
@@ -171,11 +273,13 @@ class ReactionGlyph(factory.Sbase):
         t_glyph.setId("tglyph_{}".format(self.sid))
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
-        bb = _create_bounding_box(x=self.x, y=self.y, z=self.z, width=0, height=0, depth=0)
+        bb = _create_bounding_box(
+            x=self.x, y=self.y, z=self.z, width=0, height=0, depth=0
+        )
         t_glyph.setBoundingBox(bb)
 
         # get direction of reaction
-        eps = 1E-6
+        eps = 1e-6
         x_tot = 0
         y_tot = 0
         x_r = bb.getX()
@@ -186,11 +290,11 @@ class ReactionGlyph(factory.Sbase):
             x_s = s_bb.getX()
             y_s = s_bb.getY()
             if role in [LAYOUT_ROLE_SIDESUBSTRATE, LAYOUT_ROLE_SUBSTRATE]:
-                x_tot += (x_r - x_s)
-                y_tot += (y_r - y_s)
+                x_tot += x_r - x_s
+                y_tot += y_r - y_s
             elif role in [LAYOUT_ROLE_PRODUCT, LAYOUT_ROLE_SIDEPRODUCT]:
-                x_tot += (x_s - x_r)
-                y_tot += (y_s - y_r)
+                x_tot += x_s - x_r
+                y_tot += y_s - y_r
 
         if (abs(x_tot) < eps) and (abs(y_tot) < eps):
             direction = "down"
@@ -208,15 +312,25 @@ class ReactionGlyph(factory.Sbase):
 
         # create speciesReferenceGlyphs
         for sg_id, role in self.species_glyphs.items():
-            srg = obj.createSpeciesReferenceGlyph()  # type: libsbml.SpeciesReferenceGlyph
+            srg = (
+                obj.createSpeciesReferenceGlyph()
+            )  # type: libsbml.SpeciesReferenceGlyph
             srg.setId(obj.getId() + "__" + sg_id)
             srg.setSpeciesGlyphId(sg_id)
             srg.setRole(role)
 
             self._create_curve(layout, srg, obj.getId(), sg_id, role, direction)
 
-    def _create_curve(self, layout: libsbml.Layout, srg: libsbml.SpeciesReferenceGlyph, r_glyph_id, s_glyph_id, role, direction):
-        """ Heuristic for creating the curves.
+    def _create_curve(
+        self,
+        layout: libsbml.Layout,
+        srg: libsbml.SpeciesReferenceGlyph,
+        r_glyph_id,
+        s_glyph_id,
+        role,
+        direction,
+    ):
+        """Heuristic for creating the curves.
 
         :param layout:
         :param srg:
@@ -245,45 +359,47 @@ class ReactionGlyph(factory.Sbase):
         x, y, h, w = r_bb.getX(), r_bb.getY(), r_bb.getHeight(), r_bb.getWidth()
         xs, ys, hs, ws = s_bb.getX(), s_bb.getY(), s_bb.getHeight(), s_bb.getWidth()
         if direction == "right":
-            s_point_substrate = (xs+ws, ys+0.5*hs)
-            s_point_product = (xs, ys+0.5*hs)
-            s_point_modifier = (xs+0.5*ws, y+hs)
+            s_point_substrate = (xs + ws, ys + 0.5 * hs)
+            s_point_product = (xs, ys + 0.5 * hs)
+            s_point_modifier = (xs + 0.5 * ws, y + hs)
 
-            r_point_substrate = (x, y+0.5*h)
-            r_point_product = (x+w, y+0.5*h)
-            r_point_modifier = (x+0.5*w, y)
+            r_point_substrate = (x, y + 0.5 * h)
+            r_point_product = (x + w, y + 0.5 * h)
+            r_point_modifier = (x + 0.5 * w, y)
         elif direction == "left":
-            s_point_substrate = (xs, ys+0.5*hs)
-            s_point_product = (xs+ws, ys+0.5*hs)
-            s_point_modifier = (xs+0.5*ws, y+hs)
+            s_point_substrate = (xs, ys + 0.5 * hs)
+            s_point_product = (xs + ws, ys + 0.5 * hs)
+            s_point_modifier = (xs + 0.5 * ws, y + hs)
 
-            r_point_substrate = (x+w, y+0.5*h)
-            r_point_product = (x, y+0.5*h)
-            r_point_modifier = (x + 0.5*w, y)
+            r_point_substrate = (x + w, y + 0.5 * h)
+            r_point_product = (x, y + 0.5 * h)
+            r_point_modifier = (x + 0.5 * w, y)
         elif direction == "down":
-            s_point_substrate = (xs+0.5*ws, ys+hs)
-            s_point_product = (xs+0.5*ws, ys)
-            s_point_modifier = (xs, ys+0.5*hs)
-
-            r_point_substrate = (x+0.5*w, y)
-            r_point_product = (x+0.5*w, y+h)
-            r_point_modifier = (x+w, y+0.5*h)
-        elif direction == "up":
-            s_point_substrate = (xs + 0.5 * ws, ys)
-            s_point_product = (xs + 0.5 * ws, ys+hs)
+            s_point_substrate = (xs + 0.5 * ws, ys + hs)
+            s_point_product = (xs + 0.5 * ws, ys)
             s_point_modifier = (xs, ys + 0.5 * hs)
 
-            r_point_substrate = (x + 0.5 * w, y+h)
+            r_point_substrate = (x + 0.5 * w, y)
+            r_point_product = (x + 0.5 * w, y + h)
+            r_point_modifier = (x + w, y + 0.5 * h)
+        elif direction == "up":
+            s_point_substrate = (xs + 0.5 * ws, ys)
+            s_point_product = (xs + 0.5 * ws, ys + hs)
+            s_point_modifier = (xs, ys + 0.5 * hs)
+
+            r_point_substrate = (x + 0.5 * w, y + h)
             r_point_product = (x + 0.5 * w, y)
             r_point_modifier = (x + w, y + 0.5 * h)
 
-        if role in [LAYOUT_ROLE_ACTIVATOR,
-                    LAYOUT_ROLE_INHIBITOR,
-                    LAYOUT_ROLE_MODIFIER]:
+        if role in [LAYOUT_ROLE_ACTIVATOR, LAYOUT_ROLE_INHIBITOR, LAYOUT_ROLE_MODIFIER]:
             # segment from species -> reaction
             line_segment.setStart(s_point_modifier[0], s_point_modifier[1], 0)
             line_segment.setEnd(r_point_modifier[0], r_point_modifier[1], 0)
-        elif role in [LAYOUT_ROLE_SUBSTRATE, LAYOUT_ROLE_SIDESUBSTRATE, LAYOUT_ROLE_UNDEFINED]:
+        elif role in [
+            LAYOUT_ROLE_SUBSTRATE,
+            LAYOUT_ROLE_SIDESUBSTRATE,
+            LAYOUT_ROLE_UNDEFINED,
+        ]:
             # segment from reaction -> species
             line_segment.setEnd(s_point_substrate[0], s_point_substrate[1], 0)
             line_segment.setStart(r_point_substrate[0], r_point_substrate[1], 0)
@@ -294,7 +410,9 @@ class ReactionGlyph(factory.Sbase):
 
 
 def _create_bounding_box(x, y, width, height, z=0, depth=0):
-    bb = libsbml.BoundingBox(SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION)  # type: libsbml.BoundingBox
+    bb = libsbml.BoundingBox(
+        SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION
+    )  # type: libsbml.BoundingBox
     bb.setX(float(x))
     bb.setY(float(y))
     bb.setZ(float(z))

@@ -1,4 +1,3 @@
-
 import roadrunner
 
 from sbmlutils.io.sbml import validate_sbml
@@ -25,4 +24,4 @@ def test_fixed_step_simulation():
     # test end point reached
     assert s[-1, 0] == 10
     # test correct number of steps
-    assert len(s['time']) == steps+1
+    assert len(s["time"]) == steps + 1

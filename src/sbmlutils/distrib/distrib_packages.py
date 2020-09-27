@@ -12,11 +12,13 @@ if __name__ == "__main__":
     doc = libsbml.readSBMLFromFile("e_coli_core.xml")  # type: libsbml.SBMLDocument
 
     # activate distrib
-    doc.enablePackage("http://www.sbml.org/sbml/level3/version1/distrib/version1", "distrib", True)
+    doc.enablePackage(
+        "http://www.sbml.org/sbml/level3/version1/distrib/version1", "distrib", True
+    )
     doc.setPackageRequired("distrib", True)
 
     model = doc.getModel()  # type: libsbml.Model
-    model_fbc = model.getPlugin('fbc')  # type: libsbml.FbcModelPlugin
+    model_fbc = model.getPlugin("fbc")  # type: libsbml.FbcModelPlugin
 
     # --------------------------------
     # [2] write gene expression data

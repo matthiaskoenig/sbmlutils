@@ -25,13 +25,17 @@ def check(value: int, message: str) -> bool:
     """
     valid = True
     if value is None:
-        logger.error('Error: LibSBML returned a null value trying to <' + message + '>.')
+        logger.error(
+            f"Error: LibSBML returned a null value trying to <{message}>."
+        )
         valid = False
     elif isinstance(value, int):
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
-            logger.error(f'Error encountered trying to <{message}>.')
-            logger.error(f'LibSBML returned error code {str(value)}: '
-                         f'{libsbml.OperationReturnValue_toString(value).strip()}')
+            logger.error(f"Error encountered trying to <{message}>.")
+            logger.error(
+                f"LibSBML returned error code {str(value)}: "
+                f"{libsbml.OperationReturnValue_toString(value).strip()}"
+            )
             valid = False
 
     return valid
@@ -40,10 +44,11 @@ def check(value: int, message: str) -> bool:
 class ValidationResult:
     """Results of an SBMLDocument validation."""
 
-    def __init__(self,
-                 errors: List[libsbml.SBMLError] = None,
-                 warnings: List[libsbml.SBMLError] = None
-                 ):
+    def __init__(
+        self,
+        errors: List[libsbml.SBMLError] = None,
+        warnings: List[libsbml.SBMLError] = None,
+    ):
         if errors is None:
             errors = list()
         if warnings is None:
@@ -68,7 +73,7 @@ class ValidationResult:
         return self.error_count + self.warning_count
 
     @staticmethod
-    def from_results(results: Iterable['ValidationResult']) -> 'ValidationResult':
+    def from_results(results: Iterable["ValidationResult"]) -> "ValidationResult":
         errors = list()
         warnings = list()
         for vres in results:
@@ -110,32 +115,42 @@ def log_sbml_error(error: libsbml.SBMLError, index: int = None):
 
 
 def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
-    """ String representation of SBMLError.
+    """String representation of SBMLError.
 
     :param error: SBML error
     :param index: index of error
     :return:
     """
     package = error.getPackage()
-    if package == '':
-        package = 'core'
+    if package == "":
+        package = "core"
 
     severity = error.getSeverity()
     lines = [
-        bcolors.BGWHITE + bcolors.BLACK + 'E{}: {} ({}, L{}, {})'.format(index, error.getCategoryAsString(),
-                                                                         package, error.getLine(),
-                                                                         'code') + bcolors.ENDC + bcolors.ENDC,
-        bcolors.FAIL + '[{}] {}'.format(error.getSeverityAsString(), error.getShortMessage()) + bcolors.ENDC,
-        bcolors.OKBLUE + error.getMessage() + bcolors.ENDC
+        bcolors.BGWHITE
+        + bcolors.BLACK
+        + "E{}: {} ({}, L{}, {})".format(
+            index, error.getCategoryAsString(), package, error.getLine(), "code"
+        )
+        + bcolors.ENDC
+        + bcolors.ENDC,
+        bcolors.FAIL
+        + "[{}] {}".format(error.getSeverityAsString(), error.getShortMessage())
+        + bcolors.ENDC,
+        bcolors.OKBLUE + error.getMessage() + bcolors.ENDC,
     ]
-    error_str = '\n'.join(lines)
+    error_str = "\n".join(lines)
     return error_str, severity
 
 
-def validate_doc(doc: libsbml.SBMLDocument, name=None, log_errors=True,
-                 units_consistency=True,
-                 modeling_practice=True,
-                 internal_consistency=True) -> ValidationResult:
+def validate_doc(
+    doc: libsbml.SBMLDocument,
+    name=None,
+    log_errors=True,
+    units_consistency=True,
+    modeling_practice=True,
+    internal_consistency=True,
+) -> ValidationResult:
     """Validate SBMLDocument.
 
     :param doc: SBMLDocument to check
@@ -168,8 +183,8 @@ def validate_doc(doc: libsbml.SBMLDocument, name=None, log_errors=True,
     vresults = ValidationResult.from_results([results_internal, results_not_internal])
 
     lines = [
-        '',
-        '-' * 80,
+        "",
+        "-" * 80,
         str(name),
         "{:<25}: {}".format("valid", str(vresults.is_valid()).upper()),
     ]
@@ -180,8 +195,8 @@ def validate_doc(doc: libsbml.SBMLDocument, name=None, log_errors=True,
         ]
     lines += [
         "{:<25}: {:.3f}".format("check time (s)", time.perf_counter() - current),
-        '-' * 80,
-        '',
+        "-" * 80,
+        "",
     ]
     info = "\n".join(lines)
 
@@ -208,7 +223,7 @@ def validate_doc(doc: libsbml.SBMLDocument, name=None, log_errors=True,
 
 
 def _check_consistency(doc, internal_consistency: bool = False) -> ValidationResult:
-    """ Calculates the type of errors.
+    """Calculates the type of errors.
 
     :param doc:
     :param internal_consistency: flag for internal consistency
@@ -225,7 +240,9 @@ def _check_consistency(doc, internal_consistency: bool = False) -> ValidationRes
         for i in range(count):
             error = doc.getError(i)
             severity = error.getSeverity()
-            if (severity == libsbml.LIBSBML_SEV_ERROR) or (severity == libsbml.LIBSBML_SEV_FATAL):
+            if (severity == libsbml.LIBSBML_SEV_ERROR) or (
+                severity == libsbml.LIBSBML_SEV_FATAL
+            ):
                 errors.append(error)
             else:
                 warnings.append(error)

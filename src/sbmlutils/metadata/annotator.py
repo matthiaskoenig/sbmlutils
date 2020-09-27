@@ -31,9 +31,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def annotate_sbml(
-        source: Union[Path, str],
-        annotations_path: Path,
-        filepath: Path
+    source: Union[Path, str], annotations_path: Path, filepath: Path
 ) -> libsbml.SBMLDocument:
     """
     Annotate a given SBML file with the provided annotations.
@@ -48,7 +46,9 @@ def annotate_sbml(
     # annotate
     if not os.path.exists(str(annotations_path)):
         raise IOError(f"Annotation file does not exist: {annotations_path}")
-    external_annotations = ModelAnnotator.read_annotations(annotations_path, file_format="*")
+    external_annotations = ModelAnnotator.read_annotations(
+        annotations_path, file_format="*"
+    )
     doc = annotate_sbml_doc(doc, external_annotations)  # type: libsbml.SBMLDocument
 
     # write annotated sbml
@@ -57,10 +57,9 @@ def annotate_sbml(
 
 
 def annotate_sbml_doc(
-        doc: libsbml.SBMLDocument,
-        external_annotations: List['ExternalAnnotation']
+    doc: libsbml.SBMLDocument, external_annotations: List["ExternalAnnotation"]
 ) -> libsbml.SBMLDocument:
-    """ Annotates given SBML document using the annotations file.
+    """Annotates given SBML document using the annotations file.
 
     :param doc: SBMLDocument
     :param external_annotations: ModelAnnotations
@@ -72,7 +71,7 @@ def annotate_sbml_doc(
 
 
 class Annotation:
-    """ Annotation class.
+    """Annotation class.
 
     Basic storage of annotation information. This consists of the relation
     and the the resource.
@@ -106,7 +105,9 @@ class Annotation:
             )
         if not isinstance(resource, str):
             raise ValueError(
-                "resource must be string, but found '{} {}'.".format(resource, type(resource))
+                "resource must be string, but found '{} {}'.".format(
+                    resource, type(resource)
+                )
             )
 
         self.qualifier = qualifier
@@ -123,8 +124,10 @@ class Annotation:
                 # other urls are directly stored as resources without collection
                 self.collection = None
                 self.term = resource
-                LOGGER.warning("%s does not conform to "
-                               "http(s)://identifiers.org/collection/id", resource)
+                LOGGER.warning(
+                    "%s does not conform to " "http(s)://identifiers.org/collection/id",
+                    resource,
+                )
         else:
             # get term and collection
             tokens = resource.split("/")
@@ -155,19 +158,19 @@ class Annotation:
         :return:
         """
         if self.collection:
-            return "{}/{}/{}".format(
-                IDENTIFIERS_ORG_PREFIX, self.collection, self.term
-            )
+            return "{}/{}/{}".format(IDENTIFIERS_ORG_PREFIX, self.collection, self.term)
         else:
             return self.term
 
     def to_dict(self):
-        return OrderedDict([
-            ("qualifier", self.qualifier.value),
-            ("collection", self.collection),
-            ("term", self.term),
-            ("resource", self.resource),
-        ])
+        return OrderedDict(
+            [
+                ("qualifier", self.qualifier.value),
+                ("collection", self.collection),
+                ("term", self.term),
+                ("resource", self.resource),
+            ]
+        )
 
     @staticmethod
     def check_term(collection, term):
@@ -185,14 +188,12 @@ class Annotation:
             )
             return False
 
-        p = re.compile(entry['pattern'])
+        p = re.compile(entry["pattern"])
         m = p.match(term)
         if not m:
             logging.error(
                 "Term `{}` did not match pattern "
-                "`{}` for collection `{}`.".format(
-                    term, entry['pattern'], collection
-                )
+                "`{}` for collection `{}`.".format(term, entry["pattern"], collection)
             )
             return False
 
@@ -200,7 +201,7 @@ class Annotation:
 
     @staticmethod
     def check_qualifier(qualifier):
-        """ Checks that the qualifier is an allowed qualifier.
+        """Checks that the qualifier is an allowed qualifier.
 
         :param qualifier:
         :return:
@@ -220,7 +221,7 @@ class Annotation:
 
 
 class ExternalAnnotation:
-    """ Class for handling SBML annotations defined in external source.
+    """Class for handling SBML annotations defined in external source.
 
     This corresponds to a single entry in the external annotation file.
     Allows to handle more complex annotation scenarios, e.g. patterns for
@@ -234,40 +235,32 @@ class ExternalAnnotation:
         resource
         name
     """
+
     # possible columns in annotation file
-    _keys = [
-        'pattern',
-        'sbml_type',
-        'annotation_type',
-        'qualifier',
-        'resource',
-        'name'
-    ]
+    _keys = ["pattern", "sbml_type", "annotation_type", "qualifier", "resource", "name"]
     # allowed SBML types for annotation
-    _sbml_types = frozenset([
-        "document",
-        "model",
-        "unit",
-        "reaction",
-        "transporter",
-        "species",
-        "compartment",
-        "parameter",
-        "rule",
-        "fbc:geneproduct"
-    ])
-    _annotation_types = frozenset([
-        "rdf",
-        "formula",
-        "charge"
-    ])
+    _sbml_types = frozenset(
+        [
+            "document",
+            "model",
+            "unit",
+            "reaction",
+            "transporter",
+            "species",
+            "compartment",
+            "parameter",
+            "rule",
+            "fbc:geneproduct",
+        ]
+    )
+    _annotation_types = frozenset(["rdf", "formula", "charge"])
 
     def __init__(self, d):
         self.d = d
         for key in self._keys:
             # optional fields
-            if key in ['qualifier', 'name']:
-                value = d.get(key, '')
+            if key in ["qualifier", "name"]:
+                value = d.get(key, "")
             else:
                 # required fields
                 value = d[key]
@@ -297,9 +290,7 @@ class ExternalAnnotation:
         elif qualifier.startswith("BQB_"):
             bq = BQB[qualifier[4:]]
         if bq is None:
-            raise ValueError(
-                "Qualifier could not be parsed: `{}`".format(qualifier)
-            )
+            raise ValueError("Qualifier could not be parsed: `{}`".format(qualifier))
         return bq
 
     def check(self):
@@ -324,8 +315,10 @@ class ExternalAnnotation:
 class ModelAnnotator:
     """ Helper class for annotating SBML models. """
 
-    def __init__(self, doc: libsbml.SBMLDocument, annotations: Iterable[ExternalAnnotation]):
-        """ Constructor.
+    def __init__(
+        self, doc: libsbml.SBMLDocument, annotations: Iterable[ExternalAnnotation]
+    ):
+        """Constructor.
 
         :param doc: SBMLDocument
         :param annotations: iterable of ModelAnnotation
@@ -360,46 +353,46 @@ class ModelAnnotator:
             self._annotate_elements(elements, a)
 
     def _get_ids_from_model(self):
-        """ Create dictionary of ids for given model for lookup.
+        """Create dictionary of ids for given model for lookup.
 
         :return:
         """
         id_dict = dict()
-        id_dict['model'] = [self.model.getId()]
+        id_dict["model"] = [self.model.getId()]
 
         lof = self.model.getListOfUnitDefinitions()
         if lof:
-            id_dict['unit'] = [item.getId() for item in lof]
+            id_dict["unit"] = [item.getId() for item in lof]
 
         lof = self.model.getListOfCompartments()
         if lof:
-            id_dict['compartment'] = [item.getId() for item in lof]
+            id_dict["compartment"] = [item.getId() for item in lof]
 
         lof = self.model.getListOfSpecies()
         if lof:
-            id_dict['species'] = [item.getId() for item in lof]
+            id_dict["species"] = [item.getId() for item in lof]
 
         lof = self.model.getListOfParameters()
         if lof:
-            id_dict['parameter'] = [item.getId() for item in lof]
+            id_dict["parameter"] = [item.getId() for item in lof]
 
         lof = self.model.getListOfReactions()
         if lof:
-            id_dict['reaction'] = [item.getId() for item in lof]
+            id_dict["reaction"] = [item.getId() for item in lof]
 
         lof = self.model.getListOfRules()
         if lof:
-            id_dict['rule'] = [item.getVariable() for item in lof]
+            id_dict["rule"] = [item.getVariable() for item in lof]
 
         lof = self.model.getListOfEvents()
         if lof:
-            id_dict['event'] = [item.getId() for item in lof]
+            id_dict["event"] = [item.getId() for item in lof]
 
-        fbc_model = self.model.getPlugin('fbc')
+        fbc_model = self.model.getPlugin("fbc")
         if fbc_model is not None:
             lof = fbc_model.getListOfGeneProducts()
             if lof:
-                id_dict['fbc:geneproduct'] = [item.getId() for item in lof]
+                id_dict["fbc:geneproduct"] = [item.getId() for item in lof]
 
         return id_dict
 
@@ -410,9 +403,7 @@ class ModelAnnotator:
 
     @staticmethod
     def _elements_from_ids(
-            model: libsbml.Model,
-            sbml_ids: Iterable[str],
-            sbml_type: str = None
+        model: libsbml.Model, sbml_ids: Iterable[str], sbml_type: str = None
     ) -> List[libsbml.SBase]:
         """
         Get list of SBML elements from given ids.
@@ -424,9 +415,9 @@ class ModelAnnotator:
         """
         elements = []
         for sid in sbml_ids:
-            if sbml_type == 'rule':
+            if sbml_type == "rule":
                 e = model.getRuleByVariable(sid)
-            elif sbml_type == 'unit':
+            elif sbml_type == "unit":
                 e = model.getUnitDefinition(sid)
             else:
                 # returns the first element with id
@@ -441,44 +432,44 @@ class ModelAnnotator:
         return elements
 
     def _annotate_elements(self, elements, ex_a: ExternalAnnotation):
-        """ Annotate given elements with annotation.
+        """Annotate given elements with annotation.
 
         :param elements: SBase elements to annotate
         :param ex_a: annotation
         :return:
         """
         for e in elements:
-            if ex_a.annotation_type == 'rdf':
+            if ex_a.annotation_type == "rdf":
                 annotation = Annotation(
-                    qualifier=ex_a.qualifier,
-                    resource=ex_a.resource
+                    qualifier=ex_a.qualifier, resource=ex_a.resource
                 )
                 ModelAnnotator.annotate_sbase(e, annotation)
 
                 # write SBO terms based on the SBO RDF
-                if annotation.collection == 'sbo':
+                if annotation.collection == "sbo":
                     e.setSBOTerm(annotation.term)
 
-            elif ex_a.annotation_type in ['formula', 'charge']:
+            elif ex_a.annotation_type in ["formula", "charge"]:
                 # via fbc species plugin, so check that species first
-                if ex_a.sbml_type != 'species':
-                    LOGGER.error("Chemical formula or Charge can only be "
-                                 "set on species.")
+                if ex_a.sbml_type != "species":
+                    LOGGER.error(
+                        "Chemical formula or Charge can only be " "set on species."
+                    )
                 else:
                     s = self.model.getSpecies(e.getId())
                     splugin = s.getPlugin("fbc")
                     if splugin is None:
-                        LOGGER.error("FBC SPlugin not found for species, "
-                                     "no fbc: {}".format(s))
+                        LOGGER.error(
+                            "FBC SPlugin not found for species, " "no fbc: {}".format(s)
+                        )
                     else:
-                        if ex_a.annotation_type == 'formula':
+                        if ex_a.annotation_type == "formula":
                             splugin.setChemicalFormula(ex_a.resource)
-                        elif ex_a.annotation_type == 'charge':
+                        elif ex_a.annotation_type == "charge":
                             splugin.setCharge(int(ex_a.resource))
             else:
                 raise ValueError(
-                    'Annotation type not supported: '
-                    '{}'.format(ex_a.annotation_type)
+                    "Annotation type not supported: " "{}".format(ex_a.annotation_type)
                 )
 
     @staticmethod
@@ -487,14 +478,12 @@ class ModelAnnotator:
 
         # FIXME: better lookup with MIRIAM
         if qualifier_str not in libsbml.__dict__:
-            raise ValueError(
-                'Qualifier not supported: {}'.format(qualifier_str)
-            )
+            raise ValueError("Qualifier not supported: {}".format(qualifier_str))
         return libsbml.__dict__.get(qualifier_str)
 
     @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation):
-        """ Annotate SBase based on given annotation data
+        """Annotate SBase based on given annotation data
 
         :param sbase: libsbml.SBase
         :param annotation: Annotation
@@ -508,12 +497,12 @@ class ModelAnnotator:
             cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
             sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
             cv.setBiologicalQualifierType(sbml_qualifier)
-        elif qualifier.startswith('BQM'):
+        elif qualifier.startswith("BQM"):
             cv.setQualifierType(libsbml.MODEL_QUALIFIER)
             sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
             cv.setModelQualifierType(sbml_qualifier)
         else:
-            LOGGER.error('Unsupported qualifier: {}'.format(qualifier))
+            LOGGER.error("Unsupported qualifier: {}".format(qualifier))
 
         cv.addResource(resource)
 
@@ -532,7 +521,7 @@ class ModelAnnotator:
 
     @staticmethod
     def read_annotations_df(file_path: Path, file_format: str = "*"):
-        """ Reads annotations from given file into DataFrame.
+        """Reads annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
 
@@ -546,29 +535,36 @@ class ModelAnnotator:
 
         formats = ["xlsx", "tsv", "csv", "json"]
         if file_format not in formats:
-            raise IOError("Annotation format '{}' not in supported formats: '{}'".format(
-                file_format, formats))
+            raise IOError(
+                "Annotation format '{}' not in supported formats: '{}'".format(
+                    file_format, formats
+                )
+            )
 
         if file_extension != ("." + file_format):
-            logging.warning("format '{}' not matching file extension '{}' for file_path '{}'".format(
-                file_format, file_extension, file_path
-            ))
+            logging.warning(
+                "format '{}' not matching file extension '{}' for file_path '{}'".format(
+                    file_format, file_extension, file_path
+                )
+            )
 
         if file_format == "tsv":
-            df = pd.read_csv(file_path, sep="\t", comment='#', skip_blank_lines=True)
+            df = pd.read_csv(file_path, sep="\t", comment="#", skip_blank_lines=True)
         elif file_format == "csv":
-            df = pd.read_csv(file_path, sep=",", comment='#', skip_blank_lines=True)
+            df = pd.read_csv(file_path, sep=",", comment="#", skip_blank_lines=True)
         elif file_format == "json":
             df = pd.read_json(file_path)
         elif file_format == "xlsx":
             df = pd.read_excel(file_path, comment="#")
 
-        df.dropna(axis='index', inplace=True, how="all")
+        df.dropna(axis="index", inplace=True, how="all")
         return df
 
     @staticmethod
-    def read_annotations(file_path: [Path, Dict], file_format: str = "*") -> List[ExternalAnnotation]:
-        """ Reads annotations from given file into DataFrame.
+    def read_annotations(
+        file_path: [Path, Dict], file_format: str = "*"
+    ) -> List[ExternalAnnotation]:
+        """Reads annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
 
@@ -576,12 +572,12 @@ class ModelAnnotator:
         :param file_format: annotation file format
         :return: list of annotation objects
         """
-        df = ModelAnnotator.read_annotations_df(file_path=file_path, file_format=file_format)
-        entries = df.to_dict('records')
+        df = ModelAnnotator.read_annotations_df(
+            file_path=file_path, file_format=file_format
+        )
+        entries = df.to_dict("records")
         annotations = []
         for entry in entries:
-            annotations.append(
-                ExternalAnnotation(entry)
-            )
+            annotations.append(ExternalAnnotation(entry))
 
         return annotations

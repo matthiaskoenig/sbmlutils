@@ -7,7 +7,7 @@ from sbmlutils import validation
 from sbmlutils.validation import check
 
 
-# TODO: function to check for distributions in ast_nodes (creates flag with the information)
+# TODO: function to check for distributions in ast_nodes
 # TODO: read the example cases
 
 
@@ -35,7 +35,7 @@ def _create_parameter(pid, model: libsbml.Model):
 
 
 def distrib_normal():
-    """ Create simple distrib model.
+    """Create simple distrib model.
 
     :return:
     """
@@ -55,7 +55,7 @@ def distrib_normal():
 
 
 def distrib_all():
-    """ Create simple distrib model.
+    """Create simple distrib model.
 
     :return:
     """
@@ -64,28 +64,28 @@ def distrib_all():
 
     # extended math approach
     formulas_data = [
-        ('p_normal_1', 'normal(0, 1)'),
-        ('p_normal_2', 'normal(0, 1, 0, 10)'),
-        ('p_uniform', 'uniform(5, 10)'),
-        ('p_bernoulli', 'bernoulli(0.4)'),
-        ('p_binomial_1', 'binomial(100, 0.3)'),
-        ('p_binomial_2', 'binomial(100, 0.3, 0, 2)'),
-        ('p_cauchy_1', 'cauchy(0, 1)'),
-        ('p_cauchy_2', 'cauchy(0, 1, 0, 5)'),
-        ('p_chisquare_1', 'chisquare(10)'),
-        ('p_chisquare_2', 'chisquare(10, 0, 10)'),
-        ('p_exponential_1', 'exponential(1.0)'),
-        ('p_exponential_2', 'exponential(1.0, 0, 10)'),
-        ('p_gamma_1', 'gamma(0, 1)'),
-        ('p_gamma_2', 'gamma(0, 1, 0, 10)'),
-        ('p_laplace_1', 'laplace(0, 1)'),
-        ('p_laplace_2', 'laplace(0, 1, 0, 10)'),
-        ('p_lognormal_1', 'lognormal(0, 1)'),
-        ('p_lognormal_2', 'lognormal(0, 1, 0, 10)'),
-        ('p_poisson_1', 'poisson(0.5)'),
-        ('p_poisson_2', 'poisson(0.5, 0, 10)'),
-        ('p_raleigh_1', 'rayleigh(0.5)'),
-        ('p_raleigh_2', 'rayleigh(0.5, 0, 10)'),
+        ("p_normal_1", "normal(0, 1)"),
+        ("p_normal_2", "normal(0, 1, 0, 10)"),
+        ("p_uniform", "uniform(5, 10)"),
+        ("p_bernoulli", "bernoulli(0.4)"),
+        ("p_binomial_1", "binomial(100, 0.3)"),
+        ("p_binomial_2", "binomial(100, 0.3, 0, 2)"),
+        ("p_cauchy_1", "cauchy(0, 1)"),
+        ("p_cauchy_2", "cauchy(0, 1, 0, 5)"),
+        ("p_chisquare_1", "chisquare(10)"),
+        ("p_chisquare_2", "chisquare(10, 0, 10)"),
+        ("p_exponential_1", "exponential(1.0)"),
+        ("p_exponential_2", "exponential(1.0, 0, 10)"),
+        ("p_gamma_1", "gamma(0, 1)"),
+        ("p_gamma_2", "gamma(0, 1, 0, 10)"),
+        ("p_laplace_1", "laplace(0, 1)"),
+        ("p_laplace_2", "laplace(0, 1, 0, 10)"),
+        ("p_lognormal_1", "lognormal(0, 1)"),
+        ("p_lognormal_2", "lognormal(0, 1, 0, 10)"),
+        ("p_poisson_1", "poisson(0.5)"),
+        ("p_poisson_2", "poisson(0.5, 0, 10)"),
+        ("p_raleigh_1", "rayleigh(0.5)"),
+        ("p_raleigh_2", "rayleigh(0.5, 0, 10)"),
     ]
 
     # create parameters with distribution assignments
@@ -96,15 +96,14 @@ def distrib_all():
         assignment.setSymbol(pid)
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
-            raise IOError("{}, {}".format(formula,
-                                          libsbml.getLastParseL3Error()))
+            raise IOError("{}, {}".format(formula, libsbml.getLastParseL3Error()))
         assignment.setMath(ast_node), "setting math"
 
     return doc
 
 
 def uncertainty():
-    """ Create uncertainty with UncertParameter.
+    """Create uncertainty with UncertParameter.
 
     :return:
     """
@@ -133,7 +132,6 @@ def uncertainty():
     up_sd.setValue(0.3)
     up_sd.setUnits(unit)
 
-    # up_range = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
     up_range = libsbml.UncertSpan()
     up_range.setType(libsbml.DISTRIB_UNCERTTYPE_RANGE)
     up_range.setValueLower(2.0)
@@ -141,11 +139,16 @@ def uncertainty():
     up_range.setUnits(unit)
     check(uncertainty.addUncertParameter(up_range), "add the span")
 
-    check(uncertainty.setAnnotation("""
+    check(
+        uncertainty.setAnnotation(
+            """
     <body xmlns='http://www.w3.org/1999/xhtml'>
         <p>Experimental data from study</p>
     </body>
-    """), "set annotations")
+    """
+        ),
+        "set annotations",
+    )
 
     # add an annotation with SBO terms
     uncertainty.setMetaId("meta_uncertainty1")
@@ -167,7 +170,8 @@ def uncertainty():
     # create second uncertainty which contains all the individual uncertainties
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
     uncertainty.setName("UncertParameter example")
-    for k, parameter_type in enumerate([
+    for k, parameter_type in enumerate(
+        [
             libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
             libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
             libsbml.DISTRIB_UNCERTTYPE_MEAN,
@@ -177,7 +181,9 @@ def uncertainty():
             libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
             libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
             libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
-            libsbml.DISTRIB_UNCERTTYPE_VARIANCE]):
+            libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
+        ]
+    ):
 
         up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
         up.setType(parameter_type)
@@ -189,16 +195,19 @@ def uncertainty():
     # --------------------------------------------
     uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
     uncertainty.setName("UncertSpan example")
-    for k, parameter_type in enumerate([
+    for k, parameter_type in enumerate(
+        [
             libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
             libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
             libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
-            libsbml.DISTRIB_UNCERTTYPE_RANGE]):
+            libsbml.DISTRIB_UNCERTTYPE_RANGE,
+        ]
+    ):
 
         up_range = libsbml.UncertSpan()
         up_range.setType(parameter_type)
-        up_range.setValueLower(k-1.0)
-        up_range.setValueUpper(k+1.0)
+        up_range.setValueLower(k - 1.0)
+        up_range.setValueUpper(k + 1.0)
         up_range.setUnits(unit)
         check(uncertainty.addUncertParameter(up_range), "add the span")
 
@@ -211,8 +220,9 @@ def uncertainty():
     up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
     up.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
     up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/normal")
-    ast = libsbml.parseL3FormulaWithModel("5.0 dimensionless * normal(1.0 mole, 3.0 mole)",
-                                          model)
+    ast = libsbml.parseL3FormulaWithModel(
+        "5.0 dimensionless * normal(1.0 mole, 3.0 mole)", model
+    )
     if not ast:
         raise ValueError
     up.setMath(ast)
@@ -267,7 +277,7 @@ if __name__ == "__main__":
         print("-" * 80)
         print(sbml)
         print("-" * 80)
-        sbml_path = "./{}.xml".format(name)
+        sbml_path = f"./{name}.xml"
 
         libsbml.writeSBMLToFile(doc, sbml_path)
         validation.validate_doc(doc)

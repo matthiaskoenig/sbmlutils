@@ -26,14 +26,14 @@ def test_reaction_info():
     df = cobra_reaction_info(cobra_model)
     assert df is not None
 
-    assert df.at['v1', 'objective_coefficient'] == 1
-    assert df.at['v2', 'objective_coefficient'] == 1
-    assert df.at['v3', 'objective_coefficient'] == 1
-    assert df.at['v4', 'objective_coefficient'] == 1
-    assert df.at['EX_Ac', 'objective_coefficient'] == 0
-    assert df.at['EX_Glcxt', 'objective_coefficient'] == 0
-    assert df.at['EX_O2', 'objective_coefficient'] == 0
-    assert df.at['EX_X', 'objective_coefficient'] == 0
+    assert df.at["v1", "objective_coefficient"] == 1
+    assert df.at["v2", "objective_coefficient"] == 1
+    assert df.at["v3", "objective_coefficient"] == 1
+    assert df.at["v4", "objective_coefficient"] == 1
+    assert df.at["EX_Ac", "objective_coefficient"] == 0
+    assert df.at["EX_Glcxt", "objective_coefficient"] == 0
+    assert df.at["EX_O2", "objective_coefficient"] == 0
+    assert df.at["EX_X", "objective_coefficient"] == 0
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")

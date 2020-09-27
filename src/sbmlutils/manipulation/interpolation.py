@@ -20,7 +20,8 @@ from sbmlutils.validation import validate_doc
 logger = logging.getLogger(__name__)
 
 
-notes = libsbml.XMLNode.convertStringToXMLNode("""
+notes = libsbml.XMLNode.convertStringToXMLNode(
+    """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>Data interpolator</h1>
     <h2>Description</h2>
@@ -46,7 +47,8 @@ notes = libsbml.XMLNode.convertStringToXMLNode("""
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""")
+"""
+)
 
 # available interpolation methods
 INTERPOLATION_CONSTANT = "constant"
@@ -55,7 +57,7 @@ INTERPOLATION_CUBIC_SPLINE = "cubic spline"
 
 
 class Interpolator:
-    """ Interpolator class handles the interpolation of given data series
+    """Interpolator class handles the interpolation of given data series
 
     Two data series and the type of interpolation are provided.
     """
@@ -67,12 +69,14 @@ class Interpolator:
         self.method = method
 
     def __str__(self):
-        s = "--------------------------\n" \
-            "Interpolator<{}>\n" \
-            "--------------------------\n" \
-            "{}\n" \
-            "{}\n" \
+        s = (
+            "--------------------------\n"
+            "Interpolator<{}>\n"
+            "--------------------------\n"
+            "{}\n"
+            "{}\n"
             "formula:\n {}\n".format(self.method, self.x, self.y, self.formula())
+        )
         return s
 
     @property
@@ -98,7 +102,7 @@ class Interpolator:
 
     @staticmethod
     def formula_cubic_spline(x, y):
-        """ Formula for the cubic spline.
+        """Formula for the cubic spline.
 
         This is more complicated and requires the coefficients
         from the spline interpolation.
@@ -112,18 +116,22 @@ class Interpolator:
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
             (a, b, c, d) = coeffs[k]
-            formula = '{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}'.format(a=a, b=b, c=c, d=d, x1=x1)
-            condition = 'time >= {x1} && time <= {x2}'.format(x1=x1, x2=x2)
-            s = '{}, {}'.format(formula, condition)
+            formula = (
+                "{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}".format(
+                    a=a, b=b, c=c, d=d, x1=x1
+                )
+            )
+            condition = "time >= {x1} && time <= {x2}".format(x1=x1, x2=x2)
+            s = "{}, {}".format(formula, condition)
             items.append(s)
 
         # otherwise
-        items.append('0.0')
-        return 'piecewise({})'.format(', '.join(items))
+        items.append("0.0")
+        return "piecewise({})".format(", ".join(items))
 
     @staticmethod
     def natural_spline_coeffs(X, Y):
-        """ Calculate natural spline coefficients.
+        """Calculate natural spline coefficients.
 
         Calculation of coefficients for
             di*(x - xi)^3 + ci*(x - xi)^2 + bi*(x - xi) + ai
@@ -174,7 +182,7 @@ class Interpolator:
 
     @staticmethod
     def formula_linear(col1, col2):
-        """ Linear interpolation between data points.
+        """Linear interpolation between data points.
 
         :return:
         :rtype:
@@ -186,20 +194,20 @@ class Interpolator:
             y1 = col2.iloc[k]
             y2 = col2.iloc[k + 1]
             m = (y2 - y1) / (x2 - x1)
-            formula = '{} + {}*(time-{})'.format(y1, m, x1)
-            condition = 'time >= {} && time < {}'.format(x1, x2)
-            s = '{}, {}'.format(formula, condition)
+            formula = "{} + {}*(time-{})".format(y1, m, x1)
+            condition = "time >= {} && time < {}".format(x1, x2)
+            s = "{}, {}".format(formula, condition)
             items.append(s)
         # last value after last time
-        s = '{}, time >= {}'.format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
+        s = "{}, time >= {}".format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
         items.append(s)
         # otherwise
-        items.append('0.0')
-        return 'piecewise({})'.format(', '.join(items))
+        items.append("0.0")
+        return "piecewise({})".format(", ".join(items))
 
     @staticmethod
     def formula_constant(col1, col2):
-        """ Constant value between data points
+        """Constant value between data points
         piecewise x1, y1, [x2, y2, ][...][z]
         A piecewise function: if (y1), x1.Otherwise, if (y2), x2, etc.Otherwise, z.
         :return:
@@ -207,27 +215,27 @@ class Interpolator:
         """
         items = []
         # first value before first time
-        s = '{}, time < {}'.format(col2.iloc[0], col1.iloc[0])
+        s = "{}, time < {}".format(col2.iloc[0], col1.iloc[0])
         items.append(s)
 
         # intermediate vales
         for k in range(len(col1) - 1):
-            condition = 'time >= {} && time < {}'.format(col1.iloc[k], col1.iloc[k + 1])
-            formula = '{}'.format(col2.iloc[k])
-            s = '{}, {}'.format(formula, condition)
+            condition = "time >= {} && time < {}".format(col1.iloc[k], col1.iloc[k + 1])
+            formula = "{}".format(col2.iloc[k])
+            s = "{}, {}".format(formula, condition)
             items.append(s)
 
         # last value after last time
-        s = '{}, time >= {}'.format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
+        s = "{}, time >= {}".format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
         items.append(s)
 
         # otherwise
-        items.append('0.0')
-        return 'piecewise({})'.format(', '.join(items))
+        items.append("0.0")
+        return "piecewise({})".format(", ".join(items))
 
 
 class Interpolation:
-    """ Creates SBML which interpolates the given data.
+    """Creates SBML which interpolates the given data.
 
     The second to last components are interpolated against the first component.
     """
@@ -242,7 +250,7 @@ class Interpolation:
         self.validate_data()
 
     def validate_data(self):
-        """ Validates the input data
+        """Validates the input data
 
         * The data is expected to have at least 2 columns.
         * The data is expected to have at least three data rows.
@@ -253,7 +261,9 @@ class Interpolation:
         """
         # more than 1 column required
         if len(self.data.columns) < 2:
-            logger.warning("Interpolation data has <2 columns. At least 2 columns required.")
+            logger.warning(
+                "Interpolation data has <2 columns. At least 2 columns required."
+            )
 
         # at least 3 rows required
         if len(self.data) < 3:
@@ -269,7 +279,7 @@ class Interpolation:
 
     @staticmethod
     def from_csv(csv_file, method="linear", sep=","):
-        """ Interpolation object from csv file.
+        """Interpolation object from csv file.
 
         :param csv_file:
         :type csv_file:
@@ -291,7 +301,7 @@ class Interpolation:
     # --- SBML & Interpolation --------------------
 
     def write_sbml_to_file(self, sbml_out: Path):
-        """ Write the SBML file.
+        """Write the SBML file.
 
         :param sbml_out: Path to SBML file
         :return:
@@ -300,7 +310,7 @@ class Interpolation:
         write_sbml(doc=self.doc, filepath=sbml_out)
 
     def write_sbml_to_string(self) -> str:
-        """ Write the SBML file.
+        """Write the SBML file.
 
         :return: SBML str
         """
@@ -308,7 +318,7 @@ class Interpolation:
         return write_sbml(self.doc, filepath=None)
 
     def _create_sbml(self):
-        """ Create the SBMLDocument.
+        """Create the SBMLDocument.
 
         :return:
         :rtype:
@@ -322,7 +332,7 @@ class Interpolation:
         validate_doc(self.doc, units_consistency=False)
 
     def _init_sbml_model(self):
-        """ Initializes the SBML model.
+        """Initializes the SBML model.
 
         :return:
         :rtype:
@@ -341,7 +351,7 @@ class Interpolation:
 
     @staticmethod
     def create_interpolators(data, method):
-        """ Creates all interpolators for the given data set.
+        """Creates all interpolators for the given data set.
 
         The columns 1, ... (Ncol-1) are interpolated against
         column 0.
@@ -350,15 +360,13 @@ class Interpolation:
         columns = data.columns
         time = data[columns[0]]
         for k in range(1, len(columns)):
-            interpolator = Interpolator(x=time,
-                                        y=data[columns[k]],
-                                        method=method)
+            interpolator = Interpolator(x=time, y=data[columns[k]], method=method)
             interpolators.append(interpolator)
         return interpolators
 
     @staticmethod
     def add_interpolator_to_model(interpolator, model: libsbml.Model) -> None:
-        """ The parameters, formulas and rules have to be added to the SBML model.
+        """The parameters, formulas and rules have to be added to the SBML model.
 
         :param interpolator:
         :param model: Model
@@ -370,7 +378,9 @@ class Interpolation:
 
         # if parameter exists remove it
         if model.getParameter(pid):
-            logger.warning("Model contains parameter: {}. Parameter is removed.".format(pid))
+            logger.warning(
+                "Model contains parameter: {}. Parameter is removed.".format(pid)
+            )
             model.removeParameter(pid)
 
         # if assignment rule exists remove it

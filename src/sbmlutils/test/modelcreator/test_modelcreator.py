@@ -23,38 +23,38 @@ def test_create_mass_charge():
 
 
 def test_create_annotation():
-    """ Create assignment model.
+    """Create assignment model.
     :return:
     """
     annotation_factory.create(tmp=True)
 
 
 def test_create_assignment():
-    """ Create assignment model.
+    """Create assignment model.
     :return:
     """
     assignment_factory.create(tmp=True)
 
 
 def test_create_basic():
-    """ Create basic model.
+    """Create basic model.
     :return:
     """
     basic_factory.create(tmp=True)
 
 
 def test_create_demo():
-    """ Create demo model.
+    """Create demo model.
     :return:
     """
     demo_factory.create(tmp=True)
 
 
 def test_demo():
-    """ Create demo model.
+    """Create demo model.
     :return:
     """
-    model_dict = Preprocess.dict_from_modules(['sbmlutils.examples.models.demo.model'])
+    model_dict = Preprocess.dict_from_modules(["sbmlutils.examples.models.demo.model"])
     cell_model = CoreModel.from_dict(model_dict)
     cell_model.create_sbml()
 

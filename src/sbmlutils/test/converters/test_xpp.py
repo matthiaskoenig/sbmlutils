@@ -8,7 +8,7 @@ from sbmlutils.test import DATA_DIR
 
 def xpp_check(tmp_path, ode_id, Nall=0, Nerr=0, Nwarn=0):
     sbml_file = tmp_path / f"{ode_id}.xml"
-    xpp_file = DATA_DIR / 'xpp' / f"{ode_id}.ode"
+    xpp_file = DATA_DIR / "xpp" / f"{ode_id}.ode"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
     vresults = validate_sbml(sbml_file, units_consistency=False)
     assert vresults.all_count == Nall

@@ -7,22 +7,26 @@ models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
 def create_distrib(tmp=False):
-    """ Create demo model.
+    """Create demo model.
 
     :return:
     """
-    factory = Factory(modules=['sbmlutils.examples.models.distrib.distrib_ex1'],
-                      output_dir=os.path.join(models_dir, 'results'))
+    factory = Factory(
+        modules=["sbmlutils.examples.models.distrib.distrib_ex1"],
+        output_dir=os.path.join(models_dir, "results"),
+    )
     factory.create(tmp)
 
 
 def create_uncertainty(tmp=False):
-    """ Create demo model.
+    """Create demo model.
 
     :return:
     """
-    factory = Factory(modules=['sbmlutils.examples.models.distrib.uncertainty_ex1'],
-                      output_dir=os.path.join(models_dir, 'results'))
+    factory = Factory(
+        modules=["sbmlutils.examples.models.distrib.uncertainty_ex1"],
+        output_dir=os.path.join(models_dir, "results"),
+    )
     factory.create(tmp)
 
 

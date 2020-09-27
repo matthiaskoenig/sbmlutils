@@ -7,7 +7,7 @@ from sbmlutils.metadata import miriam
 
 
 def annotation_to_html(item):
-    """ Renders HTML representation of given annotation.
+    """Renders HTML representation of given annotation.
 
     :param item: SBO item
     """
@@ -19,14 +19,16 @@ def annotation_to_html(item):
             qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
         elif q_type == 1:
             qualifier = miriam.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-        lines.append(''.join(['<span class="collection">', qualifier, '</span>']))
+        lines.append("".join(['<span class="collection">', qualifier, "</span>"]))
 
         items = []
         for k in range(cv.getNumResources()):
             uri = cv.getResourceURI(k)
-            tokens = uri.split('/')
+            tokens = uri.split("/")
             resource_id = tokens[-1]
-            link = ''.join(['<a href="', uri, '" target="_blank">', resource_id, '</a>'])
+            link = "".join(
+                ['<a href="', uri, '" target="_blank">', resource_id, "</a>"]
+            )
             items.append(link)
         lines.append("; ".join(items))
     res = "<br />".join(lines)
@@ -58,7 +60,9 @@ def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
 # ------------------------------
 # Equations
 # ------------------------------
-def equationStringFromReaction(reaction, sep_reversible='&#8646;', sep_irreversible='&#10142;'):
+def equationStringFromReaction(
+    reaction, sep_reversible="&#8646;", sep_irreversible="&#10142;"
+):
     left = _halfEquation(reaction.getListOfReactants())
     right = _halfEquation(reaction.getListOfProducts())
     if reaction.getReversible():
@@ -79,7 +83,7 @@ def _modifierEquation(modifierList):
     if len(modifierList) == 0:
         return None
     mids = [m.getSpecies() for m in modifierList]
-    return '[' + ', '.join(mids) + ']'
+    return "[" + ", ".join(mids) + "]"
 
 
 def _halfEquation(speciesList):
@@ -87,23 +91,23 @@ def _halfEquation(speciesList):
     for sr in speciesList:
         stoichiometry = sr.getStoichiometry()
         species = sr.getSpecies()
-        if abs(stoichiometry - 1.0) < 1E-8:
-            sd = '{}'.format(species)
-        elif abs(stoichiometry + 1.0) < 1E-8:
-            sd = '-{}'.format(species)
+        if abs(stoichiometry - 1.0) < 1e-8:
+            sd = "{}".format(species)
+        elif abs(stoichiometry + 1.0) < 1e-8:
+            sd = "-{}".format(species)
         elif stoichiometry >= 0:
-            sd = '{} {}'.format(stoichiometry, species)
+            sd = "{} {}".format(stoichiometry, species)
         elif stoichiometry < 0:
-            sd = '-{} {}'.format(stoichiometry, species)
+            sd = "-{} {}".format(stoichiometry, species)
         items.append(sd)
-    return ' + '.join(items)
+    return " + ".join(items)
 
 
 # ------------------------------
 # FBC
 # ------------------------------
 def boundsStringFromReaction(reaction, model):
-    bounds = ''
+    bounds = ""
     rfbc = reaction.getPlugin("fbc")
     if rfbc is not None:
         # get values for bounds
@@ -120,18 +124,20 @@ def boundsStringFromReaction(reaction, model):
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
         if (lb_value is not None) or (ub_value is not None):
-            bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(lb_value, ub_value)
+            bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(
+                lb_value, ub_value
+            )
     return bounds
 
 
 def geneProductAssociationStringFromReaction(reaction):
-    """ String representation of the GeneProductAssociation for given reaction.
+    """String representation of the GeneProductAssociation for given reaction.
 
     :param reaction:
     :return:
     """
-    info = ''
-    rfbc = reaction.getPlugin('fbc')
+    info = ""
+    rfbc = reaction.getPlugin("fbc")
 
     if rfbc and rfbc.isSetGeneProductAssociation():
         gpa = rfbc.getGeneProductAssociation()
@@ -148,7 +154,7 @@ def modelHistoryToString(mhistory):
     if not mhistory:
         return ""
     items = []
-    items.append('<b>Creator</b>')
+    items.append("<b>Creator</b>")
     for kc in range(mhistory.getNumCreators()):
         cdata = []
         c = mhistory.getCreator(kc)
@@ -159,20 +165,25 @@ def modelHistoryToString(mhistory):
         if c.isSetOrganisation():
             cdata.append(c.getOrganisation())
         if c.isSetEmail():
-            cdata.append('<a href="mailto:{}" target="_blank">{}</a>'.format(c.getEmail(), c.getEmail()))
+            cdata.append(
+                '<a href="mailto:{}" target="_blank">{}</a>'.format(
+                    c.getEmail(), c.getEmail()
+                )
+            )
         items.append(", ".join(cdata))
     if mhistory.isSetCreatedDate():
-        items.append('<b>Created:</b> ' + dateToString(mhistory.getCreatedDate()))
+        items.append("<b>Created:</b> " + dateToString(mhistory.getCreatedDate()))
     for km in range(mhistory.getNumModifiedDates()):
-        items.append('<b>Modified:</b> ' + dateToString(mhistory.getModifiedDate(km)))
-    items.append('<br />')
+        items.append("<b>Modified:</b> " + dateToString(mhistory.getModifiedDate(km)))
+    items.append("<br />")
     return "<br />".join(items)
 
 
 def dateToString(d):
     """ Creates string representation of date. """
-    return "{}-{:0>2d}-{:0>2d} {:0>2d}:{:0>2d}".format(d.getYear(), d.getMonth(), d.getDay(),
-                                                       d.getHour(), d.getMinute())
+    return "{}-{:0>2d}-{:0>2d} {:0>2d}:{:0>2d}".format(
+        d.getYear(), d.getMonth(), d.getDay(), d.getHour(), d.getMinute()
+    )
 
 
 def _isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
@@ -183,11 +194,11 @@ def _isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 def ruleVariableToString(rule):
     """ Formating of variable for rule. """
     if isinstance(rule, libsbml.AlgebraicRule):
-        return '0'
+        return "0"
     elif isinstance(rule, libsbml.AssignmentRule):
         return rule.variable
     elif isinstance(rule, libsbml.RateRule):
-        return 'd {}/dt'.format(rule.variable)
+        return "d {}/dt".format(rule.variable)
     else:
         raise TypeError(rule)
 
@@ -197,25 +208,25 @@ def ruleVariableToString(rule):
 # ------------------------------
 
 UNIT_ABBREVIATIONS = {
-    'kilogram': 'kg',
-    'meter': 'm',
-    'metre': 'm',
-    'second': 's',
-    'dimensionless': '',
-    'katal': 'kat',
-    'gram': 'g',
+    "kilogram": "kg",
+    "meter": "m",
+    "metre": "m",
+    "second": "s",
+    "dimensionless": "",
+    "katal": "kat",
+    "gram": "g",
 }
 
 
 def unitDefinitionToString(udef):
-    """ Formating of units.
+    """Formating of units.
     Units have the general format
         (multiplier * 10^scale *ukind)^exponent
         (m * 10^s *k)^e
 
     """
     if udef is None:
-        return 'None'
+        return "None"
 
     libsbml.UnitDefinition_reorder(udef)
     # collect formated nominators and denominators
@@ -234,22 +245,22 @@ def unitDefinitionToString(udef):
 
         # handle m
         if _isclose(m, 1.0):
-            m_str = ''
+            m_str = ""
         else:
-            m_str = str(m) + '*'
+            m_str = str(m) + "*"
 
         if _isclose(abs(e), 1.0):
-            e_str = ''
+            e_str = ""
         else:
-            e_str = '^' + str(abs(e))
+            e_str = "^" + str(abs(e))
 
         if _isclose(s, 0.0):
-            string = '{}{}{}'.format(m_str, k_str, e_str)
+            string = "{}{}{}".format(m_str, k_str, e_str)
         else:
-            if e_str == '':
-                string = '({}10^{})*{}'.format(m_str, s, k_str)
+            if e_str == "":
+                string = "({}10^{})*{}".format(m_str, s, k_str)
             else:
-                string = '(({}10^{})*{}){}'.format(m_str, s, k_str, e_str)
+                string = "(({}10^{})*{}){}".format(m_str, s, k_str, e_str)
 
         # collect the terms
         if e >= 0.0:
@@ -257,12 +268,12 @@ def unitDefinitionToString(udef):
         else:
             denom.append(string)
 
-    nom_str = ' * '.join(nom)
-    denom_str = ' * '.join(denom)
+    nom_str = " * ".join(nom)
+    denom_str = " * ".join(denom)
     if (len(nom_str) > 0) and (len(denom_str) > 0):
-        return '({})/({})'.format(nom_str, denom_str)
+        return "({})/({})".format(nom_str, denom_str)
     if (len(nom_str) > 0) and (len(denom_str) == 0):
         return nom_str
     if (len(nom_str) == 0) and (len(denom_str) > 0):
-        return '1/({})'.format(denom_str)
-    return ''
+        return "1/({})".format(denom_str)
+    return ""

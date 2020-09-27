@@ -2,7 +2,7 @@
 
 
 def create_miriam_json():
-    """ Parses the latest miriam information.
+    """Parses the latest miriam information.
 
     :return:
     """
@@ -15,22 +15,23 @@ def create_miriam_json():
     from pprint import pprint
 
     import xmlschema
-    xs = xmlschema.XMLSchema('./resources/MiriamXML.xsd')
-    d = xs.to_dict('./resources/IdentifiersOrg-Registry.xml')
+
+    xs = xmlschema.XMLSchema("./resources/MiriamXML.xsd")
+    d = xs.to_dict("./resources/IdentifiersOrg-Registry.xml")
     # pprint(d['datatype'][1])
 
     datatypes = {}
-    for entry in d['datatype']:
+    for entry in d["datatype"]:
         datatypes[entry["namespace"]] = {
             "id": entry["@id"],
             "pattern": entry["@pattern"],
             "name": entry["name"],
             "namespace": entry["namespace"],
-            "definition": entry["definition"]
+            "definition": entry["definition"],
         }
 
     # pprint(datatypes)
-    with open('./resources/IdentifiersOrg-Registry.json', 'w') as fp:
+    with open("./resources/IdentifiersOrg-Registry.json", "w") as fp:
         json.dump(datatypes, fp)
 
 
@@ -39,6 +40,6 @@ if __name__ == "__main__":
 
     import json
 
-    with open('./resources/IdentifiersOrg-Registry.json', 'r') as fp:
+    with open("./resources/IdentifiersOrg-Registry.json", "r") as fp:
         d = json.load(fp)
     print(d)

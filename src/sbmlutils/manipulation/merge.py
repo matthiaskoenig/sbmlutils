@@ -23,9 +23,13 @@ SBML_VERSION = 1
 SBML_COMP_VERSION = 1
 
 
-def merge_models(model_paths: Dict[str, Path], out_dir: Path=None,
-                 merged_id: str = "merged", validate: bool = True) -> libsbml.SBMLDocument:
-    """ Merge models in model path.
+def merge_models(
+    model_paths: Dict[str, Path],
+    out_dir: Path = None,
+    merged_id: str = "merged",
+    validate: bool = True,
+) -> libsbml.SBMLDocument:
+    """Merge models in model path.
 
     All models must exist in the same subfolder.
     Relative paths are set in the merged models.
@@ -42,7 +46,7 @@ def merge_models(model_paths: Dict[str, Path], out_dir: Path=None,
     base_dir = None
     for model_id, path in model_paths.items():
         if path.exists():
-            logging.error(f'Path for SBML file does not exist: {path}')
+            logging.error(f"Path for SBML file does not exist: {path}")
 
         # get base dir of all model files from first file
         if base_dir is None:
@@ -50,8 +54,10 @@ def merge_models(model_paths: Dict[str, Path], out_dir: Path=None,
         else:
             new_dir = path.parent
             if not new_dir != base_dir:
-                raise IOError(f'All SBML files for merging must be in same '
-                              f'directory: {new_dir} != {base_dir}')
+                raise IOError(
+                    f"All SBML files for merging must be in same "
+                    f"directory: {new_dir} != {base_dir}"
+                )
 
         # convert to L3V1
         path_L3 = out_dir / f"{model_id}_L3.xml"
@@ -66,12 +72,14 @@ def merge_models(model_paths: Dict[str, Path], out_dir: Path=None,
             validation.check_sbml(path, name=path)
 
     # create comp model
-    merged_doc = create_merged_doc(model_paths, merged_id=merged_id)  # type: libsbml.SBMLDocument
+    merged_doc = create_merged_doc(
+        model_paths, merged_id=merged_id
+    )  # type: libsbml.SBMLDocument
     if validate is True:
         validation.check_sbml(path, name=path)
 
     # write merged doc
-    f_out = os.path.join(out_dir, '{}.xml'.format(merged_id))
+    f_out = os.path.join(out_dir, "{}.xml".format(merged_id))
     libsbml.writeSBMLToFile(merged_doc, f_out)
 
     os.chdir(cur_dir)

@@ -9,10 +9,7 @@ sbml_str = r.getCurrentSBML()
 doc1 = libsbml.readSBMLFromFile(sbml_path)  # type: libsbml.SBMLDocument
 doc2 = libsbml.readSBMLFromString(sbml_str)  # type: libsbml.SBMLDocument
 
-docs = {
-    "sbml": doc1,
-    "roadrunner": doc2
-}
+docs = {"sbml": doc1, "roadrunner": doc2}
 
 for key, doc in docs.items():
     print(key)
@@ -23,4 +20,3 @@ for key, doc in docs.items():
     print("initial amount: ", s.getInitialAmount())
 
     print("-" * 80)
-

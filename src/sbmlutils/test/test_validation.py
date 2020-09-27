@@ -3,15 +3,15 @@ from sbmlutils.test import BASIC_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML, VDP
 
 
 SBML_FILES = [
-    {'path': DEMO_SBML, 'ucheck': True, 'N': 0},
-    {'path': GALACTOSE_SINGLECELL_SBML, 'ucheck': True, 'N': 0},
-    {'path': BASIC_SBML, 'ucheck': True, 'N': 0},
-    {'path': VDP_SBML, 'ucheck': False, 'N': 0},
+    {"path": DEMO_SBML, "ucheck": True, "N": 0},
+    {"path": GALACTOSE_SINGLECELL_SBML, "ucheck": True, "N": 0},
+    {"path": BASIC_SBML, "ucheck": True, "N": 0},
+    {"path": VDP_SBML, "ucheck": False, "N": 0},
 ]
 
 
 def _validate_file(sbmlpath, units_consistency=True, Nall=0):
-    """ Validate given SBML file.
+    """Validate given SBML file.
 
     Helper function called by the other tests.
 
@@ -26,4 +26,4 @@ def _validate_file(sbmlpath, units_consistency=True, Nall=0):
 
 def test_files():
     for d in SBML_FILES:
-        _validate_file(sbmlpath=d['path'], units_consistency=d['ucheck'], Nall=d['N'])
+        _validate_file(sbmlpath=d["path"], units_consistency=d["ucheck"], Nall=d["N"])

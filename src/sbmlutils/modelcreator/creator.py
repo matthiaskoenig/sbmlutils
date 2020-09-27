@@ -39,7 +39,9 @@ class Factory:
     ModelFactories.
     """
 
-    def __init__(self, modules: Iterable[str], output_dir: Path, annotations=None, mid=None):
+    def __init__(
+        self, modules: Iterable[str], output_dir: Path, annotations=None, mid=None
+    ):
         """
 
         :param modules: iterable of module strings; should be importable as is
@@ -53,7 +55,7 @@ class Factory:
         self.mid = mid
 
     def create(self, tmp=False):
-        """ Creates SBML model in target directory.
+        """Creates SBML model in target directory.
 
         :param tmp: write files in temporary folder. Used for testing.
         :return: (model_dict, core_model, sbml_path)
@@ -68,7 +70,8 @@ class Factory:
                 modules=self.modules,
                 output_dir=output_dir,
                 annotations=self.annotations,
-                mid=self.mid)
+                mid=self.mid,
+            )
         finally:
             if tmp:
                 shutil.rmtree(output_dir)
@@ -77,15 +80,20 @@ class Factory:
 
 
 def create_model(
-        modules: List[str], output_dir: Path,
-        filename: str = None, mid: str = None, suffix: str = None,
-        annotations=None, create_report: bool = True, validate: bool = True,
-        log_errors: bool = True,
-        units_consistency: bool = True,
-        modeling_practice: bool = True,
-        internal_consistency: bool = True
+    modules: List[str],
+    output_dir: Path,
+    filename: str = None,
+    mid: str = None,
+    suffix: str = None,
+    annotations=None,
+    create_report: bool = True,
+    validate: bool = True,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
 ):
-    """ Create SBML model from module information.
+    """Create SBML model from module information.
 
     This is the entry point for creating models.
     The model information is provided as a list of importable python modules.
@@ -103,7 +111,16 @@ def create_model(
     :return:
     """
     # preprocess
-    logger.info(bcolors.OKBLUE + '\n\n' + '-' * 120 + '\n' + str(modules) + '\n' + '-' * 120 + bcolors.ENDC)
+    logger.info(
+        bcolors.OKBLUE
+        + "\n\n"
+        + "-" * 120
+        + "\n"
+        + str(modules)
+        + "\n"
+        + "-" * 120
+        + bcolors.ENDC
+    )
     model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
@@ -127,29 +144,35 @@ def create_model(
             mid = core_model.model.getId()
         if suffix is None:
             suffix = ""
-        filename = f'{mid}{suffix}.xml'
+        filename = f"{mid}{suffix}.xml"
 
     # write sbml
     sbml_path = output_dir / filename
     if core_model.doc is None:
         core_model.create_sbml()
-    write_sbml(doc=core_model.doc, filepath=sbml_path, validate=validate,
-               log_errors=log_errors, units_consistency=units_consistency, modeling_practice=modeling_practice,
-               internal_consistency=internal_consistency)
+    write_sbml(
+        doc=core_model.doc,
+        filepath=sbml_path,
+        validate=validate,
+        log_errors=log_errors,
+        units_consistency=units_consistency,
+        modeling_practice=modeling_practice,
+        internal_consistency=internal_consistency,
+    )
 
     # annotate
     if annotations is not None:
         # overwrite the normal file
         annotator.annotate_sbml(
-            source=sbml_path,
-            annotations_path=annotations,
-            filepath=sbml_path
+            source=sbml_path, annotations_path=annotations, filepath=sbml_path
         )
 
     # create report
     if create_report:
         # file is already validated, no validation on report needed
-        sbmlreport.create_report(sbml_path=sbml_path, output_dir=output_dir, validate=False)
+        sbmlreport.create_report(
+            sbml_path=sbml_path, output_dir=output_dir, validate=False
+        )
 
     return [model_dict, core_model, sbml_path]
 
@@ -206,6 +229,7 @@ class Preprocess:
         """
         # dynamically import module
         import importlib
+
         module = importlib.import_module(module_name, package=package)
         # reload quired so that module is evaluated at time of creation
         importlib.reload(module)
@@ -229,37 +253,34 @@ class CoreModel(object):
     Class creates the SBML models from given dictionaries and lists
     of information.
     """
+
     # keys of possible information in the modules.
     _keys = {
-        'packages': list,
-        'mid': None,
-        'version': None,
-        'notes': None,
-        'creators': list,
-        'model_units': None,
-        'main_units': None,
-
-        'externalModelDefinitions': list,
-        'submodels': list,
-
-        'units': list,
-        'functions': list,
-        'compartments': list,
-        'species': list,
-        'parameters': list,
-        'assignments': list,
-        'rules': list,
-        'rate_rules': list,
-        'reactions': list,
-        'events': list,
-        'constraints': list,
-        'ports': list,
-        'replacedElements': list,
-        'deletions': list,
-
-        'objectives': list,
-
-        'layouts': list,
+        "packages": list,
+        "mid": None,
+        "version": None,
+        "notes": None,
+        "creators": list,
+        "model_units": None,
+        "main_units": None,
+        "externalModelDefinitions": list,
+        "submodels": list,
+        "units": list,
+        "functions": list,
+        "compartments": list,
+        "species": list,
+        "parameters": list,
+        "assignments": list,
+        "rules": list,
+        "rate_rules": list,
+        "reactions": list,
+        "events": list,
+        "constraints": list,
+        "ports": list,
+        "replacedElements": list,
+        "deletions": list,
+        "objectives": list,
+        "layouts": list,
     }
 
     def __init__(self):
@@ -281,20 +302,20 @@ class CoreModel(object):
         self.doc = None  # SBMLDocument
         self.model = None  # SBMLModel
 
-        if 'main_units' in CoreModel._keys and CoreModel._keys['main_units']:
+        if "main_units" in CoreModel._keys and CoreModel._keys["main_units"]:
             logger.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property
     def model_id(self) -> str:
         """Model id with version string"""
         if self.version:
-            return f'{self.mid}_{self.version}'
+            return f"{self.mid}_{self.version}"
         else:
             return self.mid
 
     @staticmethod
     def from_dict(model_dict: Dict):
-        """ Creates the CoreModel instance from given dictionary.
+        """Creates the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
 
@@ -311,38 +332,39 @@ class CoreModel(object):
             if key in CoreModel._keys:
                 setattr(m, key, value)
             else:
-                logger.warning(f"Unsupported key for CoreModel: '{key}'. "
-                               f"Supported keys are: {CoreModel._keys}")
+                logger.warning(
+                    f"Unsupported key for CoreModel: '{key}'. "
+                    f"Supported keys are: {CoreModel._keys}"
+                )
         return m
 
     def get_info(self):
-        """ Return information of model dictionary.
+        """Return information of model dictionary.
 
         :return:
         :rtype:
         """
         # FIXME: return string, which can be logged or printed
-        info = '\n' + '-' * 80 + '\n'
-        info += '{}'.format(self) + '\n'
-        info += '-' * 80 + '\n'
+        info = "\n" + "-" * 80 + "\n"
+        info += "{}".format(self) + "\n"
+        info += "-" * 80 + "\n"
         for key in sorted(CoreModel._keys):
             # string representation
             obj_str = getattr(self, key)
             if isinstance(obj_str, (list, tuple)):
                 # probably tuple or list
                 obj_str = [str(obj) for obj in obj_str]
-            info += '{:<15}: {}\n'.format(key, obj_str)
+            info += "{:<15}: {}\n".format(key, obj_str)
         return info
 
     def info(self):
         """ Print information string. """
         print(self.get_info())
 
-    def create_sbml(self,
-                    sbml_level: int = SBML_LEVEL,
-                    sbml_version: int=SBML_VERSION
-                    ) -> libsbml.SBMLDocument:
-        """ Create the SBML model
+    def create_sbml(
+        self, sbml_level: int = SBML_LEVEL, sbml_version: int = SBML_VERSION
+    ) -> libsbml.SBMLDocument:
+        """Create the SBML model
 
         :return:
         :rtype:
@@ -355,12 +377,14 @@ class CoreModel(object):
 
         # add all the packages
         # FIXME: only add packages which are required for the model
-        supported_packages = {'fbc', 'comp', 'distrib'}
+        supported_packages = {"fbc", "comp", "distrib"}
         sbmlns.addPackageNamespace("comp", 1)
         for package in self.packages:
             if package not in supported_packages:
-                raise ValueError(f"Supported packages are: '{supported_packages}', "
-                                 f"but package '{package}' found.")
+                raise ValueError(
+                    f"Supported packages are: '{supported_packages}', "
+                    f"but package '{package}' found."
+                )
             if package == "fbc":
                 sbmlns.addPackageNamespace("fbc", 2)
             if package == "distrib":
@@ -378,41 +402,41 @@ class CoreModel(object):
 
         # name & id
         if self.model_id:
-            check(self.model.setId(self.model_id), 'set id')
-            check(self.model.setName(self.model_id), 'set name')
+            check(self.model.setId(self.model_id), "set id")
+            check(self.model.setName(self.model_id), "set name")
         else:
             logger.warning("Model id 'mid' should be set on model")
         # notes
-        if hasattr(self, 'notes') and self.notes is not None:
+        if hasattr(self, "notes") and self.notes is not None:
             factory.set_notes(self.model, self.notes)
         # history
-        if hasattr(self, 'creators'):
+        if hasattr(self, "creators"):
             history.set_model_history(self.model, self.creators)
 
         # model units
-        if hasattr(self, 'model_units'):
+        if hasattr(self, "model_units"):
             factory.set_model_units(self.model, self.model_units)
 
         # lists ofs
         for attr in [
-            'externalModelDefinitions',
-            'submodels',
-            'units',
-            'functions',
-            'parameters',
-            'compartments',
-            'species',
-            'assignments',
-            'rules',
-            'rate_rules',
-            'reactions',
-            'events',
-            'constraints',
-            'ports',
-            'replacedElements',
-            'deletions',
-            'objectives',
-            'layouts'
+            "externalModelDefinitions",
+            "submodels",
+            "units",
+            "functions",
+            "parameters",
+            "compartments",
+            "species",
+            "assignments",
+            "rules",
+            "rate_rules",
+            "reactions",
+            "events",
+            "constraints",
+            "ports",
+            "replacedElements",
+            "deletions",
+            "objectives",
+            "layouts",
         ]:
             # create the respective objects
             if hasattr(self, attr):
