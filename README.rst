@@ -1,6 +1,9 @@
-.. raw:: html
+.. image:: ./docs_builder/images/sbmlutils-logo-small.png
+   :align: left
+   :alt: sbmlutils logo
 
-    <h1><img src="./docs_builder/images/sbmlutils-logo-small.png" height="40" alt"=sbmlutils logo"/>sbmlutils: python utilities for SBML</h1>  
+sbmlutils: python utilities for SBML
+====================================
 
 .. image:: https://img.shields.io/pypi/v/sbmlutils.svg
    :target: https://pypi.org/project/sbmlutils/
@@ -34,10 +37,12 @@
    :target: https://github.com/ambv/black
    :alt: Black
 
-.. raw:: html
+**Matthias König**
 
-    <b><a href="https://orcid.org/0000-0003-1725-179X" title="https://orcid.org/0000-0003-1725-179X"><img src="./docs_builder/images/orcid.png" height="15"/></a> Matthias König</b>
-
+.. image:: ./docs_builder/images/orcid-15.png
+   :align: left
+   :alt: orcid
+   :target: https://orcid.org/0000-0003-1725-179X
 
 ``sbmlutils`` is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
