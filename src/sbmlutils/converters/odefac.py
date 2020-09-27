@@ -31,27 +31,28 @@ from sbmlutils.converters.mathml import evaluableMathML
 
 # template location (for language templates)
 # FIXME: swich to pathlib
-TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
 
 
 class SBML2ODE:
-    """ SBML to ODE converter.
+    """SBML to ODE converter.
 
     Writes out python or R ODE files which can be solved with standard
     integrators like scipy odeint or R desolve.
     """
+
     def __init__(self, doc):
-        """ Init with SBMLDocument.
+        """Init with SBMLDocument.
 
         :param doc: SBMLdocument
         """
         self.doc = doc  # type: libsbml.SBMLDocument
 
-        self.x0 = {}        # initial amounts/concentrations
-        self.a_ast = {}     # initial assignments
-        self.dx_ast = {}    # state variables x (odes)
-        self.p = {}         # parameters p (constants)
-        self.y_ast = {}     # assigned variables
+        self.x0 = {}  # initial amounts/concentrations
+        self.a_ast = {}  # initial assignments
+        self.dx_ast = {}  # state variables x (odes)
+        self.p = {}  # parameters p (constants)
+        self.y_ast = {}  # assigned variables
         self.yids_ordered = None  # ordered y values in order of math dependencies
 
         self._create_odes()
@@ -62,7 +63,7 @@ class SBML2ODE:
         return cls(doc)
 
     def _create_odes(self):
-        """ Creates information of ODE system from SBMLDocument.
+        """Creates information of ODE system from SBMLDocument.
 
         :return:
         """
@@ -76,7 +77,7 @@ class SBML2ODE:
             if parameter.getConstant():
                 value = parameter.getValue()
             else:
-                value = ''
+                value = ""
             self.p[pid] = value
 
         # --------------
@@ -88,7 +89,7 @@ class SBML2ODE:
             if compartment.getConstant():
                 value = compartment.getSize()
             else:
-                value = ''
+                value = ""
             self.p[cid] = value
 
         # --------------
@@ -96,10 +97,12 @@ class SBML2ODE:
         # --------------
         for species in model.getListOfSpecies():  # type: libsbml.Species
             sid = species.getId()
-            self.dx_ast[sid] = ''
+            self.dx_ast[sid] = ""
             # initial condition
             value = None
-            compartment = model.getCompartment(species.getCompartment())  # type: libsbml.Compartment
+            compartment = model.getCompartment(
+                species.getCompartment()
+            )  # type: libsbml.Compartment
             if species.isSetInitialAmount():
                 value = species.getInitialAmount()
                 if not species.getHasOnlySubstanceUnits():
@@ -120,7 +123,9 @@ class SBML2ODE:
         # types of objects whose identifiers are permitted as the values of InitialAssignment symbol attributes
         # are Compartment, Species, SpeciesReference and (global) Parameter objects in the model.
 
-        for assignment in model.getListOfInitialAssignments():  # type: libsbml.InitialAssignment
+        for (
+            assignment
+        ) in model.getListOfInitialAssignments():  # type: libsbml.InitialAssignment
             variable = assignment.getSymbol()
             astnode = assignment.getMath()
             self.x0[variable] = astnode
@@ -177,10 +182,18 @@ class SBML2ODE:
             self.y_ast[rid] = astnode
 
             # create astnode for dx_ast
-            for reactant in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
-                self._add_reaction_formula(model, rid=rid, species_ref=reactant, sign="-")
-            for product in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
-                self._add_reaction_formula(model, rid=rid, species_ref=product, sign="+")
+            for (
+                reactant
+            ) in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
+                self._add_reaction_formula(
+                    model, rid=rid, species_ref=reactant, sign="-"
+                )
+            for (
+                product
+            ) in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
+                self._add_reaction_formula(
+                    model, rid=rid, species_ref=product, sign="+"
+                )
 
         # create astnodes for the formula strings
         for key, astnode in self.dx_ast.items():
@@ -192,7 +205,7 @@ class SBML2ODE:
         self.yids_ordered = self._ordered_yids()
 
     def _add_reaction_formula(self, model, rid, species_ref, sign):
-        """ Adds part of reaction formula to ODEs for species.
+        """Adds part of reaction formula to ODEs for species.
 
         :param rid:
         :param species_ref:
@@ -205,20 +218,20 @@ class SBML2ODE:
         vid = species.getCompartment()
 
         # stoichiometry prefix
-        if abs(stoichiometry - 1.0) < 1E-10:
-            stoichiometry = ''
+        if abs(stoichiometry - 1.0) < 1e-10:
+            stoichiometry = ""
         else:
-            stoichiometry = '{}*'.format(stoichiometry)
+            stoichiometry = "{}*".format(stoichiometry)
 
         # check if only substance units
         if species.getHasOnlySubstanceUnits():
-            self.dx_ast[sid] += ' {}{}{}'.format(sign, stoichiometry, rid)
+            self.dx_ast[sid] += " {}{}{}".format(sign, stoichiometry, rid)
         else:
-            self.dx_ast[sid] += ' {}{}{}/{}'.format(sign, stoichiometry, rid, vid)
+            self.dx_ast[sid] += " {}{}{}/{}".format(sign, stoichiometry, rid, vid)
 
     @staticmethod
     def dependency_graph(y, filtered_ids):
-        """ Creates dependency graph from given dictionary.
+        """Creates dependency graph from given dictionary.
 
         :param y: { variable: astnode } dictionary
         :param filtered_ids: ids which are defined elsewhere and not part of dependency tree
@@ -226,7 +239,7 @@ class SBML2ODE:
         """
 
         def add_dependency_edges(g, variable, astnode):
-            """ Add the dependency edges to the graph.
+            """Add the dependency edges to the graph.
 
             :param g:
             :param astnode:
@@ -254,7 +267,7 @@ class SBML2ODE:
         return g
 
     def _ordered_yids(self):
-        """ Get the order of the vids from the assignment rules.
+        """Get the order of the vids from the assignment rules.
 
         :param model:
         :param filtered_ids
@@ -297,7 +310,7 @@ class SBML2ODE:
         return yids
 
     def to_python(self, py_file):
-        """ Write ODEs to python.
+        """Write ODEs to python.
 
         :param py_file:
         :return:
@@ -307,7 +320,7 @@ class SBML2ODE:
             f.write(content)
 
     def to_R(self, r_file):
-        """ Write ODEs to R.
+        """Write ODEs to R.
 
         :param py_file:
         :return:
@@ -316,17 +329,19 @@ class SBML2ODE:
         with open(r_file, "w") as f:
             f.write(content)
 
-    def _render_template(self, template='template.py', index_offset=0):
-        """ Renders given language template.
+    def _render_template(self, template="template.py", index_offset=0):
+        """Renders given language template.
 
         :param template:
         :return:
         """
         # template environment
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-                                 extensions=['jinja2.ext.autoescape'],
-                                 trim_blocks=True,
-                                 lstrip_blocks=True)
+        env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
+            extensions=["jinja2.ext.autoescape"],
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
         template = env.get_template(template)
 
         # indices for replacements
@@ -334,7 +349,7 @@ class SBML2ODE:
 
         # create formulas
         def to_formula(ast_dict, replace_symbols=True):
-            """ Replaces all symbols in given astnode dictionary.
+            """Replaces all symbols in given astnode dictionary.
 
             :param ast_dict:
             :return:
@@ -353,11 +368,11 @@ class SBML2ODE:
 
                     # replace parameters (p)
                     for key_rep, index in pids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('p__{}__'.format(index))
+                        ast_rep = libsbml.parseL3Formula("p__{}__".format(index))
                         astnode.replaceArgument(key_rep, ast_rep)
                     # replace states (x)
                     for key_rep, index in dxids_idx.items():
-                        ast_rep = libsbml.parseL3Formula('x__{}__'.format(index))
+                        ast_rep = libsbml.parseL3Formula("x__{}__".format(index))
                         astnode.replaceArgument(key_rep, ast_rep)
 
                 formula = evaluableMathML(astnode)
@@ -379,7 +394,7 @@ class SBML2ODE:
         dx_sym = to_formula(self.dx_ast, replace_symbols=False)
 
         def flat_formulas():
-            """ Creates a flat formula by full replacement.
+            """Creates a flat formula by full replacement.
             Uses the order of the dependencies.
 
             :param ast_dict:
@@ -418,20 +433,19 @@ class SBML2ODE:
 
         # context
         c = {
-            'model': self.doc.getModel(),
-            'xids': sorted(self.dx_ast.keys()),
-            'pids': sorted(self.p.keys()),
-            'yids': self.yids_ordered,
+            "model": self.doc.getModel(),
+            "xids": sorted(self.dx_ast.keys()),
+            "pids": sorted(self.p.keys()),
+            "yids": self.yids_ordered,
             # 'rids': sorted(self.r.keys()),
-
-            'x0': self.x0,
-            'p': self.p,
-            'y': y,
-            'dx': dx,
-            'y_sym': y_sym,
-            'dx_sym': dx_sym,
-            'y_flat': y_flat,
-            'dx_flat': dx_flat
+            "x0": self.x0,
+            "p": self.p,
+            "y": y,
+            "dx": dx,
+            "y_sym": y_sym,
+            "dx_sym": dx_sym,
+            "y_flat": y_flat,
+            "dx_flat": dx_flat,
         }
         return template.render(c)
 

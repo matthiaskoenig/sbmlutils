@@ -54,7 +54,7 @@ def piecewise(*args):
         return args[Nargs - 1]
 
 
-'''
+"""
 def pow(x, y):
     return x**y
 
@@ -113,7 +113,7 @@ def f_or(*args):
         if a != 0:
             return 1
     return 0
-'''
+"""
 
 
 def evaluableMathML(astnode, variables={}, array=False):
@@ -131,15 +131,15 @@ def evaluableMathML(astnode, variables={}, array=False):
     formula = libsbml.formulaToL3StringWithSettings(astnode, settings)
 
     # <replacements>
-    formula = formula.replace("&&", 'and')
-    formula = formula.replace("||", 'or')
-    formula = formula.replace("^", '**')
+    formula = formula.replace("&&", "and")
+    formula = formula.replace("||", "or")
+    formula = formula.replace("^", "**")
 
     return formula
 
 
 def evaluateMathML(astnode, variables={}, array=False):
-    """ Evaluate MathML string with given set of variable and parameter values.
+    """Evaluate MathML string with given set of variable and parameter values.
 
     :param astnode: astnode of MathML string
     :type astnode: libsbml.ASTNode
@@ -195,6 +195,5 @@ if __name__ == "__main__":
     astnode = libsbml.readMathMLFromString(mathmlStr)
 
     y = 5
-    res = evaluateMathML(astnode,
-                         variables={'x': "y"})
-    print('Result:', res)
+    res = evaluateMathML(astnode, variables={"x": "y"})
+    print("Result:", res)

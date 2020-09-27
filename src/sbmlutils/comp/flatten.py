@@ -16,8 +16,10 @@ from sbmlutils.validation import validate_doc
 logger = logging.getLogger(__name__)
 
 
-def flatten_sbml(sbml_path: Path, filepath=None, leave_ports=True) -> libsbml.SBMLDocument:
-    """ Flatten given SBML file.
+def flatten_sbml(
+    sbml_path: Path, filepath=None, leave_ports=True
+) -> libsbml.SBMLDocument:
+    """Flatten given SBML file.
 
     :param sbml_path: Comp SBML Path
     :param filepath: SBML file to write to
@@ -43,9 +45,10 @@ def flatten_sbml(sbml_path: Path, filepath=None, leave_ports=True) -> libsbml.SB
     return flat_doc
 
 
-def flatten_sbml_doc(doc: libsbml.SBMLDocument, output_path: Path = None,
-                     leave_ports: bool = True) -> libsbml.SBMLDocument:
-    """ Flatten SBMLDocument.
+def flatten_sbml_doc(
+    doc: libsbml.SBMLDocument, output_path: Path = None, leave_ports: bool = True
+) -> libsbml.SBMLDocument:
+    """Flatten SBMLDocument.
 
     Validation should be performed before the flattening and is not part
     of the flattening routine.
@@ -77,15 +80,15 @@ def flatten_sbml_doc(doc: libsbml.SBMLDocument, output_path: Path = None,
     # flatten
     current = time.perf_counter()
     result = doc.convert(props)
-    flattened_status = (result == libsbml.LIBSBML_OPERATION_SUCCESS)
+    flattened_status = result == libsbml.LIBSBML_OPERATION_SUCCESS
 
     lines = [
-        '',
-        '-' * 120,
+        "",
+        "-" * 120,
         str(doc),
         "{:<25}: {}".format("flattened", str(flattened_status).upper()),
         "{:<25}: {:.3f}".format("flatten time (ms)", time.perf_counter() - current),
-        '-' * 120,
+        "-" * 120,
     ]
     info = bcolors.BOLD + "\n".join(lines) + bcolors.ENDC
 
@@ -93,7 +96,9 @@ def flatten_sbml_doc(doc: libsbml.SBMLDocument, output_path: Path = None,
         logger.info(bcolors.OKGREEN + info + bcolors.ENDC)
     else:
         logger.error(bcolors.FAIL + info + bcolors.ENDC)
-        raise ValueError("SBML could not be flattend due to errors in the SBMLDocument.")
+        raise ValueError(
+            "SBML could not be flattend due to errors in the SBMLDocument."
+        )
 
     if output_path is not None:
         write_sbml(doc, filepath=output_path)
@@ -102,8 +107,10 @@ def flatten_sbml_doc(doc: libsbml.SBMLDocument, output_path: Path = None,
     return doc
 
 
-def flatten_external_model_definitions(doc: libsbml.SBMLDocument, validate: bool = False) -> libsbml.SBMLDocument:
-    """ Converts all ExternalModelDefinitions to ModelDefinitions.
+def flatten_external_model_definitions(
+    doc: libsbml.SBMLDocument, validate: bool = False
+) -> libsbml.SBMLDocument:
+    """Converts all ExternalModelDefinitions to ModelDefinitions.
 
     I.e. the definition of models in external files are read
     and directly included in the top model. The resulting
@@ -116,10 +123,12 @@ def flatten_external_model_definitions(doc: libsbml.SBMLDocument, validate: bool
     :param validate: validation flag
     :return: SBMLDocument with ExternalModelDefinitions replaced
     """
-    logger.debug('* flattenExternalModelDefinitions')
+    logger.debug("* flattenExternalModelDefinitions")
 
     # FIXME: handle multiple levels of hierarchies. Recursively to handle the ExternalModelDefinitions of submodels
-    logger.warning("flattenExternalModelDefinitions is experimental and does not work recursively!")
+    logger.warning(
+        "flattenExternalModelDefinitions is experimental and does not work recursively!"
+    )
 
     comp_doc = doc.getPlugin("comp")
     if comp_doc is None:

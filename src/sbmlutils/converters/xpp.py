@@ -67,19 +67,19 @@ XPP_PAR = "parameter"
 XPP_NUM = "number"
 XPP_TAB = "table"
 
-XPP_COMMENT_CHARS = ['#', '%', '"']
-XPP_CONTINUATION_CHAR = '\\'
-XPP_SETTING_CHAR = '@'
-XPP_END_WORD = 'done'
+XPP_COMMENT_CHARS = ["#", "%", '"']
+XPP_CONTINUATION_CHAR = "\\"
+XPP_SETTING_CHAR = "@"
+XPP_END_WORD = "done"
 XPP_TYPE_CHARS = {
-    XPP_PAR: 'p',
-    XPP_AUX: 'a',
-    XPP_WIE: 'w',
-    XPP_INIT: 'i',
-    XPP_NUM: 'n',
+    XPP_PAR: "p",
+    XPP_AUX: "a",
+    XPP_WIE: "w",
+    XPP_INIT: "i",
+    XPP_NUM: "n",
     # not supported
-    XPP_GLO: 'g',
-    XPP_TAB: 't',
+    XPP_GLO: "g",
+    XPP_TAB: "t",
 }
 
 NOTES = """
@@ -107,7 +107,9 @@ NOTES = """
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""".format(__version__, '{}')
+""".format(
+    __version__, "{}"
+)
 
 
 def escape_string(info):
@@ -118,7 +120,7 @@ def escape_string(info):
 
 
 def parse_keyword(xpp_id):
-    """ Parses the keyword and returns the xpp keyword type.
+    """Parses the keyword and returns the xpp keyword type.
     :param xpp_id:
     :return:
     """
@@ -131,7 +133,7 @@ def parse_keyword(xpp_id):
 
 
 def parts_from_expression(expression):
-    """ Returns the parts of given expression.
+    """Returns the parts of given expression.
     The parts can be whitespace or comma separated.
 
     V1=-0.75  R1=0.26  CA1=0.1 H1=0.1
@@ -147,35 +149,40 @@ def parts_from_expression(expression):
     # print('groups', groups)
     # return groups
 
-    tokens = expression.split('=')
+    tokens = expression.split("=")
     if len(tokens) == 2:
         return [expression]
     else:
         # get the individual parts, i.e. all the assignments
         # FIXME: bad hack which will break with function definitions
-        expression = expression.replace(' ', ',')
-        expression = expression.replace('\t', ',')
-        parts = [t.strip() for t in expression.split(',')]
+        expression = expression.replace(" ", ",")
+        expression = expression.replace("\t", ",")
+        parts = [t.strip() for t in expression.split(",")]
         parts = [p for p in parts if len(p) > 0]
     return parts
 
 
 def sid_value_from_part(part):
-    """ Get sid, value tuple from given part of expression.
+    """Get sid, value tuple from given part of expression.
 
     :param part:
     :return:
     """
-    sid, value = [t.strip() for t in part.split('=')]
+    sid, value = [t.strip() for t in part.split("=")]
     return sid, value
 
 
 ##################################
 # Converter
 ##################################
-def xpp2sbml(xpp_file: Path, sbml_file: Path,
-             force_lower: bool=False, validate: bool = True, debug: bool=False):
-    """ Reads given xpp_file and converts to SBML file.
+def xpp2sbml(
+    xpp_file: Path,
+    sbml_file: Path,
+    force_lower: bool = False,
+    validate: bool = True,
+    debug: bool = False,
+):
+    """Reads given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
@@ -183,9 +190,9 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
     :param validate: perform validation on the generated SBML file
     :return:
     """
-    print('-' * 80)
-    print('xpp2sbml: ', xpp_file, '->', sbml_file)
-    print('-' * 80)
+    print("-" * 80)
+    print("xpp2sbml: ", xpp_file, "->", sbml_file)
+    print("-" * 80)
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
 
@@ -195,12 +202,16 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
     assignment_rules = []
     functions = [
         # definition of min and max
-        fac.Function('max', 'lambda(x,y, piecewise(x,gt(x,y),y) )', name='minimum'),
-        fac.Function('min', 'lambda(x,y, piecewise(x,lt(x,y),y) )', name='maximum'),
+        fac.Function("max", "lambda(x,y, piecewise(x,gt(x,y),y) )", name="minimum"),
+        fac.Function("min", "lambda(x,y, piecewise(x,lt(x,y),y) )", name="maximum"),
         # heav (heavyside)
-        fac.Function('heav', 'lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0), 0))', name='heavyside'),
+        fac.Function(
+            "heav",
+            "lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0), 0))",
+            name="heavyside",
+        ),
         # mod (modulo)
-        fac.Function('mod', 'lambda(x,y, x % y)', name='modulo'),
+        fac.Function("mod", "lambda(x,y, x % y)", name="modulo"),
     ]
     function_definitions = []
     events = []
@@ -212,17 +223,23 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
             for i in range(len(function_definitions)):
                 if i != k:
                     # replace i with k
-                    formula = function_definitions[i]['formula']
+                    formula = function_definitions[i]["formula"]
                     new_formula = xpp_helpers.replace_formula(
                         formula,
-                        fid=function_definitions[k]['fid'],
-                        old_args=function_definitions[k]['old_args'],
-                        new_args=function_definitions[k]['new_args']
+                        fid=function_definitions[k]["fid"],
+                        old_args=function_definitions[k]["old_args"],
+                        new_args=function_definitions[k]["new_args"],
                     )
                     if new_formula != formula:
-                        function_definitions[i]['formula'] = new_formula
-                        function_definitions[i]['new_args'] = list(sorted(set(function_definitions[i]['new_args'] +
-                                                                              function_definitions[k]['new_args'])))
+                        function_definitions[i]["formula"] = new_formula
+                        function_definitions[i]["new_args"] = list(
+                            sorted(
+                                set(
+                                    function_definitions[i]["new_args"]
+                                    + function_definitions[k]["new_args"]
+                                )
+                            )
+                        )
                         changes = True
 
         return changes
@@ -230,24 +247,33 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
     def create_initial_assignment(sid, value):
         """ Helper for creating initial assignments """
         # check if valid identifier
-        if '(' in sid:
-            warnings.warn("sid is not valid: {}. Initial assignment is not generated".format(sid))
+        if "(" in sid:
+            warnings.warn(
+                "sid is not valid: {}. Initial assignment is not generated".format(sid)
+            )
             return
 
         try:
             f_value = float(value)
             parameters.append(
-                fac.Parameter(sid=sid, value=f_value, name="{} = {}".format(sid, value), constant=False)
+                fac.Parameter(
+                    sid=sid,
+                    value=f_value,
+                    name="{} = {}".format(sid, value),
+                    constant=False,
+                )
             )
         except ValueError:
-            '''
+            """
             Initial data are optional, XPP sets them to zero by default (many xpp model don't write the p(0)=0.
-            '''
+            """
             parameters.append(
                 fac.Parameter(sid=sid, value=0.0, name=sid, constant=False)
             )
             initial_assignments.append(
-                fac.InitialAssignment(sid=sid, value=value, name="{} = {}".format(sid, value))
+                fac.InitialAssignment(
+                    sid=sid, value=value, name="{} = {}".format(sid, value)
+                )
             )
 
     ###########################################################################
@@ -268,11 +294,11 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
                 line = line.lower()
 
             # clean up the ends
-            line = line.rstrip('\n').strip()
+            line = line.rstrip("\n").strip()
             # handle douple continuation characters in some models
-            line = line.replace('\\\\', '\\')
+            line = line.replace("\\\\", "\\")
             # handle semicolons
-            line = line.rstrip(';')
+            line = line.rstrip(";")
 
             # join continuation
             if old_line:
@@ -297,60 +323,68 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
                 continue
 
             # handle the power function
-            line = line.replace('**', '^')
+            line = line.replace("**", "^")
 
             # handle if(...)then(...)else()
-            pattern_ite = re.compile(r'if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)')
+            pattern_ite = re.compile(
+                r"if\s*\((.*)\)\s*then\s*\((.*)\)\s*else\s*\((.*)\)"
+            )
             pattern_ite_sub = re.compile(r"if\s*\(.*\)\s*then\s*\(.*\)\s*else\s*\(.*\)")
             groups = re.findall(pattern_ite, line)
             for group in groups:
                 condition = group[0]
                 assignment = group[1]
                 otherwise = group[2]
-                f_piecewise = "piecewise({}, {}, {})".format(assignment, condition, otherwise)
+                f_piecewise = "piecewise({}, {}, {})".format(
+                    assignment, condition, otherwise
+                )
                 line = re.sub(pattern_ite_sub, f_piecewise, line)
 
             ################################
             # Function definitions
             ################################
-            ''' Functions are defined in xpp via fid(arguments) = formula
+            """ Functions are defined in xpp via fid(arguments) = formula
             f(x,y) = x^2/(x^2+y^2)
             They can have up to 9 arguments.
             The difference to SBML functions is that xpp functions have access to the global parameter values
-            '''
-            f_pattern = re.compile(r'(.*)\s*\((.*)\)\s*=\s*(.*)')
+            """
+            f_pattern = re.compile(r"(.*)\s*\((.*)\)\s*=\s*(.*)")
             groups = re.findall(f_pattern, line)
             if groups:
                 # function definitions found
                 fid, args, formula = groups[0]
                 # handles the initial assignments which look like function definitions
-                if args == '0':
+                if args == "0":
                     parsed_lines.append(line)
                     continue
 
                 # necessary to find the additional arguments from the ast_node
                 ast = libsbml.parseL3Formula(formula)
                 names = set(xpp_helpers.find_names_in_ast(ast))
-                old_args = [t.strip() for t in args.split(',')]
+                old_args = [t.strip() for t in args.split(",")]
                 new_args = [a for a in names if a not in old_args]
 
                 # handle special functions
-                if fid == 'power':
-                    warnings.warn("power function cannot be added to model, rename function.")
+                if fid == "power":
+                    warnings.warn(
+                        "power function cannot be added to model, rename function."
+                    )
                 else:
                     # store functions with additional arguments
                     function_definitions.append(
-                        {'fid': fid,
-                         'old_args': old_args,
-                         'new_args': new_args,
-                         'formula': formula}
+                        {
+                            "fid": fid,
+                            "old_args": old_args,
+                            "new_args": new_args,
+                            "formula": formula,
+                        }
                     )
                 # don't append line, function definition has been handeled
                 continue
 
             parsed_lines.append(line)
     if debug:
-        print('\n\nFUNCTION_DEFINITIONS')
+        print("\n\nFUNCTION_DEFINITIONS")
         pprint(function_definitions)
 
     # functions can use functions so this also must be replaced
@@ -360,50 +394,52 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
 
     # clean the new arguments
     for fdata in function_definitions:
-        fdata['new_args'] = list(sorted(set(fdata['new_args'])))
+        fdata["new_args"] = list(sorted(set(fdata["new_args"])))
 
     if debug:
-        print('\nREPLACED FUNCTION_DEFINITIONS')
+        print("\nREPLACED FUNCTION_DEFINITIONS")
         pprint(function_definitions)
 
     # Create function definitions
     for k, fdata in enumerate(function_definitions):
-        fid = fdata['fid']
-        formula = fdata['formula']
-        arguments = ','.join(fdata['old_args'] + fdata['new_args'])
+        fid = fdata["fid"]
+        formula = fdata["formula"]
+        arguments = ",".join(fdata["old_args"] + fdata["new_args"])
         functions.append(
-            fac.Function(fid, 'lambda({}, {})'.format(arguments, formula)),
+            fac.Function(fid, "lambda({}, {})".format(arguments, formula)),
         )
 
     ###########################################################################
     # Second iteration
     ###########################################################################
     if debug:
-        print('\nPARSED LINES')
+        print("\nPARSED LINES")
         pprint(parsed_lines)
-        print('\n\n')
+        print("\n\n")
     for line in parsed_lines:
 
         # replace function definitions in lines
         new_line = line
         for fdata in function_definitions:
-            new_line = xpp_helpers.replace_formula(new_line, fdata['fid'], fdata['old_args'], fdata['new_args'])
+            new_line = xpp_helpers.replace_formula(
+                new_line, fdata["fid"], fdata["old_args"], fdata["new_args"]
+            )
 
         if new_line != line:
             if False:
-                print('\nReplaced FD', fdata['fid'], ':', new_line)
-                print('->', new_line, '\n')
+                print("\nReplaced FD", fdata["fid"], ":", new_line)
+                print("->", new_line, "\n")
             line = new_line
 
         if debug:
             # line after function replacements
-            print('*' * 3, line, '*' * 3)
+            print("*" * 3, line, "*" * 3)
 
         ################################
         # Start parsing the given line
         ################################
         # check for the equal sign
-        tokens = line.split('=')
+        tokens = line.split("=")
         tokens = [t.strip() for t in tokens]
 
         #######################
@@ -411,7 +447,7 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
         #######################
         # wiener
         if len(tokens) == 1:
-            items = [t.strip() for t in tokens[0].split(' ') if len(t) > 0]
+            items = [t.strip() for t in tokens[0].split(" ") if len(t) > 0]
             # keyword, value
             if len(items) == 2:
                 xid, sid = items[0], items[1]
@@ -419,14 +455,12 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
 
                 # wiener
                 if xpp_type == XPP_WIE:
-                    ''' Wiener parameters are normally distributed numbers with zero mean
+                    """Wiener parameters are normally distributed numbers with zero mean
                     and unit standard deviation. They are useful in stochastic simulations since
                     they automatically scale with change in the integration time step.
-                    Their names are listed separated by commas or spaces. '''
+                    Their names are listed separated by commas or spaces."""
                     # FIXME: this should be encoded using dist
-                    parameters.append(
-                        fac.Parameter(sid=sid, value=0.0)
-                    )
+                    parameters.append(fac.Parameter(sid=sid, value=0.0))
                     continue  # line finished
             else:
                 warnings.warn("XPP line not parsed: '{}'".format(line))
@@ -437,32 +471,34 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
         # parameter, aux, ode, initial assignments
         elif len(tokens) >= 2:
             left = tokens[0]
-            items = [t.strip() for t in left.split(' ') if len(t) > 0]
+            items = [t.strip() for t in left.split(" ") if len(t) > 0]
             # keyword based information, i.e 2 items are on the left of the first '=' sign
             if len(items) == 2:
                 xid = items[0]  # xpp keyword
                 xpp_type = parse_keyword(xid)
-                expression = ' '.join(items[1:]) + "=" + "=".join(tokens[1:])  # full expression after keyword
+                expression = (
+                    " ".join(items[1:]) + "=" + "=".join(tokens[1:])
+                )  # full expression after keyword
                 parts = parts_from_expression(expression)
                 if False:
-                    print('xid:', xid)
-                    print('expression:', expression)
-                    print('parts:', parts)
+                    print("xid:", xid)
+                    print("expression:", expression)
+                    print("parts:", parts)
 
                 # parameter & numbers
                 if xpp_type in [XPP_PAR, XPP_NUM]:
-                    ''' Parameter values are optional; if not they are set to zero.
+                    """Parameter values are optional; if not they are set to zero.
                     Number declarations are like parameter declarations, except that they cannot be
-                    changed within the program and do not appear in the parameter window. '''
+                    changed within the program and do not appear in the parameter window."""
                     for part in parts:
                         sid, value = sid_value_from_part(part)
                         create_initial_assignment(sid, value)
 
                 # aux
                 elif xpp_type == XPP_AUX:
-                    '''Auxiliary quantities are expressions that depend on all of your dynamic
+                    """Auxiliary quantities are expressions that depend on all of your dynamic
                     variables which you want to keep track of. Energy is one such example. They are declared
-                    like fixed quantities, but are prefaced by aux .'''
+                    like fixed quantities, but are prefaced by aux ."""
                     for part in parts:
                         sid, value = sid_value_from_part(part)
                         if sid == value:
@@ -481,10 +517,12 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
 
                 # table
                 elif xpp_type == XPP_TAB:
-                    ''' The Table declaration allows the user to specify a function of 1 variable in terms
+                    """The Table declaration allows the user to specify a function of 1 variable in terms
                     of a lookup table which uses linear interpolation. The name of the function follows the
-                    declaration and this is followed by (i) a filename (ii) or a function of "t".'''
-                    warnings.warn("XPP_TAB not supported: XPP line not parsed: '{}'".format(line))
+                    declaration and this is followed by (i) a filename (ii) or a function of "t"."""
+                    warnings.warn(
+                        "XPP_TAB not supported: XPP line not parsed: '{}'".format(line)
+                    )
 
                 else:
                     warnings.warn("XPP line not parsed: '{}'".format(line))
@@ -494,15 +532,17 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
                 xpp_type = parse_keyword(xid)
                 # global
                 if xpp_type == XPP_GLO:
-                    '''Global flags are expressions that signal events when they change sign, from less than
+                    """Global flags are expressions that signal events when they change sign, from less than
                     to greater than zero if sign=1 , greater than to less than if sign=-1 or either way
                     if sign=0. The condition should be delimited by braces {} The events are of the form
                     variable=expression, are delimited by braces, and separated by semicolons. When the
                     condition occurs all the variables in the event set are changed possibly discontinuously.
-                    '''
+                    """
 
                     # global sign {condition} {name1 = form1; ...}
-                    pattern_global = re.compile(r'([+,-]{0,1}\d{1})\s+\{{0,1}(.*)\{{0,1}\s+\{(.*)\}')
+                    pattern_global = re.compile(
+                        r"([+,-]{0,1}\d{1})\s+\{{0,1}(.*)\{{0,1}\s+\{(.*)\}"
+                    )
                     groups = re.findall(pattern_global, line)
                     if groups:
                         g = groups[0]
@@ -516,18 +556,24 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
                         elif sign == 0:
                             trigger = g[1] + ">= 0"
 
-                        assignment_parts = [t.strip() for t in g[2].split(';')]
+                        assignment_parts = [t.strip() for t in g[2].split(";")]
                         assignments = {}
                         for p in assignment_parts:
                             key, value = p.split("=")
                             assignments[key] = value
 
                         events.append(
-                            fac.Event(sid="e{}".format(len(events)), trigger=trigger, assignments=assignments)
+                            fac.Event(
+                                sid="e{}".format(len(events)),
+                                trigger=trigger,
+                                assignments=assignments,
+                            )
                         )
 
                     else:
-                        warnings.warn("global expression could not be parsed: {}".format(line))
+                        warnings.warn(
+                            "global expression could not be parsed: {}".format(line)
+                        )
                 else:
                     warnings.warn("XPP line not parsed: '{}'".format(line))
 
@@ -536,30 +582,28 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
                 right = tokens[1]
 
                 # init
-                if left.endswith('(0)'):
+                if left.endswith("(0)"):
                     sid, value = left[0:-3], right
                     create_initial_assignment(sid, value)
 
                 # difference equations
-                elif left.endswith('(t+1)'):
-                    warnings.warn("Difference Equations not supported: XPP line not parsed: '{}'".format(line))
+                elif left.endswith("(t+1)"):
+                    warnings.warn(
+                        "Difference Equations not supported: XPP line not parsed: '{}'".format(
+                            line
+                        )
+                    )
 
                 # ode
                 elif left.endswith("'"):
                     sid = left[0:-1]
-                    rate_rules.append(
-                        fac.RateRule(sid=sid, value=right)
-                    )
+                    rate_rules.append(fac.RateRule(sid=sid, value=right))
                 elif left.endswith("/dt"):
                     sid = left[1:-3]
-                    rate_rules.append(
-                        fac.RateRule(sid=sid, value=right)
-                    )
+                    rate_rules.append(fac.RateRule(sid=sid, value=right))
                 # assignment rules
                 else:
-                    assignment_rules.append(
-                        fac.AssignmentRule(sid=left, value=right)
-                    )
+                    assignment_rules.append(fac.AssignmentRule(sid=left, value=right))
             else:
                 warnings.warn("XPP line not parsed: '{}'".format(line))
 
@@ -569,18 +613,29 @@ def xpp2sbml(xpp_file: Path, sbml_file: Path,
     )
 
     # create SBML objects
-    objects = parameters + initial_assignments + functions + rate_rules + assignment_rules + events
+    objects = (
+        parameters
+        + initial_assignments
+        + functions
+        + rate_rules
+        + assignment_rules
+        + events
+    )
     fac.create_objects(model, obj_iter=objects, debug=False)
 
-    '''
+    """
     Parameter values are optional; if not they are set to zero in xpp.
     Many models do not encode the initial zeros.
-    '''
+    """
     for p in doc.getModel().getListOfParameters():
         if not p.isSetValue():
             p.setValue(0.0)
 
-    sbml.write_sbml(doc, sbml_file, validate=validate,
-                    program_name="sbmlutils", program_version=__version__,
-                    units_consistency=False,
-                    )
+    sbml.write_sbml(
+        doc,
+        sbml_file,
+        validate=validate,
+        program_name="sbmlutils",
+        program_version=__version__,
+        units_consistency=False,
+    )

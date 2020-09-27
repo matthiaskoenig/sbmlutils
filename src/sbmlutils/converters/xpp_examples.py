@@ -13,8 +13,8 @@ from sbmlutils.report import sbmlreport
 
 def example(model_id):
     # convert xpp to sbml
-    xpp_dir = './xpp_example'
-    out_dir = './xpp_example/results'
+    xpp_dir = "./xpp_example"
+    out_dir = "./xpp_example/results"
 
     xpp_file = os.path.join(xpp_dir, "{}.ode".format(model_id))
     sbml_file = os.path.join(out_dir, "{}.xml".format(model_id))
@@ -30,15 +30,14 @@ def example(model_id):
 
     for ax in axes:
         for sid in r.timeCourseSelections[1:]:
-            ax.plot(s['time'], s[sid], label=sid)
-    ax2.set_yscale('log')
+            ax.plot(s["time"], s[sid], label=sid)
+    ax2.set_yscale("log")
     for ax in axes:
-        ax.set_ylabel('Value [?]')
-        ax.set_xlabel('Time [?]')
+        ax.set_ylabel("Value [?]")
+        ax.set_xlabel("Time [?]")
         ax.legend()
 
-    fig.savefig(os.path.join(out_dir, "{}.png".format(model_id)),
-                bbox_inches='tight')
+    fig.savefig(os.path.join(out_dir, "{}.png".format(model_id)), bbox_inches="tight")
 
 
 if __name__ == "__main__":

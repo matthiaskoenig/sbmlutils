@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_ExternalModelDefinition(doc_comp, emd_id, source):
-    """ Create comp ExternalModelDefinition.
+    """Create comp ExternalModelDefinition.
 
     :param doc_comp: SBMLDocument comp plugin
     :param emd_id: id of external model definition
@@ -33,9 +33,12 @@ def create_ExternalModelDefinition(doc_comp, emd_id, source):
     return extdef
 
 
-def add_submodel_from_emd(model_comp: libsbml.CompModelPlugin, submodel_id,
-                          emd: libsbml.ExternalModelDefinition):
-    """ Adds submodel to the model from given ExternalModelDefinition.
+def add_submodel_from_emd(
+    model_comp: libsbml.CompModelPlugin,
+    submodel_id,
+    emd: libsbml.ExternalModelDefinition,
+):
+    """Adds submodel to the model from given ExternalModelDefinition.
 
     :param model_comp: Model comp plugin
     :param submodel_id:
@@ -84,11 +87,13 @@ def get_submodel_frameworks(doc):
 # ExternalModelDefinitions
 ##########################################################################
 class ExternalModelDefinition(factory.Sbase):
-
-    def __init__(self, sid, source, modelRef, md5=None, name=None, sboTerm=None, metaId=None):
-        """ Create an ExternalModelDefinitions.
-        """
-        super(ExternalModelDefinition, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self, sid, source, modelRef, md5=None, name=None, sboTerm=None, metaId=None
+    ):
+        """Create an ExternalModelDefinitions."""
+        super(ExternalModelDefinition, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
         self.source = source
         self.modelRef = modelRef
         self.md5 = md5
@@ -114,11 +119,20 @@ class ExternalModelDefinition(factory.Sbase):
 # Submodel
 ##########################################################################
 class Submodel(factory.Sbase):
-
-    def __init__(self, sid, modelRef=None, timeConversionFactor=None, extentConversionFactor=None, name=None, sboTerm=None, metaId=None):
-        """ Create an ExternalModelDefinitions.
-        """
-        super(Submodel, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self,
+        sid,
+        modelRef=None,
+        timeConversionFactor=None,
+        extentConversionFactor=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
+        """Create an ExternalModelDefinitions."""
+        super(Submodel, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
         self.modelRef = modelRef
         self.timeConversionFactor = timeConversionFactor
         self.extentConversionFactor = extentConversionFactor
@@ -144,11 +158,21 @@ class Submodel(factory.Sbase):
 # SBaseRef
 ##########################################################################
 class SbaseRef(factory.Sbase):
-
-    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None, metaId=None):
-        """ Create an SBaseRef.
-        """
-        super(SbaseRef, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self,
+        sid,
+        portRef=None,
+        idRef=None,
+        unitRef=None,
+        metaIdRef=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
+        """Create an SBaseRef."""
+        super(SbaseRef, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
         self.portRef = portRef
         self.idRef = idRef
         self.unitRef = unitRef
@@ -173,9 +197,21 @@ class SbaseRef(factory.Sbase):
 # ReplacedElements
 ##########################################################################
 class ReplacedElement(SbaseRef):
-
-    def __init__(self, sid, elementRef, submodelRef, deletion=None, conversionFactor=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None, name=None, sboTerm=None,
-                 metaId=None):
+    def __init__(
+        self,
+        sid,
+        elementRef,
+        submodelRef,
+        deletion=None,
+        conversionFactor=None,
+        portRef=None,
+        idRef=None,
+        unitRef=None,
+        metaIdRef=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
         """
 
         :param sid:
@@ -192,8 +228,16 @@ class ReplacedElement(SbaseRef):
         :param metaId:
         """
         """ Create a ReplacedElement. """
-        super(ReplacedElement, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
-                                              name=name, sboTerm=sboTerm, metaId=metaId)
+        super(ReplacedElement, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
         self.elementRef = elementRef
         self.submodelRef = submodelRef
         self.deletion = deletion
@@ -207,8 +251,11 @@ class ReplacedElement(SbaseRef):
             # fallback to units (only working if no name shadowing)
             e = model.getUnitDefinition(self.elementRef)
             if not e:
-                raise ValueError("Neither SBML element nor UnitDefinition found for elementRef: '{}' in '{}'".format(
-                    self.elementRef, self))
+                raise ValueError(
+                    "Neither SBML element nor UnitDefinition found for elementRef: '{}' in '{}'".format(
+                        self.elementRef, self
+                    )
+                )
 
         eplugin = e.getPlugin("comp")
         obj = eplugin.createReplacedElement()
@@ -229,15 +276,29 @@ class ReplacedElement(SbaseRef):
 # Deletions
 ##########################################################################
 class Deletion(SbaseRef):
-
-    def __init__(self, sid, submodelRef, portRef=None, idRef=None,
-                 unitRef=None, metaIdRef=None, name=None,
-                 sboTerm=None, metaId=None):
+    def __init__(
+        self,
+        sid,
+        submodelRef,
+        portRef=None,
+        idRef=None,
+        unitRef=None,
+        metaIdRef=None,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
         """ Create a Deletion. """
-        super(Deletion, self).__init__(sid=sid, portRef=portRef, idRef=idRef,
-                                       unitRef=unitRef, metaIdRef=metaIdRef,
-                                       name=name, sboTerm=sboTerm,
-                                       metaId=metaId)
+        super(Deletion, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
         self.submodelRef = submodelRef
 
     def create_sbml(self, model):
@@ -253,6 +314,7 @@ class Deletion(SbaseRef):
     def set_fields(self, obj):
         super(Deletion, self).set_fields(obj)
 
+
 ##########################################################################
 # Ports
 ##########################################################################
@@ -266,12 +328,29 @@ PORT_TYPE_OUTPUT = "output port"
 
 
 class Port(SbaseRef):
-
-    def __init__(self, sid, portRef=None, idRef=None, unitRef=None, metaIdRef=None, portType=PORT_TYPE_PORT, name=None, sboTerm=None, metaId=None):
-        """ Create a port.
-        """
-        super(Port, self).__init__(sid=sid, portRef=portRef, idRef=idRef, unitRef=unitRef, metaIdRef=metaIdRef,
-                                   name=name, sboTerm=sboTerm, metaId=metaId)
+    def __init__(
+        self,
+        sid,
+        portRef=None,
+        idRef=None,
+        unitRef=None,
+        metaIdRef=None,
+        portType=PORT_TYPE_PORT,
+        name=None,
+        sboTerm=None,
+        metaId=None,
+    ):
+        """Create a port."""
+        super(Port, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
         self.portType = portType
 
     def create_sbml(self, model):
@@ -297,9 +376,16 @@ class Port(SbaseRef):
         super(Port, self).set_fields(obj)
 
 
-def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=None,
-                 portType=PORT_TYPE_PORT, suffix="_port"):
-    """ Create ports given model.
+def create_ports(
+    model,
+    portRefs=None,
+    idRefs=None,
+    unitRefs=None,
+    metaIdRefs=None,
+    portType=PORT_TYPE_PORT,
+    suffix="_port",
+):
+    """Create ports given model.
     Helper function to create port creation.
 
     :param model: SBML model
@@ -327,26 +413,30 @@ def create_ports(model, portRefs=None, idRefs=None, unitRefs=None, metaIdRefs=No
     # dictionary, port ids are provided
     if type(data) == dict:
         for pid, ref in data.items():
-            kwargs = {'pid': pid, ptype: ref}
-            ports.append(
-                _create_port(model, portType=portType, **kwargs)
-            )
+            kwargs = {"pid": pid, ptype: ref}
+            ports.append(_create_port(model, portType=portType, **kwargs))
 
     # only a list of references, port ids created via suffix appending
     elif type(data) in [list, tuple]:
         for ref in data:
             pid = ref + suffix
-            kwargs = {'pid': pid, ptype: ref}
-            ports.append(
-                _create_port(model, portType=portType, **kwargs)
-            )
+            kwargs = {"pid": pid, ptype: ref}
+            ports.append(_create_port(model, portType=portType, **kwargs))
 
     return ports
 
 
-def _create_port(model, pid, name=None, portRef=None, idRef=None, unitRef=None, metaIdRef=None,
-                 portType=PORT_TYPE_PORT):
-    """ Create port in given model.
+def _create_port(
+    model,
+    pid,
+    name=None,
+    portRef=None,
+    idRef=None,
+    unitRef=None,
+    metaIdRef=None,
+    portType=PORT_TYPE_PORT,
+):
+    """Create port in given model.
 
     :param model:
     :param pid:
@@ -402,7 +492,7 @@ SBASE_REF_TYPE_METAID = "metIdRef"
 
 
 def replace_elements(model, sid, ref_type, replaced_elements):
-    """ Replace elements in comp.
+    """Replace elements in comp.
 
     :param model:
     :param sid:
@@ -416,7 +506,7 @@ def replace_elements(model, sid, ref_type, replaced_elements):
 
 
 def replace_element_in_submodels(model, sid, ref_type, submodels):
-    """ Replace elements submodels with the identical id.
+    """Replace elements submodels with the identical id.
 
     For instance to replace all the units in the submodels.
 
@@ -431,7 +521,7 @@ def replace_element_in_submodels(model, sid, ref_type, submodels):
 
 
 def _create_replaced_element(model, sid, submodel, replaced_id, ref_type):
-    """ Create a replaced element.
+    """Create a replaced element.
 
     :param model:
     :param sid:
@@ -469,7 +559,7 @@ def replaced_by(model, sid, ref_type, submodel, replaced_by):
 
 
 def comp_delete(model):
-    """ Delete elements from top model.
+    """Delete elements from top model.
 
     :param model:
     :return:
@@ -478,7 +568,7 @@ def comp_delete(model):
 
 
 def _get_eplugin_by_sid(model, sid):
-    """ Gets the comp plugin by sid.
+    """Gets the comp plugin by sid.
 
     :param model: SBMLModel instance
     :param sid: SBase id of object

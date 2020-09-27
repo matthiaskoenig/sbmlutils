@@ -25,7 +25,6 @@ from sbmlutils.metadata.sbo import SBO_EXCHANGE_REACTION
 from sbmlutils.equation import Equation
 from sbmlutils.validation import check
 
-
 logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3  # default SBML level
@@ -121,9 +120,6 @@ def ast_node_from_formula(model, formula):
     return ast_node
 
 
-#####################################################################
-# Notes
-#####################################################################
 class Notes:
 
     def __init__(self, notes):
@@ -154,11 +150,9 @@ def set_notes(model, notes):
     check(model.setNotes(notes.xml), message="Setting notes on model")
 
 
-#####################################################################
-# ModelUnits
-#####################################################################
 class ModelUnits:
-    def __init__(self, time=None, extent=None, substance=None, length=None, area=None, volume=None):
+    def __init__(self, time=None, extent=None, substance=None, length=None, area=None,
+                 volume=None):
         self.time = time
         self.extent = extent
         self.substance = substance
@@ -183,16 +177,19 @@ def set_model_units(model, model_units):
     :return:
     """
     if isinstance(model_units, dict):
-        logger.error("Providing model units as dict is deprecated, use 'ModelUnits' instead.")
+        logger.error(
+            "Providing model units as dict is deprecated, use 'ModelUnits' instead.")
         model_units = ModelUnits(**model_units)
 
     if not model_units:
-        logger.error("Model units should be provided for a model, i.e., set the 'model_units' "
-                     "field on model.")
+        logger.error(
+            "Model units should be provided for a model, i.e., set the 'model_units' "
+            "field on model.")
     else:
         for key in ('time', 'extent', 'substance', 'length', 'area', 'volume'):
             if getattr(model_units, key) is None:
-                logger.error('The following key is missing in model_units: {}'.format(key))
+                logger.error(
+                    'The following key is missing in model_units: {}'.format(key))
                 continue
             unit = getattr(model_units, key)
             unit = Unit.get_unit_string(unit)
@@ -211,11 +208,9 @@ def set_model_units(model, model_units):
                 model.setVolumeUnits(unit)
 
 
-#####################################################################
-# Creator
-#####################################################################
 class Creator:
     """ Creator in ModelHistory. """
+
     def __init__(self, familyName, givenName, email, organization, site=None):
         self.familyName = familyName
         self.givenName = givenName
@@ -224,9 +219,6 @@ class Creator:
         self.site = site
 
 
-# -----------------------------------------------------------------------------
-# Base classes
-# -----------------------------------------------------------------------------
 class Sbase:
     def __init__(self, sid=None, name=None, sboTerm=None, metaId=None,
                  annotations=None,
@@ -302,8 +294,8 @@ class Sbase:
 
         else:
             # use the port object
-            if (not self.port.portRef) and (not self.port.idRef) and (not self.port.unitRef) and \
-                    (not self.port.metaIdRef):
+            if (not self.port.portRef) and (not self.port.idRef) \
+                    and (not self.port.unitRef) and (not self.port.metaIdRef):
                 # if no reference set id reference to current object
                 self.port.idRef = self.sid
             self.port.create_sbml(model)
@@ -321,6 +313,7 @@ class Value(Sbase):
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
+
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None,
                  annotations=None,
                  port=None, uncertainties=None):
@@ -338,14 +331,17 @@ class ValueWithUnit(Value):
     The value field is a helper storage field which is used differently by different
     subclasses.
     """
+
     def __repr__(self):
         return "{} = {} [{}]".format(self.sid, self.value, self.unit)
 
     def __init__(self, sid, value, unit="-",
                  name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
-        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
-                                            port=port, annotations=annotations, uncertainties=uncertainties)
+        super(ValueWithUnit, self).__init__(sid, value, name=name, sboTerm=sboTerm,
+                                            metaId=metaId,
+                                            port=port, annotations=annotations,
+                                            uncertainties=uncertainties)
         self.unit = unit
 
     def set_fields(self, obj):
@@ -354,9 +350,6 @@ class ValueWithUnit(Value):
             obj.setUnits(Unit.get_unit_string(self.unit))
 
 
-##########################################################################
-# Units
-##########################################################################
 class Unit(Sbase):
     def __init__(self, sid, definition, name=None, sboTerm=None, metaId=None,
                  port=None, uncertainties=None):
@@ -427,9 +420,6 @@ class Unit(Sbase):
             return None
 
 
-##########################################################################
-# Functions
-##########################################################################
 class Function(Sbase):
     """ SBML FunctionDefinitions
 
@@ -440,7 +430,8 @@ class Function(Sbase):
 
     def __init__(self, sid, value, name=None, sboTerm=None, metaId=None,
                  port=None, uncertainties=None):
-        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+        super(Function, self).__init__(sid=sid, name=name, sboTerm=sboTerm,
+                                       metaId=metaId,
                                        port=port, uncertainties=uncertainties)
         self.formula = value
 
@@ -457,9 +448,6 @@ class Function(Sbase):
         obj.setMath(ast_node)
 
 
-##########################################################################
-# Parameters
-##########################################################################
 class Parameter(ValueWithUnit):
 
     def __init__(self, sid, value=None, unit=None, constant=True,
@@ -485,17 +473,17 @@ class Parameter(ValueWithUnit):
             obj.setValue(self.value)
 
 
-##########################################################################
-# Compartments
-##########################################################################
 class Compartment(ValueWithUnit):
 
     def __init__(self, sid, value, unit=None, constant=True,
                  spatialDimensions=3, name=None,
                  sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
-        super(Compartment, self).__init__(sid=sid, value=value, unit=unit, name=name, sboTerm=sboTerm, metaId=metaId,
-                                          annotations=annotations, port=port, uncertainties=uncertainties)
+        super(Compartment, self).__init__(
+            sid=sid, value=value, unit=unit, name=name,
+            sboTerm=sboTerm, metaId=metaId,
+            annotations=annotations, port=port, uncertainties=uncertainties
+        )
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
@@ -522,9 +510,6 @@ class Compartment(ValueWithUnit):
         obj.setSpatialDimensions(self.spatialDimensions)
 
 
-##########################################################################
-# Species
-##########################################################################
 class Species(Sbase):
     """ Species. """
 
@@ -535,14 +520,20 @@ class Species(Sbase):
                  conversionFactor=None,
                  name=None, sboTerm=None, metaId=None, annotations=None,
                  port=None, uncertainties=None):
-        super(Species, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
-                                      annotations=annotations,
-                                      port=port, uncertainties=uncertainties)
+        super(Species, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+            annotations=annotations, port=port, uncertainties=uncertainties)
 
         if (initialAmount is None) and (initialConcentration is None):
-            raise ValueError("Either initialAmount or initialConcentration required on species: {}".format(sid))
+            raise ValueError(
+                f"Either initialAmount or initialConcentration required "
+                f"for species: '{sid}'"
+            )
         if initialAmount and initialConcentration:
-            raise ValueError("initialAmount and initialConcentration cannot be set on species: {}".format(sid))
+            raise ValueError(
+                f"Either initialAmount or initialConcentration can be set on "
+                f"species, but not both: {sid}"
+            )
         self.substanceUnit = Unit.get_unit_string(substanceUnit)
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
@@ -571,7 +562,7 @@ class Species(Sbase):
         super(Species, self).set_fields(obj)
         obj.setConstant(self.constant)
         if self.compartment is None:
-            raise ValueError("Compartment cannot be None on Species: {}".format(self))
+            raise ValueError(f"Compartment cannot be None on Species: '{self}'")
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
@@ -589,8 +580,8 @@ class Species(Sbase):
         if (self.charge is not None) or (self.chemicalFormula is not None):
             obj_fbc = obj.getPlugin("fbc")  # type: libsbml.FbcSpeciesPlugin
             if obj_fbc is None:
-                logger.error("FBC SPlugin not found for species, "
-                             "no fbc: {}".format(obj))
+                logger.error(f"FBC SPlugin not found for species, "
+                             f"no fbc: {obj}")
             else:
                 if self.charge is not None:
                     obj_fbc.setCharge(int(self.charge))
@@ -598,21 +589,22 @@ class Species(Sbase):
                     obj_fbc.setChemicalFormula(self.chemicalFormula)
 
 
-##########################################################################
-# InitialAssignments
-##########################################################################
 class InitialAssignment(Value):
     """ InitialAssignments.
 
-    The unit attribute is only for the case where a parameter must be created (which has the unit).
-    In case of an initialAssignment of a value the units have to be defined in the math.
+    The unit attribute is only for the case where a parameter must be created
+    (which has the unit). In case of an initialAssignment of a value the units
+    have to be defined in the math.
     """
+
     def __init__(self, sid, value, unit="-", name=None, sboTerm=None, metaId=None,
                  annotations=None,
                  port=None, uncertainties=None):
-        super(InitialAssignment, self).__init__(sid, value, name=name, sboTerm=sboTerm, metaId=metaId,
-                                                annotations=annotations,
-                                                port=port, uncertainties=uncertainties)
+        super(InitialAssignment, self).__init__(
+            sid, value, name=name, sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            port=port, uncertainties=uncertainties)
         self.unit = unit
 
     def create_sbml(self, model):
@@ -626,9 +618,10 @@ class InitialAssignment(Value):
         sid = self.sid
         # Create parameter if not existing
         if (not model.getParameter(sid)) \
-                and (not model.getSpecies(sid)) \
+            and (not model.getSpecies(sid)) \
                 and (not model.getCompartment(sid)):
-            Parameter(sid=sid, value=None, unit=self.unit, constant=True, name=self.name).create_sbml(model)
+            Parameter(sid=sid, value=None, unit=self.unit, constant=True,
+                      name=self.name).create_sbml(model)
 
         obj = model.createInitialAssignment()  # type: libsbml.InitialAssignment
         self.set_fields(obj)
@@ -640,9 +633,6 @@ class InitialAssignment(Value):
         return obj
 
 
-##########################################################################
-# Rules
-##########################################################################
 class Rule(ValueWithUnit):
 
     def __repr__(self):
@@ -662,10 +652,11 @@ class Rule(ValueWithUnit):
 
         # Create parameter if symbol is neither parameter or species, or compartment
         if (not model.getParameter(sid)) \
-                and (not model.getSpecies(sid)) \
-                and (not model.getCompartment(sid)):
+            and (not model.getSpecies(sid)) \
+            and (not model.getCompartment(sid)):
 
-            Parameter(sid, unit=rule.unit, name=rule.name, value=value, constant=False).create_sbml(model)
+            Parameter(sid, unit=rule.unit, name=rule.name, value=value,
+                      constant=False).create_sbml(model)
         else:
             # object exists, units do not mean anything
             if rule.unit:
@@ -695,7 +686,8 @@ class Rule(ValueWithUnit):
         :param model:
         :return:
         """
-        logger.error("Rule cannot be created, use either <AssignmentRule> or <RateRule>.")
+        logger.error(
+            "Rule cannot be created, use either <AssignmentRule> or <RateRule>.")
         raise NotImplementedError
 
     @staticmethod
@@ -725,7 +717,8 @@ class AssignmentRule(Rule):
         :param model:
         :return:
         """
-        obj = Rule._rule_factory(model, self, rule_type="AssignmentRule")  # type: libsbml.AssignmentRule
+        obj = Rule._rule_factory(model, self,
+                                 rule_type="AssignmentRule")  # type: libsbml.AssignmentRule
         self.set_fields(obj)
         self.create_port(model)
         return obj
@@ -770,16 +763,13 @@ class RateRule(Rule):
         return Rule._create_rule(model, rule, sid, formula)
 
 
-##########################################################################
-# Uncertainty
-##########################################################################
-
 class UncertParameter:
-    """UncertParameter
-    """
+    """UncertParameter"""
+
     def __init__(self, type, value=None, var=None, unit=None):
         if (value is None) and (var is None):
-            raise ValueError("Either 'value' or 'var' have to be set in UncertParameter.")
+            raise ValueError(
+                "Either 'value' or 'var' have to be set in UncertParameter.")
         self.type = type
         self.value = value
         self.var = var
@@ -793,11 +783,14 @@ class UncertParameter:
 
 
 class UncertSpan:
-    def __init__(self, type, valueLower=None, varLower=None, valueUpper=None, varUpper=None, unit=None):
+    def __init__(self, type, valueLower=None, varLower=None, valueUpper=None,
+                 varUpper=None, unit=None):
         if (valueLower is None) and (varLower is None):
-            raise ValueError("Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
+            raise ValueError(
+                "Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
         if (valueUpper is None) and (varUpper is None):
-            raise ValueError("Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
+            raise ValueError(
+                "Either 'valueLower' or 'varLower' have to be set in UncertSpan.")
 
         self.type = type
         self.valueLower = valueLower
@@ -812,11 +805,13 @@ class Uncertainty(Sbase):
 
     Uncertainty information for Sbase.
     """
+
     def __init__(self, sid=None, formula=None, uncertParameters=[],
                  name=None, sboTerm=None, metaId=None,
                  annotations=None,
                  port=None):
-        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId,
+        super(Uncertainty, self).__init__(sid, name=name, sboTerm=sboTerm,
+                                          metaId=metaId,
                                           annotations=annotations, port=port)
 
         # Object on which the uncertainty is written
@@ -873,7 +868,8 @@ class Uncertainty(Sbase):
                 if uncertParameter.var is not None:
                     up.setValue(uncertParameter.var)
             else:
-                logger.error("Unsupported UncertParameter or UncertSpan type: %s", uncertParameter.type)
+                logger.error("Unsupported UncertParameter or UncertSpan type: %s",
+                             uncertParameter.type)
 
             if up and uncertParameter.unit:
                 up.setUnits(Unit.get_unit_string(uncertParameter.unit))
@@ -889,7 +885,8 @@ class Uncertainty(Sbase):
                         "lognormal", "poisson", "raleigh"
                         ]:
                 if key in self.formula:
-                    up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/{}".format(key))
+                    up.setDefinitionURL(
+                        "http://www.sbml.org/sbml/symbols/distrib/{}".format(key))
                     ast = libsbml.parseL3FormulaWithModel(self.formula, model)
                     if ast is None:
                         logger.error(libsbml.getLastParseL3Error())
@@ -899,20 +896,24 @@ class Uncertainty(Sbase):
         return uncertainty
 
 
-##########################################################################
-# Reactions
-##########################################################################
 Formula = namedtuple('Formula', 'value unit')
 
 
 class Reaction(Sbase):
     """ Reaction class."""
-    def __init__(self, sid, equation, formula=None, pars=[], rules=[],
+
+    def __init__(self, sid, equation, formula=None, pars=None, rules=None,
                  name=None, compartment=None, fast=False, reversible=None,
                  sboTerm=None, metaId=None, annotations=None,
-                 lowerFluxBound=None, upperFluxBound=None, uncertainties=None, port=None):
-        super(Reaction, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+                 lowerFluxBound=None, upperFluxBound=None, uncertainties=None,
+                 port=None):
+        super(Reaction, self).__init__(sid=sid, name=name, sboTerm=sboTerm,
+                                       metaId=metaId,
                                        port=port, uncertainties=uncertainties)
+        if pars is None:
+            pars = list()
+        if rules is None:
+            rules = list()
 
         self.equation = Equation(equation)
         self.compartment = compartment
@@ -991,8 +992,8 @@ class ExchangeReaction(Reaction):
     """ Exchange reactions define substances which can be exchanged.
      This is important for FBC models.
 
-     EXCHANGE_IMPORT (-INF, 0): is defined as negative flux through the exchange reaction,
-        i.e. the upper bound must be 0, the lower bound some negative value,
+     EXCHANGE_IMPORT (-INF, 0): is defined as negative flux through the exchange
+     reaction, i.e. the upper bound must be 0, the lower bound some negative value,
         e.g. -INF
 
     EXCHANGE_EXPORT (0, INF): is defined as positive flux through the exchange reaction,
@@ -1008,7 +1009,6 @@ class ExchangeReaction(Reaction):
                  metaId=None, annotations=None,
                  lowerFluxBound=None, upperFluxBound=None,
                  uncertainties=None, port=None):
-
         super(ExchangeReaction, self).__init__(
             sid=ExchangeReaction.PREFIX + species_id,
             equation="{} ->".format(species_id),
@@ -1026,9 +1026,6 @@ class ExchangeReaction(Reaction):
         )
 
 
-##########################################################################
-# Constraint
-##########################################################################
 class Constraint(Sbase):
     """ Constraint.
 
@@ -1038,6 +1035,7 @@ class Constraint(Sbase):
     The message must be well formated XHTML, e.g.,
         message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>'
     """
+
     def __init__(self, sid, math, message=None,
                  name=None, sboTerm=None, metaId=None):
         super(Constraint, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
@@ -1070,12 +1068,10 @@ class Constraint(Sbase):
             ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
             obj.setMath(ast_math)
         if self.message is not None:
-            check(obj.setMessage(self.message), message="Setting message on constraint: '{}'".format(self.message))
+            check(obj.setMessage(self.message),
+                  message="Setting message on constraint: '{}'".format(self.message))
 
 
-##########################################################################
-# Events
-##########################################################################
 class Event(Sbase):
     """ Event.
 
@@ -1087,7 +1083,8 @@ class Event(Sbase):
     """
 
     def __init__(self, sid, trigger, assignments={},
-                 trigger_persistent=True, trigger_initialValue=False, useValuesFromTriggerTime=True,
+                 trigger_persistent=True, trigger_initialValue=False,
+                 useValuesFromTriggerTime=True,
                  priority=None, delay=None,
                  name=None, sboTerm=None, metaId=None):
         super(Event, self).__init__(sid, name=name, sboTerm=sboTerm, metaId=metaId)
@@ -1096,7 +1093,9 @@ class Event(Sbase):
 
         # assignments
         if type(assignments) is not dict:
-            logger.warning("Event assignment must be dict with sid: assignment, but: {}".format(assignments))
+            logger.warning(
+                "Event assignment must be dict with sid: assignment, but: {}".format(
+                    assignments))
         self.assignments = assignments
 
         self.trigger_persistent = trigger_persistent
@@ -1130,8 +1129,10 @@ class Event(Sbase):
 
         obj.setUseValuesFromTriggerTime(True)
         t = obj.createTrigger()
-        t.setInitialValue(self.trigger_initialValue)  # False ! not supported by Copasi -> lame fix via time
-        t.setPersistent(self.trigger_persistent)  # True ! not supported by Copasi -> careful with usage
+        t.setInitialValue(
+            self.trigger_initialValue)  # False ! not supported by Copasi -> lame fix via time
+        t.setPersistent(
+            self.trigger_persistent)  # True ! not supported by Copasi -> careful with usage
 
         ast_trigger = libsbml.parseL3FormulaWithModel(self.trigger, model)
         t.setMath(ast_trigger)
@@ -1160,10 +1161,6 @@ class Event(Sbase):
         return dict(zip(species, values))
 
 
-##########################################################################
-# Objective
-##########################################################################
-
 class Objective(Sbase):
     """Objective."""
     objective_types = [libsbml.OBJECTIVE_TYPE_MAXIMIZE, libsbml.OBJECTIVE_TYPE_MINIMIZE,
@@ -1175,14 +1172,16 @@ class Objective(Sbase):
                  fluxObjectives={},
                  name=None, sboTerm=None, metaId=None):
         """ Create a layout. """
-        super(Objective, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        super(Objective, self).__init__(sid=sid, name=name, sboTerm=sboTerm,
+                                        metaId=metaId)
         self.objectiveType = objectiveType
         self.active = active
         self.fluxObjectives = fluxObjectives
 
         if self.objectiveType not in Objective.objective_types:
-            raise ValueError(f"Unsupported objective type '{objectiveType}'. Supported are "
-                             f"{Objective.objective_types}")
+            raise ValueError(
+                f"Unsupported objective type '{objectiveType}'. Supported are "
+                f"{Objective.objective_types}")
         else:
             if self.objectiveType in {"min", "minimize"}:
                 self.objectiveType = libsbml.OBJECTIVE_TYPE_MINIMIZE
@@ -1212,7 +1211,6 @@ def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
 
     :param model_fbc: FbcModelPlugin
     :param oid: objective identifier
-    :param otype:
     :param fluxObjectives:
     :param active:
     :return:
@@ -1226,4 +1224,5 @@ def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
         fluxObjective = objective.createFluxObjective()
         fluxObjective.setReaction(rid)
         fluxObjective.setCoefficient(coefficient)
+
     return objective
