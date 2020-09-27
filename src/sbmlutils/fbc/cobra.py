@@ -1,6 +1,4 @@
-"""
-cobrapy based helper methods
-"""
+"""cobrapy based helper methods."""
 import logging
 from pathlib import Path
 from typing import Dict
@@ -10,7 +8,7 @@ import pandas as pd
 
 try:
     import cobra
-except ImportError as err:
+except ImportError:
     cobra = None
 
 logger = logging.getLogger(__name__)
@@ -19,7 +17,8 @@ logger = logging.getLogger(__name__)
 def read_cobra_model(sbml_path: Path) -> "cobra.core.Model":
     """Loads cobra model from path.
 
-    Sets default flux bounds to allow loading and changes all boundaryConditions to False.
+    Sets default flux bounds to allow loading and changes all boundaryConditions to
+    False.
 
     :param sbml_path: str path
     :return: cobra model

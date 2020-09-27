@@ -25,11 +25,12 @@ from jinja2 import TemplateNotFound
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.report import formating, sbmlfilters
+from sbmlutils import RESOURCES_DIR
 
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_DIR = Path(__file__).parent / "templates"  # template location
+TEMPLATE_DIR = RESOURCES_DIR / "templates"  # template location
 
 
 def create_reports(

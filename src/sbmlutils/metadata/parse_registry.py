@@ -1,4 +1,8 @@
-# https://www.ebi.ac.uk/miriam/main/export/xml/
+"""
+Create latest MIRIAM JSON.
+
+https://www.ebi.ac.uk/miriam/main/export/xml/
+"""
 
 
 def create_miriam_json():

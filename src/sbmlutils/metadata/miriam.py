@@ -1,17 +1,20 @@
 """
-Helper class definining external resources to work with annotations.
+Helper module for working with MIRIAM metadata.
+
 This includes identifiers.org, MIRIAM qualifiers and the
 identifiers.org collections (MIRIAM registry).
-
 For updating the MIRIAM registry see the parse_registry script.
 """
 
 import json
 import logging
-import os
 import re
 from enum import Enum
+from typing import Dict
 
+from sbmlutils import RESOURCES_DIR
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "BQM",
@@ -21,17 +24,9 @@ __all__ = [
     "IDENTIFIERS_ORG_PREFIX",
 ]
 
-# -----------------------------------------------------------------------------
-# identifiers.org
-# -----------------------------------------------------------------------------
+
 IDENTIFIERS_ORG_PREFIX = "https://identifiers.org"
 IDENTIFIERS_ORG_PATTERN = re.compile(r"^https?://identifiers.org/(.+?)/(.+)")
-
-# -----------------------------------------------------------------------------
-# miriam qualifiers
-# -----------------------------------------------------------------------------
-# from libsbmlconstants
-# TODO: use ModelQualifierType_toString
 
 QualifierType = {
     0: "MODEL_QUALIFIER",
@@ -67,6 +62,8 @@ BiologicalQualifierType = {
 
 
 class BQM(Enum):
+    """MIRIAM model qualifier."""
+
     IS = "BQM_IS"
     IS_DESCRIBED_BY = "BQM_IS_DESCRIBED_BY"
     IS_DERIVED_FROM = "BQM_IS_DERIVED_FROM"
@@ -76,6 +73,8 @@ class BQM(Enum):
 
 
 class BQB(Enum):
+    """MIRIAM biological qualifier."""
+
     IS = "BQB_IS"
     HAS_PART = "BQB_HAS_PART"
     IS_PART_OF = "BQB_IS_PART_OF"
@@ -92,20 +91,14 @@ class BQB(Enum):
     UNKNOWN = "BQB_UNKNOWN"
 
 
-# -----------------------------------------------------------------------------
-# identifiers.org collection
-# -----------------------------------------------------------------------------
-def load_miriam():
-    """Loads miriam registry file.
+def load_miriam() -> Dict:
+    """Load miriam registry file.
 
-    :return:
+    Provides information on the identifiers.org collections.
+
+    :return: dictionary with registry informaiton
     """
-    f_miriam = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "resources",
-        "IdentifiersOrg-Registry.json",
-    )
-
+    f_miriam = RESOURCES_DIR / "metadata" / "IdentifiersOrg-Registry.json"
     with open(f_miriam) as fp:
         d = json.load(fp)
 

@@ -30,8 +30,9 @@ from sbmlutils.converters.mathml import evaluableMathML
 
 
 # template location (for language templates)
-# FIXME: swich to pathlib
-TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+from sbmlutils import RESOURCES_DIR
+
+TEMPLATE_DIR = RESOURCES_DIR / "conververs"
 
 
 class SBML2ODE:
@@ -315,7 +316,7 @@ class SBML2ODE:
         :param py_file:
         :return:
         """
-        content = self._render_template(template="template.py", index_offset=0)
+        content = self._render_template(template="odefac_template.py", index_offset=0)
         with open(py_file, "w") as f:
             f.write(content)
 
@@ -325,11 +326,11 @@ class SBML2ODE:
         :param py_file:
         :return:
         """
-        content = self._render_template(template="template.R", index_offset=1)
+        content = self._render_template(template="odefac_template.R", index_offset=1)
         with open(r_file, "w") as f:
             f.write(content)
 
-    def _render_template(self, template="template.py", index_offset=0):
+    def _render_template(self, template="odefac_template.py", index_offset=0):
         """Renders given language template.
 
         :param template:
@@ -461,4 +462,4 @@ class SBML2ODE:
         for k, key in enumerate(sorted(self.dx_ast.keys())):
             dxids_idx[key] = k + index_offset
 
-        return (pids_idx, yids_idx, dxids_idx)
+        return pids_idx, yids_idx, dxids_idx
