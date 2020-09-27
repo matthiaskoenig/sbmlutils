@@ -22,10 +22,9 @@ import jinja2
 import libsbml
 from jinja2 import TemplateNotFound
 
-from sbmlutils import utils
+from sbmlutils import RESOURCES_DIR, utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.report import formating, sbmlfilters
-from sbmlutils import RESOURCES_DIR
 
 
 logger = logging.getLogger(__name__)

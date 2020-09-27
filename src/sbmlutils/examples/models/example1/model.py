@@ -2,8 +2,8 @@
 """
 Example model for creating an SBML ODE model.
 """
-from sbmlutils.metadata.sbo import *
 from sbmlutils.factory import *
+from sbmlutils.metadata.sbo import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 

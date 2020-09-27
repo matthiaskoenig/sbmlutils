@@ -20,10 +20,11 @@ from collections import namedtuple
 
 import libsbml
 
+from sbmlutils.equation import Equation
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
 from sbmlutils.metadata.sbo import SBO_EXCHANGE_REACTION
-from sbmlutils.equation import Equation
 from sbmlutils.validation import check
+
 
 logger = logging.getLogger(__name__)
 

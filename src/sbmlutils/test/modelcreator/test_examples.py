@@ -1,7 +1,7 @@
-from sbmlutils.metadata import *
-from sbmlutils.metadata.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.io import validate_sbml, write_sbml
+from sbmlutils.metadata import *
+from sbmlutils.metadata.sbo import *
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.units import *
 

@@ -2,8 +2,8 @@ from typing import Dict
 
 import libsbml
 
-from sbmlutils.metadata import *
 from sbmlutils.factory import *
+from sbmlutils.metadata import *
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.units import *
 from sbmlutils.validation import validate_doc

@@ -22,9 +22,9 @@ import xmltodict
 
 import sbmlutils.factory as factory
 import sbmlutils.history as history
-from sbmlutils.metadata import annotator
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils.io import write_sbml
+from sbmlutils.metadata import annotator
 from sbmlutils.report import sbmlreport
 from sbmlutils.utils import bcolors
 from sbmlutils.validation import check

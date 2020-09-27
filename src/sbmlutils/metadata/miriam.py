@@ -14,6 +14,7 @@ from typing import Dict
 
 from sbmlutils import RESOURCES_DIR
 
+
 logger = logging.getLogger(__name__)
 
 __all__ = [

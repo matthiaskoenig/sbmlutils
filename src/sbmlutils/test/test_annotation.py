@@ -5,11 +5,11 @@ import re
 
 import libsbml
 
+from sbmlutils.examples.models.annotation import factory as annotation_factory
+from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
 from sbmlutils.metadata.miriam import BQB
-from sbmlutils.examples.models.annotation import factory as annotation_factory
-from sbmlutils.io.sbml import read_sbml
 from sbmlutils.test import (
     DEMO_ANNOTATIONS,
     DEMO_SBML_NO_ANNOTATIONS,

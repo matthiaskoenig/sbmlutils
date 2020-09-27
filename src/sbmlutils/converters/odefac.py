@@ -26,11 +26,10 @@ from pprint import pprint
 import jinja2
 import libsbml
 
-from sbmlutils.converters.mathml import evaluableMathML
-
-
 # template location (for language templates)
 from sbmlutils import RESOURCES_DIR
+from sbmlutils.converters.mathml import evaluableMathML
+
 
 TEMPLATE_DIR = RESOURCES_DIR / "conververs"
 

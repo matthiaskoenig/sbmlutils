@@ -3,9 +3,9 @@
 Test model to check the update of global depending parameters in Roadrunner.
 Mainly volumes which are calculated based on other parameters.
 """
+from sbmlutils.factory import *
 from sbmlutils.metadata.miriam import *
 from sbmlutils.metadata.sbo import *
-from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 
