@@ -18,8 +18,6 @@ from typing import List, Iterable
 import xmltodict
 import json
 
-
-
 import libsbml
 
 from sbmlutils.annotation import annotator
@@ -85,7 +83,7 @@ def create_model(
         units_consistency: bool = True,
         modeling_practice: bool = True,
         internal_consistency: bool = True
-    ):
+):
     """ Create SBML model from module information.
 
     This is the entry point for creating models.
@@ -104,7 +102,7 @@ def create_model(
     :return:
     """
     # preprocess
-    logger.info(bcolors.OKBLUE + '\n\n' + '-'*120 + '\n' + str(modules) + '\n' + '-'*120 + bcolors.ENDC)
+    logger.info(bcolors.OKBLUE + '\n\n' + '-' * 120 + '\n' + str(modules) + '\n' + '-' * 120 + bcolors.ENDC)
     model_dict = Preprocess.dict_from_modules(modules)
 
     # create SBML model
@@ -321,7 +319,7 @@ class CoreModel(object):
         :rtype:
         """
         # FIXME: return string, which can be logged or printed
-        info = '\n' + '-'*80 + '\n'
+        info = '\n' + '-' * 80 + '\n'
         info += '{}'.format(self) + '\n'
         info += '-' * 80 + '\n'
         for key in sorted(CoreModel._keys):

@@ -39,9 +39,9 @@ class ValidationResult:
     """Results of an SBMLDocument validation."""
 
     def __init__(self,
-             errors: List[libsbml.SBMLError] = None,
-             warnings: List[libsbml.SBMLError] = None
-    ):
+                 errors: List[libsbml.SBMLError] = None,
+                 warnings: List[libsbml.SBMLError] = None
+                 ):
         if errors is None:
             errors = list()
         if warnings is None:
@@ -96,7 +96,7 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
         log_sbml_error(error=doc.getError(k))
 
 
-def log_sbml_error(error: libsbml.SBMLError, index: int=None):
+def log_sbml_error(error: libsbml.SBMLError, index: int = None):
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
@@ -184,10 +184,10 @@ def validate_doc(doc: libsbml.SBMLDocument, name=None, log_errors=True,
     info = "\n".join(lines)
 
     if vresults.is_valid():
-        info = bcolors.OKGREEN+info+bcolors.ENDC
+        info = bcolors.OKGREEN + info + bcolors.ENDC
     else:
         info = bcolors.FAIL + info + bcolors.ENDC
-    info = bcolors.BOLD+info+bcolors.ENDC
+    info = bcolors.BOLD + info + bcolors.ENDC
 
     # overall validation report
     if vresults.is_perfect():
