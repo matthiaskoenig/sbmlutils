@@ -76,7 +76,7 @@ def read_sbml(source: Union[Path, str],
 
 
 def write_sbml(doc: libsbml.SBMLDocument,
-               filepath: Union[Path, None] = None,
+               filepath: Union[Path] = None,
                program_name: str = program_name,
                program_version: str = str(__version__),
                validate: bool = False,
