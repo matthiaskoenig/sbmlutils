@@ -35,7 +35,6 @@ def read_sbml(source: Union[Path, str],
     :return: SBMLDocument
     """
     if isinstance(source, str) and "<sbml" in source:
-        logger.warning("reading SBML from string")
         doc = libsbml.readSBMLFromString(source)
     else:
         if not isinstance(source, Path):
@@ -43,7 +42,6 @@ def read_sbml(source: Union[Path, str],
                          f"'{type(source)}' found for: {source}")
             source = Path(source)
 
-        logger.warning(f"reading SBML from file: '{source}', {type(source)}")
         doc = libsbml.readSBMLFromFile(str(source))  # type: libsbml.SBMLDocument
 
     # promote local parameters

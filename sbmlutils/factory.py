@@ -62,6 +62,7 @@ __all__ = [
     'Uncertainty',
     'UncertParameter',
     'UncertSpan',
+    'Objective',
     'SBML_LEVEL',
     'SBML_VERSION',
     'PORT_SUFFIX',
@@ -998,8 +999,10 @@ class ExchangeReaction(Reaction):
      """
     PREFIX = 'EX_'
 
-    def __init__(self, species_id,
-                 name=None, compartment=None, fast=False, reversible=None,
+    def __init__(self,
+                 species_id: str,
+                 name: str = None,
+                 compartment: str = None, fast=False, reversible=None,
                  metaId=None, annotations=None,
                  lowerFluxBound=None, upperFluxBound=None,
                  uncertainties=None, port=None):
@@ -1153,3 +1156,72 @@ class Event(Sbase):
     @staticmethod
     def _assignments_dict(species, values):
         return dict(zip(species, values))
+
+
+##########################################################################
+# Objective
+##########################################################################
+
+class Objective(Sbase):
+    """Objective."""
+    objective_types = [libsbml.OBJECTIVE_TYPE_MAXIMIZE, libsbml.OBJECTIVE_TYPE_MINIMIZE,
+                       'maximize', 'minimize', 'max', 'min']
+
+    def __init__(self, sid,
+                 objectiveType=libsbml.OBJECTIVE_TYPE_MAXIMIZE,
+                 active=True,
+                 fluxObjectives={},
+                 name=None, sboTerm=None, metaId=None):
+        """ Create a layout. """
+        super(Objective, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        self.objectiveType = objectiveType
+        self.active = active
+        self.fluxObjectives = fluxObjectives
+
+        if self.objectiveType not in Objective.objective_types:
+            raise ValueError(f"Unsupported objective type '{objectiveType}'. Supported are "
+                             f"{Objective.objective_types}")
+        else:
+            if self.objectiveType in {"min", "minimize"}:
+                self.objectiveType = libsbml.OBJECTIVE_TYPE_MINIMIZE
+            elif self.objectiveType in {"max", "maximize"}:
+                self.objectiveType = libsbml.OBJECTIVE_TYPE_MAXIMIZE
+
+    def create_sbml(self, model: libsbml.Model):
+        model_fbc = model.getPlugin("fbc")  # type: libsbml.FbcModelPlugin
+        obj = model_fbc.createObjective()  # type: libsbml.Objective
+        obj.setId(self.sid)
+        obj.setType(self.objectiveType)
+        if self.active:
+            model_fbc.setActiveObjectiveId(self.sid)
+        for rid, coefficient in self.fluxObjectives.items():
+            # FIXME: check for rid
+            fluxObjective = obj.createFluxObjective()
+            fluxObjective.setReaction(rid)
+            fluxObjective.setCoefficient(coefficient)
+        return obj
+
+    def set_fields(self, obj: libsbml.Layout):
+        super(Objective, self).set_fields(obj)
+
+
+def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
+    """ Create flux optimization objective.
+
+    :param model_fbc: FbcModelPlugin
+    :param oid: objective identifier
+    :param otype:
+    :param fluxObjectives:
+    :param active:
+    :return:
+    """
+    objective = model_fbc.createObjective()
+    objective.setId(oid)
+    objective.setType(otype)
+    if active:
+        model_fbc.setActiveObjectiveId(oid)
+    for rid, coefficient in fluxObjectives.items():
+        fluxObjective = objective.createFluxObjective()
+        fluxObjective.setReaction(rid)
+        fluxObjective.setCoefficient(coefficient)
+    return objective

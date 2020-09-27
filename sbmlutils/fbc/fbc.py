@@ -8,64 +8,6 @@ from sbmlutils import factory
 
 logger = logging.getLogger(__name__)
 
-__all__ = [
-    'Objective',
-]
-
-
-class Objective(factory.Sbase):
-    """Objective."""
-
-    def __init__(self, sid,
-                 objectiveType=libsbml.OBJECTIVE_TYPE_MAXIMIZE,
-                 active=True,
-                 fluxObjectives={},
-                 name=None, sboTerm=None, metaId=None):
-        """ Create a layout. """
-        super(Objective, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
-        self.objectiveType = objectiveType
-        self.active = active
-        self.fluxObjectives = fluxObjectives
-
-    def create_sbml(self, model: libsbml.Model):
-        model_fbc = model.getPlugin("fbc")  # type: libsbml.FbcModelPlugin
-        obj = model_fbc.createObjective()  # type: libsbml.Objective
-        obj.setId(self.sid)
-        obj.setType(self.objectiveType)
-        if self.active:
-            model_fbc.setActiveObjectiveId(self.sid)
-        for rid, coefficient in self.fluxObjectives.items():
-            # FIXME: check for rid
-            fluxObjective = obj.createFluxObjective()
-            fluxObjective.setReaction(rid)
-            fluxObjective.setCoefficient(coefficient)
-        return obj
-
-    def set_fields(self, obj: libsbml.Layout):
-        super(Objective, self).set_fields(obj)
-
-
-def create_objective(model_fbc, oid, otype, fluxObjectives, active=True):
-    """ Create flux optimization objective.
-
-    :param model_fbc: FbcModelPlugin
-    :param oid: objective identifier
-    :param otype:
-    :param fluxObjectives:
-    :param active:
-    :return:
-    """
-    objective = model_fbc.createObjective()
-    objective.setId(oid)
-    objective.setType(otype)
-    if active:
-        model_fbc.setActiveObjectiveId(oid)
-    for rid, coefficient in fluxObjectives.items():
-        fluxObjective = objective.createFluxObjective()
-        fluxObjective.setReaction(rid)
-        fluxObjective.setCoefficient(coefficient)
-    return objective
-
 
 # -----------------------------------------------------------------------------
 # FluxBounds

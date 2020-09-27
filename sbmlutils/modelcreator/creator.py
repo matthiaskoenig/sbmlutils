@@ -14,7 +14,7 @@ import copy
 import logging
 import tempfile
 from pathlib import Path
-from typing import List, Iterable
+from typing import List, Iterable, Dict
 import xmltodict
 import json
 
@@ -107,6 +107,7 @@ def create_model(
 
     # create SBML model
     core_model = CoreModel.from_dict(model_dict=model_dict)
+
     logger.debug(core_model.get_info())
     core_model.create_sbml()
 
@@ -156,7 +157,7 @@ class Preprocess:
     """ Helper class for preprocessing model modules."""
 
     @staticmethod
-    def dict_from_modules(modules):
+    def dict_from_modules(modules: List[str]) -> Dict:
         """
         Creates one information dictionary from various modules by
         combining the information. Information in earlier modules is either
@@ -283,14 +284,15 @@ class CoreModel(object):
             logger.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property
-    def model_id(self):
+    def model_id(self) -> str:
+        """Model id with version string"""
         if self.version:
-            return '{}_{}'.format(self.mid, self.version)
+            return f'{self.mid}_{self.version}'
         else:
             return self.mid
 
     @staticmethod
-    def from_dict(model_dict):
+    def from_dict(model_dict: Dict):
         """ Creates the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
@@ -335,7 +337,10 @@ class CoreModel(object):
         """ Print information string. """
         print(self.get_info())
 
-    def create_sbml(self, sbml_level=SBML_LEVEL, sbml_version=SBML_VERSION):
+    def create_sbml(self,
+                    sbml_level: int = SBML_LEVEL,
+                    sbml_version: int=SBML_VERSION
+                    ) -> libsbml.SBMLDocument:
         """ Create the SBML model
 
         :return:
@@ -371,8 +376,11 @@ class CoreModel(object):
             self.doc.setPackageRequired("distrib", True)
 
         # name & id
-        check(self.model.setId(self.model_id), 'set id')
-        check(self.model.setName(self.model_id), 'set name')
+        if self.model_id:
+            check(self.model.setId(self.model_id), 'set id')
+            check(self.model.setName(self.model_id), 'set name')
+        else:
+            logger.warning("Model id 'mid' should be set on model")
         # notes
         if hasattr(self, 'notes') and self.notes is not None:
             factory.set_notes(self.model, self.notes)
@@ -412,6 +420,8 @@ class CoreModel(object):
                     factory.create_objects(self.model, obj_iter=objects, key=attr)
                 else:
                     logger.debug(f"Not defined: <{attr}>")
+
+        return self.doc
 
     def get_sbml(self) -> str:
         """Return SBML string of the model.
