@@ -1,5 +1,5 @@
 .. image:: ./docs_builder/images/sbmlutils-logo-small.png
-   :height: 60px
+   :height: 40px
    :align: left
    :alt: sbmlutils logo
 
@@ -39,12 +39,13 @@ sbmlutils: python utilities for SBML
    :alt: Black
 
 
-.. image:: ./docs_builder/images/orcid.png"
+
+**Matthias König**
+.. image:: ./docs_builder/images/orcid.png
    :height: 15px
    :align: left
    :alt: orcid
    :target: https://orcid.org/0000-0003-1725-179X
-**Matthias König**
 
 ``sbmlutils`` is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
@@ -61,7 +62,7 @@ Features include among others
 The documentation is available at https://sbmlutils.readthedocs.io
 
 If you have any questions or issues please 
-`open an issue<https://github.com/matthiaskoenig/sbmlutils/issues>`__
+`open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__
 
 How to cite
 ===========
@@ -73,7 +74,7 @@ Contributing
 ============
 
 Contributions are always welcome! Please read the `contributing guidelines
-<https://github.com/sbmlutils/blob/devel/CONTRIBUTING.rst>`_ to
+<https://github.com/sbmlutils/blob/devel/CONTRIBUTING.rst>`__ to
 get started.
 
 License
@@ -102,7 +103,7 @@ within the research network Systems Medicine of the Liver (**LiSyM**, grant numb
 
 Installation
 ============
-`sbmlutils` is available from pypi <https://pypi.python.org/pypi/sbmlutils>`__ and 
+`sbmlutils` is available from `pypi<https://pypi.python.org/pypi/sbmlutils>`__ and 
 can be installed via:: 
 
     pip install sbmlutils
