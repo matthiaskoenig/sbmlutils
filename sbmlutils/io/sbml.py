@@ -34,20 +34,21 @@ def read_sbml(source: Union[Path, str],
 
     :return: SBMLDocument
     """
-    reader = libsbml.SBMLReader()
     if isinstance(source, str) and "<sbml" in source:
-        doc = reader.readSBMLFromString(source)
+        logger.warning("reading SBML from string")
+        doc = libsbml.readSBMLFromString(source)
     else:
         if not isinstance(source, Path):
             logger.error(f"All SBML paths should be of type 'Path', but "
                          f"'{type(source)}' found for: {source}")
             source = Path(source)
 
-        doc = reader.readSBMLFromFile(str(source))
+        logger.warning(f"reading SBML from file: '{source}', {type(source)}")
+        doc = libsbml.readSBMLFromFile(str(source))  # type: libsbml.SBMLDocument
 
     # promote local parameters
     if promote:
-        doc = promote_local_variables(doc)
+        doc = promote_local_variables(doc)  # type: libsbml.SBMLDocument
 
     # check for errors
     if doc.getNumErrors() > 0:
@@ -56,11 +57,11 @@ def read_sbml(source: Union[Path, str],
         elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
             err_message = "Problems reading SBML file: XMLFileOperationError"
         else:
-            err_message = "Problems reading SBML file."
+            err_message = "SBMLDocumentErrors encountered while reading the SBML file."
 
+        validation.log_sbml_errors_for_doc(doc)
         err_message = f"read_sbml error '{source}': {err_message}"
         logger.error(err_message)
-        raise IOError(err_message)
 
     # validate file
     if validate:
@@ -76,7 +77,8 @@ def read_sbml(source: Union[Path, str],
     return doc
 
 
-def write_sbml(doc: libsbml.SBMLDocument, filepath: Union[Path, None],
+def write_sbml(doc: libsbml.SBMLDocument,
+               filepath: Union[Path, None] = None,
                program_name: str = program_name,
                program_version: str = str(__version__),
                validate: bool = False,

@@ -1,7 +1,7 @@
 import libsbml
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.tests import BASIC_SBML
+from sbmlutils.tests import BASIC_SBML, GZ_SBML
 
 
 def test_read_sbml_from_path():
@@ -21,7 +21,27 @@ def test_read_sbml_from_strpath():
 def test_read_sbml_from_str():
     """Read SBML str."""
     doc1 = read_sbml(str(BASIC_SBML))
-    sbml_str = libsbml.writeSBMLToString(doc1)
+    sbml_str = write_sbml(doc1)
+
+    doc = read_sbml(sbml_str)
+    assert doc
+    assert doc.getModel()
+
+
+def test_read_sbml_from_gz():
+    """Read SBML str."""
+    doc1 = read_sbml(GZ_SBML)
+    sbml_str = write_sbml(doc1)
+
+    doc = read_sbml(sbml_str)
+    assert doc
+    assert doc.getModel()
+
+
+def test_read_sbml_from_gzstr():
+    """Read SBML str."""
+    doc1 = read_sbml(str(GZ_SBML))
+    sbml_str = write_sbml(doc1)
 
     doc = read_sbml(sbml_str)
     assert doc

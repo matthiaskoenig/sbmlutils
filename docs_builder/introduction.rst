@@ -1,5 +1,7 @@
 Overview
 ============
+Introduction
+------------
 **sbmlutils** are python utilities for working with `SBML <http://www.sbml.org>`_.
 This python package provides handy features like HTML reports of SBML models, helper functions for model creation and manipulation, interpolation functions to add experimental data to models, or implementation of dynamic flux balance analysis (DFBA) to name a few.
 
@@ -22,6 +24,10 @@ To report bugs, request features or asking questions please file an
 `issue
 <https://github.com/matthiaskoenig/sbmlutils/issues>`_.
 
+If you use sbmlutils please cite
+`https://doi.org/10.5281/zenodo.597149
+<https://doi.org/10.5281/zenodo.597149>`_.
+
 Installation
 ------------
 The libsbgn-python package is available from `pypi
@@ -34,8 +40,3 @@ For more detailed installation instructions see
 `https://github.com/matthiaskoenig/sbmlutils
 <https://github.com/matthiaskoenig/sbmlutils>`_.
 
-Citation
---------
-To cite sbmlutils reference the latest zenodo release available from
-`https://doi.org/10.5281/zenodo.597149
-<https://doi.org/10.5281/zenodo.597149>`_.

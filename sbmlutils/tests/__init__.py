@@ -25,6 +25,8 @@ VDP_SBML = MODELS_DIR / 'van_der_pol' / 'van_der_pol.xml'
 
 FBC_SBML = MODELS_DIR / 'fbc' / 'diauxic_fba.xml'
 
+GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
+
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / 'omex' / 'CombineArchiveShowCase.omex'
 
