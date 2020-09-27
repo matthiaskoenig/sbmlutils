@@ -47,7 +47,7 @@ from pathlib import Path
 from pprint import pprint
 import libsbml
 
-from sbmlutils._version import __version__
+from sbmlutils import __version__
 from sbmlutils import factory as fac
 from sbmlutils.io import sbml
 from sbmlutils.converters import xpp_helpers
