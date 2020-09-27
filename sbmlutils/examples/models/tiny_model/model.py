@@ -1,4 +1,3 @@
-# -*- coding=utf-8 -*-
 """
 Demo kinetic network.
 """
@@ -6,7 +5,6 @@ from math import inf
 from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
-import sbmlutils.fbc as fbc
 import sbmlutils.layout as layout
 
 from sbmlutils.modelcreator import templates
@@ -68,9 +66,11 @@ compartments = [
 # -----------------------------------------------------------------------------
 species = [
     Species(sid='glc', compartment='c', initialConcentration=5.0, substanceUnit='mmole', constant=False,
-            boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm=SBO_SIMPLE_CHEMICAL, port=True),
+            boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose', sboTerm=SBO_SIMPLE_CHEMICAL,
+            port=True),
     Species(sid='g6p', compartment='c', initialConcentration=0.1, substanceUnit='mmole', constant=False,
-            boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate', sboTerm=SBO_SIMPLE_CHEMICAL),
+            boundaryCondition=False, hasOnlySubstanceUnits=False, name='glucose-6-phosphate',
+            sboTerm=SBO_SIMPLE_CHEMICAL),
     Species(sid='atp', compartment='c', initialConcentration=3.0, substanceUnit='mmole', constant=False,
             boundaryCondition=False, hasOnlySubstanceUnits=False, name='ATP', sboTerm=SBO_SIMPLE_CHEMICAL, port=True),
     Species(sid='adp', compartment='c', initialConcentration=0.8, substanceUnit='mmole', constant=False,
@@ -190,8 +190,8 @@ reactions = [
 # Objective function
 # -----------------------------------------------------------------------------
 objectives = [
-    fbc.Objective(sid="atp_consume_max", objectiveType="maximize", active=True,
-                  fluxObjectives={"ATPPROD": 1.0})
+    Objective(sid="atp_consume_max", objectiveType="maximize", active=True,
+              fluxObjectives={"ATPPROD": 1.0})
 ]
 
 # -----------------------------------------------------------------------------
@@ -207,9 +207,9 @@ events = [
 # Constraints
 # -----------------------------------------------------------------------------
 events.extend([
-    Constraint("constraint_1", math="atp >= 0 mM", message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
+    Constraint("constraint_1", math="atp >= 0 mM",
+               message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>')
 ])
-
 
 # -----------------------------------------------------------------------------
 # Layout
@@ -217,28 +217,30 @@ events.extend([
 layouts = [
     layout.Layout(sid="layout_1", name="Layout 1", width=700.0, height=700.0,
                   compartment_glyphs=[
-                    layout.CompartmentGlyph("glyph_c", compartment="c", x=5, y=5, w=690, h=690)
+                      layout.CompartmentGlyph("glyph_c", compartment="c", x=5, y=5, w=690, h=690)
                   ],
                   species_glyphs=[
-                        layout.SpeciesGlyph('glyph_atp', species="atp", x=450, y=50, w=50, h=20, text="ATP"),
-                        layout.SpeciesGlyph('glyph_adp', species="adp", x=450, y=450,  w=50, h=20, text="ADP"),
-                        layout.SpeciesGlyph('glyph_glc', species="glc", x=50, y=50,  w=50, h=20, text="glucose"),
-                        layout.SpeciesGlyph('glyph_g6p', species="g6p", x=50, y=450,  w=50, h=20, text="glucose-6-phosphate"),
-                        layout.SpeciesGlyph('glyph_hydron', species="hydron", x=250, y=450,  w=50, h=20, text="hydron"),
+                      layout.SpeciesGlyph('glyph_atp', species="atp", x=450, y=50, w=50, h=20, text="ATP"),
+                      layout.SpeciesGlyph('glyph_adp', species="adp", x=450, y=450, w=50, h=20, text="ADP"),
+                      layout.SpeciesGlyph('glyph_glc', species="glc", x=50, y=50, w=50, h=20, text="glucose"),
+                      layout.SpeciesGlyph('glyph_g6p', species="g6p", x=50, y=450, w=50, h=20,
+                                          text="glucose-6-phosphate"),
+                      layout.SpeciesGlyph('glyph_hydron', species="hydron", x=250, y=450, w=50, h=20, text="hydron"),
                   ],
                   reaction_glyphs=[
-                        layout.ReactionGlyph('glyph_GK', reaction="GK", x=250+25, y=250+10, h=0, w=0, text="GK",
-                                             species_glyphs={
-                                                 "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
-                                                 "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
-                                                 "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
-                                                 "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
-                                                 "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
-                                             }),
-                        layout.ReactionGlyph('glyph_ATPPROD', reaction="ATPPROD", x=650+25, y=250+10, h=0, w=0, text="ATPase",
-                                             species_glyphs={
-                                                 "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
-                                                 "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
-                                             }),
-                      ])
+                      layout.ReactionGlyph('glyph_GK', reaction="GK", x=250 + 25, y=250 + 10, h=0, w=0, text="GK",
+                                           species_glyphs={
+                                               "glyph_atp": layout.LAYOUT_ROLE_SIDESUBSTRATE,
+                                               "glyph_adp": layout.LAYOUT_ROLE_SIDEPRODUCT,
+                                               "glyph_glc": layout.LAYOUT_ROLE_SUBSTRATE,
+                                               "glyph_g6p": layout.LAYOUT_ROLE_PRODUCT,
+                                               "glyph_hydron": layout.LAYOUT_ROLE_SIDEPRODUCT
+                                           }),
+                      layout.ReactionGlyph('glyph_ATPPROD', reaction="ATPPROD", x=650 + 25, y=250 + 10, h=0, w=0,
+                                           text="ATPase",
+                                           species_glyphs={
+                                               "glyph_atp": layout.LAYOUT_ROLE_SUBSTRATE,
+                                               "glyph_adp": layout.LAYOUT_ROLE_PRODUCT,
+                                           }),
+                  ])
 ]

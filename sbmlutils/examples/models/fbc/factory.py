@@ -1,4 +1,5 @@
-import os
+from pathlib import Path
+
 from sbmlutils.modelcreator.creator import Factory
 
 
@@ -7,14 +8,19 @@ def create(tmp=False):
 
     :return:
     """
-    models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+    models_dir = Path(__file__).parent
+    output_dir = models_dir / 'results'
 
-    factory = Factory(modules=['sbmlutils.examples.models.fbc.fbc_ex1'],
-                      output_dir=os.path.join(models_dir, 'results'))
+    factory = Factory(
+        modules=['sbmlutils.examples.models.fbc.fbc_ex1'],
+        output_dir=output_dir
+    )
     factory.create(tmp)
 
-    factory = Factory(modules=['sbmlutils.examples.models.fbc.fbc_ex2'],
-                      output_dir=os.path.join(models_dir, 'results'))
+    factory = Factory(
+        modules=['sbmlutils.examples.models.fbc.fbc_ex2'],
+        output_dir=output_dir
+    )
     factory.create(tmp)
 
 
