@@ -38,9 +38,8 @@ sbmlutils: python utilities for SBML
    :target: https://github.com/ambv/black
    :alt: Black
 
-
-
 **Matthias König**
+
 .. image:: ./docs_builder/images/orcid.png
    :height: 15px
    :align: left
