@@ -3,7 +3,7 @@ Helper functions for formating SBML elements.
 """
 import libsbml
 
-from sbmlutils.annotation import miriam
+from sbmlutils.metadata import miriam
 
 
 def annotation_to_html(item):

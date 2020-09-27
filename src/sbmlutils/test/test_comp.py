@@ -5,7 +5,7 @@ import libsbml
 
 from sbmlutils import comp
 from sbmlutils import factory as fac
-from sbmlutils.annotation.sbo import SBO_CONTINOUS_FRAMEWORK
+from sbmlutils.metadata.sbo import SBO_CONTINOUS_FRAMEWORK
 
 
 def create_port_doc():

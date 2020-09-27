@@ -4,7 +4,7 @@ Demo kinetic network.
 from math import inf
 
 import sbmlutils.layout as layout
-from sbmlutils.annotation.sbo import *
+from sbmlutils.metadata.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
