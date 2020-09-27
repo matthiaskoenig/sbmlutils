@@ -65,8 +65,8 @@ setup(
     # List run-time dependencies here.  These will be installed by pip when
     install_requires=[
         "numpy>=1.19.2",
-        "scipy>=1.4.1",
-        "matplotlib>=3.3.1",
+        "scipy>=1.5.2",
+        "matplotlib>=3.3.2",
         "pandas>=1.1.2",
         "tabulate>=0.8.7",
         "Jinja2>=2.11.2",
@@ -81,15 +81,9 @@ setup(
         "phrasedml>=1.0.9",  # mac-os & win dependencies (ubuntu: 1.0.10.3)
         "antimony>=2.12.0",  # mac-os & win dependencies (ubuntu: 2.12.0.2)
 
-        # simulation
+        # model evaluation
         "libroadrunner>=2.0.0",
-        "cobra>=0.19.0",
-        "optlang>=1.4.4",
-
-        # misc
-        "pytest>=6.0.2",
-        "pytest-cov>=2.10.1",
-        "ipykernel>=5.3.4",
+        # "cobra>=0.19.0",
     ],
     extras_require={},
     **setup_kwargs)

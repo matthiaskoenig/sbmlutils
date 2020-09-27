@@ -4,14 +4,17 @@ cobrapy based helper methods
 from pathlib import Path
 import logging
 from typing import Dict
-
-import cobra
 import pandas as pd
+
+try:
+    import cobra
+except ImportError as err:
+    cobra = None
 
 logger = logging.getLogger(__name__)
 
 
-def load_cobra_model(sbml_path: Path) -> cobra.core.Model:
+def read_cobra_model(sbml_path: Path) -> 'cobra.core.Model':
     """ Loads cobra model from path.
 
     Sets default flux bounds to allow loading and changes all boundaryConditions to False.
@@ -22,7 +25,7 @@ def load_cobra_model(sbml_path: Path) -> cobra.core.Model:
     return cobra.io.read_sbml_model(str(sbml_path))
 
 
-def cobra_reaction_info(cobra_model: cobra.core.Model):
+def cobra_reaction_info(cobra_model: 'cobra.core.Model'):
     """ Creates data frame with bound and objective information.
 
     :param cobra_model:
@@ -45,7 +48,7 @@ def check_mass_balance(sbml_path: Path) -> Dict:
     :param sbml_path: Path to SBML file
     :return: Dict of unbalanced reactions
     """
-    model = load_cobra_model(sbml_path)
+    model = read_cobra_model(sbml_path)
     mbs = dict()
     for r in model.reactions:
         mb = r.check_mass_balance()

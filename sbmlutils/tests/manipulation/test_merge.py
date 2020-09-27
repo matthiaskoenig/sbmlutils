@@ -11,7 +11,7 @@ from sbmlutils.io import write_sbml
 from sbmlutils.tests import DATA_DIR
 
 
-@pytest.mark.skip
+@pytest.mark.skip(reason="Model merging currently not working")
 def test_biomodel_merge(tmp_path):
     """ Test model merging.
 

@@ -4,29 +4,32 @@ Runs ODE and FBA simulation with the model.
 memote model report can be generated via:
 memote report snapshot --filename tiny_example_10_memote.html tiny_example_10.xml
 
-"""
-import os
+Requires the cobra functionality
 
-import model
+"""
+from pathlib import Path
+
 import roadrunner
 import pandas as pd
 from matplotlib import pylab as plt
+
+from sbmlutils.fbc.cobra import read_cobra_model
+from sbmlutils.examples.models.tiny_model import model as model_definition
 from sbmlutils.modelcreator.creator import Factory
-import cobra
-from cobra.io import read_sbml_model
+
 
 # -----------------------------------------------------------------------------
 # create model
 # -----------------------------------------------------------------------------
-models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+tiny_dir = Path(__file__).parent
 
 print('-'*80)
-print(models_dir)
+print(tiny_dir)
 print('-' * 80)
 
 factory = Factory(modules=['sbmlutils.examples.models.tiny_model.model'],
-                  output_dir=os.path.join(models_dir, 'results'),
-                  annotations=os.path.join(models_dir, 'annotations.xlsx'))
+                  output_dir=tiny_dir / 'results',
+                  annotations=tiny_dir / 'annotations.xlsx')
 _, _, tiny_sbml = factory.create(tmp=False)
 
 
@@ -38,7 +41,7 @@ _, _, tiny_sbml = factory.create(tmp=False)
 #                         '{}_{}.xml'.format(model.mid, model.version))
 
 
-r = roadrunner.RoadRunner(tiny_sbml)
+r = roadrunner.RoadRunner(str(tiny_sbml))
 r.timeCourseSelections = ["time"] + r.model.getBoundarySpeciesIds() + r.model.getFloatingSpeciesIds() + r.model.getReactionIds() + r.model.getGlobalParameterIds()
 r.timeCourseSelections += ["[{}]".format(key) for key in r.model.getFloatingSpeciesIds()]
 # print(r)
@@ -65,14 +68,13 @@ for ax in (ax1, ax2):
     ax.set_xlabel("time [s]")
 
 plt.show()
-f.savefig("./results/{}_{}_roadrunner.png".format(model.mid, model.version), bbox_inches="tight")
+f.savefig(tiny_dir / 'results' / f'{model_definition.mid}_{model_definition.version}_roadrunner.png', bbox_inches="tight")
 
 
 # -----------------------------------------------------------------------------
 # fba simulation
 # -----------------------------------------------------------------------------
-
-model = read_sbml_model(tiny_sbml)
+model = read_cobra_model(tiny_sbml)
 print(model)
 
 

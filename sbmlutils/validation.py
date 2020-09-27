@@ -6,8 +6,6 @@ import time
 from typing import List, Iterable
 import libsbml
 
-from dataclasses import dataclass
-
 from sbmlutils.utils import bcolors
 
 logger = logging.getLogger(__name__)
@@ -37,17 +35,20 @@ def check(value: int, message: str) -> bool:
     return valid
 
 
-@dataclass
 class ValidationResult:
     """Results of an SBMLDocument validation."""
-    errors: List[libsbml.SBMLError] = None
-    warnings: List[libsbml.SBMLError] = None
 
-    def __post_init__(self):
-        if self.errors is None:
-            self.errors = list()
-        if self.warnings is None:
-            self.warnings = list()
+    def __init__(self,
+             errors: List[libsbml.SBMLError] = None,
+             warnings: List[libsbml.SBMLError] = None
+    ):
+        if errors is None:
+            errors = list()
+        if warnings is None:
+            warnings = list()
+
+        self.errors = errors
+        self.warnings = warnings
 
     @property
     def error_count(self):

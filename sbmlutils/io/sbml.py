@@ -76,7 +76,7 @@ def read_sbml(source: Union[Path, str],
     return doc
 
 
-def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
+def write_sbml(doc: libsbml.SBMLDocument, filepath: Union[Path, None],
                program_name: str = program_name,
                program_version: str = str(__version__),
                validate: bool = False,
@@ -87,7 +87,7 @@ def write_sbml(doc: libsbml.SBMLDocument, filepath: Path,
                ) -> str:
     """ Write SBMLDocument to file or string.
 
-    If filepath is None the SBML string is returned
+    To write the SBML to string use 'filepath=None', which returns the SBML string.
 
     Optional validation with validate flag.
 
