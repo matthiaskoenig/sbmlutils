@@ -1,22 +1,20 @@
+import logging
 import os
 import re
-import roadrunner
-from roadrunner import SelectionRecord
 from pprint import pprint
-import pandas as pd
+
+import coloredlogs
+import matplotlib
 import numpy as np
 import pandas as pd
-import matplotlib
-from matplotlib import pyplot as plt
-from IPython.display import Image
-from IPython.core.display import HTML
+import roadrunner
 import tellurium as te
-import logging
-import coloredlogs
-
-
+from IPython.core.display import HTML
+from IPython.display import Image
+from matplotlib import pyplot as plt
 from pylimax.models.glucose_pkpd import model_factory
-from pylimax.models.glucose_pkpd.glucose_pkpd_model import mid, version, SUBSTANCES_BODY
+from pylimax.models.glucose_pkpd.glucose_pkpd_model import SUBSTANCES_BODY, mid, version
+from roadrunner import SelectionRecord
 
 # -----------------------------
 # Logging

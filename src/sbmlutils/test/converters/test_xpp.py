@@ -2,8 +2,8 @@
 Test XPP generation
 """
 from sbmlutils.converters import xpp
-from sbmlutils.test import DATA_DIR
 from sbmlutils.io.sbml import validate_sbml
+from sbmlutils.test import DATA_DIR
 
 
 def xpp_check(tmp_path, ode_id, Nall=0, Nerr=0, Nwarn=0):

@@ -2,15 +2,17 @@
 Test annotation functions and annotating of SBML models.
 """
 import re
+
 import libsbml
 
-from sbmlutils.io.sbml import read_sbml
 from sbmlutils.annotation import annotator
+from sbmlutils.annotation.annotator import ExternalAnnotation, ModelAnnotator
 from sbmlutils.annotation.miriam import BQB
-from sbmlutils.annotation.annotator import ModelAnnotator, ExternalAnnotation
 from sbmlutils.examples.models.annotation import factory as annotation_factory
-from sbmlutils.test import DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS, \
-    GALACTOSE_ANNOTATIONS
+from sbmlutils.io.sbml import read_sbml
+from sbmlutils.test import (DEMO_ANNOTATIONS, DEMO_SBML_NO_ANNOTATIONS,
+                            GALACTOSE_ANNOTATIONS,
+                            GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS)
 
 
 def test_create_annotation():

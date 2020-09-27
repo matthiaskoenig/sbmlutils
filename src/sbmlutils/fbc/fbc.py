@@ -3,7 +3,9 @@ Helper functions for working with FBC and cobrapy models.
 """
 import logging
 import warnings
+
 import libsbml
+
 from sbmlutils import factory
 
 logger = logging.getLogger(__name__)

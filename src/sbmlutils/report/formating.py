@@ -2,6 +2,7 @@
 Helper functions for formating SBML elements.
 """
 import libsbml
+
 from sbmlutils.annotation import miriam
 
 

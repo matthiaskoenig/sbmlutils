@@ -3,9 +3,10 @@ Test interpolation
 """
 import os
 import shutil
-import pytest
 import tempfile
+
 import pandas as pd
+import pytest
 import roadrunner
 
 from sbmlutils.manipulation import interpolation as ip

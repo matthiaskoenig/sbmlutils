@@ -1,14 +1,13 @@
 """
 Utility functions for reading, writing and validating SBML.
 """
-from pathlib import Path
-from typing import Union, List
 import logging
+from pathlib import Path
+from typing import List, Union
 
 import libsbml
 
-from sbmlutils import __version__, program_name
-from sbmlutils import validation
+from sbmlutils import __version__, program_name, validation
 from sbmlutils.utils import deprecated
 
 logger = logging.getLogger(__name__)

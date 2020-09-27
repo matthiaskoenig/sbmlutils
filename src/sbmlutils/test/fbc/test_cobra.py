@@ -3,11 +3,11 @@ Unit tests for fbc.
 """
 import pytest
 
+from sbmlutils.fbc.cobra import (check_mass_balance, cobra, cobra_reaction_info,
+                                 read_cobra_model)
 from sbmlutils.fbc.fbc import add_default_flux_bounds
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.test import FBC_SBML, DEMO_SBML
-
-from sbmlutils.fbc.cobra import cobra, read_cobra_model, cobra_reaction_info, check_mass_balance
+from sbmlutils.test import DEMO_SBML, FBC_SBML
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")

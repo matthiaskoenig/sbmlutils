@@ -11,20 +11,20 @@ The basic steps of template creation are
 
 The final report consists of an HTML file with an overview over the SBML elements in the model.
 """
-from pathlib import Path
-from typing import List, Iterable
 import codecs
+import logging
 import ntpath
 import warnings
-import jinja2
-import logging
+from pathlib import Path
+from typing import Iterable, List
 
+import jinja2
 import libsbml
 from jinja2 import TemplateNotFound
 
-from sbmlutils.report import sbmlfilters, formating
-from sbmlutils.io.sbml import write_sbml, read_sbml
 from sbmlutils import utils
+from sbmlutils.io.sbml import read_sbml, write_sbml
+from sbmlutils.report import formating, sbmlfilters
 
 logger = logging.getLogger(__name__)
 

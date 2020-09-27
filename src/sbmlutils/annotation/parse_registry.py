@@ -11,9 +11,10 @@ def create_miriam_json():
 
     # xmlschema.validators.exceptions.XMLSchemaValidationError: failed validating 'http://www.fungalbarcoding.org/BioloMICS.aspx?Table=Fungal barcodes&Rec=$id&Fields=All&ExactMatch=T' with XsdPatternFacets(['\\S*$id\\S*']):
     # > http://www.fungalbarcoding.org/BioloMICS.aspx?$id
-    import xmlschema
     import json
     from pprint import pprint
+
+    import xmlschema
     xs = xmlschema.XMLSchema('./resources/MiriamXML.xsd')
     d = xs.to_dict('./resources/IdentifiersOrg-Registry.xml')
     # pprint(d['datatype'][1])

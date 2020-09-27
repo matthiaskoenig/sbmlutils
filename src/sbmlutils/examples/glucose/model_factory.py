@@ -1,9 +1,10 @@
-import os
 import logging
+import os
+
+import coloredlogs
 
 from sbmlutils.modelcreator import creator
 
-import coloredlogs
 coloredlogs.install(
     level='INFO',
     fmt="%(pathname)s:%(lineno)s %(funcName)s %(levelname) -10s %(message)s"

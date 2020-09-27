@@ -11,18 +11,19 @@ model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
+import logging
 import os
 import re
-from pathlib import Path
-from typing import Union, Dict, Iterable, List
-
-import pandas as pd
-import logging
-import libsbml
 from collections import OrderedDict
+from pathlib import Path
+from typing import Dict, Iterable, List, Union
+
+import libsbml
+import pandas as pd
 
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
+
 from .miriam import *
 
 LOGGER = logging.getLogger(__name__)

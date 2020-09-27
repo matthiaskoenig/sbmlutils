@@ -1,10 +1,11 @@
 """
 Utility functions.
 """
-import warnings
-import time
 import functools
 import hashlib
+import time
+import warnings
+
 import libsbml
 
 

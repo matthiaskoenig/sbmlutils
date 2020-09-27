@@ -1,5 +1,5 @@
 from sbmlutils.io.sbml import validate_sbml
-from sbmlutils.test import DEMO_SBML, GALACTOSE_SINGLECELL_SBML, BASIC_SBML, VDP_SBML
+from sbmlutils.test import BASIC_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML, VDP_SBML
 
 SBML_FILES = [
     {'path': DEMO_SBML, 'ucheck': True, 'N': 0},

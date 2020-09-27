@@ -10,10 +10,11 @@ https://github.com/allyhume/SBMLDataTools.git
 import logging
 from pathlib import Path
 
-import pandas as pd
 import libsbml
-from sbmlutils.validation import validate_doc
+import pandas as pd
+
 from sbmlutils.io.sbml import write_sbml
+from sbmlutils.validation import validate_doc
 
 logger = logging.getLogger(__name__)
 

@@ -2,10 +2,10 @@
 """
 Example model for creating an SBML ODE model.
 """
-from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'example1'
@@ -91,6 +91,7 @@ reactions = [
 if __name__ == "__main__":
 
     import os
+
     from sbmlutils.modelcreator.creator import Factory
     models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
     factory = Factory(modules=['sbmlutils.examples.models.example1.model'],

@@ -1,8 +1,9 @@
 """ FIXME: figure out what is going on with model simulations. """
 
 
-import roadrunner
 import pandas as pd
+import roadrunner
+
 
 def simulate(r: roadrunner.RoadRunner):
     r.timeCourseSelections = ["time", "Aglc", "[Aglc]", "R1", "Vc"]
@@ -31,6 +32,7 @@ s3 = simulate(r3)
 
 # --- plotting ---
 from matplotlib import pyplot as plt
+
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
 print(s1.columns)

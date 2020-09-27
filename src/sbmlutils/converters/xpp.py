@@ -41,16 +41,17 @@ Not supported:
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
-import warnings
 import re
+import warnings
 from pathlib import Path
 from pprint import pprint
+
 import libsbml
 
 from sbmlutils import __version__
 from sbmlutils import factory as fac
-from sbmlutils.io import sbml
 from sbmlutils.converters import xpp_helpers
+from sbmlutils.io import sbml
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)

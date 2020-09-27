@@ -3,10 +3,12 @@ Test xpp file
 """
 
 import os
-from sbmlutils.report import sbmlreport
-from sbmlutils.converters import xpp
+
 import roadrunner
 from matplotlib import pyplot as plt
+
+from sbmlutils.converters import xpp
+from sbmlutils.report import sbmlreport
 
 
 def example(model_id):

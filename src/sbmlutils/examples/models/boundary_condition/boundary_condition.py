@@ -1,8 +1,9 @@
 from typing import Dict
+
 from sbmlutils.annotation import *
-from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator.creator import CoreModel
+from sbmlutils.units import *
 from sbmlutils.validation import validate_doc
 
 m1_dict = {

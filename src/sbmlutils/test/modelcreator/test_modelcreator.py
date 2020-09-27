@@ -6,18 +6,16 @@ and creation of the SBML.
 """
 import pytest
 
-from sbmlutils.examples.models.mass_charge_balance import factory as mass_charge_factory
 from sbmlutils.examples.models.annotation import factory as annotation_factory
+from sbmlutils.examples.models.assignment import factory as assignment_factory
 from sbmlutils.examples.models.basic import factory as basic_factory
 from sbmlutils.examples.models.demo import factory as demo_factory
+from sbmlutils.examples.models.distrib import factory as distrib_factory
 from sbmlutils.examples.models.example1 import factory as example1_factory
 from sbmlutils.examples.models.fbc import factory as fbc_factory
+from sbmlutils.examples.models.mass_charge_balance import factory as mass_charge_factory
 from sbmlutils.examples.models.tiny_model import factory as tiny_factory
-
 from sbmlutils.modelcreator.creator import CoreModel, Preprocess
-from sbmlutils.examples.models.assignment import factory as assignment_factory
-
-from sbmlutils.examples.models.distrib import factory as distrib_factory
 
 
 def test_create_mass_charge():

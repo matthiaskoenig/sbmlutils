@@ -2,12 +2,12 @@
 Demo kinetic network.
 """
 from math import inf
-from sbmlutils.units import *
+
+import sbmlutils.layout as layout
 from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
-import sbmlutils.layout as layout
-
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 # -----------------------------------------------------------------------------
 mid = 'tiny_example'

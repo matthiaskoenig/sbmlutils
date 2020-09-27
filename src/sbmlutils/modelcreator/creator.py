@@ -9,24 +9,24 @@ model information (dictionaries and lists
 
 Uses the importlib to import the information.
 """
-import shutil
 import copy
+import json
 import logging
+import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Iterable, Dict
-import xmltodict
-import json
+from typing import Dict, Iterable, List
 
 import libsbml
+import xmltodict
 
-from sbmlutils.annotation import annotator
-import sbmlutils.history as history
 import sbmlutils.factory as factory
-from sbmlutils.io import write_sbml
-from sbmlutils.utils import bcolors
+import sbmlutils.history as history
+from sbmlutils.annotation import annotator
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
+from sbmlutils.io import write_sbml
 from sbmlutils.report import sbmlreport
+from sbmlutils.utils import bcolors
 from sbmlutils.validation import check
 
 logger = logging.getLogger(__name__)

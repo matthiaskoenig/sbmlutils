@@ -1,10 +1,10 @@
 """
 Example testing uncertainty with libsbml packages
 """
-import libsbml
-import numpy as np
 import logging
 
+import libsbml
+import numpy as np
 
 if __name__ == "__main__":
 

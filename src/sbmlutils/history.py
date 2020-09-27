@@ -2,10 +2,11 @@
 Handles manipulation of the History of SBases.
 """
 import datetime
+
 import libsbml
 
-from sbmlutils.validation import check
 from sbmlutils.utils import create_metaid
+from sbmlutils.validation import check
 
 
 def date_now():

@@ -1,16 +1,16 @@
 
 import os
-import roadrunner
-from roadrunner import SelectionRecord
 from collections import namedtuple
-import pandas as pd
+from os.path import join as pjoin
+
+import matplotlib
 import numpy as np
 import pandas as pd
-import matplotlib
-from matplotlib import pyplot as plt
 import pylimax
+import roadrunner
 from IPython.display import display
-from os.path import join as pjoin
+from matplotlib import pyplot as plt
+from roadrunner import SelectionRecord
 
 # global settings for plots
 plt.rcParams.update({

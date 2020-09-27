@@ -1,16 +1,16 @@
 """
 Helpers for model flattening.
 """
-import os
 import logging
+import os
 import time
 from pathlib import Path
 
 import libsbml
 
-from sbmlutils.validation import validate_doc
-from sbmlutils.io import write_sbml, read_sbml
+from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.utils import bcolors
+from sbmlutils.validation import validate_doc
 
 logger = logging.getLogger(__name__)
 

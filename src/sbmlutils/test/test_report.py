@@ -4,7 +4,8 @@ Test SBML report.
 import pytest
 
 from sbmlutils.report import sbmlreport
-from sbmlutils.test import DEMO_SBML, GALACTOSE_SINGLECELL_SBML, GLUCOSE_SBML, BASIC_SBML, VDP_SBML, GZ_SBML
+from sbmlutils.test import (BASIC_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML,
+                            GLUCOSE_SBML, GZ_SBML, VDP_SBML)
 
 
 @pytest.mark.parametrize("source", [DEMO_SBML, GALACTOSE_SINGLECELL_SBML, GLUCOSE_SBML, BASIC_SBML, VDP_SBML])

@@ -2,10 +2,9 @@
 """
 Simple assignment test case.
 """
-from sbmlutils.units import *
 from sbmlutils.factory import *
-
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'assignment'

@@ -4,19 +4,21 @@ Script for adding ports and interfaces to the RBC model.
 """
 try:
     import libsbml
-    from libsbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM, UNIT_KIND_MOLE
+    from libsbml import (UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE,
+                         UNIT_KIND_MOLE, UNIT_KIND_SECOND, XMLNode)
 except ImportError:
     import tesbml as libsbml
     from tesbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM, UNIT_KIND_MOLE
 
-from sbmlutils.modelcreator import templates
-import sbmlutils.factory as mc
 import sbmlutils.comp as mcomp
+import sbmlutils.factory as mc
+from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes import ReactionTemplate
 
 PORT_SUFFIX = "_port"
 
 import os
+
 path_dir = os.path.dirname(os.path.realpath(__file__))
 version = 1
 MODEL_PATH = os.path.join(path_dir, "./input/dutoit3_mmol_compartments_v5.xml")

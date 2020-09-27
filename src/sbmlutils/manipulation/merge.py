@@ -4,16 +4,16 @@ Functions for SBML model manipulation.
 These functions take existing SBML model(s) and provide common manipulations.
 For example merging of models or promoting of local parameters.
 """
-import os
 import logging
+import os
 from pathlib import Path
-from typing import Iterable, Dict
+from typing import Dict, Iterable
 
 import libsbml
 
+from sbmlutils import validation
 from sbmlutils.comp import comp
 from sbmlutils.io import read_sbml, write_sbml
-from sbmlutils import validation
 
 logger = logging.getLogger(__name__)
 

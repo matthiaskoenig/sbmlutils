@@ -3,6 +3,7 @@ Utilities for the creation and work with layout models.
 """
 
 import libsbml
+
 import sbmlutils.factory as factory
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 

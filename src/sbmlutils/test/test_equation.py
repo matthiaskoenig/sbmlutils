@@ -1,7 +1,7 @@
 """
 Test equations.
 """
-from sbmlutils.equation import Equation, REV_SEP, IRREV_SEP
+from sbmlutils.equation import IRREV_SEP, REV_SEP, Equation
 
 
 def test_equation_examples():

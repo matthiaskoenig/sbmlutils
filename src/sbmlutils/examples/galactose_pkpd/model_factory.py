@@ -2,8 +2,8 @@
 PKPD model creator for LiMAx and methacetin.
 """
 from pathlib import Path
-from sbmlutils.modelcreator import creator
 
+from sbmlutils.modelcreator import creator
 
 if __name__ == "__main__":
     creator.create_model(

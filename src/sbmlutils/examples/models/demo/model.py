@@ -2,9 +2,9 @@
 """
 Demo kinetic network.
 """
-from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 from . import reactions as R
 

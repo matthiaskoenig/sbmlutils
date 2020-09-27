@@ -3,11 +3,9 @@ Test manipulation functions.
 """
 import pytest
 
-
-from sbmlutils import comp
-from sbmlutils import validation
-from sbmlutils.manipulation import merge
+from sbmlutils import comp, validation
 from sbmlutils.io import write_sbml
+from sbmlutils.manipulation import merge
 from sbmlutils.test import DATA_DIR
 
 

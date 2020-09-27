@@ -6,11 +6,11 @@ identifiers.org collections (MIRIAM registry).
 For updating the MIRIAM registry see the parse_registry script.
 """
 
-import os
 import json
+import logging
+import os
 import re
 from enum import Enum
-import logging
 
 __all__ = [
     'BQM',

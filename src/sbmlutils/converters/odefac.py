@@ -21,12 +21,12 @@ The following SBML core constructs are currently NOT supported:
 import os
 import re
 from collections import defaultdict
-import jinja2
 from pprint import pprint
+
+import jinja2
 import libsbml
 
 from sbmlutils.converters.mathml import evaluableMathML
-
 
 # template location (for language templates)
 # FIXME: swich to pathlib

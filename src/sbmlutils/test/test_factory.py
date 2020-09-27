@@ -1,9 +1,9 @@
 """
 Testing the factory methods.
 """
+import libsbml
 import pytest
 
-import libsbml
 from sbmlutils import factory
 from sbmlutils.factory import *
 

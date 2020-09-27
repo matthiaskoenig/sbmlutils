@@ -3,7 +3,8 @@ Helpers for validation and checking of SBML and libsbml operations.
 """
 import logging
 import time
-from typing import List, Iterable
+from typing import Iterable, List
+
 import libsbml
 
 from sbmlutils.utils import bcolors

@@ -1,10 +1,9 @@
-from sbmlutils.io import write_sbml, validate_sbml
-from sbmlutils.modelcreator.creator import CoreModel
-
-from sbmlutils.factory import *
-from sbmlutils.units import *
 from sbmlutils.annotation import *
 from sbmlutils.annotation.sbo import *
+from sbmlutils.factory import *
+from sbmlutils.io import validate_sbml, write_sbml
+from sbmlutils.modelcreator.creator import CoreModel
+from sbmlutils.units import *
 
 
 def test_modelcreator_1(tmpdir):

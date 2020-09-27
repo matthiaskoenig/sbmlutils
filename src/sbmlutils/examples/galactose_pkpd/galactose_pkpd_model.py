@@ -3,12 +3,13 @@
 PKPD model for methacetin-based liver function tests.
 """
 try:
-    from libsbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM, UNIT_KIND_MOLE
+    from libsbml import (UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE,
+                         UNIT_KIND_MOLE, UNIT_KIND_SECOND, XMLNode)
 except ImportError:
     from tesbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM, UNIT_KIND_MOLE
 
-from sbmlutils.modelcreator import templates
 import sbmlutils.factory as mc
+from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes import ReactionTemplate
 
 ########################################################################################################################

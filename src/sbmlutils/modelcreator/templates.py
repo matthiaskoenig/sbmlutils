@@ -3,6 +3,7 @@
 Template information for the model creation.
 """
 from datetime import datetime
+
 import sbmlutils.factory as factory
 
 # id : ('FamilyName', 'GivenName', 'Email', 'Organization')

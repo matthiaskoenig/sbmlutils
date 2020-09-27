@@ -3,10 +3,10 @@
 FBA example with exchange reactions.
 """
 
-from sbmlutils.units import *
 from sbmlutils.annotation.sbo import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 # -----------------------------------------------------------------------------
 mid = 'fbc_ex1'

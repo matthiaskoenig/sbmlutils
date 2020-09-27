@@ -2,8 +2,9 @@
 Create model.
 """
 import os
-from sbmlutils.modelcreator.creator import Factory
+
 from sbmlutils.examples.models.demo import model
+from sbmlutils.modelcreator.creator import Factory
 
 
 def create(tmp=False):

@@ -5,9 +5,9 @@ DallaMan2006
 # TODO: encode units for model
 # TODO: T2DM simulations (in current version not working)
 
-from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'DallaMan2006'

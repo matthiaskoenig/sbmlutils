@@ -2,10 +2,9 @@
 """
 Model with amount species
 """
-from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
-
+from sbmlutils.units import *
 
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'Koenig_amount_species'
@@ -53,7 +52,9 @@ rules = [
 
 
 import os
+
 from sbmlutils.modelcreator.creator import Factory
+
 
 def create(tmp=False):
     """ Create model.

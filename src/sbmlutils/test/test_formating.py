@@ -1,8 +1,8 @@
 import libsbml
 
-from sbmlutils.units import *
-from sbmlutils.report import formating
 from sbmlutils.factory import Unit
+from sbmlutils.report import formating
+from sbmlutils.units import *
 
 doc = libsbml.SBMLDocument()
 model = doc.createModel()  # libsbml.model

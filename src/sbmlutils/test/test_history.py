@@ -3,8 +3,7 @@ Test annotation functions and annotating of SBML models.
 """
 import libsbml
 
-from sbmlutils import factory
-from sbmlutils import history
+from sbmlutils import factory, history
 
 
 def test_date_now():

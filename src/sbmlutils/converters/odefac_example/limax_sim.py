@@ -3,12 +3,11 @@ Test scipy ode file.
 """
 import os
 
-import roadrunner
-from roadrunner import SelectionRecord
-import pandas as pd
 import numpy as np
+import pandas as pd
+import roadrunner
 from matplotlib import pyplot as plt
-
+from roadrunner import SelectionRecord
 from scipy.integrate import odeint
 
 in_dir = '.'

@@ -3,9 +3,9 @@
 Distrib example.
 """
 
-from sbmlutils.units import *
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.units import *
 
 # -----------------------------------------------------------------------------
 mid = 'distrib_ex1'

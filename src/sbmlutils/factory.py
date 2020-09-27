@@ -16,13 +16,14 @@ which takes care of the order of object creation.
 """
 
 import logging
-import libsbml
-from sbmlutils.validation import check
-from sbmlutils.annotation.annotator import ModelAnnotator, Annotation
-from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
 from collections import namedtuple
-from sbmlutils.equation import Equation
 
+import libsbml
+
+from sbmlutils.annotation.annotator import Annotation, ModelAnnotator
+from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
+from sbmlutils.equation import Equation
+from sbmlutils.validation import check
 
 logger = logging.getLogger(__name__)
 
