@@ -25,9 +25,7 @@ def check(value: int, message: str) -> bool:
     """
     valid = True
     if value is None:
-        logger.error(
-            f"Error: LibSBML returned a null value trying to <{message}>."
-        )
+        logger.error(f"Error: LibSBML returned a null value trying to <{message}>.")
         valid = False
     elif isinstance(value, int):
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
