@@ -1,7 +1,10 @@
+.. image:: ./docs_builder/images/sbmlutils-logo-small.png
+   :height: 60px
+   :align: left
+   :alt: sbmlutils logo
+
 sbmlutils: python utilities for SBML
 ====================================
-
-<h1><img alt="sbmlutils logo" src="./docs_builder/images/sbmlutils-logo-small.png" height="60" /> sbmlutils: python utilities for SBML</h1>
 
 .. image:: https://img.shields.io/pypi/v/sbmlutils.svg
    :target: https://pypi.org/project/sbmlutils/
@@ -11,18 +14,37 @@ sbmlutils: python utilities for SBML
    :target: https://pypi.org/project/sbmlutils/
    :alt: Supported Python Versions
 
-[![License (LGPL version 3)](https://img.shields.io/badge/license-LGPLv3.0-blue.svg?style=flat-square)](http://opensource.org/licenses/LGPL-3.0)
+.. image:: https://img.shields.io/pypi/l/cobra.svg
+   :target: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
+   :alt: GNU Lesser General Public License 2 or later
 
 .. image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
    :target: https://github.com/sbmlutils/sbmlutils/workflows/CI-CD
    :alt: GitHub Actions CI/CD Status
 
-[![Documentation Status](https://readthedocs.org/projects/sbmlutils/badge/?version=latest)](http://sbmlutils.readthedocs.io/en/latest/)
-[![codecov](https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg)](https://codecov.io/gh/matthiaskoenig/sbmlutils)
-[![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
+.. image:: https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg
+   :target: https://codecov.io/gh/matthiaskoenig/sbmlutils
+   :alt: Codecov
+
+.. image:: https://readthedocs.org/projects/cobrapy/badge/?version=latest
+   :target: https://sbmlutils.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: https://zenodo.org/badge/55952847.svg
+   :target: https://zenodo.org/badge/latestdoi/55952847
+   :alt: Zenodo DOI
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/ambv/black
+   :alt: Black
 
 
-<b><a href="https://orcid.org/0000-0003-1725-179X" title="https://orcid.org/0000-0003-1725-179X"><img src="./docs_builder/images/orcid.png" height="15"/></a> Matthias König</b>
+.. image:: ./docs_builder/images/orcid.png"
+   :height: 15px
+   :align: left
+   :alt: orcid
+   :target: https://orcid.org/0000-0003-1725-179X
+**Matthias König**
 
 ``sbmlutils`` is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
@@ -113,6 +135,7 @@ Release notes
 ---------
 * support and CI-CD for Mac-OS and Windows
 * switch from travis to github actions
+* black code formating; isort import handling
 * python 3.8 support
 * fixed pep8 issues
 * type annotations and documentations
