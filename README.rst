@@ -5,6 +5,10 @@
 sbmlutils: python utilities for SBML
 ====================================
 
+.. image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
+   :target: https://github.com/sbmlutils/sbmlutils/workflows/CI-CD
+   :alt: GitHub Actions CI/CD Status
+
 .. image:: https://img.shields.io/pypi/v/sbmlutils.svg
    :target: https://pypi.org/project/sbmlutils/
    :alt: Current PyPI Version
@@ -13,13 +17,9 @@ sbmlutils: python utilities for SBML
    :target: https://pypi.org/project/sbmlutils/
    :alt: Supported Python Versions
 
-.. image:: https://img.shields.io/pypi/l/cobra.svg
-   :target: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
-   :alt: GNU Lesser General Public License 2 or later
-
-.. image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
-   :target: https://github.com/sbmlutils/sbmlutils/workflows/CI-CD
-   :alt: GitHub Actions CI/CD Status
+.. image:: https://img.shields.io/pypi/l/sbmlutils.svg
+   :target: http://opensource.org/licenses/LGPL-3.0
+   :alt: GNU Lesser General Public License 3
 
 .. image:: https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg
    :target: https://codecov.io/gh/matthiaskoenig/sbmlutils
@@ -37,17 +37,10 @@ sbmlutils: python utilities for SBML
    :target: https://github.com/ambv/black
    :alt: Black
 
-**Matthias König**
-
-.. image:: ./docs_builder/images/orcid-15.png
-   :align: left
-   :alt: orcid
-   :target: https://orcid.org/0000-0003-1725-179X
-
 ``sbmlutils`` is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
 `libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
-available from https://github.com/matthiaskoenig/sbmlutils
+with source code available from `https://github.com/matthiaskoenig/sbmlutils<https://github.com/matthiaskoenig/sbmlutils>`__.
 
 Features include among others
 
@@ -56,10 +49,8 @@ Features include among others
 -  interpolation functions to add experimental data to models
 -  file converters (XPP)
 
-The documentation is available at https://sbmlutils.readthedocs.io
-
-If you have any questions or issues please 
-`open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__
+The documentation is available on `https://sbmlutils.readthedocs.io <https://sbmlutils.readthedocs.io>`__. 
+If you have any questions or issues please `open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__.
 
 How to cite
 ===========
@@ -71,7 +62,7 @@ Contributing
 ============
 
 Contributions are always welcome! Please read the `contributing guidelines
-<https://github.com/sbmlutils/blob/devel/CONTRIBUTING.rst>`__ to
+<https://github.com/matthiaskoenig/sbmlutils/blob/devel/CONTRIBUTING.rst>`__ to
 get started.
 
 License
@@ -100,7 +91,7 @@ within the research network Systems Medicine of the Liver (**LiSyM**, grant numb
 
 Installation
 ============
-`sbmlutils` is available from `pypi<https://pypi.python.org/pypi/sbmlutils>`__ and 
+`sbmlutils` is available from `pypi <https://pypi.python.org/pypi/sbmlutils>`__ and 
 can be installed via:: 
 
     pip install sbmlutils
