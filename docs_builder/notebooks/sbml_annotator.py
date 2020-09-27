@@ -32,7 +32,7 @@ get_ipython().run_line_magic('autoreload', '2')
 
 from sbmlutils.units import *
 from sbmlutils.factory import *
-from sbmlutils.annotation import *
+from sbmlutils.metadata import *
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.validation import validate_doc
 
@@ -103,7 +103,7 @@ print(s1.toSBML())
 # In[4]:
 
 
-from sbmlutils.annotation.annotator import ModelAnnotator
+from sbmlutils.metadata.annotator import ModelAnnotator
 df = ModelAnnotator.read_annotations_df(BASE_DIR / 'annotations' / 'demo_annotations.xlsx', file_format="xlsx")
 df
 
@@ -111,7 +111,7 @@ df
 # In[5]:
 
 
-from sbmlutils.annotation.annotator import annotate_sbml
+from sbmlutils.metadata.annotator import annotate_sbml
 
 # create SBML report without performing units checks
 doc = annotate_sbml(

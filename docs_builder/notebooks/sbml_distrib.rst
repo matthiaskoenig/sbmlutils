@@ -208,7 +208,7 @@ Here we create a parameter
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb726d60>
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745520>
 
 
 
@@ -371,7 +371,7 @@ distribution ``normal(z,10)``:
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb70afa0>
+    <sbmlutils.validation.ValidationResult at 0x7f96b672e8e0>
 
 
 
@@ -547,7 +547,7 @@ to the SBML symbol ``y``.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb726f40>
+    <sbmlutils.validation.ValidationResult at 0x7f96b672e880>
 
 
 
@@ -792,7 +792,7 @@ the value of ``x`` to ``3`` instead.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb6d85b0>
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745a90>
 
 
 
@@ -1192,7 +1192,7 @@ distributions
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb6d30a0>
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745fa0>
 
 
 
@@ -1358,7 +1358,7 @@ written as ``3.22 +- 0.3``.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb726340>
+    <sbmlutils.validation.ValidationResult at 0x7f96b672efa0>
 
 
 
@@ -1526,7 +1526,7 @@ a variance of ``0.09``.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb726220>
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745d30>
 
 
 
@@ -1724,7 +1724,7 @@ a parameter. Here the two uncertainties
     valid                    : TRUE
     validation error(s)      : 0
     validation warnings(s)   : 2
-    check time (s)           : 0.002
+    check time (s)           : 0.003
     --------------------------------------------------------------------------------
     [0m[0m
     WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
@@ -1742,7 +1742,7 @@ a parameter. Here the two uncertainties
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f86307aad30>
+    <sbmlutils.validation.ValidationResult at 0x7f96b6701280>
 
 
 
@@ -1918,7 +1918,7 @@ random variable.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f85bb6d8340>
+    <sbmlutils.validation.ValidationResult at 0x7f96b676dd00>
 
 
 
@@ -2118,7 +2118,7 @@ The following example provides an overview over the available fields.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f863101f370>
+    <sbmlutils.validation.ValidationResult at 0x7f96b676d490>
 
 
 
@@ -2131,7 +2131,7 @@ used for setting the parameter in the model.
 .. code:: ipython3
 
     import libsbml
-    from sbmlutils.annotation import *
+    from sbmlutils.metadata import *
     model_dict = {
         'mid': 'sabiork_parameter',
         'packages': ['distrib'],

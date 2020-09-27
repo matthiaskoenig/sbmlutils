@@ -1,15 +1,11 @@
-# -*- coding=utf-8 -*-
-"""
-Test model to check the update of global depending parameters in Roadrunner.
-Mainly volumes which are calculated based on other parameters.
-"""
+"""Model with annotations example."""
+
 from sbmlutils.factory import *
 from sbmlutils.units import *
-from sbmlutils.annotation.sbo import *
-from sbmlutils.annotation.miriam import *
+from sbmlutils.metadata.sbo import *
+from sbmlutils.metadata.miriam import *
 from sbmlutils.modelcreator import templates
 
-# ---------------------------------------------------------------------------------------------------------------------
 mid = 'annotation_example'
 version = 8
 notes = Notes([
@@ -23,9 +19,6 @@ notes = Notes([
 ])
 creators = templates.creators
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Units
-# ---------------------------------------------------------------------------------------------------------------------
 model_units = ModelUnits(time=UNIT_s, extent=UNIT_KIND_MOLE, substance=UNIT_KIND_MOLE,
                          length=UNIT_m, area=UNIT_m2, volume=UNIT_m3)
 units = [
@@ -36,9 +29,6 @@ units = [
     UNIT_mole_per_s
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Compartments
-# ---------------------------------------------------------------------------------------------------------------------
 compartments = [
     Compartment(sid='ext', value='Vol_e', unit='m3', constant=True,
                 name="external", sboTerm=SBO_PHYSICAL_COMPARTMENT,
@@ -59,9 +49,6 @@ compartments = [
                 ]),
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Species
-# ---------------------------------------------------------------------------------------------------------------------
 species = [
     Species(sid='e__gal', compartment='ext', initialConcentration=3.0,
                 substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
@@ -77,30 +64,16 @@ species = [
                 name='D-galactose', sboTerm=SBO_SIMPLE_CHEMICAL),
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Parameters
-# ---------------------------------------------------------------------------------------------------------------------
 parameters = [
     Parameter(sid='x_cell', value=25E-6, unit='m', constant=True, name="cell diameter"),
     Parameter(sid='Vol_e', value=100E-14, unit='m3', constant=True, name="external volume"),
     Parameter(sid='A_m', value=1.0, unit='m2', constant=True, name="membrane area"),
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Assignments
-# ---------------------------------------------------------------------------------------------------------------------
 assignments = [
     InitialAssignment(sid='Vol_c', value='x_cell*x_cell*x_cell', unit='m3'),
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Rules
-# ---------------------------------------------------------------------------------------------------------------------
-rules = []
-
-# ---------------------------------------------------------------------------------------------------------------------
-# Reactions
-# ---------------------------------------------------------------------------------------------------------------------
 reactions = [
 
     Reaction(
@@ -121,5 +94,4 @@ reactions = [
             (BQB.IS, "sbo/SBO:0000284"),  # transporter
         ]
     )
-
 ]

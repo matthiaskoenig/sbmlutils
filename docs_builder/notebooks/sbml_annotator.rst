@@ -62,7 +62,7 @@ provided on object creation. In the example we annotate a ``species``
 
     from sbmlutils.units import *
     from sbmlutils.factory import *
-    from sbmlutils.annotation import *
+    from sbmlutils.metadata import *
     from sbmlutils.modelcreator.creator import CoreModel
     from sbmlutils.validation import validate_doc
     
@@ -137,7 +137,7 @@ provided on object creation. In the example we annotate a ``species``
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f2551e03e20>
+    <sbmlutils.validation.ValidationResult at 0x7ff07847d880>
 
 
 
@@ -186,7 +186,7 @@ creates annotations of the form
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/annotation_example_8.xml
     valid                    : TRUE
-    check time (s)           : 0.011
+    check time (s)           : 0.013
     --------------------------------------------------------------------------------
     [0m[0m
     <species metaid="meta_e__gal" sboTerm="SBO:0000247" id="e__gal" name="D-galactose" compartment="ext" initialConcentration="3" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
@@ -221,7 +221,7 @@ identifiers which match the given pattern.
 
 .. code:: ipython3
 
-    from sbmlutils.annotation.annotator import ModelAnnotator
+    from sbmlutils.metadata.annotator import ModelAnnotator
     df = ModelAnnotator.read_annotations_df(BASE_DIR / 'annotations' / 'demo_annotations.xlsx', file_format="xlsx")
     df
 
@@ -454,7 +454,7 @@ identifiers which match the given pattern.
 
 .. code:: ipython3
 
-    from sbmlutils.annotation.annotator import annotate_sbml
+    from sbmlutils.metadata.annotator import annotate_sbml
     
     # create SBML report without performing units checks
     doc = annotate_sbml(

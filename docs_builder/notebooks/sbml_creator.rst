@@ -17,8 +17,8 @@ scratch.
     
     from sbmlutils.factory import *
     from sbmlutils.units import *
-    from sbmlutils.annotation import *
-    from sbmlutils.annotation.sbo import *
+    from sbmlutils.metadata import *
+    from sbmlutils.metadata.sbo import *
 
 Model building
 ~~~~~~~~~~~~~~
@@ -149,24 +149,24 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
     [1m[92m
     --------------------------------------------------------------------------------
     <?xml version="1.0" encoding="UTF-8"?>
-    <!-- Created by sbmlutils version 0.3.11a2 on 2020-09-27 19:51 with libSBML version 5.18.1. -->
+    <!-- Created by sbmlutils version 0.4.0 on 2020-09-27 23:55 with libSBML version 5.18.1. -->
     <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" level="3" version="1" comp:required="true" fbc:required="false">
       <model metaid="meta_example_model" id="example_model" name="example_model" substanceUnits="itm" timeUnits="s" volumeUnits="m2" areaUnits="m3" lengthUnits="m" extentUnits="itm" fbc:strict="false">
         <listOfUnitDefinitions>
-          <unitDefinition id="itm">
+          <unitDefinition id="itm_per_m3">
             <listOfUnits>
               <unit kind="item" exponent="1" scale="0" multiplier="1"/>
+              <unit kind="metre" exponent="-3" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
-          <unitDefinition id="m3">
+          <unitDefinition id="m2">
             <listOfUnits>
-              <unit kind="metre" exponent="3" scale="0" multiplier="1"/>
+              <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
-          <unitDefinition id="itm_per_s">
+          <unitDefinition id="m">
             <listOfUnits>
-              <unit kind="item" exponent="1" scale="0" multiplier="1"/>
-              <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
+              <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
           <unitDefinition id="s">
@@ -174,10 +174,14 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
               <unit kind="second" exponent="1" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
-          <unitDefinition id="itm_per_m3">
+          <unitDefinition id="m3">
+            <listOfUnits>
+              <unit kind="metre" exponent="3" scale="0" multiplier="1"/>
+            </listOfUnits>
+          </unitDefinition>
+          <unitDefinition id="itm">
             <listOfUnits>
               <unit kind="item" exponent="1" scale="0" multiplier="1"/>
-              <unit kind="metre" exponent="-3" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
           <unitDefinition id="mM">
@@ -186,9 +190,9 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
               <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
-          <unitDefinition id="m2">
+          <unitDefinition id="kg">
             <listOfUnits>
-              <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+              <unit kind="kilogram" exponent="1" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
           <unitDefinition id="per_s">
@@ -196,14 +200,10 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
               <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
-          <unitDefinition id="m">
+          <unitDefinition id="itm_per_s">
             <listOfUnits>
-              <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="kg">
-            <listOfUnits>
-              <unit kind="kilogram" exponent="1" scale="0" multiplier="1"/>
+              <unit kind="item" exponent="1" scale="0" multiplier="1"/>
+              <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
             </listOfUnits>
           </unitDefinition>
         </listOfUnitDefinitions>
@@ -260,13 +260,13 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
           </reaction>
         </listOfReactions>
         <comp:listOfPorts>
-          <comp:port metaid="m3_port" sboTerm="SBO:0000599" comp:unitRef="m3" comp:id="m3_port" comp:name="m3_port"/>
-          <comp:port metaid="s_port" sboTerm="SBO:0000599" comp:unitRef="s" comp:id="s_port" comp:name="s_port"/>
-          <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
           <comp:port metaid="m2_port" sboTerm="SBO:0000599" comp:unitRef="m2" comp:id="m2_port" comp:name="m2_port"/>
-          <comp:port metaid="per_s_port" sboTerm="SBO:0000599" comp:unitRef="per_s" comp:id="per_s_port" comp:name="per_s_port"/>
           <comp:port metaid="m_port" sboTerm="SBO:0000599" comp:unitRef="m" comp:id="m_port" comp:name="m_port"/>
+          <comp:port metaid="s_port" sboTerm="SBO:0000599" comp:unitRef="s" comp:id="s_port" comp:name="s_port"/>
+          <comp:port metaid="m3_port" sboTerm="SBO:0000599" comp:unitRef="m3" comp:id="m3_port" comp:name="m3_port"/>
+          <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
           <comp:port metaid="kg_port" sboTerm="SBO:0000599" comp:unitRef="kg" comp:id="kg_port" comp:name="kg_port"/>
+          <comp:port metaid="per_s_port" sboTerm="SBO:0000599" comp:unitRef="per_s" comp:id="per_s_port" comp:name="per_s_port"/>
         </comp:listOfPorts>
         <fbc:listOfObjectives fbc:activeObjective="R3_maximize">
           <fbc:objective fbc:id="R3_maximize" fbc:type="maximize">

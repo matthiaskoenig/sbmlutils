@@ -379,7 +379,7 @@ validate_doc(core_model.doc, units_consistency=False);
 
 
 import libsbml
-from sbmlutils.annotation import *
+from sbmlutils.metadata import *
 model_dict = {
     'mid': 'sabiork_parameter',
     'packages': ['distrib'],

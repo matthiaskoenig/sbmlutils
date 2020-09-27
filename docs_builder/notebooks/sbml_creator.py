@@ -15,8 +15,8 @@ from sbmlutils.modelcreator.creator import CoreModel
 
 from sbmlutils.factory import *
 from sbmlutils.units import *
-from sbmlutils.annotation import *
-from sbmlutils.annotation.sbo import *
+from sbmlutils.metadata import *
+from sbmlutils.metadata.sbo import *
 
 
 # ### Model building
