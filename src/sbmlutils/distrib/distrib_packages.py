@@ -6,6 +6,7 @@ import logging
 import libsbml
 import numpy as np
 
+
 if __name__ == "__main__":
 
     doc = libsbml.readSBMLFromFile("e_coli_core.xml")  # type: libsbml.SBMLDocument

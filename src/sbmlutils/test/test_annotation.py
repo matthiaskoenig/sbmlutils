@@ -10,9 +10,12 @@ from sbmlutils.annotation.annotator import ExternalAnnotation, ModelAnnotator
 from sbmlutils.annotation.miriam import BQB
 from sbmlutils.examples.models.annotation import factory as annotation_factory
 from sbmlutils.io.sbml import read_sbml
-from sbmlutils.test import (DEMO_ANNOTATIONS, DEMO_SBML_NO_ANNOTATIONS,
-                            GALACTOSE_ANNOTATIONS,
-                            GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS)
+from sbmlutils.test import (
+    DEMO_ANNOTATIONS,
+    DEMO_SBML_NO_ANNOTATIONS,
+    GALACTOSE_ANNOTATIONS,
+    GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+)
 
 
 def test_create_annotation():

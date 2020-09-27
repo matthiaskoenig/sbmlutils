@@ -7,6 +7,7 @@ import libsbml
 import sbmlutils.factory as factory
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 
+
 __all__ = [
     'LAYOUT_VERSION',
     'LAYOUT_ROLE_SUBSTRATE',

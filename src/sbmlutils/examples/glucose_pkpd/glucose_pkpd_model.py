@@ -3,8 +3,14 @@
 PKPD model for whole-body glucose homeostasis..
 """
 try:
-    from libsbml import (UNIT_KIND_GRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE,
-                         UNIT_KIND_MOLE, UNIT_KIND_SECOND, XMLNode)
+    from libsbml import (
+        UNIT_KIND_GRAM,
+        UNIT_KIND_LITRE,
+        UNIT_KIND_METRE,
+        UNIT_KIND_MOLE,
+        UNIT_KIND_SECOND,
+        XMLNode,
+    )
 except ImportError:
     from tesbml import XMLNode, UNIT_KIND_METRE, UNIT_KIND_SECOND, UNIT_KIND_LITRE, UNIT_KIND_GRAM, UNIT_KIND_MOLE
 
@@ -12,6 +18,7 @@ import sbmlutils.comp as mcomp
 import sbmlutils.factory as mc
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.processes import ReactionTemplate
+
 
 PORT_SUFFIX = "_port"
 
@@ -50,6 +57,7 @@ from .glucose_liver_model import mid as mid_liver
 from .glucose_liver_model import version as version_liver
 from .glucose_rbc_model import mid as mid_rbc
 from .glucose_rbc_model import version as version_rbc
+
 
 rbc_simple = True
 liver_simple = True

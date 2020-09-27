@@ -8,6 +8,7 @@ from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'basic'
 version = 8

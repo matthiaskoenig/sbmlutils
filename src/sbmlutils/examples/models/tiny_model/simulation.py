@@ -17,6 +17,7 @@ from sbmlutils.examples.models.tiny_model import model as model_definition
 from sbmlutils.fbc.cobra import read_cobra_model
 from sbmlutils.modelcreator.creator import Factory
 
+
 # -----------------------------------------------------------------------------
 # create model
 # -----------------------------------------------------------------------------

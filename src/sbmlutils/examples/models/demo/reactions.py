@@ -3,6 +3,7 @@ Reactions and transporters of demo metabolism.
 """
 from sbmlutils.factory import *
 
+
 bA = Reaction(
     sid='bA',
     name='bA (A import)',

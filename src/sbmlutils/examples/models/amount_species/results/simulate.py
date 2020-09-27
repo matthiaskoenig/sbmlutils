@@ -33,6 +33,7 @@ s3 = simulate(r3)
 # --- plotting ---
 from matplotlib import pyplot as plt
 
+
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
 print(s1.columns)

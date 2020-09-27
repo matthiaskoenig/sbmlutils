@@ -6,13 +6,20 @@ Definition of units is done by defining the main_units of the model in
 addition with the definition of the individual units of the model.
 
 """
-from libsbml import (UNIT_KIND_KILOGRAM, UNIT_KIND_LITRE, UNIT_KIND_METRE,
-                     UNIT_KIND_MOLE, UNIT_KIND_SECOND, XMLNode)
+from libsbml import (
+    UNIT_KIND_KILOGRAM,
+    UNIT_KIND_LITRE,
+    UNIT_KIND_METRE,
+    UNIT_KIND_MOLE,
+    UNIT_KIND_SECOND,
+    XMLNode,
+)
 
 from sbmlutils import factory as mc
 from sbmlutils.modelcreator import templates
 
 from . import Reactions
+
 
 ##############################################################
 creators = templates.creators

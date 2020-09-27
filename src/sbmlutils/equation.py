@@ -31,6 +31,7 @@ Examples of valid equations are:
 import re
 from collections import namedtuple
 
+
 Part = namedtuple('Part', 'stoichiometry sid')
 
 REV_PATTERN = r'<[-=]>'

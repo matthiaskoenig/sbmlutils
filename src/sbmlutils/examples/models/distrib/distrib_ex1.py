@@ -7,6 +7,7 @@ from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 
+
 # -----------------------------------------------------------------------------
 mid = 'distrib_ex1'
 version = 1

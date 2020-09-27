@@ -6,6 +6,7 @@ from datetime import datetime
 
 import sbmlutils.factory as factory
 
+
 # id : ('FamilyName', 'GivenName', 'Email', 'Organization')
 creators = [factory.Creator(familyName='Koenig',
                             givenName='Matthias',

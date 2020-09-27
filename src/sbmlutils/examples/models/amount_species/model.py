@@ -6,6 +6,7 @@ from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'Koenig_amount_species'
 version = 1

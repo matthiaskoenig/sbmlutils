@@ -4,6 +4,7 @@ Example script to read SBML multi information
 
 import libsbml
 
+
 doc = libsbml.readSBMLFromFile("multi_example_1.xml")  # type: libsbml.SBMLDocument
 model = doc.getModel()  # type: libsbml.Model
 

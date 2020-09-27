@@ -6,6 +6,7 @@ from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.units import *
 from sbmlutils.validation import validate_doc
 
+
 m1_dict = {
     'mid': 'm1_boundary_condition',
     'compartments': [

@@ -12,6 +12,7 @@ from IPython.display import display
 from matplotlib import pyplot as plt
 from roadrunner import SelectionRecord
 
+
 # global settings for plots
 plt.rcParams.update({
         'axes.labelsize': 'large',

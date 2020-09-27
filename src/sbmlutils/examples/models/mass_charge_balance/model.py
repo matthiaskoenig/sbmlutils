@@ -9,6 +9,7 @@ from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'mass_charge_balance_example'
 version = 1

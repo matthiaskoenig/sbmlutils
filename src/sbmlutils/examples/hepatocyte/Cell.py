@@ -2,10 +2,16 @@
 Hepatocyte template model.
 """
 import libsbml
-from libsbml import (UNIT_KIND_KILOGRAM, UNIT_KIND_METRE, UNIT_KIND_MOLE,
-                     UNIT_KIND_PASCAL, UNIT_KIND_SECOND)
+from libsbml import (
+    UNIT_KIND_KILOGRAM,
+    UNIT_KIND_METRE,
+    UNIT_KIND_MOLE,
+    UNIT_KIND_PASCAL,
+    UNIT_KIND_SECOND,
+)
 
 from sbmlutils import factory as mc
+
 
 mid = 'hepatocyte'
 version = 1

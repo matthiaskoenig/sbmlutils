@@ -2,6 +2,7 @@ import os.path
 
 from sbmlutils.report import sbmlreport
 
+
 if __name__ == "__main__":
 
     # create the sbml report

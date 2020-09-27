@@ -9,6 +9,7 @@ from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.units import *
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 mid = 'annotation_example'
 version = 8

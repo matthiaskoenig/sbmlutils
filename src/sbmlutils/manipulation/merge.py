@@ -15,6 +15,7 @@ from sbmlutils import validation
 from sbmlutils.comp import comp
 from sbmlutils.io import read_sbml, write_sbml
 
+
 logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3

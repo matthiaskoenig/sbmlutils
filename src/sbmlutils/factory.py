@@ -25,6 +25,7 @@ from sbmlutils.annotation.sbo import SBO_EXCHANGE_REACTION
 from sbmlutils.equation import Equation
 from sbmlutils.validation import check
 
+
 logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3  # default SBML level

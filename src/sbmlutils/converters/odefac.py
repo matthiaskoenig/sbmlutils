@@ -28,6 +28,7 @@ import libsbml
 
 from sbmlutils.converters.mathml import evaluableMathML
 
+
 # template location (for language templates)
 # FIXME: swich to pathlib
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')

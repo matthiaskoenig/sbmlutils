@@ -3,8 +3,12 @@ Unit tests for fbc.
 """
 import pytest
 
-from sbmlutils.fbc.cobra import (check_mass_balance, cobra, cobra_reaction_info,
-                                 read_cobra_model)
+from sbmlutils.fbc.cobra import (
+    check_mass_balance,
+    cobra,
+    cobra_reaction_info,
+    read_cobra_model,
+)
 from sbmlutils.fbc.fbc import add_default_flux_bounds
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.test import DEMO_SBML, FBC_SBML

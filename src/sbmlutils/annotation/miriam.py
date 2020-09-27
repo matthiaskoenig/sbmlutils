@@ -12,6 +12,7 @@ import os
 import re
 from enum import Enum
 
+
 __all__ = [
     'BQM',
     'BQB',

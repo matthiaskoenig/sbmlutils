@@ -26,6 +26,7 @@ from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.report import formating, sbmlfilters
 
+
 logger = logging.getLogger(__name__)
 
 TEMPLATE_DIR = Path(__file__).parent / 'templates'  # template location

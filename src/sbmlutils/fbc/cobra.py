@@ -7,6 +7,7 @@ from typing import Dict
 
 import pandas as pd
 
+
 try:
     import cobra
 except ImportError as err:

@@ -10,6 +10,7 @@ from sbmlutils.comp import flatten_sbml
 from sbmlutils.modelcreator import creator
 from sbmlutils.report import sbmlreport
 
+
 coloredlogs.install(
     level='INFO',
     fmt="%(pathname)s:%(lineno)s %(funcName)s %(levelname) -10s %(message)s"
@@ -22,6 +23,7 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 target_dir = os.path.join(base_dir, 'model')
 
 from pylimax.models.glucose_pkpd import prepare_rbc_model
+
 
 #############################
 if __name__ == "__main__":
