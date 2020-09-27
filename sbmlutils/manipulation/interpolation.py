@@ -317,7 +317,7 @@ class Interpolation:
             Interpolation.add_interpolator_to_model(interpolator, self.model)
 
         # validation of SBML document
-        validate_doc(self.doc)
+        validate_doc(self.doc, units_consistency=False)
 
     def _init_sbml_model(self):
         """ Initializes the SBML model.

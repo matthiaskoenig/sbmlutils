@@ -32,8 +32,13 @@ The created SBML report can be accessed from
 .. code:: ipython3
 
     # create SBML report without performing units checks
-    sbmlreport.create_report("./models/BIOMD0000000012.xml", report_dir="./reports", 
-                                  units_consistency=False)
+    from notebook import BASE_DIR
+    
+    sbmlreport.create_report(
+        sbml_path=BASE_DIR / "models" / "BIOMD0000000012.xml", 
+        output_dir=BASE_DIR / "reports", 
+        units_consistency=False
+    )
 
 
 .. parsed-literal::
@@ -45,7 +50,6 @@ The created SBML report can be accessed from
     check time (s)           : 0.009
     --------------------------------------------------------------------------------
     [0m[0m
-    SBML report created: ./reports/BIOMD0000000012.html
 
 
 Platelet metabolism
@@ -53,38 +57,44 @@ Platelet metabolism
 
 In the second example we create a report for a model for Human platelet
 metabolism from the BiGG model database:
-http://bigg.ucsd.edu/models/iAT\_PLT\_636
+http://bigg.ucsd.edu/models/iAT_PLT_636 The example contains an SBML
+error because the ``listOfFluxObjectives`` cannot be empty.
 
 The created SBML report can be accessed from
-`./reports/iAT\_PLT\_636.xml.html <./reports/iAT_PLT_636.xml.html>`__.
+`./reports/iAT_PLT_636.xml.html <./reports/iAT_PLT_636.xml.html>`__.
 
 .. code:: ipython3
 
     # create SBML report without performing units checks
-    sbmlreport.create_report("./models/iAT_PLT_636.xml.gz", report_dir="./reports", 
-                                  units_consistency=False, modeling_practice=False)
+    sbmlreport.create_report(
+        BASE_DIR / "models" / "iAT_PLT_636.xml.gz", 
+        output_dir= BASE_DIR / "reports", 
+        units_consistency=False, 
+        modeling_practice=False
+    )
 
 
 .. parsed-literal::
 
+    [47m[30mENone: General SBML conformance (core, L14, code)[0m[0m
+    [91m[Error] Document does not conform to the SBML XML schema[0m
+    [94mAn SBML XML document must conform to the XML Schema for the corresponding SBML Level, Version and Release. The XML Schema for SBML defines the basic SBML object structure, the data types used by those objects, and the order in which the objects may appear in an SBML document.
+     listOfFluxObjectives cannot be empty.
+    [0m
+    read_sbml error '/home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/iAT_PLT_636.xml.gz': SBMLDocumentErrors encountered while reading the SBML file.
     ERROR:root:[1m[91m
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/iAT_PLT_636.xml.gz
     valid                    : FALSE
     validation error(s)      : 1
     validation warnings(s)   : 0
-    check time (s)           : 1.311
+    check time (s)           : 0.885
     --------------------------------------------------------------------------------
     [0m[0m
-    ERROR:root:[47m[30mE0: SBML component consistency (fbc, L76, code)[0m[0m
-    [91m[Error] An <objective> must have one <listOfFluxObjectives>.[0m
-    [94mAn <objective> object must have one and only one instance of the <listOfFluxObjectives> object. 
-    Reference: L3V1 Fbc V2, Section 3.6
-     <objective> 'obj' has no listOfFluxObjectives.
+    ERROR:sbmlutils.validation:[47m[30mE0: General SBML conformance (core, L14, code)[0m[0m
+    [91m[Error] Document does not conform to the SBML XML schema[0m
+    [94mAn SBML XML document must conform to the XML Schema for the corresponding SBML Level, Version and Release. The XML Schema for SBML defines the basic SBML object structure, the data types used by those objects, and the order in which the objects may appear in an SBML document.
+     listOfFluxObjectives cannot be empty.
     [0m
 
-
-.. parsed-literal::
-
-    SBML report created: ./reports/iAT_PLT_636.xml.html
 

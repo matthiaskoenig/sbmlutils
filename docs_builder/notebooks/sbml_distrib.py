@@ -17,6 +17,7 @@ get_ipython().run_line_magic('autoreload', '2')
 from notebook_utils import print_xml
 from sbmlutils.units import *
 from sbmlutils.factory import *
+
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.validation import validate_doc
 
@@ -393,6 +394,7 @@ model_dict = {
             value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
             uncertainties=[
                 Uncertainty(
+                  sid="uncertainty1",
                   uncertParameters=[
                       UncertParameter(
                           type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
@@ -408,6 +410,7 @@ model_dict = {
                         (BQB.IS, "bto/BTO:0000075"),  # liver
                     ]),
                 Uncertainty(
+                    sid="uncertainty2",
                     uncertParameters=[
                         UncertParameter(
                             type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
@@ -432,11 +435,14 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
+from notebook import BASE_DIR
+from sbmlutils.io import write_sbml
 validate_doc(core_model.doc, units_consistency=False);
-filepath = "./distrib/sabiork_parameter.xml"
-core_model.write_sbml(filepath)
+sbml_path = BASE_DIR / "distrib"/ "sabiork_parameter.xml"
+write_sbml(core_model.doc, sbml_path)
+
 from sbmlutils.report import sbmlreport
-sbmlreport.create_report(filepath, output_dir="./distrib/", validate=False)
+sbmlreport.create_report(sbml_path, output_dir=BASE_DIR / "distrib", validate=False)
 
 
 # In[ ]:

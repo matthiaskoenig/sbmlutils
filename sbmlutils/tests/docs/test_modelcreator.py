@@ -42,29 +42,51 @@ def test_modelcreator_1(tmpdir):
                                 (UNIT_KIND_METRE, -3.0)]),
         },
         'compartments': [
-            Compartment(sid='extern', value=1.0, unit=UNIT_VOLUME, constant=True, name='external compartment',
-                        spatialDimensions=3),
-            Compartment(sid='cell', value=1.0, unit=UNIT_VOLUME, constant=True, name='cell', spatialDimensions=3),
-            Compartment(sid='membrane', value=1.0, unit=UNIT_AREA, constant=True, name='membrane',
-                        spatialDimensions=2),
+            Compartment(
+                sid='extern', name='external compartment', value=1.0, unit=UNIT_VOLUME,
+                constant=True, spatialDimensions=3
+            ),
+            Compartment(
+                sid='cell', name='cell', value=1.0, unit=UNIT_VOLUME,
+                constant=True, spatialDimensions=3
+            ),
+            Compartment(
+                sid='membrane', name='membrane', value=1.0, unit=UNIT_AREA,
+                constant=True, spatialDimensions=2
+            ),
         ],
         'species': [
             # exchange species
-            Species(sid='A', name="A", initialAmount=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                    compartment="extern", sboTerm=SBO_SIMPLE_CHEMICAL),
-            Species(sid='C', name="C", initialAmount=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                    compartment="extern", sboTerm=SBO_SIMPLE_CHEMICAL),
+            Species(
+                sid='A', name="A", initialAmount=0, substanceUnit=UNIT_AMOUNT,
+                hasOnlySubstanceUnits=True, compartment="extern",
+                sboTerm=SBO_SIMPLE_CHEMICAL
+            ),
+            Species(
+                sid='C', name="C", initialAmount=0, substanceUnit=UNIT_AMOUNT,
+                hasOnlySubstanceUnits=True, compartment="extern",
+                sboTerm=SBO_SIMPLE_CHEMICAL
+            ),
 
             # internal species
-            Species(sid='B1', name="B1", initialAmount=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                    compartment="cell", sboTerm=SBO_SIMPLE_CHEMICAL),
-            Species(sid='B2', name="B2", initialAmount=0, substanceUnit=UNIT_AMOUNT, hasOnlySubstanceUnits=True,
-                    compartment="cell", sboTerm=SBO_SIMPLE_CHEMICAL),
+            Species(
+                sid='B1', name="B1", initialAmount=0, substanceUnit=UNIT_AMOUNT,
+                hasOnlySubstanceUnits=True, compartment="cell",
+                sboTerm=SBO_SIMPLE_CHEMICAL
+            ),
+            Species(
+                sid='B2', name="B2", initialAmount=0, substanceUnit=UNIT_AMOUNT,
+                hasOnlySubstanceUnits=True, compartment="cell",
+                sboTerm=SBO_SIMPLE_CHEMICAL
+            ),
         ],
         'parameters': [
-            Parameter(sid="ub_R1", value=1.0, unit=UNIT_FLUX, constant=True, sboTerm=SBO_FLUX_BOUND),
-            Parameter(sid="zero", value=0.0, unit=UNIT_FLUX, constant=True, sboTerm=SBO_FLUX_BOUND),
-            Parameter(sid="ub_default", value=1000, unit=UNIT_FLUX, constant=True, sboTerm=SBO_FLUX_BOUND),
+            Parameter(sid="ub_R1", value=1.0, unit=UNIT_FLUX,
+                      constant=True, sboTerm=SBO_FLUX_BOUND),
+            Parameter(sid="zero", value=0.0, unit=UNIT_FLUX,
+                      constant=True, sboTerm=SBO_FLUX_BOUND),
+            Parameter(sid="ub_default", value=1000, unit=UNIT_FLUX,
+                      constant=True, sboTerm=SBO_FLUX_BOUND),
         ],
         'reactions': [
             # metabolic reactions

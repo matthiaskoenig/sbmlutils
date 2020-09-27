@@ -16,24 +16,26 @@ ontology of defined terms.
 
 The predicates come from a clearly defined set of predicates, the MIRIAM
 qualifiers (https://co.mbine.org/standards/qualifiers). Ideally the
-objects, i.e. annotations, are defined in an ontology which is
+objects, i.e. annotations, are defined in an ontology which is
 registered at https://identifiers.org (see
 https://registry.identifiers.org/registry for available resources).
 
 For more information of the importance of model annotations and best
 practises we refer to
 
-    Neal, M.L., König, M., Nickerson, D., Mısırlı, G., Kalbasi, R.,
-    Dräger, A., Atalag, K., Chelliah, V., Cooling, M.T., Cook, D.L. and
-    Crook, S., 2019. Harmonizing semantic annotations for computational
-    models in biology. Briefings in bioinformatics, 20(2), pp.540-550.
-    `10.1093/bib/bby087 <https://doi.org/10.1093/bib/bby087>`__
+   Neal, M.L., König, M., Nickerson, D., Mısırlı, G., Kalbasi, R.,
+   Dräger, A., Atalag, K., Chelliah, V., Cooling, M.T., Cook, D.L. and
+   Crook, S., 2019. Harmonizing semantic annotations for computational
+   models in biology. Briefings in bioinformatics, 20(2), pp.540-550.
+   `10.1093/bib/bby087 <https://doi.org/10.1093/bib/bby087>`__
 
-    Le Novère, N., Finney, A., Hucka, M., Bhalla, U.S., Campagne, F.,
-    Collado-Vides, J., Crampin, E.J., Halstead, M., Klipp, E., Mendes,
-    P. and Nielsen, P., 2005. Minimum information requested in the
-    annotation of biochemical models (MIRIAM). Nature biotechnology,
-    23(12), pp.1509-1515. https://www.nature.com/articles/nbt1156
+..
+
+   Le Novère, N., Finney, A., Hucka, M., Bhalla, U.S., Campagne, F.,
+   Collado-Vides, J., Crampin, E.J., Halstead, M., Klipp, E., Mendes, P.
+   and Nielsen, P., 2005. Minimum information requested in the
+   annotation of biochemical models (MIRIAM). Nature biotechnology,
+   23(12), pp.1509-1515. https://www.nature.com/articles/nbt1156
 
 Annotations in ``sbmlutils`` consist of associating
 ``(predictate, object)`` tuples to model components. For instance to
@@ -62,7 +64,7 @@ provided on object creation. In the example we annotate a ``species``
     from sbmlutils.factory import *
     from sbmlutils.annotation import *
     from sbmlutils.modelcreator.creator import CoreModel
-    from sbmlutils.validation import check_doc
+    from sbmlutils.validation import validate_doc
     
     model_dict = {
         'mid': 'example_annotation',
@@ -86,12 +88,12 @@ provided on object creation. In the example we annotate a ``species``
     print(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 .. parsed-literal::
@@ -131,33 +133,43 @@ provided on object creation. In the example we annotate a ``species``
     [0m[0m
 
 
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f2551e03e20>
+
+
+
 For a more complete example see
-`model\_with\_annotations.py <./model_with_annotations.py>`__ which
+`model_with_annotations.py <./model_with_annotations.py>`__ which
 creates annotations of the form
 
 ::
 
-        Species(sid='e__gal', compartment='ext', initialConcentration=3.0,
-                    substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
-                    name='D-galactose', sboTerm=SBO_SIMPLE_CHEMICAL,
-                    annotations=[
-                        (BQB.IS, "bigg.metabolite/gal"),  # galactose
-                        (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
-                        (BQB.IS, "vmhmetabolite/gal"),
-                    ]
-                ),
+       Species(sid='e__gal', compartment='ext', initialConcentration=3.0,
+                   substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
+                   name='D-galactose', sboTerm=SBO_SIMPLE_CHEMICAL,
+                   annotations=[
+                       (BQB.IS, "bigg.metabolite/gal"),  # galactose
+                       (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
+                       (BQB.IS, "vmhmetabolite/gal"),
+                   ]
+               ),
 
 .. code:: ipython3
 
-    import os
+    from notebook import BASE_DIR
     from sbmlutils.modelcreator.creator import Factory
+    from sbmlutils.io import read_sbml
+    
     factory = Factory(modules=['model_with_annotations'],
-                      target_dir='./models')
+                      output_dir=BASE_DIR / 'models')
     [_, _, sbml_path] = factory.create()
     
     # check the annotations on the species
     import libsbml
-    doc = libsbml.readSBMLFromFile(sbml_path)  # type: libsbml.SBMLDocument
+    doc = read_sbml(sbml_path)  # type: libsbml.SBMLDocument
     model = doc.getModel()  # type: libsbml.Model
     s1 = model.getSpecies('e__gal')  # type: libsbml.Species
     print(s1.toSBML())
@@ -165,7 +177,7 @@ creates annotations of the form
 
 .. parsed-literal::
 
-    WARNING:sbmlutils.annotation.annotator:https://en.wikipedia.org/wiki/Cytosol does not conform to http(s)://identifiers.org/collection/id
+    https://en.wikipedia.org/wiki/Cytosol does not conform to http(s)://identifiers.org/collection/id
 
 
 .. parsed-literal::
@@ -177,7 +189,6 @@ creates annotations of the form
     check time (s)           : 0.011
     --------------------------------------------------------------------------------
     [0m[0m
-    SBML report created: ./models/annotation_example_8.html
     <species metaid="meta_e__gal" sboTerm="SBO:0000247" id="e__gal" name="D-galactose" compartment="ext" initialConcentration="3" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
       <annotation>
         <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
@@ -211,7 +222,7 @@ identifiers which match the given pattern.
 .. code:: ipython3
 
     from sbmlutils.annotation.annotator import ModelAnnotator
-    df = ModelAnnotator.read_annotations_df("./annotations/demo_annotations.xlsx", format="xlsx")
+    df = ModelAnnotator.read_annotations_df(BASE_DIR / 'annotations' / 'demo_annotations.xlsx', file_format="xlsx")
     df
 
 
@@ -443,10 +454,19 @@ identifiers which match the given pattern.
 
 .. code:: ipython3
 
-    from sbmlutils.annotation.annotator import annotate_sbml_file
+    from sbmlutils.annotation.annotator import annotate_sbml
     
     # create SBML report without performing units checks
-    annotate_sbml_file(f_sbml="./annotations/demo.xml", 
-                       f_annotations="./annotations/demo_annotations.xlsx", 
-                       f_sbml_annotated="./annotations/demo_annotated.xml")
+    doc = annotate_sbml(
+        source=BASE_DIR / 'annotations' / 'demo.xml', 
+        annotations_path=BASE_DIR / 'annotations' / 'demo_annotations.xlsx', 
+        filepath=BASE_DIR / 'annotations' / 'demo_annotated.xml'
+    )
+    print(doc.getModel())
+
+
+.. parsed-literal::
+
+    <Model Koenig_demo_14 "Koenig_demo_14">
+
 

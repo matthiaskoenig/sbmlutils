@@ -24,13 +24,19 @@ from sbmlutils.report import sbmlreport
 
 
 # create SBML report without performing units checks
-sbmlreport.create_report("./models/BIOMD0000000012.xml", output_dir="./reports",
-                         units_consistency=False)
+from notebook import BASE_DIR
+
+sbmlreport.create_report(
+    sbml_path=BASE_DIR / "models" / "BIOMD0000000012.xml", 
+    output_dir=BASE_DIR / "reports", 
+    units_consistency=False
+)
 
 
 # ### Platelet metabolism
 # In the second example we create a report for a model for Human platelet metabolism from the BiGG model database:
 # http://bigg.ucsd.edu/models/iAT_PLT_636
+# The example contains an SBML error because the `listOfFluxObjectives` cannot be empty.
 #     
 # The created SBML report can be accessed from [./reports/iAT_PLT_636.xml.html](./reports/iAT_PLT_636.xml.html).
 
@@ -38,6 +44,16 @@ sbmlreport.create_report("./models/BIOMD0000000012.xml", output_dir="./reports",
 
 
 # create SBML report without performing units checks
-sbmlreport.create_report("./models/iAT_PLT_636.xml.gz", output_dir="./reports",
-                         units_consistency=False, modeling_practice=False)
+sbmlreport.create_report(
+    BASE_DIR / "models" / "iAT_PLT_636.xml.gz", 
+    output_dir= BASE_DIR / "reports", 
+    units_consistency=False, 
+    modeling_practice=False
+)
+
+
+# In[ ]:
+
+
+
 

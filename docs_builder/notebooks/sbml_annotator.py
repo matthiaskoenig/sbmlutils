@@ -77,15 +77,17 @@ validate_doc(core_model.doc, units_consistency=False);
 # In[3]:
 
 
-import os
+from notebook import BASE_DIR
 from sbmlutils.modelcreator.creator import Factory
+from sbmlutils.io import read_sbml
+
 factory = Factory(modules=['model_with_annotations'],
-                  output_dir='./models')
+                  output_dir=BASE_DIR / 'models')
 [_, _, sbml_path] = factory.create()
 
 # check the annotations on the species
 import libsbml
-doc = libsbml.readSBMLFromFile(sbml_path)  # type: libsbml.SBMLDocument
+doc = read_sbml(sbml_path)  # type: libsbml.SBMLDocument
 model = doc.getModel()  # type: libsbml.Model
 s1 = model.getSpecies('e__gal')  # type: libsbml.Species
 print(s1.toSBML())
@@ -102,7 +104,7 @@ print(s1.toSBML())
 
 
 from sbmlutils.annotation.annotator import ModelAnnotator
-df = ModelAnnotator.read_annotations_df("./annotations/demo_annotations.xlsx", file_format="xlsx")
+df = ModelAnnotator.read_annotations_df(BASE_DIR / 'annotations' / 'demo_annotations.xlsx', file_format="xlsx")
 df
 
 
@@ -112,9 +114,12 @@ df
 from sbmlutils.annotation.annotator import annotate_sbml
 
 # create SBML report without performing units checks
-annotate_sbml(f_sbml="./annotations/demo.xml",
-              annotations_path="./annotations/demo_annotations.xlsx",
-              filepath="./annotations/demo_annotated.xml")
+doc = annotate_sbml(
+    source=BASE_DIR / 'annotations' / 'demo.xml', 
+    annotations_path=BASE_DIR / 'annotations' / 'demo_annotations.xlsx', 
+    filepath=BASE_DIR / 'annotations' / 'demo_annotated.xml'
+)
+print(doc.getModel())
 
 
 # In[ ]:

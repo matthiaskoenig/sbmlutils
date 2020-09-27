@@ -19,10 +19,6 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 import pandas as pd
 from matplotlib import pyplot as plt
 
-# nicer plots
-from sbmlutils.dfba.analysis import set_matplotlib_parameters
-set_matplotlib_parameters()
-
 # load dataset
 data = pd.read_csv('./data/interpolation/data1.tsv', '\t')
 print(data)
@@ -95,64 +91,4 @@ for name in ['constant', 'linear', 'cubic']:
 
     plot_data(s, name=name)
     plt.show()
-
-
-# ## Combine models
-# Combination of a fitted data model with a regular model via comp.
-# In the following example antimony is used to combine the splines with the model.
-
-# In[5]:
-
-
-'''
-import antimony
-from sbmlutils.interpolation import Interpolation, INTERPOLATION_CUBIC_SPLINE
-
-ip = Interpolation(data=data, method=INTERPOLATION_CUBIC_SPLINE)
-sbml_str = ip.write_sbml_to_string()
-r = te.loads(sbml_str)
-a_spline = r.getAntimony()
-print(a_spline)
-'''
-
-
-# In[6]:
-
-
-'''
-# combine the models with antimony
-a_test = a_spline + """
-model *test()
-    // add spline submodel to the model
-    A: Interpolation_cubic_spline();
-    
-    J0: S1 -> S2; k1*S1;
-    J1: $S3 -> S2; k1*S3;
-    J2: $S4 -> S2; k1*S4;
-    S1 = 10.0; S2=0.0; S3=0.0; S4=0.0
-    k1 = 0.3;
-    
-    // use the submodel info in model not working
-    A.y is y;
-    A.z is z;
-    
-    S3 := y
-    S4 := z
-end
-"""
-
-r2 = te.loada(a_test)
-print(r2.getAntimony())
-r2.timeCourseSelections = ['time'] + r2.getBoundarySpeciesIds() + r2.getFloatingSpeciesIds()
-print(r2.timeCourseSelections)
-
-s = r2.simulate(0, 10, 101)
-r2.plot(s)
-'''
-
-
-# In[ ]:
-
-
-
 
