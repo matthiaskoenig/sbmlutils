@@ -3,7 +3,7 @@
 
 # # SBML manipulation
 # `sbmlutils` provides functionality for manipulating existing models. Examples are the merging of multiple SBML models in a combined model.
-# 
+#
 # ## Model merging
 # Merge multiple models into a combined model using the `comp` package.
 
@@ -17,7 +17,7 @@ from pprint import pprint
 from sbmlutils import comp
 from sbmlutils import validation
 from sbmlutils import manipulation
-from sbmlutils.tests.data import data_dir
+from sbmlutils.test.data import data_dir
 
 merge_dir = os.path.join(data_dir, 'manipulation', 'merge')
 
