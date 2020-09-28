@@ -1,4 +1,4 @@
-.. image:: ./docs_builder/images/sbmlutils-logo-small.png
+.. image:: https://github.com/matthiaskoenig/sbmlutils/blob/develop/docs_builder/images/sbmlutils-logo-60.png
    :align: left
    :alt: sbmlutils logo
 
@@ -37,7 +37,7 @@ sbmlutils: python utilities for SBML
    :target: https://github.com/ambv/black
    :alt: Black
 
-``sbmlutils`` is a collection of python utilities for working with
+sbmlutils is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
 `libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
 with source code available from `https://github.com/matthiaskoenig/sbmlutils <https://github.com/matthiaskoenig/sbmlutils>`__.
