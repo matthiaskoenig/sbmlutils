@@ -26,3 +26,9 @@ mkvirtualenv test --python=python3.7
 
 ## version bump
 * switch to develop branch and increase version number
+
+# New release
+Create a tag
+```
+git tag -a 0.4.0 -m"sbmlutils-v0.4.0"
+```
