@@ -6,7 +6,7 @@ sbmlutils: python utilities for SBML
 ====================================
 
 .. image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
-   :target: https://github.com/sbmlutils/sbmlutils/workflows/CI-CD
+   :target: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD
    :alt: GitHub Actions CI/CD Status
 
 .. image:: https://img.shields.io/pypi/v/sbmlutils.svg
