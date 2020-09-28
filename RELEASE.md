@@ -4,7 +4,7 @@ Steps for release are
 * github: close and update issues/milestone
 * update version number in develop branch
 * fix pep8 issues (`tox -e pep8`)
-* make sure all tests run (`tox -e py36`, `tox -e py37`)
+* make sure all tests run (`tox -e py36`, `tox -e py37`, `tox -e py38`)
 * build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
 * add changes to README changelog section
 * github: merge all develop changes to master via pull request
@@ -20,9 +20,15 @@ twine upload dist/*
 ```
 * test installation in virtualenv from pypi
 ```
-mkvirtualenv test --python=python3.6
+mkvirtualenv test --python=python3.7
 (test) pip install sbmlutils
 ```
 
 ## version bump
 * switch to develop branch and increase version number
+
+# New release
+Create a tag
+```
+git tag -a 0.4.0 -m"sbmlutils-v0.4.0"
+```

@@ -17,8 +17,9 @@ get_ipython().run_line_magic('autoreload', '2')
 from notebook_utils import print_xml
 from sbmlutils.units import *
 from sbmlutils.factory import *
+
 from sbmlutils.modelcreator.creator import CoreModel
-from sbmlutils.validation import check_doc
+from sbmlutils.validation import validate_doc
 
 
 # ### Assigning a distribution to a parameter
@@ -48,7 +49,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Using a normal distribution
@@ -74,7 +75,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Defining a truncated normal distribution
@@ -100,7 +101,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Defining conditional events 
@@ -138,7 +139,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Overview of all distributions
@@ -181,7 +182,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Basic uncertainty example
@@ -213,7 +214,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # It is also possible to include additional information about the species, should more be known. In this example, the initial amount of `3.22` is noted as having a mean of `3.2`, a standard deviation of `0.3`, and a variance
@@ -246,7 +247,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Multiple uncertainties
@@ -292,7 +293,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Defining a random variable
@@ -325,7 +326,7 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
 
 
 # ### Overview over UncertParameters and UncertSpans
@@ -368,7 +369,80 @@ core_model = CoreModel.from_dict(model_dict=model_dict)
 print_xml(core_model.get_sbml())
 
 # validate model
-check_doc(core_model.doc, units_consistency=False);
+validate_doc(core_model.doc, units_consistency=False);
+
+
+# ### Information on experimental parameters (SABIO-RK)
+# In the following example we store the experimental information which was used for setting the parameter in the model.
+
+# In[13]:
+
+
+import libsbml
+from sbmlutils.metadata import *
+model_dict = {
+    'mid': 'sabiork_parameter',
+    'packages': ['distrib'],
+    'model_units': ModelUnits(time=UNIT_hr, extent=UNIT_KIND_MOLE,
+                              substance=UNIT_KIND_MOLE,
+                              length=UNIT_m, area=UNIT_m2,
+                              volume=UNIT_KIND_LITRE),
+    'units': [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
+    'parameters': [
+        Parameter(
+            sid="Km_glc", name="Michelis-Menten constant glucose",
+            value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
+            uncertainties=[
+                Uncertainty(
+                  sid="uncertainty1",
+                  uncertParameters=[
+                      UncertParameter(
+                          type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                          value=5.07),
+                      UncertParameter(
+                          type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                          value=0.97),
+                  ], annotations=[
+                        (BQB.IS, "sabiork.kineticrecord/793"),  # entry in SABIO-RK
+                        (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                        (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                        (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                        (BQB.IS, "bto/BTO:0000075"),  # liver
+                    ]),
+                Uncertainty(
+                    sid="uncertainty2",
+                    uncertParameters=[
+                        UncertParameter(
+                            type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                            value=2.7),
+                        UncertParameter(
+                            type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                            value=0.11),
+                    ], annotations=[
+                        (BQB.IS, "sabiork.kineticrecord/2581"),
+                        # entry in SABIO-RK
+                        (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                        (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                        (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                        (BQB.IS, "bto/BTO:0000075"),  # liver
+                    ]),
+            ])
+    ]
+}
+
+# create model and print SBML
+core_model = CoreModel.from_dict(model_dict=model_dict)
+print_xml(core_model.get_sbml())
+
+# validate model
+from notebook import BASE_DIR
+from sbmlutils.io import write_sbml
+validate_doc(core_model.doc, units_consistency=False);
+sbml_path = BASE_DIR / "distrib"/ "sabiork_parameter.xml"
+write_sbml(core_model.doc, sbml_path)
+
+from sbmlutils.report import sbmlreport
+sbmlreport.create_report(sbml_path, output_dir=BASE_DIR / "distrib", validate=False)
 
 
 # In[ ]:

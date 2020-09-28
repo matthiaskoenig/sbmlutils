@@ -14,8 +14,9 @@ distrib information.
     from notebook_utils import print_xml
     from sbmlutils.units import *
     from sbmlutils.factory import *
+    
     from sbmlutils.modelcreator.creator import CoreModel
-    from sbmlutils.validation import check_doc
+    from sbmlutils.validation import validate_doc
 
 Assigning a distribution to a parameter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,8 +25,8 @@ Here we create a parameter
 
 .. math:: p_1 = 0.0
 
-and assign the initial value from a normal distribution with ``mean=0``
-and ``standard deviation=1``
+\ and assign the initial value from a normal distribution with
+``mean=0`` and ``standard deviation=1``
 
 .. math:: p_1 = \sigma(0,1)
 
@@ -50,14 +51,19 @@ and ``standard deviation=1``
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -187,15 +193,23 @@ and ``standard deviation=1``
     check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745520>
+
 
 
 Using a normal distribution
@@ -223,19 +237,24 @@ distribution ``normal(z,10)``:
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -337,15 +356,23 @@ distribution ``normal(z,10)``:
     check time (s)           : 0.001
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b672e8e0>
+
 
 
 Defining a truncated normal distribution
@@ -376,19 +403,24 @@ to the SBML symbol ``y``.
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -500,15 +532,23 @@ to the SBML symbol ``y``.
     check time (s)           : 0.001
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b672e880>
+
 
 
 Defining conditional events
@@ -558,19 +598,24 @@ the value of ``x`` to ``3`` instead.
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -732,15 +777,23 @@ the value of ``x`` to ``3`` instead.
     check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745a90>
+
 
 
 Overview of all distributions
@@ -785,19 +838,24 @@ distributions
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -1119,15 +1177,23 @@ distributions
     check time (s)           : 0.004
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745fa0>
+
 
 
 Basic uncertainty example
@@ -1161,19 +1227,24 @@ written as ``3.22 +- 0.3``.
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -1272,15 +1343,23 @@ written as ``3.22 +- 0.3``.
     check time (s)           : 0.001
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b672efa0>
+
 
 
 It is also possible to include additional information about the species,
@@ -1314,19 +1393,24 @@ a variance of ``0.09``.
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -1427,15 +1511,23 @@ a variance of ``0.09``.
     check time (s)           : 0.001
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b6745d30>
+
 
 
 Multiple uncertainties
@@ -1480,14 +1572,19 @@ a parameter. Here the two uncertainties
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -1583,12 +1680,12 @@ a parameter. Here the two uncertainties
         <span class="nt">&lt;listOfParameters&gt;</span>
           <span class="nt">&lt;parameter</span> <span class="na">id=</span><span class="s">&quot;p1&quot;</span> <span class="na">value=</span><span class="s">&quot;5&quot;</span> <span class="na">units=</span><span class="s">&quot;mM&quot;</span> <span class="na">constant=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
             <span class="nt">&lt;distrib:listOfUncertainties&gt;</span>
-              <span class="nt">&lt;distrib:uncertainty&gt;</span>
+              <span class="nt">&lt;distrib:uncertainty</span> <span class="na">distrib:id=</span><span class="s">&quot;p1_uncertainty_1&quot;</span><span class="nt">&gt;</span>
                 <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;5&quot;</span> <span class="na">distrib:units=</span><span class="s">&quot;mM&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;mean&quot;</span><span class="nt">/&gt;</span>
                 <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;0.3&quot;</span> <span class="na">distrib:units=</span><span class="s">&quot;mM&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;standardDeviation&quot;</span><span class="nt">/&gt;</span>
                 <span class="nt">&lt;distrib:uncertSpan</span> <span class="na">distrib:units=</span><span class="s">&quot;mM&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;range&quot;</span> <span class="na">distrib:valueLower=</span><span class="s">&quot;2&quot;</span> <span class="na">distrib:valueUpper=</span><span class="s">&quot;8&quot;</span><span class="nt">/&gt;</span>
               <span class="nt">&lt;/distrib:uncertainty&gt;</span>
-              <span class="nt">&lt;distrib:uncertainty&gt;</span>
+              <span class="nt">&lt;distrib:uncertainty</span> <span class="na">distrib:id=</span><span class="s">&quot;p1_uncertainty_2&quot;</span><span class="nt">&gt;</span>
                 <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;4.5&quot;</span> <span class="na">distrib:units=</span><span class="s">&quot;mM&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;mean&quot;</span><span class="nt">/&gt;</span>
                 <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;1.1&quot;</span> <span class="na">distrib:units=</span><span class="s">&quot;mM&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;standardDeviation&quot;</span><span class="nt">/&gt;</span>
                 <span class="nt">&lt;distrib:uncertSpan</span> <span class="na">distrib:units=</span><span class="s">&quot;mM&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;range&quot;</span> <span class="na">distrib:valueLower=</span><span class="s">&quot;1&quot;</span> <span class="na">distrib:valueUpper=</span><span class="s">&quot;10&quot;</span><span class="nt">/&gt;</span>
@@ -1627,18 +1724,26 @@ a parameter. Here the two uncertainties
     valid                    : TRUE
     validation error(s)      : 0
     validation warnings(s)   : 2
-    check time (s)           : 0.002
+    check time (s)           : 0.003
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b6701280>
+
 
 
 Defining a random variable
@@ -1673,19 +1778,24 @@ random variable.
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -1793,15 +1903,23 @@ random variable.
     check time (s)           : 0.001
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
     [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b676dd00>
+
 
 
 Overview over UncertParameters and UncertSpans
@@ -1845,19 +1963,24 @@ The following example provides an overview over the available fields.
     print_xml(core_model.get_sbml())
     
     # validate model
-    check_doc(core_model.doc, units_consistency=False);
+    validate_doc(core_model.doc, units_consistency=False);
 
 
 .. parsed-literal::
 
-    ERROR:root:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">.highlight .hll { background-color: #ffffcc }
-    .highlight  { background: #f8f8f8; }
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
     .highlight .err { border: 1px solid #FF0000 } /* Error */
     .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -1975,16 +2098,287 @@ The following example provides an overview over the available fields.
     check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:root:[47m[30mE0: Modeling practice (core, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: Modeling practice (core, L1, code)[0m[0m
     [91m[Warning] It's best to declare values for every parameter in a model[0m
     [94mAs a principle of best modeling practice, the <parameter> should set an initial value rather than be left undefined. Doing so improves the portability of models between different simulation and analysis systems, and helps make it easier to detect potential errors in models.
      The <parameter> with the id 'p' does not have 'value' attribute, nor is its initial value set by an <initialAssignment> or <assignmentRule>.
     [0m
-    WARNING:root:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:root:[47m[30mE2: SBML component consistency (comp, L1, code)[0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE2: SBML component consistency (comp, L1, code)[0m[0m
+    [91m[Warning] Flattening not implemented for required package.[0m
+    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
+     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
+    [0m
+
+
+
+
+.. parsed-literal::
+
+    <sbmlutils.validation.ValidationResult at 0x7f96b676d490>
+
+
+
+Information on experimental parameters (SABIO-RK)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the following example we store the experimental information which was
+used for setting the parameter in the model.
+
+.. code:: ipython3
+
+    import libsbml
+    from sbmlutils.metadata import *
+    model_dict = {
+        'mid': 'sabiork_parameter',
+        'packages': ['distrib'],
+        'model_units': ModelUnits(time=UNIT_hr, extent=UNIT_KIND_MOLE,
+                                  substance=UNIT_KIND_MOLE,
+                                  length=UNIT_m, area=UNIT_m2,
+                                  volume=UNIT_KIND_LITRE),
+        'units': [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
+        'parameters': [
+            Parameter(
+                sid="Km_glc", name="Michelis-Menten constant glucose",
+                value=5.0, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT,
+                uncertainties=[
+                    Uncertainty(
+                      sid="uncertainty1",
+                      uncertParameters=[
+                          UncertParameter(
+                              type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                              value=5.07),
+                          UncertParameter(
+                              type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                              value=0.97),
+                      ], annotations=[
+                            (BQB.IS, "sabiork.kineticrecord/793"),  # entry in SABIO-RK
+                            (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                            (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                            (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                            (BQB.IS, "bto/BTO:0000075"),  # liver
+                        ]),
+                    Uncertainty(
+                        sid="uncertainty2",
+                        uncertParameters=[
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                                value=2.7),
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                                value=0.11),
+                        ], annotations=[
+                            (BQB.IS, "sabiork.kineticrecord/2581"),
+                            # entry in SABIO-RK
+                            (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
+                            (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
+                            (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
+                            (BQB.IS, "bto/BTO:0000075"),  # liver
+                        ]),
+                ])
+        ]
+    }
+    
+    # create model and print SBML
+    core_model = CoreModel.from_dict(model_dict=model_dict)
+    print_xml(core_model.get_sbml())
+    
+    # validate model
+    from notebook import BASE_DIR
+    from sbmlutils.io import write_sbml
+    validate_doc(core_model.doc, units_consistency=False);
+    sbml_path = BASE_DIR / "distrib"/ "sabiork_parameter.xml"
+    write_sbml(core_model.doc, sbml_path)
+    
+    from sbmlutils.report import sbmlreport
+    sbmlreport.create_report(sbml_path, output_dir=BASE_DIR / "distrib", validate=False)
+
+
+
+.. raw:: html
+
+    <style type="text/css">pre { line-height: 125%; margin: 0; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    .highlight .hll { background-color: #ffffcc }
+    .highlight { background: #f8f8f8; }
+    .highlight .c { color: #408080; font-style: italic } /* Comment */
+    .highlight .err { border: 1px solid #FF0000 } /* Error */
+    .highlight .k { color: #008000; font-weight: bold } /* Keyword */
+    .highlight .o { color: #666666 } /* Operator */
+    .highlight .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+    .highlight .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+    .highlight .cp { color: #BC7A00 } /* Comment.Preproc */
+    .highlight .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
+    .highlight .c1 { color: #408080; font-style: italic } /* Comment.Single */
+    .highlight .cs { color: #408080; font-style: italic } /* Comment.Special */
+    .highlight .gd { color: #A00000 } /* Generic.Deleted */
+    .highlight .ge { font-style: italic } /* Generic.Emph */
+    .highlight .gr { color: #FF0000 } /* Generic.Error */
+    .highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+    .highlight .gi { color: #00A000 } /* Generic.Inserted */
+    .highlight .go { color: #888888 } /* Generic.Output */
+    .highlight .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+    .highlight .gs { font-weight: bold } /* Generic.Strong */
+    .highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+    .highlight .gt { color: #0044DD } /* Generic.Traceback */
+    .highlight .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+    .highlight .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+    .highlight .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+    .highlight .kp { color: #008000 } /* Keyword.Pseudo */
+    .highlight .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+    .highlight .kt { color: #B00040 } /* Keyword.Type */
+    .highlight .m { color: #666666 } /* Literal.Number */
+    .highlight .s { color: #BA2121 } /* Literal.String */
+    .highlight .na { color: #7D9029 } /* Name.Attribute */
+    .highlight .nb { color: #008000 } /* Name.Builtin */
+    .highlight .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+    .highlight .no { color: #880000 } /* Name.Constant */
+    .highlight .nd { color: #AA22FF } /* Name.Decorator */
+    .highlight .ni { color: #999999; font-weight: bold } /* Name.Entity */
+    .highlight .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+    .highlight .nf { color: #0000FF } /* Name.Function */
+    .highlight .nl { color: #A0A000 } /* Name.Label */
+    .highlight .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+    .highlight .nt { color: #008000; font-weight: bold } /* Name.Tag */
+    .highlight .nv { color: #19177C } /* Name.Variable */
+    .highlight .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+    .highlight .w { color: #bbbbbb } /* Text.Whitespace */
+    .highlight .mb { color: #666666 } /* Literal.Number.Bin */
+    .highlight .mf { color: #666666 } /* Literal.Number.Float */
+    .highlight .mh { color: #666666 } /* Literal.Number.Hex */
+    .highlight .mi { color: #666666 } /* Literal.Number.Integer */
+    .highlight .mo { color: #666666 } /* Literal.Number.Oct */
+    .highlight .sa { color: #BA2121 } /* Literal.String.Affix */
+    .highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
+    .highlight .sc { color: #BA2121 } /* Literal.String.Char */
+    .highlight .dl { color: #BA2121 } /* Literal.String.Delimiter */
+    .highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+    .highlight .s2 { color: #BA2121 } /* Literal.String.Double */
+    .highlight .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+    .highlight .sh { color: #BA2121 } /* Literal.String.Heredoc */
+    .highlight .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+    .highlight .sx { color: #008000 } /* Literal.String.Other */
+    .highlight .sr { color: #BB6688 } /* Literal.String.Regex */
+    .highlight .s1 { color: #BA2121 } /* Literal.String.Single */
+    .highlight .ss { color: #19177C } /* Literal.String.Symbol */
+    .highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+    .highlight .fm { color: #0000FF } /* Name.Function.Magic */
+    .highlight .vc { color: #19177C } /* Name.Variable.Class */
+    .highlight .vg { color: #19177C } /* Name.Variable.Global */
+    .highlight .vi { color: #19177C } /* Name.Variable.Instance */
+    .highlight .vm { color: #19177C } /* Name.Variable.Magic */
+    .highlight .il { color: #666666 } /* Literal.Number.Integer.Long */</style>    <div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+    <span class="nt">&lt;sbml</span> <span class="na">xmlns=</span><span class="s">&quot;http://www.sbml.org/sbml/level3/version1/core&quot;</span> <span class="na">xmlns:comp=</span><span class="s">&quot;http://www.sbml.org/sbml/level3/version1/comp/version1&quot;</span> <span class="na">xmlns:distrib=</span><span class="s">&quot;http://www.sbml.org/sbml/level3/version1/distrib/version1&quot;</span> <span class="na">level=</span><span class="s">&quot;3&quot;</span> <span class="na">version=</span><span class="s">&quot;1&quot;</span> <span class="na">comp:required=</span><span class="s">&quot;true&quot;</span> <span class="na">distrib:required=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;model</span> <span class="na">metaid=</span><span class="s">&quot;meta_sabiork_parameter&quot;</span> <span class="na">id=</span><span class="s">&quot;sabiork_parameter&quot;</span> <span class="na">name=</span><span class="s">&quot;sabiork_parameter&quot;</span> <span class="na">substanceUnits=</span><span class="s">&quot;mole&quot;</span> <span class="na">timeUnits=</span><span class="s">&quot;hr&quot;</span> <span class="na">volumeUnits=</span><span class="s">&quot;litre&quot;</span> <span class="na">areaUnits=</span><span class="s">&quot;m2&quot;</span> <span class="na">lengthUnits=</span><span class="s">&quot;m&quot;</span> <span class="na">extentUnits=</span><span class="s">&quot;mole&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;listOfUnitDefinitions&gt;</span>
+          <span class="nt">&lt;unitDefinition</span> <span class="na">id=</span><span class="s">&quot;hr&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;listOfUnits&gt;</span>
+              <span class="nt">&lt;unit</span> <span class="na">kind=</span><span class="s">&quot;second&quot;</span> <span class="na">exponent=</span><span class="s">&quot;1&quot;</span> <span class="na">scale=</span><span class="s">&quot;0&quot;</span> <span class="na">multiplier=</span><span class="s">&quot;3600&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/listOfUnits&gt;</span>
+          <span class="nt">&lt;/unitDefinition&gt;</span>
+          <span class="nt">&lt;unitDefinition</span> <span class="na">id=</span><span class="s">&quot;m&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;listOfUnits&gt;</span>
+              <span class="nt">&lt;unit</span> <span class="na">kind=</span><span class="s">&quot;metre&quot;</span> <span class="na">exponent=</span><span class="s">&quot;1&quot;</span> <span class="na">scale=</span><span class="s">&quot;0&quot;</span> <span class="na">multiplier=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/listOfUnits&gt;</span>
+          <span class="nt">&lt;/unitDefinition&gt;</span>
+          <span class="nt">&lt;unitDefinition</span> <span class="na">id=</span><span class="s">&quot;m2&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;listOfUnits&gt;</span>
+              <span class="nt">&lt;unit</span> <span class="na">kind=</span><span class="s">&quot;metre&quot;</span> <span class="na">exponent=</span><span class="s">&quot;2&quot;</span> <span class="na">scale=</span><span class="s">&quot;0&quot;</span> <span class="na">multiplier=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/listOfUnits&gt;</span>
+          <span class="nt">&lt;/unitDefinition&gt;</span>
+          <span class="nt">&lt;unitDefinition</span> <span class="na">id=</span><span class="s">&quot;mM&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;listOfUnits&gt;</span>
+              <span class="nt">&lt;unit</span> <span class="na">kind=</span><span class="s">&quot;mole&quot;</span> <span class="na">exponent=</span><span class="s">&quot;1&quot;</span> <span class="na">scale=</span><span class="s">&quot;-3&quot;</span> <span class="na">multiplier=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+              <span class="nt">&lt;unit</span> <span class="na">kind=</span><span class="s">&quot;litre&quot;</span> <span class="na">exponent=</span><span class="s">&quot;-1&quot;</span> <span class="na">scale=</span><span class="s">&quot;0&quot;</span> <span class="na">multiplier=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/listOfUnits&gt;</span>
+          <span class="nt">&lt;/unitDefinition&gt;</span>
+        <span class="nt">&lt;/listOfUnitDefinitions&gt;</span>
+        <span class="nt">&lt;listOfParameters&gt;</span>
+          <span class="nt">&lt;parameter</span> <span class="na">sboTerm=</span><span class="s">&quot;SBO:0000371&quot;</span> <span class="na">id=</span><span class="s">&quot;Km_glc&quot;</span> <span class="na">name=</span><span class="s">&quot;Michelis-Menten constant glucose&quot;</span> <span class="na">value=</span><span class="s">&quot;5&quot;</span> <span class="na">units=</span><span class="s">&quot;mM&quot;</span> <span class="na">constant=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;distrib:listOfUncertainties&gt;</span>
+              <span class="nt">&lt;distrib:uncertainty</span> <span class="na">metaid=</span><span class="s">&quot;meta_uncertainty1&quot;</span> <span class="na">distrib:id=</span><span class="s">&quot;uncertainty1&quot;</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;annotation&gt;</span>
+                  <span class="nt">&lt;rdf:RDF</span> <span class="na">xmlns:rdf=</span><span class="s">&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot;</span> <span class="na">xmlns:dcterms=</span><span class="s">&quot;http://purl.org/dc/terms/&quot;</span> <span class="na">xmlns:vCard=</span><span class="s">&quot;http://www.w3.org/2001/vcard-rdf/3.0#&quot;</span> <span class="na">xmlns:vCard4=</span><span class="s">&quot;http://www.w3.org/2006/vcard/ns#&quot;</span> <span class="na">xmlns:bqbiol=</span><span class="s">&quot;http://biomodels.net/biology-qualifiers/&quot;</span> <span class="na">xmlns:bqmodel=</span><span class="s">&quot;http://biomodels.net/model-qualifiers/&quot;</span><span class="nt">&gt;</span>
+                    <span class="nt">&lt;rdf:Description</span> <span class="na">rdf:about=</span><span class="s">&quot;#meta_uncertainty1&quot;</span><span class="nt">&gt;</span>
+                      <span class="nt">&lt;bqbiol:is&gt;</span>
+                        <span class="nt">&lt;rdf:Bag&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/sabiork.kineticrecord/793&quot;</span><span class="nt">/&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/ec-code/2.7.1.2&quot;</span><span class="nt">/&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/uniprot/P35557&quot;</span><span class="nt">/&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/bto/BTO:0000075&quot;</span><span class="nt">/&gt;</span>
+                        <span class="nt">&lt;/rdf:Bag&gt;</span>
+                      <span class="nt">&lt;/bqbiol:is&gt;</span>
+                      <span class="nt">&lt;bqbiol:hasTaxon&gt;</span>
+                        <span class="nt">&lt;rdf:Bag&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/taxonomy/9606&quot;</span><span class="nt">/&gt;</span>
+                        <span class="nt">&lt;/rdf:Bag&gt;</span>
+                      <span class="nt">&lt;/bqbiol:hasTaxon&gt;</span>
+                    <span class="nt">&lt;/rdf:Description&gt;</span>
+                  <span class="nt">&lt;/rdf:RDF&gt;</span>
+                <span class="nt">&lt;/annotation&gt;</span>
+                <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;5.07&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;mean&quot;</span><span class="nt">/&gt;</span>
+                <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;0.97&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;standardDeviation&quot;</span><span class="nt">/&gt;</span>
+              <span class="nt">&lt;/distrib:uncertainty&gt;</span>
+              <span class="nt">&lt;distrib:uncertainty</span> <span class="na">metaid=</span><span class="s">&quot;meta_uncertainty2&quot;</span> <span class="na">distrib:id=</span><span class="s">&quot;uncertainty2&quot;</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;annotation&gt;</span>
+                  <span class="nt">&lt;rdf:RDF</span> <span class="na">xmlns:rdf=</span><span class="s">&quot;http://www.w3.org/1999/02/22-rdf-syntax-ns#&quot;</span> <span class="na">xmlns:dcterms=</span><span class="s">&quot;http://purl.org/dc/terms/&quot;</span> <span class="na">xmlns:vCard=</span><span class="s">&quot;http://www.w3.org/2001/vcard-rdf/3.0#&quot;</span> <span class="na">xmlns:vCard4=</span><span class="s">&quot;http://www.w3.org/2006/vcard/ns#&quot;</span> <span class="na">xmlns:bqbiol=</span><span class="s">&quot;http://biomodels.net/biology-qualifiers/&quot;</span> <span class="na">xmlns:bqmodel=</span><span class="s">&quot;http://biomodels.net/model-qualifiers/&quot;</span><span class="nt">&gt;</span>
+                    <span class="nt">&lt;rdf:Description</span> <span class="na">rdf:about=</span><span class="s">&quot;#meta_uncertainty2&quot;</span><span class="nt">&gt;</span>
+                      <span class="nt">&lt;bqbiol:is&gt;</span>
+                        <span class="nt">&lt;rdf:Bag&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/sabiork.kineticrecord/2581&quot;</span><span class="nt">/&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/ec-code/2.7.1.2&quot;</span><span class="nt">/&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/uniprot/P35557&quot;</span><span class="nt">/&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/bto/BTO:0000075&quot;</span><span class="nt">/&gt;</span>
+                        <span class="nt">&lt;/rdf:Bag&gt;</span>
+                      <span class="nt">&lt;/bqbiol:is&gt;</span>
+                      <span class="nt">&lt;bqbiol:hasTaxon&gt;</span>
+                        <span class="nt">&lt;rdf:Bag&gt;</span>
+                          <span class="nt">&lt;rdf:li</span> <span class="na">rdf:resource=</span><span class="s">&quot;https://identifiers.org/taxonomy/9606&quot;</span><span class="nt">/&gt;</span>
+                        <span class="nt">&lt;/rdf:Bag&gt;</span>
+                      <span class="nt">&lt;/bqbiol:hasTaxon&gt;</span>
+                    <span class="nt">&lt;/rdf:Description&gt;</span>
+                  <span class="nt">&lt;/rdf:RDF&gt;</span>
+                <span class="nt">&lt;/annotation&gt;</span>
+                <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;2.7&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;mean&quot;</span><span class="nt">/&gt;</span>
+                <span class="nt">&lt;distrib:uncertParameter</span> <span class="na">distrib:value=</span><span class="s">&quot;0.11&quot;</span> <span class="na">distrib:type=</span><span class="s">&quot;standardDeviation&quot;</span><span class="nt">/&gt;</span>
+              <span class="nt">&lt;/distrib:uncertainty&gt;</span>
+            <span class="nt">&lt;/distrib:listOfUncertainties&gt;</span>
+          <span class="nt">&lt;/parameter&gt;</span>
+        <span class="nt">&lt;/listOfParameters&gt;</span>
+        <span class="nt">&lt;comp:listOfPorts&gt;</span>
+          <span class="nt">&lt;comp:port</span> <span class="na">metaid=</span><span class="s">&quot;hr_port&quot;</span> <span class="na">sboTerm=</span><span class="s">&quot;SBO:0000599&quot;</span> <span class="na">comp:unitRef=</span><span class="s">&quot;hr&quot;</span> <span class="na">comp:id=</span><span class="s">&quot;hr_port&quot;</span> <span class="na">comp:name=</span><span class="s">&quot;hr_port&quot;</span><span class="nt">/&gt;</span>
+          <span class="nt">&lt;comp:port</span> <span class="na">metaid=</span><span class="s">&quot;m_port&quot;</span> <span class="na">sboTerm=</span><span class="s">&quot;SBO:0000599&quot;</span> <span class="na">comp:unitRef=</span><span class="s">&quot;m&quot;</span> <span class="na">comp:id=</span><span class="s">&quot;m_port&quot;</span> <span class="na">comp:name=</span><span class="s">&quot;m_port&quot;</span><span class="nt">/&gt;</span>
+          <span class="nt">&lt;comp:port</span> <span class="na">metaid=</span><span class="s">&quot;m2_port&quot;</span> <span class="na">sboTerm=</span><span class="s">&quot;SBO:0000599&quot;</span> <span class="na">comp:unitRef=</span><span class="s">&quot;m2&quot;</span> <span class="na">comp:id=</span><span class="s">&quot;m2_port&quot;</span> <span class="na">comp:name=</span><span class="s">&quot;m2_port&quot;</span><span class="nt">/&gt;</span>
+          <span class="nt">&lt;comp:port</span> <span class="na">metaid=</span><span class="s">&quot;mM_port&quot;</span> <span class="na">sboTerm=</span><span class="s">&quot;SBO:0000599&quot;</span> <span class="na">comp:unitRef=</span><span class="s">&quot;mM&quot;</span> <span class="na">comp:id=</span><span class="s">&quot;mM_port&quot;</span> <span class="na">comp:name=</span><span class="s">&quot;mM_port&quot;</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;/comp:listOfPorts&gt;</span>
+      <span class="nt">&lt;/model&gt;</span>
+    <span class="nt">&lt;/sbml&gt;</span>
+    </pre></div>
+
+
+
+.. parsed-literal::
+
+    WARNING:root:[1m[92m
+    --------------------------------------------------------------------------------
+    <SBMLDocument>
+    valid                    : TRUE
+    validation error(s)      : 0
+    validation warnings(s)   : 2
+    check time (s)           : 0.003
+    --------------------------------------------------------------------------------
+    [0m[0m
+    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
+    [91m[Warning] Line numbers unreliable.[0m
+    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
+    [0m
+    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
     [91m[Warning] Flattening not implemented for required package.[0m
     [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
      The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.

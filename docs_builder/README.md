@@ -13,6 +13,15 @@ The sbmlutils kernel is needed to execute the notebooks
 (sbmlutils) python -m ipykernel install --user --name=sbmlutils
 ```
 
+## Update notebooks
+An important part of the documentation are jupyter notebooks in
+```
+docs_builder/notebooks/
+```
+These should be updated before building the documentation.
+
+## Build documentation
+
 The complete documentation is build via:
 ```
 ./make_docs.sh 2>&1 | tee ./make_docs.log
@@ -26,8 +35,3 @@ make html
 ```
 The documentation is written in the `_build` folder which should not be tracked in git.
 
-## Jupyter notebooks
-An important part of the documentation are the jupyter notebooks in
-```
-docs_builder/notebooks/
-```
