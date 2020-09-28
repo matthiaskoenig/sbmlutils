@@ -25,7 +25,7 @@ sbmlutils: python utilities for SBML
    :target: https://codecov.io/gh/matthiaskoenig/sbmlutils
    :alt: Codecov
 
-.. image:: https://readthedocs.org/projects/cobrapy/badge/?version=latest
+.. image:: https://readthedocs.org/projects/sbmlutils/badge/?version=latest
    :target: https://sbmlutils.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
