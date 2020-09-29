@@ -2,9 +2,8 @@
 The documentation is build based on the resources in this folder using `sphinx`.
 To setup the environment install the required dependencies via 
 ```
-cd sbmlutils
 workon sbmlutils
-(sbmlutils) pip install -e .
+cd sbmlutils/docs_builder
 (sbmlutils) pip install -r requirements-docs.txt
 ```
 

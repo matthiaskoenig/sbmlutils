@@ -1,4 +1,4 @@
-.. image:: ./docs_builder/images/sbmlutils-logo-small.png
+.. image:: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
    :align: left
    :alt: sbmlutils logo
 
@@ -25,7 +25,7 @@ sbmlutils: python utilities for SBML
    :target: https://codecov.io/gh/matthiaskoenig/sbmlutils
    :alt: Codecov
 
-.. image:: https://readthedocs.org/projects/cobrapy/badge/?version=latest
+.. image:: https://readthedocs.org/projects/sbmlutils/badge/?version=latest
    :target: https://sbmlutils.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
@@ -37,7 +37,7 @@ sbmlutils: python utilities for SBML
    :target: https://github.com/ambv/black
    :alt: Black
 
-``sbmlutils`` is a collection of python utilities for working with
+sbmlutils is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
 `libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
 with source code available from `https://github.com/matthiaskoenig/sbmlutils <https://github.com/matthiaskoenig/sbmlutils>`__.

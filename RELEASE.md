@@ -1,34 +1,22 @@
-# Release info
-Steps for release are
-## github release
-* github: close and update issues/milestone
-* update version number in develop branch
-* fix pep8 issues (`tox -e pep8`)
-* make sure all tests run (`tox -e py36`, `tox -e py37`, `tox -e py38`)
-* build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
-* add changes to README changelog section
-* github: merge all develop changes to master via pull request
-* github: create release from master branch
+# Release information
 
-## pypi
-* release on [pypi](https://pypi.python.org/pypi/sbmlutils)
-```
-git branch master
-git pull
-python setup.py sdist
-twine upload dist/*
-```
+## update documentation
+* make necessary updates to notebooks
+* build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
+
+## make release
+* sort imports (`isort src/sbmlutils`)
+* code formating (`black src/sbmlutils`)
+* make sure all tests run (`tox --`)
+* update release notes in `release-notes`
+* bump version (`bumpversion patch` or `bumpversion` minor)
+* `git push --tags` (triggers release)
+* github: merge develop to master via pull request
+
 * test installation in virtualenv from pypi
 ```
-mkvirtualenv test --python=python3.7
-(test) pip install sbmlutils
+mkvirtualenv test --python=python3.8
+(test) pip install sbmlutils --install-option test
 ```
 
-## version bump
-* switch to develop branch and increase version number
 
-# New release
-Create a tag
-```
-git tag -a 0.4.0 -m"sbmlutils-v0.4.0"
-```
