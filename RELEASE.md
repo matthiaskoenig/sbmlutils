@@ -19,6 +19,4 @@ mkvirtualenv test --python=python3.8
 (test) pip install sbmlutils --install-option test
 ```
 
-## version bump
-* switch to develop branch and increase version number
 
