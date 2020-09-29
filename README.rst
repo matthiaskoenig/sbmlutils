@@ -1,4 +1,4 @@
-.. image:: https://github.com/matthiaskoenig/sbmlutils/blob/develop/docs_builder/images/sbmlutils-logo-60.png
+.. image:: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
    :align: left
    :alt: sbmlutils logo
 

@@ -1,12 +1,12 @@
 #!/bin/bash
 ###############################################################
-# Build script for tellurium documentation from rst files and 
+# Build script for tellurium documentation from rst files and
 # python docstrings in the tellurium package
 #
 # execute this script in the docs folder i.e., after
 # 	cd tellurium/docs
 #
-# Usage: 
+# Usage:
 #	./make_docs.sh 2>&1 | tee ./make_docs.log
 #
 # The documentation is written in docs/_build
@@ -22,7 +22,7 @@ rm -rf _notebooks
 rm -rf _static
 echo "DONE"
 
-# create rst & python files from the notebooks
+# create rst files from the notebooks
 ./make_notebooks_rst.sh 2>&1 | tee ./make_notebooks_rst.log
 
 # echo "--------------------------------------"
