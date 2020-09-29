@@ -1,12 +1,12 @@
 # Release information
 
 ## update documentation
-* build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
 * make necessary updates to notebooks
+* build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
 
 ## make release
-* sort imports (`isort src/pkdb_analysis`)
-* code formating (`black src/pkdb_analysis`)
+* sort imports (`isort src/sbmlutils`)
+* code formating (`black src/sbmlutils`)
 * make sure all tests run (`tox --`)
 * update release notes in `release-notes`
 * bump version (`bumpversion patch` or `bumpversion` minor)
