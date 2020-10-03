@@ -117,4 +117,8 @@ Or via cloning the repository and installing via::
     cd sbmlutils
     pip install -e .
 
+To install for development use::
+
+    pip install -e .[development]
+
 © 2017-2020 Matthias König
