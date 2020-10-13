@@ -33,6 +33,11 @@ UNIT_m3 = Unit("m3", [(UNIT_KIND_METRE, 3.0)], port=True)
 
 UNIT_mM = Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True)
 UNIT_mmole = Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
+UNIT_g_per_mole = Unit(
+    'g_per_mole', [(UNIT_KIND_GRAM, 1.0, 0, 1.0),
+    (UNIT_KIND_MOLE, -1.0, 0, 1.0)], port=True
+)
+
 UNIT_mole_per_min = Unit(
     "mole_per_min", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True
 )
@@ -50,6 +55,16 @@ UNIT_mmole_per_min_l = Unit(
     ],
     port=True,
 )
+UNIT_mmole_per_min_kg = Unit(
+    "mmole_per_min_kg",
+    [
+        (UNIT_KIND_MOLE, 1.0, -3, 1.0),
+        (UNIT_KIND_SECOND, -1.0, 0, 60),
+        (UNIT_KIND_KILOGRAM, -1.0, 0, 1),
+    ],
+    port=True,
+)
+
 UNIT_mmole_per_s = Unit(
     "mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True
 )
@@ -68,6 +83,11 @@ UNIT_mg = Unit("mg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0)], port=True)
 UNIT_mg_per_hr = Unit(
     "mg_per_hr",
     [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)],
+    port=True,
+)
+UNIT_mg_per_day = Unit(
+    "mg_per_day",
+    [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600*24)],
     port=True,
 )
 
@@ -114,8 +134,10 @@ __all__ = [
     "UNIT_m3",
     "UNIT_mM",
     "UNIT_mmole",
+    "UNIT_g_per_mole",
     "UNIT_mmole_per_min",
     "UNIT_mmole_per_min_l",
+    "UNIT_mmole_per_min_kg",
     "UNIT_mole_per_min",
     "UNIT_mmole_per_s",
     "UNIT_mole_per_s",
@@ -128,6 +150,7 @@ __all__ = [
     "UNIT_per_hr",
     "UNIT_mg",
     "UNIT_mg_per_hr",
+    "UNIT_mg_per_day",
     "UNIT_ml",
     "UNIT_litre_per_min",
     "UNIT_litre_per_mmole",
