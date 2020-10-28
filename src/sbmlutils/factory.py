@@ -239,6 +239,7 @@ class Sbase:
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -247,6 +248,7 @@ class Sbase:
         self.sboTerm = sboTerm
         self.metaId = metaId
         self.annotations = annotations
+        self.notes = notes
         self.port = port
         self.uncertainties = uncertainties
 
@@ -344,6 +346,7 @@ class Value(Sbase):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -353,6 +356,7 @@ class Value(Sbase):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -380,6 +384,7 @@ class ValueWithUnit(Value):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -391,6 +396,7 @@ class ValueWithUnit(Value):
             metaId=metaId,
             port=port,
             annotations=annotations,
+            notes=notes,
             uncertainties=uncertainties,
         )
         self.unit = unit
@@ -500,6 +506,7 @@ class Function(Sbase):
         name=None,
         sboTerm=None,
         metaId=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -508,6 +515,7 @@ class Function(Sbase):
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -537,6 +545,7 @@ class Parameter(ValueWithUnit):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -548,6 +557,7 @@ class Parameter(ValueWithUnit):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -579,6 +589,7 @@ class Compartment(ValueWithUnit):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -590,6 +601,7 @@ class Compartment(ValueWithUnit):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -639,6 +651,7 @@ class Species(Sbase):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -648,6 +661,7 @@ class Species(Sbase):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -733,6 +747,7 @@ class InitialAssignment(Value):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
         uncertainties=None,
     ):
@@ -743,6 +758,7 @@ class InitialAssignment(Value):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -977,6 +993,7 @@ class Uncertainty(Sbase):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         port=None,
     ):
         super(Uncertainty, self).__init__(
@@ -985,6 +1002,7 @@ class Uncertainty(Sbase):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             port=port,
         )
 
@@ -1105,6 +1123,7 @@ class Reaction(Sbase):
         sboTerm=None,
         metaId=None,
         annotations=None,
+        notes=None,
         lowerFluxBound=None,
         upperFluxBound=None,
         uncertainties=None,
@@ -1115,6 +1134,8 @@ class Reaction(Sbase):
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
+            annotations=annotations,
+            notes=notes,
             port=port,
             uncertainties=uncertainties,
         )
@@ -1132,8 +1153,6 @@ class Reaction(Sbase):
         if formula is not None:
             self.formula = Formula(*formula)
         self.fast = fast
-        self.sboTerm = sboTerm
-        self.annotations = annotations
         self.lowerFluxBound = lowerFluxBound
         self.upperFluxBound = upperFluxBound
 
@@ -1220,6 +1239,7 @@ class ExchangeReaction(Reaction):
         reversible=None,
         metaId=None,
         annotations=None,
+        notes=None,
         lowerFluxBound=None,
         upperFluxBound=None,
         uncertainties=None,
@@ -1235,6 +1255,7 @@ class ExchangeReaction(Reaction):
             reversible=reversible,
             metaId=metaId,
             annotations=annotations,
+            notes=notes,
             lowerFluxBound=lowerFluxBound,
             upperFluxBound=upperFluxBound,
             uncertainties=uncertainties,
@@ -1298,7 +1319,7 @@ class Event(Sbase):
         sid = value
 
     """
-
+    # FIXME: support notes and annotations
     def __init__(
         self,
         sid,
