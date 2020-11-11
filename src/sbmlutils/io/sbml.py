@@ -64,7 +64,6 @@ def read_sbml(
         err_message = f"read_sbml error '{source}': {err_message}"
         logger.error(err_message)
 
-    # validate file
     if validate:
         validation.validate_doc(
             doc=doc,
@@ -81,8 +80,8 @@ def read_sbml(
 def write_sbml(
     doc: libsbml.SBMLDocument,
     filepath: Union[Path] = None,
-    program_name: str = program_name,
-    program_version: str = str(__version__),
+    program_name: str = None,
+    program_version: str = None,
     validate: bool = False,
     log_errors: bool = True,
     units_consistency: bool = True,
@@ -121,7 +120,6 @@ def write_sbml(
         sbml_str = None
         source = filepath
 
-    # This validates the written file or sbml string
     if validate:
         validate_sbml(
             source=source,
