@@ -1,8 +1,11 @@
-import roadrunner
 import pandas as pd
+import roadrunner
+
 
 # Loading model and simulating
-model = roadrunner.RoadRunner("boundary_condition.xml")  # type: roadrunner.ExecutableModel
+model = roadrunner.RoadRunner(
+    "boundary_condition.xml"
+)  # type: roadrunner.ExecutableModel
 model.selections = ["time", "A1", "A2", "[A1]", "[A2]"]
 
 # default simulation
@@ -24,13 +27,6 @@ model.resetAll()
 s = model.simulate()
 s = pd.DataFrame(s, columns=s.colnames)
 print(s.head(5))
-
-
-
-
-
-
-
 
 
 # setting initial value on species with "boundaryCondition=False"

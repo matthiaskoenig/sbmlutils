@@ -5,8 +5,8 @@ from pathlib import Path
 
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
-from sbmlutils.units import *
 from sbmlutils.modelcreator.creator import Factory
+from sbmlutils.units import *
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -32,15 +32,28 @@ units = [
     UNIT_m,
     UNIT_m2,
 ]
-compartments = [
-    Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)
-]
+compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
 species = [
-    Species("A1", initialAmount=1.0, constant=False, substanceUnit=UNIT_mmole,
-            compartment="c", hasOnlySubstanceUnits=True, boundaryCondition=False),
-    Species("A2", initialAmount=1.0, constant=False, substanceUnit=UNIT_mmole,
-            compartment="c", hasOnlySubstanceUnits=True, boundaryCondition=True)
+    Species(
+        "A1",
+        initialAmount=1.0,
+        constant=False,
+        substanceUnit=UNIT_mmole,
+        compartment="c",
+        hasOnlySubstanceUnits=True,
+        boundaryCondition=False,
+    ),
+    Species(
+        "A2",
+        initialAmount=1.0,
+        constant=False,
+        substanceUnit=UNIT_mmole,
+        compartment="c",
+        hasOnlySubstanceUnits=True,
+        boundaryCondition=True,
+    ),
 ]
+
 
 def create(tmp: bool = False) -> None:
     factory = Factory(

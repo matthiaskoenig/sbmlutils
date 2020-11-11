@@ -1319,6 +1319,7 @@ class Event(Sbase):
         sid = value
 
     """
+
     # FIXME: support notes and annotations
     def __init__(
         self,

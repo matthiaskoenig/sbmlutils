@@ -34,8 +34,9 @@ UNIT_m3 = Unit("m3", [(UNIT_KIND_METRE, 3.0)], port=True)
 UNIT_mM = Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True)
 UNIT_mmole = Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
 UNIT_g_per_mole = Unit(
-    'g_per_mole', [(UNIT_KIND_GRAM, 1.0, 0, 1.0),
-    (UNIT_KIND_MOLE, -1.0, 0, 1.0)], port=True
+    "g_per_mole",
+    [(UNIT_KIND_GRAM, 1.0, 0, 1.0), (UNIT_KIND_MOLE, -1.0, 0, 1.0)],
+    port=True,
 )
 
 UNIT_mole_per_min = Unit(
@@ -87,7 +88,7 @@ UNIT_mg_per_hr = Unit(
 )
 UNIT_mg_per_day = Unit(
     "mg_per_day",
-    [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600*24)],
+    [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600 * 24)],
     port=True,
 )
 

@@ -77,7 +77,7 @@ def flatten_sbml_doc(
     props = libsbml.ConversionProperties()
     props.addOption("flatten comp", True)  # Invokes CompFlatteningConverter
     props.addOption("leave_ports", leave_ports)  # Indicates whether to leave ports
-    props.addOption("abortIfUnflattenable", 'none')
+    props.addOption("abortIfUnflattenable", "none")
 
     # flatten
     current = time.perf_counter()
