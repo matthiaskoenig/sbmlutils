@@ -5,7 +5,7 @@ import re
 
 import libsbml
 
-from sbmlutils.examples.models.annotation import factory as annotation_factory
+from sbmlutils.examples.models.annotation import annotation_example
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
@@ -22,7 +22,7 @@ def test_create_annotation():
     """Create assignment model.
     :return:
     """
-    annotation_factory.create(tmp=True)
+    annotation_example.create(tmp=True)
 
 
 def test_model_annotation():

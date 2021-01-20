@@ -1,35 +1,32 @@
-# -*- coding=utf-8 -*-
 """
-Distrib example.
+Distrib and comp example to check flattening
 """
 import libsbml
+from pathlib import Path
 
+from sbmlutils.comp import flatten_sbml
+from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.report import sbmlreport
 from sbmlutils.units import *
 
 
-# -----------------------------------------------------------------------------
-mid = "uncertainty_ex1"
-version = 1
+mid = "distrib_comp_example"
+packages = ["distrib", "comp"]
 creators = templates.creators
 notes = Notes(
     [
         """
     <h1>sbmlutils {}</h1>
     <h2>Description</h2>
-    <p>Example creating distrib model with uncertainty elements.</p>
+    <p>Example creating distrib model with distribution elements.</p>
     """,
         templates.terms_of_use,
     ]
 )
-
-# -----------------------------------------------------------------------------
-# Units
-# -----------------------------------------------------------------------------
-
 model_units = ModelUnits(
-    time=UNIT_h,
+    time=UNIT_hr,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
     length=UNIT_m,
@@ -37,20 +34,18 @@ model_units = ModelUnits(
     volume=UNIT_KIND_LITRE,
 )
 units = [
-    UNIT_h,
+    UNIT_hr,
     UNIT_m,
     UNIT_m2,
 ]
 
-# -----------------------------------------------------------------------------
-# Units
-# -----------------------------------------------------------------------------
 parameters = [
     Parameter(
         sid="p1",
         value=1.0,
         unit=UNIT_KIND_MOLE,
         constant=True,
+        port=True,
         uncertainties=[
             Uncertainty(
                 formula="normal(2.0, 2.0)",
@@ -69,3 +64,21 @@ parameters = [
         ],
     )
 ]
+
+
+def create(tmp: bool = False):
+    output_dir = Path(__file__).parent / "results"
+    [_, _, sbml_path] = create_model(
+        modules=["sbmlutils.examples.models.distrib.distrib_comp_example"],
+        output_dir=output_dir,
+        tmp=tmp,
+    )
+
+    sbml_path_flat = output_dir / "distrib_comp_example_flat.xml"
+    flatten_sbml(sbml_path, filepath=sbml_path_flat)
+    # create model report
+    sbmlreport.create_report(sbml_path_flat, output_dir=output_dir)
+
+
+if __name__ == "__main__":
+    create()

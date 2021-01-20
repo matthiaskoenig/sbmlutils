@@ -1,16 +1,16 @@
-# -*- coding=utf-8 -*-
 """
 Distrib example.
 """
+from pathlib import Path
 
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.units import *
 
 
-# -----------------------------------------------------------------------------
-mid = "distrib_ex1"
-version = 1
+mid = "distributions_example"
+packages = ["distrib"]
 creators = templates.creators
 notes = Notes(
     [
@@ -22,11 +22,6 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-
-# -----------------------------------------------------------------------------
-# Units
-# -----------------------------------------------------------------------------
-
 model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_KIND_MOLE,
@@ -41,9 +36,6 @@ units = [
     UNIT_m2,
 ]
 
-# -----------------------------------------------------------------------------
-# InitialAssignments
-# -----------------------------------------------------------------------------
 assignments = [
     InitialAssignment("p_normal_1", "normal(0, 1)"),
     InitialAssignment("p_normal_2", "normal(0, 1, 0, 10)"),
@@ -68,3 +60,16 @@ assignments = [
     InitialAssignment("p_raleigh_1", "rayleigh(0.5)"),
     InitialAssignment("p_raleigh_2", "rayleigh(0.5, 0, 10)"),
 ]
+
+
+def create(tmp: bool = False):
+    create_model(
+        modules=["sbmlutils.examples.models.distrib.distributions_example"],
+        output_dir=Path(__file__).parent / "results",
+        tmp=tmp,
+        units_consistency=False,
+    )
+
+
+if __name__ == "__main__":
+    create()

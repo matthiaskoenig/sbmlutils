@@ -1,99 +1,103 @@
-# -*- coding=utf-8 -*-
 """
-Test model to check the update of global depending parameters in Roadrunner.
-Mainly volumes which are calculated based on other parameters.
+Example model for creating an SBML ODE model.
 """
+from pathlib import Path
+
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.units import *
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-mid = "basic"
-version = 8
+mid = "basic_example2"
 notes = Notes(
     [
         """
-    <h1>Koenig Test Model</h1>
+    <h1>sbmlutils {}</h1>
     <h2>Description</h2>
-    <p>Test model.
-    </p>
+    <p>Example model showing how to create compartments, species and reactions.</p>
     """,
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+creators = [
+    Creator(
+        familyName="Koenig",
+        givenName="Matthias",
+        email="koenigmx@hu-berlin.de",
+        organization="Humboldt-University Berlin, Institute for Theoretical Biology",
+        site="https://livermetabolism.com",
+    )
+]
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Units
 # ---------------------------------------------------------------------------------------------------------------------
 model_units = ModelUnits(
-    time=UNIT_s,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
+    time=UNIT_min,
+    extent=UNIT_mmole,
+    substance=UNIT_mmole,
     length=UNIT_m,
     area=UNIT_m2,
-    volume=UNIT_m3,
+    volume=UNIT_KIND_LITRE,
 )
-units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
+units = [
+    UNIT_m,
+    UNIT_m2,
+    UNIT_min,
+    UNIT_mmole,
+    UNIT_mM,
+    UNIT_mmole_per_min,
+]
+
+# ---------------------------------------------------------------------------------------------------------------------
+# --- Functions ---
+# ---------------------------------------------------------------------------------------------------------------------
+functions = []
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Compartments
 # ---------------------------------------------------------------------------------------------------------------------
-compartments = [
-    Compartment(sid="ext", value="Vol_e", unit="m3", constant=True, name="external"),
-    Compartment(sid="cyto", value="Vol_c", unit="m3", constant=False, name="cytosol"),
-    Compartment(
-        sid="pm",
-        value="A_m",
-        unit="m2",
-        constant=True,
-        spatialDimensions=2,
-        name="membrane",
-    ),
-]
+compartments = [Compartment("c", 1.0, unit=UNIT_KIND_LITRE)]
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Species
 # ---------------------------------------------------------------------------------------------------------------------
 species = [
     Species(
-        sid="e__gal",
-        compartment="ext",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=True,
-        name="D-galactose",
+        "S1",
+        initialConcentration=5.0,
+        compartment="c",
+        substanceUnit=UNIT_mmole,
+        name="S1",
+        hasOnlySubstanceUnits=False,
         sboTerm=SBO_SIMPLE_CHEMICAL,
-    ),
-    Species(
-        sid="c__gal",
-        compartment="cyto",
-        initialConcentration=0.00012,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=False,
-        name="D-galactose",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
-    ),
+    )
 ]
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Parameters
 # ---------------------------------------------------------------------------------------------------------------------
 parameters = [
-    Parameter(sid="x_cell", value=25e-6, unit="m", constant=True, name="cell diameter"),
     Parameter(
-        sid="Vol_e", value=100e-14, unit="m3", constant=True, name="external volume"
+        "R1_Km", name="Km R1", value=0.1, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT
     ),
-    Parameter(sid="A_m", value=1.0, unit="m2", constant=True, name="membrane area"),
+    Parameter(
+        "R1_Vmax",
+        name="Vmax R1",
+        value=10.0,
+        unit=UNIT_mmole_per_min,
+        sboTerm=SBO_MAXIMAL_VELOCITY,
+    ),
 ]
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Assignments
 # ---------------------------------------------------------------------------------------------------------------------
 assignments = [
-    InitialAssignment(sid="Vol_c", value="x_cell*x_cell*x_cell", unit="m3"),
+    InitialAssignment("S1", "10.0 mM", UNIT_mM),
 ]
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -104,22 +108,16 @@ rules = []
 # ---------------------------------------------------------------------------------------------------------------------
 # Reactions
 # ---------------------------------------------------------------------------------------------------------------------
-reactions = [
-    Reaction(
-        sid="e__GLUT2_GAL",
-        name="galactose transport [e__]",
-        equation="e__gal <-> c__gal []",
-        # C6H1206 (0) <-> C6H1206 (0)
-        compartment="pm",
-        pars=[
-            Parameter(sid="GLUT2_Vmax", value=1e-13, unit="mole_per_s"),
-            Parameter("GLUT2_k_gal", 1.0, "mM"),
-            Parameter("GLUT2_keq", 1.0, "-"),
-        ],
-        formula=(
-            "GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/"
-            "(1 dimensionless + c__gal/GLUT2_k_gal + e__gal/GLUT2_k_gal)",
-            "mole_per_s",
-        ),
+reactions = []
+
+
+def create(tmp=False):
+    create_model(
+        modules=["sbmlutils.examples.models.basic.basic_example2"],
+        output_dir=Path(__file__).parent / "results",
+        tmp=tmp,
     )
-]
+
+
+if __name__ == "__main__":
+    create()

@@ -1,38 +1,29 @@
 """
 Create model.
 """
-import os
+from pathlib import Path
 
 from sbmlutils.examples.models.demo import model
-from sbmlutils.modelcreator.creator import Factory
+from sbmlutils.modelcreator.creator import create_model
 
 
-def create(tmp=False):
-    """Create demo model.
-
-    :return:
-    """
-    models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-
-    print("-" * 80)
-    print(models_dir)
-    print("-" * 80)
-
-    factory = Factory(
+def create_demo_example(tmp=False):
+    output_dir = Path(__file__).parent
+    create_model(
         modules=["sbmlutils.examples.models.demo.model"],
-        output_dir=os.path.join(models_dir, "results"),
-        annotations=os.path.join(models_dir, "demo_annotations.xlsx"),
+        output_dir=output_dir / "results",
+        annotations=output_dir / "demo_annotations.xlsx",
+        tmp=tmp,
     )
-    factory.create(tmp)
 
     # without annotations
-    factory_no_annotations = Factory(
+    create_model(
         modules=["sbmlutils.examples.models.demo.model"],
-        output_dir=os.path.join(models_dir, "results"),
+        output_dir=output_dir /"results",
         mid="{}_{}_{}".format(model.mid, model.version, "no_annotations"),
+        tmp=tmp,
     )
-    factory_no_annotations.create(tmp)
 
 
 if __name__ == "__main__":
-    create()
+    create_demo_example()

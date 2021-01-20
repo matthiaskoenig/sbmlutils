@@ -1,12 +1,14 @@
-# -*- coding=utf-8 -*-
 """
 Test model to check the update of global depending parameters in Roadrunner.
 Mainly volumes which are calculated based on other parameters.
 """
+from pathlib import Path
+
 from sbmlutils.factory import *
 from sbmlutils.metadata.miriam import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.units import *
 
 
@@ -159,4 +161,13 @@ reactions = [
 ]
 
 
-# write custom annotations:
+def create(tmp=False):
+    create_model(
+        modules=["sbmlutils.examples.models.annotation.annotation_example"],
+        output_dir=Path(__file__).parent / "results",
+        tmp=tmp,
+    )
+
+
+if __name__ == "__main__":
+    create()

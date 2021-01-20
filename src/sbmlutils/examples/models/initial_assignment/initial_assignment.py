@@ -5,7 +5,7 @@ from pathlib import Path
 
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
-from sbmlutils.modelcreator.creator import Factory
+from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.units import *
 
 
@@ -52,11 +52,11 @@ assignments = [
 
 
 def create(tmp: bool = False) -> None:
-    factory = Factory(
-        modules=["sbmlutils.examples.models.initial_assignment.model"],
+    create_model(
+        modules=["sbmlutils.examples.models.initial_assignment.initial_assignment"],
         output_dir=Path(__file__).parent / "results",
+        tmp=tmp,
     )
-    factory.create(tmp)
 
 
 if __name__ == "__main__":
