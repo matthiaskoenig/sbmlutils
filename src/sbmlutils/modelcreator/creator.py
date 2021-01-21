@@ -22,7 +22,6 @@ import xmltodict
 
 import sbmlutils.factory as factory
 import sbmlutils.history as history
-from build.lib.sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 from sbmlutils.io import write_sbml
 from sbmlutils.metadata import annotator
@@ -32,127 +31,6 @@ from sbmlutils.validation import check
 
 
 logger = logging.getLogger(__name__)
-
-
-class FactoryResult(NamedTuple):
-    model_dict: Dict
-    core_model: CoreModel
-    sbml_path: Path
-
-
-def create_model(
-    modules: Iterable[str],
-    output_dir: Path,
-    tmp: bool = False,
-    filename: str = None,
-    mid: str = None,
-    suffix: str = None,
-    annotations=None,
-    create_report: bool = True,
-    validate: bool = True,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
-) -> FactoryResult:
-    """Create SBML model from module information.
-
-    This is the entry point for creating models.
-    The model information is provided as a list of importable python modules.
-    If no filename is provided the filename is created from the id and suffix.
-    Additional model annotations can be provided.
-
-    :param modules: iterable of strings of python modules
-    :param output_dir: directory in which to create SBML file
-    :param tmp: boolean flag to create files in a temporary directory (for testing)
-    :param filename: filename to write to with suffix, if not provided mid and suffix are used
-    :param mid: model id to use for filename
-    :param suffix: suffix for SBML filename
-    :param annotations: list of annotations for SBML
-    :param create_report: boolean switch to create SBML report
-    :param validate: validates the SBML file
-    :param log_errors: boolean flag to log errors
-    :param units_consistency: boolean flag to check units consistency
-    :param modeling_practice: boolean flag to check modeling practise
-    :param internal_consistency: boolean flag to check internal consistency
-
-    :return: FactoryResult
-    """
-    # preprocess
-    logger.info(
-        bcolors.OKBLUE
-        + "\n\n"
-        + "-" * 120
-        + "\n"
-        + str(modules)
-        + "\n"
-        + "-" * 120
-        + bcolors.ENDC
-    )
-    model_dict = Preprocess.dict_from_modules(modules)
-
-    # create SBML model
-    core_model = CoreModel.from_dict(model_dict=model_dict)
-
-    logger.debug(core_model.get_info())
-    core_model.create_sbml()
-
-    if tmp:
-        output_dir = tempfile.mkdtemp()
-    else:
-        if isinstance(output_dir, str):
-            output_dir = Path(output_dir)
-            logger.warning(f"'output_dir' should be a Path: {output_dir}")
-
-        if not output_dir.exists():
-            logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
-            output_dir.mkdir(parents=True)
-
-    if not filename:
-        # create filename
-        if mid is None:
-            mid = core_model.model.getId()
-        if suffix is None:
-            suffix = ""
-        filename = f"{mid}{suffix}.xml"
-
-    # write sbml
-    sbml_path = output_dir / filename
-    if core_model.doc is None:
-        core_model.create_sbml()
-    try:
-        write_sbml(
-            doc=core_model.doc,
-            filepath=sbml_path,
-            validate=validate,
-            log_errors=log_errors,
-            units_consistency=units_consistency,
-            modeling_practice=modeling_practice,
-            internal_consistency=internal_consistency,
-        )
-
-        # annotate
-        if annotations is not None:
-            # overwrite the normal file
-            annotator.annotate_sbml(
-                source=sbml_path, annotations_path=annotations, filepath=sbml_path
-            )
-
-        # create report
-        if create_report:
-            # file is already validated, no validation on report needed
-            sbmlreport.create_report(
-                sbml_path=sbml_path, output_dir=output_dir, validate=False
-            )
-    finally:
-        if tmp:
-            shutil.rmtree(output_dir)
-
-    return FactoryResult(
-        model_dict=model_dict,
-        core_model=core_model,
-        sbml_path=sbml_path,
-    )
 
 
 class Preprocess:
@@ -438,3 +316,124 @@ class CoreModel(object):
 
         o = xmltodict.parse(self.get_sbml())
         return json.dumps(o, indent=2)
+
+
+class FactoryResult(NamedTuple):
+    """Results structure when creating SBML models with sbmlutils."""
+    model_dict: Dict
+    core_model: CoreModel
+    sbml_path: Path
+
+def create_model(
+    modules: Iterable[str],
+    output_dir: Path,
+    tmp: bool = False,
+    filename: str = None,
+    mid: str = None,
+    suffix: str = None,
+    annotations=None,
+    create_report: bool = True,
+    validate: bool = True,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
+) -> FactoryResult:
+    """Create SBML model from module information.
+
+    This is the entry point for creating models.
+    The model information is provided as a list of importable python modules.
+    If no filename is provided the filename is created from the id and suffix.
+    Additional model annotations can be provided.
+
+    :param modules: iterable of strings of python modules
+    :param output_dir: directory in which to create SBML file
+    :param tmp: boolean flag to create files in a temporary directory (for testing)
+    :param filename: filename to write to with suffix, if not provided mid and suffix are used
+    :param mid: model id to use for filename
+    :param suffix: suffix for SBML filename
+    :param annotations: list of annotations for SBML
+    :param create_report: boolean switch to create SBML report
+    :param validate: validates the SBML file
+    :param log_errors: boolean flag to log errors
+    :param units_consistency: boolean flag to check units consistency
+    :param modeling_practice: boolean flag to check modeling practise
+    :param internal_consistency: boolean flag to check internal consistency
+
+    :return: FactoryResult
+    """
+    # preprocess
+    logger.info(
+        bcolors.OKBLUE
+        + "\n\n"
+        + "-" * 120
+        + "\n"
+        + str(modules)
+        + "\n"
+        + "-" * 120
+        + bcolors.ENDC
+    )
+    model_dict = Preprocess.dict_from_modules(modules)
+
+    # create SBML model
+    core_model = CoreModel.from_dict(model_dict=model_dict)
+
+    logger.debug(core_model.get_info())
+    core_model.create_sbml()
+
+    if tmp:
+        output_dir = tempfile.mkdtemp()
+    else:
+        if isinstance(output_dir, str):
+            output_dir = Path(output_dir)
+            logger.warning(f"'output_dir' should be a Path: {output_dir}")
+
+        if not output_dir.exists():
+            logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
+            output_dir.mkdir(parents=True)
+
+    if not filename:
+        # create filename
+        if mid is None:
+            mid = core_model.model.getId()
+        if suffix is None:
+            suffix = ""
+        filename = f"{mid}{suffix}.xml"
+
+    # write sbml
+    sbml_path = output_dir / filename
+    if core_model.doc is None:
+        core_model.create_sbml()
+    try:
+        write_sbml(
+            doc=core_model.doc,
+            filepath=sbml_path,
+            validate=validate,
+            log_errors=log_errors,
+            units_consistency=units_consistency,
+            modeling_practice=modeling_practice,
+            internal_consistency=internal_consistency,
+        )
+
+        # annotate
+        if annotations is not None:
+            # overwrite the normal file
+            annotator.annotate_sbml(
+                source=sbml_path, annotations_path=annotations, filepath=sbml_path
+            )
+
+        # create report
+        if create_report:
+            # file is already validated, no validation on report needed
+            sbmlreport.create_report(
+                sbml_path=sbml_path, output_dir=output_dir, validate=False
+            )
+    finally:
+        if tmp:
+            shutil.rmtree(output_dir)
+
+    return FactoryResult(
+        model_dict=model_dict,
+        core_model=core_model,
+        sbml_path=sbml_path,
+    )
