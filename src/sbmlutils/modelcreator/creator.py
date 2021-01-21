@@ -12,6 +12,7 @@ Uses the importlib to import the information.
 import copy
 import json
 import logging
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -320,9 +321,11 @@ class CoreModel(object):
 
 class FactoryResult(NamedTuple):
     """Results structure when creating SBML models with sbmlutils."""
+
     model_dict: Dict
     core_model: CoreModel
     sbml_path: Path
+
 
 def create_model(
     modules: Iterable[str],
@@ -381,17 +384,6 @@ def create_model(
     logger.debug(core_model.get_info())
     core_model.create_sbml()
 
-    if tmp:
-        output_dir = tempfile.mkdtemp()
-    else:
-        if isinstance(output_dir, str):
-            output_dir = Path(output_dir)
-            logger.warning(f"'output_dir' should be a Path: {output_dir}")
-
-        if not output_dir.exists():
-            logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
-            output_dir.mkdir(parents=True)
-
     if not filename:
         # create filename
         if mid is None:
@@ -400,8 +392,20 @@ def create_model(
             suffix = ""
         filename = f"{mid}{suffix}.xml"
 
+    if tmp:
+        output_dir = tempfile.mkdtemp()
+        sbml_path = os.path.join(output_dir, filename)
+    else:
+        if isinstance(output_dir, str):
+            output_dir = Path(output_dir)
+            logger.warning(f"'output_dir' should be a Path: {output_dir}")
+
+        if not output_dir.exists():
+            logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
+            output_dir.mkdir(parents=True)
+        sbml_path = output_dir / filename
+
     # write sbml
-    sbml_path = output_dir / filename
     if core_model.doc is None:
         core_model.create_sbml()
     try:

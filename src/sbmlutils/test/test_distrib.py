@@ -2,14 +2,16 @@ from typing import Dict
 
 import libsbml
 
+from sbmlutils.examples.models.distrib import (
+    distrib_comp_example,
+    distributions_example,
+    uncertainty_example,
+)
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.units import *
 from sbmlutils.validation import validate_doc
-
-from sbmlutils.examples.models.distrib import distrib_comp_example, \
-    distributions_example, uncertainty_example
 
 
 def test_distrib_comp_example():

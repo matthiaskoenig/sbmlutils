@@ -1,13 +1,15 @@
 """
 Distrib and comp example to check flattening
 """
-import libsbml
+import shutil
 from pathlib import Path
 
+import libsbml
+
 from sbmlutils.comp import flatten_sbml
-from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.factory import *
 from sbmlutils.modelcreator import templates
+from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.report import sbmlreport
 from sbmlutils.units import *
 
@@ -65,20 +67,30 @@ parameters = [
     )
 ]
 
+import tempfile
+
 
 def create(tmp: bool = False):
-    output_dir = Path(__file__).parent / "results"
+
+    if tmp:
+        tmp_dir = tempfile.mkdtemp()
+        output_dir = Path(tmp_dir)
+    else:
+        output_dir = Path(__file__).parent / "results"
+    sbml_path_flat = output_dir / "distrib_comp_example_flat.xml"
+
     [_, _, sbml_path] = create_model(
         modules=["sbmlutils.examples.models.distrib.distrib_comp_example"],
         output_dir=output_dir,
-        tmp=tmp,
     )
 
-    sbml_path_flat = output_dir / "distrib_comp_example_flat.xml"
     flatten_sbml(sbml_path, filepath=sbml_path_flat)
     # create model report
     sbmlreport.create_report(sbml_path_flat, output_dir=output_dir)
 
+    if tmp:
+        shutil.rmtree(tmp_dir)
+
 
 if __name__ == "__main__":
-    create()
+    create(tmp=True)

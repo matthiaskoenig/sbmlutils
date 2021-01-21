@@ -7,7 +7,7 @@ from sbmlutils.examples.models.demo import model
 from sbmlutils.modelcreator.creator import create_model
 
 
-def create_demo_example(tmp=False):
+def create(tmp=False):
     output_dir = Path(__file__).parent
     create_model(
         modules=["sbmlutils.examples.models.demo.model"],
@@ -19,11 +19,11 @@ def create_demo_example(tmp=False):
     # without annotations
     create_model(
         modules=["sbmlutils.examples.models.demo.model"],
-        output_dir=output_dir /"results",
+        output_dir=output_dir / "results",
         mid="{}_{}_{}".format(model.mid, model.version, "no_annotations"),
         tmp=tmp,
     )
 
 
 if __name__ == "__main__":
-    create_demo_example()
+    create()
