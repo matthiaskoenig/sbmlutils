@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def read_cobra_model(sbml_path: Path) -> "cobra.core.Model":
-    """Loads cobra model from path.
+    """Load cobra model from path.
 
     Sets default flux bounds to allow loading and changes all boundaryConditions to
     False.
@@ -27,7 +27,7 @@ def read_cobra_model(sbml_path: Path) -> "cobra.core.Model":
 
 
 def cobra_reaction_info(cobra_model: "cobra.core.Model"):
-    """Creates data frame with bound and objective information.
+    """Create data frame with bound and objective information.
 
     :param cobra_model:
     :return: pandas DataFrame

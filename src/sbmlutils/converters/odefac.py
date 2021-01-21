@@ -31,7 +31,7 @@ from sbmlutils import RESOURCES_DIR
 from sbmlutils.converters.mathml import evaluableMathML
 
 
-TEMPLATE_DIR = RESOURCES_DIR / "conververs"
+TEMPLATE_DIR = RESOURCES_DIR / "converters"
 
 
 class SBML2ODE:

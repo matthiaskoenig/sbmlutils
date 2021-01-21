@@ -1,6 +1,8 @@
 """
 Code for working with the libsbml distrib package
 """
+import tempfile
+
 import libsbml
 
 from sbmlutils import validation
@@ -261,11 +263,10 @@ def uncertainty():
     return doc
 
 
-if __name__ == "__main__":
-
+def create_examples(tmp=False):
     functions = [
-        # distrib_normal,
-        # distrib_all,
+        distrib_normal,
+        distrib_all,
         uncertainty,
     ]
     for f_creator in functions:
@@ -277,7 +278,15 @@ if __name__ == "__main__":
         print("-" * 80)
         print(sbml)
         print("-" * 80)
-        sbml_path = f"./{name}.xml"
+
+        if tmp:
+            sbml_path = tempfile.mktemp()
+        else:
+            sbml_path = f"./{name}.xml"
 
         libsbml.writeSBMLToFile(doc, sbml_path)
         validation.validate_doc(doc)
+
+
+if __name__ == "__main__":
+    create_examples()

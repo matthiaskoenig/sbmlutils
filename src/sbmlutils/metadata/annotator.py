@@ -553,7 +553,7 @@ class ModelAnnotator:
         elif file_format == "json":
             df = pd.read_json(file_path)
         elif file_format == "xlsx":
-            df = pd.read_excel(file_path, comment="#")
+            df = pd.read_excel(file_path, comment="#", engine="openpyxl")
 
         df.dropna(axis="index", inplace=True, how="all")
         return df

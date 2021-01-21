@@ -5,11 +5,13 @@ import pytest
 
 from sbmlutils.examples.models.annotation import annotation_example
 from sbmlutils.examples.models.core import (
+    amount_species_example,
     assignment_example,
     core_example1,
     core_example2,
     initial_assignment_example,
 )
+from sbmlutils.examples.models.dallaman import factory as dallaman_factory
 from sbmlutils.examples.models.demo import factory as demo_factory
 from sbmlutils.examples.models.distrib import (
     distrib_comp_example,
@@ -27,8 +29,10 @@ from sbmlutils.modelcreator.creator import CoreModel, Preprocess
 
 testdata = [
     annotation_example,
+    amount_species_example,
     core_example1,
     core_example2,
+    dallaman_factory,
     assignment_example,
     initial_assignment_example,
     distrib_comp_example,
