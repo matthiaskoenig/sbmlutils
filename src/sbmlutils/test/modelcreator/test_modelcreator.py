@@ -10,6 +10,7 @@ from sbmlutils.examples.models.core import (
     core_example1,
     core_example2,
     initial_assignment_example,
+    reaction_example,
 )
 from sbmlutils.examples.models.dallaman import factory as dallaman_factory
 from sbmlutils.examples.models.demo import factory as demo_factory
@@ -42,6 +43,7 @@ testdata = [
     fbc_example1,
     fbc_example2,
     mass_charge_example,
+    reaction_example,
     tiny_factory,
 ]
 
