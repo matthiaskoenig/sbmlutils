@@ -3,12 +3,13 @@ Create simple reaction.
 """
 from pathlib import Path
 
+import numpy as np
+
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.modelcreator import templates
 from sbmlutils.modelcreator.creator import create_model
 from sbmlutils.units import *
-import numpy as np
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ species = [
         compartment="c",
         sboTerm=SBO_SIMPLE_CHEMICAL,
         initialConcentration=np.NaN,
-    )
+    ),
 ]
 
 reactions = [
@@ -59,11 +60,9 @@ def create(tmp=False):
         modules=["sbmlutils.examples.models.core.reaction_example"],
         output_dir=Path(__file__).parent / "results",
         tmp=tmp,
-        units_consistency=False
+        units_consistency=False,
     )
 
 
 if __name__ == "__main__":
     create()
-
-
