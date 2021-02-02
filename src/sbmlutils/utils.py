@@ -1,12 +1,16 @@
-"""
-Utility functions.
-"""
+"""Utility functions."""
 import functools
 import hashlib
 import time
 import warnings
 
 import libsbml
+from depinfo import print_dependencies
+
+
+def show_versions() -> None:
+    """Print dependency information."""
+    print_dependencies("sbmlutils")
 
 
 class bcolors:
