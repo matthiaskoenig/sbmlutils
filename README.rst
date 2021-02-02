@@ -62,7 +62,7 @@ Contributing
 ============
 
 Contributions are always welcome! Please read the `contributing guidelines
-<https://github.com/matthiaskoenig/sbmlutils/blob/devel/CONTRIBUTING.rst>`__ to
+<https://github.com/matthiaskoenig/sbmlutils/blob/develop/.github/CONTRIBUTING.rst>`__ to
 get started.
 
 License
