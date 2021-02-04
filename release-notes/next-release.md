@@ -3,12 +3,8 @@
 ## New features
 
 ## Fixes
-- update libroadrunner>=2.0.5 (bugfix logging)
 
 ## Other
-- updated contributing information
-- templates for issues, questions, feature requests
-- reporting of dependencies for debugging
 
 ## Deprecated features
 

@@ -7,7 +7,7 @@
 ## make release
 * sort imports (`isort src/sbmlutils`)
 * code formating (`black src/sbmlutils --exclude resource`)
-* make sure all tests run (`tox --`)
+* make sure all tests run (`tox`)
 * update release notes in `release-notes` with commit
 * bump version (`bumpversion patch` or `bumpversion` minor)
 * `git push --tags` (triggers release)
