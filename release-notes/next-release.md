@@ -8,6 +8,7 @@
 ## Other
 - updated contributing information
 - templates for issues, questions, feature requests
+- reporting of dependencies for debugging
 
 ## Deprecated features
 
