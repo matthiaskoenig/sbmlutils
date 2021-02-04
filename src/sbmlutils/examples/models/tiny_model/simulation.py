@@ -15,7 +15,7 @@ from matplotlib import pylab as plt
 
 from sbmlutils.examples.models.tiny_model import model as model_definition
 from sbmlutils.fbc.cobra import read_cobra_model
-from sbmlutils.modelcreator.creator import Factory
+from sbmlutils.modelcreator.creator import create_model
 
 
 # -----------------------------------------------------------------------------
@@ -27,12 +27,11 @@ print("-" * 80)
 print(tiny_dir)
 print("-" * 80)
 
-factory = Factory(
+_, _, tiny_sbml = create_model(
     modules=["sbmlutils.examples.models.tiny_model.model"],
     output_dir=tiny_dir / "results",
     annotations=tiny_dir / "annotations.xlsx",
 )
-_, _, tiny_sbml = factory.create(tmp=False)
 
 
 # -----------------------------------------------------------------------------

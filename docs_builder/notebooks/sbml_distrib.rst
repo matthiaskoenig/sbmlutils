@@ -57,11 +57,11 @@ Here we create a parameter
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -184,31 +184,20 @@ Here we create a parameter
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.002
+    check time (s)           : 0.004
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42fb83d0>
+    <sbmlutils.validation.ValidationResult at 0x7f181fecb340>
 
 
 
@@ -242,17 +231,17 @@ distribution ``normal(z,10)``:
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -347,31 +336,20 @@ distribution ``normal(z,10)``:
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.001
+    check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42fa26a0>
+    <sbmlutils.validation.ValidationResult at 0x7f195003cdc0>
 
 
 
@@ -408,17 +386,17 @@ to the SBML symbol ``y``.
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -523,31 +501,20 @@ to the SBML symbol ``y``.
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.001
+    check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42fa2580>
+    <sbmlutils.validation.ValidationResult at 0x7f181fecb970>
 
 
 
@@ -603,17 +570,17 @@ the value of ``x`` to ``3`` instead.
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -768,31 +735,20 @@ the value of ``x`` to ``3`` instead.
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
     check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42fa2e80>
+    <sbmlutils.validation.ValidationResult at 0x7f181fecba00>
 
 
 
@@ -843,17 +799,17 @@ distributions
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -1168,31 +1124,20 @@ distributions
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.004
+    check time (s)           : 0.007
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42f62eb0>
+    <sbmlutils.validation.ValidationResult at 0x7f181fe934f0>
 
 
 
@@ -1232,17 +1177,17 @@ written as ``3.22 +- 0.3``.
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -1334,31 +1279,20 @@ written as ``3.22 +- 0.3``.
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.001
+    check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42f62400>
+    <sbmlutils.validation.ValidationResult at 0x7f181fecb7c0>
 
 
 
@@ -1398,17 +1332,17 @@ a variance of ``0.09``.
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -1502,31 +1436,20 @@ a variance of ``0.09``.
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.001
+    check time (s)           : 0.003
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42f62700>
+    <sbmlutils.validation.ValidationResult at 0x7f181fe932b0>
 
 
 
@@ -1578,11 +1501,11 @@ a parameter. Here the two uncertainties
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -1718,31 +1641,20 @@ a parameter. Here the two uncertainties
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.002
+    check time (s)           : 0.003
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42f77130>
+    <sbmlutils.validation.ValidationResult at 0x7f181fe935e0>
 
 
 
@@ -1783,17 +1695,17 @@ random variable.
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -1894,31 +1806,20 @@ random variable.
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.001
+    check time (s)           : 0.002
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 
 
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42f77700>
+    <sbmlutils.validation.ValidationResult at 0x7f181fe93640>
 
 
 
@@ -1968,17 +1869,17 @@ The following example provides an overview over the available fields.
 
 .. parsed-literal::
 
-    ERROR:sbmlutils.factory:Model units should be provided for a model, i.e., set the 'model_units' field on model.
+    Model units should be provided for a model, i.e., set the 'model_units' field on model.
 
 
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -2095,7 +1996,7 @@ The following example provides an overview over the available fields.
     valid                    : TRUE
     validation error(s)      : 0
     validation warnings(s)   : 3
-    check time (s)           : 0.002
+    check time (s)           : 0.005
     --------------------------------------------------------------------------------
     [0m[0m
     WARNING:sbmlutils.validation:[47m[30mE0: Modeling practice (core, L1, code)[0m[0m
@@ -2107,10 +2008,10 @@ The following example provides an overview over the available fields.
     [91m[Warning] Line numbers unreliable.[0m
     [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
     [0m
-    WARNING:sbmlutils.validation:[47m[30mE2: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
+    WARNING:sbmlutils.validation:[47m[30mE2: Modeling practice (core, L1, code)[0m[0m
+    [91m[Warning] It's best to declare values for every parameter in a model[0m
+    [94mAs a principle of best modeling practice, the <parameter> should set an initial value rather than be left undefined. Doing so improves the portability of models between different simulation and analysis systems, and helps make it easier to detect potential errors in models.
+     The <parameter> with the id 'p' does not have 'value' attribute, nor is its initial value set by an <initialAssignment> or <assignmentRule>.
     [0m
 
 
@@ -2118,7 +2019,7 @@ The following example provides an overview over the available fields.
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f3e42fb85b0>
+    <sbmlutils.validation.ValidationResult at 0x7f181fea82e0>
 
 
 
@@ -2200,11 +2101,11 @@ used for setting the parameter in the model.
 
 .. raw:: html
 
-    <style type="text/css">pre { line-height: 125%; margin: 0; }
-    td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
-    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
-    span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+    <style type="text/css">pre { line-height: 125%; }
+    td.linenos pre { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    span.linenos { color: #000000; background-color: #f0f0f0; padding-left: 5px; padding-right: 5px; }
+    td.linenos pre.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+    span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
     .highlight .hll { background-color: #ffffcc }
     .highlight { background: #f8f8f8; }
     .highlight .c { color: #408080; font-style: italic } /* Comment */
@@ -2365,23 +2266,12 @@ used for setting the parameter in the model.
 
 .. parsed-literal::
 
-    WARNING:root:[1m[92m
+    [1m[92m
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    validation error(s)      : 0
-    validation warnings(s)   : 2
-    check time (s)           : 0.002
+    check time (s)           : 0.004
     --------------------------------------------------------------------------------
     [0m[0m
-    WARNING:sbmlutils.validation:[47m[30mE0: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Line numbers unreliable.[0m
-    [94mDue to the need to instantiate models, modelDefinitions, submodels etc. for the purposes of validation it is problematic to reliably report line numbers when performing validation on models using the Hierarchical Model Composition package.
-    [0m
-    WARNING:sbmlutils.validation:[47m[30mE1: SBML component consistency (comp, L1, code)[0m[0m
-    [91m[Warning] Flattening not implemented for required package.[0m
-    [94mThe CompFlatteningConverter has encountered a required package for which the necessary routines to allow flattening have not yet been implemented. 
-     The CompFlatteningConverter has the 'abortIfUnflattenable' option set to 'requiredOnly'  and thus flattening will not be attempted.
-    [0m
 
 

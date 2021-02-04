@@ -1,13 +1,16 @@
-import os
+from pathlib import Path
 
 from sbmlutils.modelcreator import creator
 
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-target_dir = os.path.join(base_dir, "results")
+def create(tmp=False):
+    creator.create_model(
+        modules=["sbmlutils.examples.models.dallaman.model"],
+        output_dir=Path(__file__).parent / "results",
+        tmp=tmp,
+        units_consistency=False,
+    )
 
 
 if __name__ == "__main__":
-    creator.create_model(
-        modules=["sbmlutils.examples.models.dallaman.model"], output_dir=target_dir
-    )
+    create()

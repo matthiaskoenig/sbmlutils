@@ -2,11 +2,20 @@ from typing import Dict
 
 import libsbml
 
+from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.modelcreator.creator import CoreModel
 from sbmlutils.units import *
 from sbmlutils.validation import validate_doc
+
+
+def test_distrib_examples():
+    distrib_examples.create_examples(tmp=True)
+
+
+def test_add_uncertainty_example():
+    distrib_packages.add_uncertainty_example()
 
 
 def check_model_dict(d: Dict) -> libsbml.SBMLDocument:

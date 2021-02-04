@@ -62,7 +62,7 @@ Contributing
 ============
 
 Contributions are always welcome! Please read the `contributing guidelines
-<https://github.com/matthiaskoenig/sbmlutils/blob/devel/CONTRIBUTING.rst>`__ to
+<https://github.com/matthiaskoenig/sbmlutils/blob/develop/.github/CONTRIBUTING.rst>`__ to
 get started.
 
 License
@@ -121,4 +121,4 @@ To install for development use::
 
     pip install -e .[development]
 
-© 2017-2020 Matthias König
+© 2017-2021 Matthias König

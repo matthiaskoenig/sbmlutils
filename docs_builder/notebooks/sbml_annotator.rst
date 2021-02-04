@@ -137,7 +137,7 @@ provided on object creation. In the example we annotate a ``species``
 
 .. parsed-literal::
 
-    <sbmlutils.validation.ValidationResult at 0x7f97b5c40730>
+    <sbmlutils.validation.ValidationResult at 0x7f3d0e2976d0>
 
 
 
@@ -175,35 +175,22 @@ creates annotations of the form
     print(s1.toSBML())
 
 
-.. parsed-literal::
-
-    https://en.wikipedia.org/wiki/Cytosol does not conform to http(s)://identifiers.org/collection/id
+::
 
 
-.. parsed-literal::
+    ---------------------------------------------------------------------------
 
-    [1m[92m
-    --------------------------------------------------------------------------------
-    /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/annotation_example_8.xml
-    valid                    : TRUE
-    check time (s)           : 0.013
-    --------------------------------------------------------------------------------
-    [0m[0m
-    <species metaid="meta_e__gal" sboTerm="SBO:0000247" id="e__gal" name="D-galactose" compartment="ext" initialConcentration="3" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="false">
-      <annotation>
-        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-          <rdf:Description rdf:about="#meta_e__gal">
-            <bqbiol:is>
-              <rdf:Bag>
-                <rdf:li rdf:resource="https://identifiers.org/bigg.metabolite/gal"/>
-                <rdf:li rdf:resource="https://identifiers.org/chebi/CHEBI:28061"/>
-                <rdf:li rdf:resource="https://identifiers.org/vmhmetabolite/gal"/>
-              </rdf:Bag>
-            </bqbiol:is>
-          </rdf:Description>
-        </rdf:RDF>
-      </annotation>
-    </species>
+    ImportError                               Traceback (most recent call last)
+
+    <ipython-input-1-9501dacbb6c7> in <module>
+          1 from notebook import BASE_DIR
+    ----> 2 from sbmlutils.modelcreator.creator import Factory
+          3 from sbmlutils.io import read_sbml
+          4 
+          5 factory = Factory(modules=['model_with_annotations'],
+
+
+    ImportError: cannot import name 'Factory' from 'sbmlutils.modelcreator.creator' (/home/mkoenig/git/sbmlutils/src/sbmlutils/modelcreator/creator.py)
 
 
 Annotate existing model

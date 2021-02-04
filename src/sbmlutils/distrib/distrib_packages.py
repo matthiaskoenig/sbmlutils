@@ -2,14 +2,17 @@
 Example testing uncertainty with libsbml packages
 """
 import logging
+import os
+from pathlib import Path
 
 import libsbml
-import numpy as np
 
 
-if __name__ == "__main__":
-
-    doc = libsbml.readSBMLFromFile("e_coli_core.xml")  # type: libsbml.SBMLDocument
+def add_uncertainty_example():
+    output_dir = str(Path(__file__).parent)
+    doc = libsbml.readSBMLFromFile(
+        os.path.join(output_dir, "e_coli_core.xml")
+    )  # type: libsbml.SBMLDocument
 
     # activate distrib
     doc.enablePackage(
@@ -38,4 +41,8 @@ if __name__ == "__main__":
         logging.error("DistribSBasePlugin not working for fbc:GeneProduct.")
 
     # store model with gene expression data
-    libsbml.writeSBMLToFile(doc, "e_coli_core_expression.xml")
+    libsbml.writeSBMLToFile(doc, os.path.join(output_dir, "e_coli_core_expression.xml"))
+
+
+if __name__ == "__main__":
+    add_uncertainty_example()
