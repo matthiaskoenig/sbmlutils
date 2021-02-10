@@ -62,10 +62,8 @@ def create_reports(
     # write index html (unicode)
     html = _create_index_html(sbml_paths)
     index_path = output_dir / "index.html"
-    # FIXME: is this still necessary in python 3?
-    f_index = codecs.open(index_path, encoding="utf-8", mode="w")
-    f_index.write(html)
-    f_index.close()
+    with open(index_path, "w") as f_index:
+        f_index.write(html)
 
 
 def create_report(
@@ -131,10 +129,8 @@ def create_report(
     # write html (unicode)
     html = _create_html(doc, basename, html_template=template)
     path_html = output_dir / f"{name}.html"
-    # FIXME: ist this still necessary
-    f_html = codecs.open(path_html, encoding="utf-8", mode="w")
-    f_html.write(html)
-    f_html.close()
+    with open(path_html, "w") as f_html:
+        f_html.write(html)
 
     logger.info(f"SBML report created: '{path_html.resolve()}'")
 
@@ -225,9 +221,7 @@ def _create_html(doc, basename, html_template="report.html", offline=True):
         }
     else:
         # no model exists
-        logging.error(
-            "No model in SBML file when creating model report: {}".format(doc)
-        )
+        logging.error(f"No model in SBML file when creating model report: {doc}")
         template = env.get_template("report_no_model.html")
         c = {
             "basename": basename,
@@ -285,9 +279,10 @@ def infoSbase(item):
             submodel_ref = replaced_by.getSubmodelRef()
             info[
                 "replaced_by"
-            ] = '<br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i><code>ReplacedBy {}:{}</code>'.format(
-                submodel_ref, sbaseref(replaced_by)
-            )
+            ] = f"""
+                <br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i>
+                <code>ReplacedBy {submodel_ref}:{sbaseref(replaced_by)}</code>
+                """
 
         # ListOfReplacedElements
         if item_comp.getNumReplacedElements() > 0:
@@ -295,9 +290,10 @@ def infoSbase(item):
             for rep_el in item_comp.getListOfReplacedElements():
                 submodel_ref = rep_el.getSubmodelRef()
                 replaced_elements.append(
-                    '<br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i><code>ReplacedElement {}:{}</code>'.format(
-                        submodel_ref, sbaseref(rep_el)
-                    )
+                    f"""
+                    <br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
+                    <code>ReplacedElement {submodel_ref}:{sbaseref(rep_el)}</code>
+                    """
                 )
             if len(replaced_elements) == 0:
                 replaced_elements = ""
@@ -310,15 +306,13 @@ def infoSbase(item):
 
 def document_dict(doc):
     info = infoSbase(doc)
-    packages = [
-        '<span class="package">L{}V{}</span>'.format(doc.getLevel(), doc.getVersion())
-    ]
+    packages = [f'<span class="package">L{doc.getLevel()}V{doc.getVersion()}</span>']
 
     for k in range(doc.getNumPlugins()):
         plugin = doc.getPlugin(k)
         prefix = plugin.getPrefix()
         version = plugin.getPackageVersion()
-        packages.append('<span class="package">{}-V{}</span>'.format(prefix, version))
+        packages.append(f'<span class="package">{prefix}-V{version}</span>')
     info["packages"] = " ".join(packages)
     return info
 
@@ -341,8 +335,8 @@ def listOfModelDefinitions_dict(doc):
             items.append(info)
         for item in doc_comp.getListOfExternalModelDefinitions():
             info = infoSbase(item)
-            info["type"] = type(item).__name__ + " (<code>source={}</code>)".format(
-                item.getSource()
+            info["type"] = (
+                type(item).__name__ + f" (<code>source={item.getSource}</code>)"
             )
             items.append(info)
     return items
@@ -401,9 +395,9 @@ def sbase_ref_dict(item):
         metaid_ref = item.getMetaIdRef()
     info["metaid_ref"] = metaid_ref
     element = item.getReferencedElement()
-    info["referenced_element"] = "<code>{}: {}</code>".format(
-        type(element).__name__, element.getId()
-    )
+    info[
+        "referenced_element"
+    ] = f"<code>{type(element).__name__}: {element.getId()}</code>"
     return info
 
 
@@ -486,7 +480,7 @@ def listOfSpecies_dict(model):
             cf_value = cf_p.getValue()
             cf_units = cf_p.getUnits()
 
-            info["conversion_factor"] = "{}={} [{}]".format(cf_sid, cf_value, cf_units)
+            info["conversion_factor"] = f"{cf_sid}={cf_value} [{cf_units}]"
         else:
             info["conversion_factor"] = empty_html()
 
@@ -498,11 +492,11 @@ def listOfSpecies_dict(model):
             if sfbc.isSetCharge():
                 c = sfbc.getCharge()
                 if c != 0:
-                    info["fbc_charge"] = "({})".format(sfbc.getCharge())
+                    info["fbc_charge"] = f"({sfbc.getCharge()})"
             if ("fbc_formula" in info) or ("fbc_charge" in info):
-                info["fbc"] = "<br /><code>{} {}</code>".format(
-                    info.get("fbc_formula", ""), info.get("fbc_charge", "")
-                )
+                info[
+                    "fbc"
+                ] = f"<br /><code>{info.get('fbc_formula', '')} {info.get('fbc_charge', '')}</code>"
         items.append(info)
     return items
 
@@ -533,9 +527,7 @@ def listOfParameters_dict(model, values):
             value_formula = values.get(item.id, None)
             if value_formula is None:
                 warnings.warn(
-                    "No value for parameter via Value, InitialAssignment or AssignmentRule: {}".format(
-                        item.id
-                    )
+                    f"No value for parameter via Value, InitialAssignment or AssignmentRule: {item.id}"
                 )
             value = math(value_formula)
         info["value"] = value
@@ -622,7 +614,7 @@ def listOfObjectives_dict(model):
                     sign = "-"
                 else:
                     sign = "+"
-                part = "{}{}*{}".format(sign, abs(coefficient), f_obj.getReaction())
+                part = f"{sign}{abs(coefficient)}*{f_obj.getReaction()}"
                 flux_objectives.append(part)
             info["flux_objectives"] = " ".join(flux_objectives)
             items.append(info)
@@ -635,9 +627,9 @@ def listOfEvents_dict(model):
         info = infoSbase(item)
 
         trigger = item.getTrigger()
-        info["trigger"] = "{}<br />initialValue = {}<br />persistent = {}".format(
-            math(trigger), trigger.initial_value, trigger.persistent
-        )
+        info[
+            "trigger"
+        ] = f"{math(trigger)}<br />initialValue = {trigger.initial_value}<br /> persistent = {trigger.persistent}"
 
         priority = empty_html()
         if item.isSetPriority():
@@ -650,7 +642,7 @@ def listOfEvents_dict(model):
         info["delay"] = delay
         assignments = ""
         for eva in item.getListOfEventAssignments():
-            assignments += "{} = {}<br />".format(eva.getId(), math(eva))
+            assignments += f"{eva.getId()} = {math(eva)}<br />"
         if len(assignments) == 0:
             assignments = empty_html()
         info["assignments"] = assignments
@@ -669,15 +661,13 @@ def notes(item):
 
 def cvterm(item):
     if item.isSetAnnotation():
-        return '<div class="cvterm">{}</div>'.format(formating.annotation_to_html(item))
+        return f'<div class="cvterm">{formating.annotation_to_html(item)}</div>'
     return ""
 
 
 def sbo(item):
     if item.getSBOTerm() != -1:
-        return '<div class="cvterm"><a href="{}" target="_blank">{}</a></div>'.format(
-            item.getSBOTermAsURL(), item.getSBOTermID()
-        )
+        return f'<div class="cvterm"><a href="{item.getSBOTermAsURL()}" target="_blank">{item.getSBOTermID()}</a></div>'
     return ""
 
 
@@ -688,13 +678,13 @@ def sbaseref(sref):
     :return:
     """
     if sref.isSetPortRef():
-        return "portRef={}".format(sref.getPortRef())
+        return f"portRef={sref.getPortRef()}"
     elif sref.isSetIdRef():
-        return "idRef={}".format(sref.getIdRef())
+        return f"idRef={sref.getIdRef()}"
     elif sref.isSetUnitRef():
-        return "unitRef={}".format(sref.getUnitRef())
+        return f"unitRef={sref.getUnitRef()}"
     elif sref.isSetMetaIdRef():
-        return "metaIdRef={}".format(sref.getMetaIdRef())
+        return f"metaIdRef={sref.getMetaIdRef()}"
     return ""
 
 
@@ -704,7 +694,7 @@ def empty_html():
 
 def metaid_html(item):
     if item.isSetMetaId():
-        return "<code>{}</code>".format(item.getMetaId())
+        return f"<code>{item.getMetaId()}</code>"
     return ""
 
 
@@ -721,14 +711,12 @@ def id_html(item):
         display_sid = sid
         if isinstance(item, libsbml.RateRule) and item.isSetVariable():
             display_sid = "d {}/dt".format(item.getVariable())
-        info = '<td id="{}" class="active"><span class="package">{}</span> {}'.format(
-            sid, display_sid, meta
-        )
+        info = f'<td id="{sid}" class="active"><span class="package">{display_sid}</span> {meta}'
     else:
         if meta:
-            info = '<td class="active">{}'.format(meta)
+            info = f'<td class="active">{meta}'
         else:
-            info = '<td class="active">{}'.format(empty_html())
+            info = f'<td class="active">{empty_html()}'
 
     # create modal information
     info += xml_modal(item)
@@ -739,9 +727,7 @@ def id_html(item):
 def annotation_html(item):
     info = '<div class="cvterm">'
     if item.getSBOTerm() != -1:
-        info += '<a href="{}" target="_blank">{}</a><br />'.format(
-            item.getSBOTermAsURL(), item.getSBOTermID()
-        )
+        info += f'<a href="{item.getSBOTermAsURL()}" target="_blank">{item.getSBOTermID()}</a><br />'
     if item.isSetAnnotation():
         info += formating.annotation_to_html(item)
     info += "</div>"
@@ -763,7 +749,7 @@ def boolean(condition):
 
 def annotation_xml(item):
     if item.isSetAnnotation():
-        return "<pre>{}</pre>".format(item.getAnnotationString().decode("utf-8"))
+        return f"<pre>{item.getAnnotationString().decode('utf-8')}</pre>"
     return ""
 
 
@@ -781,24 +767,22 @@ def xml_modal(item):
 
     hash_id = utils._create_hash_id(item)
 
-    info = """
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{}"><i class="fa fa-code"></i></button>
-      <div class="modal fade" id="model-{}" role="dialog">
+    info = f"""
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{hash_id}"><i class="fa fa-code"></i></button>
+      <div class="modal fade" id="model-{hash_id}" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">{}</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'">{}</textarea></div>
+            <div class="modal-header"><h4 class="modal-title">{hash_id}</h4></div>
+            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'">{xml(item)}</textarea></div>
           </div>
         </div>
       </div>
-    """.format(
-        hash_id, hash_id, hash_id, xml(item)
-    )
+    """
     return info
 
 
 def xml(item):
-    html = "{}".format(item.toSBML())
+    html = f"{item.toSBML()}"
 
     return html
     # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())

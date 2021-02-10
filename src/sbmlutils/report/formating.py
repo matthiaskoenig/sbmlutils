@@ -92,13 +92,13 @@ def _halfEquation(speciesList):
         stoichiometry = sr.getStoichiometry()
         species = sr.getSpecies()
         if abs(stoichiometry - 1.0) < 1e-8:
-            sd = "{}".format(species)
+            sd = f"{species}"
         elif abs(stoichiometry + 1.0) < 1e-8:
-            sd = "-{}".format(species)
+            sd = f"-{species}"
         elif stoichiometry >= 0:
-            sd = "{} {}".format(stoichiometry, species)
+            sd = f"{stoichiometry} {species}"
         elif stoichiometry < 0:
-            sd = "-{} {}".format(stoichiometry, species)
+            sd = f"-{stoichiometry} {species}"
         items.append(sd)
     return " + ".join(items)
 
@@ -124,9 +124,7 @@ def boundsStringFromReaction(reaction, model):
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
         if (lb_value is not None) or (ub_value is not None):
-            bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(
-                lb_value, ub_value
-            )
+            bounds = f'<code>[{lb_value} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {ub_value}]</code>'
     return bounds
 
 
@@ -166,9 +164,7 @@ def modelHistoryToString(mhistory):
             cdata.append(c.getOrganisation())
         if c.isSetEmail():
             cdata.append(
-                '<a href="mailto:{}" target="_blank">{}</a>'.format(
-                    c.getEmail(), c.getEmail()
-                )
+                f'<a href="mailto:{c.getEmail()}" target="_blank">{c.getEmail()}</a>'
             )
         items.append(", ".join(cdata))
     if mhistory.isSetCreatedDate():
@@ -181,9 +177,7 @@ def modelHistoryToString(mhistory):
 
 def dateToString(d):
     """ Creates string representation of date. """
-    return "{}-{:0>2d}-{:0>2d} {:0>2d}:{:0>2d}".format(
-        d.getYear(), d.getMonth(), d.getDay(), d.getHour(), d.getMinute()
-    )
+    return f"{d.getYear()}-{str(d.getMonth()).zfill(2)}-{str(d.getDay()).zfill(2)} {str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
 
 
 def _isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
@@ -198,7 +192,7 @@ def ruleVariableToString(rule):
     elif isinstance(rule, libsbml.AssignmentRule):
         return rule.variable
     elif isinstance(rule, libsbml.RateRule):
-        return "d {}/dt".format(rule.variable)
+        return f"d {rule.variable}/dt"
     else:
         raise TypeError(rule)
 
@@ -255,12 +249,12 @@ def unitDefinitionToString(udef):
             e_str = "^" + str(abs(e))
 
         if _isclose(s, 0.0):
-            string = "{}{}{}".format(m_str, k_str, e_str)
+            string = f"{m_str}{k_str}{e_str}"
         else:
             if e_str == "":
-                string = "({}10^{})*{}".format(m_str, s, k_str)
+                string = f"({m_str}10^{s})*{k_str}"
             else:
-                string = "(({}10^{})*{}){}".format(m_str, s, k_str, e_str)
+                string = f"(({m_str}10^{s})*{k_str}){e_str}"
 
         # collect the terms
         if e >= 0.0:
@@ -271,9 +265,9 @@ def unitDefinitionToString(udef):
     nom_str = " * ".join(nom)
     denom_str = " * ".join(denom)
     if (len(nom_str) > 0) and (len(denom_str) > 0):
-        return "({})/({})".format(nom_str, denom_str)
+        return f"({nom_str})/({denom_str})"
     if (len(nom_str) > 0) and (len(denom_str) == 0):
         return nom_str
     if (len(nom_str) == 0) and (len(denom_str) > 0):
-        return "1/({})".format(denom_str)
+        return f"1/({denom_str})"
     return ""
