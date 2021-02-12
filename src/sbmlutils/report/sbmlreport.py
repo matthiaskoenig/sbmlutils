@@ -94,12 +94,14 @@ def create_report(
     """
     if not isinstance(sbml_path, Path):
         logger.warning(
-            f"All paths should be of type 'Path', but '{type(sbml_path)}' found for: {sbml_path}"
+            f"All paths should be of type 'Path', "
+            f"but '{type(sbml_path)}' found for: {sbml_path}"
         )
         sbml_path = Path(sbml_path)
     if not isinstance(output_dir, Path):
         logger.warning(
-            f"All paths should be of type 'Path', but '{type(output_dir)}' found for: {output_dir}"
+            f"All paths should be of type 'Path', "
+            f"but '{type(output_dir)}' found for: {output_dir}"
         )
         output_dir = Path(output_dir)
 
@@ -126,7 +128,7 @@ def create_report(
     name = ".".join(basename.split(".")[:-1])
     write_sbml(doc, filepath=output_dir / basename)
 
-    # write html (unicode)
+    # write html
     html = _create_html(doc, basename, html_template=template)
     path_html = output_dir / f"{name}.html"
     with open(path_html, "w") as f_html:
@@ -164,13 +166,13 @@ def _create_index_html(
         name = ".".join(tokens[:-1]) + ".html"
         sbml_links.append(name)
 
-    # Context
-    c = {
-        "offline": offline,
-        "sbml_basenames": sbml_basenames,
-        "sbml_links": sbml_links,
-    }
-    return template.render(c)
+    return template.render(
+        {
+            "offline": offline,
+            "sbml_basenames": sbml_basenames,
+            "sbml_links": sbml_links,
+        }
+    )
 
 
 def _create_html(
@@ -208,7 +210,7 @@ def _create_html(
 
         values = _create_value_dictionary(model)
 
-        # Context
+        # context
         c = {
             "offline": offline,
             "basename": basename,
@@ -242,11 +244,9 @@ def _create_html(
     return template.render(c)
 
 
-##############################
+# ------------------------
 # Information Dictionaries
-##############################
-
-
+# ------------------------
 def _create_value_dictionary(model: libsbml.Model) -> Dict:
     """Create dictionary of values for model instance
 
@@ -771,9 +771,9 @@ def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
     return items
 
 
-##############################
+# -------
 # Helpers
-##############################
+# -------
 def notes(item: libsbml.SBase) -> str:
     """Convert the SBML object's notes subelement to formatted string
 
@@ -930,7 +930,7 @@ def xml_modal(item: libsbml.SBase) -> str:
     :param item: SBML object for which xml content is to be created
     :return: HTML code fragment enclosing the xml content for the item
     """
-    # filter sbases
+    # filter sbase
     if type(item) is libsbml.Model:
         return ""
 

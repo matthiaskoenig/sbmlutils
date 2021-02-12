@@ -1,8 +1,6 @@
 """
 Helper functions for formating SBML elements.
 """
-from typing import List
-
 import libsbml
 
 from sbmlutils.metadata import miriam
@@ -75,36 +73,38 @@ def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
     return libsbml.writeMathMLToString(astnode)
 
 
-# ------------------------------
+# ---------
 # Equations
-# ------------------------------
+# ---------
 def equationStringFromReaction(
     reaction: libsbml.Reaction,
     sep_reversible: str = "&#8646;",
     sep_irreversible: str = "&#10142;",
+    modifiers: bool = False,
 ) -> str:
     """Create equation for reaction
 
     :param reaction: SBML reaction instance for which equation is to be generated
     :param sep_reversible: escape sequence for symbol for reversible equation (<=>) separator
     :param sep_irreversible: escape sequence for symbol for irreversible equation (=>) separator
-
+    :param modifiers: boolean flag to use modifiers
     :return equation string generated for the reaction
     """
 
     left = _halfEquation(reaction.getListOfReactants())
     right = _halfEquation(reaction.getListOfProducts())
     if reaction.getReversible():
-        # sep = '<=>'
+        # '<=>'
         sep = sep_reversible
     else:
-        # sep = '=>'
+        # '=>'
         sep = sep_irreversible
-    # mods = modifierEquation(reaction.getListOfModifiers())
-    # if mods == None:
-    #     return " ".join([left, sep, right])
-    # else:
-    #     return " ".join([left, sep, right, mods])
+    if modifiers:
+        mods = _modifierEquation(reaction.getListOfModifiers())
+        if mods is None:
+            return " ".join([left, sep, right])
+        else:
+            return " ".join([left, sep, right, mods])
     return " ".join([left, sep, right])
 
 
@@ -189,9 +189,9 @@ def geneProductAssociationStringFromReaction(reaction: libsbml.Reaction) -> str:
     return info
 
 
-# ------------------------------
+# ------------
 # ModelHistory
-# ------------------------------
+# ------------
 def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
     """Renders HTML representation of the model history.
 
@@ -230,7 +230,10 @@ def dateToString(d: libsbml.Date) -> str:
     :param d: SBML Date instance
     return string representation of date
     """
-    return f"{d.getYear()}-{str(d.getMonth()).zfill(2)}-{str(d.getDay()).zfill(2)} {str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
+    return (
+        f"{d.getYear()}-{str(d.getMonth()).zfill(2)}-{str(d.getDay()).zfill(2)} "
+        f"{str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
+    )
 
 
 def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -> bool:
@@ -241,7 +244,6 @@ def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -
     :param rel_tol: relative tolerance value
     :param abs_tol: absolute tolerance value
     """
-
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
@@ -261,10 +263,9 @@ def ruleVariableToString(rule: libsbml.Rule) -> str:
         raise TypeError(rule)
 
 
-# ------------------------------
+# ---------------
 # UnitDefinitions
-# ------------------------------
-
+# ---------------
 UNIT_ABBREVIATIONS = {
     "kilogram": "kg",
     "meter": "m",
