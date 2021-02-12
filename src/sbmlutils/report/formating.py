@@ -1,15 +1,17 @@
 """
 Helper functions for formating SBML elements.
 """
+from typing import List
+
 import libsbml
 
 from sbmlutils.metadata import miriam
 
 
-def annotation_to_html(item):
+def annotation_to_html(item: libsbml.SBase) -> str:
     """Renders HTML representation of given annotation.
 
-    :param item: SBO item
+    :param item: SBase instance
     """
     lines = []
     for kcv in range(item.getNumCVTerms()):
@@ -36,24 +38,40 @@ def annotation_to_html(item):
 
 
 def notes_to_string(sbase: libsbml.SBase) -> str:
-    """Notes to string."""
+    """Notes to string.
+
+    :param item: SBase instance
+    :return string rendering of the notes in the SBase instance
+    """
     return sbase.getNotesString()
 
 
 def formula_to_mathml(string: str) -> str:
-    """Parses formula string. """
+    """Parses formula string.
+
+    :param string: formula string
+    :return string rendering of parsed formula in the formula string
+    """
     astnode = libsbml.parseL3Formula(str(string))
     mathml = libsbml.writeMathMLToString(astnode)
     return mathml
 
 
-def astnode_to_string(astnode) -> str:
-    """Convert to string representation."""
+def astnode_to_string(astnode: libsbml.ASTNode) -> str:
+    """Convert to string representation.
+
+    :param astnode: ASTNode instance
+    :return string rendering of formula in the ASTnode instance
+    """
     return libsbml.formulaToString(astnode)
 
 
 def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
-    """Convert to MathML string representation."""
+    """Convert to MathML string representation.
+
+    :param astnode: ASTNode instance
+    :return string rendering of MathML content for the ASTNode instance
+    """
     return libsbml.writeMathMLToString(astnode)
 
 
@@ -61,8 +79,19 @@ def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
 # Equations
 # ------------------------------
 def equationStringFromReaction(
-    reaction, sep_reversible="&#8646;", sep_irreversible="&#10142;"
-):
+    reaction: libsbml.Reaction,
+    sep_reversible: str = "&#8646;",
+    sep_irreversible: str = "&#10142;",
+) -> str:
+    """Create equation for reaction
+
+    :param reaction: SBML reaction instance for which equation is to be generated
+    :param sep_reversible: escape sequence for symbol for reversible equation (<=>) separator
+    :param sep_irreversible: escape sequence for symbol for irreversible equation (=>) separator
+
+    :return equation string generated for the reaction
+    """
+
     left = _halfEquation(reaction.getListOfReactants())
     right = _halfEquation(reaction.getListOfProducts())
     if reaction.getReversible():
@@ -79,14 +108,24 @@ def equationStringFromReaction(
     return " ".join([left, sep, right])
 
 
-def _modifierEquation(modifierList):
+def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
+    """String representation for list of modifiers
+
+    :param modifierList: list of modifiers
+    :return: string representation for list of modifiers
+    """
     if len(modifierList) == 0:
         return None
     mids = [m.getSpecies() for m in modifierList]
     return "[" + ", ".join(mids) + "]"
 
 
-def _halfEquation(speciesList):
+def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
+    """Equation string of the half reaction of the species in the species list
+
+    :param speciesList: list of species in the half reaction
+    :return: half equation string
+    """
     items = []
     for sr in speciesList:
         stoichiometry = sr.getStoichiometry()
@@ -106,7 +145,13 @@ def _halfEquation(speciesList):
 # ------------------------------
 # FBC
 # ------------------------------
-def boundsStringFromReaction(reaction, model):
+def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> str:
+    """String of bounds from the reaction
+
+    :param reaction: SBML reaction instance
+    :param model: SBML model instance
+    :return: String of bounds extracted from the reaction
+    """
     bounds = ""
     rfbc = reaction.getPlugin("fbc")
     if rfbc is not None:
@@ -128,11 +173,11 @@ def boundsStringFromReaction(reaction, model):
     return bounds
 
 
-def geneProductAssociationStringFromReaction(reaction):
+def geneProductAssociationStringFromReaction(reaction: libsbml.Reaction) -> str:
     """String representation of the GeneProductAssociation for given reaction.
 
-    :param reaction:
-    :return:
+    :param reaction: SBML reaction instance
+    :return: string representation of GeneProductAssociation
     """
     info = ""
     rfbc = reaction.getPlugin("fbc")
@@ -147,8 +192,12 @@ def geneProductAssociationStringFromReaction(reaction):
 # ------------------------------
 # ModelHistory
 # ------------------------------
-def modelHistoryToString(mhistory):
-    """ Renders HTML representation of the model history. """
+def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
+    """Renders HTML representation of the model history.
+
+    :param mhistory: SBML ModelHistory instance
+    :return HTML representation of the model history
+    """
     if not mhistory:
         return ""
     items = []
@@ -175,18 +224,33 @@ def modelHistoryToString(mhistory):
     return "<br />".join(items)
 
 
-def dateToString(d):
-    """ Creates string representation of date. """
+def dateToString(d: libsbml.Date) -> str:
+    """Creates string representation of date.
+
+    :param d: SBML Date instance
+    return string representation of date
+    """
     return f"{d.getYear()}-{str(d.getMonth()).zfill(2)}-{str(d.getDay()).zfill(2)} {str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
 
 
-def _isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
-    """ Calculate the two floats are identical. """
+def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -> bool:
+    """Calculate the two floats are identical.
+
+    :param a: float value
+    :param b: float value
+    :param rel_tol: relative tolerance value
+    :param abs_tol: absolute tolerance value
+    """
+
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
-def ruleVariableToString(rule):
-    """ Formating of variable for rule. """
+def ruleVariableToString(rule: libsbml.Rule) -> str:
+    """Formating of variable for rule.
+
+    :param rule: SBML rule instance
+    :return formatted string representation of the rule
+    """
     if isinstance(rule, libsbml.AlgebraicRule):
         return "0"
     elif isinstance(rule, libsbml.AssignmentRule):
@@ -212,12 +276,13 @@ UNIT_ABBREVIATIONS = {
 }
 
 
-def unitDefinitionToString(udef):
+def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     """Formating of units.
     Units have the general format
         (multiplier * 10^scale *ukind)^exponent
         (m * 10^s *k)^e
 
+    :param udef: unit definition which is to be converted to string
     """
     if udef is None:
         return "None"
