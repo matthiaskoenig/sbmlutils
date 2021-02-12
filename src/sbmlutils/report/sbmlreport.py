@@ -1,5 +1,6 @@
 """
-Create an SBML Report from given SBML file or set of SBML files (for instance for comp models).
+Create an SBML Report from given SBML file or set of SBML files (for instance for comp
+models).
 
 The model report is implemented based on a standard template language,
 which uses the SBML information to render the final document.
@@ -9,7 +10,8 @@ The basic steps of template creation are
 - compile template
 - render with SBML context
 
-The final report consists of an HTML file with an overview over the SBML elements in the model.
+The final report consists of an HTML file with an overview over the SBML elements in
+the model.
 """
 import logging
 import ntpath
@@ -38,13 +40,14 @@ def create_reports(
     promote: bool = False,
     validate: bool = True,
 ):
-    """Creates individual reports and an overview file.
+    """Create individual reports and an overview file.
 
     :param sbml_paths: paths to SBML files
     :param output_dir: target directory where the report is written
     :param template: which template file to use for rendering
     :param promote: boolean flag to promote local parameters
-    :param validate: boolean flag if SBML file be validated (warnings and errors are logged)
+    :param validate: boolean flag if SBML file be validated (warnings and errors
+                     are logged)
 
     :return:
     """
@@ -76,7 +79,7 @@ def create_report(
     units_consistency: bool = True,
     modeling_practice: bool = True,
 ):
-    """Creates HTML report for SBML file.
+    """Create HTML report for SBML file.
 
     The SBML file can be validated during report generation.
     Local parameters can be promoted during report generation.
@@ -85,7 +88,8 @@ def create_report(
     :param output_dir: target directory where the report is written
     :param promote: boolean flag to promote local parameters
     :param template: which template file to use for rendering
-    :param validate: boolean flag if SBML file be validated (warnings and errors are logged)
+    :param validate: boolean flag if SBML file be validated (warnings and errors
+                     are logged)
     :param log_errors: boolean flag of errors should be logged
     :param units_consistency: boolean flag units consistency
     :param modeling_practice: boolean flag modeling practise
@@ -144,7 +148,8 @@ def _create_index_html(
 
     :param sbml_paths: List of paths to SBML files
     :param html_template: which template file to use for rendering
-    :param offline: to specify offline report generation for appropriate linking of stylesheet and script files
+    :param offline: to specify offline report generation for appropriate linking
+                    of stylesheet and script files
 
     :return
     """
@@ -186,7 +191,8 @@ def _create_html(
     :param doc: SBML document for creating HTML report
     :param basename: basename of SBML file path
     :param html_template: which template file to use for rendering
-    :param offline: to specify offline report generation for appropriate linking of stylesheet and script files
+    :param offline: to specify offline report generation for appropriate linking of
+                    stylesheet and script files
 
     :return: rendered HTML report template for the SBML document
     """
@@ -248,7 +254,7 @@ def _create_html(
 # Information Dictionaries
 # ------------------------
 def _create_value_dictionary(model: libsbml.Model) -> Dict:
-    """Create dictionary of values for model instance
+    """Create dictionary of values for model instance.
 
     :param model: SBML model instance for which values dictionary is to be created
     :return: values dictionary for model
@@ -326,7 +332,7 @@ def infoSbase(item: libsbml.SBase) -> Dict:
 
 
 def document_dict(doc: libsbml.SBMLDocument) -> Dict:
-    """Create Info dictonary for SBML document instance
+    """Create Info dictonary for SBML document instance.
 
     :param doc: SBML document for which info dictionary is to be created
     :return: info dictionary for doc
@@ -345,7 +351,7 @@ def document_dict(doc: libsbml.SBMLDocument) -> Dict:
 
 
 def model_dict(model: libsbml.Model) -> Dict:
-    """Create Info dictionary for SBML Model instance
+    """Create Info dictionary for SBML Model instance.
 
     :param model: SBML model for which info dictionary is to be created
     :return: info dictionary for model
@@ -357,9 +363,9 @@ def model_dict(model: libsbml.Model) -> Dict:
 
 
 def listOfModelDefinitions_dict(doc: libsbml.SBMLDocument) -> List[Dict]:
-    """Information dicts for ExternalModelDefinitions and ModelDefinitions
+    """Information dicts for ExternalModelDefinitions and ModelDefinitions.
 
-    :param: doc: SBML document enclosing the ExternalModelDefinitions and ModelDefinitions
+    :param: doc: SBML document enclosing ExternalModelDefinitions and ModelDefinitions
     :return: list of info dictionaries for ExternalModelDefinitions and ModelDefinitions
     """
     items = []
@@ -379,7 +385,7 @@ def listOfModelDefinitions_dict(doc: libsbml.SBMLDocument) -> List[Dict]:
 
 
 def listOfSubmodels_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Submodels
+    """Information dicts for Submodels.
 
     :param: model: SBML model enclosing the Submodels
     :return: list of info dictionaries for Submodels within model
@@ -414,7 +420,7 @@ def listOfSubmodels_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def sbase_ref_dict(item: libsbml.SBaseRef) -> Dict:
-    """Information dictionary of SbaseRef
+    """Information dictionary of SBaseRef.
 
     :param item: SBaseRef instance for which information dictionary has to be created
     :return: information dictionary for item
@@ -445,7 +451,8 @@ def sbase_ref_dict(item: libsbml.SBaseRef) -> Dict:
 
 
 def listOfPorts_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Ports within the plug-in object for the packages used by the model
+    """
+    Information dicts for Ports within the plug-in object for packages used by model.
 
     :param: model: SBML model instance
     :return: list of info dictionaries for the ports found in the plug-in
@@ -461,7 +468,7 @@ def listOfPorts_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfFunctions_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Function definitions within the Model instance
+    """Information dicts for Function definitions within the Model instance.
 
     :param: model: SBML model instance enclosing the function definitions
     :return: list of info dictionaries for the function definitions in the model
@@ -476,7 +483,7 @@ def listOfFunctions_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfUnits_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Unit definitions within the Model instance
+    """Information dicts for Unit definitions within the Model instance.
 
     :param: model: SBML model instance enclosing the unit definitions
     :return: list of info dictionaries for the unit definitions in the model
@@ -493,7 +500,7 @@ def listOfUnits_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfCompartments_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
-    """Information dicts for Compartments within the Model instance
+    """Information dicts for Compartments within the Model instance.
 
     :param: model: SBML model instance conataining the compartments
     :return: list of info dictionaries for the compartments in the model
@@ -520,7 +527,7 @@ def listOfCompartments_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
 
 
 def listOfSpecies_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Species within the compartments in the Model instance
+    """Information dicts for Species within the compartments in the Model instance.
 
     :param: model: SBML model instance containing the species
     :return: list of info dictionaries for the species in the model
@@ -569,13 +576,19 @@ def listOfSpecies_dict(model: libsbml.Model) -> List[Dict]:
             if ("fbc_formula" in info) or ("fbc_charge" in info):
                 info[
                     "fbc"
-                ] = f"<br /><code>{info.get('fbc_formula', '')} {info.get('fbc_charge', '')}</code>"
+                ] = f"""
+                    <br />
+                    <code>
+                        {info.get('fbc_formula', '')}{info.get('fbc_charge', '')}
+                    </code>
+                    """
         items.append(info)
     return items
 
 
 def listOfGeneProducts_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for GeneProducts within the 'fbc' plug-in object used by the Model instance
+    """
+    Information dicts for GeneProducts within 'fbc' plug-in object used by the model.
 
     :param: model: SBML model instance
     :return: list of info dictionaries for the GeneProducts found in the plug-in object
@@ -596,7 +609,7 @@ def listOfGeneProducts_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfParameters_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
-    """Information dicts for Parameters defined within the Model instance
+    """Information dicts for Parameters defined within the Model instance.
 
     :param: model: SBML model instance using the Parameters
     :return: list of info dictionaries for the parameters used in the model
@@ -612,7 +625,9 @@ def listOfParameters_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
             value_formula = values.get(item.id, None)
             if value_formula is None:
                 warnings.warn(
-                    f"No value for parameter via Value, InitialAssignment or AssignmentRule: {item.id}"
+                    f"""No value for parameter via Value, InitialAssignment or
+                    AssignmentRule: {item.id}
+                    """
                 )
             value = math(value_formula)
         info["value"] = value
@@ -623,7 +638,7 @@ def listOfParameters_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
 
 
 def listOfInitialAssignments_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Initial Assignments defined within the Model instance
+    """Information dicts for Initial Assignments defined within the Model instance.
 
     :param: model: SBML model instance defining the Initial Assignments
     :return: list of info dictionaries for the initial assignments defined in the model
@@ -640,7 +655,7 @@ def listOfInitialAssignments_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfRules_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Rules defined within the Model instance
+    """Information dicts for Rules defined within the Model instance.
 
     :param: model: SBML model instance defining the Rules
     :return: list of info dictionaries for the rules defined in the model
@@ -658,7 +673,7 @@ def listOfRules_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfConstraints_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Constraints specified within the Model instance
+    """Information dicts for Constraints specified within the Model instance.
 
     :param: model: SBML model instance specified the Constraints
     :return: list of info dictionaries for the constraits specified in the model
@@ -673,7 +688,7 @@ def listOfConstraints_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfReactions_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Reactions occuring within the compartments within Model instance
+    """Information dicts for Reactions occurring in compartments within the model.
 
     :param: model: SBML model instance
     :return: list of info dictionaries for the reactions found in the model
@@ -709,7 +724,7 @@ def listOfReactions_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfObjectives_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Objective instances defined within the Model instance
+    """Information dicts for Objective instances defined within the Model instance.
 
     :param: model: SBML model instance defining the Objectives
     :return: list of info dictionaries for the objectives defined in the model
@@ -737,7 +752,7 @@ def listOfObjectives_dict(model: libsbml.Model) -> List[Dict]:
 
 
 def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
-    """Information dicts for Events defined within the Model instance
+    """Information dicts for Events defined within the Model instance.
 
     :param: model: SBML model instance defining the Events
     :return: list of info dictionaries for the events defined in the model
@@ -750,7 +765,11 @@ def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
         trigger = item.getTrigger()
         info[
             "trigger"
-        ] = f"{math(trigger)}<br />initialValue = {trigger.initial_value}<br /> persistent = {trigger.persistent}"
+        ] = f"""
+            {math(trigger)}
+            <br />initialValue = {trigger.initial_value}
+            <br /> persistent = {trigger.persistent}
+            """
 
         priority = empty_html()
         if item.isSetPriority():
@@ -775,7 +794,7 @@ def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
 # Helpers
 # -------
 def notes(item: libsbml.SBase) -> str:
-    """Convert the SBML object's notes subelement to formatted string
+    """Convert the SBML object's notes subelement to formatted string.
 
     :param item: SBML object containing the notes subelement
     :return: formatted string for the notes subelement of the item
@@ -786,7 +805,7 @@ def notes(item: libsbml.SBase) -> str:
 
 
 def cvterm(item: libsbml.SBase) -> str:
-    """Creates HTML code fragment enclosing cvterm data for the item
+    """Create HTML code fragment enclosing cvterm data for the item.
 
     :param item: SBML object for which cvterm data has to be displayed
     :return: HTML code fragment enclosing cvterm data for the item
@@ -797,19 +816,24 @@ def cvterm(item: libsbml.SBase) -> str:
 
 
 def sbo(item: libsbml.SBase) -> str:
-    """Creates HTML code fragment enclosing SBOTerm data for the item
+    """Create HTML code fragment enclosing SBOTerm data for the item.
 
     :param item: SBML object for which SBOTerm data has to be displayed
     :return: HTML code fragment enclosing SBOTerm data for the item
     """
 
     if item.getSBOTerm() != -1:
-        return f'<div class="cvterm"><a href="{item.getSBOTermAsURL()}" target="_blank">{item.getSBOTermID()}</a></div>'
+        return f"""<div class="cvterm">
+                        <a href="{item.getSBOTermAsURL()}" target="_blank">
+                            {item.getSBOTermID()}
+                        </a>
+                    </div>
+                """
     return ""
 
 
 def sbaseref(sref: libsbml.SBaseRef) -> str:
-    """Formats the SBaseRef
+    """Format the SBaseRef instance.
 
     :param sref: SBaseRef instance
     :return: string containging formatted SBaseRef instance's data
@@ -827,13 +851,13 @@ def sbaseref(sref: libsbml.SBaseRef) -> str:
 
 
 def empty_html() -> str:
-    """Create a blank HTML code fragment"""
+    """Create a blank HTML code fragment."""
 
     return '<i class="fa fa-ban gray"></i>'
 
 
 def metaid_html(item: libsbml.SBase) -> str:
-    """Create metaid data for the item
+    """Create metaid data for the item.
 
     :param item: SBML object for which metaid data has to be generated
     :return: HTML code fragment enclosing metaid data for item
@@ -844,7 +868,7 @@ def metaid_html(item: libsbml.SBase) -> str:
 
 
 def id_html(item: libsbml.SBase) -> str:
-    """Create info from id and metaid
+    """Create info from id and metaid.
 
     :param item: SBML object for which info is to be generated
     :return: HTML code fragment enclosing info for item
@@ -857,7 +881,10 @@ def id_html(item: libsbml.SBase) -> str:
         display_sid = sid
         if isinstance(item, libsbml.RateRule) and item.isSetVariable():
             display_sid = "d {}/dt".format(item.getVariable())
-        info = f'<td id="{sid}" class="active"><span class="package">{display_sid}</span> {meta}'
+        info = f"""
+                <td id="{sid}" class="active">
+                <span class="package">{display_sid}</span> {meta}
+            """
     else:
         if meta:
             info = f'<td class="active">{meta}'
@@ -871,7 +898,7 @@ def id_html(item: libsbml.SBase) -> str:
 
 
 def annotation_html(item: libsbml.SBase) -> str:
-    """Create annotation HTML content for the item
+    """Create annotation HTML content for the item.
 
     :param item: SBML object for which annotation HTML content is to be generated
     :return: HTML code fragment enclosing annotation for item
@@ -879,7 +906,11 @@ def annotation_html(item: libsbml.SBase) -> str:
 
     info = '<div class="cvterm">'
     if item.getSBOTerm() != -1:
-        info += f'<a href="{item.getSBOTermAsURL()}" target="_blank">{item.getSBOTermID()}</a><br />'
+        info += f"""
+            <a href="{item.getSBOTermAsURL()}" target="_blank">
+                {item.getSBOTermID()}
+            </a><br />
+            """
     if item.isSetAnnotation():
         info += formating.annotation_to_html(item)
     info += "</div>"
@@ -887,7 +918,7 @@ def annotation_html(item: libsbml.SBase) -> str:
 
 
 def math(item: libsbml.SBase) -> str:
-    """Create MathML content for the item
+    """Create MathML content for the item.
 
     :param item: SBML object for which MathML content is to be generated
     :return: formatted MathML content for the item
@@ -899,20 +930,25 @@ def math(item: libsbml.SBase) -> str:
 
 
 def boolean(condition: bool) -> str:
-    """Check the truth value of the condition and create corresponding HTML code fragment
+    """Check the truth value of condition and create corresponding HTML code fragment.
 
     :param condition: condition for which the truth value is to be checked
     :return: HTML code fragment
     """
 
     if condition:
-        return '<td><span class="fas fa-check-circle green"></span><span class="invisible">T</span></td>'
+        return """
+            <td>
+                <span class="fas fa-check-circle green"></span>
+                <span class="invisible">T</span>
+            </td>
+        """
     else:
         return '<td><span class=""><span class="invisible">F</span></span></td>'
 
 
 def annotation_xml(item: libsbml.SBase) -> str:
-    """Create Annotation string for the item
+    """Create Annotation string for the item.
 
     :param item: SBML object for which MathML content is to be generated
     :return: Annotation string for the item
@@ -923,7 +959,7 @@ def annotation_xml(item: libsbml.SBase) -> str:
 
 
 def xml_modal(item: libsbml.SBase) -> str:
-    """Creates modal information for a given sbase.
+    """Create modal information for a given sbase.
 
     This provides some popup which allows to inspect the xml content of the element.
 
@@ -937,12 +973,18 @@ def xml_modal(item: libsbml.SBase) -> str:
     hash_id = utils._create_hash_id(item)
 
     info = f"""
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{hash_id}"><i class="fa fa-code"></i></button>
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#model-{hash_id}">
+        <i class="fa fa-code"></i>
+      </button>
       <div class="modal fade" id="model-{hash_id}" role="dialog">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header"><h4 class="modal-title">{hash_id}</h4></div>
-            <div class="modal-body"><textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'">{xml(item)}</textarea></div>
+            <div class="modal-body">
+                <textarea rows="20" class="form-control" style="min-width: 100%; font-family: 'Courier New'">
+                    {xml(item)}
+                </textarea>
+            </div>
           </div>
         </div>
       </div>
@@ -951,7 +993,7 @@ def xml_modal(item: libsbml.SBase) -> str:
 
 
 def xml(item: libsbml.SBase) -> str:
-    """Creates SBML specification in XML for the item and return HTML code enclosing the specification
+    """Create SBML specification in XML for the item and return HTML code fragment.
 
     :param item: SBML object for which SBML specification (in XML) has to be created
     :return: HTML code fragment enclosing the SBML specification for the item
@@ -964,7 +1006,7 @@ def xml(item: libsbml.SBase) -> str:
 
 
 def derived_units(item: libsbml.SBase) -> str:
-    """Creates formatted string for Unit definition object
+    """Create formatted string for Unit definition object.
 
     :param item: SBML object from which Unit Definition string is to be created
     :return: formatted string for Unit Definition derived from the item

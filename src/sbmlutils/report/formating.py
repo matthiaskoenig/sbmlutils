@@ -7,7 +7,7 @@ from sbmlutils.metadata import miriam
 
 
 def annotation_to_html(item: libsbml.SBase) -> str:
-    """Renders HTML representation of given annotation.
+    """Render HTML representation of given annotation.
 
     :param item: SBase instance
     """
@@ -36,16 +36,16 @@ def annotation_to_html(item: libsbml.SBase) -> str:
 
 
 def notes_to_string(sbase: libsbml.SBase) -> str:
-    """Notes to string.
+    """Render notes to string.
 
-    :param item: SBase instance
+    :param sbase: SBase instance
     :return string rendering of the notes in the SBase instance
     """
     return sbase.getNotesString()
 
 
 def formula_to_mathml(string: str) -> str:
-    """Parses formula string.
+    """Parse formula string.
 
     :param string: formula string
     :return string rendering of parsed formula in the formula string
@@ -82,11 +82,11 @@ def equationStringFromReaction(
     sep_irreversible: str = "&#10142;",
     modifiers: bool = False,
 ) -> str:
-    """Create equation for reaction
+    """Create equation for reaction.
 
     :param reaction: SBML reaction instance for which equation is to be generated
-    :param sep_reversible: escape sequence for symbol for reversible equation (<=>) separator
-    :param sep_irreversible: escape sequence for symbol for irreversible equation (=>) separator
+    :param sep_reversible: escape sequence for reversible equation (<=>) separator
+    :param sep_irreversible: escape sequence for irreversible equation (=>) separator
     :param modifiers: boolean flag to use modifiers
     :return equation string generated for the reaction
     """
@@ -109,7 +109,7 @@ def equationStringFromReaction(
 
 
 def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
-    """String representation for list of modifiers
+    """Render string representation for list of modifiers.
 
     :param modifierList: list of modifiers
     :return: string representation for list of modifiers
@@ -121,7 +121,7 @@ def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
 
 
 def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
-    """Equation string of the half reaction of the species in the species list
+    """Create equation string of the half reaction of the species in the species list.
 
     :param speciesList: list of species in the half reaction
     :return: half equation string
@@ -146,7 +146,7 @@ def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
 # FBC
 # ------------------------------
 def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> str:
-    """String of bounds from the reaction
+    """Render string of bounds from the reaction.
 
     :param reaction: SBML reaction instance
     :param model: SBML model instance
@@ -169,12 +169,17 @@ def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
         if (lb_value is not None) or (ub_value is not None):
-            bounds = f'<code>[{lb_value} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {ub_value}]</code>'
+            bounds = f"""
+                    <code>[{lb_value}
+                    <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i>
+                    {ub_value}]
+                    </code>
+                    """
     return bounds
 
 
 def geneProductAssociationStringFromReaction(reaction: libsbml.Reaction) -> str:
-    """String representation of the GeneProductAssociation for given reaction.
+    """Render string representation of the GeneProductAssociation for given reaction.
 
     :param reaction: SBML reaction instance
     :return: string representation of GeneProductAssociation
@@ -193,7 +198,7 @@ def geneProductAssociationStringFromReaction(reaction: libsbml.Reaction) -> str:
 # ModelHistory
 # ------------
 def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
-    """Renders HTML representation of the model history.
+    """Render HTML representation of the model history.
 
     :param mhistory: SBML ModelHistory instance
     :return HTML representation of the model history
@@ -225,7 +230,7 @@ def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
 
 
 def dateToString(d: libsbml.Date) -> str:
-    """Creates string representation of date.
+    """Create string representation of date.
 
     :param d: SBML Date instance
     return string representation of date
@@ -248,7 +253,7 @@ def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -
 
 
 def ruleVariableToString(rule: libsbml.Rule) -> str:
-    """Formating of variable for rule.
+    """Format variable for rule.
 
     :param rule: SBML rule instance
     :return formatted string representation of the rule
@@ -278,7 +283,8 @@ UNIT_ABBREVIATIONS = {
 
 
 def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
-    """Formating of units.
+    """Render formatted string for units.
+
     Units have the general format
         (multiplier * 10^scale *ukind)^exponent
         (m * 10^s *k)^e
