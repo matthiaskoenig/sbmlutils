@@ -22,7 +22,7 @@ Contents:
    notebooks/sbml_annotator
    notebooks/sbml_converters
    notebooks/sbml_interpolation
-
+   _autogen/modules
 
 
 Indices and tables

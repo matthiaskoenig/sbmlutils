@@ -64,11 +64,15 @@ extensions = [
     "autoapi.extension",
 ]
 
-# source directory for generation of API documentation
-autoapi_dirs = ["../src"]
+# autoapi settings: https://sphinx-autoapi.readthedocs.io
+autodoc_typehints = 'description'
 
-# exclusion of template files from build process
-autoapi_ignore = ["*template*"]
+autoapi_dirs = [
+     "../src/sbmlutils",
+]
+autoapi_type = "python"
+autoapi_ignore = ["*template*", "*test*", "*examples*"]
+
 
 # execution of notebooks
 if on_rtd:
@@ -93,8 +97,8 @@ master_doc = "index"
 
 # General information about the project.
 project = u"sbmlutils"
-copyright = u"2017-2020, Matthias König"
-author = u"Matthias König"
+copyright = u"2017-2021, Matthias König"
+author = u"Matthias König et al."
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
