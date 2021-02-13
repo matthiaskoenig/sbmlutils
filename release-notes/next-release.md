@@ -1,7 +1,8 @@
 # Release notes for sbmlutils x.y.z
 
 ## New features
-
+- API documentation
+- improved examples
 ## Fixes
 - updated fstrings in reports #185
 - fixed broken documentation links #179
@@ -10,5 +11,9 @@
 ## Other
 
 ## Deprecated features
+- removed `eventdata`
+- removed unsupported `multi` information
 
 ## Backwards incompatible changes
+- `sbmlutils.templates` moved to `sbmlutils.examples.templates`
+- `sbmlutils.modelcreator.creator` moved to `sbmlutils.creator` 
