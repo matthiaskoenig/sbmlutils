@@ -91,54 +91,22 @@ provided on object creation. In the example we annotate a ``species``
     validate_doc(core_model.doc, units_consistency=False);
 
 
-.. parsed-literal::
-
-    Model units should be provided for a model, i.e., set the 'model_units' field on model.
+::
 
 
-.. parsed-literal::
+    ---------------------------------------------------------------------------
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
-      <model metaid="meta_example_annotation" id="example_annotation" name="example_annotation">
-        <listOfCompartments>
-          <compartment sboTerm="SBO:0000290" id="C" spatialDimensions="3" size="1" constant="true"/>
-        </listOfCompartments>
-        <listOfSpecies>
-          <species metaid="meta_gal" sboTerm="SBO:0000247" id="gal" name="D-galactose" compartment="C" initialConcentration="3" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
-            <annotation>
-              <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-                <rdf:Description rdf:about="#meta_gal">
-                  <bqbiol:is>
-                    <rdf:Bag>
-                      <rdf:li rdf:resource="https://identifiers.org/bigg.metabolite/gal"/>
-                      <rdf:li rdf:resource="https://identifiers.org/chebi/CHEBI:28061"/>
-                      <rdf:li rdf:resource="https://identifiers.org/vmhmetabolite/gal"/>
-                    </rdf:Bag>
-                  </bqbiol:is>
-                </rdf:Description>
-              </rdf:RDF>
-            </annotation>
-          </species>
-        </listOfSpecies>
-      </model>
-    </sbml>
-    
-    [1m[92m
-    --------------------------------------------------------------------------------
-    <SBMLDocument>
-    valid                    : TRUE
-    check time (s)           : 0.001
-    --------------------------------------------------------------------------------
-    [0m[0m
+    ModuleNotFoundError                       Traceback (most recent call last)
+
+    <ipython-input-1-1dda9dce9ed9> in <module>
+          2 from sbmlutils.factory import *
+          3 from sbmlutils.metadata import *
+    ----> 4 from sbmlutils.modelcreator.creator import CoreModel
+          5 from sbmlutils.validation import validate_doc
+          6 
 
 
-
-
-.. parsed-literal::
-
-    <sbmlutils.validation.ValidationResult at 0x7f3d0e2976d0>
-
+    ModuleNotFoundError: No module named 'sbmlutils.modelcreator'
 
 
 For a more complete example see
@@ -180,7 +148,7 @@ creates annotations of the form
 
     ---------------------------------------------------------------------------
 
-    ImportError                               Traceback (most recent call last)
+    ModuleNotFoundError                       Traceback (most recent call last)
 
     <ipython-input-1-9501dacbb6c7> in <module>
           1 from notebook import BASE_DIR
@@ -190,7 +158,7 @@ creates annotations of the form
           5 factory = Factory(modules=['model_with_annotations'],
 
 
-    ImportError: cannot import name 'Factory' from 'sbmlutils.modelcreator.creator' (/home/mkoenig/git/sbmlutils/src/sbmlutils/modelcreator/creator.py)
+    ModuleNotFoundError: No module named 'sbmlutils.modelcreator'
 
 
 Annotate existing model

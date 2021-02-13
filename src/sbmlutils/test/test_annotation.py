@@ -5,7 +5,7 @@ import re
 
 import libsbml
 
-from sbmlutils.examples.models.annotation import annotation_example
+from sbmlutils.examples import annotation as annotation_example
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator

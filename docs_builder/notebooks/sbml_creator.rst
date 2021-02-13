@@ -20,6 +20,25 @@ scratch.
     from sbmlutils.metadata import *
     from sbmlutils.metadata.sbo import *
 
+
+::
+
+
+    ---------------------------------------------------------------------------
+
+    ModuleNotFoundError                       Traceback (most recent call last)
+
+    <ipython-input-1-8e882708860a> in <module>
+          1 from sbmlutils.io import write_sbml, validate_sbml
+    ----> 2 from sbmlutils.modelcreator.creator import CoreModel
+          3 
+          4 from sbmlutils.factory import *
+          5 from sbmlutils.units import *
+
+
+    ModuleNotFoundError: No module named 'sbmlutils.modelcreator'
+
+
 Model building
 ~~~~~~~~~~~~~~
 
@@ -144,142 +163,21 @@ Creation of FBA model using multiple packages (``comp``, ``fbc``).
     sbml_str = write_sbml(doc=doc, validate=True)
 
 
-.. parsed-literal::
+::
 
-    [1m[92m
-    --------------------------------------------------------------------------------
-    <?xml version="1.0" encoding="UTF-8"?>
-    <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" level="3" version="1" comp:required="true" fbc:required="false">
-      <model metaid="meta_example_model" id="example_model" name="example_model" substanceUnits="itm" timeUnits="s" volumeUnits="m2" areaUnits="m3" lengthUnits="m" extentUnits="itm" fbc:strict="false">
-        <listOfUnitDefinitions>
-          <unitDefinition id="mM">
-            <listOfUnits>
-              <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
-              <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="m">
-            <listOfUnits>
-              <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="s">
-            <listOfUnits>
-              <unit kind="second" exponent="1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="itm">
-            <listOfUnits>
-              <unit kind="item" exponent="1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="itm_per_s">
-            <listOfUnits>
-              <unit kind="item" exponent="1" scale="0" multiplier="1"/>
-              <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="m2">
-            <listOfUnits>
-              <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="per_s">
-            <listOfUnits>
-              <unit kind="second" exponent="-1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="kg">
-            <listOfUnits>
-              <unit kind="kilogram" exponent="1" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="itm_per_m3">
-            <listOfUnits>
-              <unit kind="item" exponent="1" scale="0" multiplier="1"/>
-              <unit kind="metre" exponent="-3" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-          <unitDefinition id="m3">
-            <listOfUnits>
-              <unit kind="metre" exponent="3" scale="0" multiplier="1"/>
-            </listOfUnits>
-          </unitDefinition>
-        </listOfUnitDefinitions>
-        <listOfCompartments>
-          <compartment id="extern" name="external compartment" spatialDimensions="3" size="1" units="m3" constant="true"/>
-          <compartment id="cell" name="cell" spatialDimensions="3" size="1" units="m3" constant="true"/>
-          <compartment id="membrane" name="membrane" spatialDimensions="2" size="1" units="m2" constant="true"/>
-        </listOfCompartments>
-        <listOfSpecies>
-          <species sboTerm="SBO:0000247" id="A" name="A" compartment="extern" initialAmount="0" substanceUnits="itm" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
-          <species sboTerm="SBO:0000247" id="C" name="C" compartment="extern" initialAmount="0" substanceUnits="itm" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
-          <species sboTerm="SBO:0000247" id="B1" name="B1" compartment="cell" initialAmount="0" substanceUnits="itm" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
-          <species sboTerm="SBO:0000247" id="B2" name="B2" compartment="cell" initialAmount="0" substanceUnits="itm" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
-        </listOfSpecies>
-        <listOfParameters>
-          <parameter sboTerm="SBO:0000612" id="ub_R1" value="1" units="itm_per_s" constant="true"/>
-          <parameter sboTerm="SBO:0000612" id="zero" value="0" units="itm_per_s" constant="true"/>
-          <parameter sboTerm="SBO:0000612" id="ub_default" value="1000" units="itm_per_s" constant="true"/>
-        </listOfParameters>
-        <listOfReactions>
-          <reaction id="R1" name="A import (R1)" reversible="true" fast="false" compartment="membrane" fbc:lowerFluxBound="zero" fbc:upperFluxBound="ub_R1">
-            <listOfReactants>
-              <speciesReference species="A" stoichiometry="1" constant="true"/>
-            </listOfReactants>
-            <listOfProducts>
-              <speciesReference species="B1" stoichiometry="1" constant="true"/>
-            </listOfProducts>
-          </reaction>
-          <reaction id="R2" name="B1 &lt;-&gt; B2 (R2)" reversible="true" fast="false" compartment="cell" fbc:lowerFluxBound="zero" fbc:upperFluxBound="ub_default">
-            <listOfReactants>
-              <speciesReference species="B1" stoichiometry="1" constant="true"/>
-            </listOfReactants>
-            <listOfProducts>
-              <speciesReference species="B2" stoichiometry="1" constant="true"/>
-            </listOfProducts>
-          </reaction>
-          <reaction id="R3" name="B2 export (R3)" reversible="true" fast="false" compartment="membrane" fbc:lowerFluxBound="zero" fbc:upperFluxBound="ub_default">
-            <listOfReactants>
-              <speciesReference species="B1" stoichiometry="1" constant="true"/>
-            </listOfReactants>
-            <listOfProducts>
-              <speciesReference species="C" stoichiometry="1" constant="true"/>
-            </listOfProducts>
-          </reaction>
-          <reaction sboTerm="SBO:0000627" id="EX_A" reversible="false" fast="false">
-            <listOfReactants>
-              <speciesReference species="A" stoichiometry="1" constant="true"/>
-            </listOfReactants>
-          </reaction>
-          <reaction sboTerm="SBO:0000627" id="EX_B1" reversible="false" fast="false">
-            <listOfReactants>
-              <speciesReference species="B1" stoichiometry="1" constant="true"/>
-            </listOfReactants>
-          </reaction>
-        </listOfReactions>
-        <comp:listOfPorts>
-          <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
-          <comp:port metaid="m_port" sboTerm="SBO:0000599" comp:unitRef="m" comp:id="m_port" comp:name="m_port"/>
-          <comp:port metaid="s_port" sboTerm="SBO:0000599" comp:unitRef="s" comp:id="s_port" comp:name="s_port"/>
-          <comp:port metaid="m2_port" sboTerm="SBO:0000599" comp:unitRef="m2" comp:id="m2_port" comp:name="m2_port"/>
-          <comp:port metaid="per_s_port" sboTerm="SBO:0000599" comp:unitRef="per_s" comp:id="per_s_port" comp:name="per_s_port"/>
-          <comp:port metaid="kg_port" sboTerm="SBO:0000599" comp:unitRef="kg" comp:id="kg_port" comp:name="kg_port"/>
-          <comp:port metaid="m3_port" sboTerm="SBO:0000599" comp:unitRef="m3" comp:id="m3_port" comp:name="m3_port"/>
-        </comp:listOfPorts>
-        <fbc:listOfObjectives fbc:activeObjective="R3_maximize">
-          <fbc:objective fbc:id="R3_maximize" fbc:type="maximize">
-            <fbc:listOfFluxObjectives>
-              <fbc:fluxObjective fbc:reaction="R3" fbc:coefficient="1"/>
-            </fbc:listOfFluxObjectives>
-          </fbc:objective>
-        </fbc:listOfObjectives>
-      </model>
-    </sbml>
-    
-    valid                    : TRUE
-    check time (s)           : 0.009
-    --------------------------------------------------------------------------------
-    [0m[0m
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    <ipython-input-1-53a3456ddf97> in <module>
+          9     'packages': ['fbc'],
+         10     'mid': "example_model",
+    ---> 11     'model_units': ModelUnits(
+         12         time=UNIT_TIME,
+         13         extent=UNIT_AMOUNT,
+
+
+    NameError: name 'ModelUnits' is not defined
 
 
