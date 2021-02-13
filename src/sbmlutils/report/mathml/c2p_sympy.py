@@ -178,6 +178,9 @@ def cmathml_to_latex(sbml_mathml: str, **settings):
     expr = parse_mathml_str(sbml_mathml)
     return latex(expr, mul_symbol="dot")
 
+def formula_to_latex(formula: str, **settings):
+    expr = expr_from_formula(formula)
+    return latex(expr, mul_symbol="dot")
 
 if __name__ == "__main__":
     formula = "3**5 / x * glc"
@@ -196,6 +199,7 @@ if __name__ == "__main__":
         print("-" * 80)
         print(cmathml_to_latex(cmathml))
 
-
-
+    formula = "GK_Vmax * GK_gc_free * (atp/(GK_k_atp + atp)) * f_gly * (power(glc,GK_n)/(power(glc,GK_n) + power(GK_k_glc, GK_n)))"
+    print("-" * 80)
+    print(formula_to_latex(formula))
 
