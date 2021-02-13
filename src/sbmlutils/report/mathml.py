@@ -15,23 +15,22 @@ astnode -> content MathML -> expr -> latex
 formula (annotation) -> expr -> latex
 
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
-
-# TODO: render jinja example HTML
-
 """
+import logging
 from pathlib import Path
 
-from sympy.printing.mathml import mathml, print_mathml, MathMLPresentationPrinter, \
-    MathMLContentPrinter
-from sympy.printing.latex import latex
-
-import logging
 import libsbml
 from sympy import sympify
+from sympy.printing.latex import latex
+from sympy.printing.mathml import MathMLContentPrinter, MathMLPresentationPrinter
 
 
 def formula_to_astnode(formula: str) -> libsbml.ASTNode:
-    """Parses astnode from formula"""
+    """Converts formula string to ASTNode.
+
+    :param formula: SBML formula string
+    :return: libsbml.ASTNode
+    """
     astnode = libsbml.parseL3Formula(formula)
     if not astnode:
         logging.error("Formula could not be parsed: '{}'".format(formula))
@@ -39,18 +38,18 @@ def formula_to_astnode(formula: str) -> libsbml.ASTNode:
     return astnode
 
 
-def parse_mathml_str(mathml_str: str):
-    astnode = libsbml.readMathMLFromString(mathml_str)  # type: libsbml.ASTNode
-    return parse_astnode(astnode)
+def cmathml_to_astnode(cmathml: str) -> libsbml.ASTNode:
+    """Converts Content MathML string to ASTNode.
 
-
-def parse_formula(formula: str):
-    astnode = formula_to_astnode(formula)
-    return parse_astnode(astnode)
-
-
-def parse_astnode(astnode: libsbml.ASTNode):
+    :param cmathml: SBML Content MathML string
+    :return: libsbml.ASTNode
     """
+    return libsbml.readMathMLFromString(cmathml)  # type: libsbml.ASTNode
+
+
+def astnode_to_expression(astnode: libsbml.ASTNode):
+    """Converts AstNode to sympy expression.
+
     An AST node in libSBML is a recursive tree structure; each node has a type,
     a pointer to a value, and a list of children nodes. Each ASTNode node may
     have none, one, two, or more children depending on its type. There are
@@ -61,27 +60,21 @@ def parse_astnode(astnode: libsbml.ASTNode):
 
     see also: http://sbml.org/Software/libSBML/docs/python-api/libsbml-math.html
 
-    :param mathml:
-    :return:
+    :param astnode: libsbml.ASTNode
+    :return: sympy expression
     """
     formula = libsbml.formulaToL3String(astnode)
-
-    # iterate over ASTNode and figure out variables
-    # variables = _get_variables(astnode)
-
-    # create sympy expression
-    expr = expr_from_formula(formula)
-
-    # print(formula, expr)
-    return expr
+    return formula_to_expression(formula)
 
 
-def expr_from_formula(formula: str):
-    """Parses sympy expression from given formula string."""
+def formula_to_expression(formula: str):
+    """Parses sympy expression from given formula string.
 
-    # [2] create sympy expressions with variables and formula
-    # necessary to map the expression trees
-    # create symbols
+    :param formula: SBML formula string
+    :return: sympy expression
+    """
+
+    # create sympy expressions with variables and formula
     formula = _replace_piecewise(formula)
     formula = formula.replace("&&", "&")
     formula = formula.replace("||", "|")
@@ -90,8 +83,12 @@ def expr_from_formula(formula: str):
     return expr
 
 
-def _replace_piecewise(formula):
-    """Replaces libsbml piecewise with sympy piecewise."""
+def _replace_piecewise(formula: str) -> str:
+    """Replaces libsbml piecewise with sympy piecewise.
+
+    :param formula: SBML formula string
+    :return: formula string
+    """
     while True:
         index = formula.find("piecewise(")
         if index == -1:
@@ -142,23 +139,41 @@ def _replace_piecewise(formula):
     return formula
 
 
-def astnode_to_mathml(formula, printer="content", **settings):
+def astnode_to_mathml(astnode, printer="content", **settings) -> str:
     """Conversion of formula to presentation/content MathML.
 
     This does not use ASTNode serialization, but parsing of the
     corresponding formula due to differences in MathML!
+
+    :param formula: SBML formula string
+    :param settings:
+    :return: Content or presentation MathML
     """
-    expr = expr_from_formula(formula=formula)
-    return expr_to_mathml(expr=expr, printer=printer, **settings)
+    expr = astnode_to_expression(astnode)
+    return _expression_to_mathml(expr=expr, printer=printer, **settings)
 
 
-def formula_to_mathml(formula, printer="content", **settings):
-    expr = expr_from_formula(formula=formula)
-    return expr_to_mathml(expr=expr, printer=printer, **settings)
+def formula_to_mathml(formula, printer="content", **settings) -> str:
+    """Conversion of formula to MathML.
+
+    :param formula: SBML formula string
+    :param printer: 'content' or 'presentation'
+    :param settings:
+    :return: Content or presentation MathML
+    """
+    expr = formula_to_expression(formula=formula)
+    return _expression_to_mathml(expr=expr, printer=printer, **settings)
 
 
-def expr_to_mathml(expr, printer="content", **settings):
-    if printer == 'presentation':
+def _expression_to_mathml(expr, printer="content", **settings) -> str:
+    """Conversion of sympy expression to MathML.
+
+    :param expr: sympy expression
+    :param printer: 'content' or 'presentation'
+    :param settings:
+    :return: Content or presentation MathML
+    """
+    if printer == "presentation":
         s = MathMLPresentationPrinter(settings)
     else:
         s = MathMLContentPrinter(settings)
@@ -169,31 +184,65 @@ def expr_to_mathml(expr, printer="content", **settings):
     return pretty_xml
 
 
-def cmathml_to_pmathml(sbml_mathml: str, **settings):
-    expr = parse_mathml_str(sbml_mathml)
-    return expr_to_mathml(expr, printer="presentation", **settings)
+def cmathml_to_pmathml(cmathml: str, **settings) -> str:
+    """Converts Content MathML to PresentationMathML.
+
+    :param cmathml: Content MathML
+    :param settings:
+    :return: Presentation MathML
+    """
+    astnode = cmathml_to_astnode(cmathml)
+    expr = astnode_to_expression(astnode)
+    return _expression_to_mathml(expr, printer="presentation", **settings)
 
 
-def cmathml_to_latex(sbml_mathml: str, **settings):
-    expr = parse_mathml_str(sbml_mathml)
-    return latex(expr, mul_symbol="dot")
+def formula_to_latex(formula: str, **settings) -> str:
+    """Converts formula to latex.
 
-def formula_to_latex(formula: str, **settings):
-    expr = expr_from_formula(formula)
-    return latex(expr, mul_symbol="dot")
+    :param formula: SBML formula string
+    :param settings:
+    :return: Latex string
+    """
+    expr = formula_to_expression(formula)
+    return latex(expr, mul_symbol="dot", **settings)
+
+
+def astnode_to_latex(astnode: libsbml.ASTNode, **settings) -> str:
+    """Converts AstNode to Latex.
+
+    :param astnode: libsbml.ASTNode
+    :param settings:
+    :return: Latex string
+    """
+    expr = astnode_to_expression(astnode)
+    return latex(expr, mul_symbol="dot", **settings)
+
+
+def cmathml_to_latex(cmathml: str, **settings) -> str:
+    """Converts Content MathML to Latex.
+
+    :param cmathml: Content Mathml string
+    :param settings:
+    :return: Latex string
+    """
+    astnode = cmathml_to_astnode(cmathml)
+    return astnode_to_latex(astnode, **settings)
+
 
 if __name__ == "__main__":
     formula = "3**5 / x * glc"
 
-    print('-' * 80)
+    print("-" * 80)
     print(formula_to_mathml(formula, printer="content"))
-    print('-' * 80)
+    print("-" * 80)
     print(formula_to_mathml(formula, printer="presentation"))
 
     base_dir = Path(__file__).parent / "resources"
     mathml_path = base_dir / "content_mathml.xml"
     with open(mathml_path, "r") as f_mathml:
         cmathml = f_mathml.read()
+        print(cmathml)
+        print("-" * 80)
         pmathml = cmathml_to_pmathml(cmathml)
         print(pmathml)
         print("-" * 80)
@@ -202,4 +251,3 @@ if __name__ == "__main__":
     formula = "GK_Vmax * GK_gc_free * (atp/(GK_k_atp + atp)) * f_gly * (power(glc,GK_n)/(power(glc,GK_n) + power(GK_k_glc, GK_n)))"
     print("-" * 80)
     print(formula_to_latex(formula))
-
