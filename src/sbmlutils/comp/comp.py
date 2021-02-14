@@ -59,7 +59,7 @@ def add_submodel_from_emd(
 
 def get_submodel_frameworks(doc):
     """Read the SBO terms of the submodels.
-    
+
     These are used to distinguish the different frameworks of the submodels.
     :param doc:
     :return:
