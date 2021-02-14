@@ -34,10 +34,9 @@ LAYOUT_ROLE_INHIBITOR = "inhibitor"
 LAYOUT_ROLE_UNDEFINED = "undefined"
 
 
-##########################################################################
-# Layout
-##########################################################################
 class Layout(factory.Sbase):
+    """Layout."""
+
     def __init__(
         self,
         sid,
@@ -61,7 +60,7 @@ class Layout(factory.Sbase):
         self.reaction_glyphs = reaction_glyphs if reaction_glyphs else []
 
     def create_sbml(self, model: libsbml.Model):
-
+        """Create SBML in model."""
         layout_model = model.getPlugin("layout")  # type: libsbml.LayoutModelPlugin
         if not layout_model:
             doc = model.getSBMLDocument()  # type: libsbml.SBMLDocument
@@ -81,6 +80,7 @@ class Layout(factory.Sbase):
         return layout
 
     def set_fields(self, obj: libsbml.Layout):
+        """Set fields."""
         super(Layout, self).set_fields(obj)
         dim = libsbml.Dimensions(
             SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION
@@ -99,10 +99,9 @@ class Layout(factory.Sbase):
             r_item.set_fields(r_glyph, obj)
 
 
-##########################################################################
-# SpeciesGlyph
-##########################################################################
 class SpeciesGlyph(factory.Sbase):
+    """SpeciesGlyph."""
+
     def __init__(
         self,
         sid,
@@ -131,6 +130,7 @@ class SpeciesGlyph(factory.Sbase):
         self.text = text
 
     def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
+        """Set fields."""
         super(SpeciesGlyph, self).set_fields(obj)
         obj.setSpeciesId(self.species)
         bb = _create_bounding_box(
@@ -158,10 +158,9 @@ class SpeciesGlyph(factory.Sbase):
         t_glyph.setBoundingBox(bb)
 
 
-##########################################################################
-# CompartmentGlyph
-##########################################################################
 class CompartmentGlyph(factory.Sbase):
+    """CompartmentGlyph."""
+
     def __init__(
         self,
         sid,
@@ -190,6 +189,7 @@ class CompartmentGlyph(factory.Sbase):
         self.text = text
 
     def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
+        """Set fields."""
         super(CompartmentGlyph, self).set_fields(obj)
         obj.setCompartmentId(self.compartment)
         bb = _create_bounding_box(
@@ -217,10 +217,9 @@ class CompartmentGlyph(factory.Sbase):
         t_glyph.setBoundingBox(bb)
 
 
-##########################################################################
-# ReactionGlyph
-##########################################################################
 class ReactionGlyph(factory.Sbase):
+    """ReactionGlyph."""
+
     def __init__(
         self,
         sid,
@@ -254,6 +253,7 @@ class ReactionGlyph(factory.Sbase):
         self.layout = None
 
     def set_fields(self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout):
+        """Set fields."""
         super(ReactionGlyph, self).set_fields(obj)
         self.layout = layout
         obj.setReactionId(self.reaction)
@@ -416,8 +416,3 @@ def _create_bounding_box(x, y, width, height, z=0, depth=0):
     bb.setHeight(float(height))
     bb.setDepth(float(depth))
     return bb
-
-
-##########################################################################
-# TextGlyph
-##########################################################################
