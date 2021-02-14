@@ -18,6 +18,7 @@ which takes care of the order of object creation.
 
 import logging
 from collections import namedtuple
+from typing import Optional
 
 import libsbml
 
@@ -465,6 +466,7 @@ class Unit(Sbase):
         return obj
 
     def set_fields(self, obj):
+        """Set fields."""
         super(Unit, self).set_fields(obj)
 
     @staticmethod
@@ -486,7 +488,8 @@ class Unit(Sbase):
         return unit
 
     @staticmethod
-    def get_unit_string(unit):
+    def get_unit_string(unit) -> Optional[str]:
+        """Get string represention for unit."""
         if isinstance(unit, Unit):
             return unit.sid
         elif isinstance(unit, int):
@@ -532,6 +535,7 @@ class Function(Sbase):
         self.formula = value
 
     def create_sbml(self, model: libsbml.Model):
+        """Create SBML in model."""
         obj = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
         self.set_fields(obj, model)
 
@@ -539,6 +543,7 @@ class Function(Sbase):
         return obj
 
     def set_fields(self, obj, model: libsbml.Model):
+        """Set fields."""
         super(Function, self).set_fields(obj)
         ast_node = ast_node_from_formula(model, self.formula)
         obj.setMath(ast_node)
@@ -575,14 +580,16 @@ class Parameter(ValueWithUnit):
         )
         self.constant = constant
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Parameter:
+        """Create SBML."""
         obj = model.createParameter()  # type: libsbml.Parameter
         self.set_fields(obj)
 
         self.create_port(model)
         return obj
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Parameter) -> None:
+        """Set fields."""
         super(Parameter, self).set_fields(obj)
         obj.setConstant(self.constant)
         if self.value is not None:
@@ -622,7 +629,8 @@ class Compartment(ValueWithUnit):
         self.constant = constant
         self.spatialDimensions = spatialDimensions
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Compartment:
+        """Create SBML."""
         obj = model.createCompartment()  # type: libsbml.Compartment
         self.set_fields(obj)
 
@@ -639,7 +647,8 @@ class Compartment(ValueWithUnit):
         self.create_port(model)
         return obj
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Compartment) -> None:
+        """Set fields."""
         super(Compartment, self).set_fields(obj)
         obj.setConstant(self.constant)
         obj.setSpatialDimensions(self.spatialDimensions)
@@ -701,7 +710,8 @@ class Species(Sbase):
         self.chemicalFormula = chemicalFormula
         self.conversionFactor = conversionFactor
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Species:
+        """Create SBML."""
         obj = model.createSpecies()  # type: libsbml.Species
         self.set_fields(obj)
         # substance unit must be set on the given substance unit
@@ -714,7 +724,8 @@ class Species(Sbase):
         self.create_port(model)
         return obj
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Species) -> None:
+        """Set fields."""
         super(Species, self).set_fields(obj)
         obj.setConstant(self.constant)
         if self.compartment is None:
@@ -778,13 +789,11 @@ class InitialAssignment(Value):
         )
         self.unit = unit
 
-    def create_sbml(self, model):
-        """Create libsbml InitialAssignment.
+    def create_sbml(self, model: libsbml.Model) -> libsbml.InitialAssignment:
+        """Create InitialAssignment.
 
-        Creates a required parameter if not existing.
-
-        :param model:
-        :return:
+        Creates a required parameter if the symbol for the
+        initial assignment does not exist in the model.
         """
         sid = self.sid
         # Create parameter if not existing
@@ -808,6 +817,8 @@ class InitialAssignment(Value):
 
 
 class Rule(ValueWithUnit):
+    """Rule."""
+
     def __repr__(self):
         return super(Rule, self).__repr__()
 
@@ -1117,7 +1128,7 @@ Formula = namedtuple("Formula", "value unit")
 
 
 class Reaction(Sbase):
-    """Reaction class."""
+    """Reaction."""
 
     def __init__(
         self,
@@ -1166,8 +1177,8 @@ class Reaction(Sbase):
         self.lowerFluxBound = lowerFluxBound
         self.upperFluxBound = upperFluxBound
 
-    def create_sbml(self, model: libsbml.Model):
-
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Reaction:
+        """Create Reaction."""
         # parameters and rules
         create_objects(model, self.pars, key="parameters")
         create_objects(model, self.rules, key="rules")
@@ -1206,7 +1217,8 @@ class Reaction(Sbase):
         self.create_port(model)
         return r
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Reaction) -> None:
+        """Set fields in Reaction."""
         super(Reaction, self).set_fields(obj)
 
         if self.compartment:
@@ -1215,7 +1227,7 @@ class Reaction(Sbase):
         obj.setFast(self.fast)
 
     @staticmethod
-    def set_kinetic_law(model, reaction, formula):
+    def set_kinetic_law(model: libsbml.Model, reaction: libsbml.Reaction, formula: str):
         """Set the kinetic law in reaction based on given formula."""
         law = reaction.createKineticLaw()
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
@@ -1442,7 +1454,7 @@ class Objective(Sbase):
         sboTerm=None,
         metaId=None,
     ):
-        """Create a layout."""
+        """Create an Objective."""
         super(Objective, self).__init__(
             sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
         )
@@ -1461,7 +1473,8 @@ class Objective(Sbase):
             elif self.objectiveType in {"max", "maximize"}:
                 self.objectiveType = libsbml.OBJECTIVE_TYPE_MAXIMIZE
 
-    def create_sbml(self, model: libsbml.Model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Objective:
+        """Create Objective."""
         model_fbc = model.getPlugin("fbc")  # type: libsbml.FbcModelPlugin
         obj = model_fbc.createObjective()  # type: libsbml.Objective
         obj.setId(self.sid)
@@ -1475,7 +1488,8 @@ class Objective(Sbase):
             fluxObjective.setCoefficient(coefficient)
         return obj
 
-    def set_fields(self, obj: libsbml.Layout):
+    def set_fields(self, obj: libsbml.Objective) -> None:
+        """Set fields in Objective."""
         super(Objective, self).set_fields(obj)
 
 
