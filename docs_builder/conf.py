@@ -71,7 +71,7 @@ autoapi_dirs = [
      "../src/sbmlutils",
 ]
 autoapi_type = "python"
-autoapi_ignore = ["*odefac_template*"]  #["*template*", "*test*", "*examples*"]
+autoapi_ignore = ["*odefac_template*", "*test*"]
 
 
 # execution of notebooks
