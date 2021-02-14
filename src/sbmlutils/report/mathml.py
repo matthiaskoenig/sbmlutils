@@ -33,7 +33,7 @@ def formula_to_astnode(formula: str) -> libsbml.ASTNode:
     """
     astnode = libsbml.parseL3Formula(formula)
     if not astnode:
-        logging.error("Formula could not be parsed: '{}'".format(formula))
+        logging.error(f"Formula could not be parsed: '{formula}'")
         logging.error(libsbml.getLastParseL3Error())
     return astnode
 
@@ -73,6 +73,12 @@ def formula_to_expression(formula: str):
     :param formula: SBML formula string
     :return: sympy expression
     """
+    # round trip to remove unnecessary inline dimensions
+    ast_node = formula_to_astnode(formula)
+    settings = libsbml.L3ParserSettings()
+    settings.setParseUnits(False)
+
+    formula = libsbml.formulaToL3StringWithSettings(ast_node, settings=settings)
 
     # create sympy expressions with variables and formula
     formula = _replace_piecewise(formula)
@@ -230,6 +236,13 @@ def cmathml_to_latex(cmathml: str, **settings) -> str:
 
 
 if __name__ == "__main__":
+    formula = "1 dimensionless"
+    print(formula)
+    expr = formula_to_expression(formula)
+    print(expr)
+
+    exit()
+
     formula = "3**5 / x * glc"
 
     print("-" * 80)
