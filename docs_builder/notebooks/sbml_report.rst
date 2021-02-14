@@ -88,7 +88,7 @@ The created SBML report can be accessed from
     valid                    : FALSE
     validation error(s)      : 1
     validation warnings(s)   : 0
-    check time (s)           : 0.843
+    check time (s)           : 0.879
     --------------------------------------------------------------------------------
     [0m[0m
     ERROR:sbmlutils.validation:[47m[30mE0: General SBML conformance (core, L14, code)[0m[0m

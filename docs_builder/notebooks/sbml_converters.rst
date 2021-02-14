@@ -32,7 +32,7 @@ In this example a given xpp model is converted to SBML.
     --------------------------------------------------------------------------------
     ./xpp/SkM_AP_KCa.xml
     valid                    : TRUE
-    check time (s)           : 0.009
+    check time (s)           : 0.010
     --------------------------------------------------------------------------------
     [0m[0m
 

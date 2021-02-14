@@ -98,7 +98,7 @@ write the resulting SBML models with the interpolation functions.
     --------------------------------------------------------------------------------
     <SBMLDocument>
     valid                    : TRUE
-    check time (s)           : 0.006
+    check time (s)           : 0.005
     --------------------------------------------------------------------------------
     [0m[0m
 
