@@ -5,6 +5,7 @@ from sbmlutils.report import mathml
 
 
 formulas = [
+    "1 dimensionless",
     "power(3, 5) / x * glc",
     "GK_Vmax * GK_gc_free * (atp/(GK_k_atp + atp)) * f_gly * "
     "(power(glc,GK_n)/(power(glc,GK_n) + power(GK_k_glc, GK_n)))",
@@ -13,6 +14,7 @@ formulas = [
 
 cmathmls = [
     """
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
     <divide/>
     <apply>
@@ -22,6 +24,7 @@ cmathmls = [
     </apply>
     <ci>x</ci>
     </apply>
+    </math>
     """,
     """
     <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -143,3 +146,9 @@ def test_cmathml_to_latex(cmathml):
     latex = mathml.cmathml_to_latex(cmathml)
     assert latex
     assert isinstance(latex, str)
+
+
+def test_inline_unit_formula_to_expression():
+    formula = "1 dimensionless"
+    formula_new = mathml.formula_to_expression(formula)
+    assert formula_new == 1
