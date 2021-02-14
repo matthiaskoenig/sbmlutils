@@ -44,7 +44,7 @@ def cmathml_to_astnode(cmathml: str) -> libsbml.ASTNode:
     :param cmathml: SBML Content MathML string
     :return: libsbml.ASTNode
     """
-    return libsbml.readMathMLFromString(cmathml)  # type: libsbml.ASTNode
+    return libsbml.readMathMLFromString(cmathml)
 
 
 def astnode_to_expression(astnode: libsbml.ASTNode):
