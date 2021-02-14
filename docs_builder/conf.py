@@ -71,7 +71,7 @@ autoapi_dirs = [
      "../src/sbmlutils",
 ]
 autoapi_type = "python"
-autoapi_ignore = ["*test*"]
+autoapi_ignore = []
 
 
 # execution of notebooks
