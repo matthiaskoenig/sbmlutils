@@ -233,34 +233,3 @@ def cmathml_to_latex(cmathml: str, **settings) -> str:
     """
     astnode = cmathml_to_astnode(cmathml)
     return astnode_to_latex(astnode, **settings)
-
-
-if __name__ == "__main__":
-    formula = "1 dimensionless"
-    print(formula)
-    expr = formula_to_expression(formula)
-    print(expr)
-
-    exit()
-
-    formula = "3**5 / x * glc"
-
-    print("-" * 80)
-    print(formula_to_mathml(formula, printer="content"))
-    print("-" * 80)
-    print(formula_to_mathml(formula, printer="presentation"))
-
-    base_dir = Path(__file__).parent / "resources"
-    mathml_path = base_dir / "content_mathml.xml"
-    with open(mathml_path, "r") as f_mathml:
-        cmathml = f_mathml.read()
-        print(cmathml)
-        print("-" * 80)
-        pmathml = cmathml_to_pmathml(cmathml)
-        print(pmathml)
-        print("-" * 80)
-        print(cmathml_to_latex(cmathml))
-
-    formula = "GK_Vmax * GK_gc_free * (atp/(GK_k_atp + atp)) * f_gly * (power(glc,GK_n)/(power(glc,GK_n) + power(GK_k_glc, GK_n)))"
-    print("-" * 80)
-    print(formula_to_latex(formula))
