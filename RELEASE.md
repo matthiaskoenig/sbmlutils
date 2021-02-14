@@ -5,10 +5,8 @@
 * build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
 
 ## make release
-* sort imports (`isort src/sbmlutils`)
-* code formating (`black src/sbmlutils --exclude resource`)
-* make sure all tests run (`tox`)
 * update release notes in `release-notes` with commit
+* make sure all tests run (`tox -p`)
 * bump version (`bumpversion patch` or `bumpversion` minor)
 * `git push --tags` (triggers release)
 
