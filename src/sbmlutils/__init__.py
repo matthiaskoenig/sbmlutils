@@ -9,4 +9,4 @@ from sbmlutils.utils import show_versions
 
 
 program_name = "sbmlutils"
-RESOURCES_DIR = Path(__file__).parent / "resources"
+RESOURCES_DIR = Path(__file__).parent.parent / "resources"

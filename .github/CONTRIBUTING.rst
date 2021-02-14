@@ -98,8 +98,11 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
 
        tox
 
-   You can run all tests in parallel using detox. To get `detox`, just pip install
-   it into your virtualenv.
+   You can run all tests in parallel using
+
+   .. code-block:: console
+
+       tox -p
 
    To fix the isort and black tests use
    
