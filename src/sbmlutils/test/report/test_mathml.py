@@ -79,7 +79,7 @@ def test_cmathml_to_astnode(cmathml):
     astnode = mathml.cmathml_to_astnode(cmathml)
     assert astnode
     assert isinstance(astnode, libsbml.ASTNode)
-    return libsbml.readMathMLFromString(cmathml)  # type: libsbml.ASTNode
+    return libsbml.readMathMLFromString(cmathml)
 
 
 @pytest.mark.parametrize("formula", formulas)
