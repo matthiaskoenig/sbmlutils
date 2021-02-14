@@ -1,5 +1,5 @@
-"""
-Module for parsing equation strings.
+"""Module for parsing equation strings.
+
 Various string formats are allowed which are subsequently brought into
 an internal standard format.
 
@@ -42,12 +42,15 @@ IRREV_SEP = r"=>"
 
 
 class Equation:
-    """ Representation of stoichiometric equations with modifiers. """
+    """Representation of stoichiometric equations with modifiers."""
 
     class EquationException(Exception):
+        """Exception in Equation."""
+
         pass
 
     def __init__(self, equation):
+        """Initialize equation."""
         self.raw = equation
 
         self.reactants = []
@@ -112,8 +115,9 @@ class Equation:
         self.modifiers = [t for t in modifiers if len(t) > 0]
 
     def _parse_half_equation(self, string):
-        """Only '+ supported in equation !, do not use negative
-        stoichiometries.
+        """Parse half-equation.
+
+        Only '+ supported in equation !, do not use negative stoichiometries.
         """
         items = re.split("[+-]", string)
         items = [item.strip() for item in items]
@@ -121,7 +125,7 @@ class Equation:
 
     @staticmethod
     def _parse_reactant(item):
-        """ Returns tuple of stoichiometry, sid. """
+        """Return tuple of stoichiometry, sid."""
         tokens = item.split()
         if len(tokens) == 1:
             stoichiometry = 1.0
@@ -145,8 +149,8 @@ class Equation:
     def _to_string_modifiers(self):
         return "[{}]".format(", ".join(self.modifiers))
 
-    def to_string(self, modifiers=False):
-        """ String representation of equation. """
+    def to_string(self, modifiers: bool = False) -> str:
+        """Get string representation of equation."""
         left = self._to_string_side(self.reactants)
         right = self._to_string_side(self.products)
         if self.reversible:
@@ -161,7 +165,7 @@ class Equation:
             return " ".join([left, sep, right])
 
     def info(self):
-        """ Overview of parsed equation. """
+        """Print overview of parsed equation."""
         lines = [
             "{:<10s} : {}".format("raw", self.raw),
             "{:<10s} : {}".format("parsed", self.to_string()),
@@ -175,7 +179,7 @@ class Equation:
 
     @staticmethod
     def help():
-        """ Help information. """
+        """Help information."""
         return """
         For information on the supported equation format use
             from sbmlutils import equation

@@ -91,16 +91,18 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
        git add .
        git commit -m "fix: Your summary of changes"
 
-6. When you're done making changes, check that your changes pass our test suite (with
-   exception of flake8).
+6. When you're done making changes, check that your changes pass our test suite.
    This is all included with tox
 
    .. code-block:: console
 
        tox
 
-   You can run all tests in parallel using detox. To get detox, just pip install
-   it into your virtualenv.
+   You can run all tests in parallel using
+
+   .. code-block:: console
+
+       tox -p
 
    To fix the isort and black tests use
    

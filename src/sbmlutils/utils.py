@@ -3,6 +3,7 @@ import functools
 import hashlib
 import time
 import warnings
+from typing import Callable
 
 import libsbml
 from depinfo import print_dependencies
@@ -14,6 +15,8 @@ def show_versions() -> None:
 
 
 class bcolors:
+    """Colors for console formating."""
+
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKGREEN = "\033[92m"
@@ -29,7 +32,7 @@ class bcolors:
 
 
 def create_metaid(sbase: libsbml.SBase) -> str:
-    """Creates a globally unique meta id.
+    """Create a globally unique meta id.
 
     Meta ids are required to store annotations on elements.
     """
@@ -47,8 +50,8 @@ def _create_hash_id(sbase: libsbml.SBase) -> str:
     return hash_key
 
 
-def timeit(f):
-    """Timing decorator.
+def timeit(f: Callable) -> Callable:
+    """Decorate function with timing information.
 
     :param f: function to time
     :return:
@@ -66,20 +69,22 @@ def timeit(f):
     return timed
 
 
-def deprecated(func):
-    """This is a decorator which can be used to mark functions
+def deprecated(f: Callable) -> Callable:
+    """Decorate function as deprecated.
+
+    This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted
     when the function is used.
     """
 
-    @functools.wraps(func)
+    @functools.wraps(f)
     def new_func(*args, **kwargs):
         warnings.warn_explicit(
-            "Call to deprecated function {}.".format(func.__name__),
+            "Call to deprecated function {}.".format(f.__name__),
             category=DeprecationWarning,
-            filename=func.func_code.co_filename,
-            lineno=func.func_code.co_firstlineno + 1,
+            filename=f.func_code.co_filename,
+            lineno=f.func_code.co_firstlineno + 1,
         )
-        return func(*args, **kwargs)
+        return f(*args, **kwargs)
 
     return new_func

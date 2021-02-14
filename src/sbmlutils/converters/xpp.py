@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-xpp ode to SBML file converter.
+"""XPP ode to SBML file converter.
 
 XPP file format is described here
 http://www.math.pitt.edu/~bard/bardware/tut/newstyle.html
@@ -112,7 +110,8 @@ NOTES = """
 )
 
 
-def escape_string(info):
+def escape_string(info: str) -> str:
+    """Escape string."""
     info = info.replace("<", "&lt;")
     info = info.replace(">", "&gt;")
     info = info.replace("&", "&amp;")
@@ -120,7 +119,8 @@ def escape_string(info):
 
 
 def parse_keyword(xpp_id):
-    """Parses the keyword and returns the xpp keyword type.
+    """Parse the keyword and returns the xpp keyword type.
+
     :param xpp_id:
     :return:
     """
@@ -133,7 +133,8 @@ def parse_keyword(xpp_id):
 
 
 def parts_from_expression(expression):
-    """Returns the parts of given expression.
+    """Return the parts of given expression.
+
     The parts can be whitespace or comma separated.
 
     V1=-0.75  R1=0.26  CA1=0.1 H1=0.1
@@ -182,7 +183,7 @@ def xpp2sbml(
     validate: bool = True,
     debug: bool = False,
 ):
-    """Reads given xpp_file and converts to SBML file.
+    """Read given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
@@ -217,9 +218,9 @@ def xpp2sbml(
     events = []
 
     def replace_fdef():
-        """ Replace all arguments within the formula definitions."""
+        """Replace all arguments within the formula definitions."""
         changes = False
-        for k, fdata in enumerate(function_definitions):
+        for k, _fdata in enumerate(function_definitions):
             for i in range(len(function_definitions)):
                 if i != k:
                     # replace i with k
@@ -245,7 +246,7 @@ def xpp2sbml(
         return changes
 
     def create_initial_assignment(sid, value):
-        """ Helper for creating initial assignments """
+        """Create initial assignments helper."""
         # check if valid identifier
         if "(" in sid:
             warnings.warn(
@@ -401,7 +402,7 @@ def xpp2sbml(
         pprint(function_definitions)
 
     # Create function definitions
-    for k, fdata in enumerate(function_definitions):
+    for fdata in function_definitions:
         fid = fdata["fid"]
         formula = fdata["formula"]
         arguments = ",".join(fdata["old_args"] + fdata["new_args"])

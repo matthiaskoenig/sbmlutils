@@ -1,6 +1,4 @@
-"""
-Handles manipulation of the History of SBases.
-"""
+"""Handles manipulation of the History of SBases."""
 import datetime
 
 import libsbml
@@ -20,7 +18,7 @@ def date_now():
 
 
 def set_model_history(model: libsbml.Model, creators) -> None:
-    """Sets the model history from given creators.
+    """Set the model history from given creators.
 
     :param model: SBML model
     :param creators: list of creators
@@ -39,7 +37,7 @@ def set_model_history(model: libsbml.Model, creators) -> None:
 
 
 def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHistory:
-    """Creates the model history.
+    """Create the model history.
 
     Sets the create and modified date to the current time.
     Creators are a list or dictionary with values as

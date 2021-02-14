@@ -1,22 +1,18 @@
-"""
-Helper functions for evaluation of mathml expressions.
+"""Helper functions for evaluation of mathml expressions.
+
 In this namespace all the possible names occuring in formula strings have to be defined.
 
 In build in python are
     *, /, +, -
     and, or, not
-
 """
 from math import *
 
-
-try:
-    import tesbml as libsbml
-except ImportError:
-    import libsbml
+import libsbml
 
 
 def product(*args):
+    """Product calculation."""
     res = 1.0
     for arg in args:
         res *= arg
@@ -24,14 +20,17 @@ def product(*args):
 
 
 def sqr(x):
+    """Square calculation."""
     return x * x
 
 
 def root(a, b):
+    """Root calculation."""
     return a ** (1 / b)
 
 
 def xor(*args):
+    """XOR calculation."""
     foundZero = 0
     foundOne = 0
     for a in args:
@@ -46,6 +45,7 @@ def xor(*args):
 
 
 def piecewise(*args):
+    """Piecewise calculation."""
     Nargs = len(args)
     for k in range(0, Nargs - 1, 2):
         if args[k + 1]:
@@ -116,8 +116,10 @@ def f_or(*args):
 """
 
 
-def evaluableMathML(astnode, variables={}, array=False):
-    """ Create evaluable python string. """
+def evaluableMathML(astnode, variables=None, array=False):
+    """Create evaluable python string."""
+    if variables is None:
+        variables = {}
     # replace variables with provided values
     for key, value in variables.items():
         astnode.replaceArgument(key, libsbml.parseFormula(str(value)))
@@ -138,7 +140,7 @@ def evaluableMathML(astnode, variables={}, array=False):
     return formula
 
 
-def evaluateMathML(astnode, variables={}, array=False):
+def evaluateMathML(astnode, variables=None, array=False):
     """Evaluate MathML string with given set of variable and parameter values.
 
     :param astnode: astnode of MathML string
@@ -150,6 +152,8 @@ def evaluateMathML(astnode, variables={}, array=False):
     :return: value of evaluated MathML
     :rtype: float
     """
+    if variables is None:
+        variables = {}
     formula = evaluableMathML(astnode, variables=variables, array=array)
     print(formula)
     # return the evaluated formula

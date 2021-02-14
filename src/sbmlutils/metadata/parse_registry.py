@@ -1,12 +1,19 @@
-"""
-Create latest MIRIAM JSON.
+"""Create latest MIRIAM JSON.
 
 https://www.ebi.ac.uk/miriam/main/export/xml/
 """
+import json
+
+import xmlschema
+
+from sbmlutils import RESOURCES_DIR
+
+
+MIRIAM_JSON = RESOURCES_DIR / "IdentifiersOrg-Registry.json"
 
 
 def create_miriam_json():
-    """Parses the latest miriam information.
+    """Parse the latest miriam information.
 
     :return:
     """
@@ -15,13 +22,9 @@ def create_miriam_json():
 
     # xmlschema.validators.exceptions.XMLSchemaValidationError: failed validating 'http://www.fungalbarcoding.org/BioloMICS.aspx?Table=Fungal barcodes&Rec=$id&Fields=All&ExactMatch=T' with XsdPatternFacets(['\\S*$id\\S*']):
     # > http://www.fungalbarcoding.org/BioloMICS.aspx?$id
-    import json
-    from pprint import pprint
 
-    import xmlschema
-
-    xs = xmlschema.XMLSchema("./resources/MiriamXML.xsd")
-    d = xs.to_dict("./resources/IdentifiersOrg-Registry.xml")
+    xs = xmlschema.XMLSchema(str(RESOURCES_DIR / "MiriamXML.xsd"))
+    d = xs.to_dict(str(RESOURCES_DIR / "IdentifiersOrg-Registry.xml"))
     # pprint(d['datatype'][1])
 
     datatypes = {}
@@ -35,15 +38,13 @@ def create_miriam_json():
         }
 
     # pprint(datatypes)
-    with open("./resources/IdentifiersOrg-Registry.json", "w") as fp:
+    with open(MIRIAM_JSON, "w") as fp:
         json.dump(datatypes, fp)
 
 
 if __name__ == "__main__":
     create_miriam_json()
 
-    import json
-
-    with open("./resources/IdentifiersOrg-Registry.json", "r") as fp:
+    with open(MIRIAM_JSON, "r") as fp:
         d = json.load(fp)
     print(d)

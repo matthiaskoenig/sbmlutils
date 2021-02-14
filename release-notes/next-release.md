@@ -8,4 +8,4 @@
 
 ## Deprecated features
 
-## Backwards incompatible changes
+## Backwards incompatible changes 

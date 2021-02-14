@@ -1,6 +1,4 @@
-"""
-Helpers for model flattening.
-"""
+"""Helpers for model flattening."""
 import logging
 import os
 import time
@@ -112,7 +110,7 @@ def flatten_sbml_doc(
 def flatten_external_model_definitions(
     doc: libsbml.SBMLDocument, validate: bool = False
 ) -> libsbml.SBMLDocument:
-    """Converts all ExternalModelDefinitions to ModelDefinitions.
+    """Convert all ExternalModelDefinitions to ModelDefinitions.
 
     I.e. the definition of models in external files are read
     and directly included in the top model. The resulting

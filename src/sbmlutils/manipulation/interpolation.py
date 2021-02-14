@@ -1,11 +1,7 @@
-# -*- coding=utf-8 -*-
-"""
-Create SBML/antimony files for interpolation of datasets.
-
+"""Create SBML/antimony files for interpolation of datasets.
 
 https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
-
 """
 import logging
 from pathlib import Path
@@ -57,7 +53,7 @@ INTERPOLATION_CUBIC_SPLINE = "cubic spline"
 
 
 class Interpolator:
-    """Interpolator class handles the interpolation of given data series
+    """Interpolator class handles the interpolation of given data series.
 
     Two data series and the type of interpolation are provided.
     """
@@ -68,7 +64,8 @@ class Interpolator:
         self.z = z
         self.method = method
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Convert to string."""
         s = (
             "--------------------------\n"
             "Interpolator<{}>\n"
@@ -81,18 +78,21 @@ class Interpolator:
 
     @property
     def xid(self):
+        """X id."""
         return self.x.name
 
     @property
     def yid(self):
+        """Y id."""
         return self.y.name
 
     @property
     def zid(self):
+        """Z id."""
         return self.z.name
 
     def formula(self):
-        """"""
+        """Get formula."""
         if self.method is INTERPOLATION_CONSTANT:
             return Interpolator.formula_constant(self.x, self.y)
         elif self.method is INTERPOLATION_LINEAR:
@@ -102,7 +102,7 @@ class Interpolator:
 
     @staticmethod
     def formula_cubic_spline(x, y):
-        """Formula for the cubic spline.
+        """Get formula for the cubic spline.
 
         This is more complicated and requires the coefficients
         from the spline interpolation.
@@ -207,7 +207,8 @@ class Interpolator:
 
     @staticmethod
     def formula_constant(col1, col2):
-        """Constant value between data points
+        """Define constant value between data points.
+
         piecewise x1, y1, [x2, y2, ][...][z]
         A piecewise function: if (y1), x1.Otherwise, if (y2), x2, etc.Otherwise, z.
         :return:
@@ -235,7 +236,7 @@ class Interpolator:
 
 
 class Interpolation:
-    """Creates SBML which interpolates the given data.
+    """Create SBML which interpolates the given data.
 
     The second to last components are interpolated against the first component.
     """
@@ -250,7 +251,7 @@ class Interpolation:
         self.validate_data()
 
     def validate_data(self):
-        """Validates the input data
+        """Validate the input data.
 
         * The data is expected to have at least 2 columns.
         * The data is expected to have at least three data rows.
@@ -279,23 +280,13 @@ class Interpolation:
 
     @staticmethod
     def from_csv(csv_file, method="linear", sep=","):
-        """Interpolation object from csv file.
-
-        :param csv_file:
-        :type csv_file:
-        :param method:
-        :type method:
-        :param sep:
-        :type sep:
-        :return:
-        :rtype:
-        """
+        """Interpolation object from csv file."""
         data = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
 
     @staticmethod
     def from_tsv(tsv_file, method="linear"):
-        """ Interpolation object from tsv file. """
+        """Interpolate object from tsv file."""
         return Interpolation.from_csv(csv_file=tsv_file, method=method, sep="\t")
 
     # --- SBML & Interpolation --------------------
@@ -318,11 +309,7 @@ class Interpolation:
         return write_sbml(self.doc, filepath=None)
 
     def _create_sbml(self):
-        """Create the SBMLDocument.
-
-        :return:
-        :rtype:
-        """
+        """Create the SBMLDocument."""
         self._init_sbml_model()
         self.interpolators = Interpolation.create_interpolators(self.data, self.method)
         for interpolator in self.interpolators:
@@ -332,10 +319,9 @@ class Interpolation:
         validate_doc(self.doc, units_consistency=False)
 
     def _init_sbml_model(self):
-        """Initializes the SBML model.
+        """Initialize the SBML model.
 
         :return:
-        :rtype:
         """
         sbmlns = libsbml.SBMLNamespaces(3, 1)
         sbmlns.addPackageNamespace("comp", 1)
@@ -351,7 +337,7 @@ class Interpolation:
 
     @staticmethod
     def create_interpolators(data, method):
-        """Creates all interpolators for the given data set.
+        """Create all interpolators for the given data set.
 
         The columns 1, ... (Ncol-1) are interpolated against
         column 0.
@@ -366,7 +352,9 @@ class Interpolation:
 
     @staticmethod
     def add_interpolator_to_model(interpolator, model: libsbml.Model) -> None:
-        """The parameters, formulas and rules have to be added to the SBML model.
+        """Add interpolator to model.
+
+        The parameters, formulas and rules have to be added to the SBML model.
 
         :param interpolator:
         :param model: Model

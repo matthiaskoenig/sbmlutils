@@ -1,5 +1,5 @@
-"""
-Utilities for the creation and work with comp models.
+"""Utilities for the creation and work with comp models.
+
 Simplifies the port linking, submodel generation, ...
 
 Heavily used in the dynamic FBA simulator. Mainly in the model creation
@@ -8,6 +8,7 @@ of the dynamic FBA models.
 """
 
 import logging
+from typing import List
 
 import libsbml
 
@@ -38,7 +39,7 @@ def add_submodel_from_emd(
     submodel_id,
     emd: libsbml.ExternalModelDefinition,
 ):
-    """Adds submodel to the model from given ExternalModelDefinition.
+    """Add submodel to the model from given ExternalModelDefinition.
 
     :param model_comp: Model comp plugin
     :param submodel_id:
@@ -58,8 +59,8 @@ def add_submodel_from_emd(
 
 
 def get_submodel_frameworks(doc):
-    """
-    Reads the SBO terms of the submodels.
+    """Read the SBO terms of the submodels.
+
     These are used to distinguish the different frameworks of the submodels.
     :param doc:
     :return:
@@ -83,14 +84,13 @@ def get_submodel_frameworks(doc):
     return frameworks
 
 
-##########################################################################
-# ExternalModelDefinitions
-##########################################################################
 class ExternalModelDefinition(factory.Sbase):
+    """ExternalModelDefinition."""
+
     def __init__(
         self, sid, source, modelRef, md5=None, name=None, sboTerm=None, metaId=None
     ):
-        """Create an ExternalModelDefinitions."""
+        """Create an ExternalModelDefinition."""
         super(ExternalModelDefinition, self).__init__(
             sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
         )
@@ -98,16 +98,16 @@ class ExternalModelDefinition(factory.Sbase):
         self.modelRef = modelRef
         self.md5 = md5
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.ExternalModelDefinition:
+        """Create ExternalModelDefinition."""
         doc = model.getSBMLDocument()
         cdoc = doc.getPlugin("comp")
         extdef = cdoc.createExternalModelDefinition()
         self.set_fields(extdef)
         return extdef
 
-        return p
-
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.ExternalModelDefinition) -> None:
+        """Set fields on ExternalModelDefinition."""
         super(ExternalModelDefinition, self).set_fields(obj)
         obj.setModelRef(self.modelRef)
         obj.setSource(self.source)
@@ -115,10 +115,9 @@ class ExternalModelDefinition(factory.Sbase):
             obj.setMd5(self.md5)
 
 
-##########################################################################
-# Submodel
-##########################################################################
 class Submodel(factory.Sbase):
+    """Submodel."""
+
     def __init__(
         self,
         sid,
@@ -129,7 +128,7 @@ class Submodel(factory.Sbase):
         sboTerm=None,
         metaId=None,
     ):
-        """Create an ExternalModelDefinitions."""
+        """Create a Submodel."""
         super(Submodel, self).__init__(
             sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
         )
@@ -137,7 +136,8 @@ class Submodel(factory.Sbase):
         self.timeConversionFactor = timeConversionFactor
         self.extentConversionFactor = extentConversionFactor
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Submodel:
+        """Create SBML Submodel."""
         cmodel = model.getPlugin("comp")
         submodel = cmodel.createSubmodel()
         self.set_fields(submodel)
@@ -150,14 +150,14 @@ class Submodel(factory.Sbase):
 
         return submodel
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Submodel):
+        """Set fields on Submodel."""
         super(Submodel, self).set_fields(obj)
 
 
-##########################################################################
-# SBaseRef
-##########################################################################
 class SbaseRef(factory.Sbase):
+    """SBaseRef."""
+
     def __init__(
         self,
         sid,
@@ -178,7 +178,8 @@ class SbaseRef(factory.Sbase):
         self.unitRef = unitRef
         self.metaIdRef = metaIdRef
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.SBaseRef) -> None:
+        """Set fields on SBaseRef."""
         super(SbaseRef, self).set_fields(obj)
 
         obj.setId(self.sid)
@@ -193,10 +194,9 @@ class SbaseRef(factory.Sbase):
             obj.setMetaIdRef(self.metaIdRef)
 
 
-##########################################################################
-# ReplacedElements
-##########################################################################
 class ReplacedElement(SbaseRef):
+    """ReplacedElement."""
+
     def __init__(
         self,
         sid,
@@ -212,22 +212,7 @@ class ReplacedElement(SbaseRef):
         sboTerm=None,
         metaId=None,
     ):
-        """
-
-        :param sid:
-        :param elementRef: sid of the element on which the ReplacedElement is generated.
-        :param submodelRef:
-        :param deletion:
-        :param conversionFactor:
-        :param portRef:
-        :param idRef:
-        :param unitRef:
-        :param metaIdRef:
-        :param name:
-        :param sboTerm:
-        :param metaId:
-        """
-        """ Create a ReplacedElement. """
+        """Create a ReplacedElement."""
         super(ReplacedElement, self).__init__(
             sid=sid,
             portRef=portRef,
@@ -243,8 +228,8 @@ class ReplacedElement(SbaseRef):
         self.deletion = deletion
         self.conversionFactor = conversionFactor
 
-    def create_sbml(self, model):
-
+    def create_sbml(self, model: libsbml.Model) -> libsbml.ReplacedElement:
+        """Create SBML ReplacedElement."""
         # resolve port element
         e = model.getElementBySId(self.elementRef)
         if not e:
@@ -252,9 +237,8 @@ class ReplacedElement(SbaseRef):
             e = model.getUnitDefinition(self.elementRef)
             if not e:
                 raise ValueError(
-                    "Neither SBML element nor UnitDefinition found for elementRef: '{}' in '{}'".format(
-                        self.elementRef, self
-                    )
+                    f"Neither SBML element nor UnitDefinition found for elementRef: "
+                    f"'{self.elementRef}' in '{self}'"
                 )
 
         eplugin = e.getPlugin("comp")
@@ -263,7 +247,8 @@ class ReplacedElement(SbaseRef):
 
         return obj
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.ReplacedElement) -> None:
+        """Set fields on ReplacedElement."""
         super(ReplacedElement, self).set_fields(obj)
         obj.setSubmodelRef(self.submodelRef)
         if self.deletion:
@@ -272,10 +257,9 @@ class ReplacedElement(SbaseRef):
             obj.setConversionFactor(self.conversionFactor)
 
 
-##########################################################################
-# Deletions
-##########################################################################
 class Deletion(SbaseRef):
+    """Deletion."""
+
     def __init__(
         self,
         sid,
@@ -288,7 +272,7 @@ class Deletion(SbaseRef):
         sboTerm=None,
         metaId=None,
     ):
-        """ Create a Deletion. """
+        """Initialize Deletion."""
         super(Deletion, self).__init__(
             sid=sid,
             portRef=portRef,
@@ -301,8 +285,8 @@ class Deletion(SbaseRef):
         )
         self.submodelRef = submodelRef
 
-    def create_sbml(self, model):
-
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Deletion:
+        """Create SBML Deletion."""
         # Deletions for submodels
         cmodel = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
         submodel = cmodel.getSubmodel(self.submodelRef)  # type: libsbml.Submodel
@@ -311,7 +295,8 @@ class Deletion(SbaseRef):
 
         return deletion
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Deletion):
+        """Set fields on Deletion."""
         super(Deletion, self).set_fields(obj)
 
 
@@ -328,6 +313,8 @@ PORT_TYPE_OUTPUT = "output port"
 
 
 class Port(SbaseRef):
+    """Port."""
+
     def __init__(
         self,
         sid,
@@ -340,7 +327,7 @@ class Port(SbaseRef):
         sboTerm=None,
         metaId=None,
     ):
-        """Create a port."""
+        """Create a Port."""
         super(Port, self).__init__(
             sid=sid,
             portRef=portRef,
@@ -353,7 +340,8 @@ class Port(SbaseRef):
         )
         self.portType = portType
 
-    def create_sbml(self, model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Port:
+        """Create SBML for Port."""
         cmodel = model.getPlugin("comp")
         p = cmodel.createPort()
         self.set_fields(p)
@@ -372,29 +360,30 @@ class Port(SbaseRef):
 
         return p
 
-    def set_fields(self, obj):
+    def set_fields(self, obj: libsbml.Port) -> None:
+        """Set fields on Port."""
         super(Port, self).set_fields(obj)
 
 
 def create_ports(
-    model,
+    model: libsbml.Model,
     portRefs=None,
     idRefs=None,
     unitRefs=None,
     metaIdRefs=None,
-    portType=PORT_TYPE_PORT,
-    suffix="_port",
-):
-    """Create ports given model.
-    Helper function to create port creation.
+    portType: str = PORT_TYPE_PORT,
+    suffix: str = "_port",
+) -> List[Port]:
+    """Create ports for given model.
 
+    Helper function to create port creation.
     :param model: SBML model
     :param portRefs: dict of the form {pid:portRef}
     :param idRefs: dict of the form {pid:idRef}
     :param unitRefs: dict of the form {pid:unitRef}
-    :param metaIdRes: dict of the form {pid:metaIdRef}
+    :param metaIdRefs: dict of the form {pid:metaIdRef}
+
     :return:
-    :rtype: ports
     """
     ports = []
     if portRefs is not None:
@@ -541,7 +530,8 @@ def _create_replaced_element(model, sid, submodel, replaced_id, ref_type):
 
 
 def replaced_by(model, sid, ref_type, submodel, replaced_by):
-    """
+    """replaced_by.
+
     The element with sid in the model is replaced by the
     replacing_id in the submodel with submodel_id.
 
@@ -568,7 +558,7 @@ def comp_delete(model):
 
 
 def _get_eplugin_by_sid(model, sid):
-    """Gets the comp plugin by sid.
+    """Get the comp plugin by sid.
 
     :param model: SBMLModel instance
     :param sid: SBase id of object
@@ -582,8 +572,8 @@ def _get_eplugin_by_sid(model, sid):
 
 
 def _set_ref(object, ref_id, ref_type):
-    """
-    Sets the reference for given reference type in the object.
+    """Set reference for given reference type in the object.
+
     Objects can be
         ReplacedBy
         ReplacedElement

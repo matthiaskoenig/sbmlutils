@@ -47,7 +47,7 @@ The created SBML report can be accessed from
     --------------------------------------------------------------------------------
     /home/mkoenig/git/sbmlutils/docs_builder/notebooks/models/BIOMD0000000012.xml
     valid                    : TRUE
-    check time (s)           : 0.010
+    check time (s)           : 0.009
     --------------------------------------------------------------------------------
     [0m[0m
 
@@ -88,7 +88,7 @@ The created SBML report can be accessed from
     valid                    : FALSE
     validation error(s)      : 1
     validation warnings(s)   : 0
-    check time (s)           : 0.939
+    check time (s)           : 0.879
     --------------------------------------------------------------------------------
     [0m[0m
     ERROR:sbmlutils.validation:[47m[30mE0: General SBML conformance (core, L14, code)[0m[0m

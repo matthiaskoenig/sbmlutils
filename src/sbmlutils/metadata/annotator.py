@@ -1,5 +1,4 @@
-"""
-Annotation of SBML models.
+"""Annotation of SBML models.
 
 Handle the XML annotations and notes in SBML.
 Annotate models from information in annotation csv files.
@@ -24,7 +23,13 @@ import pandas as pd
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
-from .miriam import *
+from .miriam import (
+    BQB,
+    BQM,
+    IDENTIFIERS_ORG_PATTERN,
+    IDENTIFIERS_ORG_PREFIX,
+    MIRIAM_COLLECTION,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -82,13 +87,12 @@ class Annotation:
         - `http(s)://identifiers.org/collection/term`, i.e., a identifiers.org URI
         - `collection/term`, i.e., the combination of collection and term
         - `http(s)://arbitrary.url`, an arbitrary URL
+
+    TODO: load the xrefs, synonyms and definitions from OLS
     """
 
-    # TODO: load the xrefs, synonyms and definitions from OLS, i.e., not
-    # only checking of the annotations, but getting the full information
-    # from the OLS
     def __init__(self, qualifier, resource):
-        """
+        """Initialize annotation.
 
         :param qualifier: BQM or BQB term
         :param resource:
@@ -146,33 +150,30 @@ class Annotation:
 
     @staticmethod
     def from_tuple(t):
-        """Constructor from tuple."""
+        """Construct from tuple."""
         qualifier, resource = t[0], t[1]
         return Annotation(qualifier=qualifier, resource=resource)
 
     @property
     def resource(self):
-        """Resource for annotations.
-        :return:
-        """
+        """Resource for annotations."""
         if self.collection:
             return "{}/{}/{}".format(IDENTIFIERS_ORG_PREFIX, self.collection, self.term)
         else:
             return self.term
 
-    def to_dict(self):
-        return OrderedDict(
-            [
-                ("qualifier", self.qualifier.value),
-                ("collection", self.collection),
-                ("term", self.term),
-                ("resource", self.resource),
-            ]
-        )
+    def to_dict(self) -> Dict:
+        """Convert to dictionary."""
+        return {
+            "qualifier": self.qualifier.value,
+            "collection": self.collection,
+            "term": self.term,
+            "resource": self.resource,
+        }
 
     @staticmethod
     def check_term(collection, term):
-        """Checks that a given term follows id pattern for existing collection.
+        """Check that a given term follows id pattern for existing collection.
 
         :param collection:
         :param term:
@@ -199,7 +200,7 @@ class Annotation:
 
     @staticmethod
     def check_qualifier(qualifier):
-        """Checks that the qualifier is an allowed qualifier.
+        """Check that the qualifier is an allowed qualifier.
 
         :param qualifier:
         :return:
@@ -213,6 +214,7 @@ class Annotation:
             )
 
     def validate(self):
+        """Validate annotation."""
         self.check_qualifier(self.qualifier)
         if self.collection:
             self.check_term(collection=self.collection, term=self.term)
@@ -254,6 +256,7 @@ class ExternalAnnotation:
     _annotation_types = frozenset(["rdf", "formula", "charge"])
 
     def __init__(self, d):
+        """Initialize ExternalAnnotation."""
         self.d = d
         for key in self._keys:
             # optional fields
@@ -292,7 +295,7 @@ class ExternalAnnotation:
         return bq
 
     def check(self):
-        """ Checks for valid choices """
+        """Check for valid choices."""
         if self.sbml_type not in self._sbml_types:
             raise ValueError(
                 f"Invalid sbml_type '{self.sbml_type}'. "
@@ -306,17 +309,18 @@ class ExternalAnnotation:
                 f"{self.d}"
             )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Convert to string."""
         return str(self.d)
 
 
 class ModelAnnotator:
-    """ Helper class for annotating SBML models. """
+    """Helper class for annotating SBML models."""
 
     def __init__(
         self, doc: libsbml.SBMLDocument, annotations: Iterable[ExternalAnnotation]
     ):
-        """Constructor.
+        """Initialize ModelAnnotator.
 
         :param doc: SBMLDocument
         :param annotations: iterable of ModelAnnotation
@@ -329,9 +333,7 @@ class ModelAnnotator:
         self.id_dict = self._get_ids_from_model()
 
     def annotate_model(self):
-        """
-        Annotates the model with the given annotations.
-        """
+        """Annotate the model with the given annotations."""
         # writes all annotations
         for a in self.annotations:
             pattern = a.pattern
@@ -472,7 +474,7 @@ class ModelAnnotator:
 
     @staticmethod
     def get_SBMLQualifier(qualifier_str):
-        """ Lookup of SBMLQualifier for given qualifier string. """
+        """Lookup of SBMLQualifier for given qualifier string."""
 
         # FIXME: better lookup with MIRIAM
         if qualifier_str not in libsbml.__dict__:
@@ -481,7 +483,7 @@ class ModelAnnotator:
 
     @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation):
-        """Annotate SBase based on given annotation data
+        """Annotate SBase based on given annotation data.
 
         :param sbase: libsbml.SBase
         :param annotation: Annotation
@@ -519,7 +521,7 @@ class ModelAnnotator:
 
     @staticmethod
     def read_annotations_df(file_path: Path, file_format: str = "*"):
-        """Reads annotations from given file into DataFrame.
+        """Read annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
 
@@ -562,7 +564,7 @@ class ModelAnnotator:
     def read_annotations(
         file_path: [Path, Dict], file_format: str = "*"
     ) -> List[ExternalAnnotation]:
-        """Reads annotations from given file into DataFrame.
+        """Read annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
 

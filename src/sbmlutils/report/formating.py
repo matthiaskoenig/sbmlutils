@@ -1,15 +1,13 @@
-"""
-Helper functions for formating SBML elements.
-"""
+"""Helper functions for formating SBML elements."""
 import libsbml
 
 from sbmlutils.metadata import miriam
 
 
-def annotation_to_html(item):
-    """Renders HTML representation of given annotation.
+def annotation_to_html(item: libsbml.SBase) -> str:
+    """Render HTML representation of given annotation.
 
-    :param item: SBO item
+    :param item: SBase instance
     """
     lines = []
     for kcv in range(item.getNumCVTerms()):
@@ -36,69 +34,108 @@ def annotation_to_html(item):
 
 
 def notes_to_string(sbase: libsbml.SBase) -> str:
-    """Notes to string."""
+    """Render notes to string.
+
+    :param sbase: SBase instance
+    :return string rendering of the notes in the SBase instance
+    """
     return sbase.getNotesString()
 
 
 def formula_to_mathml(string: str) -> str:
-    """Parses formula string. """
+    """Parse formula string.
+
+    :param string: formula string
+    :return string rendering of parsed formula in the formula string
+    """
     astnode = libsbml.parseL3Formula(str(string))
     mathml = libsbml.writeMathMLToString(astnode)
     return mathml
 
 
-def astnode_to_string(astnode) -> str:
-    """Convert to string representation."""
+def astnode_to_string(astnode: libsbml.ASTNode) -> str:
+    """Convert to string representation.
+
+    :param astnode: ASTNode instance
+    :return string rendering of formula in the ASTnode instance
+    """
     return libsbml.formulaToString(astnode)
 
 
 def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
-    """Convert to MathML string representation."""
+    """Convert to MathML string representation.
+
+    :param astnode: ASTNode instance
+    :return string rendering of MathML content for the ASTNode instance
+    """
     return libsbml.writeMathMLToString(astnode)
 
 
-# ------------------------------
+# ---------
 # Equations
-# ------------------------------
+# ---------
 def equationStringFromReaction(
-    reaction, sep_reversible="&#8646;", sep_irreversible="&#10142;"
-):
+    reaction: libsbml.Reaction,
+    sep_reversible: str = "&#8646;",
+    sep_irreversible: str = "&#10142;",
+    modifiers: bool = False,
+) -> str:
+    """Create equation for reaction.
+
+    :param reaction: SBML reaction instance for which equation is to be generated
+    :param sep_reversible: escape sequence for reversible equation (<=>) separator
+    :param sep_irreversible: escape sequence for irreversible equation (=>) separator
+    :param modifiers: boolean flag to use modifiers
+    :return equation string generated for the reaction
+    """
+
     left = _halfEquation(reaction.getListOfReactants())
     right = _halfEquation(reaction.getListOfProducts())
     if reaction.getReversible():
-        # sep = '<=>'
+        # '<=>'
         sep = sep_reversible
     else:
-        # sep = '=>'
+        # '=>'
         sep = sep_irreversible
-    # mods = modifierEquation(reaction.getListOfModifiers())
-    # if mods == None:
-    #     return " ".join([left, sep, right])
-    # else:
-    #     return " ".join([left, sep, right, mods])
+    if modifiers:
+        mods = _modifierEquation(reaction.getListOfModifiers())
+        if mods is None:
+            return " ".join([left, sep, right])
+        else:
+            return " ".join([left, sep, right, mods])
     return " ".join([left, sep, right])
 
 
-def _modifierEquation(modifierList):
+def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
+    """Render string representation for list of modifiers.
+
+    :param modifierList: list of modifiers
+    :return: string representation for list of modifiers
+    """
     if len(modifierList) == 0:
         return None
     mids = [m.getSpecies() for m in modifierList]
     return "[" + ", ".join(mids) + "]"
 
 
-def _halfEquation(speciesList):
+def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
+    """Create equation string of the half reaction of the species in the species list.
+
+    :param speciesList: list of species in the half reaction
+    :return: half equation string
+    """
     items = []
     for sr in speciesList:
         stoichiometry = sr.getStoichiometry()
         species = sr.getSpecies()
         if abs(stoichiometry - 1.0) < 1e-8:
-            sd = "{}".format(species)
+            sd = f"{species}"
         elif abs(stoichiometry + 1.0) < 1e-8:
-            sd = "-{}".format(species)
+            sd = f"-{species}"
         elif stoichiometry >= 0:
-            sd = "{} {}".format(stoichiometry, species)
+            sd = f"{stoichiometry} {species}"
         elif stoichiometry < 0:
-            sd = "-{} {}".format(stoichiometry, species)
+            sd = f"-{stoichiometry} {species}"
         items.append(sd)
     return " + ".join(items)
 
@@ -106,7 +143,13 @@ def _halfEquation(speciesList):
 # ------------------------------
 # FBC
 # ------------------------------
-def boundsStringFromReaction(reaction, model):
+def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> str:
+    """Render string of bounds from the reaction.
+
+    :param reaction: SBML reaction instance
+    :param model: SBML model instance
+    :return: String of bounds extracted from the reaction
+    """
     bounds = ""
     rfbc = reaction.getPlugin("fbc")
     if rfbc is not None:
@@ -124,17 +167,20 @@ def boundsStringFromReaction(reaction, model):
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
         if (lb_value is not None) or (ub_value is not None):
-            bounds = '<code>[{} <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i> {}]</code>'.format(
-                lb_value, ub_value
-            )
+            bounds = f"""
+                    <code>[{lb_value}
+                    <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i>
+                    {ub_value}]
+                    </code>
+                    """
     return bounds
 
 
-def geneProductAssociationStringFromReaction(reaction):
-    """String representation of the GeneProductAssociation for given reaction.
+def geneProductAssociationStringFromReaction(reaction: libsbml.Reaction) -> str:
+    """Render string representation of the GeneProductAssociation for given reaction.
 
-    :param reaction:
-    :return:
+    :param reaction: SBML reaction instance
+    :return: string representation of GeneProductAssociation
     """
     info = ""
     rfbc = reaction.getPlugin("fbc")
@@ -146,11 +192,15 @@ def geneProductAssociationStringFromReaction(reaction):
     return info
 
 
-# ------------------------------
+# ------------
 # ModelHistory
-# ------------------------------
-def modelHistoryToString(mhistory):
-    """ Renders HTML representation of the model history. """
+# ------------
+def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
+    """Render HTML representation of the model history.
+
+    :param mhistory: SBML ModelHistory instance
+    :return HTML representation of the model history
+    """
     if not mhistory:
         return ""
     items = []
@@ -166,9 +216,7 @@ def modelHistoryToString(mhistory):
             cdata.append(c.getOrganisation())
         if c.isSetEmail():
             cdata.append(
-                '<a href="mailto:{}" target="_blank">{}</a>'.format(
-                    c.getEmail(), c.getEmail()
-                )
+                f'<a href="mailto:{c.getEmail()}" target="_blank">{c.getEmail()}</a>'
             )
         items.append(", ".join(cdata))
     if mhistory.isSetCreatedDate():
@@ -179,34 +227,48 @@ def modelHistoryToString(mhistory):
     return "<br />".join(items)
 
 
-def dateToString(d):
-    """ Creates string representation of date. """
-    return "{}-{:0>2d}-{:0>2d} {:0>2d}:{:0>2d}".format(
-        d.getYear(), d.getMonth(), d.getDay(), d.getHour(), d.getMinute()
+def dateToString(d: libsbml.Date) -> str:
+    """Create string representation of date.
+
+    :param d: SBML Date instance
+    return string representation of date
+    """
+    return (
+        f"{d.getYear()}-{str(d.getMonth()).zfill(2)}-{str(d.getDay()).zfill(2)} "
+        f"{str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
     )
 
 
-def _isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
-    """ Calculate the two floats are identical. """
+def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -> bool:
+    """Calculate the two floats are identical.
+
+    :param a: float value
+    :param b: float value
+    :param rel_tol: relative tolerance value
+    :param abs_tol: absolute tolerance value
+    """
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
-def ruleVariableToString(rule):
-    """ Formating of variable for rule. """
+def ruleVariableToString(rule: libsbml.Rule) -> str:
+    """Format variable for rule.
+
+    :param rule: SBML rule instance
+    :return formatted string representation of the rule
+    """
     if isinstance(rule, libsbml.AlgebraicRule):
         return "0"
     elif isinstance(rule, libsbml.AssignmentRule):
         return rule.variable
     elif isinstance(rule, libsbml.RateRule):
-        return "d {}/dt".format(rule.variable)
+        return f"d {rule.variable}/dt"
     else:
         raise TypeError(rule)
 
 
-# ------------------------------
+# ---------------
 # UnitDefinitions
-# ------------------------------
-
+# ---------------
 UNIT_ABBREVIATIONS = {
     "kilogram": "kg",
     "meter": "m",
@@ -218,12 +280,14 @@ UNIT_ABBREVIATIONS = {
 }
 
 
-def unitDefinitionToString(udef):
-    """Formating of units.
+def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
+    """Render formatted string for units.
+
     Units have the general format
         (multiplier * 10^scale *ukind)^exponent
         (m * 10^s *k)^e
 
+    :param udef: unit definition which is to be converted to string
     """
     if udef is None:
         return "None"
@@ -255,12 +319,12 @@ def unitDefinitionToString(udef):
             e_str = "^" + str(abs(e))
 
         if _isclose(s, 0.0):
-            string = "{}{}{}".format(m_str, k_str, e_str)
+            string = f"{m_str}{k_str}{e_str}"
         else:
             if e_str == "":
-                string = "({}10^{})*{}".format(m_str, s, k_str)
+                string = f"({m_str}10^{s})*{k_str}"
             else:
-                string = "(({}10^{})*{}){}".format(m_str, s, k_str, e_str)
+                string = f"(({m_str}10^{s})*{k_str}){e_str}"
 
         # collect the terms
         if e >= 0.0:
@@ -271,9 +335,9 @@ def unitDefinitionToString(udef):
     nom_str = " * ".join(nom)
     denom_str = " * ".join(denom)
     if (len(nom_str) > 0) and (len(denom_str) > 0):
-        return "({})/({})".format(nom_str, denom_str)
+        return f"({nom_str})/({denom_str})"
     if (len(nom_str) > 0) and (len(denom_str) == 0):
         return nom_str
     if (len(nom_str) == 0) and (len(denom_str) > 0):
-        return "1/({})".format(denom_str)
+        return f"1/({denom_str})"
     return ""

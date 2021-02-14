@@ -8,9 +8,6 @@ import libsbml
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
-# FluxBounds
-# -----------------------------------------------------------------------------
 def set_flux_bounds(reaction: libsbml.Reaction, lb: float, ub: float) -> None:
     """Set flux bounds on given reaction."""
     rplugin = reaction.getPlugin("fbc")
@@ -18,8 +15,10 @@ def set_flux_bounds(reaction: libsbml.Reaction, lb: float, ub: float) -> None:
     rplugin.setUpperFluxBound(ub)
 
 
-def add_default_flux_bounds(doc, lower=-100.0, upper=100.0):
-    """Add default fluxbounds to SBMLDocument.
+def add_default_flux_bounds(
+    doc: libsbml.SBMLDocument, lower: float = -100.0, upper: float = 100.0
+):
+    """Add default flux bounds to SBMLDocument.
 
     :param doc: SBMLDocument
     :param lower: lower flux bound
@@ -28,10 +27,10 @@ def add_default_flux_bounds(doc, lower=-100.0, upper=100.0):
     """
     model = doc.getModel()
 
-    def create_bound(sid, value):
+    def create_bound(sid: str, value: float) -> libsbml.Parameter:
         """Create flux bound parameter with given value.
 
-        :param sid: id of paramter
+        :param sid: id of parameter
         :param value: flux bound
         :return:
         """
@@ -55,13 +54,11 @@ def add_default_flux_bounds(doc, lower=-100.0, upper=100.0):
             rfbc.setUpperFluxBound("upper")
 
 
-def no_boundary_conditions(doc):
-    """Sets all boundaryCondition to False in the model.
+def no_boundary_conditions(doc: libsbml.SBMLDocument):
+    """Set all boundaryCondition to False in the model.
 
-    :param doc:
-    :type doc:
+    :param doc: libsbml.SBMLDocument
     :return:
-    :rtype:
     """
     model = doc.getModel()
     for s in model.species:

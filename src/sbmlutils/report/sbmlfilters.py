@@ -1,4 +1,3 @@
-# -*- coding=utf-8 -*-
 """
 Template filters for rendering SBML.
 
