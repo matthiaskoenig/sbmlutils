@@ -1,5 +1,4 @@
-"""
-SBML model creator.
+"""SBML model creator.
 
 Creates SBML models from information stored in python modules.
 Creates the core SBML models from given modules with python information.
@@ -35,13 +34,13 @@ logger = logging.getLogger(__name__)
 
 
 class Preprocess:
-    """ Helper class for preprocessing model modules."""
+    """Helper class for preprocessing model modules."""
 
     @staticmethod
     def dict_from_modules(modules: List[str]) -> Dict:
-        """
-        Creates one information dictionary from various modules by
-        combining the information. Information in earlier modules is either
+        """Create single information dictionary from various modules.
+
+        Information in earlier modules is either
         extended or overwritten depending on data type.
         """
         cdict = dict()
@@ -49,7 +48,7 @@ class Preprocess:
         # add info from modules
         for module in modules:
             # single module dict
-            mdict = Preprocess._createDict(module)
+            mdict = Preprocess._create_dict(module)
             # add to overall dict
             for key, value in mdict.items():
 
@@ -78,12 +77,7 @@ class Preprocess:
         return cdict
 
     @staticmethod
-    def _createDict(module_name, package=None):
-        """
-        A module which encodes a cell model is given and
-        used to create the instance of the CellModel from
-        the given global variables of the module.
-        """
+    def _create_dict(module_name, package=None):
         # dynamically import module
         import importlib
 
@@ -106,7 +100,8 @@ class Preprocess:
 
 
 class CoreModel(object):
-    """
+    """Core model definition.
+
     Class creates the SBML models from given dictionaries and lists
     of information.
     """
@@ -141,7 +136,8 @@ class CoreModel(object):
     }
 
     def __init__(self):
-        """
+        """Initialize core model.
+
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
@@ -164,7 +160,7 @@ class CoreModel(object):
 
     @property
     def model_id(self) -> str:
-        """Model id with version string"""
+        """Model id with version string."""
         if self.version:
             return f"{self.mid}_{self.version}"
         else:
@@ -172,7 +168,7 @@ class CoreModel(object):
 
     @staticmethod
     def from_dict(model_dict: Dict):
-        """Creates the CoreModel instance from given dictionary.
+        """Create the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
 
@@ -215,13 +211,13 @@ class CoreModel(object):
         return info
 
     def info(self):
-        """ Print information string. """
+        """Print information string."""
         print(self.get_info())
 
     def create_sbml(
         self, sbml_level: int = SBML_LEVEL, sbml_version: int = SBML_VERSION
     ) -> libsbml.SBMLDocument:
-        """Create the SBML model
+        """Create the SBML model.
 
         :return:
         :rtype:
@@ -307,6 +303,7 @@ class CoreModel(object):
 
     def get_sbml(self) -> str:
         """Return SBML string of the model.
+
         :return: SBML string
         """
         if self.doc is None:
@@ -314,7 +311,7 @@ class CoreModel(object):
         return libsbml.writeSBMLToString(self.doc)
 
     def get_json(self):
-
+        """Get JSON representation."""
         o = xmltodict.parse(self.get_sbml())
         return json.dumps(o, indent=2)
 

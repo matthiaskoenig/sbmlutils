@@ -1,6 +1,4 @@
-"""
-Writing report with distrib information.
-"""
+"""Writing report with distrib information."""
 
 from sbmlutils.report import sbmlreport
 

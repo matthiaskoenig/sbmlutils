@@ -1,6 +1,4 @@
-"""
-Helpers for validation and checking of SBML and libsbml operations.
-"""
+"""Helpers for validation and checking of SBML and libsbml operations."""
 import logging
 import time
 from typing import Iterable, List
@@ -14,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def check(value: int, message: str) -> bool:
-    """Checks the libsbml return value and prints message if something happened.
+    """Check the libsbml return value and prints message if something happened.
 
     If 'value' is None, prints an error message constructed using
       'message' and then exits with status code 1. If 'value' is an integer,
@@ -47,6 +45,7 @@ class ValidationResult:
         errors: List[libsbml.SBMLError] = None,
         warnings: List[libsbml.SBMLError] = None,
     ):
+        """Initialize ValidationResult."""
         if errors is None:
             errors = list()
         if warnings is None:
@@ -57,21 +56,22 @@ class ValidationResult:
 
     @property
     def error_count(self):
-        """Number of errors."""
+        """Get number of errors."""
         return len(self.errors)
 
     @property
     def warning_count(self):
-        """Number of warnings."""
+        """Get number of warnings."""
         return len(self.warnings)
 
     @property
     def all_count(self):
-        """Number of errors and warnings."""
+        """Get number of errors and warnings."""
         return self.error_count + self.warning_count
 
     @staticmethod
     def from_results(results: Iterable["ValidationResult"]) -> "ValidationResult":
+        """Parse from ValidationResult."""
         errors = list()
         warnings = list()
         for vres in results:
@@ -80,18 +80,18 @@ class ValidationResult:
         return ValidationResult(errors=errors, warnings=warnings)
 
     def log(self) -> None:
-        """ Logs errors and warnings."""
+        """Log errors and warnings."""
         for k, error in enumerate(self.errors):
             log_sbml_error(error, index=k)
         for k, warning in enumerate(self.warnings):
             log_sbml_error(warning, index=k)
 
     def is_valid(self) -> bool:
-        """Valid model, i.e., no errors."""
+        """Get valid status (valid model), i.e., no errors."""
         return self.error_count == 0
 
     def is_perfect(self) -> bool:
-        """Perfect model, i.e., no errors and warnings."""
+        """Get perfect status (perfect model), i.e., no errors and warnings."""
         return self.error_count == 0 and self.warning_count == 0
 
 
@@ -113,7 +113,7 @@ def log_sbml_error(error: libsbml.SBMLError, index: int = None):
 
 
 def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
-    """String representation of SBMLError.
+    """Get string representation and severity of SBMLError.
 
     :param error: SBML error
     :param index: index of error
@@ -221,7 +221,7 @@ def validate_doc(
 
 
 def _check_consistency(doc, internal_consistency: bool = False) -> ValidationResult:
-    """Calculates the type of errors.
+    """Calculate the type of errors.
 
     :param doc:
     :param internal_consistency: flag for internal consistency

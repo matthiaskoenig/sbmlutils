@@ -1,6 +1,4 @@
-"""
-Helper functions for formating SBML elements.
-"""
+"""Helper functions for formating SBML elements."""
 import libsbml
 
 from sbmlutils.metadata import miriam

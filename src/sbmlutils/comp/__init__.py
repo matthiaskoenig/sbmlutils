@@ -1,3 +1,4 @@
+"""Package for SBML comp."""
 from .comp import (
     PORT_TYPE_INPUT,
     PORT_TYPE_OUTPUT,

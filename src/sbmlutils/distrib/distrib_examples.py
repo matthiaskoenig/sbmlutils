@@ -1,6 +1,4 @@
-"""
-Code for working with the libsbml distrib package
-"""
+"""Code for working with the libsbml distrib package."""
 import tempfile
 
 import libsbml
@@ -14,7 +12,7 @@ from sbmlutils.validation import check
 
 
 def _distrib_doc():
-    """ Creates a distrib document. """
+    """Create distrib document."""
     sbml_level = 3
     sbml_version = 1
     sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
@@ -45,7 +43,7 @@ def distrib_normal():
     model = doc.createModel()  # type: libsbml.Model
 
     # parameter
-    p = _create_parameter("p1", model=model)  # type: libsbml.Parameter
+    _ = _create_parameter("p1", model=model)  # type: libsbml.Parameter
 
     # initial assignment
     assignment = model.createInitialAssignment()  # type: libsbml.InitialAssignment
@@ -93,7 +91,7 @@ def distrib_all():
     # create parameters with distribution assignments
     for pid, formula in formulas_data:
         print("{} = {}".format(pid, formula))
-        p = _create_parameter(pid, model=model)  # type: libsbml.Parameter
+        _ = _create_parameter(pid, model=model)  # type: libsbml.Parameter
         assignment = model.createInitialAssignment()  # type: libsbml.InitialAssignment
         assignment.setSymbol(pid)
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
@@ -264,6 +262,7 @@ def uncertainty():
 
 
 def create_examples(tmp=False):
+    """Create distrib examples."""
     functions = [
         distrib_normal,
         distrib_all,

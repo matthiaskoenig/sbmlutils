@@ -1,13 +1,11 @@
-"""
-Utility functions for reading, writing and validating SBML.
-"""
+"""Utility functions for reading, writing and validating SBML."""
 import logging
 from pathlib import Path
 from typing import List, Union
 
 import libsbml
 
-from sbmlutils import __version__, program_name, validation
+from sbmlutils import validation
 from sbmlutils.utils import deprecated
 
 
@@ -54,7 +52,7 @@ def read_sbml(
     # check for errors
     if doc.getNumErrors() > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
-            err_message = f"Unreadable SBML file"
+            err_message = "Unreadable SBML file"
         elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
             err_message = "Problems reading SBML file: XMLFileOperationError"
         else:
@@ -140,7 +138,7 @@ def validate_sbml(
     modeling_practice: bool = True,
     internal_consistency: bool = True,
 ) -> validation.ValidationResult:
-    """Checks given SBML source.
+    """Check given SBML source.
 
     :param source: SBML path or string
     :param name: identifier or path for report

@@ -1,3 +1,5 @@
+"""Module for unit information."""
+
 from libsbml import (
     UNIT_KIND_AMPERE,
     UNIT_KIND_AVOGADRO,

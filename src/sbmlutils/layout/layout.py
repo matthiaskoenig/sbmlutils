@@ -45,21 +45,22 @@ class Layout(factory.Sbase):
         sid,
         width,
         height,
-        compartment_glyphs=[],
-        species_glyphs=[],
-        reaction_glyphs=[],
+        compartment_glyphs=None,
+        species_glyphs=None,
+        reaction_glyphs=None,
         depth=0,
         name=None,
         sboTerm=None,
         metaId=None,
     ):
-        """ Create a layout. """
+        """Create a layout."""
         super(Layout, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.width = float(width)
         self.height = float(height)
         self.depth = float(depth)
-        self.species_glyphs = species_glyphs
-        self.reaction_glyphs = reaction_glyphs
+        self.compartment_glyphs = compartment_glyphs if compartment_glyphs else []
+        self.species_glyphs = species_glyphs if species_glyphs else []
+        self.reaction_glyphs = reaction_glyphs if reaction_glyphs else []
 
     def create_sbml(self, model: libsbml.Model):
 
@@ -229,7 +230,7 @@ class ReactionGlyph(factory.Sbase):
         x,
         y,
         z=0,
-        species_glyphs=[],
+        species_glyphs=None,
         w=20,
         h=20,
         d=0,
@@ -250,7 +251,7 @@ class ReactionGlyph(factory.Sbase):
         self.depth = d
 
         self.text = text
-        self.species_glyphs = species_glyphs
+        self.species_glyphs = species_glyphs if species_glyphs else []
 
         self.layout = None
 
@@ -352,9 +353,6 @@ class ReactionGlyph(factory.Sbase):
         # calculate start and end points for line
         s_bb = s_glyph.getBoundingBox()  # type: libsbml.BoundingBox
         r_bb = r_glyph.getBoundingBox()  # type: libsbml.BoundingBox
-
-        # dist = 0.2
-        dist = 10
 
         x, y, h, w = r_bb.getX(), r_bb.getY(), r_bb.getHeight(), r_bb.getWidth()
         xs, ys, hs, ws = s_bb.getX(), s_bb.getY(), s_bb.getHeight(), s_bb.getWidth()

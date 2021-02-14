@@ -26,7 +26,7 @@ from sympy.printing.mathml import MathMLContentPrinter, MathMLPresentationPrinte
 
 
 def formula_to_astnode(formula: str) -> libsbml.ASTNode:
-    """Converts formula string to ASTNode.
+    """Convert formula string to ASTNode.
 
     :param formula: SBML formula string
     :return: libsbml.ASTNode
@@ -39,7 +39,7 @@ def formula_to_astnode(formula: str) -> libsbml.ASTNode:
 
 
 def cmathml_to_astnode(cmathml: str) -> libsbml.ASTNode:
-    """Converts Content MathML string to ASTNode.
+    """Convert Content MathML string to ASTNode.
 
     :param cmathml: SBML Content MathML string
     :return: libsbml.ASTNode
@@ -48,7 +48,7 @@ def cmathml_to_astnode(cmathml: str) -> libsbml.ASTNode:
 
 
 def astnode_to_expression(astnode: libsbml.ASTNode):
-    """Converts AstNode to sympy expression.
+    """Convert AstNode to sympy expression.
 
     An AST node in libSBML is a recursive tree structure; each node has a type,
     a pointer to a value, and a list of children nodes. Each ASTNode node may
@@ -68,7 +68,7 @@ def astnode_to_expression(astnode: libsbml.ASTNode):
 
 
 def formula_to_expression(formula: str):
-    """Parses sympy expression from given formula string.
+    """Parse sympy expression from given formula string.
 
     :param formula: SBML formula string
     :return: sympy expression
@@ -84,7 +84,7 @@ def formula_to_expression(formula: str):
 
 
 def _replace_piecewise(formula: str) -> str:
-    """Replaces libsbml piecewise with sympy piecewise.
+    """Replace libsbml piecewise with sympy piecewise.
 
     :param formula: SBML formula string
     :return: formula string
@@ -140,7 +140,7 @@ def _replace_piecewise(formula: str) -> str:
 
 
 def astnode_to_mathml(astnode, printer="content", **settings) -> str:
-    """Conversion of formula to presentation/content MathML.
+    """Convert formula to presentation/content MathML.
 
     This does not use ASTNode serialization, but parsing of the
     corresponding formula due to differences in MathML!
@@ -154,7 +154,7 @@ def astnode_to_mathml(astnode, printer="content", **settings) -> str:
 
 
 def formula_to_mathml(formula, printer="content", **settings) -> str:
-    """Conversion of formula to MathML.
+    """Convert formula to MathML.
 
     :param formula: SBML formula string
     :param printer: 'content' or 'presentation'
@@ -166,7 +166,7 @@ def formula_to_mathml(formula, printer="content", **settings) -> str:
 
 
 def _expression_to_mathml(expr, printer="content", **settings) -> str:
-    """Conversion of sympy expression to MathML.
+    """Convert sympy expression to MathML.
 
     :param expr: sympy expression
     :param printer: 'content' or 'presentation'
@@ -185,7 +185,7 @@ def _expression_to_mathml(expr, printer="content", **settings) -> str:
 
 
 def cmathml_to_pmathml(cmathml: str, **settings) -> str:
-    """Converts Content MathML to PresentationMathML.
+    """Convert Content MathML to PresentationMathML.
 
     :param cmathml: Content MathML
     :param settings:
@@ -197,7 +197,7 @@ def cmathml_to_pmathml(cmathml: str, **settings) -> str:
 
 
 def formula_to_latex(formula: str, **settings) -> str:
-    """Converts formula to latex.
+    """Convert formula to latex.
 
     :param formula: SBML formula string
     :param settings:
@@ -208,7 +208,7 @@ def formula_to_latex(formula: str, **settings) -> str:
 
 
 def astnode_to_latex(astnode: libsbml.ASTNode, **settings) -> str:
-    """Converts AstNode to Latex.
+    """Convert AstNode to Latex.
 
     :param astnode: libsbml.ASTNode
     :param settings:
@@ -219,7 +219,7 @@ def astnode_to_latex(astnode: libsbml.ASTNode, **settings) -> str:
 
 
 def cmathml_to_latex(cmathml: str, **settings) -> str:
-    """Converts Content MathML to Latex.
+    """Convert Content MathML to Latex.
 
     :param cmathml: Content Mathml string
     :param settings:

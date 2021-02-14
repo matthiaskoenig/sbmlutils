@@ -1,3 +1,5 @@
+"""Systems biology ontology (SBO) terms and information."""
+
 SBO_EXCHANGE_REACTION = "SBO:0000627"
 SBO_DEMAND_REACTION = "SBO:0000628"
 SBO_SINK_REACTION = "SBO:0000632"

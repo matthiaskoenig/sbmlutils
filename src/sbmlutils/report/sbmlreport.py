@@ -1,8 +1,7 @@
-"""
-Create an SBML Report from given SBML file or set of SBML files (for instance for comp
-models).
+"""SBML report.
 
-The model report is implemented based on a standard template language,
+Create an SBML report from given SBML file or set of SBML files (for instance for comp
+models). The model report is implemented based on a standard template language,
 which uses the SBML information to render the final document.
 
 The basic steps of template creation are
@@ -30,7 +29,7 @@ from sbmlutils.report import formating, sbmlfilters
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_DIR = RESOURCES_DIR / "templates"  # template location
+TEMPLATE_DIR = RESOURCES_DIR / "templates"
 
 
 def create_reports(

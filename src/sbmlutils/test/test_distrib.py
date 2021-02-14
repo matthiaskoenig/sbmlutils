@@ -15,7 +15,7 @@ def test_distrib_examples():
 
 
 def test_add_uncertainty_example():
-    distrib_packages.add_uncertainty_example()
+    distrib_packages.add_uncertainty_example(tmp=True)
 
 
 def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
