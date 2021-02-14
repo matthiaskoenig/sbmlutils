@@ -416,6 +416,8 @@ class ValueWithUnit(Value):
 
 
 class Unit(Sbase):
+    """Unit."""
+
     def __init__(
         self,
         sid,
@@ -543,6 +545,8 @@ class Function(Sbase):
 
 
 class Parameter(ValueWithUnit):
+    """Parameter."""
+
     def __init__(
         self,
         sid,
@@ -586,6 +590,8 @@ class Parameter(ValueWithUnit):
 
 
 class Compartment(ValueWithUnit):
+    """Compartment."""
+
     def __init__(
         self,
         sid,
@@ -876,7 +882,8 @@ class Rule(ValueWithUnit):
 class AssignmentRule(Rule):
     """AssignmentRule."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Representation."""
         return "<AssignmentRule({})>".format(super(AssignmentRule, self).__repr__())
 
     def create_sbml(self, model):
@@ -953,6 +960,8 @@ class UncertParameter:
 
 
 class UncertSpan:
+    """UncertSpan."""
+
     def __init__(
         self,
         type,

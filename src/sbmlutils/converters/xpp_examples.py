@@ -1,6 +1,4 @@
-"""
-Test xpp file
-"""
+"""Test xpp file."""
 
 import os
 
@@ -12,6 +10,7 @@ from sbmlutils.report import sbmlreport
 
 
 def example(model_id):
+    """XPP example conversion."""
     # convert xpp to sbml
     xpp_dir = "./xpp_example"
     out_dir = "./xpp_example/results"

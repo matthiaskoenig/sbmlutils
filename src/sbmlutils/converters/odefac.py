@@ -1,5 +1,5 @@
-"""
-Convert SBML models to ODE systems for various programming languages.
+"""Convert SBML models to ODE systems for various programming languages.
+
 This allows easy integration with existing workflows by rendering respective code templates.
 
 Currently supported code generation:
@@ -21,6 +21,7 @@ The following SBML core constructs are currently NOT supported:
 import os
 import re
 from collections import defaultdict
+from pathlib import Path
 from pprint import pprint
 
 import jinja2
@@ -58,12 +59,13 @@ class SBML2ODE:
         self._create_odes()
 
     @classmethod
-    def from_file(cls, sbml_file):
-        doc = libsbml.readSBMLFromFile(sbml_file)  # type: libsbml.SBMLDocument
+    def from_file(cls, sbml_file: Path):
+        """Create converter from SBML file."""
+        doc = libsbml.readSBMLFromFile(str(sbml_file))  # type: libsbml.SBMLDocument
         return cls(doc)
 
     def _create_odes(self):
-        """Creates information of ODE system from SBMLDocument.
+        """Create information of ODE system from SBMLDocument.
 
         :return:
         """
@@ -205,7 +207,7 @@ class SBML2ODE:
         self.yids_ordered = self._ordered_yids()
 
     def _add_reaction_formula(self, model, rid, species_ref, sign):
-        """Adds part of reaction formula to ODEs for species.
+        """Add part of reaction formula to ODEs for species.
 
         :param rid:
         :param species_ref:
@@ -231,7 +233,7 @@ class SBML2ODE:
 
     @staticmethod
     def dependency_graph(y, filtered_ids):
-        """Creates dependency graph from given dictionary.
+        """Create dependency graph from given dictionary.
 
         :param y: { variable: astnode } dictionary
         :param filtered_ids: ids which are defined elsewhere and not part of dependency tree
@@ -330,7 +332,7 @@ class SBML2ODE:
             f.write(content)
 
     def _render_template(self, template="odefac_template.py", index_offset=0):
-        """Renders given language template.
+        """Render given language template.
 
         :param template:
         :return:
@@ -349,7 +351,7 @@ class SBML2ODE:
 
         # create formulas
         def to_formula(ast_dict, replace_symbols=True):
-            """Replaces all symbols in given astnode dictionary.
+            """Replace all symbols in given astnode dictionary.
 
             :param ast_dict:
             :return:
@@ -394,7 +396,8 @@ class SBML2ODE:
         dx_sym = to_formula(self.dx_ast, replace_symbols=False)
 
         def flat_formulas():
-            """Creates a flat formula by full replacement.
+            """Create a flat formula by full replacement.
+
             Uses the order of the dependencies.
 
             :param ast_dict:
@@ -419,7 +422,7 @@ class SBML2ODE:
                     astnode.replaceArgument(key, ast_rep)
 
             # replacements dx_flat
-            for x_id, astnode in dx_flat.items():
+            for _x_id, astnode in dx_flat.items():
                 for key in reversed(self.yids_ordered):
                     ast_rep = y_flat[key]
                     astnode.replaceArgument(key, ast_rep)

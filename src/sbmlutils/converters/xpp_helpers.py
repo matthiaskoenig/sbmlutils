@@ -1,5 +1,4 @@
-"""
-Some testing of astnode manipulations
+"""Some testing of astnode manipulations.
 
 alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
@@ -9,13 +8,15 @@ import re
 import libsbml
 
 
-def ast_info(ast):
+def ast_info(ast: libsbml.ASTNode):
+    """Print ASTNode information."""
     print(ast)
     print(ast.getType(), ast.getName())
 
 
 def find_names_in_ast(ast, names=None):
     """Find all names in given astnode.
+
     Names are the variables in the formula.
 
     :param ast:
@@ -93,6 +94,7 @@ def top_bracket_content(s):
 
 
 def bracket_stack(s):
+    """Get bracket stack."""
     toret = {}
     pstack = []
     for i, c in enumerate(s):

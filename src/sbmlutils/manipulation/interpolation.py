@@ -78,18 +78,21 @@ class Interpolator:
 
     @property
     def xid(self):
+        """X id."""
         return self.x.name
 
     @property
     def yid(self):
+        """Y id."""
         return self.y.name
 
     @property
     def zid(self):
+        """Z id."""
         return self.z.name
 
     def formula(self):
-        """"""
+        """Get formula."""
         if self.method is INTERPOLATION_CONSTANT:
             return Interpolator.formula_constant(self.x, self.y)
         elif self.method is INTERPOLATION_LINEAR:
