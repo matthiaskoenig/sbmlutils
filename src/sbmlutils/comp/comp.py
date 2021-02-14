@@ -1,5 +1,5 @@
-"""
-Utilities for the creation and work with comp models.
+"""Utilities for the creation and work with comp models.
+
 Simplifies the port linking, submodel generation, ...
 
 Heavily used in the dynamic FBA simulator. Mainly in the model creation
@@ -38,7 +38,7 @@ def add_submodel_from_emd(
     submodel_id,
     emd: libsbml.ExternalModelDefinition,
 ):
-    """Adds submodel to the model from given ExternalModelDefinition.
+    """Add submodel to the model from given ExternalModelDefinition.
 
     :param model_comp: Model comp plugin
     :param submodel_id:
@@ -58,8 +58,8 @@ def add_submodel_from_emd(
 
 
 def get_submodel_frameworks(doc):
-    """
-    Reads the SBO terms of the submodels.
+    """Read the SBO terms of the submodels.
+    
     These are used to distinguish the different frameworks of the submodels.
     :param doc:
     :return:
@@ -104,8 +104,6 @@ class ExternalModelDefinition(factory.Sbase):
         extdef = cdoc.createExternalModelDefinition()
         self.set_fields(extdef)
         return extdef
-
-        return p
 
     def set_fields(self, obj):
         super(ExternalModelDefinition, self).set_fields(obj)
@@ -212,7 +210,7 @@ class ReplacedElement(SbaseRef):
         sboTerm=None,
         metaId=None,
     ):
-        """
+        """Initialize ReplacedElement.
 
         :param sid:
         :param elementRef: sid of the element on which the ReplacedElement is generated.
@@ -288,7 +286,7 @@ class Deletion(SbaseRef):
         sboTerm=None,
         metaId=None,
     ):
-        """ Create a Deletion. """
+        """Initialize Deletion."""
         super(Deletion, self).__init__(
             sid=sid,
             portRef=portRef,
@@ -386,6 +384,7 @@ def create_ports(
     suffix="_port",
 ):
     """Create ports given model.
+
     Helper function to create port creation.
 
     :param model: SBML model
@@ -541,7 +540,8 @@ def _create_replaced_element(model, sid, submodel, replaced_id, ref_type):
 
 
 def replaced_by(model, sid, ref_type, submodel, replaced_by):
-    """
+    """replaced_by.
+
     The element with sid in the model is replaced by the
     replacing_id in the submodel with submodel_id.
 
@@ -568,7 +568,7 @@ def comp_delete(model):
 
 
 def _get_eplugin_by_sid(model, sid):
-    """Gets the comp plugin by sid.
+    """Get the comp plugin by sid.
 
     :param model: SBMLModel instance
     :param sid: SBase id of object
@@ -582,8 +582,8 @@ def _get_eplugin_by_sid(model, sid):
 
 
 def _set_ref(object, ref_id, ref_type):
-    """
-    Sets the reference for given reference type in the object.
+    """Set reference for given reference type in the object.
+
     Objects can be
         ReplacedBy
         ReplacedElement

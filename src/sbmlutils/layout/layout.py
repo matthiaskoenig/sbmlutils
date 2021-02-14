@@ -1,6 +1,4 @@
-"""
-Utilities for the creation and work with layout models.
-"""
+"""Utilities for the creation and work with layout models."""
 
 import libsbml
 
