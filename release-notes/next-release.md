@@ -10,6 +10,7 @@
 - updated issue templates #180
 - added type annotations and argument documentation in reports module #184
 - many flake8 fixes
+- fix inline units in mathml rendering #201
 
 ## Other
 - sympy mathml formating and conversion #195
