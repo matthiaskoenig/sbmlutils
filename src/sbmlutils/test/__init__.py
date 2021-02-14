@@ -29,6 +29,8 @@ FBC_SBML = MODELS_DIR / "fbc" / "diauxic_fba.xml"
 
 GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
+REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
+
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / "omex" / "CombineArchiveShowCase.omex"
 
