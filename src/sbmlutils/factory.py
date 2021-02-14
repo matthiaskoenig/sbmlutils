@@ -106,7 +106,7 @@ def create_objects(model, obj_iter, key=None, debug=False):
     return sbml_objects
 
 
-def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.AstNode:
+def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode:
     """Parse the ASTNode from given formula string with model.
 
     :param model: SBMLModel instance

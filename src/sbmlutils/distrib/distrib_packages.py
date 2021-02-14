@@ -1,7 +1,7 @@
 """Example testing uncertainty with libsbml packages."""
 import logging
-import tempfile
 import os
+import tempfile
 from pathlib import Path
 
 import libsbml
@@ -45,7 +45,9 @@ def add_uncertainty_example(tmp: bool = False):
         with tempfile.NamedTemporaryFile(suffix=".xml") as f_sbml:
             libsbml.writeSBMLToFile(doc, f_sbml.name)
     else:
-        libsbml.writeSBMLToFile(doc, os.path.join(output_dir, "e_coli_core_expression.xml"))
+        libsbml.writeSBMLToFile(
+            doc, os.path.join(output_dir, "e_coli_core_expression.xml")
+        )
 
 
 if __name__ == "__main__":
