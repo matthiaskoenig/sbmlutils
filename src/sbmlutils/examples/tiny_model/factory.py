@@ -10,7 +10,8 @@ from pathlib import Path
 from sbmlutils.creator import create_model
 
 
-def create(tmp=False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     models_dir = Path(__file__).parent
     create_model(
         modules=["sbmlutils.examples.tiny_model.model"],

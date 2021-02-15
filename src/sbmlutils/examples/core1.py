@@ -1,3 +1,4 @@
+"""Example creating core model."""
 from pathlib import Path
 
 from sbmlutils.creator import create_model
@@ -95,7 +96,8 @@ reactions = [
 ]
 
 
-def create(tmp=False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.core1"],
         output_dir=EXAMPLE_RESULTS_DIR,

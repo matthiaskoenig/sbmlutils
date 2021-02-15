@@ -17,7 +17,7 @@ formula (annotation) -> expr -> latex
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
 """
 import logging
-from collections import Set
+from typing import Set
 
 import libsbml
 from sympy import Symbol, sympify

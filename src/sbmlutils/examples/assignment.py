@@ -96,7 +96,8 @@ rate_rules = [
 ]
 
 
-def create(tmp=False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.assignment"],
         output_dir=EXAMPLE_RESULTS_DIR,

@@ -47,6 +47,7 @@ assignments = [
 
 
 def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.initial_assignment"],
         output_dir=EXAMPLE_RESULTS_DIR,

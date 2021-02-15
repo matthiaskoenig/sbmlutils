@@ -51,6 +51,7 @@ species = [
 
 
 def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.boundary_condition2"],
         output_dir=EXAMPLE_RESULTS_DIR,

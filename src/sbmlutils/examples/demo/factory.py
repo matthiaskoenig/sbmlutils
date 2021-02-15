@@ -5,7 +5,8 @@ from sbmlutils.creator import create_model
 from sbmlutils.examples.demo import model
 
 
-def create(tmp=False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     output_dir = Path(__file__).parent
     create_model(
         modules=["sbmlutils.examples.demo.model"],

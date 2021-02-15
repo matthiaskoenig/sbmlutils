@@ -247,7 +247,8 @@ objectives = [
 ]
 
 
-def create(tmp=False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.fbc2"],
         output_dir=EXAMPLE_RESULTS_DIR,
