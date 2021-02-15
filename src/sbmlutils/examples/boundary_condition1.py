@@ -8,7 +8,7 @@ from sbmlutils.factory import *
 
 
 def create(tmp: bool = False):
-    """Example setting boundaryCondition."""
+    """Create example setting boundaryCondition."""
 
     m1 = {
         "mid": "m1_boundary_condition",

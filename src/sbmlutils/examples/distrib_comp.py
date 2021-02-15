@@ -1,6 +1,4 @@
-"""
-Distrib and comp example to check flattening
-"""
+"""Distrib and comp example to check flattening."""
 import shutil
 import tempfile
 from pathlib import Path
@@ -69,8 +67,8 @@ parameters = [
 ]
 
 
-def create(tmp: bool = False):
-
+def create(tmp: bool = False) -> None:
+    """Create model."""
     if tmp:
         tmp_dir = tempfile.mkdtemp()
         output_dir = Path(tmp_dir)

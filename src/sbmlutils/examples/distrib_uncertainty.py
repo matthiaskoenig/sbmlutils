@@ -61,7 +61,8 @@ parameters = [
 ]
 
 
-def create(tmp: bool = False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.distrib_uncertainty"],
         output_dir=EXAMPLE_RESULTS_DIR,

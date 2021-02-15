@@ -132,7 +132,8 @@ reactions = [
 ]
 
 
-def create(tmp: bool = False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.annotation"],
         output_dir=EXAMPLE_RESULTS_DIR,

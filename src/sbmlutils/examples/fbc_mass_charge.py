@@ -1,3 +1,5 @@
+"""FBC mass and charge example."""
+
 from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
@@ -157,7 +159,8 @@ for r in reactions:
             r.annotations.append((BQB.IS, item))
 
 
-def create(tmp=False):
+def create(tmp: bool = False) -> None:
+    """Create model."""
     create_model(
         modules=["sbmlutils.examples.fbc_mass_charge"],
         output_dir=EXAMPLE_RESULTS_DIR,

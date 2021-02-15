@@ -24,7 +24,7 @@ from jinja2 import TemplateNotFound
 
 from sbmlutils import RESOURCES_DIR, utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.report import formating, sbmlfilters
+from sbmlutils.report import formating, mathml, sbmlfilters
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ def create_reports(
     template: str = "report.html",
     promote: bool = False,
     validate: bool = True,
+    math_type: str = "cmathml",
 ):
     """Create individual reports and an overview file.
 
@@ -47,9 +48,18 @@ def create_reports(
     :param promote: boolean flag to promote local parameters
     :param validate: boolean flag if SBML file be validated (warnings and errors
                      are logged)
+    :param math_type: specifies the math rendering mode for the report
 
     :return:
     """
+
+    # check math type
+    math_types = ["cmathml", "pmathml", "latex"]
+    if math_type not in math_types:
+        raise ValueError(
+            f"math_type '{math_type}' not in supported types: '{math_types}'"
+        )
+
     # individual reports
     for sbml_path in sbml_paths:
         logger.info(sbml_path)
@@ -59,12 +69,13 @@ def create_reports(
             template=template,
             promote=promote,
             validate=validate,
+            math_type=math_type,
         )
 
     # write index html (unicode)
     html = _create_index_html(sbml_paths)
     index_path = output_dir / "index.html"
-    with open(index_path, "w") as f_index:
+    with open(index_path, "w", encoding="utf-8") as f_index:
         f_index.write(html)
 
 
@@ -73,6 +84,7 @@ def create_report(
     output_dir: Path,
     promote: bool = False,
     template: str = "report.html",
+    math_type: str = "cmathml",
     validate: bool = True,
     log_errors: bool = True,
     units_consistency: bool = True,
@@ -87,6 +99,7 @@ def create_report(
     :param output_dir: target directory where the report is written
     :param promote: boolean flag to promote local parameters
     :param template: which template file to use for rendering
+    :param math_type: specifies the math rendering mode for the report
     :param validate: boolean flag if SBML file be validated (warnings and errors
                      are logged)
     :param log_errors: boolean flag of errors should be logged
@@ -116,6 +129,13 @@ def create_report(
     if not output_dir.is_dir():
         raise IOError(f"'output_dir' is not a directory: '{output_dir}'")
 
+    # check math type
+    math_types = ["cmathml", "pmathml", "latex"]
+    if math_type not in math_types:
+        raise ValueError(
+            f"math_type '{math_type}' not in supported types: '{math_types}'"
+        )
+
     # read sbml
     doc = read_sbml(
         source=sbml_path,
@@ -132,9 +152,9 @@ def create_report(
     write_sbml(doc, filepath=output_dir / basename)
 
     # write html
-    html = _create_html(doc, basename, html_template=template)
+    html = _create_html(doc, basename, html_template=template, math_type=math_type)
     path_html = output_dir / f"{name}.html"
-    with open(path_html, "w") as f_html:
+    with open(path_html, "w", encoding="utf-8") as f_html:
         f_html.write(html)
 
     logger.info(f"SBML report created: '{path_html.resolve()}'")
@@ -183,6 +203,7 @@ def _create_html(
     doc: libsbml.SBMLDocument,
     basename: str,
     html_template: str = "report.html",
+    math_type: str = "cmathml",
     offline: bool = True,
 ):
     """Create HTML from SBML.
@@ -190,6 +211,7 @@ def _create_html(
     :param doc: SBML document for creating HTML report
     :param basename: basename of SBML file path
     :param html_template: which template file to use for rendering
+    :param math_type: specifies the math rendering mode for the report
     :param offline: to specify offline report generation for appropriate linking of
                     stylesheet and script files
 
@@ -225,18 +247,18 @@ def _create_html(
             "model": model_dict(model),
             "submodels": listOfSubmodels_dict(model),
             "ports": listOfPorts_dict(model),
-            "functions": listOfFunctions_dict(model),
+            "functions": listOfFunctions_dict(model, math_type),
             "units": listOfUnits_dict(model),
-            "compartments": listOfCompartments_dict(model, values),
+            "compartments": listOfCompartments_dict(model, values, math_type),
             "species": listOfSpecies_dict(model),
             "geneproducts": listOfGeneProducts_dict(model),
-            "parameters": listOfParameters_dict(model, values),
-            "assignments": listOfInitialAssignments_dict(model),
-            "rules": listOfRules_dict(model),
-            "reactions": listOfReactions_dict(model),
+            "parameters": listOfParameters_dict(model, values, math_type),
+            "assignments": listOfInitialAssignments_dict(model, math_type),
+            "rules": listOfRules_dict(model, math_type),
+            "reactions": listOfReactions_dict(model, math_type),
             "objectives": listOfObjectives_dict(model),
-            "constraints": listOfConstraints_dict(model),
-            "events": listOfEvents_dict(model),
+            "constraints": listOfConstraints_dict(model, math_type),
+            "events": listOfEvents_dict(model, math_type),
         }
     else:
         # no model exists
@@ -466,17 +488,18 @@ def listOfPorts_dict(model: libsbml.Model) -> List[Dict]:
     return items
 
 
-def listOfFunctions_dict(model: libsbml.Model) -> List[Dict]:
+def listOfFunctions_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
     """Information dicts for Function definitions within the Model instance.
 
-    :param: model: SBML model instance enclosing the function definitions
+    :param model: SBML model instance enclosing the function definitions
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the function definitions in the model
     """
 
     items = []
     for item in model.getListOfFunctionDefinitions():
         info = infoSbase(item)
-        info["math"] = math(item)
+        info["math"] = math(item, math_type)
         items.append(info)
     return items
 
@@ -498,10 +521,14 @@ def listOfUnits_dict(model: libsbml.Model) -> List[Dict]:
     return items
 
 
-def listOfCompartments_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
+def listOfCompartments_dict(
+    model: libsbml.Model, values: Dict, math_type: str
+) -> List[Dict]:
     """Information dicts for Compartments within the Model instance.
 
-    :param: model: SBML model instance conataining the compartments
+    :param model: SBML model instance containing the compartments
+    :param values: dictionary of values
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the compartments in the model
     """
 
@@ -519,7 +546,7 @@ def listOfCompartments_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
         if item.isSetSize():
             size = item.size
         else:
-            size = math(values.get(item.id, ""))
+            size = math(values.get(item.id, ""), math_type)
         info["size"] = size
         items.append(info)
     return items
@@ -607,10 +634,14 @@ def listOfGeneProducts_dict(model: libsbml.Model) -> List[Dict]:
     return items
 
 
-def listOfParameters_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
+def listOfParameters_dict(
+    model: libsbml.Model, values: Dict, math_type: str
+) -> List[Dict]:
     """Information dicts for Parameters defined within the Model instance.
 
-    :param: model: SBML model instance using the Parameters
+    :param model: SBML model instance using the Parameters
+    :param values: dictionary of values
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the parameters used in the model
     """
 
@@ -628,7 +659,7 @@ def listOfParameters_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
                     AssignmentRule: {item.id}
                     """
                 )
-            value = math(value_formula)
+            value = math(value_formula, math_type)
         info["value"] = value
         info["derived_units"] = derived_units(item)
         info["constant"] = boolean(item.constant)
@@ -636,10 +667,11 @@ def listOfParameters_dict(model: libsbml.Model, values: Dict) -> List[Dict]:
     return items
 
 
-def listOfInitialAssignments_dict(model: libsbml.Model) -> List[Dict]:
+def listOfInitialAssignments_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
     """Information dicts for Initial Assignments defined within the Model instance.
 
-    :param: model: SBML model instance defining the Initial Assignments
+    :param model: SBML model instance defining the Initial Assignments
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the initial assignments defined in the model
     """
 
@@ -647,13 +679,13 @@ def listOfInitialAssignments_dict(model: libsbml.Model) -> List[Dict]:
     for item in model.getListOfInitialAssignments():
         info = infoSbase(item)
         info["symbol"] = item.symbol
-        info["assignment"] = math(item)
+        info["assignment"] = math(item, math_type)
         info["derived_units"] = derived_units(item)
         items.append(info)
     return items
 
 
-def listOfRules_dict(model: libsbml.Model) -> List[Dict]:
+def listOfRules_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
     """Information dicts for Rules defined within the Model instance.
 
     :param: model: SBML model instance defining the Rules
@@ -664,32 +696,34 @@ def listOfRules_dict(model: libsbml.Model) -> List[Dict]:
     for item in model.getListOfRules():
         info = infoSbase(item)
         info["variable"] = formating.ruleVariableToString(item)
-        info["assignment"] = math(item)
+        info["assignment"] = math(item, math_type)
         info["derived_units"] = derived_units(item)
 
         items.append(info)
     return items
 
 
-def listOfConstraints_dict(model: libsbml.Model) -> List[Dict]:
+def listOfConstraints_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
     """Information dicts for Constraints specified within the Model instance.
 
-    :param: model: SBML model instance specified the Constraints
+    :param model: SBML model instance specified the Constraints
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the constraits specified in the model
     """
 
     items = []
     for item in model.getListOfConstraints():
         info = infoSbase(item)
-        info["constraint"] = math(item)
+        info["constraint"] = math(item, math_type)
         items.append(info)
     return items
 
 
-def listOfReactions_dict(model: libsbml.Model) -> List[Dict]:
+def listOfReactions_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
     """Information dicts for Reactions occurring in compartments within the model.
 
-    :param: model: SBML model instance
+    :param model: SBML model instance
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the reactions found in the model
     """
 
@@ -711,7 +745,7 @@ def listOfReactions_dict(model: libsbml.Model) -> List[Dict]:
             modifiers = "<br />".join(modifiers)
         info["modifiers"] = modifiers
         klaw = item.getKineticLaw()
-        info["formula"] = math(klaw)
+        info["formula"] = math(klaw, math_type)
         info["derived_units"] = derived_units(klaw)
 
         # fbc
@@ -750,10 +784,11 @@ def listOfObjectives_dict(model: libsbml.Model) -> List[Dict]:
     return items
 
 
-def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
+def listOfEvents_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
     """Information dicts for Events defined within the Model instance.
 
-    :param: model: SBML model instance defining the Events
+    :param model: SBML model instance defining the Events
+    :param math_type: specifies which math rendering mode to use
     :return: list of info dictionaries for the events defined in the model
     """
 
@@ -765,7 +800,7 @@ def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
         info[
             "trigger"
         ] = f"""
-            {math(trigger)}
+            {math(trigger, math_type)}
             <br />initialValue = {trigger.initial_value}
             <br /> persistent = {trigger.persistent}
             """
@@ -781,7 +816,7 @@ def listOfEvents_dict(model: libsbml.Model) -> List[Dict]:
         info["delay"] = delay
         assignments = ""
         for eva in item.getListOfEventAssignments():
-            assignments += f"{eva.getId()} = {math(eva)}<br />"
+            assignments += f"{eva.getId()} = {math(eva, math_type)}<br />"
         if len(assignments) == 0:
             assignments = empty_html()
         info["assignments"] = assignments
@@ -916,15 +951,24 @@ def annotation_html(item: libsbml.SBase) -> str:
     return info
 
 
-def math(item: libsbml.SBase) -> str:
+def math(item: libsbml.SBase, type: str = "cmathml") -> str:
     """Create MathML content for the item.
 
     :param item: SBML object for which MathML content is to be generated
+    :param type: specifies which math rendering mode to use
     :return: formatted MathML content for the item
     """
 
     if item:
-        return formating.astnode_to_mathml(item.getMath())
+        math = item.getMath()
+        if type == "cmathml":
+            return formating.astnode_to_mathml(math)
+        elif type == "pmathml":
+            cmathml = formating.astnode_to_mathml(math)
+            return mathml.cmathml_to_pmathml(cmathml)
+        elif type == "latex":
+            latex_str = mathml.astnode_to_latex(math)
+            return f"$${latex_str}$$"
     return empty_html()
 
 

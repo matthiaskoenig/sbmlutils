@@ -10,6 +10,10 @@ formulas = [
     "GK_Vmax * GK_gc_free * (atp/(GK_k_atp + atp)) * f_gly * "
     "(power(glc,GK_n)/(power(glc,GK_n) + power(GK_k_glc, GK_n)))",
     "piecewise(3, x>3, 5)",
+    "piecewise(x, x > y, y)",
+    "lambda(x, y, piecewise(x, x > y, y))",
+    "lambda(x, y, x+y)",
+    "(1 - gamma) * GSn + gamma * GSp",
 ]
 
 cmathmls = [
