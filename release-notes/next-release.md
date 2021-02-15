@@ -1,12 +1,8 @@
 # Release notes for sbmlutils x.y.z
 
 ## New features
-- better MathML rendering in reports (Latex) #191
 
 ## Fixes
-- bugfixes MathML parsing #205
-- support of inline units in reports #201
-- add resources to pip package #204
 
 ## Other
 
