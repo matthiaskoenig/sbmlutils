@@ -17,12 +17,15 @@ formula (annotation) -> expr -> latex
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
 """
 import logging
-from pathlib import Path
+from collections import Set
 
 import libsbml
-from sympy import sympify
+from sympy import Symbol, sympify
 from sympy.printing.latex import latex
 from sympy.printing.mathml import MathMLContentPrinter, MathMLPresentationPrinter
+
+
+logger = logging.getLogger(__name__)
 
 
 def formula_to_astnode(formula: str) -> libsbml.ASTNode:
@@ -75,18 +78,62 @@ def formula_to_expression(formula: str):
     """
     # round trip to remove unnecessary inline dimensions
     ast_node = formula_to_astnode(formula)
+    variables = _get_variables(ast_node)
+
+    # simplify lambda expressions
+    ast_node = _remove_lambda2(ast_node)
+
     settings = libsbml.L3ParserSettings()
     settings.setParseUnits(False)
-
     formula = libsbml.formulaToL3StringWithSettings(ast_node, settings=settings)
 
     # create sympy expressions with variables and formula
     formula = _replace_piecewise(formula)
     formula = formula.replace("&&", "&")
     formula = formula.replace("||", "|")
-    expr = sympify(formula)
+    try:
+        expr = sympify(formula, locals={v: Symbol(f"{v}") for v in variables})
+    except Exception as e:
+        logger.error(f"Formula could not be sympified: '{formula}'")
+        raise e
 
     return expr
+
+
+def _get_variables(astnode: libsbml.ASTNode, variables=None) -> Set:
+    """Get variables from ASTNode."""
+    if variables is None:
+        variables = set()
+
+    num_children = astnode.getNumChildren()
+    if num_children == 0:
+        if astnode.isName():
+            name = astnode.getName()
+            variables.add(name)
+    else:
+        for k in range(num_children):
+            child = astnode.getChild(k)  # type: libsbml.ASTNode
+            _get_variables(child, variables=variables)
+
+    return variables
+
+
+def _remove_lambda2(astnode: libsbml.ASTNode) -> libsbml.ASTNode:
+    """Replace lambda function with function expression.
+
+    Removes the lambda and argument parts from lambda expressions;
+    lambda(x, y, x+y) -> x+y
+
+    :param formula: SBML formula string
+    :return: formula string
+    """
+    if astnode.isLambda():
+        num_children = astnode.getNumChildren()
+        # get function with arguments
+        f = astnode.getChild(num_children - 1)  # type: libsbml.ASTNode
+        return f.deepCopy()
+
+    return astnode
 
 
 def _replace_piecewise(formula: str) -> str:
@@ -136,6 +183,7 @@ def _replace_piecewise(formula: str) -> str:
         # find end index
         if (len(pieces) % 2) == 1:
             pieces.append("True")  # last condition is True
+
         sympy_pieces = []
         for k in range(0, int(len(pieces) / 2)):
             sympy_pieces.append(f"({pieces[2*k]}, {pieces[2*k+1]})")

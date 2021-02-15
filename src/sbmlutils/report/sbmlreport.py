@@ -960,13 +960,14 @@ def math(item: libsbml.SBase, type: str = "cmathml") -> str:
     """
 
     if item:
+        math = item.getMath()
         if type == "cmathml":
-            return formating.astnode_to_mathml(item.getMath())
+            return formating.astnode_to_mathml(math)
         elif type == "pmathml":
-            cmathml = formating.astnode_to_mathml(item.getMath())
+            cmathml = formating.astnode_to_mathml(math)
             return mathml.cmathml_to_pmathml(cmathml)
         elif type == "latex":
-            latex_str = mathml.astnode_to_latex(item.getMath())
+            latex_str = mathml.astnode_to_latex(math)
             return f"$${latex_str}$$"
     return empty_html()
 
