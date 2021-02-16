@@ -1,0 +1,4277 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" version="4">
+  <model id="Budding_yeast_size_control_by_titration_of_nuclear_sites" metaid="COPASI0" name="Budding yeast size control by titration of nuclear sites">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <pre>This model is decribed in the article:
+Dilution and titration of cell-cycle regulators may control cell size in budding yeast
+Frank S. Heldt, Reece Lunstone, John J. Tyson, Bela Novak
+PLoS Comput Biol, October 2018, 14(10), e1006548, doi: 10.1371/journal.pcbi.1006548
+
+Abstract:
+The size of a cell sets the scale for all biochemical processes within it, thereby affecting cellular fitness and survival. Hence, cell size needs to be kept within certain limits and relatively constant over multiple generations. However, how cells measure their size and use this information to regulate growth and division remains controversial. Here, we present two mechanistic mathematical models of the budding yeast (S. cerevisiae) cell cycle to investigate competing hypotheses on size control: inhibitor dilution and titration of nuclear sites. Our results suggest that an inhibitor-dilution mechanism, in which cell growth dilutes the transcriptional inhibitor Whi5 against the constant activator Cln3, can facilitate size homeostasis. This is achieved by utilising a positive feedback loop to establish a fixed size threshold for the START transition, which efficiently couples cell growth to cell cycle progression. Yet, we show that inhibitor dilution cannot reproduce the size of mutants that alter the cell’s overall ploidy and WHI5 gene copy number. By contrast, size control through titration of Cln3 against a constant number of genomic binding sites for the transcription factor SBF recapitulates both size homeostasis and the size of these mutant strains. Moreover, this model produces an imperfect ‘sizer’ behaviour in G1 and a ‘timer’ in S/G2/M, which combine to yield an ‘adder’ over the whole cell cycle; an observation recently made in experiments. Hence, our model connects these phenomenological data with the molecular details of the cell cycle, providing a systems-level perspective of budding yeast size control.</pre>
+      </body>
+    </notes>
+    <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+        <rdf:Description rdf:about="#COPASI0">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Sharif Shohan</vCard:Family>
+	<vCard:Given>Mohammad Umer</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>msharifshohan@ebi,ac,uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Heldt</vCard:Family>
+	<vCard:Given>Frank Stefa</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>stefan.heldt@bioch.ox.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>University of Oxford</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2018-03-12T15:19:01Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2018-03-12T15:19:01Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/30356259"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqbiol:hasProperty>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0051726"/>
+	</rdf:Bag>
+	</bqbiol:hasProperty>
+	<bqbiol:hasProperty>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0007049"/>
+	</rdf:Bag>
+	</bqbiol:hasProperty>
+	<bqbiol:hasProperty>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1803220001"/>
+	</rdf:Bag>
+	</bqbiol:hasProperty>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/41870"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1803220001"/>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000856"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	</rdf:Description>
+	
+      </rdf:RDF>
+      <COPASI xmlns="http://www.copasi.org/static/sbml">
+        <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+          <rdf:Description rdf:about="#COPASI0">
+            <bqbiol:hasProperty rdf:resource="urn:miriam:biomodels.db:MODEL1803220001"/>
+            <bqbiol:hasProperty rdf:resource="urn:miriam:go:GO:0007049"/>
+            <bqbiol:hasProperty rdf:resource="urn:miriam:go:GO:0051726"/>
+            <bqbiol:hasTaxon rdf:resource="urn:miriam:taxonomy:41870"/>
+            <dcterms:bibliographicCitation>
+              <rdf:Description>
+                <dcterms:description>Dilution and titration of cell-cycle regulators may control cell size in budding yeast.</dcterms:description>
+                <CopasiMT:isDescribedBy rdf:resource="urn:miriam:pubmed:30356259"/>
+              </rdf:Description>
+            </dcterms:bibliographicCitation>
+            <dcterms:created>
+              <rdf:Description>
+                <dcterms:W3CDTF>2018-03-12T15:19:01Z</dcterms:W3CDTF>
+              </rdf:Description>
+            </dcterms:created>
+            <dcterms:creator>
+              <rdf:Description>
+                <vCard:EMAIL>stefan.heldt@bioch.ox.ac.uk</vCard:EMAIL>
+                <vCard:N>
+                  <rdf:Description>
+                    <vCard:Family>Heldt</vCard:Family>
+                    <vCard:Given>Frank Stefa</vCard:Given>
+                  </rdf:Description>
+                </vCard:N>
+                <vCard:ORG>
+                  <rdf:Description>
+                    <vCard:Orgname>University of Oxford</vCard:Orgname>
+                  </rdf:Description>
+                </vCard:ORG>
+              </rdf:Description>
+            </dcterms:creator>
+            <dcterms:creator>
+              <rdf:Description>
+                <vCard:EMAIL>msharifshohan@ebi,ac,uk</vCard:EMAIL>
+                <vCard:N>
+                  <rdf:Description>
+                    <vCard:Family>Sharif Shohan</vCard:Family>
+                    <vCard:Given>Mohammad Umer</vCard:Given>
+                  </rdf:Description>
+                </vCard:N>
+                <vCard:ORG>
+                  <rdf:Description>
+                    <vCard:Orgname>EMBL-EBI</vCard:Orgname>
+                  </rdf:Description>
+                </vCard:ORG>
+              </rdf:Description>
+            </dcterms:creator>
+          </rdf:Description>
+        </rdf:RDF>
+      </COPASI>
+    </annotation>
+      <listOfFunctionDefinitions>
+      <functionDefinition id="rPhWhip" metaid="COPASI106" name="rPhWhip">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI106">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:44:41Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kPhWhipCln3 </ci>
+            </bvar>
+            <bvar>
+              <ci> CLN3 </ci>
+            </bvar>
+            <bvar>
+              <ci> kPhWhipCln </ci>
+            </bvar>
+            <bvar>
+              <ci> CLN </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kPhWhipCln3 </ci>
+                  <ci> CLN3 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kPhWhipCln </ci>
+                  <ci> CLN </ci>
+                </apply>
+              </apply>
+              <ci> Substrate </ci>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rInCdc" metaid="COPASI107" name="rInCdc">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI107">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:28:06Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kInCdc </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <bvar>
+              <ci> jCdc </ci>
+            </bvar>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> kInCdc </ci>
+                <ci> Substrate </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> jCdc </ci>
+                <ci> Substrate </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rDeClb" metaid="COPASI108" name="rDeClb">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI108">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:47:27Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kDeClb </ci>
+            </bvar>
+            <bvar>
+              <ci> kDeClbCdh </ci>
+            </bvar>
+            <bvar>
+              <ci> CDHa </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> kDeClb </ci>
+                <apply>
+                  <times/>
+                  <ci> kDeClbCdh </ci>
+                  <ci> CDHa </ci>
+                </apply>
+              </apply>
+              <ci> Substrate </ci>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rAcCdh" metaid="COPASI109" name="rAcCdh">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI109">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:31:19Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kAcCdh </ci>
+            </bvar>
+            <bvar>
+              <ci> kAcCdhCdc </ci>
+            </bvar>
+            <bvar>
+              <ci> CDCa </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <bvar>
+              <ci> jCdh </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> kAcCdh </ci>
+                <apply>
+                  <times/>
+                  <ci> kAcCdhCdc </ci>
+                  <ci> CDCa </ci>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> Substrate </ci>
+                <apply>
+                  <plus/>
+                  <ci> jCdh </ci>
+                  <ci> Substrate </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rSyClb" metaid="COPASI110" name="rSyClb">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI110">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:43:16Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kSyClb </ci>
+            </bvar>
+            <bvar>
+              <ci> kSyClbClb </ci>
+            </bvar>
+            <bvar>
+              <ci> CLB </ci>
+            </bvar>
+            <bvar>
+              <ci> jSyClb </ci>
+            </bvar>
+            <bvar>
+              <ci> GDTM </ci>
+            </bvar>
+            <bvar>
+              <ci> GCN </ci>
+            </bvar>
+            <bvar>
+              <ci> GDt </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <ci> kSyClb </ci>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> kSyClbClb </ci>
+                    <ci> CLB </ci>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <ci> jSyClb </ci>
+                    <ci> CLB </ci>
+                  </apply>
+                </apply>
+              </apply>
+              <ci> GDTM </ci>
+              <apply>
+                <divide/>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rInCdh" metaid="COPASI111" name="rInCdh">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI111">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:32:43Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kInCdhCln </ci>
+            </bvar>
+            <bvar>
+              <ci> CLN </ci>
+            </bvar>
+            <bvar>
+              <ci> kInCdhClb </ci>
+            </bvar>
+            <bvar>
+              <ci> CLB </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <bvar>
+              <ci> jCdh </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <apply>
+                <plus/>
+                <apply>
+                  <times/>
+                  <ci> kInCdhCln </ci>
+                  <ci> CLN </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kInCdhClb </ci>
+                  <ci> CLB </ci>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> Substrate </ci>
+                <apply>
+                  <plus/>
+                  <ci> jCdh </ci>
+                  <ci> Substrate </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rAcCdc" metaid="COPASI112" name="rAcCdc">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI112">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:22:49Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kAcCdcClb </ci>
+            </bvar>
+            <bvar>
+              <ci> CLB </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <bvar>
+              <ci> jCdc </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> kAcCdcClb </ci>
+              <ci> CLB </ci>
+              <apply>
+                <divide/>
+                <ci> Substrate </ci>
+                <apply>
+                  <plus/>
+                  <ci> jCdc </ci>
+                  <ci> Substrate </ci>
+                </apply>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rSyWhi" metaid="COPASI113" name="rSyWhi">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI113">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T13:56:18Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> GRd </ci>
+            </bvar>
+            <bvar>
+              <ci> kSyWhi </ci>
+            </bvar>
+            <bvar>
+              <ci> GITM </ci>
+            </bvar>
+            <bvar>
+              <ci> GWt </ci>
+            </bvar>
+            <bvar>
+              <ci> GIt </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> GRd </ci>
+              <ci> kSyWhi </ci>
+              <ci> GITM </ci>
+              <apply>
+                <divide/>
+                <ci> GWt </ci>
+                <ci> GIt </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rPhSbf" metaid="COPASI114" name="rPhSbf">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI114">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:21:24Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kPhSbfClb </ci>
+            </bvar>
+            <bvar>
+              <ci> CLB </ci>
+            </bvar>
+            <bvar>
+              <ci> SBFu </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> kPhSbfClb </ci>
+              <ci> CLB </ci>
+              <ci> SBFu </ci>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="Expression_of_size_dependent_gene" metaid="COPASI115" name="Expression of size-dependent gene">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI115">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:56:03Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kSy </ci>
+            </bvar>
+            <bvar>
+              <ci> GDTM </ci>
+            </bvar>
+            <bvar>
+              <ci> GCN </ci>
+            </bvar>
+            <bvar>
+              <ci> GDt </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> kSy </ci>
+              <ci> GDTM </ci>
+              <apply>
+                <divide/>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rPhWhi" metaid="COPASI116" name="rPhWhi">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI116">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:22:46Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kPhWhiCln </ci>
+            </bvar>
+            <bvar>
+              <ci> CLN </ci>
+            </bvar>
+            <bvar>
+              <ci> Substrate </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> kPhWhiCln </ci>
+              <ci> CLN </ci>
+              <ci> Substrate </ci>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+      <functionDefinition id="rSyCln" metaid="COPASI117" name="rSyCln">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI117">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:17:02Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <lambda>
+            <bvar>
+              <ci> kSyCln </ci>
+            </bvar>
+            <bvar>
+              <ci> GDTM </ci>
+            </bvar>
+            <bvar>
+              <ci> GCN </ci>
+            </bvar>
+            <bvar>
+              <ci> GDt </ci>
+            </bvar>
+            <bvar>
+              <ci> SBF </ci>
+            </bvar>
+            <bvar>
+              <ci> SBFt </ci>
+            </bvar>
+            <bvar>
+              <ci> SBFu </ci>
+            </bvar>
+            <apply>
+              <times/>
+              <ci> kSyCln </ci>
+              <ci> GDTM </ci>
+              <apply>
+                <divide/>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> SBF </ci>
+                <ci> SBFt </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> SBFu </ci>
+                <ci> SBFt </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+            </functionDefinition>
+    </listOfFunctionDefinitions>
+    <listOfUnitDefinitions>
+      <unitDefinition id="volume" name="volume">
+        <listOfUnits>
+          <unit exponent="1" kind="litre" multiplier="1" scale="-3"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="time" name="time">
+        <listOfUnits>
+          <unit exponent="1" kind="second" multiplier="60" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="substance" name="substance">
+        <listOfUnits>
+          <unit exponent="1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_0" name="#">
+        <listOfUnits>
+          <unit exponent="1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_1" name="AU/AV">
+        <listOfUnits>
+          <unit exponent="-1" kind="volt" multiplier="1" scale="0"/>
+          <unit exponent="0" kind="dimensionless" multiplier="0.01" scale="0"/>
+          <unit exponent="1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_2" name="AV/(#*min)">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" multiplier="60" scale="-3"/>
+          <unit exponent="1" kind="volt" multiplier="1" scale="0"/>
+          <unit exponent="-1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_3" name="1/min">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" multiplier="60" scale="-3"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_4" name="AU/(#*min)">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" multiplier="6000" scale="-3"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_5" name="AV/(AU*min)">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" multiplier="60" scale="-3"/>
+          <unit exponent="1" kind="volt" multiplier="1" scale="0"/>
+          <unit exponent="0" kind="dimensionless" multiplier="0.01" scale="0"/>
+          <unit exponent="-1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_6" name="AU/(AV*min)">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" multiplier="60" scale="-3"/>
+          <unit exponent="-1" kind="volt" multiplier="1" scale="0"/>
+          <unit exponent="0" kind="dimensionless" multiplier="0.01" scale="0"/>
+          <unit exponent="1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="unit_7" name="AU">
+        <listOfUnits>
+          <unit exponent="0" kind="dimensionless" multiplier="0.01" scale="0"/>
+          <unit exponent="1" kind="item" multiplier="1" scale="0"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment constant="false" id="tV" metaid="COPASI1" name="tV" size="1.2" spatialDimensions="3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV)  total cell volume (including mother and daughter cell)</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI1">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:24:49Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </compartment>
+      <compartment constant="false" id="mV" metaid="COPASI2" name="mV" size="1.2" spatialDimensions="3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV)  mother cell volume</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI2">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T15:38:33Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </compartment>
+      <compartment constant="false" id="dV" metaid="COPASI3" name="dV" size="0" spatialDimensions="3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV)  daughter cell volume</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI3">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T15:40:12Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="TM" initialAmount="0" metaid="COPASI4" name="TM">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI4">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:30:29Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="GI" initialAmount="0" metaid="COPASI5" name="GI">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) free, size-independent genes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI5">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:32:33Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="GD" initialAmount="440" metaid="COPASI6" name="GD">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) free, size-dependent genes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI6">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:50:23Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="GITM" initialAmount="1" metaid="COPASI7" name="GITM">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) size-independent genes occupied by transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI7">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:50:57Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="GDTM" initialAmount="60" metaid="COPASI8" name="GDTM">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) size-dependent genes occupied by transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI8">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:51:39Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CLN3" initialAmount="0" metaid="COPASI9" name="CLN3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) Cln3</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI9">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:40:47Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="WHI" initialAmount="4" metaid="COPASI10" name="WHI">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) free Whi5</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI10">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:49:58Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="WHIp" initialAmount="0.1" metaid="COPASI11" name="WHIp">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) phosphorylated Whi5</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI11">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:50:56Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="SBF" initialAmount="1.19993338661852E-12" metaid="COPASI12" name="SBF">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) free SBF</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI12">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:51:10Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="WHISBF" initialAmount="0.66" metaid="COPASI13" name="WHISBF">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) Whi5:SBF complexes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI13">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:51:35Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="WHIn" initialAmount="0" metaid="COPASI14" name="WHIn">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) newly synthesised Whi5</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI14">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:01:14Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="WHIt" initialAmount="5.1" metaid="COPASI15" name="WHIt">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) total Whi5</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI15">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:01:23Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="SBFt" initialAmount="1.0000000000012" metaid="COPASI16" name="SBFt">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) total SBF</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI16">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:04:21Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="SBFu" initialAmount="1.0000000000012" metaid="COPASI17" name="SBFu">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) unphosphorylated SBF
+
+Note that SBFp and SBFu are treated independently from the other SBF-related variables such that SBFt = SBFp + SBFu as well as SBFt = SBF + WHISBF.</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI17">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:18:52Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="SBFp" initialAmount="0" metaid="COPASI18" name="SBFp">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) phosphorylated (inactive) SBF
+
+Note that SBFp and SBFu are treated independently from the other SBF-related variables such that SBFt = SBFp + SBFu as well as SBFt = SBF + WHISBF.</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI18">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:19:38Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CLN" initialAmount="0" metaid="COPASI19" name="CLN">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) Cln1/2</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI19">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:20:23Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CLB" initialAmount="0" metaid="COPASI20" name="CLB">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) Clb1/2</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI20">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:20:34Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CDHa" initialAmount="1.2" metaid="COPASI21" name="CDHa">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) active APC/C^Cdh1</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI21">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:15:30Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CDHi" initialAmount="0" metaid="COPASI22" name="CDHi">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) inactive APC/C^Cdh1</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI22">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:15:47Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CDCa" initialAmount="0" metaid="COPASI23" name="CDCa">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) active APC/C^Cdc20</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI23">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:15:57Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CDCi" initialAmount="1.2" metaid="COPASI24" name="CDCi">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) inactive APC/C^Cdc20</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI24">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:16:07Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="TMt" initialAmount="61" metaid="COPASI25" name="TMt">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) total amount of transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI25">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T14:38:12Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="active_SBF" initialAmount="1.19993338661852E-12" metaid="COPASI26" name="active SBF">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) active SBF</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI26">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T15:18:58Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CLN3WHISBF" initialAmount="0.17" metaid="COPASI27" name="CLN3WHISBF">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) Cln3:Whi5:SBF complexes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI27">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T15:46:12Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="false" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="WHIpSBF" initialAmount="0.17" metaid="COPASI28" name="WHIpSBF">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) hypo-phosphorylated Whi5 in complex with SBF</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI28">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T15:47:05Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+      <species boundaryCondition="true" compartment="tV" constant="false" hasOnlySubstanceUnits="true" id="CLN3t" initialAmount="0.17" metaid="COPASI29" name="CLN3t">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) total Cln3 level</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI29">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T17:26:46Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="false" id="GDt" metaid="COPASI30" name="GDt" units="unit_0" value="500">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) total number of size-dependent genes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI30">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:28:59Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="GCN" metaid="COPASI31" name="GCN" units="unit_0" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) gene copy number (of all genes except Whi5 and Cln3)</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI31">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:30:04Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="GWt" metaid="COPASI32" name="GWt" units="unit_0" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) copy number of Whi5 gene (corresponds to total number of size-independent genes, GIt)</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI32">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:30:41Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="GCt" metaid="COPASI33" name="GCt" units="unit_0" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) copy number of Cln3 gene</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI33">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:31:10Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="StartThr" metaid="COPASI34" name="StartThr" units="unit_1" value="0.3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/AV) Cln1/2 threshold for Start transition</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI34">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:31:36Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="MitosisThr" metaid="COPASI35" name="MitosisThr" units="unit_1" value="0.2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/AV) Cln1/2 + Clb1/2 threshold for cell division</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI35">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:32:05Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="GRm" metaid="COPASI36" name="GRm" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(-) binary variable (1 - if mother cell growths)</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI36">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:33:32Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="GRd" metaid="COPASI37" name="GRd" value="0">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(-) binary variable (1 - if daughter cell growths)</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI37">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:34:55Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyVo" metaid="COPASI38" name="kSyVo" units="unit_2" value="0.042">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(molecule*min)) cell volume growth</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI38">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:35:46Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyTm" metaid="COPASI39" name="kSyTm" units="unit_3" value="2.1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) synthesis of transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI39">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:36:40Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAsGiTm" metaid="COPASI40" name="kAsGiTm" units="unit_2" value="10">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(molecule*min)) association of size-independent genes and transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI40">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:45:37Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAsGdTm" metaid="COPASI41" name="kAsGdTm" units="unit_2" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(molecule*min)) association of size-dependent genes and transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI41">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:46:08Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDsGiTm" metaid="COPASI42" name="kDsGiTm" units="unit_3" value="0.1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) dissociation of size-independent genes and transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI42">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:46:53Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDsGdTm" metaid="COPASI43" name="kDsGdTm" units="unit_3" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) dissociation of size-dependent genes and transcription machinery</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI43">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:47:21Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyCln3" metaid="COPASI44" name="kSyCln3" units="unit_4" value="1.5">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(molecule*min)) Cln3 synthesis</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI44">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:48:04Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDeCln3" metaid="COPASI45" name="kDeCln3" units="unit_3" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) Cln3 degradation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI45">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:49:03Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyCln" metaid="COPASI46" name="kSyCln" units="unit_4" value="8">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(molecule*min)) Cln1/2 synthesis</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI46">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:49:30Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDeCln" metaid="COPASI47" name="kDeCln" units="unit_3" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) constitutive Cln1/2 degradation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI47">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:49:56Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyClb" metaid="COPASI48" name="kSyClb" units="unit_4" value="0.01">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(molecule*min)) constitutive Clb1/2 synthesis</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI48">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:51:04Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyClbClb" metaid="COPASI49" name="kSyClbClb" units="unit_4" value="0.3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(molecule*min)) Clb1/2-dependent Clb1/2 synthesis</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI49">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:51:32Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="jSyClb" metaid="COPASI50" name="jSyClb" units="unit_1" value="0.3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/AV) Michaelis-Menten constant for Clb1/2 synthesis</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI50">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:52:05Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDeClb" metaid="COPASI51" name="kDeClb" units="unit_3" value="0.01">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) constitutive Clb1/2 degradation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI51">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:52:32Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDeClbCdh" metaid="COPASI52" name="kDeClbCdh" units="unit_5" value="2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min)) Cdh1-dependent Clb1/2 degradation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI52">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:53:01Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kSyWhi" metaid="COPASI53" name="kSyWhi" units="unit_4" value="0.02">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(molecule*min)) Whi5 synthesis</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI53">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:54:15Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kPhWhiCln3" metaid="COPASI54" name="kPhWhiCln3" units="unit_3" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) hypo-phosphorylation of Whi5 in Cln3:Whi5:SBF complexes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI54">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:54:46Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kPhWhiCln" metaid="COPASI55" name="kPhWhiCln" units="unit_5" value="100">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min))  Cln1/2-dependent phosphorylation of free Whi5</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI55">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:55:16Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDpWhi" metaid="COPASI56" name="kDpWhi" units="unit_3" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) dephosphorylation of Whi5</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI56">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:56:15Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAsWhiSbf" metaid="COPASI57" name="kAsWhiSbf" units="unit_5" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min)) association of Whi5 and SBF</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI57">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:56:40Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kPhSbfClb" metaid="COPASI58" name="kPhSbfClb" units="unit_5" value="5">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min)) Clb1/2-dependent SBF phosphorylation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI58">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:57:31Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDpSbf" metaid="COPASI59" name="kDpSbf" units="unit_3" value="0.2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) SBF dephosphorylation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI59">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:58:05Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAcCdh" metaid="COPASI60" name="kAcCdh" units="unit_6" value="0.01">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(AV*min)) constitutive Cdh1 activation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI60">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:59:06Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAcCdhCdc" metaid="COPASI61" name="kAcCdhCdc" units="unit_3" value="2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) Cdc20-dependent Cdh1 activation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI61">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T15:59:41Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kInCdhCln" metaid="COPASI62" name="kInCdhCln" units="unit_3" value="0.125">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) Cln1/2-dependent Cdh1 inactivation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI62">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:00:15Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kInCdhClb" metaid="COPASI63" name="kInCdhClb" units="unit_3" value="2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) Clb1/2-dependent Cdh1 inactivation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI63">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:00:51Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="jCdh" metaid="COPASI64" name="jCdh" units="unit_1" value="0.001">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/AV) Michaelis-Menten constant for Cdh1 (in-)activation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI64">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:08:53Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAcCdcClb" metaid="COPASI65" name="kAcCdcClb" units="unit_3" value="0.5">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) Clb1/2-dependent Cdc20 activation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI65">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:09:20Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kInCdc" metaid="COPASI66" name="kInCdc" units="unit_6" value="0.25">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/(AV*min)) Cdc20 inactivation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI66">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:09:52Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="jCdc" metaid="COPASI67" name="jCdc" units="unit_1" value="0.001">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU/AV) Michaelis-Menten constant for Cdc20 (in-)activation</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI67">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:10:41Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="GIt" metaid="COPASI68" name="GIt" units="unit_0" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(molecules) total number of size-independent genes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI68">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:14:22Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="kSySbf" metaid="COPASI69" name="kSySbf" units="unit_4" value="0.042">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>AU/(molecules*min) synthesis of SBF</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI69">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:05:36Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="kSyCdh" metaid="COPASI70" name="kSyCdh" units="unit_4" value="0.042">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>AU/(molecules*min) synthesis of Cdh1</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI70">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:16:50Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="kSyCdc" metaid="COPASI71" name="kSyCdc" units="unit_4" value="0.042">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>AU/(molecules*min) synthesis of Cdc20</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI71">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:17:24Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="rV" metaid="COPASI72" name="rV" value="0">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV) ratio of daughter to total cell volume</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI72">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T16:52:45Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="false" id="NSt" metaid="COPASI73" name="NSt" units="unit_7" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AU) total number of nuclear sites (each site is occupied by SBF)</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI73">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T15:48:45Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kPhWhipCln3" metaid="COPASI74" name="kPhWhipCln3" units="unit_5" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min)) Cln3-dependent hyper-phosphorylation of Whi5 in Whi5-P:SBF complexes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI74">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:08:57Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kPhWhipCln" metaid="COPASI75" name="kPhWhipCln" units="unit_5" value="3">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min)) Cln1/2-dependent hyper-phoshorylation of Whi5 in Whi5-P:SBF complexes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI75">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:11:23Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kAsCln3Whi" metaid="COPASI76" name="kAsCln3Whi" units="unit_5" value="100">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(AV/(AU*min)) association of Whi5 and Cln3</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI76">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:13:34Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+      <parameter constant="true" id="kDsCln3Whi" metaid="COPASI77" name="kDsCln3Whi" units="unit_3" value="0.1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>(1/min) dissociation of Cln3:Whi5 compelexes</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI77">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:14:46Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+            </parameter>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment symbol="WHISBF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 0.66 </cn>
+            <ci> NSt </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment symbol="SBFu">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <apply>
+                <divide/>
+                <ci> SBFt </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> SBFp </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment symbol="CLN3WHISBF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 0.17 </cn>
+            <ci> NSt </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment symbol="WHIpSBF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 0.17 </cn>
+            <ci> NSt </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment symbol="GIt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <ci> GWt </ci>
+        </math>
+            </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfRules>
+      <assignmentRule variable="CLN3t">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <ci> CLN3 </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> CLN3WHISBF </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="kSyCdc">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1 </cn>
+            <ci> kSyVo </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="kSyCdh">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1 </cn>
+            <ci> kSyVo </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="TMt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <ci> TM </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> GDTM </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> GITM </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="kSySbf">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <cn> 1 </cn>
+            <ci> kSyVo </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="WHIt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <ci> WHI </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> WHIp </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> CLN3WHISBF </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> WHISBF </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> WHIpSBF </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> WHIn </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="tV">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <plus/>
+            <ci> mV </ci>
+            <ci> dV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="GD">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <minus/>
+            <ci> GDt </ci>
+            <ci> GDTM </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="SBF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <divide/>
+                      <ci> NSt </ci>
+                      <ci> tV </ci>
+                    </apply>
+                    <apply>
+                      <divide/>
+                      <ci> WHISBF </ci>
+                      <ci> tV </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <ci> CLN3WHISBF </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> WHIpSBF </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+              <cn type="e-notation">1 <sep/> -12 </cn>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="SBFt">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <plus/>
+              <apply>
+                <divide/>
+                <ci> SBF </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> WHISBF </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> CLN3WHISBF </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> WHIpSBF </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="active_SBF">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <apply>
+              <divide/>
+              <ci> SBF </ci>
+              <ci> tV </ci>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <divide/>
+                <ci> SBFu </ci>
+                <ci> tV </ci>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> SBFt </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="GI">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <minus/>
+            <ci> GIt </ci>
+            <ci> GITM </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <assignmentRule variable="rV">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <ci> dV </ci>
+            <ci> tV </ci>
+          </apply>
+        </math>
+            </assignmentRule>
+      <rateRule variable="mV">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> GRm </ci>
+            <ci> kSyVo </ci>
+            <ci> GDTM </ci>
+            <apply>
+              <divide/>
+              <ci> GCN </ci>
+              <ci> GDt </ci>
+            </apply>
+          </apply>
+        </math>
+            </rateRule>
+      <rateRule variable="dV">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> GRd </ci>
+            <ci> kSyVo </ci>
+            <ci> GDTM </ci>
+            <apply>
+              <divide/>
+              <ci> GCN </ci>
+              <ci> GDt </ci>
+            </apply>
+          </apply>
+        </math>
+            </rateRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="Synthesis_of_transcription_machninery" metaid="COPASI80" name="Synthesis of transcription machninery" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI80">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T16:54:44Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="TM" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="GDTM"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> Expression_of_size_dependent_gene </ci>
+                <ci> kSyTm </ci>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Association_dissociation_of_TM_and_size_independent_genes" metaid="COPASI81" name="Association/dissociation of TM and size-independent genes" reversible="true">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI81">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-12T17:30:30Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="TM" stoichiometry="1"/>
+          <speciesReference species="GI" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="GITM" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kAsGiTm </ci>
+                  <apply>
+                    <divide/>
+                    <ci> TM </ci>
+                    <ci> tV </ci>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <ci> GI </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kDsGiTm </ci>
+                  <apply>
+                    <divide/>
+                    <ci> GITM </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Association_dissociation_of_TM_and_size_dependent_genes" metaid="COPASI82" name="Association/dissociation of TM and size-dependent genes" reversible="true">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI82">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:28:06Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="TM" stoichiometry="1"/>
+          <speciesReference species="GD" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="GDTM" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kAsGdTm </ci>
+                  <apply>
+                    <divide/>
+                    <ci> TM </ci>
+                    <ci> tV </ci>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <ci> GD </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kDsGdTm </ci>
+                  <apply>
+                    <divide/>
+                    <ci> GDTM </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Synthesis_of_Cln3" metaid="COPASI83" name="Synthesis of Cln3" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI83">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:41:20Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="CLN3" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="GDTM"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> Expression_of_size_dependent_gene </ci>
+                <ci> kSyCln3 </ci>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GCt </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Degradation_of_Cln3" metaid="COPASI84" name="Degradation of Cln3" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI84">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T15:44:46Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CLN3" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kDeCln3 </ci>
+              <ci> CLN3 </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Phosphorylation_of_SBF" metaid="COPASI85" name="Phosphorylation of SBF" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI85">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:31:42Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="SBFu" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="SBFp" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CLB"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rPhSbf </ci>
+                <ci> kPhSbfClb </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> SBFu </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Dephosphorylation_of_SBF" metaid="COPASI86" name="Dephosphorylation of SBF" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI86">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:32:25Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="SBFp" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="SBFu" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kDpSbf </ci>
+              <ci> SBFp </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Synthesis_of_Cln1_2" metaid="COPASI87" name="Synthesis of Cln1/2" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI87">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:34:20Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="CLN" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="GDTM"/>
+          <modifierSpeciesReference species="SBF"/>
+          <modifierSpeciesReference species="SBFt"/>
+          <modifierSpeciesReference species="SBFu"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rSyCln </ci>
+                <ci> kSyCln </ci>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+                <apply>
+                  <divide/>
+                  <ci> SBF </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> SBFt </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> SBFu </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Degradation_of_Cln1_2" metaid="COPASI88" name="Degradation of Cln1/2" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI88">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T16:38:15Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CLN" stoichiometry="1"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kDeCln </ci>
+              <ci> CLN </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Synthesis_of_Cdh1" metaid="COPASI89" name="Synthesis of Cdh1" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI89">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:18:13Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="CDHi" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="GDTM"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> Expression_of_size_dependent_gene </ci>
+                <ci> kSyCdh </ci>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Synthesis_of_Cdc20" metaid="COPASI90" name="Synthesis of Cdc20" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI90">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:19:47Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="CDCi" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="GDTM"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> Expression_of_size_dependent_gene </ci>
+                <ci> kSyCdc </ci>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Activation_of_APC_Cdc20" metaid="COPASI91" name="Activation of APC^Cdc20" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI91">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:24:54Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CDCi" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CDCa" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CLB"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rAcCdc </ci>
+                <ci> kAcCdcClb </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> CDCi </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> jCdc </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Inactivation_of_APC_C_Cdc20" metaid="COPASI92" name="Inactivation of APC/C^Cdc20" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI92">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:28:51Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CDCa" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CDCi" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rInCdc </ci>
+                <ci> kInCdc </ci>
+                <apply>
+                  <divide/>
+                  <ci> CDCa </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> jCdc </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Activation_of_APC_C_Cdh1" metaid="COPASI93" name="Activation of APC/C^Cdh1" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI93">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:33:27Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CDHi" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CDHa" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CDCa"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rAcCdh </ci>
+                <ci> kAcCdh </ci>
+                <ci> kAcCdhCdc </ci>
+                <apply>
+                  <divide/>
+                  <ci> CDCa </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> CDHi </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> jCdh </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Inactivation_of_APC_C_Cdh1" metaid="COPASI94" name="Inactivation of APC/C^Cdh1" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI94">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:35:49Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CDHa" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CDHi" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CLN"/>
+          <modifierSpeciesReference species="CLB"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rInCdh </ci>
+                <ci> kInCdhCln </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLN </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> kInCdhClb </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> CDHa </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> jCdh </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Synthesis_of_Clb1_2" metaid="COPASI95" name="Synthesis of Clb1/2" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI95">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:45:18Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="CLB" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CLB"/>
+          <modifierSpeciesReference species="GDTM"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rSyClb </ci>
+                <ci> kSyClb </ci>
+                <ci> kSyClbClb </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> jSyClb </ci>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GCN </ci>
+                <ci> GDt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Degradation_of_Clb1_2" metaid="COPASI96" name="Degradation of Clb1/2" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI96">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-14T17:48:17Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CLB" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CDHa"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rDeClb </ci>
+                <ci> kDeClb </ci>
+                <ci> kDeClbCdh </ci>
+                <apply>
+                  <divide/>
+                  <ci> CDHa </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Synthesis_of_Whi5" metaid="COPASI97" name="Synthesis of Whi5" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI97">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T14:01:39Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfProducts>
+          <speciesReference species="WHIn" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="GITM"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rSyWhi </ci>
+                <ci> GRd </ci>
+                <ci> kSyWhi </ci>
+                <apply>
+                  <divide/>
+                  <ci> GITM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> GWt </ci>
+                <ci> GIt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Association_dissociation_of_Cln3_and_Whi5_SBF" metaid="COPASI98" name="Association/dissociation of Cln3 and Whi5:SBF" reversible="true">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI98">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:40:55Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CLN3" stoichiometry="1"/>
+          <speciesReference species="WHISBF" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CLN3WHISBF" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kAsCln3Whi </ci>
+                  <apply>
+                    <divide/>
+                    <ci> CLN3 </ci>
+                    <ci> tV </ci>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <ci> WHISBF </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kDsCln3Whi </ci>
+                  <apply>
+                    <divide/>
+                    <ci> CLN3WHISBF </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Association_of_Whi5_and_SBF" metaid="COPASI99" name="Association of Whi5 and SBF" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI99">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:42:42Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="WHI" stoichiometry="1"/>
+          <speciesReference species="SBF" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="WHISBF" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kAsWhiSbf </ci>
+              <ci> WHI </ci>
+              <apply>
+                <divide/>
+                <ci> SBF </ci>
+                <ci> tV </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Phosphorylation_of_free_Whi5" metaid="COPASI100" name="Phosphorylation of free Whi5" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI100">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:46:33Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="WHI" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="WHIp" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CLN"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rPhWhi </ci>
+                <ci> kPhWhiCln </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLN </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> WHI </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Dephosphorylation_of_free_Whi5" metaid="COPASI101" name="Dephosphorylation of free Whi5" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI101">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:48:28Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="WHIp" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="WHI" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kDpWhi </ci>
+              <ci> WHIp </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Phosphorylation_of_Whi5_in_Cln3_Whi5_SBF_complexes" metaid="COPASI102" name="Phosphorylation of Whi5 in Cln3:Whi5:SBF complexes" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI102">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:49:57Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CLN3WHISBF" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CLN3" stoichiometry="1"/>
+          <speciesReference species="WHIpSBF" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kPhWhiCln3 </ci>
+              <ci> CLN3WHISBF </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Degradation_of_Cln3_in_Cln3_Whi5_SBF_complexes" metaid="COPASI103" name="Degradation of Cln3 in Cln3:Whi5:SBF complexes" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI103">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:52:25Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="CLN3WHISBF" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="WHISBF" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kDeCln3 </ci>
+              <ci> CLN3WHISBF </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Dephosphorylation_of_hypo_phosphorylated_Whi5_in_Whi5_SBF_complexes" metaid="COPASI104" name="Dephosphorylation of hypo-phosphorylated Whi5 in Whi5:SBF complexes" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI104">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:53:53Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="WHIpSBF" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="WHISBF" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kDpWhi </ci>
+              <ci> WHIpSBF </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="Hyper_phosphorylation_of_Whi5_in_hypo_phosphorylated_Whi5_SBF_complexes" metaid="COPASI105" name="Hyper-phosphorylation of Whi5 in hypo-phosphorylated Whi5:SBF complexes" reversible="false">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI105">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-16T16:56:00Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <listOfReactants>
+          <speciesReference species="WHIpSBF" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="SBF" stoichiometry="1"/>
+          <speciesReference species="WHIp" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="CLN3"/>
+          <modifierSpeciesReference species="CLN"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> tV </ci>
+              <apply>
+                <ci> rPhWhip </ci>
+                <ci> kPhWhipCln3 </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLN3 </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> kPhWhipCln </ci>
+                <apply>
+                  <divide/>
+                  <ci> CLN </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> WHIpSBF </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <listOfEvents>
+      <event id="Start" metaid="COPASI78" name="Start">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>Start transition is triggered when Cdk reaches a threshold, which initiats genome replication and bud growth.</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI78">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T14:40:38Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <trigger>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <geq/>
+              <apply>
+                <divide/>
+                <ci> CLN </ci>
+                <ci> tV </ci>
+              </apply>
+              <ci> StartThr </ci>
+            </apply>
+          </math>
+                </trigger>
+        <listOfEventAssignments>
+          <eventAssignment variable="GRm">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn> 0 </cn>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GRd">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn> 1 </cn>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GCN">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <ci> GCN </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GCt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <ci> GCt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GWt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <ci> GWt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GIt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <ci> GIt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GDt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <ci> GDt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="NSt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <ci> NSt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="SBFp">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> SBFp </ci>
+                  <ci> tV </ci>
+                </apply>
+                <cn> 2 </cn>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="SBFu">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> SBFu </ci>
+                  <ci> tV </ci>
+                </apply>
+                <cn> 2 </cn>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+      <event id="Division" metaid="COPASI79" name="Division">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <pre>Cell division is triggered when Cdk activity (combined Cln1/2 and Clb1/2 activity) drops below a thresholds that maintains the mitotic state.</pre>
+          </body>
+        </notes>
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI79">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2018-03-15T15:00:37Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+              <trigger>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <leq/>
+              <apply>
+                <plus/>
+                <apply>
+                  <divide/>
+                  <ci> CLN </ci>
+                  <ci> tV </ci>
+                </apply>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+              </apply>
+              <ci> MitosisThr </ci>
+            </apply>
+          </math>
+                </trigger>
+        <listOfEventAssignments>
+          <eventAssignment variable="GRm">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn> 1 </cn>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GRd">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn> 0 </cn>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GCN">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <divide/>
+                <ci> GCN </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GCt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <divide/>
+                <ci> GCt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GWt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <divide/>
+                <ci> GWt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="mV">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <ci> dV </ci>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CLN">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CLN </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CLB">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CLB </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CLN3">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CLN3 </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="dV">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <cn> 0 </cn>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GDTM">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> GDTM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GDt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <divide/>
+                <ci> GDt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GITM">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> GITM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="GIt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <divide/>
+                <ci> GIt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="TM">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> TM </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="WHI">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <plus/>
+                  <apply>
+                    <times/>
+                    <apply>
+                      <divide/>
+                      <ci> WHI </ci>
+                      <ci> tV </ci>
+                    </apply>
+                    <ci> rV </ci>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <ci> WHIn </ci>
+                    <ci> tV </ci>
+                  </apply>
+                </apply>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="WHIp">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> WHIp </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="WHISBF">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> WHISBF </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="WHIn">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <cn> 0 </cn>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="SBFp">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <divide/>
+                    <ci> SBFp </ci>
+                    <ci> tV </ci>
+                  </apply>
+                  <cn> 2 </cn>
+                </apply>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="SBFu">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <divide/>
+                    <ci> SBFu </ci>
+                    <ci> tV </ci>
+                  </apply>
+                  <cn> 2 </cn>
+                </apply>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CDCa">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CDCa </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CDCi">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CDCi </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CDHa">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CDHa </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CDHi">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CDHi </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="NSt">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <divide/>
+                <ci> NSt </ci>
+                <cn> 2 </cn>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="CLN3WHISBF">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> CLN3WHISBF </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+          <eventAssignment variable="WHIpSBF">
+            <math xmlns="http://www.w3.org/1998/Math/MathML">            
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> WHIpSBF </ci>
+                  <ci> tV </ci>
+                </apply>
+                <ci> rV </ci>
+                <ci> tV </ci>
+              </apply>
+            </math>
+                    </eventAssignment>
+        </listOfEventAssignments>
+      </event>
+    </listOfEvents>
+  </model>
+</sbml>

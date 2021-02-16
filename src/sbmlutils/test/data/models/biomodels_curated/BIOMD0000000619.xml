@@ -1,0 +1,1368 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" metaid="c67e6fe0-8c83-40a9-a85f-76f619b9950c" version="4">
+  <model id="MODEL1509230010" metaid="_Sluka0000" name="Sluka2016  - Acetaminophen PBPK" sboTerm="SBO:0000167">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>Basic PBPK (Physiologically Based PharmacoKinetic) model of Acetaminophen.</h1>
+            <p>This is a basic model of Acetaminophen (APAP, Paracetamol) pharmacokinetics in humans. Many of the model parameters 
+            (compartment volumes, volumetric flow rates, etc.) are scaled allometrically based on the body weight (BW) raised to the
+			3/4 power. Because of that, the assigned values of many of the parameters are recalculated at run time and are different 
+			than the default values for the particular entity (e.g., the volume of a compartment and the volumetric flow rate between compartments).</p>
+            <p>APAP dose is initially given in grams (APAP_Dose_gram), which is converted to moles via the APAP molecular weight (APAP_MW).
+			APAP quantities throughout the rest of the models are given in moles.</p>
+            <p>The base parameters are for a 70Kg human and a pharmacological oral dose of 1.4 gram of APAP. Metabolism is modelled as a single ODE in the liver compartment and the metabolite does not leave that compartment.</p>
+            <p>This model is loosely based on the model of Wambaugh and Shaw (PLoS Comput Biol. 2010 Apr 22;6(4):e1000756. doi: 10.1371/journal.pcbi.1000756. Pubmed ID: PMID- 20421935) with the following changes:</p>
+            <ol>      <li>The lung lumen compartment was omitted.</li>
+                <li>A kidney compartment was added.</li>
+                <li>Glomerular Filtration is from the kidney compartment.</li>
+                <li>The APAP dose was changed to 1.4g.</li>
+                <li>The gut adsorption rate constant (KGutabs),  tissue partition coefficients and liver metabolism rate constant (CLmetabolism) were fit using the human        <i>in vivo</i>
+            data of Critchley (Critchley, J. A., Critchley, L. A. H., Anderson, P. J., and Tomlinson, B. 2005  Journal of clinical pharmacy and therapeutics, 30(2), 179-184).        </li>
+                <li>        <b>To model the extensive re-adsorption of APAP from the kidney tubules back into the blood the QGfr value is modified. This was done by 
+				changing the scaling parameter QGFR_ref value from 0.31 to 0.039, resulting in a decrease in the QGfr value of 8 fold (from 7.2 L/hr to 0.91 L/hr).</b>
+                    </li>
+                </ol>
+            <p>The parameters in this file are the      <b>REFSIM</b>
+          parameters from our publication.      </p>
+            </body>
+      
+    </notes>
+    <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#_Sluka0000">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Chelliah</vCard:Family>
+	<vCard:Given>Vijayalakshmi</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>viji@ebi.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Sluka</vCard:Family>
+	<vCard:Given>James</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>JSluka@indiana.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>Indiana University</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Fu</vCard:Family>
+	<vCard:Given>Xiao</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>fuxiao@umail.iu.edu</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>Indiana University</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2015-02-04T11:47:58Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2017-05-23T10:32:07Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL1509230010"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000619"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/27636091"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqmodel:isDerivedFrom>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/20421935"/>
+	</rdf:Bag>
+	</bqmodel:isDerivedFrom>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0042910"/>
+	<rdf:li rdf:resource="http://identifiers.org/go/GO:0017144"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/9606"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	<bqbiol:hasProperty>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/mamo/MAMO_0000203"/>
+	</rdf:Bag>
+	</bqbiol:hasProperty>
+	</rdf:Description>
+	
+	
+	
+	</rdf:RDF>
+	</annotation>
+      <listOfUnitDefinitions>
+      <unitDefinition id="time" metaid="a39afea2-bc11-4099-b184-59a541dd239e" name="hour">
+        <listOfUnits>
+          <unit kind="second" metaid="_84763089-051b-4b08-879d-49d18e149073" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="first_order_rate_constant" metaid="_8978a697-2334-4f0a-a7e0-ced09539242d" name="first_order_rate_constant">
+        <listOfUnits>
+          <unit exponent="-1" kind="second" metaid="_46c09596-a08f-4d7e-80da-b56aac2b066c" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="Volumetric_Flow" metaid="_7d6232bd-6915-4fe3-993d-be552a5829f4" name="Volumetric_Flow">
+        <listOfUnits>
+          <unit kind="litre" metaid="_5c23ea8f-a30c-4b0f-9892-a21f3562a1c1"/>
+          <unit exponent="-1" kind="second" metaid="a36fb4d5-3d04-4a38-ba8c-ebd14bdc748a" multiplier="3600"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="volume" metaid="ff5f8d83-88e1-4852-9044-44081f09c4df" name="litre">
+        <listOfUnits>
+          <unit exponent="1" kind="litre" metaid="_9e9d6a71-9c01-46c7-b7c8-3134e17ebb5f" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="substance" metaid="_86117411-52e3-432f-a962-4aeb22602b84" name="mole">
+        <listOfUnits>
+          <unit exponent="1" kind="mole" metaid="_87cd2160-6057-4a00-859a-313af79fca94"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="grams2mol" metaid="b02251d1-de38-4130-8740-4772259178b2" name="grams2mol">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Units of molecular weight: grams/mole</p>
+                    </body>
+          
+        </notes>
+        <listOfUnits>
+          <unit exponent="1" kind="gram" metaid="d19cbd99-94f7-466b-b3fd-73e71a4db75c"/>
+          <unit exponent="-1" kind="mole" metaid="fcfa1f3a-bebf-4199-8d6d-aeb3fd3c8c36"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="BW_ref" metaid="aeae1f60-930c-468f-9d97-c0e24034f7d9" name="BW_ref">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Reference body weight (Kg) for allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <listOfUnits>
+          <unit exponent="1" kind="kilogram" metaid="_46fb9e92-7d58-480d-bd59-aa228bd5fc77"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartmentTypes>
+      <compartmentType id="ORGAN" metaid="_Sluka0401" sboTerm="SBO:0000290">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Compartments such as the liver, lungs, kidneys, ...</p>
+                    </body>
+          
+        </notes>
+      </compartmentType>
+      <compartmentType id="CIRCULATORY" metaid="_Sluka0402" sboTerm="SBO:0000290">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood only compartments such as the arteries and veins.</p>
+                    </body>
+          
+        </notes>
+      </compartmentType>
+      <compartmentType id="LUMEN" metaid="_Sluka0403" sboTerm="SBO:0000290">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Lumen compartments such as in the lungs, gut and kidney.</p>
+                    </body>
+          
+        </notes>
+      </compartmentType>
+    </listOfCompartmentTypes>
+    <listOfSpeciesTypes>
+      <speciesType id="APAP" metaid="_Sluka0100" sboTerm="SBO:0000247">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Acetaminophen in all locations.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#_Sluka0100">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/chebi/CHEBI:46195"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+	
+	
+	
+	</rdf:RDF>
+	</annotation>
+            </speciesType>
+      <speciesType id="METAB" metaid="_Sluka0101" sboTerm="SBO:0000247">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>All metabolites of APAP in all locations.</p>
+                    </body>
+          
+        </notes>
+      </speciesType>
+    </listOfSpeciesTypes>
+    <listOfCompartments>
+      <compartment compartmentType="CIRCULATORY" constant="true" id="VArt" metaid="_Sluka0001" name="VArt" sboTerm="SBO:0000290" size="1.4994" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Volume of the arterial blood. Note that this value is modified by allometric scaling in an initial 
+				assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="ORGAN" constant="true" id="VGut" metaid="_Sluka0002" name="VGut" sboTerm="SBO:0000290" size="1.1046" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Perfusable volume of the Gut (small intestine). 
+				The compartment volume is allometrically scaled and is assigned in an initialAssignment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="LUMEN" constant="true" id="VGutLumen" metaid="_Sluka0003" name="VGutLumen" outside="VGut" sboTerm="SBO:0000290" size="1" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Lumen of the Gut. Note that the volume is arbitrary.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="ORGAN" constant="true" id="VLung" metaid="_Sluka0004" name="VLung" sboTerm="SBO:0000290" size="0.5082" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Perfusable volume of the Lungs.
+				The compartment volume is allometrically scaled and is assigned in an initialAssignment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="CIRCULATORY" constant="true" id="VVen" metaid="_Sluka0005" name="VVen" sboTerm="SBO:0000290" size="3.4104" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Volume of the venous blood.
+				The compartment volume is allometrically scaled and is assigned in an initialAssignment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="ORGAN" constant="true" id="VRest" metaid="_Sluka0006" name="VRest" sboTerm="SBO:0000290" size="33.4698" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Perfusable volume of the Rest of the body, that is, all tissues and blood volumes not 
+				explicitly described by other compartments.
+				The compartment volume is allometrically scaled and is assigned in an initialAssignment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="ORGAN" constant="true" id="VLiver" metaid="_Sluka0007" name="VLiver" sboTerm="SBO:0000290" size="1.7136" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Perfusable volume of the Liver.
+				The compartment volume is allometrically scaled and is assigned in an initialAssignment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="ORGAN" constant="true" id="VKidney" metaid="_Sluka0008" name="VKidney" sboTerm="SBO:0000290" size="0.294" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Perfusable volume of the Kidney.
+		        The compartment volume is allometrically scaled and is assigned in an initialAssignment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+      <compartment compartmentType="LUMEN" constant="true" id="VKidneyTubules" metaid="_Sluka0208" name="VKidneyTubules" outside="VKidney" sboTerm="SBO:0000290" size="1" spatialDimensions="3" units="volume">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Kidney (renal) Tubules (lumen). This, like the gut lumen, is treated as a volumeless compartment.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species boundaryCondition="false" compartment="VArt" constant="false" hasOnlySubstanceUnits="true" id="CArt" initialAmount="0" metaid="_Sluka0009" name="CArt" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the arteries of the gut in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VGut" constant="false" hasOnlySubstanceUnits="true" id="CGut" initialAmount="0" metaid="_Sluka0010" name="CGut" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the gut (small intestine) blood in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VGutLumen" constant="false" hasOnlySubstanceUnits="true" id="AGutlumen" initialAmount="0.0093" metaid="_Sluka0011" name="AGutlumen" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the lumen of the gut in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VLung" constant="false" hasOnlySubstanceUnits="true" id="CLung" initialAmount="0" metaid="_Sluka0012" name="CLung" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the lung blood in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VVen" constant="false" hasOnlySubstanceUnits="true" id="CVen" initialAmount="0" metaid="_Sluka0013" name="CVen" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the venous blood in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VRest" constant="false" hasOnlySubstanceUnits="true" id="CRest" initialAmount="0" metaid="_Sluka0014" name="CRest" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the "rest of the body" in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VLiver" constant="false" hasOnlySubstanceUnits="true" id="CLiver" initialAmount="0" metaid="_Sluka0015" name="CLiver" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the liver blood in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VLiver" constant="false" hasOnlySubstanceUnits="true" id="CMetabolized" initialAmount="0" metaid="_Sluka0016" name="CMetabolized" sboTerm="SBO:0000247" speciesType="METAB" substanceUnits="substance">
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VKidney" constant="false" hasOnlySubstanceUnits="true" id="CKidney" initialAmount="0" metaid="_Sluka0017" name="CKidney" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the kidney blood in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+      <species boundaryCondition="false" compartment="VKidneyTubules" constant="false" hasOnlySubstanceUnits="true" id="CTubules" initialAmount="0" metaid="_Sluka0018" name="CTubules" sboTerm="SBO:0000247" speciesType="APAP" substanceUnits="substance">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Amount of APAP in the Kidney Tubules in moles.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter constant="true" id="APAP_Dose_grams" metaid="_4d72c947-dc0d-4557-ab4f-542a7d0745d9" name="APAP_Dose_grams" sboTerm="SBO:0000504" units="gram" value="1.4">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>APAP dose in grams.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="APAP_MW" metaid="_Sluka0039" name="APAP_MW" sboTerm="SBO:0000002" units="grams2mol" value="151.2">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Acetaminophen molecular weight in grams/mole.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="APAP_Dose" metaid="_Sluka0040" name="APAP_Dose" sboTerm="SBO:0000002" units="substance" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Acetaminophen dose in moles.  = APAP_Dose_grams/APAP_MW. Note that this value is assigned by an initial assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="BW" metaid="_Sluka0041" name="BW" sboTerm="SBO:0000002" units="kilogram" value="70">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Body weight, in Kg. This value, raised to the 3/4 power, is used in the allometric scaling equations</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </parameter>
+      <parameter constant="true" id="BW_ref" metaid="_0e4ee21f-de1b-45f5-bf7b-cd4bf122ecd3" name="BW_ref" sboTerm="SBO:0000381" units="BW_ref" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>De-dimensionalization factor for the allometric scaling. Removes the non-integer exponent of the BW^(3/4) scaling factor in the allometric equations.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="Cardiac_flow_ref" metaid="c99b2944-033f-4160-96f8-2ddaad309c4a" name="Cardiac_flow_ref" sboTerm="SBO:0000380" units="Volumetric_Flow" value="15">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Total cardiac output reference value for individual of BW=BW_ref (70Kg) for allometric scaling. In Litres/hour.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="QCardiac" metaid="_Sluka0022" name="QCardiac" sboTerm="SBO:0000016" units="Volumetric_Flow" value="363">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Cardiac blood flow in Litres/hr. (aka arterial blood flow or QArt).
+Note that this value is modified by allometric scaling in an 
+				initial assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </parameter>
+      <parameter id="QGut_fraction_QCardiac" metaid="_6fe578ca-faa4-496a-9c77-7848792830c8" name="QGut_fraction_QCardiac" sboTerm="SBO:0000380" units="dimensionless" value="0.205">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of cardiac output (QCardiac) that flows through the Gut (QGut).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="QGut" metaid="_Sluka0019" name="QGut" sboTerm="SBO:0000016" units="Volumetric_Flow" value="74.42">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Volumetric blood flow through the gut in Litres/hour. Note that this value is modified by allometric scaling in 
+				an initial assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="QLiver_fraction_QCardiac" metaid="_9a2d20d3-2d96-4720-a7bd-fb3570d7d57e" name="QLiver_fraction_QCardiac" sboTerm="SBO:0000380" units="dimensionless" value="0.0535">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of cardiac output (QCardiac) that flows through the Liver (QLiver).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="QLiver" metaid="_Sluka0030" name="QLiver" sboTerm="SBO:0000016" units="Volumetric_Flow" value="19.42">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Perfusable volume of the Liver in Litres/hr. Note that this value is modified by allometric scaling in an initial 
+assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="QKidney_fraction_QCardiac" metaid="_2f0d6351-6a9e-4dc2-b1e7-e2cf830dea70" name="QKidney_fraction_QCardiac" sboTerm="SBO:0000380" units="dimensionless" value="0.2214">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of cardiac output (QCardiac) that flows through the Kidney (QKidney).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="QKidney" metaid="_Sluka0035" name="QKidney" sboTerm="SBO:0000016" units="Volumetric_Flow" value="80.37">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Kidney blood flow in Litres/hr. Note that this value is modified by allometric scaling 
+				in an initial assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="QRest" metaid="_Sluka0025" name="QRest" sboTerm="SBO:0000016" units="Volumetric_Flow" value="188.8">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood throw through all other tissues, Litres/hour.  Note that this value is modified by allometric scaling in an 
+				initial assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="QGFR_ref" metaid="d2e1b1e1-958e-46da-9fd8-861e53cb67fd" name="QGFR_ref" sboTerm="SBO:0000380" units="Volumetric_Flow" value="0.039">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Qgfr coefficient for allometric scaling.</p>
+                    <p>          <b>NOTE:
+      The normal value for this parameter is 21.7L/hr.</b>
+              The value shown here reflects the extensive re-adsorption of APAP from the kidney tubules back into the blood.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="Qgfr" metaid="_Sluka0036" name="Qgfr" sboTerm="SBO:0000016" units="Volumetric_Flow" value="0.9438">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Granulocyte filtration rate in Litres/hour. Note that this value is modified by allometric scaling in 
+				an initial assignment or rule equation. In addition, this vlue is greatly reduced to simulate resorption of APAP from the tubules in the kidney.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </parameter>
+      <parameter constant="true" id="kGutabs" metaid="_Sluka0021" name="kGutabs" sboTerm="SBO:0000016" units="first_order_rate_constant" value="1.5"/>
+      <parameter constant="true" id="CLmetabolism" metaid="_Sluka0031" name="CLmetabolism" sboTerm="SBO:0000016" units="first_order_rate_constant" value="9.5">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Rate of metabolism of APAP in the liver. This single kinetic constant represents both Phase I (e.g., Cyp-2E1) and Phase II (glucurondiation and sulfation) metabolism.</p>
+                    </body>
+          
+        </notes>
+        <annotation>
+	</annotation>
+            </parameter>
+      <parameter constant="true" id="Fraction_unbound_plasma" metaid="_Sluka0028" name="Fraction_unbound_plasma" sboTerm="SBO:0000470" units="dimensionless" value="0.8">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Fraction of compound in plasma that is not bound by plasma proteins.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="Ratioblood2plasma" metaid="_Sluka0026" name="Ratioblood2plasma" sboTerm="SBO:0000470" units="dimensionless" value="1.09">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Ratio of the compound amount in (total) blood vs. plasma.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="Kliver2plasma" metaid="_Sluka0032" name="Kliver2plasma" sboTerm="SBO:0000281" units="dimensionless" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Partition coefficient for compound between the Liver and the blood plasma.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="Kkidney2plasma" metaid="_Sluka0037" name="Kkidney2plasma" sboTerm="SBO:0000281" units="dimensionless" value="1">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Partition coefficient for compound between the Kidney and the blood plasma.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="KRest2plasma" metaid="_Sluka0027" name="KRest2plasma" sboTerm="SBO:0000281" units="dimensionless" value="1.6">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Partition coefficient for compound between the Rest (of body) and the blood plasma.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="true" id="VTotal_ref" metaid="_87a706ef-f1ea-4eb5-bd5a-0b8825495dd6" name="VTotal_ref" sboTerm="SBO:0000380" units="volume" value="0.6">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Total perfusable volume of the body coefficient for allometric scaling. This is the lean fraction of Body Weight.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter constant="false" id="VTotal" metaid="_Sluka0042" name="VTotal" sboTerm="SBO:0000468" units="volume" value="42">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Total perfusable volume of the body in Litres. Note that this value is modified by allometric scaling in an initial assignment or rule equation.</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="VLiver_fraction_VTotal" metaid="_5283340a-3f7d-40b9-adc9-788546db0cac" name="VLiver_fraction_VTotal" sboTerm="SBO:0000380" units="dimensionless" value="0.0408">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of total perfusable volume of the body (VTotal) represented by the Liver  (VLiver).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="VArt_fraction_VTotal" metaid="b56c2f24-4e12-4944-b768-9552d15b8bf6" name="VArt_fraction_VTotal" sboTerm="SBO:0000380" units="dimensionless" value="0.0357">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of cardiac output (QCardiac) that flows through the Arteries (QArt).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="VLung_fraction_VTotal" metaid="acb9c91f-7518-44a1-9555-f72c89184d29" name="VLung_fraction_VTotal" sboTerm="SBO:0000380" units="dimensionless" value="0.0121">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of total perfusable volume of the body (VTotal) represented by the Lungs (VLung).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="VVen_fraction_VTotal" metaid="_4f8549f7-1d1d-4047-91c2-6e3ce324576d" name="VVen_fraction_VTotal" sboTerm="SBO:0000380" units="dimensionless" value="0.0812">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of total perfusable volume of the body (VTotal) represented by the Veins (VVen).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="VGut_fraction_VTotal" metaid="a2571ef7-3a0c-413c-a255-9b252ddd0f3d" name="VGut_fraction_VTotal" sboTerm="SBO:0000380" units="dimensionless" value="0.0263">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of total perfusable volume of the body (VTotal) represented by the Gut/stomach/small intestine (VGut).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+      <parameter id="VKidney_fraction_VTotal" metaid="adaf453a-6416-4241-b2de-73f2e1ee71fc" name="VKidney_fraction_VTotal" sboTerm="SBO:0000380" units="dimensionless" value="0.007">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric scaling coefficient for fraction of total perfusable volume of the body (VTotal) represented by the Kidneys (VKidney).</p>
+                    </body>
+          
+        </notes>
+      </parameter>
+    </listOfParameters>
+    <listOfInitialAssignments>
+      <initialAssignment metaid="_2dca2124-6aac-4a9b-b2fa-8f1a232e7427" sboTerm="SBO:0000064" symbol="VArt">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Arterial (Art) compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal </ci>
+            <ci> VArt_fraction_VTotal </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="f9cc931e-3865-410e-b3d1-e83fa81d43f8" sboTerm="SBO:0000064" symbol="VGut">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Gut compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal </ci>
+            <ci> VGut_fraction_VTotal </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="cf2ac2fa-881d-4dc4-bc96-58f52d3ebdd8" sboTerm="SBO:0000064" symbol="VLung">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Lung compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal </ci>
+            <ci> VLung_fraction_VTotal </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_62994f33-ccb7-422c-b3be-676ed3a09ec3" sboTerm="SBO:0000064" symbol="VVen">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Venous (Ven) compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal </ci>
+            <ci> VVen_fraction_VTotal </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="de5ea7ea-1072-48e3-aae4-66b2b0fd5f34" sboTerm="SBO:0000064" symbol="VLiver">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Liver compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal </ci>
+            <ci> VLiver_fraction_VTotal </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_8f27004d-54d1-4e4a-9349-898fd8938629" sboTerm="SBO:0000064" symbol="VKidney">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Kidney compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal </ci>
+            <ci> VKidney_fraction_VTotal </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_8d0e0a37-a0ad-4467-b456-39bfd8377d3f" sboTerm="SBO:0000064" symbol="VRest">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Assignment of the perfusable volume (L) of the Rest (of the body) compartment after allometric scaling.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <minus/>
+                    <apply>
+                      <minus/>
+                      <ci> VTotal </ci>
+                      <ci> VArt </ci>
+                    </apply>
+                    <ci> VGut </ci>
+                  </apply>
+                  <ci> VKidney </ci>
+                </apply>
+                <ci> VLiver </ci>
+              </apply>
+              <ci> VLung </ci>
+            </apply>
+            <ci> VVen </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_0c460a20-17e9-474c-bb45-ce5fea278500" sboTerm="SBO:0000064" symbol="APAP_Dose">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Calculate APAP dose in moles based on the dose in grams (APAP_Dose_grams) and APAP moleuclar weight (APAP_MW).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <divide/>
+            <ci> APAP_Dose_grams </ci>
+            <ci> APAP_MW </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="dcbfae70-b16b-4ff0-b2b3-6f4a8a5021bb" sboTerm="SBO:0000064" symbol="AGutlumen">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Starting compartment for the APAP dose (moles) is the lumen of the gut/stomach/small intestine.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <ci> APAP_Dose </ci>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_38732f83-f67b-47ac-9b44-4766dee8d5ed" sboTerm="SBO:0000064" symbol="QCardiac">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the total cardiac output inL/hour (QCardiac) based on the body weight ( (BW/BW_ref)^(3/4) ).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> Cardiac_flow_ref </ci>
+            <apply>
+              <power/>
+              <apply>
+                <divide/>
+                <ci> BW </ci>
+                <ci> BW_ref </ci>
+              </apply>
+              <cn> 0.75 </cn>
+            </apply>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_8ea66927-800e-4e37-9295-4081c15cba6b" sboTerm="SBO:0000064" symbol="QGut">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the Gut blood flow rate (QGut) in L/hour based on the body weight ( BW^(3/4) ).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> QCardiac </ci>
+            <ci> QGut_fraction_QCardiac </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="_995ad95b-8c26-4287-930f-009230fb8fff" sboTerm="SBO:0000064" symbol="QLiver">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the Liver blood flow rate (QLiver) in L/hour based on the body weight ( BW^(3/4) ).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> QCardiac </ci>
+            <ci> QLiver_fraction_QCardiac </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="d4eb1ec0-c1c6-47ab-9219-f443a96a84ae" sboTerm="SBO:0000064" symbol="QKidney">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the Kidney blood flow rate (QKidney) in L/hour based on the body weight ( BW^(3/4) ).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> QCardiac </ci>
+            <ci> QKidney_fraction_QCardiac </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="d0fa26d6-0baa-41fc-906b-bd969fa00c69" sboTerm="SBO:0000064" symbol="QRest">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the Rest of the body's blood flow rate (QRest) in L/hour based on the body weight ( BW^(3/4) ).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <ci> QCardiac </ci>
+                <ci> QGut </ci>
+              </apply>
+              <ci> QKidney </ci>
+            </apply>
+            <ci> QLiver </ci>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="cac0ce12-7358-4bee-a30c-547c5720eaff" sboTerm="SBO:0000064" symbol="Qgfr">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the Qgfr inL/hour based on the body weight ( (BW/BW_ref)^(3/4) ).</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> QGFR_ref </ci>
+            <apply>
+              <power/>
+              <apply>
+                <divide/>
+                <ci> BW </ci>
+                <ci> BW_ref </ci>
+              </apply>
+              <cn> 0.75 </cn>
+            </apply>
+          </apply>
+        </math>
+            </initialAssignment>
+      <initialAssignment metaid="e1195787-cc6f-4a24-8b19-85cad5a988f3" sboTerm="SBO:0000064" symbol="VTotal">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Allometric calculation of the total perfusable volume of the body in litres (VTotal) based on the body weight.</p>
+                    </body>
+          
+        </notes>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <apply>
+            <times/>
+            <ci> VTotal_ref </ci>
+            <apply>
+              <divide/>
+              <ci> BW </ci>
+              <ci> BW_ref </ci>
+            </apply>
+          </apply>
+        </math>
+            </initialAssignment>
+    </listOfInitialAssignments>
+    <listOfReactions>
+      <reaction id="J1" metaid="_Sluka0043" name="J01" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Arterial compartment (CArt) to the Gut (CGut) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="a8633208-82fc-4d23-94b5-2bc5245ee07e" species="CArt" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_5223c5d3-3eff-4ba8-811a-1b6e14bf57f4" species="CGut" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_5ade5390-e618-4663-b1a0-9c3bf7b09927">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> QGut </ci>
+                <ci> VArt </ci>
+              </apply>
+              <ci> CArt </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J2" metaid="_Sluka0044" name="J02" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>First order adsorption of compound  from the lumen of the gut (AGutlumen) to the gut compartment (CGut) in mole/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_7026dbef-590b-4750-80f2-85f015556633" species="AGutlumen" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="f166049b-8cb8-4b02-bf63-7e3ad43ed420" species="CGut" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="c5889f07-c411-4d95-bd03-1a4d8c308a61">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> kGutabs </ci>
+              <ci> AGutlumen </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J3" metaid="_Sluka0045" name="J03" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Lung compartment (CLung) to the Arterial blood compartment (CArt) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_54a2ca4b-8777-4b4e-915f-06ed04377a17" species="CLung" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_46332a91-6207-4125-9a6d-9e49be0a4630" species="CArt" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_1b1d05bb-d21a-4748-958a-7d3f2d9e1d52">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> QCardiac </ci>
+                <ci> VLung </ci>
+              </apply>
+              <ci> CLung </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J4" metaid="_Sluka0046" name="J04" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Venous compartment (CVen) to the Lung compartment (CLung) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="f6436b54-997c-4aa2-b447-3cc50a47d867" species="CVen" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="c2fbf57d-052e-4a74-80ab-06e20335403c" species="CLung" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="b21496a9-5dae-4ac7-9bae-84570bac9215">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> QCardiac </ci>
+                <ci> VVen </ci>
+              </apply>
+              <ci> CVen </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J5" metaid="_Sluka0047" name="J05" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Arterial compartment (CArt) to the Rest of the body compartment (CRest) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="e87e80e4-0001-42c3-add8-813aed5ea769" species="CArt" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_5f0d33f7-f647-4e99-a392-5b0ba3bd7ec8" species="CRest" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_5ac5b372-7927-4b17-9659-5797277fe475">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> QRest </ci>
+              <apply>
+                <divide/>
+                <ci> CArt </ci>
+                <ci> VArt </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J6" metaid="_Sluka0048" name="J06" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Rest compartment (CRest) to the Venous compartment (CVen) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="acb6b858-561a-4175-9125-2acfe8a50286" species="CRest" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_785d3f9d-4b81-4573-8b06-5d9306426232" species="CVen" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="fcdeaa05-38bc-4409-8f77-fbc4e6a9db4e">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <divide/>
+                    <ci> QRest </ci>
+                    <ci> VRest </ci>
+                  </apply>
+                  <ci> CRest </ci>
+                </apply>
+                <ci> Ratioblood2plasma </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> KRest2plasma </ci>
+                <ci> Fraction_unbound_plasma </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J7" metaid="_Sluka0049" name="J07" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Arterial compartment (CArt) to the Liver compartment (CLiver) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_4b8efcf5-191f-4ee1-9ada-b932bd5ae2ea" species="CArt" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_26cfdf3d-7b1e-41fa-aa2f-111362e23447" species="CLiver" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_0ee22f51-374e-4649-b197-b20fa9379e3e">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> QLiver </ci>
+                <ci> VArt </ci>
+              </apply>
+              <ci> CArt </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J8" metaid="_Sluka0050" name="J08" reversible="false" sboTerm="SBO:0000182">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Metabolism of compound in the Liver compartment (CLiver) to metabolites (CMetabolized) in moles/hour. The metabolites stay in the liver compartment. This single first order ODE represents both Phase I (Cyp-P450 2E1, 1A2) and Phase II (glucuronidation and sulfation) reactions.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_7f0fe6d4-0597-47f5-81a4-04135c3bc05d" species="CLiver" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_59dafa8e-58dc-4fed-907c-664f34165acd" species="CMetabolized" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_443720c5-d93b-43b6-942d-f9f9554ad23c">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> CLmetabolism </ci>
+                <ci> CLiver </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> Kliver2plasma </ci>
+                <ci> Fraction_unbound_plasma </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J9" metaid="_Sluka0051" name="J09" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Gut compartment (CGut) to the Liver compartment (CLiver) in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="f51a3c38-98d5-4fdd-bb06-68ffceab73bf" species="CGut" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_542c95ef-c35a-4db9-8fab-69c3cd9d6896" species="CLiver" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="b243af42-e239-4bb1-bb7e-2d6413c2cacf">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> QGut </ci>
+                <ci> VGut </ci>
+              </apply>
+              <ci> CGut </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J10" metaid="_Sluka0052" name="J10" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Liver compartment (CLiver) to the Venous compartment (CVen)  in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_8ac2cd72-6ab2-457a-9007-6daa29a5db8e" species="CLiver" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_1096935b-7858-4617-9e75-2afe1772cda9" species="CVen" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_5d8992d1-b2d1-4d5f-8659-45b82025677c">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <plus/>
+                      <ci> QLiver </ci>
+                      <ci> QGut </ci>
+                    </apply>
+                    <ci> VLiver </ci>
+                  </apply>
+                  <ci> CLiver </ci>
+                </apply>
+                <ci> Ratioblood2plasma </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> Kliver2plasma </ci>
+                <ci> Fraction_unbound_plasma </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J11" metaid="_Sluka0053" name="J11" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Arterial compartment (CArt) to the Kidney compartment (CKidney)  in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_3f6f102f-960b-4535-abad-c9dcab37f5af" species="CArt" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="fcdceb02-27cf-4eaf-9735-149ce13b8fcf" species="CKidney" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_817e3503-2c9a-4ac7-bf26-a86c0df69736">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci> QKidney </ci>
+                <ci> VArt </ci>
+              </apply>
+              <ci> CArt </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J12" metaid="_Sluka0054" name="J12" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Transfer of compound from the Kidney compartment (CKidney) to the Kidney tubules  (species CTubules 
+				in the compartment "KidenyTubules") in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="_99b63060-427c-457a-b9af-5da81081e566" species="CKidney" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_31a97709-72f0-475c-ba47-cb5f995a9b72" species="CTubules" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="d3875b3e-a109-4a9f-bd96-667c0cfa48dc">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci> Qgfr </ci>
+                  <ci> VKidney </ci>
+                </apply>
+                <ci> CKidney </ci>
+              </apply>
+              <ci> Kkidney2plasma </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="J13" metaid="_Sluka0055" name="J13" reversible="false" sboTerm="SBO:0000185">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+                <p>Blood born transfer of compound from the Kidney compartment (CKidney) to the Venous compartment (CVen)  in moles/hour.</p>
+                    </body>
+          
+        </notes>
+        <listOfReactants>
+          <speciesReference metaid="e48d0b0a-8264-44ab-8753-98e477b9beab" species="CKidney" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_4ef43c92-7ebd-4b57-8520-28e20e922adc" species="CVen" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw metaid="_3124b0be-11ac-4c82-b3ca-c944af1372c6">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <times/>
+                  <apply>
+                    <divide/>
+                    <ci> QKidney </ci>
+                    <ci> VKidney </ci>
+                  </apply>
+                  <ci> CKidney </ci>
+                </apply>
+                <ci> Ratioblood2plasma </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> Kkidney2plasma </ci>
+                <ci> Fraction_unbound_plasma </ci>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
