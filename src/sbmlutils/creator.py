@@ -326,7 +326,7 @@ class FactoryResult(NamedTuple):
 
 def create_model(
     modules: Union[Iterable[str], Dict],
-    output_dir: Path,
+    output_dir: Path = None,
     tmp: bool = False,
     filename: str = None,
     mid: str = None,
@@ -362,6 +362,9 @@ def create_model(
 
     :return: FactoryResult
     """
+    if output_dir is None and tmp is False:
+        raise TypeError("create_model() missing 1 required argument: 'output_dir'")
+
     # preprocess
     logger.info(
         bcolors.OKBLUE

@@ -21,6 +21,7 @@ from collections import namedtuple
 from typing import Optional
 
 import libsbml
+import numpy as np
 
 from sbmlutils.equation import Equation
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
@@ -584,6 +585,25 @@ class Parameter(ValueWithUnit):
         """Create SBML."""
         obj = model.createParameter()  # type: libsbml.Parameter
         self.set_fields(obj)
+        if self.value is None:
+            obj.setValue(np.NaN)
+
+        elif type(self.value) is str:
+            try:
+                # check if number
+                value = float(self.value)
+                logger.warning(
+                    f"If setting the value to a number use float instead of str: {self}."
+                )
+                obj.setValue(value)
+            except ValueError:
+                if self.constant:
+                    InitialAssignment(self.sid, self.value).create_sbml(model)
+                else:
+                    AssignmentRule(self.sid, self.value).create_sbml(model)
+        else:
+            # numerical value
+            obj.setValue(float(self.value))
 
         self.create_port(model)
         return obj
@@ -592,8 +612,6 @@ class Parameter(ValueWithUnit):
         """Set fields."""
         super(Parameter, self).set_fields(obj)
         obj.setConstant(self.constant)
-        if self.value is not None:
-            obj.setValue(self.value)
 
 
 class Compartment(ValueWithUnit):
@@ -634,15 +652,23 @@ class Compartment(ValueWithUnit):
         obj = model.createCompartment()  # type: libsbml.Compartment
         self.set_fields(obj)
 
-        if type(self.value) is str:
-            if self.constant:
-                # InitialAssignment._create(model, sid=self.sid, formula=self.value)
-                InitialAssignment(self.sid, self.value).create_sbml(model)
-            else:
-                AssignmentRule(self.sid, self.value).create_sbml(model)
-                # AssignmentRule._create(model, sid=self.sid, formula=self.value)
+        if self.value is None:
+            obj.setSize(np.NaN)
+        elif type(self.value) is str:
+            try:
+                # check if number
+                value = float(self.value)
+                logger.warning(
+                    f"If setting the value to a number use float instead of str: {self}."
+                )
+                obj.setSize(value)
+            except ValueError:
+                if self.constant:
+                    InitialAssignment(self.sid, self.value).create_sbml(model)
+                else:
+                    AssignmentRule(self.sid, self.value).create_sbml(model)
         else:
-            obj.setSize(self.value)
+            obj.setSize(float(self.value))
 
         self.create_port(model)
         return obj

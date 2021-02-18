@@ -23,6 +23,11 @@ def read_sbml(
 ) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
+    Local parameters can be promoted using the `promote flag.
+    Allows to validate the file during reading via the `validate` flag.
+    The subset of reported warnings can be choosen using the
+    `units_consistency`, `modeling_practice` and `internal_consistency` flag.
+
     :param source: SBML path or string
     :param promote: promote local parameters to global parameters
     :param validate: validate file

@@ -1,6 +1,4 @@
-"""
-Test the demo network.
-"""
+"""Test the demo model."""
 import roadrunner
 
 from sbmlutils.io.sbml import validate_sbml

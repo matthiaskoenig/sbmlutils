@@ -1,6 +1,4 @@
-"""
-Test model creation.
-"""
+"""Example model creation."""
 import pytest
 
 from sbmlutils.creator import CoreModel, Preprocess
@@ -20,6 +18,7 @@ from sbmlutils.examples import (
     fbc_mass_charge,
     initial_assignment,
     reaction,
+    simple_reaction,
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory
@@ -44,6 +43,7 @@ testdata = [
     fbc2,
     fbc_mass_charge,
     reaction,
+    simple_reaction,
     tiny_factory,
 ]
 

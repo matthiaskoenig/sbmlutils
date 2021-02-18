@@ -1,11 +1,132 @@
-"""
-Testing the factory methods.
-"""
+"""Testing the factory methods."""
 import libsbml
+import numpy as np
 import pytest
 
 from sbmlutils import factory
+from sbmlutils.creator import create_model
 from sbmlutils.factory import *
+from sbmlutils.io import read_sbml
+
+
+compartment_value_data = [
+    (
+        1.0,
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        1,
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        np.NaN,
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "1.0",
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "1",
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "NaN",
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "exp(10)",
+        True,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 1, "rules": 0},
+    ),
+    (
+        1.0,
+        False,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        1,
+        False,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "1.0",
+        False,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "1",
+        False,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
+    ),
+    (
+        "exp(10)",
+        False,
+        {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 1},
+    ),
+]
+
+
+@pytest.mark.parametrize("value,constant,expected", compartment_value_data)
+def test_compartment_value(value, constant, expected, tmp_path):
+    m1 = {
+        "mid": "compartment_value",
+        "compartments": [Compartment(sid="C", value=value, constant=constant)],
+    }
+
+    result = create_model(
+        modules=m1,
+        output_dir=tmp_path,
+        units_consistency=False,
+    )
+
+    doc = read_sbml(source=result.sbml_path)
+    model = doc.getModel()  # type: libsbml.Model
+    assert model.getNumCompartments() == expected["compartments"]
+    assert model.getNumInitialAssignments() == expected["initial_assignments"]
+    assert model.getNumRules() == expected["rules"]
+
+
+parameter_value_data = [
+    (1.0, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    (1, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    (np.NaN, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("1.0", True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("1", True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("NaN", True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("exp(10)", True, {"parameters": 1, "initial_assignments": 1, "rules": 0}),
+    (1.0, False, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    (1, False, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("1.0", False, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("1", False, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    ("exp(10)", False, {"parameters": 1, "initial_assignments": 0, "rules": 1}),
+]
+
+
+@pytest.mark.parametrize("value,constant,expected", parameter_value_data)
+def test_parameter_value(value, constant, expected, tmp_path):
+    m1 = {
+        "mid": "parameter_value",
+        "parameters": [Parameter(sid="p", value=value, constant=constant)],
+    }
+
+    result = create_model(
+        modules=m1,
+        output_dir=tmp_path,
+        units_consistency=False,
+    )
+
+    doc = read_sbml(source=result.sbml_path)
+    model = doc.getModel()  # type: libsbml.Model
+    assert model.getNumParameters() == expected["parameters"]
+    assert model.getNumInitialAssignments() == expected["initial_assignments"]
+    assert model.getNumRules() == expected["rules"]
 
 
 def test_reaction_creation():

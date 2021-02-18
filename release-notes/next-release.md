@@ -3,7 +3,7 @@
 ## New features
 
 ## Fixes
-
+- improved/consistent handling of compartment size and parameter value
 ## Other
 
 ## Deprecated features
