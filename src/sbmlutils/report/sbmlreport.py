@@ -39,6 +39,7 @@ def create_reports(
     promote: bool = False,
     validate: bool = True,
     math_type: str = "cmathml",
+    report_variable: bool = False,
 ):
     """Create individual reports and an overview file.
 
@@ -49,8 +50,10 @@ def create_reports(
     :param validate: boolean flag if SBML file be validated (warnings and errors
                      are logged)
     :param math_type: specifies the math rendering mode for the report
+    :param report_variable: boolean flag to specify storing HTML report in a variable
 
-    :return:
+    :return: html variable containing combined HTML content of all reports if
+             report_variable is True
     """
 
     # check math type
@@ -61,19 +64,31 @@ def create_reports(
         )
 
     # individual reports
+    html_reports = []
     for sbml_path in sbml_paths:
         logger.info(sbml_path)
-        create_report(
+        html_report = create_report(
             sbml_path=sbml_path,
             output_dir=output_dir,
             template=template,
             promote=promote,
             validate=validate,
             math_type=math_type,
+            report_variable=report_variable,
         )
 
-    # write index html (unicode)
+        if report_variable and html_report is not None:
+            html_reports.append(html_report)
+
     html = _create_index_html(sbml_paths)
+
+    # store and return the variable if HTML reports are to be stored in a variable
+    if report_variable:
+        html_reports.insert(0, html)
+        html_reports_combined = "\n".join(html_reports)
+        return html_reports_combined
+
+    # write index html (unicode)
     index_path = output_dir / "index.html"
     with open(index_path, "w", encoding="utf-8") as f_index:
         f_index.write(html)
@@ -89,6 +104,7 @@ def create_report(
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
+    report_variable: bool = False,
 ):
     """Create HTML report for SBML file.
 
@@ -105,8 +121,9 @@ def create_report(
     :param log_errors: boolean flag of errors should be logged
     :param units_consistency: boolean flag units consistency
     :param modeling_practice: boolean flag modeling practise
+    :param report_variable: boolean flag to specify storing HTML report in a variable
 
-    :return:
+    :return: html variable containing report HTML content if report_variable is True
     """
     if not isinstance(sbml_path, Path):
         logger.warning(
@@ -151,8 +168,13 @@ def create_report(
     name = ".".join(basename.split(".")[:-1])
     write_sbml(doc, filepath=output_dir / basename)
 
-    # write html
     html = _create_html(doc, basename, html_template=template, math_type=math_type)
+
+    # store and return the variable if HTML report is to be stored in a variable
+    if report_variable is True:
+        return html
+
+    # write html
     path_html = output_dir / f"{name}.html"
     with open(path_html, "w", encoding="utf-8") as f_html:
         f_html.write(html)

@@ -72,3 +72,29 @@ def check_report_math_type(sbml_path: Path, math_type: str, tmp_path):
     # check HTML report created
     path_html = tmp_path / f"{name}.html"
     assert path_html.exists()
+
+
+@pytest.mark.parametrize("sbml_path", sbml_paths, ids=sbml_paths_idfn)
+def test_report_variable(sbml_path, tmp_path):
+    """Test report generation."""
+    html = sbmlreport.create_report(
+        sbml_path=sbml_path,
+        output_dir=tmp_path,
+        report_variable=True,
+    )
+
+    sbmlreport.create_report(
+        sbml_path=sbml_path,
+        output_dir=tmp_path,
+        report_variable=False,
+    )
+
+    basename = sbml_path.name
+    name = ".".join(basename.split(".")[:-1])
+
+    # check HTML report file content matches the HTML stored in variable
+    path_html = tmp_path / f"{name}.html"
+    with open(path_html, "r", encoding="utf-8") as f_html:
+        html_string = f_html.read()
+
+    assert html_string == html
