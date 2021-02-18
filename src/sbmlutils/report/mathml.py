@@ -92,7 +92,10 @@ def formula_to_expression(formula: str) -> Any:
     formula = formula.replace("&&", "&")
     formula = formula.replace("||", "|")
     try:
-        expr = sympify(formula, locals={v: Symbol(f"{v}") for v in variables})
+        expr = sympify(
+            formula,
+            locals={v: Symbol(f"{v}") for v in variables},
+        )
     except Exception as e:
         logger.error(f"Formula could not be sympified: '{formula}'")
         raise e
