@@ -9,8 +9,8 @@ The basic steps of template creation are
 - compile template
 - render with SBML context
 
-The final report consists of an HTML file with an overview over the SBML elements in
-the model.
+The final report is returned as a variable containing the HTML file content with an
+overview over the SBML elements in the model.
 """
 import logging
 import ntpath
@@ -39,21 +39,19 @@ def create_reports(
     promote: bool = False,
     validate: bool = True,
     math_type: str = "cmathml",
-    report_variable: bool = False,
-):
-    """Create individual reports and an overview file.
+) -> List[str]:
+    """Create individual reports and return a list of HTML content for each model.
 
     :param sbml_paths: paths to SBML files
-    :param output_dir: target directory where the report is written
+    :param output_dir: target directory where the SBML file is written
     :param template: which template file to use for rendering
     :param promote: boolean flag to promote local parameters
     :param validate: boolean flag if SBML file be validated (warnings and errors
                      are logged)
     :param math_type: specifies the math rendering mode for the report
-    :param report_variable: boolean flag to specify storing HTML report in a variable
 
-    :return: html variable containing combined HTML content of all reports if
-             report_variable is True
+    :return: List of strings containing HTML content of reports for all models in the
+             SBML paths
     """
 
     # check math type
@@ -74,24 +72,13 @@ def create_reports(
             promote=promote,
             validate=validate,
             math_type=math_type,
-            report_variable=report_variable,
         )
 
-        if report_variable and html_report is not None:
+        if html_report is not None:
             html_reports.append(html_report)
 
-    html = _create_index_html(sbml_paths)
-
-    # store and return the variable if HTML reports are to be stored in a variable
-    if report_variable:
-        html_reports.insert(0, html)
-        html_reports_combined = "\n".join(html_reports)
-        return html_reports_combined
-
-    # write index html (unicode)
-    index_path = output_dir / "index.html"
-    with open(index_path, "w", encoding="utf-8") as f_index:
-        f_index.write(html)
+    # return list of string variables containing HTML report for each model
+    return html_reports
 
 
 def create_report(
@@ -104,15 +91,14 @@ def create_report(
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
-    report_variable: bool = False,
-):
-    """Create HTML report for SBML file.
+) -> str:
+    """Create HTML report and return the content as a variable.
 
     The SBML file can be validated during report generation.
     Local parameters can be promoted during report generation.
 
     :param sbml_path: path to SBML file
-    :param output_dir: target directory where the report is written
+    :param output_dir: target directory where the SBML file is written
     :param promote: boolean flag to promote local parameters
     :param template: which template file to use for rendering
     :param math_type: specifies the math rendering mode for the report
@@ -121,9 +107,8 @@ def create_report(
     :param log_errors: boolean flag of errors should be logged
     :param units_consistency: boolean flag units consistency
     :param modeling_practice: boolean flag modeling practise
-    :param report_variable: boolean flag to specify storing HTML report in a variable
 
-    :return: html variable containing report HTML content if report_variable is True
+    :return: string variable containing content of the generated HTML report
     """
     if not isinstance(sbml_path, Path):
         logger.warning(
@@ -165,21 +150,12 @@ def create_report(
 
     # write sbml to report directory
     basename = sbml_path.name
-    name = ".".join(basename.split(".")[:-1])
     write_sbml(doc, filepath=output_dir / basename)
 
     html = _create_html(doc, basename, html_template=template, math_type=math_type)
 
-    # store and return the variable if HTML report is to be stored in a variable
-    if report_variable is True:
-        return html
-
-    # write html
-    path_html = output_dir / f"{name}.html"
-    with open(path_html, "w", encoding="utf-8") as f_html:
-        f_html.write(html)
-
-    logger.info(f"SBML report created: '{path_html.resolve()}'")
+    # store and return the variable containing the HTML report content
+    return html
 
 
 def _create_index_html(
