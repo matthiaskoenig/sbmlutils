@@ -317,7 +317,9 @@ class SBML2ODE:
         :param py_file:
         :return:
         """
-        content = self._render_template(template="odefac_template.py", index_offset=0)
+        content = self._render_template(
+            template="odefac_template.pytemp", index_offset=0
+        )
         with open(py_file, "w") as f:
             f.write(content)
 
@@ -331,7 +333,7 @@ class SBML2ODE:
         with open(r_file, "w") as f:
             f.write(content)
 
-    def _render_template(self, template="odefac_template.py", index_offset=0):
+    def _render_template(self, template="odefac_template.pytemp", index_offset=0):
         """Render given language template.
 
         :param template:
