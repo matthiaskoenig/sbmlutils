@@ -16,7 +16,7 @@ import logging
 import ntpath
 import warnings
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, List
 
 import jinja2
 import libsbml
@@ -33,7 +33,7 @@ TEMPLATE_DIR = RESOURCES_DIR / "templates"
 
 
 def create_reports(
-    sbml_paths: Iterable[Path],
+    sbml_paths: List[Path],
     output_dir: Path,
     template: str = "report.html",
     promote: bool = False,
@@ -344,10 +344,10 @@ def infoSbase(item: libsbml.SBase) -> Dict:
                     """
                 )
             if len(replaced_elements) == 0:
-                replaced_elements = ""
+                replaced_elements_combined = ""
             else:
-                replaced_elements = "".join(replaced_elements)
-            info["replaced_elements"] = replaced_elements
+                replaced_elements_combined = "".join(replaced_elements)
+            info["replaced_elements"] = replaced_elements_combined
 
     return info
 
@@ -423,10 +423,10 @@ def listOfSubmodels_dict(model: libsbml.Model) -> List[Dict]:
             for deletion in item.getListOfDeletions():
                 deletions.append(sbaseref(deletion))
             if len(deletions) == 0:
-                deletions = empty_html()
+                deletions_combined = empty_html()
             else:
-                deletions = "<br />".join(deletions)
-            info["deletions"] = deletions
+                deletions_combined = "<br />".join(deletions)
+            info["deletions"] = deletions_combined
 
             time_conversion = empty_html()
             if item.isSetTimeConversionFactor():
@@ -740,10 +740,10 @@ def listOfReactions_dict(model: libsbml.Model, math_type: str) -> List[Dict]:
         for mod in item.getListOfModifiers():
             modifiers.append(mod.getSpecies())
         if len(modifiers) == 0:
-            modifiers = empty_html()
+            modifiers_html = empty_html()
         else:
-            modifiers = "<br />".join(modifiers)
-        info["modifiers"] = modifiers
+            modifiers_html = "<br />".join(modifiers)
+        info["modifiers"] = modifiers_html
         klaw = item.getKineticLaw()
         info["formula"] = math(klaw, math_type)
         info["derived_units"] = derived_units(klaw)
