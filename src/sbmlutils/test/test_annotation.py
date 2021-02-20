@@ -25,30 +25,7 @@ def test_create_annotation():
     annotation_example.create(tmp=True)
 
 
-def test_model_annotation1():
-    """ Check annotation data structure. """
-    d = {
-        "pattern": "test_pattern",
-        "sbml_type": "reaction",
-        "annotation_type": "RDF",
-        "qualifier": "test_qualifier",
-        "collection": "test_collection",
-        "entity": "test_entity",
-        "name": "test_name",
-    }
-
-    ma = ExternalAnnotation(d)
-    assert "test_pattern" == ma.pattern
-    assert "reaction" == ma.sbml_type
-    assert "RDF" == ma.annotation_type
-    assert "test_qualifier" == ma.qualifier
-    assert "test_collection" == ma.collection
-    assert "test_entity" == ma.entity
-    assert "test_name" == ma.name
-    assert ma.resource is None
-
-
-def test_model_annotation2():
+def test_model_annotation():
     """ Check annotation data structure. """
     d = {
         "pattern": "id1",

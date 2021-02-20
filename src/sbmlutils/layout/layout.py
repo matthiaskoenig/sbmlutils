@@ -91,11 +91,11 @@ class Layout(factory.Sbase):
 
         for s_item in self.species_glyphs:
             s_glyph = obj.createSpeciesGlyph()  # type: libsbml.SpeciesGlyph
-            s_item._set_fields(s_glyph, obj)
+            s_item._set_glyph_fields(s_glyph, obj, model)
 
         for r_item in self.reaction_glyphs:
             r_glyph = obj.createReactionGlyph()  # type: libsbml.ReactionGlyph
-            r_item._set_fields(r_glyph, obj)
+            r_item._set_glyph_fields(r_glyph, obj, model)
 
 
 class SpeciesGlyph(factory.Sbase):
@@ -128,7 +128,9 @@ class SpeciesGlyph(factory.Sbase):
         self.depth = d
         self.text = text
 
-    def _set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
+    def _set_glyph_fields(
+        self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
+    ):
         """Set fields."""
         super(SpeciesGlyph, self)._set_fields(obj, model)
         obj.setSpeciesId(self.species)
@@ -188,9 +190,11 @@ class CompartmentGlyph(factory.Sbase):
         self.depth = d
         self.text = text
 
-    def _set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
+    def _set_glyph_fields(
+        self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
+    ):
         """Set fields."""
-        super(CompartmentGlyph, self)._set_fields(obj)
+        super(CompartmentGlyph, self)._set_fields(obj, model)
         obj.setCompartmentId(self.compartment)
         bb = _create_bounding_box(
             x=self.x,
@@ -252,9 +256,10 @@ class ReactionGlyph(factory.Sbase):
 
         self.layout = None
 
-    def _set_fields(self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout):
-        """Set fields."""
-        super(ReactionGlyph, self)._set_fields(obj)
+    def _set_glyph_fields(
+        self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout, model: libsbml.Model
+    ):
+        super(ReactionGlyph, self)._set_fields(obj, model)
         self.layout = layout
         obj.setReactionId(self.reaction)
         bb = _create_bounding_box(

@@ -91,7 +91,8 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
        git add .
        git commit -m "fix: Your summary of changes"
 
-6. When you're done making changes, check that your changes pass our test suite.
+6. When you're done making changes, check that your changes pass our test suite
+   with exception of the `mypy` target.
    This is all included with tox
 
    .. code-block:: console
@@ -109,7 +110,7 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
    .. code-block:: console
 
        isort src/sbmlutils
-       black src/sbmlutils --exclude resources
+       black src/sbmlutils
 
 7. Push your branch to GitHub.
 

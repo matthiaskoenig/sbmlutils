@@ -262,7 +262,7 @@ class ExternalAnnotation:
         self.sbml_type: str = None
         self.annotation_type: str = None
         self.qualifier: str = None
-        # self.resource: str = None
+        self.resource: str = None
         self.name: str = None
 
         for key in self._keys:

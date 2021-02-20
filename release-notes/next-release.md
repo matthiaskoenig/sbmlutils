@@ -5,7 +5,7 @@
 ## Fixes
 - improved/consistent handling of compartment size and parameter value
 ## Other
-
+- mypy fixes
 ## Deprecated features
 
 ## Backwards incompatible changes 
