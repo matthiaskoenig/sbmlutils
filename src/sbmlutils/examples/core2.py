@@ -1,4 +1,6 @@
 """Example model for creating an SBML ODE model."""
+from typing import List
+
 from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
@@ -44,7 +46,7 @@ units = [
     UNIT_mmole_per_min,
 ]
 
-functions = []
+functions: List[Function] = []
 
 compartments = [Compartment("c", 1.0, unit=UNIT_KIND_LITRE)]
 
@@ -75,8 +77,6 @@ parameters = [
 assignments = [
     InitialAssignment("S1", "10.0 mM", UNIT_mM),
 ]
-rules = []
-reactions = []
 
 
 def create(tmp: bool = False) -> None:

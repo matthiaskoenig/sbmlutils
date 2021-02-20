@@ -17,7 +17,7 @@ formula (annotation) -> expr -> latex
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
 """
 import logging
-from typing import Set
+from typing import List, Set
 
 import libsbml
 from sympy import Symbol, sympify
@@ -100,22 +100,22 @@ def formula_to_expression(formula: str):
     return expr
 
 
-def _get_variables(astnode: libsbml.ASTNode, variables=None) -> Set:
+def _get_variables(astnode: libsbml.ASTNode, variables: Set[str] = None) -> Set[str]:
     """Get variables from ASTNode."""
     if variables is None:
-        variables = set()
+        variables: Set[str] = set()  # type: ignore
 
     num_children = astnode.getNumChildren()
     if num_children == 0:
         if astnode.isName():
             name = astnode.getName()
-            variables.add(name)
+            variables.add(name)  # type: ignore
     else:
         for k in range(num_children):
             child = astnode.getChild(k)  # type: libsbml.ASTNode
             _get_variables(child, variables=variables)
 
-    return variables
+    return variables  # type: ignore
 
 
 def _remove_lambda2(astnode: libsbml.ASTNode) -> libsbml.ASTNode:
@@ -153,7 +153,7 @@ def _replace_piecewise(formula: str) -> str:
         # init counters
         bracket_open = 0
         pieces = []
-        piece_chars = []
+        piece_chars: List[str] = []
 
         while search_idx < len(formula):
             c = formula[search_idx]
@@ -235,7 +235,7 @@ def _expression_to_mathml(expr, printer="content", **settings) -> str:
     s.apply_patch()
     pretty_xml = xml.toprettyxml()
     s.restore_patch()
-    return pretty_xml
+    return str(pretty_xml)
 
 
 def cmathml_to_pmathml(cmathml: str, **settings) -> str:
@@ -258,7 +258,7 @@ def formula_to_latex(formula: str, **settings) -> str:
     :return: Latex string
     """
     expr = formula_to_expression(formula)
-    return latex(expr, mul_symbol="dot", **settings)
+    return latex(expr, mul_symbol="dot", **settings)  # type: ignore
 
 
 def astnode_to_latex(astnode: libsbml.ASTNode, **settings) -> str:
@@ -269,7 +269,7 @@ def astnode_to_latex(astnode: libsbml.ASTNode, **settings) -> str:
     :return: Latex string
     """
     expr = astnode_to_expression(astnode)
-    return latex(expr, mul_symbol="dot", **settings)
+    return latex(expr, mul_symbol="dot", **settings)  # type: ignore
 
 
 def cmathml_to_latex(cmathml: str, **settings) -> str:

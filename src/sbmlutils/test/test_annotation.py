@@ -25,7 +25,7 @@ def test_create_annotation():
     annotation_example.create(tmp=True)
 
 
-def test_model_annotation():
+def test_model_annotation1():
     """ Check annotation data structure. """
     d = {
         "pattern": "test_pattern",
@@ -48,7 +48,7 @@ def test_model_annotation():
     assert ma.resource is None
 
 
-def test_model_annotation():
+def test_model_annotation2():
     """ Check annotation data structure. """
     d = {
         "pattern": "id1",

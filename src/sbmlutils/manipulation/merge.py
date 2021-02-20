@@ -13,7 +13,7 @@ import libsbml
 
 from sbmlutils import validation
 from sbmlutils.comp import comp
-from sbmlutils.io import read_sbml, write_sbml
+from sbmlutils.io import read_sbml, validate_sbml, write_sbml
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ SBML_COMP_VERSION = 1
 
 def merge_models(
     model_paths: Dict[str, Path],
-    out_dir: Path = None,
+    output_dir: Path = None,
     merged_id: str = "merged",
     validate: bool = True,
 ) -> libsbml.SBMLDocument:
@@ -41,7 +41,7 @@ def merge_models(
     """
     # necessary to convert models to SBML L3V1
     cur_dir = os.getcwd()
-    os.chdir(out_dir)
+    os.chdir(str(output_dir))
 
     base_dir = None
     for model_id, path in model_paths.items():
@@ -60,7 +60,7 @@ def merge_models(
                 )
 
         # convert to L3V1
-        path_L3 = out_dir / f"{model_id}_L3.xml"
+        path_L3: Path = output_dir / f"{model_id}_L3.xml"  # ignore type
         doc = read_sbml(path_L3)
         if doc.getLevel() < SBML_LEVEL:
             doc.setLevelAndVersion(SBML_LEVEL, SBML_VERSION)
@@ -69,17 +69,17 @@ def merge_models(
 
     if validate is True:
         for path in model_paths:
-            validation.check_sbml(path, name=path)
+            validate_sbml(source=path, name=str(path))
 
     # create comp model
     merged_doc = create_merged_doc(
         model_paths, merged_id=merged_id
     )  # type: libsbml.SBMLDocument
     if validate is True:
-        validation.check_sbml(path, name=path)
+        validate_sbml(path, name=str(path))
 
     # write merged doc
-    f_out = os.path.join(out_dir, "{}.xml".format(merged_id))
+    f_out = os.path.join(output_dir, "{}.xml".format(merged_id))
     libsbml.writeSBMLToFile(merged_doc, f_out)
 
     os.chdir(cur_dir)

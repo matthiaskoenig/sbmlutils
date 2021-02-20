@@ -4,7 +4,7 @@ https://www.ebi.ac.uk/miriam/main/export/xml/
 """
 import json
 
-import xmlschema
+import xmlschema  # type: ignore
 
 from sbmlutils import RESOURCES_DIR
 

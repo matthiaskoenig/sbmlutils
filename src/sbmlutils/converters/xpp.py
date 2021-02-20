@@ -43,12 +43,14 @@ import re
 import warnings
 from pathlib import Path
 from pprint import pprint
+from typing import Dict, List
 
 import libsbml
 
 from sbmlutils import __version__
 from sbmlutils import factory as fac
 from sbmlutils.converters import xpp_helpers
+from sbmlutils.factory import Event, Function
 from sbmlutils.io import sbml
 
 
@@ -214,8 +216,8 @@ def xpp2sbml(
         # mod (modulo)
         fac.Function("mod", "lambda(x,y, x % y)", name="modulo"),
     ]
-    function_definitions = []
-    events = []
+    function_definitions: List[Dict[str, str]] = []
+    events: List[Event] = []
 
     def replace_fdef():
         """Replace all arguments within the formula definitions."""
@@ -360,7 +362,7 @@ def xpp2sbml(
                     continue
 
                 # necessary to find the additional arguments from the ast_node
-                ast = libsbml.parseL3Formula(formula)
+                ast = libsbml.parseL3Formula(formula)  # type: libsbml.ASTNode
                 names = set(xpp_helpers.find_names_in_ast(ast))
                 old_args = [t.strip() for t in args.split(",")]
                 new_args = [a for a in names if a not in old_args]

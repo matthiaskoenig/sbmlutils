@@ -38,8 +38,9 @@ def read_sbml(
 
     :return: SBMLDocument
     """
+    doc = None  # type: libsbml.SBMLDocument
     if isinstance(source, str) and "<sbml" in source:
-        doc = libsbml.readSBMLFromString(source)
+        doc = libsbml.readSBMLFromString(source)  # type: ignore
     else:
         if not isinstance(source, Path):
             logger.error(
@@ -48,11 +49,11 @@ def read_sbml(
             )
             source = Path(source)
 
-        doc = libsbml.readSBMLFromFile(str(source))  # type: libsbml.SBMLDocument
+        doc = libsbml.readSBMLFromFile(str(source))  # type: ignore
 
     # promote local parameters
     if promote:
-        doc = promote_local_variables(doc)  # type: libsbml.SBMLDocument
+        doc = promote_local_variables(doc)  # type: ignore
 
     # check for errors
     if doc.getNumErrors() > 0:
@@ -132,7 +133,7 @@ def write_sbml(
             modeling_practice=modeling_practice,
             internal_consistency=internal_consistency,
         )
-    return sbml_str
+    return sbml_str  # type: ignore
 
 
 def validate_sbml(

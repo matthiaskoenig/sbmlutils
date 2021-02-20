@@ -208,7 +208,6 @@ for rt in reactions:
         rt.compartment = "bioreactor"
         rt.lowerFluxBound = FLUX_BOUND_ZERO
         rt.upperFluxBound = FLUX_BOUND_PLUS_INF
-        rt.flux_unit = UNIT_FLUX
 
 # exchange reactions
 reactions.extend(

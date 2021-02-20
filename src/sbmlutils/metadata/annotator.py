@@ -46,7 +46,7 @@ def annotate_sbml(
     :param filepath: annotated SBML file
     :return: annotated SBMLDocument
     """
-    doc = read_sbml(source=source)
+    doc = read_sbml(source=source)  # type: libsbml.SBMLDocument
 
     # annotate
     if not os.path.exists(str(annotations_path)):
@@ -54,7 +54,7 @@ def annotate_sbml(
     external_annotations = ModelAnnotator.read_annotations(
         annotations_path, file_format="*"
     )
-    doc = annotate_sbml_doc(doc, external_annotations)  # type: libsbml.SBMLDocument
+    doc = annotate_sbml_doc(doc, external_annotations)  # type: ignore
 
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
@@ -258,6 +258,13 @@ class ExternalAnnotation:
     def __init__(self, d):
         """Initialize ExternalAnnotation."""
         self.d = d
+        self.pattern: str = None
+        self.sbml_type: str = None
+        self.annotation_type: str = None
+        self.qualifier: str = None
+        # self.resource: str = None
+        self.name: str = None
+
         for key in self._keys:
             # optional fields
             if key in ["qualifier", "name"]:
@@ -562,7 +569,7 @@ class ModelAnnotator:
 
     @staticmethod
     def read_annotations(
-        file_path: [Path, Dict], file_format: str = "*"
+        file_path: Path, file_format: str = "*"
     ) -> List[ExternalAnnotation]:
         """Read annotations from given file into DataFrame.
 

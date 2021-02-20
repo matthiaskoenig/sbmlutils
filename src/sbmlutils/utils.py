@@ -6,7 +6,7 @@ import warnings
 from typing import Callable
 
 import libsbml
-from depinfo import print_dependencies
+from depinfo import print_dependencies  # type: ignore
 
 
 def show_versions() -> None:
@@ -47,7 +47,7 @@ def _create_hash_id(sbase: libsbml.SBase) -> str:
         xml_node = sbase.toXMLNode()  # type: libsbml.XMLNode
         xml_str = xml_node.toString().encode("utf-8")
         hash_key = hashlib.md5(xml_str).hexdigest()
-    return hash_key
+    return hash_key  # type: ignore
 
 
 def timeit(f: Callable) -> Callable:

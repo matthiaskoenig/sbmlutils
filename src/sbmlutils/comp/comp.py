@@ -103,12 +103,12 @@ class ExternalModelDefinition(factory.Sbase):
         doc = model.getSBMLDocument()
         cdoc = doc.getPlugin("comp")
         extdef = cdoc.createExternalModelDefinition()
-        self.set_fields(extdef)
+        self._set_fields(extdef)
         return extdef
 
-    def set_fields(self, obj: libsbml.ExternalModelDefinition) -> None:
+    def _set_fields(self, obj: libsbml.ExternalModelDefinition) -> None:
         """Set fields on ExternalModelDefinition."""
-        super(ExternalModelDefinition, self).set_fields(obj)
+        super(ExternalModelDefinition, self)._set_fields(obj)
         obj.setModelRef(self.modelRef)
         obj.setSource(self.source)
         if self.md5 is not None:
@@ -140,7 +140,7 @@ class Submodel(factory.Sbase):
         """Create SBML Submodel."""
         cmodel = model.getPlugin("comp")
         submodel = cmodel.createSubmodel()
-        self.set_fields(submodel)
+        self._set_fields(submodel)
 
         submodel.setModelRef(self.modelRef)
         if self.timeConversionFactor:
@@ -150,9 +150,9 @@ class Submodel(factory.Sbase):
 
         return submodel
 
-    def set_fields(self, obj: libsbml.Submodel):
+    def _set_fields(self, obj: libsbml.Submodel):
         """Set fields on Submodel."""
-        super(Submodel, self).set_fields(obj)
+        super(Submodel, self)._set_fields(obj)
 
 
 class SbaseRef(factory.Sbase):
@@ -178,9 +178,9 @@ class SbaseRef(factory.Sbase):
         self.unitRef = unitRef
         self.metaIdRef = metaIdRef
 
-    def set_fields(self, obj: libsbml.SBaseRef) -> None:
+    def _set_fields(self, obj: libsbml.SBaseRef) -> None:
         """Set fields on SBaseRef."""
-        super(SbaseRef, self).set_fields(obj)
+        super(SbaseRef, self)._set_fields(obj)
 
         obj.setId(self.sid)
         if self.portRef is not None:
@@ -243,13 +243,13 @@ class ReplacedElement(SbaseRef):
 
         eplugin = e.getPlugin("comp")
         obj = eplugin.createReplacedElement()
-        self.set_fields(obj)
+        self._set_fields(obj)
 
         return obj
 
-    def set_fields(self, obj: libsbml.ReplacedElement) -> None:
+    def _set_fields(self, obj: libsbml.ReplacedElement) -> None:
         """Set fields on ReplacedElement."""
-        super(ReplacedElement, self).set_fields(obj)
+        super(ReplacedElement, self)._set_fields(obj)
         obj.setSubmodelRef(self.submodelRef)
         if self.deletion:
             obj.setDeletion(self.deletion)
@@ -291,13 +291,13 @@ class Deletion(SbaseRef):
         cmodel = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
         submodel = cmodel.getSubmodel(self.submodelRef)  # type: libsbml.Submodel
         deletion = submodel.createDeletion()  # type: libsbml.Deletion
-        self.set_fields(deletion)
+        self._set_fields(deletion)
 
         return deletion
 
-    def set_fields(self, obj: libsbml.Deletion):
+    def _set_fields(self, obj: libsbml.Deletion):
         """Set fields on Deletion."""
-        super(Deletion, self).set_fields(obj)
+        super(Deletion, self)._set_fields(obj)
 
 
 ##########################################################################
@@ -344,7 +344,7 @@ class Port(SbaseRef):
         """Create SBML for Port."""
         cmodel = model.getPlugin("comp")
         p = cmodel.createPort()
-        self.set_fields(p)
+        self._set_fields(p)
 
         if self.sboTerm is None:
             if self.portType == PORT_TYPE_PORT:
@@ -360,9 +360,9 @@ class Port(SbaseRef):
 
         return p
 
-    def set_fields(self, obj: libsbml.Port) -> None:
+    def _set_fields(self, obj: libsbml.Port) -> None:
         """Set fields on Port."""
-        super(Port, self).set_fields(obj)
+        super(Port, self)._set_fields(obj)
 
 
 def create_ports(

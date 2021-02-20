@@ -75,13 +75,12 @@ class Layout(factory.Sbase):
             layout_model = model.getPlugin("layout")  # type: libsbml.LayoutModelPlugin
 
         layout = layout_model.createLayout()  # type: libsbml.Layout
-        self.set_fields(layout)
+        self._set_fields(layout, model)
 
         return layout
 
-    def set_fields(self, obj: libsbml.Layout):
-        """Set fields."""
-        super(Layout, self).set_fields(obj)
+    def _set_fields(self, obj: libsbml.Layout, model: libsbml.Model):
+        super(Layout, self)._set_fields(obj, model)
         dim = libsbml.Dimensions(
             SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION
         )  # type: libsbml.Dimensions
@@ -92,11 +91,11 @@ class Layout(factory.Sbase):
 
         for s_item in self.species_glyphs:
             s_glyph = obj.createSpeciesGlyph()  # type: libsbml.SpeciesGlyph
-            s_item.set_fields(s_glyph, obj)
+            s_item._set_fields(s_glyph, obj)
 
         for r_item in self.reaction_glyphs:
             r_glyph = obj.createReactionGlyph()  # type: libsbml.ReactionGlyph
-            r_item.set_fields(r_glyph, obj)
+            r_item._set_fields(r_glyph, obj)
 
 
 class SpeciesGlyph(factory.Sbase):
@@ -129,9 +128,9 @@ class SpeciesGlyph(factory.Sbase):
         self.depth = d
         self.text = text
 
-    def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
+    def _set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
         """Set fields."""
-        super(SpeciesGlyph, self).set_fields(obj)
+        super(SpeciesGlyph, self)._set_fields(obj, model)
         obj.setSpeciesId(self.species)
         bb = _create_bounding_box(
             x=self.x,
@@ -147,6 +146,7 @@ class SpeciesGlyph(factory.Sbase):
         t_glyph.setId("tglyph_{}".format(self.sid))
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
+
         bb = _create_bounding_box(
             x=self.x,
             y=self.y,
@@ -188,9 +188,9 @@ class CompartmentGlyph(factory.Sbase):
         self.depth = d
         self.text = text
 
-    def set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
+    def _set_fields(self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout):
         """Set fields."""
-        super(CompartmentGlyph, self).set_fields(obj)
+        super(CompartmentGlyph, self)._set_fields(obj)
         obj.setCompartmentId(self.compartment)
         bb = _create_bounding_box(
             x=self.x,
@@ -212,7 +212,7 @@ class CompartmentGlyph(factory.Sbase):
             z=self.z,
             width=self.width,
             height=self.height,
-            dpeth=self.depth,
+            depth=self.depth,
         )
         t_glyph.setBoundingBox(bb)
 
@@ -252,9 +252,9 @@ class ReactionGlyph(factory.Sbase):
 
         self.layout = None
 
-    def set_fields(self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout):
+    def _set_fields(self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout):
         """Set fields."""
-        super(ReactionGlyph, self).set_fields(obj)
+        super(ReactionGlyph, self)._set_fields(obj)
         self.layout = layout
         obj.setReactionId(self.reaction)
         bb = _create_bounding_box(

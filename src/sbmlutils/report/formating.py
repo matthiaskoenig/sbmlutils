@@ -39,7 +39,7 @@ def notes_to_string(sbase: libsbml.SBase) -> str:
     :param sbase: SBase instance
     :return string rendering of the notes in the SBase instance
     """
-    return sbase.getNotesString()
+    return str(sbase.getNotesString())
 
 
 def formula_to_mathml(string: str) -> str:
@@ -50,7 +50,7 @@ def formula_to_mathml(string: str) -> str:
     """
     astnode = libsbml.parseL3Formula(str(string))
     mathml = libsbml.writeMathMLToString(astnode)
-    return mathml
+    return str(mathml)
 
 
 def astnode_to_string(astnode: libsbml.ASTNode) -> str:
@@ -59,7 +59,7 @@ def astnode_to_string(astnode: libsbml.ASTNode) -> str:
     :param astnode: ASTNode instance
     :return string rendering of formula in the ASTnode instance
     """
-    return libsbml.formulaToString(astnode)
+    return str(libsbml.formulaToString(astnode))
 
 
 def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
@@ -68,7 +68,7 @@ def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
     :param astnode: ASTNode instance
     :return string rendering of MathML content for the ASTNode instance
     """
-    return libsbml.writeMathMLToString(astnode)
+    return libsbml.writeMathMLToString(astnode)  # type: ignore
 
 
 # ---------
@@ -113,9 +113,9 @@ def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
     :return: string representation for list of modifiers
     """
     if len(modifierList) == 0:
-        return None
+        return ""
     mids = [m.getSpecies() for m in modifierList]
-    return "[" + ", ".join(mids) + "]"
+    return "[" + ", ".join(mids) + "]"  # type: ignore
 
 
 def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
@@ -259,7 +259,7 @@ def ruleVariableToString(rule: libsbml.Rule) -> str:
     if isinstance(rule, libsbml.AlgebraicRule):
         return "0"
     elif isinstance(rule, libsbml.AssignmentRule):
-        return rule.variable
+        return rule.variable  # type: ignore
     elif isinstance(rule, libsbml.RateRule):
         return f"d {rule.variable}/dt"
     else:

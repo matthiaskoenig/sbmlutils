@@ -88,11 +88,11 @@ class ValidationResult:
 
     def is_valid(self) -> bool:
         """Get valid status (valid model), i.e., no errors."""
-        return self.error_count == 0
+        return self.error_count == 0  # type: ignore
 
     def is_perfect(self) -> bool:
         """Get perfect status (perfect model), i.e., no errors and warnings."""
-        return self.error_count == 0 and self.warning_count == 0
+        return self.error_count == 0 and self.warning_count == 0  # type: ignore
 
 
 def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:

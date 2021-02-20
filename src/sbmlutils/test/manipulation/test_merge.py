@@ -28,7 +28,7 @@ def test_biomodel_merge(tmp_path):
     out_dir = tmp_path / "output"
     out_dir.mkdir()
 
-    doc = merge.merge_models(model_paths, out_dir=out_dir, validate=False)
+    doc = merge.merge_models(model_paths, output_dir=out_dir, validate=False)
     assert doc is not None
 
     Nall, Nerr, Nwarn = validation.validate_doc(doc, units_consistency=False)

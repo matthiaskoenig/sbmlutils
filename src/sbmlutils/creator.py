@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, NamedTuple, Union
 
 import libsbml
-import xmltodict
+import xmltodict  # type: ignore
 
 import sbmlutils.factory as factory
 import sbmlutils.history as history
@@ -152,8 +152,14 @@ class CoreModel(object):
 
             setattr(self, key, value)
 
-        self.doc = None  # SBMLDocument
-        self.model = None  # SBMLModel
+        self.doc: libsbml.SBMLDocument = None
+        self.model: libsbml.Model = None  # SBMLModel
+        self.mid: str = None
+        self.version = None
+        self.packages = []
+        self.notes = None
+        self.creators: List[factory.Creator] = None
+        self.model_units = None
 
         if "main_units" in CoreModel._keys and CoreModel._keys["main_units"]:
             logger.error("'main_units' is deprecated, use 'model_units' instead.")
@@ -166,8 +172,8 @@ class CoreModel(object):
         else:
             return self.mid
 
-    @staticmethod
-    def from_dict(model_dict: Dict):
+    @classmethod
+    def from_dict(cls, model_dict: Dict):
         """Create the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
@@ -182,12 +188,12 @@ class CoreModel(object):
         m = CoreModel()
         # add info from model_dict to instance
         for key, value in model_dict.items():
-            if key in CoreModel._keys:
+            if key in cls._keys:
                 setattr(m, key, value)
             else:
                 logger.warning(
-                    f"Unsupported key for CoreModel: '{key}'. "
-                    f"Supported keys are: {CoreModel._keys}"
+                    f"Unsupported key for {cls.__name__}: '{key}'. "
+                    f"Supported keys are: {cls._keys}"
                 )
         return m
 
@@ -308,7 +314,7 @@ class CoreModel(object):
         """
         if self.doc is None:
             self.create_sbml()
-        return libsbml.writeSBMLToString(self.doc)
+        return libsbml.writeSBMLToString(self.doc)  # type: ignore
 
     def get_json(self):
         """Get JSON representation."""
@@ -394,7 +400,7 @@ def create_model(
         filename = f"{mid}{suffix}.xml"
 
     if tmp:
-        output_dir = tempfile.mkdtemp()
+        output_dir = tempfile.mkdtemp()  # type: ignore
         sbml_path = os.path.join(output_dir, filename)
     else:
         if isinstance(output_dir, str):
