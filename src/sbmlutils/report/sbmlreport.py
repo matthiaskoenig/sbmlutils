@@ -32,6 +32,15 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = RESOURCES_DIR / "templates"
 
 
+def _check_report_math_type(math_type: str) -> None:
+    """Check the math type in the report."""
+    math_types = ["cmathml", "pmathml", "latex"]
+    if math_type not in math_types:
+        raise ValueError(
+            f"math_type '{math_type}' not in supported types: '{math_types}'"
+        )
+
+
 def create_reports(
     sbml_paths: List[Path],
     output_dir: Path,
@@ -40,31 +49,28 @@ def create_reports(
     validate: bool = True,
     math_type: str = "cmathml",
 ) -> List[str]:
-    """Create individual reports and return a list of HTML content for each model.
+    """Create model reports and return a list of HTML content for each model.
+
+    Models are provided as a list of paths. By default math in the report is rendered
+    using Content Mathml (cmathml).
+    For all models a model report is generated. In addition an index.html is generated
+    for the various models.
 
     :param sbml_paths: paths to SBML files
     :param output_dir: target directory where the SBML file is written
     :param template: which template file to use for rendering
     :param promote: boolean flag to promote local parameters
-    :param validate: boolean flag if SBML file be validated (warnings and errors
-                     are logged)
-    :param math_type: specifies the math rendering mode for the report
+    :param validate: boolean flag if SBML file should be validated
+                     (warnings and errors are logged)
+    :param math_type: specifies the math rendering mode for the report. Allowed values
+                      are 'cmathml' - Content MathML, 'pmathml' - presentation MathML,
+                      or 'latex' - Latex formula.
 
-    :return: List of strings containing HTML content of reports for all models in the
-             SBML paths
+    :return: List of HTML content of reports
     """
-
-    # check math type
-    math_types = ["cmathml", "pmathml", "latex"]
-    if math_type not in math_types:
-        raise ValueError(
-            f"math_type '{math_type}' not in supported types: '{math_types}'"
-        )
-
-    # individual reports
     html_reports = []
     for sbml_path in sbml_paths:
-        logger.info(sbml_path)
+        logger.info(f"\tab create report '{sbml_path}")
         html_report = create_report(
             sbml_path=sbml_path,
             output_dir=output_dir,
@@ -77,7 +83,6 @@ def create_reports(
         if html_report is not None:
             html_reports.append(html_report)
 
-    # return list of string variables containing HTML report for each model
     return html_reports
 
 
@@ -110,6 +115,9 @@ def create_report(
 
     :return: string variable containing content of the generated HTML report
     """
+    # validate and check arguments
+    _check_report_math_type(math_type)
+
     if not isinstance(sbml_path, Path):
         logger.warning(
             f"All paths should be of type 'Path', "
@@ -123,20 +131,12 @@ def create_report(
         )
         output_dir = Path(output_dir)
 
-    # check paths
     if not sbml_path.exists():
         raise IOError(f"'sbml_path' does not exist: '{sbml_path}'")
     if not output_dir.exists():
         raise IOError(f"'output_dir' does not exist: '{output_dir}'")
     if not output_dir.is_dir():
         raise IOError(f"'output_dir' is not a directory: '{output_dir}'")
-
-    # check math type
-    math_types = ["cmathml", "pmathml", "latex"]
-    if math_type not in math_types:
-        raise ValueError(
-            f"math_type '{math_type}' not in supported types: '{math_types}'"
-        )
 
     # read sbml
     doc = read_sbml(
@@ -148,13 +148,11 @@ def create_report(
         modeling_practice=modeling_practice,
     )
 
-    # write sbml to report directory
+    # write sbml
     basename = sbml_path.name
     write_sbml(doc, filepath=output_dir / basename)
-
+    # write html
     html = _create_html(doc, basename, html_template=template, math_type=math_type)
-
-    # store and return the variable containing the HTML report content
     return html
 
 
@@ -203,7 +201,7 @@ def _create_html(
     html_template: str = "report.html",
     math_type: str = "cmathml",
     offline: bool = True,
-):
+) -> str:
     """Create HTML from SBML.
 
     :param doc: SBML document for creating HTML report
