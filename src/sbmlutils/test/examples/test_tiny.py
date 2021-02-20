@@ -1,5 +1,6 @@
-from sbmlutils.examples.tiny_model import simulation
 import pytest
+
+from sbmlutils.examples.tiny_model import simulation
 
 
 @pytest.mark.skip

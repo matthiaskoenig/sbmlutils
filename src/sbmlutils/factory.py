@@ -1076,16 +1076,18 @@ class Uncertainty(Sbase):
                 libsbml.DISTRIB_UNCERTTYPE_RANGE,
             ]:
 
-                up: libsbml.UncertSpan = uncertainty.createUncertSpan()  # type: ignore
-                up.setType(uncertParameter.type)
+                up_span: libsbml.UncertSpan = uncertainty.createUncertSpan()  # type: ignore
+                up_span.setType(uncertParameter.type)
                 if uncertParameter.valueLower is not None:
-                    up.setValueLower(uncertParameter.valueLower)
+                    up_span.setValueLower(uncertParameter.valueLower)
                 if uncertParameter.valueUpper is not None:
-                    up.setValueUpper(uncertParameter.valueUpper)
+                    up_span.setValueUpper(uncertParameter.valueUpper)
                 if uncertParameter.varLower is not None:
-                    up.setVarLower(uncertParameter.varLower)
+                    up_span.setVarLower(uncertParameter.varLower)
                 if uncertParameter.varUpper is not None:
-                    up.setValueLower(uncertParameter.varUpper)
+                    up_span.setValueLower(uncertParameter.varUpper)
+                if uncertParameter.unit:
+                    up_span.setUnits(Unit.get_unit_string(uncertParameter.unit))
 
             elif uncertParameter.type in [
                 libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
@@ -1099,29 +1101,29 @@ class Uncertainty(Sbase):
                 libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
                 libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
             ]:
-                up: libsbml.UncertParameter = (
+                up_p: libsbml.UncertParameter = (
                     uncertainty.createUncertParameter()
                 )  # type: ignore
-                up.setType(uncertParameter.type)
+                up_p.setType(uncertParameter.type)
                 if uncertParameter.value is not None:
-                    up.setValue(uncertParameter.value)
+                    up_p.setValue(uncertParameter.value)
                 if uncertParameter.var is not None:
-                    up.setValue(uncertParameter.var)
+                    up_p.setValue(uncertParameter.var)
+                if uncertParameter.unit:
+                    up_p.setUnits(Unit.get_unit_string(uncertParameter.unit))
             else:
-                up = None
                 logger.error(
                     "Unsupported UncertParameter or UncertSpan type: %s",
                     uncertParameter.type,
                 )
 
-            if up and uncertParameter.unit:
-                up.setUnits(Unit.get_unit_string(uncertParameter.unit))
-
         # create a distribution uncertainty
         if self.formula:
             model = sbase.getModel()
-            up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
-            up.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
+            up_dist = (
+                uncertainty.createUncertParameter()
+            )  # type: libsbml.UncertParameter
+            up_dist.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
             for key in [
                 "normal",
                 "uniform",
@@ -1137,14 +1139,14 @@ class Uncertainty(Sbase):
                 "raleigh",
             ]:
                 if key in self.formula:
-                    up.setDefinitionURL(
+                    up_dist.setDefinitionURL(
                         "http://www.sbml.org/sbml/symbols/distrib/{}".format(key)
                     )
                     ast = libsbml.parseL3FormulaWithModel(self.formula, model)
                     if ast is None:
                         logger.error(libsbml.getLastParseL3Error())
                     else:
-                        check(up.setMath(ast), "set math in distrib formula")
+                        check(up_dist.setMath(ast), "set math in distrib formula")
 
         return uncertainty
 

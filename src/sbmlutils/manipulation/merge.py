@@ -60,7 +60,7 @@ def merge_models(
                 )
 
         # convert to L3V1
-        path_L3: Path = output_dir / f"{model_id}_L3.xml"  # ignore type
+        path_L3: Path = output_dir / f"{model_id}_L3.xml"  # type: ignore
         doc = read_sbml(path_L3)
         if doc.getLevel() < SBML_LEVEL:
             doc.setLevelAndVersion(SBML_LEVEL, SBML_VERSION)
@@ -68,7 +68,7 @@ def merge_models(
         model_paths[model_id] = path_L3
 
     if validate is True:
-        for path in model_paths:
+        for path in model_paths:  # type: ignore
             validate_sbml(source=path, name=str(path))
 
     # create comp model
@@ -79,7 +79,7 @@ def merge_models(
         validate_sbml(path, name=str(path))
 
     # write merged doc
-    f_out = os.path.join(output_dir, "{}.xml".format(merged_id))
+    f_out = os.path.join(output_dir, "{}.xml".format(merged_id))  # type: ignore
     libsbml.writeSBMLToFile(merged_doc, f_out)
 
     os.chdir(cur_dir)

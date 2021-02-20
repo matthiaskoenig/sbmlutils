@@ -15,7 +15,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Iterable, List, NamedTuple, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Union
 
 import libsbml
 import xmltodict  # type: ignore
@@ -43,7 +43,7 @@ class Preprocess:
         Information in earlier modules is either
         extended or overwritten depending on data type.
         """
-        cdict = dict()
+        cdict: Dict[Any, Any] = dict()
 
         # add info from modules
         for module in modules:
@@ -385,7 +385,7 @@ def create_model(
     if isinstance(modules, dict):
         model_dict = modules
     else:
-        model_dict = Preprocess.dict_from_modules(modules)
+        model_dict = Preprocess.dict_from_modules(modules)  # type: ignore
 
     core_model = CoreModel.from_dict(model_dict=model_dict)
     logger.debug(core_model.get_info())
@@ -401,16 +401,16 @@ def create_model(
 
     if tmp:
         output_dir = tempfile.mkdtemp()  # type: ignore
-        sbml_path = os.path.join(output_dir, filename)
+        sbml_path = os.path.join(output_dir, filename)  # type: ignore
     else:
         if isinstance(output_dir, str):
             output_dir = Path(output_dir)
             logger.warning(f"'output_dir' should be a Path: {output_dir}")
 
-        if not output_dir.exists():
+        if not output_dir.exists():  # type: ignore
             logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
-            output_dir.mkdir(parents=True)
-        sbml_path = output_dir / filename
+            output_dir.mkdir(parents=True)  # type: ignore
+        sbml_path = output_dir / filename  # type: ignore
 
     # write sbml
     if core_model.doc is None:
@@ -418,7 +418,7 @@ def create_model(
     try:
         write_sbml(
             doc=core_model.doc,
-            filepath=sbml_path,
+            filepath=sbml_path,  # type: ignore
             validate=validate,
             log_errors=log_errors,
             units_consistency=units_consistency,
@@ -430,21 +430,21 @@ def create_model(
         if annotations is not None:
             # overwrite the normal file
             annotator.annotate_sbml(
-                source=sbml_path, annotations_path=annotations, filepath=sbml_path
+                source=sbml_path, annotations_path=annotations, filepath=sbml_path  # type: ignore
             )
 
         # create report
         if create_report:
             # file is already validated, no validation on report needed
             sbmlreport.create_report(
-                sbml_path=sbml_path, output_dir=output_dir, validate=False
+                sbml_path=sbml_path, output_dir=output_dir, validate=False  # type: ignore
             )
     finally:
         if tmp:
-            shutil.rmtree(output_dir)
+            shutil.rmtree(str(output_dir))
 
     return FactoryResult(
         model_dict=model_dict,
         core_model=core_model,
-        sbml_path=sbml_path,
+        sbml_path=sbml_path,  # type: ignore
     )

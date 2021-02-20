@@ -43,7 +43,7 @@ import re
 import warnings
 from pathlib import Path
 from pprint import pprint
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import libsbml
 
@@ -216,7 +216,7 @@ def xpp2sbml(
         # mod (modulo)
         fac.Function("mod", "lambda(x,y, x % y)", name="modulo"),
     ]
-    function_definitions: List[Dict[str, str]] = []
+    function_definitions: List[Dict[str, Any]] = []
     events: List[Event] = []
 
     def replace_fdef():

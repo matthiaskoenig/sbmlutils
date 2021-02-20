@@ -72,7 +72,7 @@ class Layout(factory.Sbase):
                 True,
             )
             doc.setPackageRequired("layout", False)
-            layout_model = model.getPlugin("layout")  # type: libsbml.LayoutModelPlugin
+            layout_model = model.getPlugin("layout")  # type: ignore
 
         layout = layout_model.createLayout()  # type: libsbml.Layout
         self._set_fields(layout, model)
