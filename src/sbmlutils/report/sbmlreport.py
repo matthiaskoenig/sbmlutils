@@ -151,6 +151,7 @@ def create_report(
     # write sbml
     basename = sbml_path.name
     write_sbml(doc, filepath=output_dir / basename)
+
     # write html
     html = _create_html(doc, basename, html_template=template, math_type=math_type)
     return html

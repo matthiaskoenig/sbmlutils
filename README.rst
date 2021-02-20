@@ -37,6 +37,10 @@ sbmlutils: python utilities for SBML
    :target: https://github.com/ambv/black
    :alt: Black
 
+.. image:: http://www.mypy-lang.org/static/mypy_badge.svg
+   :target: http://mypy-lang.org/
+   :alt: mypy
+
 sbmlutils is a collection of python utilities for working with
 `SBML <http://www.sbml.org>`__ models implemented on top of
 `libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
