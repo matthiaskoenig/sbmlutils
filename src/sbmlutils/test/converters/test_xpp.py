@@ -1,11 +1,10 @@
 """Test XPP generation."""
-from sbmlutils.converters import xpp
-from sbmlutils.converters import xpp_examples
+import pytest
+
+from sbmlutils.converters import xpp, xpp_examples
 from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.test import DATA_DIR
 
-
-import pytest
 
 model_ids = [
     # "112836_HH-ext",

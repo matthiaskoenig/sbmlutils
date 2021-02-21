@@ -4,7 +4,7 @@ alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 
 import re
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 import libsbml
 
@@ -40,7 +40,9 @@ def find_names_in_ast(
     return names
 
 
-def replace_formula(formula: str, fid: str, old_args: List[str], new_args: List[str]) -> str:
+def replace_formula(
+    formula: str, fid: str, old_args: List[str], new_args: List[str]
+) -> str:
     """Replace information in given formula.
 
     :param formula:
@@ -53,7 +55,7 @@ def replace_formula(formula: str, fid: str, old_args: List[str], new_args: List[
     pattern = re.compile(r"(?<!\w){}\s*\(.*?\)".format(fid))
 
     for m in pattern.finditer(formula):
-        g = formula[m.start():]
+        g = formula[m.start() :]
         content = _top_bracket_content(g)
 
         # debug information
@@ -84,7 +86,7 @@ def _top_bracket_content(s: str) -> str:
     toret = _bracket_stack(s)
     start_idx = sorted(toret.keys())[0]
     end_idx = toret[start_idx]
-    return s[start_idx + 1: end_idx]
+    return s[start_idx + 1 : end_idx]
 
 
 def _bracket_stack(s: str) -> Dict[int, int]:

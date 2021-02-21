@@ -18,8 +18,9 @@ import sbmlutils.factory as factory
 logger = logging.getLogger(__name__)
 
 
-def create_ExternalModelDefinition(doc_comp: libsbml.CompSBMLDocumentPlugin,
-                                   emd_id: str, source: str) -> libsbml.ExternalModelDefinition:
+def create_ExternalModelDefinition(
+    doc_comp: libsbml.CompSBMLDocumentPlugin, emd_id: str, source: str
+) -> libsbml.ExternalModelDefinition:
     """Create comp ExternalModelDefinition.
 
     :param doc_comp: SBMLDocument comp plugin
@@ -27,7 +28,9 @@ def create_ExternalModelDefinition(doc_comp: libsbml.CompSBMLDocumentPlugin,
     :param source: source
     :return:
     """
-    extdef = doc_comp.createExternalModelDefinition()  # type: libsbml.ExternalModelDefinition
+    extdef = (
+        doc_comp.createExternalModelDefinition()
+    )  # type: libsbml.ExternalModelDefinition
     extdef.setId(emd_id)
     extdef.setName(emd_id)
     extdef.setModelRef(emd_id)
@@ -89,8 +92,14 @@ class ExternalModelDefinition(factory.Sbase):
     """ExternalModelDefinition."""
 
     def __init__(
-        self, sid: str, source: str, modelRef: str, md5: str = None,
-        name: str = None, sboTerm: str = None, metaId: str = None
+        self,
+        sid: str,
+        source: str,
+        modelRef: str,
+        md5: str = None,
+        name: str = None,
+        sboTerm: str = None,
+        metaId: str = None,
     ):
         """Create an ExternalModelDefinition."""
         super(ExternalModelDefinition, self).__init__(
@@ -483,8 +492,12 @@ SBASE_REF_TYPE_UNIT = "unitRef"
 SBASE_REF_TYPE_METAID = "metIdRef"
 
 
-def replace_elements(model: libsbml.Model, sid: str, ref_type: str,
-                     replaced_elements: Dict[str, List[str]]) -> libsbml.ReplacedElement:
+def replace_elements(
+    model: libsbml.Model,
+    sid: str,
+    ref_type: str,
+    replaced_elements: Dict[str, List[str]],
+) -> libsbml.ReplacedElement:
     """Replace elements in comp.
 
     :param model:
@@ -498,7 +511,9 @@ def replace_elements(model: libsbml.Model, sid: str, ref_type: str,
             _create_replaced_element(model, sid, submodel, rep_id, ref_type=ref_type)
 
 
-def replace_element_in_submodels(model: libsbml.Model, sid: str, ref_type: str, submodels: List[str]) -> libsbml.ReplacedElement:
+def replace_element_in_submodels(
+    model: libsbml.Model, sid: str, ref_type: str, submodels: List[str]
+) -> libsbml.ReplacedElement:
     """Replace elements submodels with the identical id.
 
     For instance to replace all the units in the submodels.
@@ -513,7 +528,9 @@ def replace_element_in_submodels(model: libsbml.Model, sid: str, ref_type: str, 
         _create_replaced_element(model, sid, submodel, sid, ref_type=ref_type)
 
 
-def _create_replaced_element(model: libsbml.Model, sid: str, submodel: str, replaced_id: str, ref_type: str) -> libsbml.ReplacedElement:
+def _create_replaced_element(
+    model: libsbml.Model, sid: str, submodel: str, replaced_id: str, ref_type: str
+) -> libsbml.ReplacedElement:
     """Create a replaced element.
 
     :param model:
@@ -531,7 +548,9 @@ def _create_replaced_element(model: libsbml.Model, sid: str, submodel: str, repl
     return rep_element
 
 
-def replaced_by(model: libsbml.Model, sid: str, ref_type: str, submodel: str, replaced_by: str) -> libsbml.ReplacedBy:
+def replaced_by(
+    model: libsbml.Model, sid: str, ref_type: str, submodel: str, replaced_by: str
+) -> libsbml.ReplacedBy:
     """Create a ReplacedBy element.
 
     The element with sid in the model is replaced by the

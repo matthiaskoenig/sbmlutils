@@ -39,13 +39,12 @@ Not supported:
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
+import itertools
 import re
 import warnings
 from pathlib import Path
 from pprint import pprint
 from typing import Any, Dict, List, Optional, Tuple
-
-import itertools
 
 import libsbml
 
@@ -618,14 +617,16 @@ def xpp2sbml(
     )
 
     # create SBML objects
-    objects: List[Any] = list(itertools.chain(
-        parameters,
-        initial_assignments,
-        functions,
-        rate_rules,
-        assignment_rules,
-        events,
-    ))
+    objects: List[Any] = list(
+        itertools.chain(
+            parameters,
+            initial_assignments,
+            functions,
+            rate_rules,
+            assignment_rules,
+            events,
+        )
+    )
     fac.create_objects(model, obj_iter=objects, debug=False)
 
     """

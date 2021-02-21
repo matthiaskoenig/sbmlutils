@@ -3,7 +3,7 @@ import functools
 import hashlib
 import time
 import warnings
-from typing import Callable, Any
+from typing import Any, Callable
 
 import libsbml
 from depinfo import print_dependencies  # type: ignore
@@ -64,7 +64,10 @@ def timeit(f: Callable) -> Callable:
         result = f(*args, **kwargs)
         te = time.time()
 
-        print("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kwargs, te - ts))
+        print(
+            "func:%r args:[%r, %r] took: %2.4f sec"
+            % (f.__name__, args, kwargs, te - ts)
+        )
         return result
 
     return timed

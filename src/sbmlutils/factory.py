@@ -18,7 +18,7 @@ which takes care of the order of object creation.
 
 import logging
 from collections import namedtuple
-from typing import List, Optional, Union, Iterator, Dict, Any
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import libsbml
 import numpy as np
@@ -27,6 +27,7 @@ from sbmlutils.equation import Equation
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
 from sbmlutils.metadata.sbo import SBO_EXCHANGE_REACTION
 from sbmlutils.validation import check
+
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +74,9 @@ __all__ = [
 ]
 
 
-def create_objects(model: libsbml.Model, obj_iter: List[Any], key: str = None, debug: bool = False) -> Dict[str, libsbml.SBase]:
+def create_objects(
+    model: libsbml.Model, obj_iter: List[Any], key: str = None, debug: bool = False
+) -> Dict[str, libsbml.SBase]:
     """Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -162,12 +165,12 @@ class ModelUnits:
 
     def __init__(
         self,
-        time: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
-        extent: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
-        substance: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
-        length: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
-        area: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
-        volume: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
+        time: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
+        extent: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
+        substance: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
+        length: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
+        area: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
+        volume: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
     ):
         self.time = time
         self.extent = extent
@@ -230,7 +233,14 @@ def set_model_units(model: libsbml.Model, model_units: ModelUnits) -> None:
 class Creator:
     """Creator in ModelHistory."""
 
-    def __init__(self, familyName: str, givenName: str, email: str, organization: str, site: Optional[str] = None):
+    def __init__(
+        self,
+        familyName: str,
+        givenName: str,
+        email: str,
+        organization: str,
+        site: Optional[str] = None,
+    ):
         self.familyName = familyName
         self.givenName = givenName
         self.email = email
@@ -250,7 +260,7 @@ class Sbase:
         annotations: Optional[List] = None,
         notes: Optional[str] = None,
         port: Any = None,
-        uncertainties: Optional[List['Uncertainty']] = None,
+        uncertainties: Optional[List["Uncertainty"]] = None,
     ):
         self.sid = sid
         self.name = name
@@ -354,12 +364,12 @@ class Value(Sbase):
         sid: str,
         value: float,
         name: Optional[str] = None,
-        sboTerm: Optional[str] =None,
-        metaId: Optional[str]=None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
         annotations=None,
         notes: Optional[Union[str, Notes]] = None,
-        port: Any=None,
-        uncertainties: List['Uncertainty'] = None,
+        port: Any = None,
+        uncertainties: List["Uncertainty"] = None,
     ):
         super(Value, self).__init__(
             sid,
@@ -367,7 +377,7 @@ class Value(Sbase):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
-            notes=notes,
+            notes=notes,  # type: ignore
             port=port,
             uncertainties=uncertainties,
         )
@@ -397,7 +407,7 @@ class ValueWithUnit(Value):
         metaId=None,
         annotations=None,
         notes: Optional[Union[str, Notes]] = None,
-        port: Any=None,
+        port: Any = None,
         uncertainties=None,
     ):
         super(ValueWithUnit, self).__init__(
@@ -429,7 +439,7 @@ class Unit(Sbase):
         name=None,
         sboTerm=None,
         metaId=None,
-        port: Any=None,
+        port: Any = None,
         uncertainties=None,
     ):
         super(Unit, self).__init__(
@@ -523,7 +533,7 @@ class Function(Sbase):
         sboTerm=None,
         metaId=None,
         notes=None,
-        port: Any=None,
+        port: Any = None,
         uncertainties=None,
     ):
         super(Function, self).__init__(
@@ -567,7 +577,7 @@ class Parameter(ValueWithUnit):
         metaId=None,
         annotations=None,
         notes=None,
-        port: Any=None,
+        port: Any = None,
         uncertainties=None,
     ):
         super(Parameter, self).__init__(
@@ -632,7 +642,7 @@ class Compartment(ValueWithUnit):
         metaId=None,
         annotations=None,
         notes=None,
-        port: Any=None,
+        port: Any = None,
         uncertainties=None,
     ):
         super(Compartment, self).__init__(
@@ -696,15 +706,15 @@ class Species(Sbase):
         constant: bool = False,
         boundaryCondition: bool = False,
         charge: Optional[float] = None,
-        chemicalFormula: Optional[str] =None,
-        conversionFactor: Optional[float]=None,
-        name: Optional[str]=None,
-        sboTerm: Optional[str]=None,
-        metaId: Optional[str]=None,
-        annotations: Optional[List]=None,
-        notes: Optional[str]=None,
-        port: Any=None,
-        uncertainties: Optional[List['Uncertainty']]=None,
+        chemicalFormula: Optional[str] = None,
+        conversionFactor: Optional[float] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: Optional[List] = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List["Uncertainty"]] = None,
     ):
         super(Species, self).__init__(
             sid=sid,
@@ -800,12 +810,12 @@ class InitialAssignment(Value):
         metaId=None,
         annotations=None,
         notes=None,
-        port: Any=None,
+        port: Any = None,
         uncertainties=None,
     ):
         super(InitialAssignment, self).__init__(
             sid,
-            value,
+            value,  # type: ignore
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
@@ -1045,7 +1055,7 @@ class Uncertainty(Sbase):
         metaId=None,
         annotations=None,
         notes=None,
-        port: Any=None,
+        port: Any = None,
     ):
         super(Uncertainty, self).__init__(
             sid,
@@ -1182,7 +1192,7 @@ class Reaction(Sbase):
         lowerFluxBound=None,
         upperFluxBound=None,
         uncertainties=None,
-        port: Any=None,
+        port: Any = None,
     ):
         super(Reaction, self).__init__(
             sid=sid,
@@ -1302,7 +1312,7 @@ class ExchangeReaction(Reaction):
         lowerFluxBound: str = None,
         upperFluxBound: str = None,
         uncertainties: List[Uncertainty] = None,
-        port: Any=None,
+        port: Any = None,
     ):
         super(ExchangeReaction, self).__init__(
             sid=ExchangeReaction.PREFIX + species_id,

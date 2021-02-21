@@ -86,7 +86,9 @@ def merge_models(
     return merged_doc
 
 
-def create_merged_doc(model_paths: Dict[str, Path], merged_id: str="merged") -> libsbml.SBMLDocument:
+def create_merged_doc(
+    model_paths: Dict[str, Path], merged_id: str = "merged"
+) -> libsbml.SBMLDocument:
     """Create a comp model from given model paths.
 
     Warning: This only works if all models are in the same directory.

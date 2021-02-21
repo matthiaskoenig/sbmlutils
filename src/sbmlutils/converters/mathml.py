@@ -7,7 +7,7 @@ In build in python are
     and, or, not
 """
 from math import *
-from typing import Tuple, Optional, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 import libsbml
 
