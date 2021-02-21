@@ -15,6 +15,6 @@ NBDIR=$DIR/notebooks
 # if errors should abort, remove the --allow-errors option
 # jupyter nbconvert --to=rst --allow-errors --execute $NBDIR/*.ipynb
 # In the process the notebooks are completely executed
-jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=rst --allow-errors --execute $NBDIR/*.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=rst --execute $NBDIR/*.ipynb
 echo "DONE"
 

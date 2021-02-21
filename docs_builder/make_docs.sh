@@ -23,13 +23,8 @@ rm -rf _static
 echo "DONE"
 
 # create rst files from the notebooks
-./make_notebooks_rst.sh 2>&1 | tee ./make_notebooks_rst.log
+# ./make_notebooks_rst.sh 2>&1 | tee ./make_notebooks_rst.log
 
-# echo "--------------------------------------"
-# echo "create sphinx-apidoc"
-# echo "--------------------------------------"
-# sphinx-apidoc -o _apidoc ../tellurium
-# echo "DONE"
 
 # create html documentation
 echo "--------------------------------------"

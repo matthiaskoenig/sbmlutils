@@ -4,7 +4,7 @@ from sbmlutils.factory import *
 from sbmlutils.units import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.metadata.miriam import *
-from sbmlutils.modelcreator import templates
+from sbmlutils.examples import templates
 
 mid = 'annotation_example'
 version = 8
