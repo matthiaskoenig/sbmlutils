@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def flatten_sbml(
-    sbml_path: Path, filepath=None, leave_ports=True
+    sbml_path: Path, filepath: Path = None, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten given SBML file.
 

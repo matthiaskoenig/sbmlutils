@@ -4,17 +4,20 @@ alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 
 import re
+from typing import List, Optional
 
 import libsbml
 
 
-def ast_info(ast: libsbml.ASTNode):
+def ast_info(ast: libsbml.ASTNode) -> None:
     """Print ASTNode information."""
     print(ast)
     print(ast.getType(), ast.getName())
 
 
-def find_names_in_ast(ast, names=None):
+def find_names_in_ast(
+    ast: libsbml.ASTNode, names: Optional[List[str]] = None
+) -> List[str]:
     """Find all names in given astnode.
 
     Names are the variables in the formula.

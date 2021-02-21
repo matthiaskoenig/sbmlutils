@@ -159,7 +159,7 @@ def create_report(
 
 def _create_index_html(
     sbml_paths: List[Path], html_template: str = "index.html", offline: bool = True
-):
+) -> str:
     """Create index.html for given sbml_paths.
 
     :param sbml_paths: List of paths to SBML files

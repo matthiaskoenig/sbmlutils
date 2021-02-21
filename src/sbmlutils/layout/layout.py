@@ -59,7 +59,7 @@ class Layout(factory.Sbase):
         self.species_glyphs = species_glyphs if species_glyphs else []
         self.reaction_glyphs = reaction_glyphs if reaction_glyphs else []
 
-    def create_sbml(self, model: libsbml.Model):
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Layout:
         """Create SBML in model."""
         layout_model = model.getPlugin("layout")  # type: libsbml.LayoutModelPlugin
         if not layout_model:
@@ -79,7 +79,7 @@ class Layout(factory.Sbase):
 
         return layout
 
-    def _set_fields(self, obj: libsbml.Layout, model: libsbml.Model):
+    def _set_fields(self, obj: libsbml.Layout, model: libsbml.Model) -> None:
         super(Layout, self)._set_fields(obj, model)
         dim = libsbml.Dimensions(
             SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION
@@ -130,7 +130,7 @@ class SpeciesGlyph(factory.Sbase):
 
     def _set_glyph_fields(
         self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
-    ):
+    ) -> None:
         """Set fields."""
         super(SpeciesGlyph, self)._set_fields(obj, model)
         obj.setSpeciesId(self.species)
@@ -192,7 +192,7 @@ class CompartmentGlyph(factory.Sbase):
 
     def _set_glyph_fields(
         self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
-    ):
+    ) -> None:
         """Set fields."""
         super(CompartmentGlyph, self)._set_fields(obj, model)
         obj.setCompartmentId(self.compartment)
@@ -258,7 +258,7 @@ class ReactionGlyph(factory.Sbase):
 
     def _set_glyph_fields(
         self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout, model: libsbml.Model
-    ):
+    ) -> None:
         super(ReactionGlyph, self)._set_fields(obj, model)
         self.layout = layout
         obj.setReactionId(self.reaction)
@@ -329,11 +329,11 @@ class ReactionGlyph(factory.Sbase):
         self,
         layout: libsbml.Layout,
         srg: libsbml.SpeciesReferenceGlyph,
-        r_glyph_id,
-        s_glyph_id,
-        role,
-        direction,
-    ):
+        r_glyph_id: str,
+        s_glyph_id: str,
+        role: str,
+        direction: str,
+    ) -> None:
         """Heuristic for creating the curves.
 
         :param layout:

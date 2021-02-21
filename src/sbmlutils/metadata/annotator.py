@@ -438,7 +438,9 @@ class ModelAnnotator:
             elements.append(e)
         return elements
 
-    def _annotate_elements(self, elements, ex_a: ExternalAnnotation):
+    def _annotate_elements(
+        self, elements: Iterable[libsbml.SBase], ex_a: ExternalAnnotation
+    ) -> None:
         """Annotate given elements with annotation.
 
         :param elements: SBase elements to annotate
@@ -489,7 +491,7 @@ class ModelAnnotator:
         return libsbml.__dict__.get(qualifier_str)
 
     @staticmethod
-    def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation):
+    def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation) -> None:
         """Annotate SBase based on given annotation data.
 
         :param sbase: libsbml.SBase
@@ -527,7 +529,7 @@ class ModelAnnotator:
     # --- File IO ---
 
     @staticmethod
-    def read_annotations_df(file_path: Path, file_format: str = "*"):
+    def read_annotations_df(file_path: Path, file_format: str = "*") -> pd.DataFrame:
         """Read annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"

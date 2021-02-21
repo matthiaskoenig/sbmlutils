@@ -23,7 +23,7 @@ def _distrib_doc():
     return doc
 
 
-def _create_parameter(pid, model: libsbml.Model):
+def _create_parameter(pid: str, model: libsbml.Model) -> libsbml.Parameter:
     # parameter
     p = model.createParameter()  # type: libsbml.Parameter
     p.setId(pid)

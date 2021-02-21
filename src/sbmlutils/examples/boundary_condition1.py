@@ -7,7 +7,7 @@ from sbmlutils.examples import EXAMPLE_RESULTS_DIR
 from sbmlutils.factory import *
 
 
-def create(tmp: bool = False):
+def create(tmp: bool = False) -> None:
     """Create example setting boundaryCondition."""
 
     m1 = {

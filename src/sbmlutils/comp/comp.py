@@ -8,7 +8,7 @@ of the dynamic FBA models.
 """
 
 import logging
-from typing import List
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import libsbml
 
@@ -36,9 +36,9 @@ def create_ExternalModelDefinition(doc_comp, emd_id, source):
 
 def add_submodel_from_emd(
     model_comp: libsbml.CompModelPlugin,
-    submodel_id,
+    submodel_id: str,
     emd: libsbml.ExternalModelDefinition,
-):
+) -> libsbml.Submodel:
     """Add submodel to the model from given ExternalModelDefinition.
 
     :param model_comp: Model comp plugin
@@ -48,7 +48,7 @@ def add_submodel_from_emd(
     """
 
     model_ref = emd.getModelRef()
-    submodel = model_comp.createSubmodel()
+    submodel = model_comp.createSubmodel()  # type: libsbml.Submodel
     submodel.setId(submodel_id)
     submodel.setModelRef(model_ref)
 
@@ -152,7 +152,7 @@ class Submodel(factory.Sbase):
 
         return submodel
 
-    def _set_fields(self, obj: libsbml.Submodel, model: libsbml.Model):
+    def _set_fields(self, obj: libsbml.Submodel, model: libsbml.Model) -> None:
         super(Submodel, self)._set_fields(obj, model)
 
 
@@ -366,10 +366,10 @@ class Port(SbaseRef):
 
 def create_ports(
     model: libsbml.Model,
-    portRefs=None,
-    idRefs=None,
-    unitRefs=None,
-    metaIdRefs=None,
+    portRefs: Optional[Any] = None,
+    idRefs: Optional[Any] = None,
+    unitRefs: Optional[Any] = None,
+    metaIdRefs: Optional[Any] = None,
     portType: str = PORT_TYPE_PORT,
     suffix: str = "_port",
 ) -> List[Port]:
@@ -381,6 +381,8 @@ def create_ports(
     :param idRefs: dict of the form {pid:idRef}
     :param unitRefs: dict of the form {pid:unitRef}
     :param metaIdRefs: dict of the form {pid:metaIdRef}
+    :param portType: type of port
+    :param suffix: suffix to use in port generation
 
     :return:
     """
@@ -415,15 +417,15 @@ def create_ports(
 
 
 def _create_port(
-    model,
-    pid,
-    name=None,
-    portRef=None,
-    idRef=None,
-    unitRef=None,
-    metaIdRef=None,
-    portType=PORT_TYPE_PORT,
-):
+    model: libsbml.Model,
+    pid: str,
+    name: Optional[str] = None,
+    portRef: Optional[str] = None,
+    idRef: Optional[str] = None,
+    unitRef: Optional[str] = None,
+    metaIdRef: Optional[str] = None,
+    portType: str = PORT_TYPE_PORT,
+) -> libsbml.Port:
     """Create port in given model.
 
     :param model:
@@ -437,7 +439,7 @@ def _create_port(
     :return:
     """
     cmodel = model.getPlugin("comp")
-    p = cmodel.createPort()
+    p = cmodel.createPort()  # type: libsbml.Port
     p.setId(pid)
     if name is not None:
         p.setName(name)
@@ -449,7 +451,7 @@ def _create_port(
         p.setIdRef(idRef)
         ref = idRef
     if unitRef is not None:
-        unit_str = factory.get_unit_string(unitRef)
+        unit_str = factory.Unit.get_unit_string(unitRef)
         p.setUnitRef(unit_str)
         ref = unit_str
     if metaIdRef is not None:

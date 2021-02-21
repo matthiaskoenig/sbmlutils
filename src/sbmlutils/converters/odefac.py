@@ -59,7 +59,7 @@ class SBML2ODE:
         self._create_odes()
 
     @classmethod
-    def from_file(cls, sbml_file: Path):
+    def from_file(cls, sbml_file: Path) -> "SBML2ODE":
         """Create converter from SBML file."""
         doc = libsbml.readSBMLFromFile(str(sbml_file))  # type: libsbml.SBMLDocument
         return cls(doc)

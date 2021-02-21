@@ -7,7 +7,7 @@ from pathlib import Path
 import libsbml
 
 
-def add_uncertainty_example(tmp: bool = False):
+def add_uncertainty_example(tmp: bool = False) -> None:
     """Add uncertainty to a model."""
     output_dir = str(Path(__file__).parent)
     doc = libsbml.readSBMLFromFile(

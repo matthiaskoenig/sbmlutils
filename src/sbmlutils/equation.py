@@ -137,7 +137,7 @@ class Equation:
         return Part(stoichiometry, sid)
 
     @staticmethod
-    def _to_string_side(items: Iterable[Part]):
+    def _to_string_side(items: Iterable[Part]) -> str:
         tokens = []
         for item in items:
             stoichiometry, sid = item[0], item[1]

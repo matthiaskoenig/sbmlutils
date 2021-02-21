@@ -78,7 +78,7 @@ class Preprocess:
 
     @staticmethod
     def _create_module_dict(
-        module_name: str, package: str = None, keys=Iterable[str]
+        module_name: str, keys: Iterable[str], package: str = None
     ) -> Dict[str, Any]:
         """Create information dictionary from given module.
 
@@ -343,7 +343,7 @@ def create_model(
     filename: str = None,
     mid: str = None,
     suffix: str = None,
-    annotations=None,
+    annotations: Path = None,
     create_report: bool = True,
     validate: bool = True,
     log_errors: bool = True,
@@ -364,7 +364,7 @@ def create_model(
     :param filename: filename to write to with suffix, if not provided mid and suffix are used
     :param mid: model id to use for filename
     :param suffix: suffix for SBML filename
-    :param annotations: list of annotations for SBML
+    :param annotations: Path to annotations file
     :param create_report: boolean switch to create SBML report
     :param validate: validates the SBML file
     :param log_errors: boolean flag to log errors

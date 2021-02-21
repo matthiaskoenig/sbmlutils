@@ -291,7 +291,7 @@ class Interpolation:
 
     # --- SBML & Interpolation --------------------
 
-    def write_sbml_to_file(self, sbml_out: Path):
+    def write_sbml_to_file(self, sbml_out: Path) -> None:
         """Write the SBML file.
 
         :param sbml_out: Path to SBML file
@@ -351,7 +351,9 @@ class Interpolation:
         return interpolators
 
     @staticmethod
-    def add_interpolator_to_model(interpolator, model: libsbml.Model) -> None:
+    def add_interpolator_to_model(
+        interpolator: "Interpolator", model: libsbml.Model
+    ) -> None:
         """Add interpolator to model.
 
         The parameters, formulas and rules have to be added to the SBML model.

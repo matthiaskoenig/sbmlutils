@@ -184,7 +184,7 @@ def xpp2sbml(
     force_lower: bool = False,
     validate: bool = True,
     debug: bool = False,
-):
+) -> libsbml.SBMLDocument:
     """Read given xpp_file and converts to SBML file.
 
     :param xpp_file: xpp input ode file
@@ -642,3 +642,4 @@ def xpp2sbml(
         program_version=__version__,
         units_consistency=False,
     )
+    return doc

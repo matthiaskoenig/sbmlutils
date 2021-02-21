@@ -1,7 +1,7 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
 import logging
 import time
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 import libsbml
 
@@ -101,7 +101,7 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
         log_sbml_error(error=doc.getError(k))
 
 
-def log_sbml_error(error: libsbml.SBMLError, index: int = None):
+def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
@@ -143,11 +143,11 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
 
 def validate_doc(
     doc: libsbml.SBMLDocument,
-    name=None,
-    log_errors=True,
-    units_consistency=True,
-    modeling_practice=True,
-    internal_consistency=True,
+    name: Optional[str] = None,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
 ) -> ValidationResult:
     """Validate SBMLDocument.
 
@@ -220,7 +220,9 @@ def validate_doc(
     return vresults
 
 
-def _check_consistency(doc, internal_consistency: bool = False) -> ValidationResult:
+def _check_consistency(
+    doc: libsbml.SBMLDocument, internal_consistency: bool = False
+) -> ValidationResult:
     """Calculate the type of errors.
 
     :param doc:

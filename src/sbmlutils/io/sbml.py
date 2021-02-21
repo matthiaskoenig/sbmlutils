@@ -71,7 +71,7 @@ def read_sbml(
     if validate:
         validation.validate_doc(
             doc=doc,
-            name=source,
+            name=str(source),
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,

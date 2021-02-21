@@ -1,5 +1,6 @@
-"""Handles manipulation of the History of SBases."""
+"""Handle manipulation of the History of SBases."""
 import datetime
+from typing import Any, Dict, List, Union
 
 import libsbml
 
@@ -17,12 +18,12 @@ def date_now():
     return libsbml.Date(timestr)
 
 
-def set_model_history(model: libsbml.Model, creators) -> None:
+def set_model_history(model: libsbml.Model, creators: Union[List, Dict]) -> None:
     """Set the model history from given creators.
 
     :param model: SBML model
     :param creators: list of creators
-    :return None
+    :return:
     """
     if not model.isSetMetaId():
         model.setMetaId(create_metaid(sbase=model))
@@ -36,7 +37,9 @@ def set_model_history(model: libsbml.Model, creators) -> None:
         check(model.setModelHistory(h), "set model history")
 
 
-def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHistory:
+def _create_history(
+    creators: Union[List[Any], Dict[Any, Any]], set_timestamps: bool = False
+) -> libsbml.ModelHistory:
     """Create the model history.
 
     Sets the create and modified date to the current time.
@@ -48,8 +51,9 @@ def _create_history(creators, set_timestamps: bool = False) -> libsbml.ModelHist
     """
     h = libsbml.ModelHistory()
 
+    items: List[Any]
     if isinstance(creators, dict):
-        items = creators.values()
+        items = list(creators.values())
     else:
         items = creators
 
