@@ -7,11 +7,12 @@ In build in python are
     and, or, not
 """
 from math import *
+from typing import Tuple
 
 import libsbml
 
 
-def product(*args):
+def product(*args: Tuple[float]) -> float:
     """Product calculation."""
     res = 1.0
     for arg in args:
@@ -19,17 +20,17 @@ def product(*args):
     return res
 
 
-def sqr(x):
+def sqr(x: float) -> float:
     """Square calculation."""
     return x * x
 
 
-def root(a, b):
+def root(a: float, b: float) -> float:
     """Root calculation."""
     return a ** (1 / b)
 
 
-def xor(*args):
+def xor(*args: Tuple[float]) -> int:
     """XOR calculation."""
     foundZero = 0
     foundOne = 0
@@ -44,7 +45,7 @@ def xor(*args):
         return 0
 
 
-def piecewise(*args):
+def piecewise(*args: Tuple[float]) -> float:
     """Piecewise calculation."""
     Nargs = len(args)
     for k in range(0, Nargs - 1, 2):

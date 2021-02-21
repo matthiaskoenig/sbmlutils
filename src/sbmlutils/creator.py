@@ -77,7 +77,7 @@ class Preprocess:
         return cdict
 
     @staticmethod
-    def _create_dict(module_name, package=None):
+    def _create_dict(module_name: str, package: str = None) -> Dict[str, Any]:
         # dynamically import module
         import importlib
 
@@ -135,7 +135,7 @@ class CoreModel(object):
         "layouts": list,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize core model.
 
         Initialize with the tissue information dictionary and
@@ -173,7 +173,7 @@ class CoreModel(object):
             return self.mid
 
     @classmethod
-    def from_dict(cls, model_dict: Dict):
+    def from_dict(cls, model_dict: Dict) -> "CoreModel":
         """Create the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
@@ -197,7 +197,7 @@ class CoreModel(object):
                 )
         return m
 
-    def get_info(self):
+    def get_info(self) -> str:
         """Return information of model dictionary.
 
         :return:
@@ -216,7 +216,7 @@ class CoreModel(object):
             info += "{:<15}: {}\n".format(key, obj_str)
         return info
 
-    def info(self):
+    def info(self) -> None:
         """Print information string."""
         print(self.get_info())
 
@@ -316,7 +316,7 @@ class CoreModel(object):
             self.create_sbml()
         return libsbml.writeSBMLToString(self.doc)  # type: ignore
 
-    def get_json(self):
+    def get_json(self) -> str:
         """Get JSON representation."""
         o = xmltodict.parse(self.get_sbml())
         return json.dumps(o, indent=2)

@@ -30,6 +30,7 @@ Examples of valid equations are:
 
 import re
 from collections import namedtuple
+from typing import Iterable, List
 
 
 Part = namedtuple("Part", "stoichiometry sid")
@@ -49,18 +50,18 @@ class Equation:
 
         pass
 
-    def __init__(self, equation):
+    def __init__(self, equation: str):
         """Initialize equation."""
         self.raw = equation
 
-        self.reactants = []
-        self.products = []
-        self.modifiers = []
-        self.reversible = None
+        self.reactants: List[Part] = []
+        self.products: List[Part] = []
+        self.modifiers: List[Part] = []
+        self.reversible: bool = None
 
         self._parse_equation()
 
-    def _parse_equation(self):
+    def _parse_equation(self) -> None:
         eq_string = self.raw[:]
 
         # get modifiers and remove from equation string
@@ -106,7 +107,7 @@ class Equation:
         if len(right) > 0:
             self.products = self._parse_half_equation(right)
 
-    def _parse_modifiers(self, s):
+    def _parse_modifiers(self, s: str) -> None:
         s = s.replace("[", "")
         s = s.replace("]", "")
         s = s.strip()
@@ -124,7 +125,7 @@ class Equation:
         return [self._parse_reactant(item) for item in items]
 
     @staticmethod
-    def _parse_reactant(item):
+    def _parse_reactant(item: str) -> Part:
         """Return tuple of stoichiometry, sid."""
         tokens = item.split()
         if len(tokens) == 1:
@@ -136,7 +137,7 @@ class Equation:
         return Part(stoichiometry, sid)
 
     @staticmethod
-    def _to_string_side(items):
+    def _to_string_side(items: Iterable[str]):
         tokens = []
         for item in items:
             stoichiometry, sid = item[0], item[1]
@@ -146,7 +147,7 @@ class Equation:
                 tokens.append(" ".join([str(stoichiometry), sid]))
         return " + ".join(tokens)
 
-    def _to_string_modifiers(self):
+    def _to_string_modifiers(self) -> str:
         return "[{}]".format(", ".join(self.modifiers))
 
     def to_string(self, modifiers: bool = False) -> str:
@@ -164,7 +165,7 @@ class Equation:
         else:
             return " ".join([left, sep, right])
 
-    def info(self):
+    def info(self) -> None:
         """Print overview of parsed equation."""
         lines = [
             "{:<10s} : {}".format("raw", self.raw),
@@ -178,8 +179,8 @@ class Equation:
         print("\n".join(lines))
 
     @staticmethod
-    def help():
-        """Help information."""
+    def help() -> str:
+        """Get help information string."""
         return """
         For information on the supported equation format use
             from sbmlutils import equation
