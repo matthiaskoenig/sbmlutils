@@ -15,7 +15,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, NamedTuple, Union, Optional
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 import libsbml
 import xmltodict  # type: ignore
@@ -37,7 +37,7 @@ class Preprocess:
     """Helper class for preprocessing model modules."""
 
     @staticmethod
-    def dict_from_modules(modules: List[str]) -> Dict:
+    def dict_from_modules(modules: List[str], keys: Iterable[str]) -> Dict:
         """Create single information dictionary from various modules.
 
         Information in earlier modules is either
@@ -48,7 +48,7 @@ class Preprocess:
         # add info from modules
         for module in modules:
             # single module dict
-            mdict = Preprocess._create_dict(module)
+            mdict = Preprocess._create_module_dict(module, keys=keys)
             # add to overall dict
             for key, value in mdict.items():
 
@@ -77,7 +77,13 @@ class Preprocess:
         return cdict
 
     @staticmethod
-    def _create_dict(module_name: str, package: str = None) -> Dict[str, Any]:
+    def _create_module_dict(
+        module_name: str, package: str = None, keys=Iterable[str]
+    ) -> Dict[str, Any]:
+        """Create information dictionary from given module.
+
+        Uses a dynamical import to figure out the content of the model.
+        """
         # dynamically import module
         import importlib
 
@@ -89,7 +95,7 @@ class Preprocess:
         logger.info(f"preprocess: '{module_name}'")
 
         d = dict()
-        for key in CoreModel._keys:
+        for key in keys:
             if hasattr(module, key):
                 info = getattr(module, key)
                 d[key] = info
@@ -141,19 +147,19 @@ class CoreModel(object):
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
-        for key, value in CoreModel._keys.items():
+        for key, value in self._keys.items():
             # necessary to init the lists for every instance,
             # to not share them between instances
             if value is not None:
                 if value == list:
-                    value = []
+                    value = []  # type: ignore
                 elif value == dict:
-                    value = {}
+                    value = {}  # type: ignore
 
             setattr(self, key, value)
 
         self.doc: libsbml.SBMLDocument = None
-        self.model: libsbml.Model = None  # SBMLModel
+        self.model: libsbml.Model = None
         self.mid: str
         self.version = None
         self.packages: List[str] = []
@@ -385,7 +391,7 @@ def create_model(
     if isinstance(modules, dict):
         model_dict = modules
     else:
-        model_dict = Preprocess.dict_from_modules(modules)  # type: ignore
+        model_dict = Preprocess.dict_from_modules(modules, keys=CoreModel._keys)  # type: ignore
 
     core_model = CoreModel.from_dict(model_dict=model_dict)
     logger.debug(core_model.get_info())

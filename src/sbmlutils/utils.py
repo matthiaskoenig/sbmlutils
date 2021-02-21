@@ -36,10 +36,11 @@ def create_metaid(sbase: libsbml.SBase) -> str:
 
     Meta ids are required to store annotations on elements.
     """
-    return f"meta_{_create_hash_id(sbase)}"
+    return f"meta_{create_hash_id(sbase)}"
 
 
-def _create_hash_id(sbase: libsbml.SBase) -> str:
+def create_hash_id(sbase: libsbml.SBase) -> str:
+    """Create hash code."""
     if sbase and hasattr(sbase, "getId") and sbase.isSetId():
         hash_key = sbase.getId()
     else:

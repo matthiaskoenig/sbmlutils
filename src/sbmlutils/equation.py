@@ -32,6 +32,7 @@ import re
 from collections import namedtuple
 from typing import Iterable, List, Optional
 
+
 Part = namedtuple("Part", "stoichiometry sid")
 
 REV_PATTERN = r"<[-=]>"

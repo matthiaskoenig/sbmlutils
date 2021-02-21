@@ -1,7 +1,9 @@
 """Helper functions for formating SBML elements."""
 import libsbml
 
+from sbmlutils import utils
 from sbmlutils.metadata import miriam
+from sbmlutils.report import mathml
 
 
 def annotation_to_html(item: libsbml.SBase) -> str:
@@ -340,4 +342,241 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
         return nom_str
     if (len(nom_str) == 0) and (len(denom_str) > 0):
         return f"1/({denom_str})"
+    return ""
+
+
+def notes(item: libsbml.SBase) -> str:
+    """Convert the SBML object's notes subelement to formatted string.
+
+    :param item: SBML object containing the notes subelement
+    :return: formatted string for the notes subelement of the item
+    """
+    if item.isSetNotes():
+        return notes_to_string(item)
+    return ""
+
+
+def cvterm(item: libsbml.SBase) -> str:
+    """Create HTML code fragment enclosing cvterm data for the item.
+
+    :param item: SBML object for which cvterm data has to be displayed
+    :return: HTML code fragment enclosing cvterm data for the item
+    """
+    if item.isSetAnnotation():
+        return f'<div class="cvterm">{annotation_to_html(item)}</div>'
+    return ""
+
+
+def sbo(item: libsbml.SBase) -> str:
+    """Create HTML code fragment enclosing SBOTerm data for the item.
+
+    :param item: SBML object for which SBOTerm data has to be displayed
+    :return: HTML code fragment enclosing SBOTerm data for the item
+    """
+
+    if item.getSBOTerm() != -1:
+        return f"""<div class="cvterm">
+                        <a href="{item.getSBOTermAsURL()}" target="_blank">
+                            {item.getSBOTermID()}
+                        </a>
+                    </div>
+                """
+    return ""
+
+
+def sbaseref(sref: libsbml.SBaseRef) -> str:
+    """Format the SBaseRef instance.
+
+    :param sref: SBaseRef instance
+    :return: string containging formatted SBaseRef instance's data
+    """
+
+    if sref.isSetPortRef():
+        return f"portRef={sref.getPortRef()}"
+    elif sref.isSetIdRef():
+        return f"idRef={sref.getIdRef()}"
+    elif sref.isSetUnitRef():
+        return f"unitRef={sref.getUnitRef()}"
+    elif sref.isSetMetaIdRef():
+        return f"metaIdRef={sref.getMetaIdRef()}"
+    return ""
+
+
+def empty_html() -> str:
+    """Create a blank HTML code fragment."""
+
+    return '<i class="fa fa-ban gray"></i>'
+
+
+def metaid_html(item: libsbml.SBase) -> str:
+    """Create metaid data for the item.
+
+    :param item: SBML object for which metaid data has to be generated
+    :return: HTML code fragment enclosing metaid data for item
+    """
+    if item.isSetMetaId():
+        return f"<code>{item.getMetaId()}</code>"
+    return ""
+
+
+def id_html(item: libsbml.SBase) -> str:
+    """Create info from id and metaid.
+
+    :param item: SBML object for which info is to be generated
+    :return: HTML code fragment enclosing info for item
+    """
+
+    sid = item.getId()
+    meta = metaid_html(item)
+
+    if sid:
+        display_sid = sid
+        if isinstance(item, libsbml.RateRule) and item.isSetVariable():
+            display_sid = "d {}/dt".format(item.getVariable())
+        info = f"""
+                <td id="{sid}" class="active">
+                <span class="package">{display_sid}</span> {meta}
+            """
+    else:
+        if meta:
+            info = f'<td class="active">{meta}'
+        else:
+            info = f'<td class="active">{empty_html()}'
+
+    # create modal information
+    info += xml_modal(item)
+
+    return info
+
+
+def annotation_html(item: libsbml.SBase) -> str:
+    """Create annotation HTML content for the item.
+
+    :param item: SBML object for which annotation HTML content is to be generated
+    :return: HTML code fragment enclosing annotation for item
+    """
+
+    info = '<div class="cvterm">'
+    if item.getSBOTerm() != -1:
+        info += f"""
+            <a href="{item.getSBOTermAsURL()}" target="_blank">
+                {item.getSBOTermID()}
+            </a><br />
+            """
+    if item.isSetAnnotation():
+        info += annotation_to_html(item)
+    info += "</div>"
+    return info
+
+
+def math(item: libsbml.SBase, math_type: str = "cmathml") -> str:
+    """Create MathML content for the item.
+
+    :param item: SBML object for which MathML content is to be generated
+    :param math_type: specifies which math rendering mode to use
+    :return: formatted MathML content for the item
+    """
+
+    if item:
+        astnode = item.getMath()
+        if math_type == "cmathml":
+            return astnode_to_mathml(astnode)
+        elif math_type == "pmathml":
+            cmathml = astnode_to_mathml(astnode)
+            return mathml.cmathml_to_pmathml(cmathml)
+        elif math_type == "latex":
+            latex_str = mathml.astnode_to_latex(astnode)
+            return f"$${latex_str}$$"
+    return empty_html()
+
+
+def boolean(condition: bool) -> str:
+    """Check the truth value of condition and create corresponding HTML code fragment.
+
+    :param condition: condition for which the truth value is to be checked
+    :return: HTML code fragment
+    """
+
+    if condition:
+        return """
+            <td>
+                <span class="fas fa-check-circle green"></span>
+                <span class="invisible">T</span>
+            </td>
+        """
+    else:
+        return '<td><span class=""><span class="invisible">F</span></span></td>'
+
+
+def annotation_xml(item: libsbml.SBase) -> str:
+    """Create Annotation string for the item.
+
+    :param item: SBML object for which MathML content is to be generated
+    :return: Annotation string for the item
+    """
+    if item.isSetAnnotation():
+        return f"<pre>{item.getAnnotationString().decode('utf-8')}</pre>"
+    return ""
+
+
+def xml_modal(item: libsbml.SBase) -> str:
+    """Create modal information for a given sbase.
+
+    This provides some popup which allows to inspect the xml content of the element.
+
+    :param item: SBML object for which xml content is to be created
+    :return: HTML code fragment enclosing the xml content for the item
+    """
+    # filter sbase
+    if type(item) is libsbml.Model:
+        return ""
+
+    hash_id = utils.create_hash_id(item)
+
+    info = f"""
+      <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
+         data-target="#model-{hash_id}">
+        <i class="fa fa-code"></i>
+      </button>
+      <div class="modal fade" id="model-{hash_id}" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header"><h4 class="modal-title">{hash_id}</h4></div>
+            <div class="modal-body">
+                <textarea rows="20" class="form-control"
+                    style="min-width: 100%; font-family: 'Courier New'">
+                    {xml(item)}
+                </textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    """
+    return info
+
+
+def xml(item: libsbml.SBase) -> str:
+    """Create SBML specification in XML for the item and return HTML code fragment.
+
+    :param item: SBML object for which SBML specification (in XML) has to be created
+    :return: HTML code fragment enclosing the SBML specification for the item
+    """
+
+    html = f"{item.toSBML()}"
+
+    return html
+    # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
+
+
+def derived_units(item: libsbml.SBase) -> str:
+    """Create formatted string for Unit definition object.
+
+    :param item: SBML object from which Unit Definition string is to be created
+    :return: formatted string for Unit Definition derived from the item
+    """
+
+    if item:
+        return formula_to_mathml(
+            unitDefinitionToString(item.getDerivedUnitDefinition())
+        )
     return ""

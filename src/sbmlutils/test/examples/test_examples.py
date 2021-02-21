@@ -51,9 +51,3 @@ testdata = [
 @pytest.mark.parametrize("module", testdata)
 def test_create_model(module):
     module.create(tmp=True)
-
-
-def test_demo():
-    model_dict = Preprocess.dict_from_modules(["sbmlutils.examples.demo.model"])
-    cell_model = CoreModel.from_dict(model_dict)
-    cell_model.create_sbml()
