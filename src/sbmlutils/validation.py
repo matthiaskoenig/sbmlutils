@@ -55,17 +55,17 @@ class ValidationResult:
         self.warnings = warnings
 
     @property
-    def error_count(self):
+    def error_count(self) -> int:
         """Get number of errors."""
         return len(self.errors)
 
     @property
-    def warning_count(self):
+    def warning_count(self) -> int:
         """Get number of warnings."""
         return len(self.warnings)
 
     @property
-    def all_count(self):
+    def all_count(self) -> int:
         """Get number of errors and warnings."""
         return self.error_count + self.warning_count
 

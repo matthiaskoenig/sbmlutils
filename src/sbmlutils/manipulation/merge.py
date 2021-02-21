@@ -86,11 +86,14 @@ def merge_models(
     return merged_doc
 
 
-def create_merged_doc(model_paths, merged_id="merged"):
-    """
-    Create a comp model from the given model paths.
+def create_merged_doc(model_paths: Dict[str, Path], merged_id: str="merged") -> libsbml.SBMLDocument:
+    """Create a comp model from given model paths.
 
     Warning: This only works if all models are in the same directory.
+
+    :param model_paths: Dictionary of id:path
+    :param merged_id:
+    :return:
     """
     sbmlns = libsbml.SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("comp", 1)
@@ -108,7 +111,7 @@ def create_merged_doc(model_paths, merged_id="merged"):
     for emd_id, path in model_paths.items():
         # create ExternalModelDefinitions
         emd = comp.create_ExternalModelDefinition(
-            comp_doc, emd_id, source=path
+            comp_doc, emd_id, source=str(path)
         )  # type: libsbml.ExternalModelDefinition
 
         # add submodel which references the external model definitions

@@ -115,7 +115,7 @@ class Equation:
         modifiers = [t.strip() for t in tokens]
         self.modifiers = [t for t in modifiers if len(t) > 0]
 
-    def _parse_half_equation(self, string):
+    def _parse_half_equation(self, string: str) -> List[Part]:
         """Parse half-equation.
 
         Only '+ supported in equation !, do not use negative stoichiometries.

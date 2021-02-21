@@ -18,7 +18,7 @@ which takes care of the order of object creation.
 
 import logging
 from collections import namedtuple
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Iterator, Dict, Any
 
 import libsbml
 import numpy as np
@@ -27,7 +27,6 @@ from sbmlutils.equation import Equation
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
 from sbmlutils.metadata.sbo import SBO_EXCHANGE_REACTION
 from sbmlutils.validation import check
-
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ __all__ = [
 ]
 
 
-def create_objects(model, obj_iter, key=None, debug=False):
+def create_objects(model: libsbml.Model, obj_iter: List[Any], key: str = None, debug: bool = False) -> Dict[str, libsbml.SBase]:
     """Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -84,9 +83,9 @@ def create_objects(model, obj_iter, key=None, debug=False):
     :param obj_iter: iterator of given model object classes like Parameter, ...
     :param key: object key
     :param debug: print list of created objects
-    :return:
+    :return: dictionary of SBML objects
     """
-    sbml_objects = {}
+    sbml_objects: Dict[str, Any] = {}
     try:
         for obj in obj_iter:
             if obj is None:
@@ -97,7 +96,7 @@ def create_objects(model, obj_iter, key=None, debug=False):
                 )
             if debug:
                 print(obj)
-            sbml_obj = obj.create_sbml(model)
+            sbml_obj = obj.create_sbml(model)  # type: ignore
             sbml_objects[sbml_obj.getId()] = sbml_obj
     except Exception as error:
         logger.error("Error creation SBML objects <{}>: {}".format(key, obj_iter))
@@ -129,7 +128,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 class Notes:
     """SBML notes."""
 
-    def __init__(self, notes):
+    def __init__(self, notes: Union[Dict[str, str], List[str], str]):
         """Initialize notes object."""
         tokens = ["<body xmlns='http://www.w3.org/1999/xhtml'>"]
         if isinstance(notes, (dict, list)):
@@ -144,7 +143,7 @@ class Notes:
             raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
 
 
-def set_notes(model, notes):
+def set_notes(model: libsbml.Model, notes: Union[Notes, str]) -> None:
     """Set notes information on model.
 
     :param model: Model
@@ -163,12 +162,12 @@ class ModelUnits:
 
     def __init__(
         self,
-        time=None,
-        extent=None,
-        substance=None,
-        length=None,
-        area=None,
-        volume=None,
+        time: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
+        extent: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
+        substance: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
+        length: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
+        area: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
+        volume: Optional[Union[str, 'Unit', libsbml.UnitDefinition]] = None,
     ):
         self.time = time
         self.extent = extent
@@ -178,7 +177,7 @@ class ModelUnits:
         self.volume = volume
 
 
-def set_model_units(model, model_units):
+def set_model_units(model: libsbml.Model, model_units: ModelUnits) -> None:
     """Set the main units in model from dictionary.
 
     Allowed keys are:
@@ -231,7 +230,7 @@ def set_model_units(model, model_units):
 class Creator:
     """Creator in ModelHistory."""
 
-    def __init__(self, familyName, givenName, email, organization, site=None):
+    def __init__(self, familyName: str, givenName: str, email: str, organization: str, site: Optional[str] = None):
         self.familyName = familyName
         self.givenName = givenName
         self.email = email
@@ -244,14 +243,14 @@ class Sbase:
 
     def __init__(
         self,
-        sid=None,
-        name=None,
-        sboTerm=None,
-        metaId=None,
-        annotations=None,
-        notes=None,
-        port=None,
-        uncertainties=None,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: Optional[List] = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List['Uncertainty']] = None,
     ):
         self.sid = sid
         self.name = name
@@ -262,7 +261,8 @@ class Sbase:
         self.port = port
         self.uncertainties = uncertainties
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Get string representation."""
         tokens = str(self.__class__).split(".")
         class_name = tokens[-1][:-2]
         name = self.name
@@ -299,16 +299,17 @@ class Sbase:
 
         self.create_uncertainties(obj, model)
 
-    def create_port(self, model):
+    def create_port(self, model: libsbml.Model) -> libsbml.Port:
         """Create port if existing."""
         if self.port is None:
             return
 
+        p: libsbml.Port
         if isinstance(self.port, bool):
             if self.port is True:
                 # manually create port for the id
                 cmodel = model.getPlugin("comp")
-                p = cmodel.createPort()  # type: libsbml.Port
+                p = cmodel.createPort()
                 port_sid = "{}{}".format(self.sid, PORT_SUFFIX)
                 p.setId(port_sid)
                 p.setName(port_sid)
@@ -319,9 +320,6 @@ class Sbase:
                     p.setUnitRef(self.sid)
                 else:
                     p.setIdRef(self.sid)
-            else:
-                pass
-
         else:
             # use the port object
             if (
@@ -332,7 +330,9 @@ class Sbase:
             ):
                 # if no reference set id reference to current object
                 self.port.idRef = self.sid
-            self.port.create_sbml(model)
+            p = self.port.create_sbml(model)
+
+        return p
 
     def create_uncertainties(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         if not self.uncertainties:
@@ -351,15 +351,15 @@ class Value(Sbase):
 
     def __init__(
         self,
-        sid,
-        value,
-        name=None,
-        sboTerm=None,
-        metaId=None,
+        sid: str,
+        value: float,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] =None,
+        metaId: Optional[str]=None,
         annotations=None,
-        notes=None,
-        port=None,
-        uncertainties=None,
+        notes: Optional[Union[str, Notes]] = None,
+        port: Any=None,
+        uncertainties: List['Uncertainty'] = None,
     ):
         super(Value, self).__init__(
             sid,
@@ -396,8 +396,8 @@ class ValueWithUnit(Value):
         sboTerm=None,
         metaId=None,
         annotations=None,
-        notes=None,
-        port=None,
+        notes: Optional[Union[str, Notes]] = None,
+        port: Any=None,
         uncertainties=None,
     ):
         super(ValueWithUnit, self).__init__(
@@ -429,7 +429,7 @@ class Unit(Sbase):
         name=None,
         sboTerm=None,
         metaId=None,
-        port=None,
+        port: Any=None,
         uncertainties=None,
     ):
         super(Unit, self).__init__(
@@ -494,10 +494,10 @@ class Unit(Sbase):
     def get_unit_string(unit: Union["Unit", int, str]) -> Optional[str]:
         """Get string representation for unit."""
         if isinstance(unit, Unit):
-            return unit.sid  # type: ignore
+            return unit.sid
         elif isinstance(unit, int):
             # libsbml unit
-            return libsbml.UnitKind_toString(unit)  # type: ignore
+            return str(libsbml.UnitKind_toString(unit))
         if isinstance(unit, str):
             if unit == "-":
                 return libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)  # type: ignore
@@ -523,7 +523,7 @@ class Function(Sbase):
         sboTerm=None,
         metaId=None,
         notes=None,
-        port=None,
+        port: Any=None,
         uncertainties=None,
     ):
         super(Function, self).__init__(
@@ -567,7 +567,7 @@ class Parameter(ValueWithUnit):
         metaId=None,
         annotations=None,
         notes=None,
-        port=None,
+        port: Any=None,
         uncertainties=None,
     ):
         super(Parameter, self).__init__(
@@ -632,7 +632,7 @@ class Compartment(ValueWithUnit):
         metaId=None,
         annotations=None,
         notes=None,
-        port=None,
+        port: Any=None,
         uncertainties=None,
     ):
         super(Compartment, self).__init__(
@@ -687,24 +687,24 @@ class Species(Sbase):
 
     def __init__(
         self,
-        sid,
-        compartment,
-        initialAmount=None,
-        initialConcentration=None,
-        substanceUnit=None,
-        hasOnlySubstanceUnits=False,
-        constant=False,
-        boundaryCondition=False,
-        charge=None,
-        chemicalFormula=None,
-        conversionFactor=None,
-        name=None,
-        sboTerm=None,
-        metaId=None,
-        annotations=None,
-        notes=None,
-        port=None,
-        uncertainties=None,
+        sid: str,
+        compartment: str,
+        initialAmount: Optional[float] = None,
+        initialConcentration: Optional[float] = None,
+        substanceUnit: Optional[Union[str, libsbml.UnitDefinition, Unit]] = None,
+        hasOnlySubstanceUnits: bool = False,
+        constant: bool = False,
+        boundaryCondition: bool = False,
+        charge: Optional[float] = None,
+        chemicalFormula: Optional[str] =None,
+        conversionFactor: Optional[float]=None,
+        name: Optional[str]=None,
+        sboTerm: Optional[str]=None,
+        metaId: Optional[str]=None,
+        annotations: Optional[List]=None,
+        notes: Optional[str]=None,
+        port: Any=None,
+        uncertainties: Optional[List['Uncertainty']]=None,
     ):
         super(Species, self).__init__(
             sid=sid,
@@ -727,7 +727,7 @@ class Species(Sbase):
                 f"Either initialAmount or initialConcentration can be set on "
                 f"species, but not both: {sid}"
             )
-        self.substanceUnit = Unit.get_unit_string(substanceUnit)
+        self.substanceUnit = Unit.get_unit_string(substanceUnit)  # type: ignore
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment
@@ -793,14 +793,14 @@ class InitialAssignment(Value):
     def __init__(
         self,
         sid,
-        value,
+        value: Union[str, float],
         unit="-",
         name=None,
         sboTerm=None,
         metaId=None,
         annotations=None,
         notes=None,
-        port=None,
+        port: Any=None,
         uncertainties=None,
     ):
         super(InitialAssignment, self).__init__(
@@ -836,7 +836,7 @@ class InitialAssignment(Value):
         obj = model.createInitialAssignment()  # type: libsbml.InitialAssignment
         self._set_fields(obj, model)
         obj.setSymbol(sid)
-        ast_node = ast_node_from_formula(model, self.value)
+        ast_node = ast_node_from_formula(model, str(self.value))
         obj.setMath(ast_node)
 
         self.create_port(model)
@@ -1045,7 +1045,7 @@ class Uncertainty(Sbase):
         metaId=None,
         annotations=None,
         notes=None,
-        port=None,
+        port: Any=None,
     ):
         super(Uncertainty, self).__init__(
             sid,
@@ -1182,7 +1182,7 @@ class Reaction(Sbase):
         lowerFluxBound=None,
         upperFluxBound=None,
         uncertainties=None,
-        port=None,
+        port: Any=None,
     ):
         super(Reaction, self).__init__(
             sid=sid,
@@ -1302,7 +1302,7 @@ class ExchangeReaction(Reaction):
         lowerFluxBound: str = None,
         upperFluxBound: str = None,
         uncertainties: List[Uncertainty] = None,
-        port: bool = None,
+        port: Any=None,
     ):
         super(ExchangeReaction, self).__init__(
             sid=ExchangeReaction.PREFIX + species_id,

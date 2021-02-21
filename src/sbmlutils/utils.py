@@ -3,7 +3,7 @@ import functools
 import hashlib
 import time
 import warnings
-from typing import Callable
+from typing import Callable, Any
 
 import libsbml
 from depinfo import print_dependencies  # type: ignore
@@ -58,13 +58,13 @@ def timeit(f: Callable) -> Callable:
     :return:
     """
 
-    def timed(*args, **kw):
+    def timed(*args: Any, **kwargs: Any) -> Any:
 
         ts = time.time()
-        result = f(*args, **kw)
+        result = f(*args, **kwargs)
         te = time.time()
 
-        print("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kw, te - ts))
+        print("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kwargs, te - ts))
         return result
 
     return timed
@@ -79,12 +79,12 @@ def deprecated(f: Callable) -> Callable:
     """
 
     @functools.wraps(f)
-    def new_func(*args, **kwargs):
+    def new_func(*args: Any, **kwargs: Any) -> Any:
         warnings.warn_explicit(
             "Call to deprecated function {}.".format(f.__name__),
             category=DeprecationWarning,
-            filename=f.func_code.co_filename,
-            lineno=f.func_code.co_firstlineno + 1,
+            filename=f.func_code.co_filename,  # type: ignore
+            lineno=f.func_code.co_firstlineno + 1,  # type: ignore
         )
         return f(*args, **kwargs)
 

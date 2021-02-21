@@ -43,7 +43,9 @@ import re
 import warnings
 from pathlib import Path
 from pprint import pprint
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
+
+import itertools
 
 import libsbml
 
@@ -120,7 +122,7 @@ def escape_string(info: str) -> str:
     return info
 
 
-def parse_keyword(xpp_id):
+def parse_keyword(xpp_id: str) -> Optional[str]:
     """Parse the keyword and returns the xpp keyword type.
 
     :param xpp_id:
@@ -134,7 +136,7 @@ def parse_keyword(xpp_id):
     return None
 
 
-def parts_from_expression(expression):
+def parts_from_expression(expression: str) -> List[str]:
     """Return the parts of given expression.
 
     The parts can be whitespace or comma separated.
@@ -165,7 +167,7 @@ def parts_from_expression(expression):
     return parts
 
 
-def sid_value_from_part(part):
+def sid_value_from_part(part: str) -> Tuple[str, str]:
     """Get sid, value tuple from given part of expression.
 
     :param part:
@@ -219,7 +221,7 @@ def xpp2sbml(
     function_definitions: List[Dict[str, Any]] = []
     events: List[Event] = []
 
-    def replace_fdef():
+    def replace_fdef() -> bool:
         """Replace all arguments within the formula definitions."""
         changes = False
         for k, _fdata in enumerate(function_definitions):
@@ -247,7 +249,7 @@ def xpp2sbml(
 
         return changes
 
-    def create_initial_assignment(sid, value):
+    def create_initial_assignment(sid: str, value: str) -> None:
         """Create initial assignments helper."""
         # check if valid identifier
         if "(" in sid:
@@ -616,14 +618,14 @@ def xpp2sbml(
     )
 
     # create SBML objects
-    objects = (
-        parameters
-        + initial_assignments
-        + functions
-        + rate_rules
-        + assignment_rules
-        + events
-    )
+    objects: List[Any] = list(itertools.chain(
+        parameters,
+        initial_assignments,
+        functions,
+        rate_rules,
+        assignment_rules,
+        events,
+    ))
     fac.create_objects(model, obj_iter=objects, debug=False)
 
     """

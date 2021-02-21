@@ -18,7 +18,7 @@ from sbmlutils.examples.tiny_model import model as model_definition
 from sbmlutils.fbc.cobra import read_cobra_model
 
 
-def tiny_simulation():
+def tiny_simulation() -> None:
     """Analysis of the tiny model.
 
     Creates model and runs simulation.
@@ -81,7 +81,7 @@ def tiny_simulation():
     # -----------------------------------------------------------------------------
     # fba simulation
     # -----------------------------------------------------------------------------
-    model = read_cobra_model(str(factory_result.sbml_path))
+    model = read_cobra_model(factory_result.sbml_path)
     print(model)
 
     # Iterate through the the objects in the model

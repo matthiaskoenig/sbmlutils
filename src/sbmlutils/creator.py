@@ -165,7 +165,7 @@ class CoreModel(object):
         self.packages: List[str] = []
         self.notes = None
         self.creators: List[factory.Creator] = []
-        self.model_units = None
+        self.model_units: Optional[factory.ModelUnits] = None
 
         if "main_units" in self._keys and self._keys["main_units"]:
             logger.error("'main_units' is deprecated, use 'model_units' instead.")
@@ -280,7 +280,7 @@ class CoreModel(object):
 
         # model units
         if hasattr(self, "model_units"):
-            factory.set_model_units(self.model, self.model_units)
+            factory.set_model_units(self.model, self.model_units)  # type: ignore
 
         # lists ofs
         for attr in [

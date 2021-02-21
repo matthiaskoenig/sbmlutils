@@ -1,6 +1,5 @@
 """Test xpp file."""
-
-import os
+from pathlib import Path
 
 import roadrunner
 from matplotlib import pyplot as plt
@@ -9,19 +8,19 @@ from sbmlutils.converters import xpp
 from sbmlutils.report import sbmlreport
 
 
-def example(model_id):
+def example(model_id: str) -> None:
     """XPP example conversion."""
     # convert xpp to sbml
-    xpp_dir = "./xpp_example"
-    out_dir = "./xpp_example/results"
+    xpp_dir = Path(__file__).parent / "xpp_example"
+    out_dir = xpp_dir / "results"
 
-    xpp_file = os.path.join(xpp_dir, "{}.ode".format(model_id))
-    sbml_file = os.path.join(out_dir, "{}.xml".format(model_id))
+    xpp_file = xpp_dir / f"{model_id}.ode"
+    sbml_file = out_dir / f"{model_id}.xml"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_report(sbml_file, target_dir=out_dir, validate=False)
+    sbmlreport.create_report(sbml_file, output_dir=out_dir, validate=False)
 
     # test simulation
-    r = roadrunner.RoadRunner(sbml_file)
+    r = roadrunner.RoadRunner(str(sbml_file))
     s = r.simulate(start=0, end=1000, steps=100)
 
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 7))
@@ -36,10 +35,10 @@ def example(model_id):
         ax.set_xlabel("Time [?]")
         ax.legend()
 
-    fig.savefig(os.path.join(out_dir, "{}.png".format(model_id)), bbox_inches="tight")
+    fig.savefig(out_dir / f"{model_id}.png", bbox_inches="tight")
 
 
 if __name__ == "__main__":
-    example(model_id="112836_HH-ext")
-    example(model_id="SkM_AP_KCa")
+    # example(model_id="112836_HH-ext")
+    # example(model_id="SkM_AP_KCa")
     example(model_id="PLoSCompBiol_Fig1")

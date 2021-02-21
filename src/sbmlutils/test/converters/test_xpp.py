@@ -1,9 +1,22 @@
-"""
-Test XPP generation
-"""
+"""Test XPP generation."""
 from sbmlutils.converters import xpp
+from sbmlutils.converters import xpp_examples
 from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.test import DATA_DIR
+
+
+import pytest
+
+model_ids = [
+    # "112836_HH-ext",
+    # "SkM_AP_KCa",
+    "PLoSCompBiol_Fig1",
+]
+
+
+@pytest.mark.parametrize("model_id", model_ids)
+def test_xpp_examples(model_id):
+    xpp_examples.example(model_id)
 
 
 def xpp_check(tmp_path, ode_id, Nall=0, Nerr=0, Nwarn=0):

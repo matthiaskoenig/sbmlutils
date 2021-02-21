@@ -8,7 +8,7 @@ from sbmlutils.utils import create_metaid
 from sbmlutils.validation import check
 
 
-def date_now():
+def date_now() -> libsbml.Date:
     """Get current time stamp for history.
 
     :return: current libsbml Date

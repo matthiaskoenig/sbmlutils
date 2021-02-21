@@ -7,7 +7,7 @@ In build in python are
     and, or, not
 """
 from math import *
-from typing import Tuple
+from typing import Tuple, Optional, Dict, Any
 
 import libsbml
 
@@ -117,21 +117,19 @@ def f_or(*args):
 """
 
 
-def evaluableMathML(astnode, variables=None, array=False):
-    """Create evaluable python string."""
+def evaluableMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) -> str:
+    """Create evaluable python formula string from ASTNode."""
     if variables is None:
         variables = {}
     # replace variables with provided values
     for key, value in variables.items():
         astnode.replaceArgument(key, libsbml.parseFormula(str(value)))
 
-    # get formula
-    # formula = libsbml.formulaToL3String(astnode)
+    # parse formula
     settings = libsbml.L3ParserSettings()  # type: libsbml.L3ParserSettings
     settings.setParseUnits(False)
     settings.setParseCollapseMinus(True)
-
-    formula = libsbml.formulaToL3StringWithSettings(astnode, settings)
+    formula: str = libsbml.formulaToL3StringWithSettings(astnode, settings)
 
     # <replacements>
     formula = formula.replace("&&", "and")
@@ -141,21 +139,16 @@ def evaluableMathML(astnode, variables=None, array=False):
     return formula
 
 
-def evaluateMathML(astnode, variables=None, array=False):
+def evaluateMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) -> Any:
     """Evaluate MathML string with given set of variable and parameter values.
 
     :param astnode: astnode of MathML string
-    :type astnode: libsbml.ASTNode
     :param variables: dictionary of var : value
-    :type variables: dict
-    :param parameters: dictionary of par : value
-    :type parameters: dict
     :return: value of evaluated MathML
-    :rtype: float
     """
     if variables is None:
         variables = {}
-    formula = evaluableMathML(astnode, variables=variables, array=array)
+    formula = evaluableMathML(astnode, variables=variables)
     print(formula)
     # return the evaluated formula
     return eval(formula)
