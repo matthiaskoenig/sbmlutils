@@ -12,7 +12,7 @@ from typing import Tuple
 import libsbml
 
 
-def product(*args: Tuple[float]) -> float:
+def product(*args: float) -> float:
     """Product calculation."""
     res = 1.0
     for arg in args:
@@ -30,7 +30,7 @@ def root(a: float, b: float) -> float:
     return a ** (1 / b)
 
 
-def xor(*args: Tuple[float]) -> int:
+def xor(*args: float) -> int:
     """XOR calculation."""
     foundZero = 0
     foundOne = 0
@@ -45,7 +45,7 @@ def xor(*args: Tuple[float]) -> int:
         return 0
 
 
-def piecewise(*args: Tuple[float]) -> float:
+def piecewise(*args: float) -> float:
     """Piecewise calculation."""
     Nargs = len(args)
     for k in range(0, Nargs - 1, 2):

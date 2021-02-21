@@ -30,8 +30,7 @@ Examples of valid equations are:
 
 import re
 from collections import namedtuple
-from typing import Iterable, List
-
+from typing import Iterable, List, Optional
 
 Part = namedtuple("Part", "stoichiometry sid")
 
@@ -56,8 +55,8 @@ class Equation:
 
         self.reactants: List[Part] = []
         self.products: List[Part] = []
-        self.modifiers: List[Part] = []
-        self.reversible: bool = None
+        self.modifiers: List[str] = []
+        self.reversible: Optional[bool] = None
 
         self._parse_equation()
 
@@ -137,7 +136,7 @@ class Equation:
         return Part(stoichiometry, sid)
 
     @staticmethod
-    def _to_string_side(items: Iterable[str]):
+    def _to_string_side(items: Iterable[Part]):
         tokens = []
         for item in items:
             stoichiometry, sid = item[0], item[1]

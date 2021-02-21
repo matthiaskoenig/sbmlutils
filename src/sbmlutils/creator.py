@@ -15,7 +15,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, NamedTuple, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Union, Optional
 
 import libsbml
 import xmltodict  # type: ignore
@@ -154,14 +154,14 @@ class CoreModel(object):
 
         self.doc: libsbml.SBMLDocument = None
         self.model: libsbml.Model = None  # SBMLModel
-        self.mid: str = None
+        self.mid: str
         self.version = None
-        self.packages = []
+        self.packages: List[str] = []
         self.notes = None
-        self.creators: List[factory.Creator] = None
+        self.creators: List[factory.Creator] = []
         self.model_units = None
 
-        if "main_units" in CoreModel._keys and CoreModel._keys["main_units"]:
+        if "main_units" in self._keys and self._keys["main_units"]:
             logger.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property
@@ -207,7 +207,7 @@ class CoreModel(object):
         info = "\n" + "-" * 80 + "\n"
         info += "{}".format(self) + "\n"
         info += "-" * 80 + "\n"
-        for key in sorted(CoreModel._keys):
+        for key in sorted(self._keys):
             # string representation
             obj_str = getattr(self, key)
             if isinstance(obj_str, (list, tuple)):
