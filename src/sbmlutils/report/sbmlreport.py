@@ -9,8 +9,8 @@ The basic steps of template creation are
 - compile template
 - render with SBML context
 
-The final report consists of an HTML file with an overview over the SBML elements in
-the model.
+The final report is returned as a variable containing the HTML file content with an
+overview over the SBML elements in the model.
 """
 import logging
 import ntpath
@@ -32,6 +32,15 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = RESOURCES_DIR / "templates"
 
 
+def _check_report_math_type(math_type: str) -> None:
+    """Check the math type in the report."""
+    math_types = ["cmathml", "pmathml", "latex"]
+    if math_type not in math_types:
+        raise ValueError(
+            f"math_type '{math_type}' not in supported types: '{math_types}'"
+        )
+
+
 def create_reports(
     sbml_paths: List[Path],
     output_dir: Path,
@@ -39,31 +48,30 @@ def create_reports(
     promote: bool = False,
     validate: bool = True,
     math_type: str = "cmathml",
-):
-    """Create individual reports and an overview file.
+) -> List[str]:
+    """Create model reports and return a list of HTML content for each model.
+
+    Models are provided as a list of paths. By default math in the report is rendered
+    using Content Mathml (cmathml).
+    For all models a model report is generated. In addition an index.html is generated
+    for the various models.
 
     :param sbml_paths: paths to SBML files
-    :param output_dir: target directory where the report is written
+    :param output_dir: target directory where the SBML file is written
     :param template: which template file to use for rendering
     :param promote: boolean flag to promote local parameters
-    :param validate: boolean flag if SBML file be validated (warnings and errors
-                     are logged)
-    :param math_type: specifies the math rendering mode for the report
+    :param validate: boolean flag if SBML file should be validated
+                     (warnings and errors are logged)
+    :param math_type: specifies the math rendering mode for the report. Allowed values
+                      are 'cmathml' - Content MathML, 'pmathml' - presentation MathML,
+                      or 'latex' - Latex formula.
 
-    :return:
+    :return: List of HTML content of reports
     """
-
-    # check math type
-    math_types = ["cmathml", "pmathml", "latex"]
-    if math_type not in math_types:
-        raise ValueError(
-            f"math_type '{math_type}' not in supported types: '{math_types}'"
-        )
-
-    # individual reports
+    html_reports = []
     for sbml_path in sbml_paths:
-        logger.info(sbml_path)
-        create_report(
+        logger.info(f"\tab create report '{sbml_path}")
+        html_report = create_report(
             sbml_path=sbml_path,
             output_dir=output_dir,
             template=template,
@@ -72,11 +80,10 @@ def create_reports(
             math_type=math_type,
         )
 
-    # write index html (unicode)
-    html = _create_index_html(sbml_paths)
-    index_path = output_dir / "index.html"
-    with open(index_path, "w", encoding="utf-8") as f_index:
-        f_index.write(html)
+        if html_report is not None:
+            html_reports.append(html_report)
+
+    return html_reports
 
 
 def create_report(
@@ -89,14 +96,14 @@ def create_report(
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
-):
-    """Create HTML report for SBML file.
+) -> str:
+    """Create HTML report and return the content as a variable.
 
     The SBML file can be validated during report generation.
     Local parameters can be promoted during report generation.
 
     :param sbml_path: path to SBML file
-    :param output_dir: target directory where the report is written
+    :param output_dir: target directory where the SBML file is written
     :param promote: boolean flag to promote local parameters
     :param template: which template file to use for rendering
     :param math_type: specifies the math rendering mode for the report
@@ -106,8 +113,11 @@ def create_report(
     :param units_consistency: boolean flag units consistency
     :param modeling_practice: boolean flag modeling practise
 
-    :return:
+    :return: string variable containing content of the generated HTML report
     """
+    # validate and check arguments
+    _check_report_math_type(math_type)
+
     if not isinstance(sbml_path, Path):
         logger.warning(
             f"All paths should be of type 'Path', "
@@ -121,20 +131,12 @@ def create_report(
         )
         output_dir = Path(output_dir)
 
-    # check paths
     if not sbml_path.exists():
         raise IOError(f"'sbml_path' does not exist: '{sbml_path}'")
     if not output_dir.exists():
         raise IOError(f"'output_dir' does not exist: '{output_dir}'")
     if not output_dir.is_dir():
         raise IOError(f"'output_dir' is not a directory: '{output_dir}'")
-
-    # check math type
-    math_types = ["cmathml", "pmathml", "latex"]
-    if math_type not in math_types:
-        raise ValueError(
-            f"math_type '{math_type}' not in supported types: '{math_types}'"
-        )
 
     # read sbml
     doc = read_sbml(
@@ -146,18 +148,13 @@ def create_report(
         modeling_practice=modeling_practice,
     )
 
-    # write sbml to report directory
+    # write sbml
     basename = sbml_path.name
-    name = ".".join(basename.split(".")[:-1])
     write_sbml(doc, filepath=output_dir / basename)
 
     # write html
     html = _create_html(doc, basename, html_template=template, math_type=math_type)
-    path_html = output_dir / f"{name}.html"
-    with open(path_html, "w", encoding="utf-8") as f_html:
-        f_html.write(html)
-
-    logger.info(f"SBML report created: '{path_html.resolve()}'")
+    return html
 
 
 def _create_index_html(
@@ -205,7 +202,7 @@ def _create_html(
     html_template: str = "report.html",
     math_type: str = "cmathml",
     offline: bool = True,
-):
+) -> str:
     """Create HTML from SBML.
 
     :param doc: SBML document for creating HTML report

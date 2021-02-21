@@ -62,13 +62,10 @@ def test_report_pmathml(sbml_path: Path, tmp_path):
 
 def check_report_math_type(sbml_path: Path, math_type: str, tmp_path):
     """Checks SBML report with given math type."""
-    sbmlreport.create_report(
+    html = sbmlreport.create_report(
         sbml_path=sbml_path, output_dir=tmp_path, math_type=math_type
     )
 
-    basename = sbml_path.name
-    name = ".".join(basename.split(".")[:-1])
-
-    # check HTML report created
-    path_html = tmp_path / f"{name}.html"
-    assert path_html.exists()
+    # check the returned HTML in the variable for correctness of type
+    assert html
+    assert isinstance(html, str)
