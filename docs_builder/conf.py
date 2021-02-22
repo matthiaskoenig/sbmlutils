@@ -24,6 +24,7 @@ on_rtd = os.environ.get("READTHEDOCS") == "True"
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("."))
 
+
 # In order to build documentation that requires libraries to import
 class Mock(object):
     def __init__(self, *args, **kwargs):
@@ -63,6 +64,10 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "autoapi.extension",
 ]
+
+nbsphinx_kernel_name = 'python3'
+nbsphinx_allow_errors = False
+
 
 # autoapi settings: https://sphinx-autoapi.readthedocs.io
 autodoc_typehints = 'description'
