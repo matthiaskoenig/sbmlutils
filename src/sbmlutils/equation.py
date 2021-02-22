@@ -62,7 +62,13 @@ class Equation:
         self._parse_equation()
 
     def _parse_equation(self) -> None:
+        """Parse components of equation string."""
         eq_string = self.raw[:]
+
+        # handle empty equation (for dummy reations in comp)
+        if len(eq_string) == 0:
+            self.reversible = True
+            return
 
         # get modifiers and remove from equation string
         mod_list = re.findall(MOD_PATTERN, eq_string)

@@ -261,6 +261,7 @@ class Sbase:
         notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
+        replacedBy: Optional[Any] = None
     ):
         self.sid = sid
         self.name = name
@@ -270,6 +271,7 @@ class Sbase:
         self.notes = notes
         self.port = port
         self.uncertainties = uncertainties
+        self.replacedBy = replacedBy
 
     def __str__(self) -> str:
         """Get string representation."""
@@ -345,11 +347,18 @@ class Sbase:
         return p
 
     def create_uncertainties(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
+        """Create uncertainties"""
         if not self.uncertainties:
             return
 
         for uncertainty in self.uncertainties:  # type: Uncertainty
             uncertainty.create_sbml(obj, model)
+
+    def create_replacedBy(self, obj: libsbml.SBase, model=libsbml.Model) -> None:
+        if not self.replacedBy:
+            return
+
+        self.replacedBy.create_sbml(obj, model)
 
 
 class Value(Sbase):
@@ -362,7 +371,7 @@ class Value(Sbase):
     def __init__(
         self,
         sid: str,
-        value: float,
+        value: Union[str, float],
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -399,12 +408,12 @@ class ValueWithUnit(Value):
 
     def __init__(
         self,
-        sid,
-        value,
+        sid: str,
+        value: Union[str, float],
         unit="-",
-        name=None,
-        sboTerm=None,
-        metaId=None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
         annotations=None,
         notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
@@ -1192,6 +1201,7 @@ class Reaction(Sbase):
         lowerFluxBound=None,
         upperFluxBound=None,
         uncertainties=None,
+        replacedBy=None,
         port: Any = None,
     ):
         super(Reaction, self).__init__(
@@ -1203,6 +1213,7 @@ class Reaction(Sbase):
             notes=notes,
             port=port,
             uncertainties=uncertainties,
+            replacedBy=replacedBy
         )
         if pars is None:
             pars = list()

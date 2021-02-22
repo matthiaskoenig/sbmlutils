@@ -267,6 +267,61 @@ class ReplacedElement(SbaseRef):
             obj.setConversionFactor(self.conversionFactor)
 
 
+class ReplacedBy(SbaseRef):
+    """ReplacedBy."""
+
+    def __init__(
+        self,
+        sid: str,
+        elementRef: str,
+        submodelRef: str,
+        portRef: Optional[str] = None,
+        idRef: Optional[str] = None,
+        unitRef: Optional[str] = None,
+        metaIdRef: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+    ):
+        """Create a ReplacedElement."""
+        super(ReplacedBy, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
+        self.elementRef = elementRef
+        self.submodelRef = submodelRef
+
+    def create_sbml(self, sbase: libsbml.SBase, model: libsbml.Model) -> libsbml.ReplacedBy:
+        """Create SBML ReplacedBy."""
+        sbase_comp = sbase.getPlugin("comp")  # type: libsbml.CompSBasePlugin
+
+        # resolve port element
+        e = model.getElementBySId(self.elementRef)
+        if not e:
+            # fallback to units (only working if no name shadowing)
+            e = model.getUnitDefinition(self.elementRef)
+            if not e:
+                raise ValueError(
+                    f"Neither SBML element nor UnitDefinition found for elementRef: "
+                    f"'{self.elementRef}' in '{self}'"
+                )
+
+        rby = sbase_comp.createReplacedBy()  # type: libsbml.ReplacedBy
+        self._set_fields(rby, model)
+
+        return rby
+
+    def _set_fields(self, rby: libsbml.ReplacedBy, model: libsbml.Model) -> None:
+        super(ReplacedBy, self)._set_fields(rby, model)
+        rby.setSubmodelRef(self.submodelRef)
+
+
 class Deletion(SbaseRef):
     """Deletion."""
 

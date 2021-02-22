@@ -7,6 +7,7 @@ from .comp import (
     Deletion,
     ExternalModelDefinition,
     ReplacedElement,
+    ReplacedBy,
     Submodel,
     create_ExternalModelDefinition,
     create_ports,
