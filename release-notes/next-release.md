@@ -1,7 +1,7 @@
 # Release notes for sbmlutils x.y.z
 
 ## New features
-- support simple generation of all SBML levels and versions
+- support simple generation of all SBML levels and versions #215
 ## Fixes
 - improved/consistent handling of compartment size and parameter value
 - fixing mypy issues #192 

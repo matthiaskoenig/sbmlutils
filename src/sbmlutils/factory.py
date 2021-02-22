@@ -193,7 +193,7 @@ class ModelUnits:
         self.volume = volume
 
     @staticmethod
-    def set_model_units(model: libsbml.Model, model_units: 'ModelUnits') -> None:
+    def set_model_units(model: libsbml.Model, model_units: "ModelUnits") -> None:
         """Set the main units in model from dictionary.
 
         Setting the model units is important for understanding the model
@@ -368,22 +368,24 @@ class Sbase:
 
         return p
 
-    def create_uncertainties(self, obj: libsbml.SBase, model: libsbml.Model) -> Optional[List[libsbml.Uncertainty]]:
+    def create_uncertainties(
+        self, obj: libsbml.SBase, model: libsbml.Model
+    ) -> Optional[List[libsbml.Uncertainty]]:
         """Create distrib:Uncertainty objects."""
         if not self.uncertainties:
-            return
+            return None
 
         objects = []
         for uncertainty in self.uncertainties:  # type: Uncertainty
-            objects.append(
-                uncertainty.create_sbml(obj, model)
-            )
+            objects.append(uncertainty.create_sbml(obj, model))
         return objects
 
-    def create_replaced_by(self, obj: libsbml.SBase, model=libsbml.Model) -> Optional[libsbml.ReplacedBy]:
+    def create_replaced_by(
+        self, obj: libsbml.SBase, model=libsbml.Model
+    ) -> Optional[libsbml.ReplacedBy]:
         """Create comp:ReplacedBy."""
         if not self.replacedBy:
-            return
+            return None
 
         return self.replacedBy.create_sbml(obj, model)
 
@@ -667,7 +669,7 @@ class Parameter(ValueWithUnit):
                 if self.constant:
                     InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
-                    AssignmentRule(self.sid, self.value).create_sbml(model)
+                    AssignmentRule(self.sid, self.value).create_sbml(model)  # type: ignore
         else:
             # numerical value
             obj.setValue(float(self.value))
@@ -733,7 +735,7 @@ class Compartment(ValueWithUnit):
                 if self.constant:
                     InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
-                    AssignmentRule(self.sid, self.value).create_sbml(model)
+                    AssignmentRule(self.sid, self.value).create_sbml(model)  # type: ignore
         else:
             obj.setSize(float(self.value))
 

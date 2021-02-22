@@ -641,8 +641,6 @@ def xpp2sbml(
         doc,
         sbml_file,
         validate=validate,
-        program_name="sbmlutils",
-        program_version=__version__,
         units_consistency=False,
     )
     return doc
