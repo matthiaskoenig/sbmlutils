@@ -297,7 +297,9 @@ class ReplacedBy(SbaseRef):
         self.elementRef = elementRef
         self.submodelRef = submodelRef
 
-    def create_sbml(self, sbase: libsbml.SBase, model: libsbml.Model) -> libsbml.ReplacedBy:
+    def create_sbml(
+        self, sbase: libsbml.SBase, model: libsbml.Model
+    ) -> libsbml.ReplacedBy:
         """Create SBML ReplacedBy."""
         sbase_comp = sbase.getPlugin("comp")  # type: libsbml.CompSBasePlugin
 

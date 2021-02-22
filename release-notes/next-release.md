@@ -1,7 +1,7 @@
 # Release notes for sbmlutils x.y.z
 
 ## New features
-
+- support simple generation of all SBML levels and versions
 ## Fixes
 - improved/consistent handling of compartment size and parameter value
 - fixing mypy issues #192 
@@ -9,6 +9,7 @@
 - CI for documentation #212
 - allow empty equations in reactions (valid with SBML L3V2)
 - first class support for comp:ReplacedBy elements
+- bugfix `litre` vs `liter` and `metre` vs `meter` bug
 ## Other
 
 ## Deprecated features

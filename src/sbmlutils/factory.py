@@ -161,7 +161,20 @@ def set_notes(model: libsbml.Model, notes: Union[Notes, str]) -> None:
 
 
 class ModelUnits:
-    """Class for storing model units information."""
+    """Class for storing model units information.
+
+    The ModelUnits define globally the units for `time`, `extent`, `substance`,
+    `length`, `area` and `volume`.
+
+    The following SBML Level 3 base units can be used.
+
+       ampere         farad  joule     lux     radian     volt
+       avogadro       gram   katal     metre   second     watt
+       becquerel      gray   kelvin    mole    siemens    weber
+       candela        henry  kilogram  newton  sievert
+       coulomb        hertz  litre     ohm     steradian
+       dimensionless  item   lumen     pascal  tesla
+    """
 
     def __init__(
         self,
@@ -179,55 +192,64 @@ class ModelUnits:
         self.area = area
         self.volume = volume
 
+    @staticmethod
+    def set_model_units(model: libsbml.Model, model_units: 'ModelUnits') -> None:
+        """Set the main units in model from dictionary.
 
-def set_model_units(model: libsbml.Model, model_units: ModelUnits) -> None:
-    """Set the main units in model from dictionary.
+        Setting the model units is important for understanding the model
+        dynamics.
+        Allowed keys are:
+            time
+            extent
+            substance
+            length
+            area
+            volume
 
-    Allowed keys are:
-        time
-        extent
-        substance
-        length
-        area
-        volume
+        :param model: SBMLModel
+        :param model_units: dict of units
+        :return:
+        """
+        if isinstance(model_units, dict):
+            logger.error(
+                "Providing model units as dict is deprecated, use 'ModelUnits' instead."
+            )
+            model_units = ModelUnits(**model_units)
 
-    :param model: SBMLModel
-    :param model_units: dict of units
-    :return:
-    """
-    if isinstance(model_units, dict):
-        logger.error(
-            "Providing model units as dict is deprecated, use 'ModelUnits' instead."
-        )
-        model_units = ModelUnits(**model_units)
+        if not model_units:
+            logger.warning(
+                "Model units should be set for a model. These can be stored "
+                "using the 'model_units' on a model definition."
+            )
+        else:
+            for key in ("time", "extent", "substance", "length", "area", "volume"):
 
-    if not model_units:
-        logger.error(
-            "Model units should be provided for a model, i.e., set the 'model_units' "
-            "field on model."
-        )
-    else:
-        for key in ("time", "extent", "substance", "length", "area", "volume"):
-            if getattr(model_units, key) is None:
-                logger.error(
-                    "The following key is missing in model_units: {}".format(key)
-                )
-                continue
-            unit = getattr(model_units, key)
-            unit = Unit.get_unit_string(unit)
-            # set the values
-            if key == "time":
-                model.setTimeUnits(unit)
-            elif key == "extent":
-                model.setExtentUnits(unit)
-            elif key == "substance":
-                model.setSubstanceUnits(unit)
-            elif key == "length":
-                model.setLengthUnits(unit)
-            elif key == "area":
-                model.setAreaUnits(unit)
-            elif key == "volume":
-                model.setVolumeUnits(unit)
+                if getattr(model_units, key) is None:
+                    msg = f"The information for '{key}' is missing in model_units."
+                    if key in ["time", "extent", "substance", "volume"]:
+                        # strongly recommended fields
+                        logger.warning(msg)
+                    else:
+                        # optional fields
+                        logger.info(msg)
+
+                    continue
+
+                unit = getattr(model_units, key)
+                unit = Unit.get_unit_string(unit)
+                # set the values
+                if key == "time":
+                    model.setTimeUnits(unit)
+                elif key == "extent":
+                    model.setExtentUnits(unit)
+                elif key == "substance":
+                    model.setSubstanceUnits(unit)
+                elif key == "length":
+                    model.setLengthUnits(unit)
+                elif key == "area":
+                    model.setAreaUnits(unit)
+                elif key == "volume":
+                    model.setVolumeUnits(unit)
 
 
 class Creator:
@@ -261,7 +283,7 @@ class Sbase:
         notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
-        replacedBy: Optional[Any] = None
+        replacedBy: Optional[Any] = None,
     ):
         self.sid = sid
         self.name = name
@@ -346,19 +368,24 @@ class Sbase:
 
         return p
 
-    def create_uncertainties(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
-        """Create uncertainties"""
+    def create_uncertainties(self, obj: libsbml.SBase, model: libsbml.Model) -> Optional[List[libsbml.Uncertainty]]:
+        """Create distrib:Uncertainty objects."""
         if not self.uncertainties:
             return
 
+        objects = []
         for uncertainty in self.uncertainties:  # type: Uncertainty
-            uncertainty.create_sbml(obj, model)
+            objects.append(
+                uncertainty.create_sbml(obj, model)
+            )
+        return objects
 
-    def create_replacedBy(self, obj: libsbml.SBase, model=libsbml.Model) -> None:
+    def create_replaced_by(self, obj: libsbml.SBase, model=libsbml.Model) -> Optional[libsbml.ReplacedBy]:
+        """Create comp:ReplacedBy."""
         if not self.replacedBy:
             return
 
-        self.replacedBy.create_sbml(obj, model)
+        return self.replacedBy.create_sbml(obj, model)
 
 
 class Value(Sbase):
@@ -511,17 +538,35 @@ class Unit(Sbase):
 
     @staticmethod
     def get_unit_string(unit: Union["Unit", int, str]) -> Optional[str]:
-        """Get string representation for unit."""
+        """Get string representation for unit.
+
+        Units can be either integer libsbml codes which are converted to the correct
+        strings or these strings:
+
+           ampere         farad  joule     lux     radian     volt
+           avogadro       gram   katal     metre   second     watt
+           becquerel      gray   kelvin    mole    siemens    weber
+           candela        henry  kilogram  newton  sievert
+           coulomb        hertz  litre     ohm     steradian
+           dimensionless  item   lumen     pascal  tesla
+
+        In addition custom units are possible.
+        """
         if isinstance(unit, Unit):
             return unit.sid
-        elif isinstance(unit, int):
-            # libsbml unit
-            return str(libsbml.UnitKind_toString(unit))
-        if isinstance(unit, str):
-            if unit == "-":
-                return libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS)  # type: ignore
-            else:
-                return unit
+        elif isinstance(unit, (int, str)):
+            if isinstance(unit, int):
+                # libsbml unit
+                unit_str = str(libsbml.UnitKind_toString(unit))
+            if isinstance(unit, str):
+                unit_str = unit
+            if unit_str == "meter":
+                return "metre"
+            elif unit_str == "liter":
+                return "litre"
+            elif unit_str == "-":
+                return "dimensionless"
+            return unit_str
         else:
             return None
 
@@ -1213,7 +1258,7 @@ class Reaction(Sbase):
             notes=notes,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy
+            replacedBy=replacedBy,
         )
         if pars is None:
             pars = list()

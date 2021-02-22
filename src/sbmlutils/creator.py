@@ -280,7 +280,7 @@ class CoreModel(object):
 
         # model units
         if hasattr(self, "model_units"):
-            factory.set_model_units(self.model, self.model_units)  # type: ignore
+            factory.ModelUnits.set_model_units(self.model, self.model_units)  # type: ignore
 
         # lists ofs
         for attr in [
@@ -350,6 +350,8 @@ def create_model(
     units_consistency: bool = True,
     modeling_practice: bool = True,
     internal_consistency: bool = True,
+    sbml_level: int = SBML_LEVEL,
+    sbml_version: int = SBML_VERSION,
 ) -> FactoryResult:
     """Create SBML model from module information.
 
@@ -371,6 +373,8 @@ def create_model(
     :param units_consistency: boolean flag to check units consistency
     :param modeling_practice: boolean flag to check modeling practise
     :param internal_consistency: boolean flag to check internal consistency
+    :param sbml_level: set SBML level for model generation
+    :param sbml_version: set SBML version for model generation
 
     :return: FactoryResult
     """
@@ -395,7 +399,7 @@ def create_model(
 
     core_model = CoreModel.from_dict(model_dict=model_dict)
     logger.debug(core_model.get_info())
-    core_model.create_sbml()
+    core_model.create_sbml(sbml_level=sbml_level, sbml_version=sbml_version)
 
     if not filename:
         # create filename
