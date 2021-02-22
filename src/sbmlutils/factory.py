@@ -160,6 +160,9 @@ def set_notes(model: libsbml.Model, notes: Union[Notes, str]) -> None:
     check(model.setNotes(notes.xml), message="Setting notes on model")
 
 
+UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
+
+
 class ModelUnits:
     """Class for storing model units information.
 
@@ -178,12 +181,12 @@ class ModelUnits:
 
     def __init__(
         self,
-        time: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
-        extent: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
-        substance: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
-        length: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
-        area: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
-        volume: Optional[Union[str, "Unit", libsbml.UnitDefinition]] = None,
+        time: UnitType = None,
+        extent: UnitType = None,
+        substance: UnitType = None,
+        length: UnitType = None,
+        area: UnitType = None,
+        volume: UnitType = None,
     ):
         self.time = time
         self.extent = extent
@@ -332,6 +335,7 @@ class Sbase:
                 )
 
         self.create_uncertainties(obj, model)
+        self.create_replaced_by(obj, model)
 
     def create_port(self, model: libsbml.Model) -> libsbml.Port:
         """Create port if existing."""
@@ -439,7 +443,7 @@ class ValueWithUnit(Value):
         self,
         sid: str,
         value: Union[str, float],
-        unit="-",
+        unit: UnitType = "-",
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -539,7 +543,7 @@ class Unit(Sbase):
         return unit
 
     @staticmethod
-    def get_unit_string(unit: Union["Unit", int, str]) -> Optional[str]:
+    def get_unit_string(unit: UnitType) -> Optional[str]:
         """Get string representation for unit.
 
         Units can be either integer libsbml codes which are converted to the correct
@@ -625,8 +629,8 @@ class Parameter(ValueWithUnit):
     def __init__(
         self,
         sid,
-        value=None,
-        unit=None,
+        value: Optional[Union[str, float]] = None,
+        unit: UnitType = None,
         constant=True,
         name=None,
         sboTerm=None,
@@ -638,7 +642,7 @@ class Parameter(ValueWithUnit):
     ):
         super(Parameter, self).__init__(
             sid=sid,
-            value=value,
+            value=value,  # type: ignore
             unit=unit,
             name=name,
             sboTerm=sboTerm,
@@ -690,8 +694,8 @@ class Compartment(ValueWithUnit):
         self,
         sid,
         value,
-        unit=None,
-        constant=True,
+        unit: UnitType = None,
+        constant: bool = True,
         spatialDimensions=3,
         name=None,
         sboTerm=None,
@@ -757,7 +761,7 @@ class Species(Sbase):
         compartment: str,
         initialAmount: Optional[float] = None,
         initialConcentration: Optional[float] = None,
-        substanceUnit: Optional[Union[str, libsbml.UnitDefinition, Unit]] = None,
+        substanceUnit: UnitType = None,
         hasOnlySubstanceUnits: bool = False,
         constant: bool = False,
         boundaryCondition: bool = False,

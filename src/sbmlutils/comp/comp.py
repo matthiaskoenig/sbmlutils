@@ -302,24 +302,13 @@ class ReplacedBy(SbaseRef):
     ) -> libsbml.ReplacedBy:
         """Create SBML ReplacedBy."""
         sbase_comp = sbase.getPlugin("comp")  # type: libsbml.CompSBasePlugin
-
-        # resolve port element
-        e = model.getElementBySId(self.elementRef)
-        if not e:
-            # fallback to units (only working if no name shadowing)
-            e = model.getUnitDefinition(self.elementRef)
-            if not e:
-                raise ValueError(
-                    f"Neither SBML element nor UnitDefinition found for elementRef: "
-                    f"'{self.elementRef}' in '{self}'"
-                )
-
         rby = sbase_comp.createReplacedBy()  # type: libsbml.ReplacedBy
         self._set_fields(rby, model)
 
         return rby
 
     def _set_fields(self, rby: libsbml.ReplacedBy, model: libsbml.Model) -> None:
+        """Set fields in ReplacedBy."""
         super(ReplacedBy, self)._set_fields(rby, model)
         rby.setSubmodelRef(self.submodelRef)
 
