@@ -156,6 +156,43 @@ class SBMLModelInfo:
                     replaced_elements_combined = "".join(replaced_elements)
                 info["replaced_elements"] = replaced_elements_combined
 
+        # distrib
+        item_distib = sbase.getPlugin("distrib")
+        if item_distib and type(item_distib) == libsbml.DistribSBasePlugin:
+
+            # list to store uncertainities
+            info["uncertainties"] = []
+
+            listOfUncertainties = item_distib.getListOfUncertainties()
+            for uncertainty in listOfUncertainties:
+
+                u_dict = {
+                    "uncert_name": uncertainty.getElementName(),
+                    "uncert_params": [],
+                }
+
+                # uncertainty parameters defined for the uncertainty
+                uncertainty_params = uncertainty.getListOfUncertParameters()
+                for uparam in uncertainty_params:
+                    param_dict = {}
+                    if uparam.isSetVar():
+                        param_dict["param_var"] = uparam.getVar()
+                    if uparam.isSetVar():
+                        param_dict["param_value"] = uparam.getValue()
+                    if uparam.isSetUnits():
+                        param_dict["param_units"] = uparam.getUnits()
+                    if uparam.isSetType():
+                        param_dict["param_type"] = uparam.getTypeAsString()
+                    if uparam.isSetDefinitionURL():
+                        param_dict["param_defn_url"] = uparam.getDefinitionURL()
+                    if uparam.isSetMath():
+                        param_dict["param_math"] = uparam.getMath()
+
+                    u_dict["uncert_params"].append(param_dict)
+
+                # adding information for uncertainty to info dict
+                info["uncertainties"].append(u_dict)
+
         return info
 
     def info_sbaseref(self, sbref: libsbml.SBaseRef) -> Dict[str, Any]:
