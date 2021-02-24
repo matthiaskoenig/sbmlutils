@@ -131,7 +131,7 @@ def test_report_uncertainty(sbml_path: Path, tmp_path):
     check_report_math_type(sbml_path=sbml_path, math_type="cmathml", tmp_path=tmp_path)
 
 
-@pytest.mark.parametrize("sbml_path", distrib_paths, ids=sbml_paths_idfn)
+@pytest.mark.parametrize("sbml_path", [distrib_paths[0]], ids=sbml_paths_idfn)
 def test_report_uncertainty_example(sbml_path: Path, tmp_path):
     """Test creation of report to check uncertainty feature"""
     check_uncertainty_info(sbml_path)
