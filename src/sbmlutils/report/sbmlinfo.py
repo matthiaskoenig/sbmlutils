@@ -157,19 +157,17 @@ class SBMLModelInfo:
                 info["replaced_elements"] = replaced_elements_combined
 
         # distrib
-        item_distib = sbase.getPlugin("distrib")
-        if item_distib and type(item_distib) == libsbml.DistribSBasePlugin:
+        sbml_distrib = sbase.getPlugin("distrib")
+        if sbml_distrib and type(sbml_distrib) == libsbml.DistribSBasePlugin:
 
             # list to store uncertainities
             info["uncertainties"] = []
 
-            listOfUncertainties = item_distib.getListOfUncertainties()
+            listOfUncertainties = sbml_distrib.getListOfUncertainties()
             for uncertainty in listOfUncertainties:
 
-                u_dict = {
-                    "uncert_name": uncertainty.getElementName(),
-                    "uncert_params": [],
-                }
+                u_dict = SBMLModelInfo.info_sbase(uncertainty)
+                u_dict["uncert_params"] = []
 
                 # uncertainty parameters defined for the uncertainty
                 uncertainty_params = uncertainty.getListOfUncertParameters()
@@ -177,7 +175,7 @@ class SBMLModelInfo:
                     param_dict = {}
                     if uparam.isSetVar():
                         param_dict["param_var"] = uparam.getVar()
-                    if uparam.isSetVar():
+                    if uparam.isSetValue():
                         param_dict["param_value"] = uparam.getValue()
                     if uparam.isSetUnits():
                         param_dict["param_units"] = uparam.getUnits()

@@ -32,7 +32,7 @@ GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
 REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
 
-UNCERTAINTY_PATH = TEST_DIR / "data" / "distrib" / "testsuite"
+TESTSUITE_PATH = DATA_DIR / "testsuite"
 
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / "omex" / "CombineArchiveShowCase.omex"
