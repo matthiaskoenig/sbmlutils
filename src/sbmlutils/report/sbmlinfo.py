@@ -158,20 +158,18 @@ class SBMLModelInfo:
 
         # distrib
         sbml_distrib = sbase.getPlugin("distrib")
-        if sbml_distrib and type(sbml_distrib) == libsbml.DistribSBasePlugin:
+        if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
 
             # list to store uncertainities
             info["uncertainties"] = []
 
-            listOfUncertainties = sbml_distrib.getListOfUncertainties()
-            for uncertainty in listOfUncertainties:
+            for uncertainty in sbml_distrib.getListOfUncertainties():
 
                 u_dict = SBMLModelInfo.info_sbase(uncertainty)
                 u_dict["uncert_params"] = []
 
                 # uncertainty parameters defined for the uncertainty
-                uncertainty_params = uncertainty.getListOfUncertParameters()
-                for uparam in uncertainty_params:
+                for uparam in uncertainty.getListOfUncertParameters():
                     param_dict = {}
                     if uparam.isSetVar():
                         param_dict["param_var"] = uparam.getVar()
