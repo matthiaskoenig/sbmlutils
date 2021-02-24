@@ -157,36 +157,31 @@ class SBMLModelInfo:
                 info["replaced_elements"] = replaced_elements_combined
 
         # distrib
-        sbml_distrib = sbase.getPlugin("distrib")
+        sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
-
-            # list to store uncertainities
             info["uncertainties"] = []
 
             for uncertainty in sbml_distrib.getListOfUncertainties():
-
                 u_dict = SBMLModelInfo.info_sbase(uncertainty)
-                u_dict["uncert_params"] = []
 
-                # uncertainty parameters defined for the uncertainty
-                for uparam in uncertainty.getListOfUncertParameters():
+                u_dict["uncert_parameters"] = []
+                upar: libsbml.UncertParameter
+                for upar in uncertainty.getListOfUncertParameters():
                     param_dict = {}
-                    if uparam.isSetVar():
-                        param_dict["param_var"] = uparam.getVar()
-                    if uparam.isSetValue():
-                        param_dict["param_value"] = uparam.getValue()
-                    if uparam.isSetUnits():
-                        param_dict["param_units"] = uparam.getUnits()
-                    if uparam.isSetType():
-                        param_dict["param_type"] = uparam.getTypeAsString()
-                    if uparam.isSetDefinitionURL():
-                        param_dict["param_defn_url"] = uparam.getDefinitionURL()
-                    if uparam.isSetMath():
-                        param_dict["param_math"] = uparam.getMath()
+                    if upar.isSetVar():
+                        param_dict["var"] = upar.getVar()
+                    if upar.isSetValue():
+                        param_dict["value"] = upar.getValue()
+                    if upar.isSetUnits():
+                        param_dict["units"] = upar.getUnits()
+                    if upar.isSetType():
+                        param_dict["type"] = upar.getTypeAsString()
+                    if upar.isSetDefinitionURL():
+                        param_dict["definition_url"] = upar.getDefinitionURL()
+                    if upar.isSetMath():
+                        param_dict["math"] = upar.getMath()
+                    u_dict["uncert_parameters"].append(param_dict)
 
-                    u_dict["uncert_params"].append(param_dict)
-
-                # adding information for uncertainty to info dict
                 info["uncertainties"].append(u_dict)
 
         return info
