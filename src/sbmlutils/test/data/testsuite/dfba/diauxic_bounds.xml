@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
+  <model metaid="meta_23589aeb08d749dd9b01d6fcfde06331" sboTerm="SBO:0000293" id="diauxic_bounds" name="ODE bounds submodel" substanceUnits="mmol" timeUnits="h" volumeUnits="l" areaUnits="m2" lengthUnits="m" extentUnits="mmol">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>Diauxic Growth Model</h1>
+        <p>
+          <strong>Model version: 6</strong>
+        </p>
+        <h2>Description</h2>
+        <p>Dynamic Flux Balance Analysis of Diauxic Growth in Escherichia coli</p>
+        <p>The key variables in the mathematical model of the metabolic
+network are the glucose concentration (Glcxt), the acetate concentration (Ac),
+the biomass concentration (X), and the oxygen concentration (O2) in the gas phase.</p>
+        <div class="dc:publisher">This file has been produced by
+      <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
+      </div>
+      <h2>Terms of use</h2>
+      <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+      <div class="dc:license">
+        <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+          <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+        </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+    </div>
+  </body>
+</notes><annotation>
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+    <rdf:Description rdf:about="#meta_23589aeb08d749dd9b01d6fcfde06331">
+      <dcterms:creator>
+        <rdf:Bag>
+          <rdf:li rdf:parseType="Resource">
+            <vCard:N rdf:parseType="Resource">
+              <vCard:Family>Koenig</vCard:Family>
+              <vCard:Given>Matthias</vCard:Given>
+            </vCard:N>
+            <vCard:EMAIL>konigmatt@googlemail.com</vCard:EMAIL>
+            <vCard:ORG rdf:parseType="Resource">
+              <vCard:Orgname>Humboldt University Berlin</vCard:Orgname>
+            </vCard:ORG>
+          </rdf:li>
+        </rdf:Bag>
+      </dcterms:creator>
+      <dcterms:created rdf:parseType="Resource">
+        <dcterms:W3CDTF>2017-03-10T12:42:05Z</dcterms:W3CDTF>
+      </dcterms:created>
+      <dcterms:modified rdf:parseType="Resource">
+        <dcterms:W3CDTF>2017-03-10T12:42:05Z</dcterms:W3CDTF>
+      </dcterms:modified>
+    </rdf:Description>
+  </rdf:RDF>
+</annotation><listOfFunctionDefinitions>
+  <functionDefinition id="max" name="minimum of arguments">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <lambda>
+        <bvar>
+          <ci> x </ci>
+        </bvar>
+        <bvar>
+          <ci> y </ci>
+        </bvar>
+        <piecewise>
+          <piece>
+            <ci> x </ci>
+            <apply>
+              <gt/>
+              <ci> x </ci>
+              <ci> y </ci>
+            </apply>
+          </piece>
+          <otherwise>
+            <ci> y </ci>
+          </otherwise>
+        </piecewise>
+      </lambda>
+    </math>
+  </functionDefinition>
+  <functionDefinition id="min" name="maximum of arguments">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <lambda>
+        <bvar>
+          <ci> x </ci>
+        </bvar>
+        <bvar>
+          <ci> y </ci>
+        </bvar>
+        <piecewise>
+          <piece>
+            <ci> x </ci>
+            <apply>
+              <lt/>
+              <ci> x </ci>
+              <ci> y </ci>
+            </apply>
+          </piece>
+          <otherwise>
+            <ci> y </ci>
+          </otherwise>
+        </piecewise>
+      </lambda>
+    </math>
+  </functionDefinition>
+</listOfFunctionDefinitions><listOfUnitDefinitions>
+  <unitDefinition id="h">
+    <listOfUnits>
+      <unit kind="second" exponent="1" scale="0" multiplier="3600"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="g">
+    <listOfUnits>
+      <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="m">
+    <listOfUnits>
+      <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="m2">
+    <listOfUnits>
+      <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="l">
+    <listOfUnits>
+      <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="mmol">
+    <listOfUnits>
+      <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="per_h">
+    <listOfUnits>
+      <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="mmol_per_h">
+    <listOfUnits>
+      <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+      <unit kind="second" exponent="-1" scale="0" multiplier="3600"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="mmol_per_l">
+    <listOfUnits>
+      <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+      <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="l_per_mmol">
+    <listOfUnits>
+      <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+      <unit kind="mole" exponent="-1" scale="-3" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="g_per_l">
+    <listOfUnits>
+      <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+      <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+  <unitDefinition id="g_per_mmol">
+    <listOfUnits>
+      <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+      <unit kind="mole" exponent="-1" scale="-3" multiplier="1"/>
+    </listOfUnits>
+  </unitDefinition>
+</listOfUnitDefinitions><listOfCompartments>
+  <compartment id="bioreactor" name="bioreactor" spatialDimensions="3" size="1" units="l" constant="true"/>
+</listOfCompartments><listOfSpecies>
+  <species id="Glcxt" name="glucose" compartment="bioreactor" initialConcentration="10.8" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="Ac" name="acetate" compartment="bioreactor" initialConcentration="0.4" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="O2" name="oxygen" compartment="bioreactor" initialConcentration="0.21" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+  <species id="X" name="biomass" compartment="bioreactor" initialConcentration="0.001" substanceUnits="mmol" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+</listOfSpecies><listOfParameters>
+  <parameter sboTerm="SBO:0000346" id="dt" name="fba timestep" value="0.1" units="h" constant="true"/>
+  <parameter sboTerm="SBO:0000612" id="zero" name="zero bound" value="0" units="mmol_per_h" constant="true"/>
+  <parameter sboTerm="SBO:0000612" id="lb_default" name="default lower bound" value="-1000" units="mmol_per_h" constant="true"/>
+  <parameter sboTerm="SBO:0000612" id="ub_default" name="default upper bound" value="1000" units="mmol_per_h" constant="true"/>
+  <parameter sboTerm="SBO:0000612" id="lb_EX_Ac" value="-1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="ub_EX_Ac" value="1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="lb_EX_Glcxt" value="-1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="ub_EX_Glcxt" value="1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="lb_EX_O2" value="-1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="ub_EX_O2" value="1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="lb_EX_X" value="-1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="ub_EX_X" value="1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="lb_kin_EX_Glcxt" value="-1000" units="mmol_per_h" constant="false"/>
+  <parameter sboTerm="SBO:0000612" id="lb_kin_EX_O2" value="-1000" units="mmol_per_h" constant="false"/>
+  <parameter id="Vmax_EX_O2" value="15" units="mmol_per_h" constant="true"/>
+  <parameter id="Vmax_EX_Glcxt" value="10" units="mmol_per_h" constant="true"/>
+  <parameter id="Km_EX_Glcxt" name="Km_vGlcxt" value="0.015" units="mmol_per_l" constant="true"/>
+</listOfParameters><listOfRules>
+  <assignmentRule variable="lb_kin_EX_Glcxt">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <divide/>
+        <apply>
+          <times/>
+          <apply>
+            <minus/>
+            <ci> Vmax_EX_Glcxt </ci>
+          </apply>
+          <ci> Glcxt </ci>
+        </apply>
+        <apply>
+          <plus/>
+          <ci> Km_EX_Glcxt </ci>
+          <ci> Glcxt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_kin_EX_O2">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <minus/>
+        <ci> Vmax_EX_O2 </ci>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_Ac">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> lb_default </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Ac </ci>
+            </apply>
+            <ci> bioreactor </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_Glcxt">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> lb_kin_EX_Glcxt </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> Glcxt </ci>
+            </apply>
+            <ci> bioreactor </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_O2">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> lb_kin_EX_O2 </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> O2 </ci>
+            </apply>
+            <ci> bioreactor </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+  <assignmentRule variable="lb_EX_X">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <ci> max </ci>
+        <ci> lb_default </ci>
+        <apply>
+          <divide/>
+          <apply>
+            <times/>
+            <apply>
+              <minus/>
+              <ci> X </ci>
+            </apply>
+            <ci> bioreactor </ci>
+          </apply>
+          <ci> dt </ci>
+        </apply>
+      </apply>
+    </math>
+  </assignmentRule>
+</listOfRules><comp:listOfPorts>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="dt" comp:id="dt_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="bioreactor" comp:id="bioreactor_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="Glcxt" comp:id="Glcxt_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="Ac" comp:id="Ac_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="O2" comp:id="O2_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="X" comp:id="X_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_Ac" comp:id="lb_EX_Ac_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_Ac" comp:id="ub_EX_Ac_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_Glcxt" comp:id="lb_EX_Glcxt_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_Glcxt" comp:id="ub_EX_Glcxt_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_O2" comp:id="lb_EX_O2_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_O2" comp:id="ub_EX_O2_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="lb_EX_X" comp:id="lb_EX_X_port"/>
+  <comp:port sboTerm="SBO:0000599" comp:idRef="ub_EX_X" comp:id="ub_EX_X_port"/>
+</comp:listOfPorts>
+</model>
+</sbml>

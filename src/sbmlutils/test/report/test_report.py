@@ -4,60 +4,31 @@ from pathlib import Path
 import pytest
 
 from sbmlutils.report import sbmlreport
-from sbmlutils.test import (
-    BASIC_SBML,
-    DEMO_SBML,
-    GALACTOSE_SINGLECELL_SBML,
-    GLUCOSE_SBML,
-    GZ_SBML,
-    REPRESSILATOR_SBML,
-    VDP_SBML,
-)
-
-
-sbml_paths = [
-    BASIC_SBML,
-    DEMO_SBML,
-    GALACTOSE_SINGLECELL_SBML,
-    GLUCOSE_SBML,
-    GZ_SBML,
-    REPRESSILATOR_SBML,
-    VDP_SBML,
-]
-
-
-def sbml_paths_idfn(sbml_path):
-    return sbml_path.name
-
-
-@pytest.mark.parametrize("sbml_path", sbml_paths, ids=sbml_paths_idfn)
-def test_report(sbml_path, tmp_path):
-    """Test report generation."""
-    sbmlreport.create_report(sbml_path=sbml_path, output_dir=tmp_path)
+from sbmlutils.test import ALL_SBML_PATHS, GZ_SBML, sbml_paths_idfn
 
 
 @pytest.mark.parametrize("sbml_path", [GZ_SBML], ids=sbml_paths_idfn)
 def test_report_gz(sbml_path, tmp_path):
-    """Test report generation for GZ reports."""
+    """Test report generation for compressed models."""
     sbmlreport.create_report(sbml_path=sbml_path, output_dir=tmp_path)
 
 
-@pytest.mark.parametrize("sbml_path", sbml_paths, ids=sbml_paths_idfn)
-def test_report_latex(sbml_path: Path, tmp_path):
-    """Test creation of report with Latex Math."""
-    check_report_math_type(sbml_path=sbml_path, math_type="latex", tmp_path=tmp_path)
-
-
-@pytest.mark.parametrize("sbml_path", sbml_paths, ids=sbml_paths_idfn)
+@pytest.mark.parametrize("sbml_path", ALL_SBML_PATHS, ids=sbml_paths_idfn)
 def test_report_cmathml(sbml_path: Path, tmp_path):
     """Test creation of report with Content MathML."""
     check_report_math_type(sbml_path=sbml_path, math_type="cmathml", tmp_path=tmp_path)
 
 
-@pytest.mark.parametrize("sbml_path", sbml_paths, ids=sbml_paths_idfn)
+@pytest.mark.parametrize("sbml_path", ALL_SBML_PATHS, ids=sbml_paths_idfn)
 def test_report_pmathml(sbml_path: Path, tmp_path):
     """Test creation of report with Presentation MathML."""
-    check_report_math_type(sbml_path=sbml_path, math_type="cmathml", tmp_path=tmp_path)
+    check_report_math_type(sbml_path=sbml_path, math_type="pmathml", tmp_path=tmp_path)
+
+
+@pytest.mark.parametrize("sbml_path", ALL_SBML_PATHS, ids=sbml_paths_idfn)
+def test_report_latex(sbml_path: Path, tmp_path):
+    """Test creation of report with Latex Math."""
+    check_report_math_type(sbml_path=sbml_path, math_type="latex", tmp_path=tmp_path)
 
 
 def check_report_math_type(sbml_path: Path, math_type: str, tmp_path):

@@ -156,6 +156,34 @@ class SBMLModelInfo:
                     replaced_elements_combined = "".join(replaced_elements)
                 info["replaced_elements"] = replaced_elements_combined
 
+        # distrib
+        sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
+        if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
+            info["uncertainties"] = []
+
+            for uncertainty in sbml_distrib.getListOfUncertainties():
+                u_dict = SBMLModelInfo.info_sbase(uncertainty)
+
+                u_dict["uncert_parameters"] = []
+                upar: libsbml.UncertParameter
+                for upar in uncertainty.getListOfUncertParameters():
+                    param_dict = {}
+                    if upar.isSetVar():
+                        param_dict["var"] = upar.getVar()
+                    if upar.isSetValue():
+                        param_dict["value"] = upar.getValue()
+                    if upar.isSetUnits():
+                        param_dict["units"] = upar.getUnits()
+                    if upar.isSetType():
+                        param_dict["type"] = upar.getTypeAsString()
+                    if upar.isSetDefinitionURL():
+                        param_dict["definition_url"] = upar.getDefinitionURL()
+                    if upar.isSetMath():
+                        param_dict["math"] = upar.getMath()
+                    u_dict["uncert_parameters"].append(param_dict)
+
+                info["uncertainties"].append(u_dict)
+
         return info
 
     def info_sbaseref(self, sbref: libsbml.SBaseRef) -> Dict[str, Any]:
