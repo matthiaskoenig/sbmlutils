@@ -4,26 +4,10 @@ from pathlib import Path
 import pytest
 
 from sbmlutils.report import sbmlreport
-from sbmlutils.test import (
-    BASIC_SBML,
-    DEMO_SBML,
-    GALACTOSE_SINGLECELL_SBML,
-    GLUCOSE_SBML,
-    GZ_SBML,
-    REPRESSILATOR_SBML,
-    VDP_SBML,
-)
-
-
-sbml_paths = [
-    BASIC_SBML,
-    DEMO_SBML,
-    GALACTOSE_SINGLECELL_SBML,
-    GLUCOSE_SBML,
-    GZ_SBML,
-    REPRESSILATOR_SBML,
-    VDP_SBML,
-]
+from sbmlutils.test import DISTRIB_PATHS as distrib_paths
+from sbmlutils.test import GZ_SBML, REPRESSILATOR_SBML
+from sbmlutils.test import SBML_PATHS as sbml_paths
+from sbmlutils.test import UNCERTAINTY_MODEL_PATHS as uncertainty_model_paths
 
 
 def sbml_paths_idfn(sbml_path):
