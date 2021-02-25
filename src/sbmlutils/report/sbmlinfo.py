@@ -160,29 +160,53 @@ class SBMLModelInfo:
         sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
             info["uncertainties"] = []
+            info["uncert_strings"] = []
 
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLModelInfo.info_sbase(uncertainty)
 
+                u_str = "<li>"
+                for key in u_dict.keys():
+                    u_str += f"{key}:{u_dict.get(key, '')}, <br>"
+                u_str += "</li>"
+
                 u_dict["uncert_parameters"] = []
+                u_dict["uncert_params_strings"] = []
+
                 upar: libsbml.UncertParameter
                 for upar in uncertainty.getListOfUncertParameters():
                     param_dict = {}
+                    param_str = ""
                     if upar.isSetVar():
                         param_dict["var"] = upar.getVar()
+                        param_str += f"{param_dict['var']}, "
                     if upar.isSetValue():
                         param_dict["value"] = upar.getValue()
+                        param_str += f"{param_dict['value']}, "
                     if upar.isSetUnits():
                         param_dict["units"] = upar.getUnits()
+                        param_str += f"{param_dict['units']}, "
                     if upar.isSetType():
                         param_dict["type"] = upar.getTypeAsString()
+                        param_str += f"{param_dict['type']}, "
                     if upar.isSetDefinitionURL():
                         param_dict["definition_url"] = upar.getDefinitionURL()
+                        param_str += f"{param_dict['definition_url']}, "
                     if upar.isSetMath():
                         param_dict["math"] = upar.getMath()
+                        param_str += f"{param_dict['math']}, "
+
+                    # create param info string
+                    param_str = "<li>"
+                    for key in param_dict.keys():
+                        param_str += f"{key}:{param_dict.get(key, '')}, "
+                    param_str += "</li>"
+
                     u_dict["uncert_parameters"].append(param_dict)
+                    u_dict["uncert_params_strings"].append(param_str)
 
                 info["uncertainties"].append(u_dict)
+                info["uncert_strings"].append(u_str)
 
         return info
 
