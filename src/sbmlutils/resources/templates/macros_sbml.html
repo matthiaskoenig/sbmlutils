@@ -232,6 +232,7 @@
 	<th scope="col">derived unit</th>
     <th scope="col">sbo</th>
     <th scope="col">cvterm</th>
+    <th scope="col">uncertainties</th>
 {% endmacro %}
 
 {% macro parameter_content(item, values) %}
@@ -245,6 +246,28 @@
 
 	<td>{{ item.sbo }}</td>
 	<td>{{ item.cvterm }}</td>
+    <td>
+        <ol>
+            {% for uncertainty in item.uncertainties %}
+                <li>
+                    {% if uncertainty.name %}name : {{ uncertainty.name }}<br>{% endif %}
+                    {% if uncertainty.metaId %}metaId : {{ uncertainty.metaId }}<br>{% endif %}
+                    {% if uncertainty.cvterm %}cvterm : {{ uncertainty.cvterm }}<br>{% endif %}
+                    <u>Uncertainty Parameters</u>
+                    <ul>
+                        {% for param in uncertainty.uncert_parameters %}
+                            <li>
+                                {% if param.type %}type: {{ param.type }}, {% endif %}
+                                {% if param.value %}value: {{ param.value }}, {% endif %}
+                                {% if param.units %}units: {{ param.units }}, {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <br>
+                </li>
+            {% endfor %}
+        </ol>
+    </td>
 {% endmacro %}
 
 <!------------------------------------------------------->
