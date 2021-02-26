@@ -165,10 +165,11 @@ class SBMLModelInfo:
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLModelInfo.info_sbase(uncertainty)
 
-                u_str = "<li>"
+                u_str = "<li><ul>"
                 for key in u_dict.keys():
-                    u_str += f"{key}:{u_dict.get(key, '')}, <br>"
-                u_str += "</li>"
+                    if not u_dict.get(key) in ["", "", [], None]:
+                        u_str += f"<li>{key}:{u_dict.get(key)} </li>"
+                u_str += "</ul><br>"
 
                 u_dict["uncert_parameters"] = []
                 u_dict["uncert_params_strings"] = []
