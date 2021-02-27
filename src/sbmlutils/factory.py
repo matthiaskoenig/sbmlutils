@@ -468,7 +468,8 @@ class ValueWithUnit(Value):
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         super(ValueWithUnit, self)._set_fields(obj, model)
         if self.unit is not None:
-            obj.setUnits(Unit.get_unit_string(self.unit))
+            unit_str = Unit.get_unit_string(self.unit)
+            check(obj.setUnits(unit_str), f"Set unit '{unit_str}' on {obj}")
 
 
 class Unit(Sbase):
@@ -966,7 +967,7 @@ class Rule(ValueWithUnit):
         else:
             logger.warning(
                 f"Rule with sid already exists in model: {sid}. "
-                f"Rule not updated with '{rule.variable}'"
+                f"Rule not updated with '{rule.value}'"
             )
             return model.getRule(sid)
         return obj
