@@ -15,7 +15,7 @@ import os
 import re
 from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Dict, Iterable, List, Union, Optional, Tuple
 
 import libsbml
 import pandas as pd
@@ -91,7 +91,7 @@ class Annotation:
     TODO: load the xrefs, synonyms and definitions from OLS
     """
 
-    def __init__(self, qualifier, resource):
+    def __init__(self, qualifier: Union[BQB, BQM], resource: str):
         """Initialize annotation.
 
         :param qualifier: BQM or BQB term
@@ -112,9 +112,9 @@ class Annotation:
                 f"resource must be string, but found '{resource} {type(resource)}'."
             )
 
-        self.qualifier = qualifier
-        self.collection = None
-        self.term = None
+        self.qualifier: Union[BQB, BQM] = qualifier
+        self.collection: Optional[str] = None
+        self.term: Optional[str] = None
 
         # handle urls
         if resource.startswith("http"):
@@ -149,20 +149,20 @@ class Annotation:
         self.validate()
 
     @staticmethod
-    def from_tuple(t):
+    def from_tuple(t: Tuple[str, str]) -> 'Annotation':
         """Construct from tuple."""
         qualifier, resource = t[0], t[1]
         return Annotation(qualifier=qualifier, resource=resource)
 
     @property
-    def resource(self):
+    def resource(self) -> Optional[str]:
         """Resource for annotations."""
         if self.collection:
-            return "{}/{}/{}".format(IDENTIFIERS_ORG_PREFIX, self.collection, self.term)
+            return f"{IDENTIFIERS_ORG_PREFIX}/{self.collection}/{self.term}"
         else:
             return self.term
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> Dict[str, Optional[str]]:
         """Convert to dictionary."""
         return {
             "qualifier": self.qualifier.value,
@@ -172,12 +172,10 @@ class Annotation:
         }
 
     @staticmethod
-    def check_term(collection, term):
-        """Check that a given term follows id pattern for existing collection.
+    def check_term(collection: Optional[str], term: Optional[str]) -> bool:
+        """Check that term follows id pattern for collection.
 
-        :param collection:
-        :param term:
-        :return:
+        Uses the Identifiers collection information.
         """
         entry = MIRIAM_COLLECTION.get(collection, None)
         if not entry:
@@ -199,7 +197,7 @@ class Annotation:
         return True
 
     @staticmethod
-    def check_qualifier(qualifier):
+    def check_qualifier(qualifier: Union[BQB, BQM]) -> None:
         """Check that the qualifier is an allowed qualifier.
 
         :param qualifier:
@@ -213,7 +211,7 @@ class Annotation:
                 f"{supported_qualifiers}"
             )
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate annotation."""
         self.check_qualifier(self.qualifier)
         if self.collection:
@@ -255,15 +253,15 @@ class ExternalAnnotation:
     )
     _annotation_types = frozenset(["rdf", "formula", "charge"])
 
-    def __init__(self, d):
+    def __init__(self, d: Dict):
         """Initialize ExternalAnnotation."""
         self.d = d
-        self.pattern: str = None
-        self.sbml_type: str = None
-        self.annotation_type: str = None
-        self.qualifier: str = None
-        self.resource: str = None
-        self.name: str = None
+        self.pattern: Optional[str] = None
+        self.sbml_type: Optional[str] = None
+        self.annotation_type: Optional[str] = None
+        self.qualifier: Optional[str] = None
+        self.resource: Optional[str] = None
+        self.name: Optional[str] = None
 
         for key in self._keys:
             # optional fields
@@ -280,17 +278,20 @@ class ExternalAnnotation:
             setattr(self, key, value)
 
         if self.annotation_type == "rdf":
-            self.qualifier = ExternalAnnotation._parse_qualifier(self.qualifier)
+            self.qualifier = ExternalAnnotation._parse_qualifier_str(self.qualifier)
         else:
             self.qualifier = None
 
         self.check()
 
     @staticmethod
-    def _parse_qualifier(qualifier):
+    def _parse_qualifier_str(qualifier: Optional[str]) -> str:
+        if qualifier is None:
+            raise ValueError("Qualifier must be provided.")
+
         if not qualifier.startswith("BQ"):
             raise ValueError(
-                "Qualifier must start with BQM_ or BQB_: `{}`".format(qualifier)
+                f"Qualifier must start with BQM_ or BQB_: '{qualifier}'"
             )
         bq = None
         if qualifier.startswith("BQM_"):
@@ -298,11 +299,13 @@ class ExternalAnnotation:
         elif qualifier.startswith("BQB_"):
             bq = BQB[qualifier[4:]]
         if bq is None:
-            raise ValueError("Qualifier could not be parsed: `{}`".format(qualifier))
+            raise ValueError(f"Qualifier could not be parsed: '{qualifier}'")
         return bq
 
-    def check(self):
-        """Check for valid choices."""
+    def check(self) -> None:
+        """Check for valid choices.
+        :raise: ValueError
+        """
         if self.sbml_type not in self._sbml_types:
             raise ValueError(
                 f"Invalid sbml_type '{self.sbml_type}'. "
@@ -339,7 +342,7 @@ class ModelAnnotator:
         # prepare dictionary for lookup of ids
         self.id_dict = self._get_ids_from_model()
 
-    def annotate_model(self):
+    def annotate_model(self) -> None:
         """Annotate the model with the given annotations."""
         # writes all annotations
         for a in self.annotations:
@@ -359,7 +362,7 @@ class ModelAnnotator:
 
             self._annotate_elements(elements, a)
 
-    def _get_ids_from_model(self):
+    def _get_ids_from_model(self) -> Dict[str, List[str]]:
         """Create dictionary of ids for given model for lookup.
 
         :return:
@@ -482,13 +485,13 @@ class ModelAnnotator:
                 )
 
     @staticmethod
-    def get_SBMLQualifier(qualifier_str):
+    def get_SBMLQualifier(qualifier_str: str) -> str:
         """Lookup of SBMLQualifier for given qualifier string."""
 
         # FIXME: better lookup with MIRIAM
         if qualifier_str not in libsbml.__dict__:
             raise ValueError("Qualifier not supported: {}".format(qualifier_str))
-        return libsbml.__dict__.get(qualifier_str)
+        return str(libsbml.__dict__.get(qualifier_str))
 
     @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation) -> None:

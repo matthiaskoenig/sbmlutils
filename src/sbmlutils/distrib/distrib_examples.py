@@ -11,21 +11,20 @@ from sbmlutils.validation import check
 # TODO: read the example cases
 
 
-def _distrib_doc():
+def _distrib_doc() -> libsbml.SBMLDocument:
     """Create distrib document."""
     sbml_level = 3
     sbml_version = 1
     sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
     sbmlns.addPackageNamespace("distrib", 1)
-    doc = libsbml.SBMLDocument(sbmlns)  # type: libsbml.SBMLDocument
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("distrib", True)
 
     return doc
 
 
 def _create_parameter(pid: str, model: libsbml.Model) -> libsbml.Parameter:
-    # parameter
-    p = model.createParameter()  # type: libsbml.Parameter
+    p: libsbml.Parameter = model.createParameter()
     p.setId(pid)
     p.setValue(1.0)
     p.setConstant(False)
@@ -34,19 +33,19 @@ def _create_parameter(pid: str, model: libsbml.Model) -> libsbml.Parameter:
     return p
 
 
-def distrib_normal():
+def distrib_normal() -> libsbml.SBMLDocument:
     """Create simple distrib model.
 
     :return:
     """
-    doc = _distrib_doc()
-    model = doc.createModel()  # type: libsbml.Model
+    doc: libsbml.SBMLDocument = _distrib_doc()
+    model: libsbml.Model = doc.createModel()
 
     # parameter
-    _ = _create_parameter("p1", model=model)  # type: libsbml.Parameter
+    _: libsbml.Parameter = _create_parameter("p1", model=model)
 
     # initial assignment
-    assignment = model.createInitialAssignment()  # type: libsbml.InitialAssignment
+    assignment: libsbml.InitialAssignment = model.createInitialAssignment()
     assignment.setSymbol("p1")
     ast_node = libsbml.parseL3FormulaWithModel("1.0 mole * normal(0, 1.0)", model)
     assignment.setMath(ast_node)
@@ -54,13 +53,13 @@ def distrib_normal():
     return doc
 
 
-def distrib_all():
+def distrib_all() -> libsbml.SBMLDocument:
     """Create simple distrib model.
 
     :return:
     """
-    doc = _distrib_doc()
-    model = doc.createModel()  # type: libsbml.Model
+    doc: libsbml.SBMLDocument = _distrib_doc()
+    model: libsbml.Model = doc.createModel()
 
     # extended math approach
     formulas_data = [
@@ -91,12 +90,12 @@ def distrib_all():
     # create parameters with distribution assignments
     for pid, formula in formulas_data:
         print("{} = {}".format(pid, formula))
-        _ = _create_parameter(pid, model=model)  # type: libsbml.Parameter
-        assignment = model.createInitialAssignment()  # type: libsbml.InitialAssignment
+        _: libsbml.Parameter = _create_parameter(pid, model=model)
+        assignment: libsbml.InitialAssignment = model.createInitialAssignment()
         assignment.setSymbol(pid)
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
-            raise IOError("{}, {}".format(formula, libsbml.getLastParseL3Error()))
+            raise IOError(f"{formula}, {libsbml.getLastParseL3Error()}")
         assignment.setMath(ast_node), "setting math"
 
     return doc
