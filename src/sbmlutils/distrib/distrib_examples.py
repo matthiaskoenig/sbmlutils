@@ -101,32 +101,29 @@ def distrib_all() -> libsbml.SBMLDocument:
     return doc
 
 
-def uncertainty():
-    """Create uncertainty with UncertParameter.
-
-    :return:
-    """
-    doc = _distrib_doc()
-    model = doc.createModel()  # type: libsbml.Model
+def uncertainty() -> libsbml.SBMLDocument:
+    """Create uncertainty with UncertParameter."""
+    doc: libsbml.SBMLDocument = _distrib_doc()
+    model: libsbml.Model = doc.createModel()
 
     # parameter
-    p = _create_parameter("p1", model=model)  # type: libsbml.Parameter
-    p_distrib = p.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
+    p: libsbml.Parameter = _create_parameter("p1", model=model)
+    p_distrib: libsbml.DistribSBasePlugin = p.getPlugin("distrib")
 
     # --------------------------------------------
     # Build generic uncertainty for parameter
     # --------------------------------------------
     # 5.0 (mean) +- 0.3 (std) [2.0 - 8.0]
 
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    uncertainty: libsbml.Uncertainty = p_distrib.createUncertainty()
     uncertainty.setName("Basic example: 5.0 +- 0.3 [2.0 - 8.0]")
     unit = libsbml.UnitKind_toString(libsbml.UNIT_KIND_MOLE)
-    up_mean = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up_mean: libsbml.UncertParameter = uncertainty.createUncertParameter()
     up_mean.setType(libsbml.DISTRIB_UNCERTTYPE_MEAN)
     up_mean.setValue(5.0)
     up_mean.setUnits(unit)
 
-    up_sd = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up_sd: libsbml.UncertParameter = uncertainty.createUncertParameter()
     up_sd.setType(libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION)
     up_sd.setValue(0.3)
     up_sd.setUnits(unit)
@@ -167,7 +164,7 @@ def uncertainty():
     # Set of all UncertParameters
     # --------------------------------------------
     # create second uncertainty which contains all the individual uncertainties
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    uncertainty = p_distrib.createUncertainty()
     uncertainty.setName("UncertParameter example")
     for k, parameter_type in enumerate(
         [
@@ -184,7 +181,7 @@ def uncertainty():
         ]
     ):
 
-        up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+        up: libsbml.UncertParameter = uncertainty.createUncertParameter()
         up.setType(parameter_type)
         up.setValue(k)
         up.setUnits(unit)
@@ -192,7 +189,7 @@ def uncertainty():
     # --------------------------------------------
     # Set of all UncertSpans
     # --------------------------------------------
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    uncertainty = p_distrib.createUncertainty()
     uncertainty.setName("UncertSpan example")
     for k, parameter_type in enumerate(
         [
@@ -214,9 +211,9 @@ def uncertainty():
     # Use math for distribution definition
     # --------------------------------------------
     # 5.0 dimensionless * normal(1.0 mole, 3.0 mole)
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    uncertainty = p_distrib.createUncertainty()
     uncertainty.setName("math example: 5.0 dimensionless * normal(1.0 mole, 3.0 mole)")
-    up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up = uncertainty.createUncertParameter()
     up.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
     up.setDefinitionURL("http://www.sbml.org/sbml/symbols/distrib/normal")
     ast = libsbml.parseL3FormulaWithModel(
@@ -230,9 +227,9 @@ def uncertainty():
     # Use externalParameter
     # --------------------------------------------
     # https://sites.google.com/site/probonto/
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    uncertainty = p_distrib.createUncertainty()
     uncertainty.setName("ExternalParameter example")
-    up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up = uncertainty.createUncertParameter()
     up.setType(libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER)
     up.setName("skewness")
     up.setValue(0.25)
@@ -242,16 +239,16 @@ def uncertainty():
     # --------------------------------------------
     # Use external distribution definition
     # --------------------------------------------
-    uncertainty = p_distrib.createUncertainty()  # type: libsbml.Uncertainty
+    uncertainty = p_distrib.createUncertainty()
     uncertainty.setName("External distribution example")
-    up = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+    up = uncertainty.createUncertParameter()
     up.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
     up.setName("Geometric 1")
     up.setDefinitionURL("http://www.probonto.org/ontology#PROB_k0000782")
     up.setUnits(unit)
 
     # success probability of Geometric-1
-    up_mean_geo1 = up.createUncertParameter()  # type: libsbml.UncertParameter
+    up_mean_geo1 = up.createUncertParameter()
     up_mean_geo1.setType(libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER)
     up_mean_geo1.setName("success probability of Geometric 1")
     up_mean_geo1.setValue(0.4)
@@ -260,7 +257,7 @@ def uncertainty():
     return doc
 
 
-def create_examples(tmp=False):
+def create_examples(tmp: bool = False) -> None:
     """Create distrib examples."""
     functions = [
         distrib_normal,

@@ -77,17 +77,17 @@ class Interpolator:
         return s
 
     @property
-    def xid(self):
+    def xid(self) -> str:
         """X id."""
         return self.x.name
 
     @property
-    def yid(self):
+    def yid(self) -> str:
         """Y id."""
         return self.y.name
 
     @property
-    def zid(self):
+    def zid(self) -> str:
         """Z id."""
         return self.z.name
 
@@ -308,7 +308,7 @@ class Interpolation:
         self._create_sbml()
         return write_sbml(self.doc, filepath=None)
 
-    def _create_sbml(self):
+    def _create_sbml(self) -> None:
         """Create the SBMLDocument."""
         self._init_sbml_model()
         self.interpolators = Interpolation.create_interpolators(self.data, self.method)
@@ -325,10 +325,10 @@ class Interpolation:
         """
         sbmlns = libsbml.SBMLNamespaces(3, 1)
         sbmlns.addPackageNamespace("comp", 1)
-        doc = libsbml.SBMLDocument(sbmlns)
+        doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
         doc.setPackageRequired("comp", True)
         self.doc = doc
-        model = doc.createModel()
+        model: libsbml.Model = doc.createModel()
 
         model.setNotes(notes)
         model.setId("Interpolation_{}".format(self.method))
@@ -336,7 +336,7 @@ class Interpolation:
         self.model = model
 
     @staticmethod
-    def create_interpolators(data, method):
+    def create_interpolators(data: pd.DataFrame, method):
         """Create all interpolators for the given data set.
 
         The columns 1, ... (Ncol-1) are interpolated against
