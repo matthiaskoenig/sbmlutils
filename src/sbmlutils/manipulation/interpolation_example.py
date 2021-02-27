@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import shutil
 import os
@@ -35,9 +37,8 @@ def interpolation_example() -> None:
         ip.INTERPOLATION_LINEAR,
         ip.INTERPOLATION_CUBIC_SPLINE,
     ]):
-        temp_dir = tempfile.mkdtemp()
-        try:
-            tmp_f = os.path.join(temp_dir, "test.xml")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_f = Path(tmpdir, "test.xml")
 
             interpolation = ip.Interpolation(data=data1, method=method)
             interpolation.write_sbml_to_file(tmp_f)
@@ -45,14 +46,9 @@ def interpolation_example() -> None:
             r = roadrunner.RoadRunner(str(tmp_f))
             r.timeCourseSelections = ["time", "y", "z"]
             s = r.simulate(0, 5, steps=50)
-            print(s)
             ax1.plot(s['time'], s["y"], label=f"y {method}", color=colors[k])
             ax1.plot(s['time'], s["z"], label=f"z {method}", color=colors[k],
                      linestyle="--")
-
-        except Exception as err:
-            logger.error(err)
-            shutil.rmtree(temp_dir)
 
     ax1.legend()
     plt.show()

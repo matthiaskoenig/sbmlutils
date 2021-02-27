@@ -2,9 +2,15 @@
 
 https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
+
+TODO: fix composition with existing models
+TODO: support coupling with existing models via comp
+The functionality is very useful, but only if this can be applied to existing
+models in a simple manner.
 """
 import logging
 from pathlib import Path
+from typing import Any, Optional, List, Union, Tuple
 
 import libsbml
 import pandas as pd
@@ -58,7 +64,8 @@ class Interpolator:
     Two data series and the type of interpolation are provided.
     """
 
-    def __init__(self, x, y, z=None, method=INTERPOLATION_CONSTANT):
+    def __init__(self, x: pd.Series, y: pd.Series,
+                 z: Optional[pd.Series] = None, method: str = INTERPOLATION_CONSTANT):
         self.x = x
         self.y = y
         self.z = z
@@ -79,50 +86,50 @@ class Interpolator:
     @property
     def xid(self) -> str:
         """X id."""
-        return self.x.name
+        return str(self.x.name)
 
     @property
     def yid(self) -> str:
         """Y id."""
-        return self.y.name
+        return str(self.y.name)
 
     @property
     def zid(self) -> str:
         """Z id."""
-        return self.z.name
+        return str(self.z.name)
 
-    def formula(self):
-        """Get formula."""
+    def formula(self) -> str:
+        """Get formula string."""
+        formula: str
         if self.method is INTERPOLATION_CONSTANT:
-            return Interpolator.formula_constant(self.x, self.y)
+            formula = Interpolator._formula_constant(self.x, self.y)
         elif self.method is INTERPOLATION_LINEAR:
-            return Interpolator.formula_linear(self.x, self.y)
-        if self.method is INTERPOLATION_CUBIC_SPLINE:
-            return Interpolator.formula_cubic_spline(self.x, self.y)
+            formula = Interpolator._formula_linear(self.x, self.y)
+        elif self.method is INTERPOLATION_CUBIC_SPLINE:
+            formula = Interpolator._formula_cubic_spline(self.x, self.y)
+        return formula
 
     @staticmethod
-    def formula_cubic_spline(x, y):
+    def _formula_cubic_spline(x: pd.Series, y: pd.Series) -> str:
         """Get formula for the cubic spline.
 
         This is more complicated and requires the coefficients
         from the spline interpolation.
         """
         # calculate spline coefficients
-        coeffs = Interpolator.natural_spline_coeffs(x, y)
+        coeffs: List[Tuple[float]] = Interpolator._natural_spline_coeffs(x, y)
 
         # create piecewise terms
-        items = []
+        items: List[str] = []
         for k in range(len(x) - 1):
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
             (a, b, c, d) = coeffs[k]
             formula = (
-                "{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}".format(
-                    a=a, b=b, c=c, d=d, x1=x1
-                )
+                f"{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}"  # type: ignore
             )
-            condition = "time >= {x1} && time <= {x2}".format(x1=x1, x2=x2)
-            s = "{}, {}".format(formula, condition)
+            condition = f"time >= {x1} && time <= {x2}"
+            s = f"{formula}, {condition}"
             items.append(s)
 
         # otherwise
@@ -130,7 +137,7 @@ class Interpolator:
         return "piecewise({})".format(", ".join(items))
 
     @staticmethod
-    def natural_spline_coeffs(X, Y):
+    def _natural_spline_coeffs(X: pd.Series, Y: pd.Series) -> List[Tuple[float]]:
         """Calculate natural spline coefficients.
 
         Calculation of coefficients for
@@ -175,13 +182,13 @@ class Interpolator:
             b[j] = (a[j + 1] - a[j]) / h[j] - (h[j] * (c[j + 1] + 2 * c[j])) / 3
             d[j] = (c[j + 1] - c[j]) / (3 * h[j])
         # store coefficients
-        coeffs = []
+        coeffs: List[Tuple[float]] = []
         for i in range(n):
-            coeffs.append((a[i], b[i], c[i], d[i]))
+            coeffs.append((a[i], b[i], c[i], d[i]))  # type: ignore
         return coeffs
 
     @staticmethod
-    def formula_linear(col1, col2):
+    def _formula_linear(col1: pd.Series, col2: pd.Series) -> str:
         """Linear interpolation between data points.
 
         :return:
@@ -206,13 +213,13 @@ class Interpolator:
         return "piecewise({})".format(", ".join(items))
 
     @staticmethod
-    def formula_constant(col1, col2):
+    def _formula_constant(col1: pd.Series, col2: pd.Series) -> str:
         """Define constant value between data points.
+
+        Returns the piecewise formula string for the constant interpolation.
 
         piecewise x1, y1, [x2, y2, ][...][z]
         A piecewise function: if (y1), x1.Otherwise, if (y2), x2, etc.Otherwise, z.
-        :return:
-        :rtype:
         """
         items = []
         # first value before first time
@@ -241,8 +248,8 @@ class Interpolation:
     The second to last components are interpolated against the first component.
     """
 
-    def __init__(self, data, method="linear"):
-        self.doc = None
+    def __init__(self, data: pd.DataFrame, method="linear"):
+        self.doc: libsbml.SBMLDocument = None
         self.model = None
         self.data = data
         self.method = method
@@ -279,13 +286,13 @@ class Interpolation:
             self.data = self.data.sort_values(by=self.data.columns[0])
 
     @staticmethod
-    def from_csv(csv_file, method="linear", sep=","):
+    def from_csv(csv_file: Union[Path, str], method="linear", sep=",") -> 'Interpolation':
         """Interpolation object from csv file."""
-        data = pd.read_csv(csv_file, sep=sep)
+        data: pd.DataFrame = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
 
     @staticmethod
-    def from_tsv(tsv_file, method="linear"):
+    def from_tsv(tsv_file: Union[Path, str], method: str = "linear") -> 'Interpolation':
         """Interpolate object from tsv file."""
         return Interpolation.from_csv(csv_file=tsv_file, method=method, sep="\t")
 
@@ -318,11 +325,9 @@ class Interpolation:
         # validation of SBML document
         validate_doc(self.doc, units_consistency=False)
 
-    def _init_sbml_model(self):
-        """Initialize the SBML model.
-
-        :return:
-        """
+    def _init_sbml_model(self) -> None:
+        """Create and initialize the SBML model."""
+        # FIXME: support arbitrary levels and versions
         sbmlns = libsbml.SBMLNamespaces(3, 1)
         sbmlns.addPackageNamespace("comp", 1)
         doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
@@ -331,18 +336,18 @@ class Interpolation:
         model: libsbml.Model = doc.createModel()
 
         model.setNotes(notes)
-        model.setId("Interpolation_{}".format(self.method))
-        model.setName("Interpolation_{}".format(self.method))
+        model.setId(f"Interpolation_{self.method}")
+        model.setName(f"Interpolation_{self.method}")
         self.model = model
 
     @staticmethod
-    def create_interpolators(data: pd.DataFrame, method):
+    def create_interpolators(data: pd.DataFrame, method: str) -> List[Interpolator]:
         """Create all interpolators for the given data set.
 
         The columns 1, ... (Ncol-1) are interpolated against
         column 0.
         """
-        interpolators = []
+        interpolators: List[Interpolator] = []
         columns = data.columns
         time = data[columns[0]]
         for k in range(1, len(columns)):
