@@ -478,7 +478,10 @@ def math(item: libsbml.SBase, math_type: str = "cmathml") -> str:
     """
 
     if item:
-        astnode = item.getMath()
+        if not isinstance(item, libsbml.ASTNode):
+            astnode = item.getMath()
+        else:
+            astnode = item
         if math_type == "cmathml":
             return astnode_to_mathml(astnode)
         elif math_type == "pmathml":

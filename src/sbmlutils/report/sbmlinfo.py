@@ -165,12 +165,6 @@ class SBMLModelInfo:
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLModelInfo.info_sbase(uncertainty)
 
-                u_str = "<li><ul>"
-                for key in u_dict.keys():
-                    if not u_dict.get(key) in ["", "", [], None]:
-                        u_str += f"<li>{key}:{u_dict.get(key)} </li>"
-                u_str += "</ul><br>"
-
                 u_dict["uncert_parameters"] = []
                 u_dict["uncert_params_strings"] = []
 
@@ -191,10 +185,15 @@ class SBMLModelInfo:
                         param_dict["type"] = upar.getTypeAsString()
                         param_str += f"{param_dict['type']}, "
                     if upar.isSetDefinitionURL():
-                        param_dict["definition_url"] = upar.getDefinitionURL()
-                        param_str += f"{param_dict['definition_url']}, "
+                        param_dict[
+                            "definition_url"
+                        ] = f"""
+                                        <a href='{upar.getDefinitionURL()}'>
+                                        {upar.getDefinitionURL()}</a>
+                                        """
+                        param_str += param_dict["definition_url"]
                     if upar.isSetMath():
-                        param_dict["math"] = upar.getMath()
+                        param_dict["math"] = formating.math(upar.getMath())
                         param_str += f"{param_dict['math']}, "
 
                     # create param info string
@@ -207,7 +206,6 @@ class SBMLModelInfo:
                     u_dict["uncert_params_strings"].append(param_str)
 
                 info["uncertainties"].append(u_dict)
-                info["uncert_strings"].append(u_str)
 
         return info
 
