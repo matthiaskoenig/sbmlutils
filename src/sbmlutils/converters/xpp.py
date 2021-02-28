@@ -188,6 +188,7 @@ def xpp2sbml(
 ) -> libsbml.SBMLDocument:
     """Read given xpp_file and converts to SBML file.
 
+    :param debug:
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
     :param force_lower: force lower case for all lines
@@ -561,7 +562,7 @@ def xpp2sbml(
                             trigger = g[1] + ">= 0"
 
                         assignment_parts = [t.strip() for t in g[2].split(";")]
-                        assignments = {}
+                        assignments: Dict[str, str] = {}
                         for p in assignment_parts:
                             key, value = p.split("=")
                             assignments[key] = value
@@ -570,7 +571,7 @@ def xpp2sbml(
                             fac.Event(
                                 sid="e{}".format(len(events)),
                                 trigger=trigger,
-                                assignments=assignments,
+                                assignments=assignments,  # type: ignore
                             )
                         )
 

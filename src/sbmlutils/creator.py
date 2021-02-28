@@ -183,13 +183,6 @@ class CoreModel(object):
         """Create the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
-
-        :param self:
-        :type self:
-        :param model_dict:
-        :type model_dict:
-        :return:
-        :rtype:
         """
         m = CoreModel()
         # add info from model_dict to instance

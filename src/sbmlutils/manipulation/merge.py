@@ -36,6 +36,9 @@ def merge_models(
 
     Output directory must exist.
 
+    :param output_dir:
+    :param merged_id:
+    :param validate:
     :param model_paths: absolute paths to models
     :return:
     """

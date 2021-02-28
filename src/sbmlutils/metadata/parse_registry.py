@@ -12,7 +12,7 @@ from sbmlutils import RESOURCES_DIR
 MIRIAM_JSON = RESOURCES_DIR / "IdentifiersOrg-Registry.json"
 
 
-def create_miriam_json():
+def create_miriam_json() -> None:
     """Parse the latest miriam information.
 
     :return:

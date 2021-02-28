@@ -543,7 +543,7 @@ def replace_elements(
     sid: str,
     ref_type: str,
     replaced_elements: Dict[str, List[str]],
-) -> libsbml.ReplacedElement:
+) -> None:
     """Replace elements in comp.
 
     :param model:

@@ -6,12 +6,12 @@ import libsbml
 from sbmlutils import factory, history
 
 
-def test_date_now():
+def test_date_now() -> None:
     now = history.date_now()
     assert now
 
 
-def test_set_model_history():
+def test_set_model_history() -> None:
     creators = [
         factory.Creator(
             familyName="Koenig",
