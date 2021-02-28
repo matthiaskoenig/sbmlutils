@@ -1,4 +1,5 @@
 """Test the creator module."""
+from pathlib import Path
 
 import pytest
 
@@ -21,7 +22,7 @@ level_version_testdata = [
 
 
 @pytest.mark.parametrize("level, version", level_version_testdata)
-def test_sbml_level_version(level: int, version: int, tmp_path):
+def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     """Test that the various levels and versions of SBML can be generated."""
     md = {
         "mid": "level_version",

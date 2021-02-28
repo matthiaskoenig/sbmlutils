@@ -1,4 +1,7 @@
 """Testing the factory methods."""
+from pathlib import Path
+from typing import Any, Dict
+
 import libsbml
 import numpy as np
 import pytest
@@ -74,7 +77,7 @@ compartment_value_data = [
 
 
 @pytest.mark.parametrize("value,constant,expected", compartment_value_data)
-def test_compartment_value(value, constant, expected, tmp_path):
+def test_compartment_value(value: Any, constant: bool, expected: Dict, tmp_path: Path) -> None:
     m1 = {
         "mid": "compartment_value",
         "compartments": [Compartment(sid="C", value=value, constant=constant)],
@@ -110,7 +113,7 @@ parameter_value_data = [
 
 
 @pytest.mark.parametrize("value,constant,expected", parameter_value_data)
-def test_parameter_value(value, constant, expected, tmp_path):
+def test_parameter_value(value: Any, constant: bool, expected: Dict, tmp_path: Path) -> None:
     m1 = {
         "mid": "parameter_value",
         "parameters": [Parameter(sid="p", value=value, constant=constant)],
@@ -129,7 +132,7 @@ def test_parameter_value(value, constant, expected, tmp_path):
     assert model.getNumRules() == expected["rules"]
 
 
-def test_reaction_creation():
+def test_reaction_creation() -> None:
     """Test Equation.
     bA: A_ext => A; (scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A);
     """
@@ -148,7 +151,7 @@ def test_reaction_creation():
     assert rt
 
 
-def test_event():
+def test_event() -> None:
     objects = [
         Parameter(sid="p1", value=0.0, constant=False),
         Event(sid="e1", trigger="time >= 10", assignments={"p1": 10.0}),
@@ -167,7 +170,7 @@ def test_event():
     assert len(assignments) == 1
 
 
-def test_event2():
+def test_event2() -> None:
     objects = [
         Compartment("c", value=1.0),
         Species("S1", initialAmount=1.0, compartment="c"),

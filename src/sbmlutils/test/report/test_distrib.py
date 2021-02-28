@@ -4,6 +4,7 @@ These tests are specific to the distrib features.
 General report generation tests are `test_report.py`.
 """
 import logging
+from pathlib import Path
 from typing import Dict, List
 
 from sbmlutils.io.sbml import read_sbml
@@ -14,7 +15,7 @@ from sbmlutils.test import TESTSUITE_PATH
 logger = logging.getLogger(__name__)
 
 
-def test_report_uncertainty_example(tmp_path):
+def test_report_uncertainty_example(tmp_path: Path) -> None:
     """Test creation of report to check uncertainty feature"""
     doc = read_sbml(
         source=TESTSUITE_PATH / "distrib" / "testsuite" / "uncertainty.xml",

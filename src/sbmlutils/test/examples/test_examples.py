@@ -1,4 +1,6 @@
 """Example model creation."""
+from typing import Any
+
 import pytest
 
 from sbmlutils.creator import CoreModel, Preprocess
@@ -49,5 +51,5 @@ testdata = [
 
 
 @pytest.mark.parametrize("module", testdata)
-def test_create_model(module):
+def test_create_model(module: Any) -> None:
     module.create(tmp=True)
