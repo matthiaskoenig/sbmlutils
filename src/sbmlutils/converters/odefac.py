@@ -230,7 +230,7 @@ class SBML2ODE:
 
     @staticmethod
     def dependency_graph(
-        y: Dict[str, Union[libsbml.AstNode, str]], filtered_ids: Iterable[str]
+        y: Dict[str, Union[libsbml.ASTNode, str]], filtered_ids: Set[str]
     ) -> Dict[str, Set]:
         """Create dependency graph from given dictionary.
 
@@ -240,12 +240,12 @@ class SBML2ODE:
         """
 
         def add_dependency_edges(
-            g: Dict[str, Set], variable: str, astnode: libsbml.AstNode
+            g: Dict[str, Set], variable: str, astnode: libsbml.ASTNode
         ) -> None:
             """Add the dependency edges to the graph."""
             # variable --depends_on--> v2
             for k in range(astnode.getNumChildren()):
-                child = astnode.getChild(k)  # type: libsbml.ASTNode
+                child: libsbml.ASTNode = astnode.getChild(k)
                 if child.getType() == libsbml.AST_NAME:
 
                     # add to dependency graph if id is not a defined parameter or state variable
