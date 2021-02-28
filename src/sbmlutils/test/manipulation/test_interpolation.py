@@ -31,7 +31,10 @@ def f_interpolation(method, tmp_path):
         assert s["z"][k] == pytest.approx(data1["z"][k])
 
 
-@pytest.mark.parametrize("method", [ip.INTERPOLATION_CONSTANT, ip.INTERPOLATION_LINEAR, ip.INTERPOLATION_CUBIC_SPLINE])
+@pytest.mark.parametrize(
+    "method",
+    [ip.INTERPOLATION_CONSTANT, ip.INTERPOLATION_LINEAR, ip.INTERPOLATION_CUBIC_SPLINE],
+)
 def test_interpolation(method, tmp_path):
     """ Constant interpolation of data points. """
     f_interpolation(method=method, tmp_path=tmp_path)

@@ -10,7 +10,7 @@ models in a simple manner.
 """
 import logging
 from pathlib import Path
-from typing import Any, Optional, List, Union, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import libsbml
 import pandas as pd
@@ -64,8 +64,13 @@ class Interpolator:
     Two data series and the type of interpolation are provided.
     """
 
-    def __init__(self, x: pd.Series, y: pd.Series,
-                 z: pd.Series = None, method: str = INTERPOLATION_CONSTANT):
+    def __init__(
+        self,
+        x: pd.Series,
+        y: pd.Series,
+        z: pd.Series = None,
+        method: str = INTERPOLATION_CONSTANT,
+    ):
         self.x: pd.Series = x
         self.y: pd.Series = y
         self.z: pd.Series = z
@@ -125,9 +130,7 @@ class Interpolator:
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
             a, b, c, d = coeffs[k]  # type: ignore
-            formula = (
-                f"{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}"  # type: ignore
-            )
+            formula = f"{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}"  # type: ignore
             condition = f"time >= {x1} && time <= {x2}"
             s = f"{formula}, {condition}"
             items.append(s)
@@ -286,14 +289,15 @@ class Interpolation:
             self.data = self.data.sort_values(by=self.data.columns[0])
 
     @staticmethod
-    def from_csv(csv_file: Union[Path, str], method: str = "linear",
-                 sep: str = ",") -> 'Interpolation':
+    def from_csv(
+        csv_file: Union[Path, str], method: str = "linear", sep: str = ","
+    ) -> "Interpolation":
         """Interpolation object from csv file."""
         data: pd.DataFrame = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
 
     @staticmethod
-    def from_tsv(tsv_file: Union[Path, str], method: str = "linear") -> 'Interpolation':
+    def from_tsv(tsv_file: Union[Path, str], method: str = "linear") -> "Interpolation":
         """Interpolate object from tsv file."""
         return Interpolation.from_csv(csv_file=tsv_file, method=method, sep="\t")
 

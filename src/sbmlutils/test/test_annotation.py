@@ -6,7 +6,7 @@ import re
 import libsbml
 
 from sbmlutils.examples import annotation as annotation_example
-from sbmlutils.io.sbml import read_sbml
+from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
 from sbmlutils.metadata.miriam import BQB
@@ -64,7 +64,9 @@ def test_demo_annotation(tmp_path):
     )
 
     # document
-    doc = read_sbml(source=tmp_sbml_path)
+    doc: libsbml.SBMLDocument = read_sbml(source=tmp_sbml_path)
+    # sbml_str = write_sbml(doc)
+    # print(sbml_str)
     assert doc.getSBOTerm() == 293
     assert doc.getSBOTermID() == "SBO:0000293"
     cvterms = doc.getCVTerms()

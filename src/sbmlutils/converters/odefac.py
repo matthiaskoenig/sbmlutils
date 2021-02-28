@@ -19,7 +19,7 @@ The following SBML core constructs are currently NOT supported:
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 
 import re
-from collections import defaultdict, Iterable
+from collections import Iterable, defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -101,9 +101,7 @@ class SBML2ODE:
             self.dx_ast[sid] = ""
             # initial condition
             value = None
-            compartment = model.getCompartment(
-                species.getCompartment()
-            )
+            compartment = model.getCompartment(species.getCompartment())
             if species.isSetInitialAmount():
                 value = species.getInitialAmount()
                 if not species.getHasOnlySubstanceUnits():
@@ -205,8 +203,13 @@ class SBML2ODE:
         # check which math depends on other math (build tree of dependencies)
         self.yids_ordered = self._ordered_yids()
 
-    def _add_reaction_formula(self, model: libsbml.Model,
-                              rid: str, species_ref: libsbml.SpeciesReference, sign: str):
+    def _add_reaction_formula(
+        self,
+        model: libsbml.Model,
+        rid: str,
+        species_ref: libsbml.SpeciesReference,
+        sign: str,
+    ) -> None:
         """Add part of reaction formula to ODEs for species."""
         stoichiometry = species_ref.getStoichiometry()
         sid = species_ref.getSpecies()
@@ -227,9 +230,8 @@ class SBML2ODE:
 
     @staticmethod
     def dependency_graph(
-        y: Dict[str, Union[libsbml.AstNode, str]],
-        filtered_ids: Iterable[str]
-    ):
+        y: Dict[str, Union[libsbml.AstNode, str]], filtered_ids: Iterable[str]
+    ) -> Dict[str, Set]:
         """Create dependency graph from given dictionary.
 
         :param y: { variable: astnode } dictionary
@@ -238,9 +240,7 @@ class SBML2ODE:
         """
 
         def add_dependency_edges(
-            g: Dict[Set],
-            variable: str,
-            astnode: libsbml.AstNode
+            g: Dict[str, Set], variable: str, astnode: libsbml.AstNode
         ) -> None:
             """Add the dependency edges to the graph."""
             # variable --depends_on--> v2
@@ -257,7 +257,7 @@ class SBML2ODE:
                 add_dependency_edges(g, variable, child)
 
         # create math dependency graph
-        g: Dict[Set] = defaultdict(set)
+        g: Dict[str, Set] = defaultdict(set)
         for variable, astnode in y.items():
             g[variable] = set()
             add_dependency_edges(g, variable=variable, astnode=astnode)
@@ -272,10 +272,12 @@ class SBML2ODE:
         :return:
         """
         filtered_ids: Set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
-        g: Dict[Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
+        g: Dict[str, Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # pprint(g)
 
-        def create_ordered_variables(g, yids: List[str] = None) -> List[str]:
+        def create_ordered_variables(
+            g: Dict[str, Set], yids: List[str] = None
+        ) -> List[str]:
             if yids is None:
                 yids = []
 
@@ -307,7 +309,7 @@ class SBML2ODE:
         yids = create_ordered_variables(g)
         return yids
 
-    def to_python(self, py_file: Path) -> str:
+    def to_python(self, py_file: Path) -> None:
         """Write ODEs to python."""
         content = self._render_template(
             template_file="odefac_template.pytemp", index_offset=0
@@ -315,16 +317,16 @@ class SBML2ODE:
         with open(py_file, "w") as f:
             f.write(content)
 
-    def to_R(self, r_file: Path) -> str:
+    def to_R(self, r_file: Path) -> None:
         """Write ODEs to R."""
-        content = self._render_template(template_file="odefac_template.R", index_offset=1)
+        content = self._render_template(
+            template_file="odefac_template.R", index_offset=1
+        )
         with open(r_file, "w") as f:
             f.write(content)
 
     def _render_template(
-        self,
-        template_file: str = "odefac_template.pytemp",
-        index_offset: int = 0
+        self, template_file: str = "odefac_template.pytemp", index_offset: int = 0
     ) -> str:
         """Render given language template.
 
@@ -337,7 +339,7 @@ class SBML2ODE:
             trim_blocks=True,
             lstrip_blocks=True,
         )
-        template_file = env.get_template(template_file)
+        template = env.get_template(template_file)
 
         # indices for replacements
         (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=index_offset)
@@ -345,7 +347,7 @@ class SBML2ODE:
         # create formulas
         def to_formula(
             ast_dict: Dict[str, Union[libsbml.ASTNode, str]],
-            replace_symbols: bool = True
+            replace_symbols: bool = True,
         ) -> Dict[str, Union[libsbml.ASTNode, str]]:
             """Replace all symbols in given astnode dictionary.
 
@@ -443,10 +445,11 @@ class SBML2ODE:
             "y_flat": y_flat,
             "dx_flat": dx_flat,
         }
-        return str(template_file.render(c))
+        return str(template.render(c))
 
-    def _indices(self, index_offset: int = 0
-                 ) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]:
+    def _indices(
+        self, index_offset: int = 0
+    ) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]:
         """Get indices of pids, yids and dxids."""
         # replacement dictionaries:
         pids_idx: Dict[str, int] = {}

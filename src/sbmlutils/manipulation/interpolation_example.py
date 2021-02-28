@@ -1,13 +1,13 @@
+import logging
+import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import pandas as pd
-import shutil
-import os
-import tempfile
 import roadrunner
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import Figure, Axes
-import logging
+from matplotlib.pyplot import Axes, Figure
 
 from sbmlutils.manipulation import interpolation as ip
 
@@ -28,15 +28,17 @@ def interpolation_example() -> None:
     ax1.set_xlabel("time [AU]")
     ax1.set_ylabel("data [AU]")
     ax1.set_title("Interpolation Example")
-    ax1.plot(x, y, 'o', color="black", label="y")
-    ax1.plot(x, z, 's', color="black", label="z")
+    ax1.plot(x, y, "o", color="black", label="y")
+    ax1.plot(x, z, "s", color="black", label="z")
 
     colors = ["red", "green", "blue"]
-    for k, method in enumerate([
-        ip.INTERPOLATION_CONSTANT,
-        ip.INTERPOLATION_LINEAR,
-        ip.INTERPOLATION_CUBIC_SPLINE,
-    ]):
+    for k, method in enumerate(
+        [
+            ip.INTERPOLATION_CONSTANT,
+            ip.INTERPOLATION_LINEAR,
+            ip.INTERPOLATION_CUBIC_SPLINE,
+        ]
+    ):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_f = Path(tmpdir, "test.xml")
 
@@ -46,9 +48,10 @@ def interpolation_example() -> None:
             r = roadrunner.RoadRunner(str(tmp_f))
             r.timeCourseSelections = ["time", "y", "z"]
             s = r.simulate(0, 5, steps=50)
-            ax1.plot(s['time'], s["y"], label=f"y {method}", color=colors[k])
-            ax1.plot(s['time'], s["z"], label=f"z {method}", color=colors[k],
-                     linestyle="--")
+            ax1.plot(s["time"], s["y"], label=f"y {method}", color=colors[k])
+            ax1.plot(
+                s["time"], s["z"], label=f"z {method}", color=colors[k], linestyle="--"
+            )
 
     ax1.legend()
     plt.show()

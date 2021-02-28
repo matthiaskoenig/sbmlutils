@@ -1,5 +1,5 @@
 """Utilities for the creation and work with layout models."""
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 import libsbml
 
@@ -46,7 +46,7 @@ class SpeciesGlyph(factory.Sbase):
         y: float,
         z: float = 0,
         w: float = 50,
-        h: float =20,
+        h: float = 20,
         d: float = 0,
         text: Optional[str] = None,
         name: Optional[str] = None,
@@ -395,7 +395,9 @@ class Layout(factory.Sbase):
     def _set_fields(self, obj: libsbml.Layout, model: libsbml.Model) -> None:
         super(Layout, self)._set_fields(obj, model)
         dim: libsbml.Dimensions = libsbml.Dimensions(
-            SBML_LEVEL, SBML_VERSION, LAYOUT_VERSION  # FIXME: use settings in constructors
+            SBML_LEVEL,
+            SBML_VERSION,
+            LAYOUT_VERSION,  # FIXME: use settings in constructors
         )
         dim.setWidth(self.width)
         dim.setHeight(self.height)
@@ -412,12 +414,7 @@ class Layout(factory.Sbase):
 
 
 def _create_bounding_box(
-    x: float,
-    y: float,
-    width: float,
-    height: float,
-    z: float = 0,
-    depth: float = 0
+    x: float, y: float, width: float, height: float, z: float = 0, depth: float = 0
 ) -> libsbml.BoundingBox:
     """Create the BoundingBox object."""
     bb: libsbml.BoundingBox = libsbml.BoundingBox(
