@@ -10,11 +10,11 @@ from sbmlutils.units import *
 from sbmlutils.validation import validate_doc
 
 
-def test_distrib_examples():
+def test_distrib_examples() -> None:
     distrib_examples.create_examples(tmp=True)
 
 
-def test_add_uncertainty_example():
+def test_add_uncertainty_example() -> None:
     distrib_packages.add_uncertainty_example(tmp=True)
 
 
@@ -36,7 +36,7 @@ def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
     return core_model.doc
 
 
-def test_assign_distribution():
+def test_assign_distribution() -> None:
     model_dict = {
         "mid": "distrib_assignment",
         "packages": ["distrib"],
@@ -57,7 +57,7 @@ def test_assign_distribution():
     check_model_dict(model_dict)
 
 
-def test_normal_distribution():
+def test_normal_distribution() -> None:
     model_dict = {
         "mid": "normal",
         "packages": ["distrib"],
@@ -72,7 +72,7 @@ def test_normal_distribution():
     check_model_dict(model_dict)
 
 
-def test_trunctated_normal_distribution():
+def test_trunctated_normal_distribution() -> None:
     model_dict = {
         "mid": "truncated_normal",
         "packages": ["distrib"],
@@ -87,7 +87,7 @@ def test_trunctated_normal_distribution():
     check_model_dict(model_dict)
 
 
-def test_conditional_event():
+def test_conditional_event() -> None:
     model_dict = {
         "mid": "conditional_events",
         "packages": ["distrib"],
@@ -114,7 +114,7 @@ def test_conditional_event():
     check_model_dict(model_dict)
 
 
-def test_overview_distributions():
+def test_overview_distributions() -> None:
     model_dict = {
         "mid": "all_distributions",
         "packages": ["distrib"],
@@ -146,7 +146,7 @@ def test_overview_distributions():
     check_model_dict(model_dict)
 
 
-def test_basic_uncertainty_example():
+def test_basic_uncertainty_example() -> None:
     import libsbml
 
     model_dict = {
@@ -174,9 +174,7 @@ def test_basic_uncertainty_example():
     check_model_dict(model_dict)
 
 
-def test_multiple_uncertainties():
-    import libsbml
-
+def test_multiple_uncertainties() -> None:
     model_dict = {
         "mid": "multiple_uncertainties",
         "packages": ["distrib"],
@@ -208,6 +206,8 @@ def test_multiple_uncertainties():
                                 value=0.3,
                                 unit=UNIT_mM,
                             ),
+                        ],
+                        uncertSpans=[
                             UncertSpan(
                                 type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
                                 valueLower=2.0,
@@ -229,6 +229,8 @@ def test_multiple_uncertainties():
                                 value=1.1,
                                 unit=UNIT_mM,
                             ),
+                        ],
+                        uncertSpans=[
                             UncertSpan(
                                 type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
                                 valueLower=1.0,
@@ -244,27 +246,26 @@ def test_multiple_uncertainties():
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    doc = check_model_dict(model_dict)  # type: libsbml.SBMLDocument
+    doc: libsbml.SBMLDocument = check_model_dict(model_dict)
     assert doc
-    model = doc.getModel()  # type: libsbml.Model
+    model: libsbml.Model = doc.getModel()
     assert model
-    p = model.getParameter("p1")  # type: libsbml.Parameter
+    p: libsbml.Parameter = model.getParameter("p1")
     assert p
-    p_distrib = p.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
+    p_distrib: libsbml.DistribSBasePlugin = p.getPlugin("distrib")
     assert p_distrib
-    list_uncertainties = (
-        p_distrib.getListOfUncertainties()
-    )  # type: libsbml.ListOfUncertainties
+    list_uncertainties: libsbml.ListOfUncertainties = p_distrib.getListOfUncertainties()
+
     assert list_uncertainties
     n_uncertainties = p_distrib.getNumUncertainties()
     assert n_uncertainties == 2
     for k in range(n_uncertainties):
-        uc = p_distrib.getUncertainty(k)  # type: libsbml.Uncertainty
+        uc: libsbml.Uncertainty = p_distrib.getUncertainty(k)
         assert uc
         assert uc.isSetId()
 
 
-def test_define_random_variable():
+def test_define_random_variable() -> None:
     import libsbml
 
     model_dict = {
@@ -295,9 +296,7 @@ def test_define_random_variable():
     check_model_dict(model_dict)
 
 
-def test_parameters_and_spans():
-    import libsbml
-
+def test_parameters_and_spans() -> None:
     model_dict = {
         "mid": "parameters_spans",
         "packages": ["distrib"],
@@ -340,6 +339,8 @@ def test_parameters_and_spans():
                             UncertParameter(
                                 type=libsbml.DISTRIB_UNCERTTYPE_VARIANCE, value=10.0
                             ),
+                        ],
+                        uncertSpans=[
                             UncertSpan(
                                 type=libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
                                 valueLower=1.0,
@@ -369,7 +370,7 @@ def test_parameters_and_spans():
     check_model_dict(model_dict)
 
 
-def test_sabiork_uncertainty():
+def test_sabiork_uncertainty() -> None:
     model_dict = {
         "mid": "sabiork_parameter",
         "packages": ["distrib"],

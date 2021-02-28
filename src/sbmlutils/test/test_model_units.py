@@ -1,14 +1,16 @@
 """Test ModelUnits and setting model units."""
+from pathlib import Path
+
 import pytest
 from libsbml import UNIT_KIND_LITER, UNIT_KIND_LITRE, UNIT_KIND_METER, UNIT_KIND_METRE
 
 from sbmlutils.creator import create_model
-from sbmlutils.factory import ModelUnits
+from sbmlutils.factory import ModelUnits, UnitType
 from sbmlutils.io import validate_sbml
 
 
 @pytest.mark.parametrize("unit", [UNIT_KIND_LITER, UNIT_KIND_LITRE])
-def test_model_units_litre(unit, tmp_path):
+def test_model_units_litre(unit: UnitType, tmp_path: Path) -> None:
     """Test that volume can be set with litre and liter."""
     md = {
         "mid": "example_model",
@@ -29,7 +31,7 @@ def test_model_units_litre(unit, tmp_path):
 
 
 @pytest.mark.parametrize("unit", [UNIT_KIND_METER, UNIT_KIND_METRE])
-def test_model_units_metre(unit, tmp_path):
+def test_model_units_metre(unit: UnitType, tmp_path: Path) -> None:
     """Test that length can be set with metre and meter."""
     md = {
         "mid": "example_model",

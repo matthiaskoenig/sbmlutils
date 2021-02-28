@@ -2,7 +2,10 @@
 
 ## New features
 - support simple generation of all SBML levels and versions #215
+- complete mypy check
+
 ## Fixes
+- added annotations and uncertainties to all core objects
 - improved/consistent handling of compartment size and parameter value
 - fixing mypy issues #192 
 - refactored information for SBML report

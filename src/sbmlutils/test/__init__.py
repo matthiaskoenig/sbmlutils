@@ -97,6 +97,6 @@ ALL_SBML_PATHS = (
 )
 
 
-def sbml_paths_idfn(sbml_path):
+def sbml_paths_idfn(sbml_path: Path) -> str:
     """Helper function to inject Path in test name."""
     return sbml_path.name

@@ -1,24 +1,26 @@
+from pathlib import Path
+
 import libsbml
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.test import BASIC_SBML, GZ_SBML
 
 
-def test_read_sbml_from_path():
+def test_read_sbml_from_path() -> None:
     """Read from path."""
     doc = read_sbml(BASIC_SBML)
     assert doc
     assert doc.getModel()
 
 
-def test_read_sbml_from_strpath():
+def test_read_sbml_from_strpath() -> None:
     """Read from strpath (os.path)."""
     doc = read_sbml(str(BASIC_SBML))
     assert doc
     assert doc.getModel()
 
 
-def test_read_sbml_from_str():
+def test_read_sbml_from_str() -> None:
     """Read SBML str."""
     doc1 = read_sbml(str(BASIC_SBML))
     sbml_str = write_sbml(doc1)
@@ -28,7 +30,7 @@ def test_read_sbml_from_str():
     assert doc.getModel()
 
 
-def test_read_sbml_from_gz():
+def test_read_sbml_from_gz() -> None:
     """Read SBML str."""
     doc1 = read_sbml(GZ_SBML)
     sbml_str = write_sbml(doc1)
@@ -38,7 +40,7 @@ def test_read_sbml_from_gz():
     assert doc.getModel()
 
 
-def test_read_sbml_from_gzstr():
+def test_read_sbml_from_gzstr() -> None:
     """Read SBML str."""
     doc1 = read_sbml(str(GZ_SBML))
     sbml_str = write_sbml(doc1)
@@ -48,16 +50,16 @@ def test_read_sbml_from_gzstr():
     assert doc.getModel()
 
 
-def test_read_sbml_validate():
+def test_read_sbml_validate() -> None:
     """Read and validate."""
     doc = read_sbml(BASIC_SBML, validate=True)
     assert doc
     assert doc.getModel()
 
 
-def test_write_sbml(tmp_path):
-    doc = libsbml.SBMLDocument()  # type: libsbml.SBMLDocument
-    model = doc.createModel()  # type: libsbml.Model
+def test_write_sbml(tmp_path: Path) -> None:
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
+    model: libsbml.Model = doc.createModel()
     model.setId("test_id")
 
     sbml_path = tmp_path / "test.xml"
