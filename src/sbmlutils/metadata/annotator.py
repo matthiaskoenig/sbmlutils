@@ -487,11 +487,11 @@ class ModelAnnotator:
     @staticmethod
     def get_SBMLQualifier(qualifier_str: str) -> str:
         """Lookup of SBMLQualifier for given qualifier string."""
-
-        # FIXME: better lookup with MIRIAM
         if qualifier_str not in libsbml.__dict__:
             raise ValueError("Qualifier not supported: {}".format(qualifier_str))
-        return str(libsbml.__dict__.get(qualifier_str))
+
+        qtype = libsbml.__dict__.get(qualifier_str)
+        return str(libsbml.ModelQualifierType_toString(qtype))
 
     @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation) -> None:
@@ -509,17 +509,21 @@ class ModelAnnotator:
             if qualifier.startswith("BQB"):
                 cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
-                check(
-                    cv.setBiologicalQualifierType(sbml_qualifier),
+                success = check(
+                    cv.setBiologicalQualifierType(str(sbml_qualifier)),
                     f"Set biological qualifier: '{sbml_qualifier}'",
                 )
+                if success != 0:
+                    logger.error(f"Could not set biological qualifier: {qualifier}")
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
-                check(
-                    cv.setModelQualifierType(sbml_qualifier),
+                success = check(
+                    cv.setModelQualifierType(str(sbml_qualifier)),
                     f"Set model qualifier: '{sbml_qualifier}'",
                 )
+                if success != 0:
+                    logger.error(f"Could not set model qualifier: {qualifier}")
             else:
                 logger.error(f"Unsupported qualifier: '{qualifier}'")
         else:
@@ -530,21 +534,14 @@ class ModelAnnotator:
             logger.error(msg)
             raise ValueError(msg)
 
-        check(cv.addResource(resource), f"Add resource: '{resource}'")
+        success = check(cv.addResource(resource), f"Add resource: '{resource}'")
+        if success != 0:
+            logger.error(f"Could not add resource: {resource}")
 
         # meta id has to be set
         if not sbase.isSetMetaId():
             sbase.setMetaId(utils.create_metaid(sbase))
 
-        # FIXME: figure out what is going on
-        print("-" * 80)
-        print(qualifier, resource, type(qualifier), type(resource))
-        print(cv, sbase, sbase.getMetaId())
-        print(
-            cv.getResources(),
-            cv.getBiologicalQualifierType(),
-            cv.getModelQualifierType(),
-        )
         success = sbase.addCVTerm(cv)
 
         if success != 0:

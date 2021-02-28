@@ -20,7 +20,9 @@ def test_xpp_examples(model_id: str) -> None:
     xpp_examples.example(model_id)
 
 
-def xpp_check(tmp_path: Path, ode_id: str, Nall: int=0, Nerr: int=0, Nwarn:int=0) -> None:
+def xpp_check(
+    tmp_path: Path, ode_id: str, Nall: int = 0, Nerr: int = 0, Nwarn: int = 0
+) -> None:
     sbml_file = tmp_path / f"{ode_id}.xml"
     xpp_file = DATA_DIR / "xpp" / f"{ode_id}.ode"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)

@@ -77,7 +77,9 @@ compartment_value_data = [
 
 
 @pytest.mark.parametrize("value,constant,expected", compartment_value_data)
-def test_compartment_value(value: Any, constant: bool, expected: Dict, tmp_path: Path) -> None:
+def test_compartment_value(
+    value: Any, constant: bool, expected: Dict, tmp_path: Path
+) -> None:
     m1 = {
         "mid": "compartment_value",
         "compartments": [Compartment(sid="C", value=value, constant=constant)],
@@ -113,7 +115,9 @@ parameter_value_data = [
 
 
 @pytest.mark.parametrize("value,constant,expected", parameter_value_data)
-def test_parameter_value(value: Any, constant: bool, expected: Dict, tmp_path: Path) -> None:
+def test_parameter_value(
+    value: Any, constant: bool, expected: Dict, tmp_path: Path
+) -> None:
     m1 = {
         "mid": "parameter_value",
         "parameters": [Parameter(sid="p", value=value, constant=constant)],

@@ -12,7 +12,9 @@ SBML_FILES = [
 ]
 
 
-def _validate_file(sbmlpath: Path, units_consistency: bool=True, Nall: int=0) -> None:
+def _validate_file(
+    sbmlpath: Path, units_consistency: bool = True, Nall: int = 0
+) -> None:
     """Validate given SBML file.
 
     Helper function called by the other tests.
