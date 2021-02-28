@@ -188,6 +188,7 @@ def xpp2sbml(
 ) -> libsbml.SBMLDocument:
     """Read given xpp_file and converts to SBML file.
 
+    :param debug:
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
     :param force_lower: force lower case for all lines

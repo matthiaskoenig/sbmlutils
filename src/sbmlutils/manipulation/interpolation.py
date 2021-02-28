@@ -129,7 +129,7 @@ class Interpolator:
         for k in range(len(x) - 1):
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
-            a, b, c, d = coeffs[k]  # type: ignore
+            (a, b, c, d) = coeffs[k]  # type: ignore
             formula = f"{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}"  # type: ignore
             condition = f"time >= {x1} && time <= {x2}"
             s = f"{formula}, {condition}"

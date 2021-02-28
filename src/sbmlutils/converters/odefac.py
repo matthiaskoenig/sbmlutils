@@ -351,6 +351,7 @@ class SBML2ODE:
         ) -> Dict[str, Union[libsbml.ASTNode, str]]:
             """Replace all symbols in given astnode dictionary.
 
+            :param replace_symbols:
             :param ast_dict:
             :return:
             """

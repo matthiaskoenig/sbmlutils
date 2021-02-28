@@ -201,6 +201,7 @@ def astnode_to_mathml(
     This does not use ASTNode serialization, but parsing of the
     corresponding formula due to differences in MathML!
 
+    :param printer:
     :param astnode: ASTNode
     :param settings:
     :return: Content or presentation MathML

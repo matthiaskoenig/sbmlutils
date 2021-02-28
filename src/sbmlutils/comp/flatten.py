@@ -71,7 +71,6 @@ def flatten_sbml_doc(
             logger.error("SBML errors in doc, see SBMLDocument error log.")
 
     # converter options
-    libsbml.CompFlatteningConverter
     props = libsbml.ConversionProperties()
     props.addOption("flatten comp", True)  # Invokes CompFlatteningConverter
     props.addOption("leave_ports", leave_ports)  # Indicates whether to leave ports

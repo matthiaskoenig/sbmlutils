@@ -1433,6 +1433,7 @@ class Uncertainty(Sbase):
     ) -> libsbml.Uncertainty:
         """Create libsbml Uncertainty.
 
+        :param sbase:
         :param model:
         :return:
         """
