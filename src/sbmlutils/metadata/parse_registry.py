@@ -4,7 +4,7 @@ https://www.ebi.ac.uk/miriam/main/export/xml/
 """
 import json
 
-import xmlschema
+import xmlschema  # type: ignore
 
 from sbmlutils import RESOURCES_DIR
 
@@ -12,7 +12,7 @@ from sbmlutils import RESOURCES_DIR
 MIRIAM_JSON = RESOURCES_DIR / "IdentifiersOrg-Registry.json"
 
 
-def create_miriam_json():
+def create_miriam_json() -> None:
     """Parse the latest miriam information.
 
     :return:

@@ -17,7 +17,7 @@ def set_flux_bounds(reaction: libsbml.Reaction, lb: float, ub: float) -> None:
 
 def add_default_flux_bounds(
     doc: libsbml.SBMLDocument, lower: float = -100.0, upper: float = 100.0
-):
+) -> None:
     """Add default flux bounds to SBMLDocument.
 
     :param doc: SBMLDocument
@@ -54,7 +54,7 @@ def add_default_flux_bounds(
             rfbc.setUpperFluxBound("upper")
 
 
-def no_boundary_conditions(doc: libsbml.SBMLDocument):
+def no_boundary_conditions(doc: libsbml.SBMLDocument) -> None:
     """Set all boundaryCondition to False in the model.
 
     :param doc: libsbml.SBMLDocument

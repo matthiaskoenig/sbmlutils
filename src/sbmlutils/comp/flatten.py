@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def flatten_sbml(
-    sbml_path: Path, filepath=None, leave_ports=True
+    sbml_path: Path, filepath: Path = None, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten given SBML file.
 
@@ -71,7 +71,6 @@ def flatten_sbml_doc(
             logger.error("SBML errors in doc, see SBMLDocument error log.")
 
     # converter options
-    libsbml.CompFlatteningConverter
     props = libsbml.ConversionProperties()
     props.addOption("flatten comp", True)  # Invokes CompFlatteningConverter
     props.addOption("leave_ports", leave_ports)  # Indicates whether to leave ports

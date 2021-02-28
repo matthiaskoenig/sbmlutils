@@ -4,17 +4,20 @@ alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 
 import re
+from typing import Dict, List, Optional
 
 import libsbml
 
 
-def ast_info(ast: libsbml.ASTNode):
+def ast_info(ast: libsbml.ASTNode) -> None:
     """Print ASTNode information."""
     print(ast)
     print(ast.getType(), ast.getName())
 
 
-def find_names_in_ast(ast, names=None):
+def find_names_in_ast(
+    ast: libsbml.ASTNode, names: Optional[List[str]] = None
+) -> List[str]:
     """Find all names in given astnode.
 
     Names are the variables in the formula.
@@ -37,12 +40,9 @@ def find_names_in_ast(ast, names=None):
     return names
 
 
-##################################
-# Formula replacement helpers
-##################################
-
-
-def replace_formula(formula, fid, old_args, new_args):
+def replace_formula(
+    formula: str, fid: str, old_args: List[str], new_args: List[str]
+) -> str:
     """Replace information in given formula.
 
     :param formula:
@@ -56,15 +56,15 @@ def replace_formula(formula, fid, old_args, new_args):
 
     for m in pattern.finditer(formula):
         g = formula[m.start() :]
-        content = top_bracket_content(g)
+        content = _top_bracket_content(g)
 
-        if False:
-            print("-" * 80)
-            print("formula:\t", formula)
-            # print('groups:\t', groups)
-            print("match:", m.start(), m.group())
-            print("g:", g)
-            print("bracket_content: ", content)
+        # debug information
+        # print("-" * 80)
+        # print("formula:\t", formula)
+        #
+        # print("match:", m.start(), m.group())
+        # print("g:", g)
+        # print("bracket_content: ", content)
 
         # replace with the new arguments
         # TODO: find the real number of arguments (if arguments are functions this calculation is wrong)
@@ -81,21 +81,17 @@ def replace_formula(formula, fid, old_args, new_args):
 
 
 # This is a workaround due to not using a real parser.
-def top_bracket_content(s):
-    """Get content of top bracket.
-
-    :param s:
-    :return:
-    """
-    toret = bracket_stack(s)
+def _top_bracket_content(s: str) -> str:
+    """Get content of top bracket."""
+    toret = _bracket_stack(s)
     start_idx = sorted(toret.keys())[0]
     end_idx = toret[start_idx]
     return s[start_idx + 1 : end_idx]
 
 
-def bracket_stack(s):
+def _bracket_stack(s: str) -> Dict[int, int]:
     """Get bracket stack."""
-    toret = {}
+    toret: Dict[int, int] = {}
     pstack = []
     for i, c in enumerate(s):
         if c == "(":
@@ -125,8 +121,8 @@ if __name__ == "__main__":
 
     # s = "vtest(v(a, b, c), x(a, b, c), d)*(abc)"
     s = "hv(t-1,sharpness) - hv(t-2,sharpness) + (hv(t-5,sharpness) - hv(t-6,sharpness)))"
-    toret = bracket_stack(s)
+    toret = _bracket_stack(s)
     print(toret)
-    test = top_bracket_content(s)
+    test = _top_bracket_content(s)
     print("formula:", s)
     print("content first top bracket:", test)

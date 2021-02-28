@@ -3,10 +3,10 @@ import functools
 import hashlib
 import time
 import warnings
-from typing import Callable
+from typing import Any, Callable
 
 import libsbml
-from depinfo import print_dependencies
+from depinfo import print_dependencies  # type: ignore
 
 
 def show_versions() -> None:
@@ -36,10 +36,11 @@ def create_metaid(sbase: libsbml.SBase) -> str:
 
     Meta ids are required to store annotations on elements.
     """
-    return f"meta_{_create_hash_id(sbase)}"
+    return f"meta_{create_hash_id(sbase)}"
 
 
-def _create_hash_id(sbase: libsbml.SBase) -> str:
+def create_hash_id(sbase: libsbml.SBase) -> str:
+    """Create hash code."""
     if sbase and hasattr(sbase, "getId") and sbase.isSetId():
         hash_key = sbase.getId()
     else:
@@ -47,7 +48,7 @@ def _create_hash_id(sbase: libsbml.SBase) -> str:
         xml_node = sbase.toXMLNode()  # type: libsbml.XMLNode
         xml_str = xml_node.toString().encode("utf-8")
         hash_key = hashlib.md5(xml_str).hexdigest()
-    return hash_key
+    return hash_key  # type: ignore
 
 
 def timeit(f: Callable) -> Callable:
@@ -57,13 +58,16 @@ def timeit(f: Callable) -> Callable:
     :return:
     """
 
-    def timed(*args, **kw):
+    def timed(*args: Any, **kwargs: Any) -> Any:
 
         ts = time.time()
-        result = f(*args, **kw)
+        result = f(*args, **kwargs)
         te = time.time()
 
-        print("func:%r args:[%r, %r] took: %2.4f sec" % (f.__name__, args, kw, te - ts))
+        print(
+            "func:%r args:[%r, %r] took: %2.4f sec"
+            % (f.__name__, args, kwargs, te - ts)
+        )
         return result
 
     return timed
@@ -78,12 +82,12 @@ def deprecated(f: Callable) -> Callable:
     """
 
     @functools.wraps(f)
-    def new_func(*args, **kwargs):
+    def new_func(*args: Any, **kwargs: Any) -> Any:
         warnings.warn_explicit(
             "Call to deprecated function {}.".format(f.__name__),
             category=DeprecationWarning,
-            filename=f.func_code.co_filename,
-            lineno=f.func_code.co_firstlineno + 1,
+            filename=f.func_code.co_filename,  # type: ignore
+            lineno=f.func_code.co_firstlineno + 1,  # type: ignore
         )
         return f(*args, **kwargs)
 

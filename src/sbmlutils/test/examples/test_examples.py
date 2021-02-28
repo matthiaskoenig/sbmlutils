@@ -1,6 +1,6 @@
-"""
-Test model creation.
-"""
+"""Example model creation."""
+from typing import Any
+
 import pytest
 
 from sbmlutils.creator import CoreModel, Preprocess
@@ -20,6 +20,7 @@ from sbmlutils.examples import (
     fbc_mass_charge,
     initial_assignment,
     reaction,
+    simple_reaction,
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory
@@ -44,16 +45,11 @@ testdata = [
     fbc2,
     fbc_mass_charge,
     reaction,
+    simple_reaction,
     tiny_factory,
 ]
 
 
 @pytest.mark.parametrize("module", testdata)
-def test_create_model(module):
+def test_create_model(module: Any) -> None:
     module.create(tmp=True)
-
-
-def test_demo():
-    model_dict = Preprocess.dict_from_modules(["sbmlutils.examples.demo.model"])
-    cell_model = CoreModel.from_dict(model_dict)
-    cell_model.create_sbml()

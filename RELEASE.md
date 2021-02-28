@@ -1,8 +1,7 @@
 # Release information
 
 ## update documentation
-* make necessary updates to notebooks
-* build documentation `cd docs_builder` and `./make_docs.sh 2>&1 | tee ./make_docs.log`
+* build documentation `cd docs_builder` and `make html`
 
 ## make release
 * update release notes in `release-notes` with commit

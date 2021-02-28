@@ -26,7 +26,7 @@ def read_cobra_model(sbml_path: Path) -> "cobra.core.Model":
     return cobra.io.read_sbml_model(str(sbml_path))
 
 
-def cobra_reaction_info(cobra_model: "cobra.core.Model"):
+def cobra_reaction_info(cobra_model: "cobra.core.Model") -> pd.DataFrame:
     """Create data frame with bound and objective information.
 
     :param cobra_model:

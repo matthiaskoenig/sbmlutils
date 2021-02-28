@@ -1,6 +1,8 @@
 """
 Unit tests for fbc.
 """
+from pathlib import Path
+
 import pytest
 
 from sbmlutils.fbc.cobra import (
@@ -15,13 +17,13 @@ from sbmlutils.test import DEMO_SBML, FBC_SBML
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
-def test_load_cobra_model():
+def test_load_cobra_model() -> None:
     model = read_cobra_model(FBC_SBML)
     assert model
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
-def test_reaction_info():
+def test_reaction_info() -> None:
     cobra_model = read_cobra_model(FBC_SBML)
     df = cobra_reaction_info(cobra_model)
     assert df is not None
@@ -37,7 +39,7 @@ def test_reaction_info():
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
-def test_mass_balance(tmp_path):
+def test_mass_balance(tmp_path: Path) -> None:
     doc = read_sbml(DEMO_SBML)
 
     # add defaults
@@ -55,5 +57,5 @@ def test_mass_balance(tmp_path):
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
-def test_check_mass_balance():
+def test_check_mass_balance() -> None:
     check_mass_balance(sbml_path=DEMO_SBML)

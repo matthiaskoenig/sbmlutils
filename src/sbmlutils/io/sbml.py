@@ -23,6 +23,11 @@ def read_sbml(
 ) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
+    Local parameters can be promoted using the `promote flag.
+    Allows to validate the file during reading via the `validate` flag.
+    The subset of reported warnings can be choosen using the
+    `units_consistency`, `modeling_practice` and `internal_consistency` flag.
+
     :param source: SBML path or string
     :param promote: promote local parameters to global parameters
     :param validate: validate file
@@ -33,8 +38,9 @@ def read_sbml(
 
     :return: SBMLDocument
     """
+    doc = None  # type: libsbml.SBMLDocument
     if isinstance(source, str) and "<sbml" in source:
-        doc = libsbml.readSBMLFromString(source)
+        doc = libsbml.readSBMLFromString(source)  # type: ignore
     else:
         if not isinstance(source, Path):
             logger.error(
@@ -43,11 +49,11 @@ def read_sbml(
             )
             source = Path(source)
 
-        doc = libsbml.readSBMLFromFile(str(source))  # type: libsbml.SBMLDocument
+        doc = libsbml.readSBMLFromFile(str(source))  # type: ignore
 
     # promote local parameters
     if promote:
-        doc = promote_local_variables(doc)  # type: libsbml.SBMLDocument
+        doc = promote_local_variables(doc)  # type: ignore
 
     # check for errors
     if doc.getNumErrors() > 0:
@@ -65,7 +71,7 @@ def read_sbml(
     if validate:
         validation.validate_doc(
             doc=doc,
-            name=source,
+            name=str(source),
             log_errors=log_errors,
             units_consistency=units_consistency,
             modeling_practice=modeling_practice,
@@ -127,7 +133,7 @@ def write_sbml(
             modeling_practice=modeling_practice,
             internal_consistency=internal_consistency,
         )
-    return sbml_str
+    return sbml_str  # type: ignore
 
 
 def validate_sbml(

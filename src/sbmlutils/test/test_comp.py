@@ -8,7 +8,7 @@ from sbmlutils import factory as fac
 from sbmlutils.metadata.sbo import SBO_CONTINOUS_FRAMEWORK
 
 
-def create_port_doc():
+def create_port_doc() -> libsbml.SBMLDocument:
     sbmlns = libsbml.SBMLNamespaces(3, 1, "comp", 1)
     doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
@@ -46,8 +46,8 @@ def create_port_doc():
     return doc
 
 
-def test_create_ports_dict():
-    doc = create_port_doc()
+def test_create_ports_dict() -> None:
+    doc: libsbml.SBMLDocument = create_port_doc()
     model = doc.getModel()
 
     comp.create_ports(
@@ -74,8 +74,8 @@ def test_create_ports_dict():
     assert comp_model.getPort("test") is None
 
 
-def test_create_ports_list():
-    doc = create_port_doc()
+def test_create_ports_list() -> None:
+    doc: libsbml.SBMLDocument = create_port_doc()
     model = doc.getModel()
 
     comp.create_ports(

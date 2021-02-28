@@ -109,7 +109,7 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
    .. code-block:: console
 
        isort src/sbmlutils
-       black src/sbmlutils --exclude resources
+       black src/sbmlutils
 
 7. Push your branch to GitHub.
 

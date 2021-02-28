@@ -341,15 +341,14 @@ events = [
 # -----------------------------------------------------------------------------
 # Constraints
 # -----------------------------------------------------------------------------
-events.extend(
-    [
-        Constraint(
-            "constraint_1",
-            math="atp >= 0 mM",
-            message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>',
-        )
-    ]
-)
+constraints = [
+    Constraint(
+        "constraint_1",
+        math="atp >= 0 mM",
+        message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>',
+    )
+]
+
 
 # -----------------------------------------------------------------------------
 # Layout

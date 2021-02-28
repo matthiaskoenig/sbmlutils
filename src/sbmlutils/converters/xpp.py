@@ -39,16 +39,19 @@ Not supported:
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
+import itertools
 import re
 import warnings
 from pathlib import Path
 from pprint import pprint
+from typing import Any, Dict, List, Optional, Tuple
 
 import libsbml
 
 from sbmlutils import __version__
 from sbmlutils import factory as fac
 from sbmlutils.converters import xpp_helpers
+from sbmlutils.factory import Event, Function
 from sbmlutils.io import sbml
 
 
@@ -118,7 +121,7 @@ def escape_string(info: str) -> str:
     return info
 
 
-def parse_keyword(xpp_id):
+def parse_keyword(xpp_id: str) -> Optional[str]:
     """Parse the keyword and returns the xpp keyword type.
 
     :param xpp_id:
@@ -132,7 +135,7 @@ def parse_keyword(xpp_id):
     return None
 
 
-def parts_from_expression(expression):
+def parts_from_expression(expression: str) -> List[str]:
     """Return the parts of given expression.
 
     The parts can be whitespace or comma separated.
@@ -163,7 +166,7 @@ def parts_from_expression(expression):
     return parts
 
 
-def sid_value_from_part(part):
+def sid_value_from_part(part: str) -> Tuple[str, str]:
     """Get sid, value tuple from given part of expression.
 
     :param part:
@@ -182,9 +185,10 @@ def xpp2sbml(
     force_lower: bool = False,
     validate: bool = True,
     debug: bool = False,
-):
+) -> libsbml.SBMLDocument:
     """Read given xpp_file and converts to SBML file.
 
+    :param debug:
     :param xpp_file: xpp input ode file
     :param sbml_file: sbml output file
     :param force_lower: force lower case for all lines
@@ -214,10 +218,10 @@ def xpp2sbml(
         # mod (modulo)
         fac.Function("mod", "lambda(x,y, x % y)", name="modulo"),
     ]
-    function_definitions = []
-    events = []
+    function_definitions: List[Dict[str, Any]] = []
+    events: List[Event] = []
 
-    def replace_fdef():
+    def replace_fdef() -> bool:
         """Replace all arguments within the formula definitions."""
         changes = False
         for k, _fdata in enumerate(function_definitions):
@@ -245,7 +249,7 @@ def xpp2sbml(
 
         return changes
 
-    def create_initial_assignment(sid, value):
+    def create_initial_assignment(sid: str, value: str) -> None:
         """Create initial assignments helper."""
         # check if valid identifier
         if "(" in sid:
@@ -360,7 +364,7 @@ def xpp2sbml(
                     continue
 
                 # necessary to find the additional arguments from the ast_node
-                ast = libsbml.parseL3Formula(formula)
+                ast = libsbml.parseL3Formula(formula)  # type: libsbml.ASTNode
                 names = set(xpp_helpers.find_names_in_ast(ast))
                 old_args = [t.strip() for t in args.split(",")]
                 new_args = [a for a in names if a not in old_args]
@@ -558,7 +562,7 @@ def xpp2sbml(
                             trigger = g[1] + ">= 0"
 
                         assignment_parts = [t.strip() for t in g[2].split(";")]
-                        assignments = {}
+                        assignments: Dict[str, str] = {}
                         for p in assignment_parts:
                             key, value = p.split("=")
                             assignments[key] = value
@@ -567,7 +571,7 @@ def xpp2sbml(
                             fac.Event(
                                 sid="e{}".format(len(events)),
                                 trigger=trigger,
-                                assignments=assignments,
+                                assignments=assignments,  # type: ignore
                             )
                         )
 
@@ -614,13 +618,15 @@ def xpp2sbml(
     )
 
     # create SBML objects
-    objects = (
-        parameters
-        + initial_assignments
-        + functions
-        + rate_rules
-        + assignment_rules
-        + events
+    objects: List[Any] = list(
+        itertools.chain(
+            parameters,
+            initial_assignments,
+            functions,
+            rate_rules,
+            assignment_rules,
+            events,
+        )
     )
     fac.create_objects(model, obj_iter=objects, debug=False)
 
@@ -636,7 +642,6 @@ def xpp2sbml(
         doc,
         sbml_file,
         validate=validate,
-        program_name="sbmlutils",
-        program_version=__version__,
         units_consistency=False,
     )
+    return doc

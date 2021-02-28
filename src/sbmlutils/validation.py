@@ -1,7 +1,7 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
 import logging
 import time
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 import libsbml
 
@@ -55,17 +55,17 @@ class ValidationResult:
         self.warnings = warnings
 
     @property
-    def error_count(self):
+    def error_count(self) -> int:
         """Get number of errors."""
         return len(self.errors)
 
     @property
-    def warning_count(self):
+    def warning_count(self) -> int:
         """Get number of warnings."""
         return len(self.warnings)
 
     @property
-    def all_count(self):
+    def all_count(self) -> int:
         """Get number of errors and warnings."""
         return self.error_count + self.warning_count
 
@@ -88,11 +88,11 @@ class ValidationResult:
 
     def is_valid(self) -> bool:
         """Get valid status (valid model), i.e., no errors."""
-        return self.error_count == 0
+        return self.error_count == 0  # type: ignore
 
     def is_perfect(self) -> bool:
         """Get perfect status (perfect model), i.e., no errors and warnings."""
-        return self.error_count == 0 and self.warning_count == 0
+        return self.error_count == 0 and self.warning_count == 0  # type: ignore
 
 
 def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
@@ -101,7 +101,7 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
         log_sbml_error(error=doc.getError(k))
 
 
-def log_sbml_error(error: libsbml.SBMLError, index: int = None):
+def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
@@ -143,11 +143,11 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
 
 def validate_doc(
     doc: libsbml.SBMLDocument,
-    name=None,
-    log_errors=True,
-    units_consistency=True,
-    modeling_practice=True,
-    internal_consistency=True,
+    name: Optional[str] = None,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
 ) -> ValidationResult:
     """Validate SBMLDocument.
 
@@ -220,7 +220,9 @@ def validate_doc(
     return vresults
 
 
-def _check_consistency(doc, internal_consistency: bool = False) -> ValidationResult:
+def _check_consistency(
+    doc: libsbml.SBMLDocument, internal_consistency: bool = False
+) -> ValidationResult:
     """Calculate the type of errors.
 
     :param doc:

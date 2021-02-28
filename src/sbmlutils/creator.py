@@ -15,10 +15,10 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Iterable, List, NamedTuple, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 import libsbml
-import xmltodict
+import xmltodict  # type: ignore
 
 import sbmlutils.factory as factory
 import sbmlutils.history as history
@@ -37,18 +37,18 @@ class Preprocess:
     """Helper class for preprocessing model modules."""
 
     @staticmethod
-    def dict_from_modules(modules: List[str]) -> Dict:
+    def dict_from_modules(modules: List[str], keys: Iterable[str]) -> Dict:
         """Create single information dictionary from various modules.
 
         Information in earlier modules is either
         extended or overwritten depending on data type.
         """
-        cdict = dict()
+        cdict: Dict[Any, Any] = dict()
 
         # add info from modules
         for module in modules:
             # single module dict
-            mdict = Preprocess._create_dict(module)
+            mdict = Preprocess._create_module_dict(module, keys=keys)
             # add to overall dict
             for key, value in mdict.items():
 
@@ -77,7 +77,13 @@ class Preprocess:
         return cdict
 
     @staticmethod
-    def _create_dict(module_name, package=None):
+    def _create_module_dict(
+        module_name: str, keys: Iterable[str], package: str = None
+    ) -> Dict[str, Any]:
+        """Create information dictionary from given module.
+
+        Uses a dynamical import to figure out the content of the model.
+        """
         # dynamically import module
         import importlib
 
@@ -89,7 +95,7 @@ class Preprocess:
         logger.info(f"preprocess: '{module_name}'")
 
         d = dict()
-        for key in CoreModel._keys:
+        for key in keys:
             if hasattr(module, key):
                 info = getattr(module, key)
                 d[key] = info
@@ -135,27 +141,33 @@ class CoreModel(object):
         "layouts": list,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize core model.
 
         Initialize with the tissue information dictionary and
         the respective cell model used for creation.
         """
-        for key, value in CoreModel._keys.items():
+        for key, value in self._keys.items():
             # necessary to init the lists for every instance,
             # to not share them between instances
             if value is not None:
                 if value == list:
-                    value = []
+                    value = []  # type: ignore
                 elif value == dict:
-                    value = {}
+                    value = {}  # type: ignore
 
             setattr(self, key, value)
 
-        self.doc = None  # SBMLDocument
-        self.model = None  # SBMLModel
+        self.doc: libsbml.SBMLDocument = None
+        self.model: libsbml.Model = None
+        self.mid: str
+        self.version = None
+        self.packages: List[str] = []
+        self.notes = None
+        self.creators: List[factory.Creator] = []
+        self.model_units: Optional[factory.ModelUnits] = None
 
-        if "main_units" in CoreModel._keys and CoreModel._keys["main_units"]:
+        if "main_units" in self._keys and self._keys["main_units"]:
             logger.error("'main_units' is deprecated, use 'model_units' instead.")
 
     @property
@@ -166,32 +178,25 @@ class CoreModel(object):
         else:
             return self.mid
 
-    @staticmethod
-    def from_dict(model_dict: Dict):
+    @classmethod
+    def from_dict(cls, model_dict: Dict) -> "CoreModel":
         """Create the CoreModel instance from given dictionary.
 
         Only the references to the dictionary are stored.
-
-        :param self:
-        :type self:
-        :param model_dict:
-        :type model_dict:
-        :return:
-        :rtype:
         """
         m = CoreModel()
         # add info from model_dict to instance
         for key, value in model_dict.items():
-            if key in CoreModel._keys:
+            if key in cls._keys:
                 setattr(m, key, value)
             else:
                 logger.warning(
-                    f"Unsupported key for CoreModel: '{key}'. "
-                    f"Supported keys are: {CoreModel._keys}"
+                    f"Unsupported key for {cls.__name__}: '{key}'. "
+                    f"Supported keys are: {cls._keys}"
                 )
         return m
 
-    def get_info(self):
+    def get_info(self) -> str:
         """Return information of model dictionary.
 
         :return:
@@ -201,7 +206,7 @@ class CoreModel(object):
         info = "\n" + "-" * 80 + "\n"
         info += "{}".format(self) + "\n"
         info += "-" * 80 + "\n"
-        for key in sorted(CoreModel._keys):
+        for key in sorted(self._keys):
             # string representation
             obj_str = getattr(self, key)
             if isinstance(obj_str, (list, tuple)):
@@ -210,7 +215,7 @@ class CoreModel(object):
             info += "{:<15}: {}\n".format(key, obj_str)
         return info
 
-    def info(self):
+    def info(self) -> None:
         """Print information string."""
         print(self.get_info())
 
@@ -268,7 +273,7 @@ class CoreModel(object):
 
         # model units
         if hasattr(self, "model_units"):
-            factory.set_model_units(self.model, self.model_units)
+            factory.ModelUnits.set_model_units(self.model, self.model_units)  # type: ignore
 
         # lists ofs
         for attr in [
@@ -308,9 +313,9 @@ class CoreModel(object):
         """
         if self.doc is None:
             self.create_sbml()
-        return libsbml.writeSBMLToString(self.doc)
+        return libsbml.writeSBMLToString(self.doc)  # type: ignore
 
-    def get_json(self):
+    def get_json(self) -> str:
         """Get JSON representation."""
         o = xmltodict.parse(self.get_sbml())
         return json.dumps(o, indent=2)
@@ -326,18 +331,20 @@ class FactoryResult(NamedTuple):
 
 def create_model(
     modules: Union[Iterable[str], Dict],
-    output_dir: Path,
+    output_dir: Path = None,
     tmp: bool = False,
     filename: str = None,
     mid: str = None,
     suffix: str = None,
-    annotations=None,
+    annotations: Path = None,
     create_report: bool = True,
     validate: bool = True,
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
     internal_consistency: bool = True,
+    sbml_level: int = SBML_LEVEL,
+    sbml_version: int = SBML_VERSION,
 ) -> FactoryResult:
     """Create SBML model from module information.
 
@@ -352,16 +359,21 @@ def create_model(
     :param filename: filename to write to with suffix, if not provided mid and suffix are used
     :param mid: model id to use for filename
     :param suffix: suffix for SBML filename
-    :param annotations: list of annotations for SBML
+    :param annotations: Path to annotations file
     :param create_report: boolean switch to create SBML report
     :param validate: validates the SBML file
     :param log_errors: boolean flag to log errors
     :param units_consistency: boolean flag to check units consistency
     :param modeling_practice: boolean flag to check modeling practise
     :param internal_consistency: boolean flag to check internal consistency
+    :param sbml_level: set SBML level for model generation
+    :param sbml_version: set SBML version for model generation
 
     :return: FactoryResult
     """
+    if output_dir is None and tmp is False:
+        raise TypeError("create_model() missing 1 required argument: 'output_dir'")
+
     # preprocess
     logger.info(
         bcolors.OKBLUE
@@ -376,11 +388,11 @@ def create_model(
     if isinstance(modules, dict):
         model_dict = modules
     else:
-        model_dict = Preprocess.dict_from_modules(modules)
+        model_dict = Preprocess.dict_from_modules(modules, keys=CoreModel._keys)  # type: ignore
 
     core_model = CoreModel.from_dict(model_dict=model_dict)
     logger.debug(core_model.get_info())
-    core_model.create_sbml()
+    core_model.create_sbml(sbml_level=sbml_level, sbml_version=sbml_version)
 
     if not filename:
         # create filename
@@ -391,17 +403,17 @@ def create_model(
         filename = f"{mid}{suffix}.xml"
 
     if tmp:
-        output_dir = tempfile.mkdtemp()
-        sbml_path = os.path.join(output_dir, filename)
+        output_dir = tempfile.mkdtemp()  # type: ignore
+        sbml_path = os.path.join(output_dir, filename)  # type: ignore
     else:
         if isinstance(output_dir, str):
             output_dir = Path(output_dir)
             logger.warning(f"'output_dir' should be a Path: {output_dir}")
 
-        if not output_dir.exists():
+        if not output_dir.exists():  # type: ignore
             logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
-            output_dir.mkdir(parents=True)
-        sbml_path = output_dir / filename
+            output_dir.mkdir(parents=True)  # type: ignore
+        sbml_path = output_dir / filename  # type: ignore
 
     # write sbml
     if core_model.doc is None:
@@ -409,7 +421,7 @@ def create_model(
     try:
         write_sbml(
             doc=core_model.doc,
-            filepath=sbml_path,
+            filepath=sbml_path,  # type: ignore
             validate=validate,
             log_errors=log_errors,
             units_consistency=units_consistency,
@@ -421,21 +433,21 @@ def create_model(
         if annotations is not None:
             # overwrite the normal file
             annotator.annotate_sbml(
-                source=sbml_path, annotations_path=annotations, filepath=sbml_path
+                source=sbml_path, annotations_path=annotations, filepath=sbml_path  # type: ignore
             )
 
         # create report
         if create_report:
             # file is already validated, no validation on report needed
             sbmlreport.create_report(
-                sbml_path=sbml_path, output_dir=output_dir, validate=False
+                sbml_path=sbml_path, output_dir=output_dir, validate=False  # type: ignore
             )
     finally:
         if tmp:
-            shutil.rmtree(output_dir)
+            shutil.rmtree(str(output_dir))
 
     return FactoryResult(
         model_dict=model_dict,
         core_model=core_model,
-        sbml_path=sbml_path,
+        sbml_path=sbml_path,  # type: ignore
     )

@@ -10,7 +10,7 @@ import json
 import logging
 import re
 from enum import Enum
-from typing import Dict
+from typing import Any, Dict
 
 from sbmlutils import RESOURCES_DIR
 
@@ -92,7 +92,7 @@ class BQB(Enum):
     UNKNOWN = "BQB_UNKNOWN"
 
 
-def load_miriam() -> Dict:
+def load_miriam() -> Dict[str, Any]:
     """Load miriam registry file.
 
     Provides information on the identifiers.org collections.
@@ -101,7 +101,7 @@ def load_miriam() -> Dict:
     """
     f_miriam = RESOURCES_DIR / "metadata" / "IdentifiersOrg-Registry.json"
     with open(f_miriam) as fp:
-        d = json.load(fp)
+        d = json.load(fp)  # type: Dict[str, Any]
 
     return d
 
