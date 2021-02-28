@@ -18,11 +18,10 @@ The following SBML core constructs are currently NOT supported:
 # TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 
-import os
 import re
-from collections import defaultdict
+from collections import defaultdict, Iterable
 from pathlib import Path
-from pprint import pprint
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import jinja2
 import libsbml
@@ -42,19 +41,20 @@ class SBML2ODE:
     integrators like scipy odeint or R desolve.
     """
 
-    def __init__(self, doc):
+    def __init__(self, doc: libsbml.SBMLDocument):
         """Init with SBMLDocument.
 
         :param doc: SBMLdocument
         """
-        self.doc = doc  # type: libsbml.SBMLDocument
+        self.doc: libsbml.SBMLDocument = doc
 
-        self.x0 = {}  # initial amounts/concentrations
-        self.a_ast = {}  # initial assignments
-        self.dx_ast = {}  # state variables x (odes)
-        self.p = {}  # parameters p (constants)
-        self.y_ast = {}  # assigned variables
-        self.yids_ordered = None  # ordered y values in order of math dependencies
+        self.x0: Dict = {}  # initial amounts/concentrations
+        self.a_ast: Dict = {}  # initial assignments
+        self.dx: Any
+        self.dx_ast: Dict = {}  # state variables x (odes)
+        self.p: Dict = {}  # parameters p (constants)
+        self.y_ast: Dict = {}  # assigned variables
+        self.yids_ordered: List[str]  # yids in order of math dependencies
 
         self._create_odes()
 
@@ -64,11 +64,8 @@ class SBML2ODE:
         doc = libsbml.readSBMLFromFile(str(sbml_file))  # type: libsbml.SBMLDocument
         return cls(doc)
 
-    def _create_odes(self):
-        """Create information of ODE system from SBMLDocument.
-
-        :return:
-        """
+    def _create_odes(self) -> None:
+        """Create information of ODE system from SBMLDocument."""
         model = self.doc.getModel()  # type: libsbml.Model
         # --------------
         # parameters
@@ -86,7 +83,8 @@ class SBML2ODE:
         # compartments
         # --------------
         # constant compartments (parameters of the system)
-        for compartment in model.getListOfCompartments():  # type: libsbml.Compartment
+        compartment: libsbml.Compartment
+        for compartment in model.getListOfCompartments():
             cid = compartment.getId()
             if compartment.getConstant():
                 value = compartment.getSize()
@@ -97,14 +95,15 @@ class SBML2ODE:
         # --------------
         # species
         # --------------
-        for species in model.getListOfSpecies():  # type: libsbml.Species
+        species: libsbml.Species
+        for species in model.getListOfSpecies():
             sid = species.getId()
             self.dx_ast[sid] = ""
             # initial condition
             value = None
             compartment = model.getCompartment(
                 species.getCompartment()
-            )  # type: libsbml.Compartment
+            )
             if species.isSetInitialAmount():
                 value = species.getInitialAmount()
                 if not species.getHasOnlySubstanceUnits():
@@ -125,9 +124,8 @@ class SBML2ODE:
         # types of objects whose identifiers are permitted as the values of InitialAssignment symbol attributes
         # are Compartment, Species, SpeciesReference and (global) Parameter objects in the model.
 
-        for (
-            assignment
-        ) in model.getListOfInitialAssignments():  # type: libsbml.InitialAssignment
+        assignment: libsbml.InitialAssignment
+        for assignment in model.getListOfInitialAssignments():
             variable = assignment.getSymbol()
             astnode = assignment.getMath()
             self.x0[variable] = astnode
@@ -135,7 +133,8 @@ class SBML2ODE:
         # --------------
         # rules
         # --------------
-        for rule in model.getListOfRules():  # type: libsbml.Rule
+        rule: libsbml.Rule
+        for rule in model.getListOfRules():
             type_code = rule.getTypeCode()
             # --------------
             # rate rules
@@ -176,17 +175,17 @@ class SBML2ODE:
                     del self.p[variable]
 
         # Process the kinetic laws of reactions
-        for reaction in model.getListOfReactions():  # type: libsbml.Reaction
+        reaction: libsbml.Reaction
+        for reaction in model.getListOfReactions():
             rid = reaction.getId()
             if reaction.isSetKineticLaw():
-                klaw = reaction.getKineticLaw()  # type: libsbml.KineticLaw
+                klaw: libsbml.KineticLaw = reaction.getKineticLaw()
                 astnode = klaw.getMath()
             self.y_ast[rid] = astnode
 
             # create astnode for dx_ast
-            for (
-                reactant
-            ) in reaction.getListOfReactants():  # type: libsbml.SpeciesReference
+            reactant: libsbml.SpeciesReference
+            for reactant in reaction.getListOfReactants():
                 self._add_reaction_formula(
                     model, rid=rid, species_ref=reactant, sign="-"
                 )
@@ -206,14 +205,9 @@ class SBML2ODE:
         # check which math depends on other math (build tree of dependencies)
         self.yids_ordered = self._ordered_yids()
 
-    def _add_reaction_formula(self, model, rid, species_ref, sign):
-        """Add part of reaction formula to ODEs for species.
-
-        :param rid:
-        :param species_ref:
-        :param sign:
-        :return:
-        """
+    def _add_reaction_formula(self, model: libsbml.Model,
+                              rid: str, species_ref: libsbml.SpeciesReference, sign: str):
+        """Add part of reaction formula to ODEs for species."""
         stoichiometry = species_ref.getStoichiometry()
         sid = species_ref.getSpecies()
         species = model.getSpecies(sid)
@@ -227,12 +221,15 @@ class SBML2ODE:
 
         # check if only substance units
         if species.getHasOnlySubstanceUnits():
-            self.dx_ast[sid] += " {}{}{}".format(sign, stoichiometry, rid)
+            self.dx_ast[sid] += f" {sign}{stoichiometry}{rid}"
         else:
-            self.dx_ast[sid] += " {}{}{}/{}".format(sign, stoichiometry, rid, vid)
+            self.dx_ast[sid] += f" {sign}{stoichiometry}{rid}/{vid}"
 
     @staticmethod
-    def dependency_graph(y, filtered_ids):
+    def dependency_graph(
+        y: Dict[str, Union[libsbml.AstNode, str]],
+        filtered_ids: Iterable[str]
+    ):
         """Create dependency graph from given dictionary.
 
         :param y: { variable: astnode } dictionary
@@ -240,13 +237,12 @@ class SBML2ODE:
         :return:
         """
 
-        def add_dependency_edges(g, variable, astnode):
-            """Add the dependency edges to the graph.
-
-            :param g:
-            :param astnode:
-            :return:
-            """
+        def add_dependency_edges(
+            g: Dict[Set],
+            variable: str,
+            astnode: libsbml.AstNode
+        ) -> None:
+            """Add the dependency edges to the graph."""
             # variable --depends_on--> v2
             for k in range(astnode.getNumChildren()):
                 child = astnode.getChild(k)  # type: libsbml.ASTNode
@@ -261,25 +257,25 @@ class SBML2ODE:
                 add_dependency_edges(g, variable, child)
 
         # create math dependency graph
-        g = defaultdict(set)
+        g: Dict[Set] = defaultdict(set)
         for variable, astnode in y.items():
             g[variable] = set()
             add_dependency_edges(g, variable=variable, astnode=astnode)
 
         return g
 
-    def _ordered_yids(self):
+    def _ordered_yids(self) -> List[str]:
         """Get the order of the vids from the assignment rules.
 
         :param model:
         :param filtered_ids
         :return:
         """
-        filtered_ids = set(list(self.p.keys()) + list(self.dx_ast.keys()))
-        g = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
+        filtered_ids: Set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
+        g: Dict[Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # pprint(g)
 
-        def create_ordered_variables(g, yids=None):
+        def create_ordered_variables(g, yids: List[str] = None) -> List[str]:
             if yids is None:
                 yids = []
 
@@ -311,33 +307,28 @@ class SBML2ODE:
         yids = create_ordered_variables(g)
         return yids
 
-    def to_python(self, py_file):
-        """Write ODEs to python.
-
-        :param py_file:
-        :return:
-        """
+    def to_python(self, py_file: Path) -> str:
+        """Write ODEs to python."""
         content = self._render_template(
-            template="odefac_template.pytemp", index_offset=0
+            template_file="odefac_template.pytemp", index_offset=0
         )
         with open(py_file, "w") as f:
             f.write(content)
 
-    def to_R(self, r_file):
-        """Write ODEs to R.
-
-        :param py_file:
-        :return:
-        """
-        content = self._render_template(template="odefac_template.R", index_offset=1)
+    def to_R(self, r_file: Path) -> str:
+        """Write ODEs to R."""
+        content = self._render_template(template_file="odefac_template.R", index_offset=1)
         with open(r_file, "w") as f:
             f.write(content)
 
-    def _render_template(self, template="odefac_template.pytemp", index_offset=0):
+    def _render_template(
+        self,
+        template_file: str = "odefac_template.pytemp",
+        index_offset: int = 0
+    ) -> str:
         """Render given language template.
 
-        :param template:
-        :return:
+        :return: rendered template string.
         """
         # template environment
         env = jinja2.Environment(
@@ -346,19 +337,22 @@ class SBML2ODE:
             trim_blocks=True,
             lstrip_blocks=True,
         )
-        template = env.get_template(template)
+        template_file = env.get_template(template_file)
 
         # indices for replacements
         (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=index_offset)
 
         # create formulas
-        def to_formula(ast_dict, replace_symbols=True):
+        def to_formula(
+            ast_dict: Dict[str, Union[libsbml.ASTNode, str]],
+            replace_symbols: bool = True
+        ) -> Dict[str, Union[libsbml.ASTNode, str]]:
             """Replace all symbols in given astnode dictionary.
 
             :param ast_dict:
             :return:
             """
-            d = dict()
+            d: Dict[str, Union[libsbml.ASTNode, str]] = dict()
 
             for key in ast_dict:
                 astnode = ast_dict[key]
@@ -397,13 +391,10 @@ class SBML2ODE:
         y_sym = to_formula(self.y_ast, replace_symbols=False)
         dx_sym = to_formula(self.dx_ast, replace_symbols=False)
 
-        def flat_formulas():
+        def flat_formulas() -> Tuple[Dict, Dict]:
             """Create a flat formula by full replacement.
 
             Uses the order of the dependencies.
-
-            :param ast_dict:
-            :return:
             """
             # deepcopy the ast dicts for replacements
             y_flat = dict()
@@ -452,17 +443,19 @@ class SBML2ODE:
             "y_flat": y_flat,
             "dx_flat": dx_flat,
         }
-        return template.render(c)
+        return str(template_file.render(c))
 
-    def _indices(self, index_offset=0):
+    def _indices(self, index_offset: int = 0
+                 ) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]:
+        """Get indices of pids, yids and dxids."""
         # replacement dictionaries:
-        pids_idx = {}
+        pids_idx: Dict[str, int] = {}
         for k, key in enumerate(sorted(self.p.keys())):
             pids_idx[key] = k + index_offset
-        yids_idx = {}
+        yids_idx: Dict[str, int] = {}
         for k, key in enumerate(self.yids_ordered):
             yids_idx[key] = k + index_offset
-        dxids_idx = {}
+        dxids_idx: Dict[str, int] = {}
         for k, key in enumerate(sorted(self.dx_ast.keys())):
             dxids_idx[key] = k + index_offset
 

@@ -65,10 +65,10 @@ class Interpolator:
     """
 
     def __init__(self, x: pd.Series, y: pd.Series,
-                 z: Optional[pd.Series] = None, method: str = INTERPOLATION_CONSTANT):
-        self.x = x
-        self.y = y
-        self.z = z
+                 z: pd.Series = None, method: str = INTERPOLATION_CONSTANT):
+        self.x: pd.Series = x
+        self.y: pd.Series = y
+        self.z: pd.Series = z
         self.method = method
 
     def __str__(self) -> str:
@@ -124,7 +124,7 @@ class Interpolator:
         for k in range(len(x) - 1):
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
-            (a, b, c, d) = coeffs[k]
+            a, b, c, d = coeffs[k]  # type: ignore
             formula = (
                 f"{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}"  # type: ignore
             )
@@ -248,16 +248,16 @@ class Interpolation:
     The second to last components are interpolated against the first component.
     """
 
-    def __init__(self, data: pd.DataFrame, method="linear"):
+    def __init__(self, data: pd.DataFrame, method: str = "linear"):
         self.doc: libsbml.SBMLDocument = None
-        self.model = None
-        self.data = data
-        self.method = method
-        self.interpolators = []
+        self.model: libsbml.Model = None
+        self.data: pd.DataFrame = data
+        self.method: str = method
+        self.interpolators: List[Interpolator] = []
 
         self.validate_data()
 
-    def validate_data(self):
+    def validate_data(self) -> None:
         """Validate the input data.
 
         * The data is expected to have at least 2 columns.
@@ -278,15 +278,16 @@ class Interpolation:
             logger.warning("Interpolation data <3 rows. At least 3 rows required.")
 
         # first column has to be ascending (times)
-        def is_sorted(df, colname):
-            return pd.Index(df[colname]).is_monotonic
+        def is_sorted(df: pd.DataFrame, colname: str) -> bool:
+            return bool(pd.Index(df[colname]).is_monotonic)
 
         if not is_sorted(self.data, colname=self.data.columns[0]):
             logger.warning("First column should contain ascending values.")
             self.data = self.data.sort_values(by=self.data.columns[0])
 
     @staticmethod
-    def from_csv(csv_file: Union[Path, str], method="linear", sep=",") -> 'Interpolation':
+    def from_csv(csv_file: Union[Path, str], method: str = "linear",
+                 sep: str = ",") -> 'Interpolation':
         """Interpolation object from csv file."""
         data: pd.DataFrame = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
