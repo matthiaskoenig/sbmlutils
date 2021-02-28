@@ -561,7 +561,7 @@ def xpp2sbml(
                             trigger = g[1] + ">= 0"
 
                         assignment_parts = [t.strip() for t in g[2].split(";")]
-                        assignments = {}
+                        assignments: Dict[str, str] = {}
                         for p in assignment_parts:
                             key, value = p.split("=")
                             assignments[key] = value
@@ -570,7 +570,7 @@ def xpp2sbml(
                             fac.Event(
                                 sid="e{}".format(len(events)),
                                 trigger=trigger,
-                                assignments=assignments,
+                                assignments=assignments,  # type: ignore
                             )
                         )
 

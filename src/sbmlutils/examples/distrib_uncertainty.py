@@ -49,6 +49,8 @@ parameters = [
                     UncertParameter(
                         type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION, value=2.0
                     ),
+                ],
+                uncertSpans=[
                     UncertSpan(
                         type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
                         valueLower=1.0,

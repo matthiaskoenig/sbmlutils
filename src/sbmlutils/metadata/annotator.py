@@ -22,6 +22,7 @@ import pandas as pd
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
+from ..validation import check
 from .miriam import (
     BQB,
     BQM,
@@ -29,7 +30,7 @@ from .miriam import (
     IDENTIFIERS_ORG_PREFIX,
     MIRIAM_COLLECTION,
 )
-from ..validation import check
+
 
 logger = logging.getLogger(__name__)
 
@@ -302,6 +303,7 @@ class ExternalAnnotation:
 
     def check(self) -> None:
         """Check for valid choices.
+
         :raise: ValueError
         """
         if self.sbml_type not in self._sbml_types:
@@ -509,27 +511,26 @@ class ModelAnnotator:
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
                 check(
                     cv.setBiologicalQualifierType(sbml_qualifier),
-                    f"Set biological qualifier: '{sbml_qualifier}'"
+                    f"Set biological qualifier: '{sbml_qualifier}'",
                 )
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
                 check(
                     cv.setModelQualifierType(sbml_qualifier),
-                    f"Set model qualifier: '{sbml_qualifier}'"
+                    f"Set model qualifier: '{sbml_qualifier}'",
                 )
             else:
                 logger.error(f"Unsupported qualifier: '{qualifier}'")
         else:
-            msg = f"qualifier is not a string, but: '{qualifier}' of type " \
-                  f"'{type(qualifier)}'."
+            msg = (
+                f"qualifier is not a string, but: '{qualifier}' of type "
+                f"'{type(qualifier)}'."
+            )
             logger.error(msg)
             raise ValueError(msg)
 
-        check(
-            cv.addResource(resource),
-            f"Add resource: '{resource}'"
-        )
+        check(cv.addResource(resource), f"Add resource: '{resource}'")
 
         # meta id has to be set
         if not sbase.isSetMetaId():
@@ -539,9 +540,12 @@ class ModelAnnotator:
         print("-" * 80)
         print(qualifier, resource, type(qualifier), type(resource))
         print(cv, sbase, sbase.getMetaId())
-        print(cv.getResources(), cv.getBiologicalQualifierType(), cv.getModelQualifierType())
+        print(
+            cv.getResources(),
+            cv.getBiologicalQualifierType(),
+            cv.getModelQualifierType(),
+        )
         success = sbase.addCVTerm(cv)
-
 
         if success != 0:
             logger.error(f"Annotation RDF for CVTerm could not be written: {cv}")

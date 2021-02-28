@@ -68,6 +68,8 @@ __all__ = [
     "Event",
     "Constraint",
     "Reaction",
+    "Formula",
+    "Equation",
     "ExchangeReaction",
     "Uncertainty",
     "UncertParameter",
@@ -135,6 +137,9 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 Core information
 ---------------------------------------------------------------------------------------
 """
+UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
+AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
+PortType = Any  # Union[bool, Port]
 
 
 class Notes:
@@ -167,10 +172,6 @@ def set_notes(model: libsbml.Model, notes: Union[Notes, str]) -> None:
         notes = Notes(notes)
 
     check(model.setNotes(notes.xml), message="Setting notes on model")
-
-
-UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
-AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 
 
 class ModelUnits:
@@ -306,8 +307,7 @@ class Sbase:
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
-        self.annotations: List[Annotation]
-        self.annotations = Sbase._process_annotations(annotations)
+        self.annotations: AnnotationsType = annotations
 
     def __str__(self) -> str:
         """Get string representation."""
@@ -332,7 +332,7 @@ class Sbase:
                 if isinstance(annotation_obj, Annotation):
                     annotation = annotation_obj
                 elif isinstance(annotation_obj, (tuple, list, set)):
-                    annotation = Annotation.from_tuple(annotation_obj)
+                    annotation = Annotation.from_tuple(annotation_obj)  # type: ignore
                 annotations.append(annotation)
         return annotations
 
@@ -357,8 +357,7 @@ class Sbase:
 
         if self.annotations:
             # annotations could have been added after initial processing
-            self.annotations = Sbase._process_annotations(self.annotations)
-            for annotation in self.annotations:
+            for annotation in Sbase._process_annotations(self.annotations):  # type: ignore
                 ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
 
         self.create_uncertainties(obj, model)
@@ -465,8 +464,9 @@ class ValueWithUnit(Value):
     subclasses.
     """
 
-    def __repr__(self):
-        return "{} = {} [{}]".format(self.sid, self.value, self.unit)
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"{self.sid} = {self.value} [{self.unit}]"
 
     def __init__(
         self,
@@ -532,13 +532,10 @@ class Unit(Sbase):
         )
         self.definition = definition
 
-    def create_sbml(self, model):
-        """Create unit definitions.
+    def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition:
+        """Create libsbml.UnitDefintion.
 
         (kind, exponent, scale, multiplier)
-
-        :param model:
-        :return:
         """
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
@@ -552,28 +549,26 @@ class Unit(Sbase):
             if len(data) > 3:
                 multiplier = data[3]
 
-            Unit._create(obj, kind, exponent, scale, multiplier)
+            Unit._create_unit(obj, kind, exponent, scale, multiplier)
 
         self._set_fields(obj, model)
         self.create_port(model)
         return obj
 
     def _set_fields(self, obj: libsbml.UnitDefinition, model: libsbml.Model) -> None:
-        """Set fields."""
+        """Set fields on libsbml.UnitDefinition."""
         super(Unit, self)._set_fields(obj, model)
 
     @staticmethod
-    def _create(unit_def, kind, exponent, scale=0, multiplier=1.0):
-        """Create libsbml unit.
-
-        :param unit_def:
-        :param kind:
-        :param exponent:
-        :param scale:
-        :param multiplier:
-        :return:
-        """
-        unit = unit_def.createUnit()
+    def _create_unit(
+        udef: libsbml.UnitDefinition,
+        kind: str,
+        exponent: float,
+        scale: int = 0,
+        multiplier: float = 1.0,
+    ) -> libsbml.Unit:
+        """Create libsbml.Unit."""
+        unit: libsbml.Unit = udef.createUnit()
         unit.setKind(kind)
         unit.setExponent(exponent)
         unit.setScale(scale)
@@ -670,10 +665,10 @@ class Parameter(ValueWithUnit):
 
     def __init__(
         self,
-        sid,
+        sid: str,
         value: Optional[Union[str, float]] = None,
         unit: UnitType = None,
-        constant=True,
+        constant: bool = True,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -715,7 +710,7 @@ class Parameter(ValueWithUnit):
                 obj.setValue(value)
             except ValueError:
                 if self.constant:
-                    InitialAssignment(self.sid, self.value).create_sbml(model)
+                    InitialAssignment(self.sid, self.value).create_sbml(model)  # type: ignore
                 else:
                     AssignmentRule(self.sid, self.value).create_sbml(model)  # type: ignore
         else:
@@ -740,7 +735,7 @@ class Compartment(ValueWithUnit):
         value: Union[str, float],
         unit: UnitType = None,
         constant: bool = True,
-        spatialDimensions=3,
+        spatialDimensions: float = 3,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -783,7 +778,7 @@ class Compartment(ValueWithUnit):
                 obj.setSize(value)
             except ValueError:
                 if self.constant:
-                    InitialAssignment(self.sid, self.value).create_sbml(model)
+                    InitialAssignment(self.sid, self.value).create_sbml(model)  # type: ignore
                 else:
                     AssignmentRule(self.sid, self.value).create_sbml(model)  # type: ignore
         else:
@@ -952,7 +947,7 @@ class InitialAssignment(Value):
             and (not model.getCompartment(sid))
         ):
             Parameter(
-                sid=sid, value=None, unit=self.unit, constant=True, name=self.name
+                sid=sid, value=None, unit=self.unit, constant=True, name=self.name  # type: ignore
             ).create_sbml(model)
 
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
@@ -968,7 +963,8 @@ class InitialAssignment(Value):
 class Rule(ValueWithUnit):
     """Rule."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Get string representation."""
         return super(Rule, self).__repr__()
 
     @staticmethod
@@ -1035,7 +1031,13 @@ class Rule(ValueWithUnit):
         raise NotImplementedError
 
     @staticmethod
-    def _create_rule(model, rule, sid, formula):
+    def _create_rule(
+        model: libsbml.Model,
+        rule: Union[libsbml.RateRule, libsbml.AssignmentRule, libsbml.Rule],
+        sid: str,
+        formula: str,
+    ) -> Union[libsbml.RateRule, libsbml.AssignmentRule, libsbml.Rule]:
+        """Set information in rule."""
         rule.setVariable(sid)
         ast_node = ast_node_from_formula(model, formula)
         rule.setMath(ast_node)
@@ -1095,15 +1097,15 @@ class Reaction(Sbase):
     def __init__(
         self,
         sid: str,
-        equation: str,
-        formula: Optional[Tuple[str, str]] = None,
+        equation: Union[Equation, str],
+        formula: Optional[Union[Formula, Tuple[str, UnitType]]] = None,
         pars: Optional[List[Parameter]] = None,
         rules: Optional[List[Rule]] = None,
         compartment: Optional[str] = None,
         fast: bool = False,
         reversible: Optional[bool] = None,
-        lowerFluxBound: Optional[float] = None,
-        upperFluxBound: Optional[float] = None,
+        lowerFluxBound: Optional[str] = None,
+        upperFluxBound: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1129,17 +1131,35 @@ class Reaction(Sbase):
         if rules is None:
             rules = list()
 
-        self.equation = Equation(equation)
+        self.equation = Reaction._process_equation(equation=equation)
         self.compartment = compartment
         self.reversible = reversible
         self.pars = pars
         self.rules = rules
-        self.formula = formula
-        if formula is not None:
-            self.formula = Formula(*formula)
+        self.formula = Reaction._process_formula(formula=formula)
         self.fast = fast
         self.lowerFluxBound = lowerFluxBound
         self.upperFluxBound = upperFluxBound
+
+    @staticmethod
+    def _process_equation(equation: Union[Equation, str]) -> Equation:
+        """Process reaction equation."""
+        if isinstance(equation, Equation):
+            return equation
+        else:
+            return Equation(equation=equation)
+
+    @staticmethod
+    def _process_formula(
+        formula: Optional[Union[Formula, Tuple[str, UnitType]]]
+    ) -> Optional[Formula]:
+        """Process reaction formula (kinetic law)."""
+        if formula is None:
+            return None
+        if isinstance(formula, Formula):
+            return formula
+        else:
+            return Formula(*formula)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Reaction:
         """Create Reaction SBML in model."""
@@ -1153,19 +1173,20 @@ class Reaction(Sbase):
 
         # equation
         for reactant in self.equation.reactants:
-            sref: libsbml.SpeciesReference = r.createReactant()
-            sref.setSpecies(reactant.sid)
-            sref.setStoichiometry(reactant.stoichiometry)
-            sref.setConstant(True)
+            rref: libsbml.SpeciesReference = r.createReactant()
+            rref.setSpecies(reactant.sid)
+            rref.setStoichiometry(reactant.stoichiometry)
+            rref.setConstant(True)
 
         for product in self.equation.products:
-            sref: libsbml.SpeciesReference = r.createProduct()
-            sref.setSpecies(product.sid)
-            sref.setStoichiometry(product.stoichiometry)
-            sref.setConstant(True)
+            pref: libsbml.SpeciesReference = r.createProduct()
+            pref.setSpecies(product.sid)
+            pref.setStoichiometry(product.stoichiometry)
+            pref.setConstant(True)
+
         for modifier in self.equation.modifiers:
-            sref: libsbml.ModifierSpeciesReference = r.createModifier()
-            sref.setSpecies(modifier)
+            mref: libsbml.ModifierSpeciesReference = r.createModifier()
+            mref.setSpecies(modifier)
 
         # kinetics
         if self.formula:
@@ -1217,13 +1238,13 @@ class Event(Sbase):
     def __init__(
         self,
         sid: str,
-        trigger,
-        assignments=None,
-        trigger_persistent=True,
-        trigger_initialValue=False,
-        useValuesFromTriggerTime=True,
-        priority=None,
-        delay=None,
+        trigger: str,
+        assignments: Optional[Dict[str, Union[str, float]]] = None,
+        trigger_persistent: bool = True,
+        trigger_initialValue: bool = False,
+        useValuesFromTriggerTime: bool = True,
+        priority: Optional[str] = None,
+        delay: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1284,7 +1305,7 @@ class Event(Sbase):
 
         if self.priority is not None:
             ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
-            priority = obj.createPriority()  # type: libsbml.Priority
+            priority: libsbml.Priority = obj.createPriority()
             priority.setMath(ast_priority)
 
         if self.delay is not None:
@@ -1298,11 +1319,12 @@ class Event(Sbase):
             ea.setMath(ast_assign)
 
     @staticmethod
-    def _trigger_from_time(t):
-        return "(time >= {})".format(t)
+    def _trigger_from_time(t: float) -> str:
+        """Create trigger from given time point."""
+        return f"(time >= {t})"
 
     @staticmethod
-    def _assignments_dict(species, values):
+    def _assignments_dict(species: List[str], values: List[str]) -> Dict[str, str]:
         return dict(zip(species, values))
 
 
@@ -1376,9 +1398,10 @@ class Uncertainty(Sbase):
 
     def __init__(
         self,
-        sid: str = None,
-        formula=None,
+        sid: Optional[str] = None,
+        formula: Optional[str] = None,
         uncertParameters: Optional[List[UncertParameter]] = None,
+        uncertSpans: Optional[List[UncertSpan]] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1400,7 +1423,10 @@ class Uncertainty(Sbase):
 
         # Object on which the uncertainty is written
         self.formula = formula
-        self.uncertParameters = uncertParameters if uncertParameters else []
+        self.uncertParameters: List[UncertParameter] = (
+            uncertParameters if uncertParameters else []
+        )
+        self.uncertSpans: List[UncertSpan] = uncertSpans if uncertSpans else []
 
     def create_sbml(
         self, sbase: libsbml.SBase, model: libsbml.Model
@@ -1415,28 +1441,35 @@ class Uncertainty(Sbase):
 
         self._set_fields(uncertainty, model)
 
-        for uncertParameter in self.uncertParameters:
-            if uncertParameter.type in [
+        uncertSpan: UncertSpan
+        for uncertSpan in self.uncertSpans:
+            if uncertSpan.type in [
                 libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
                 libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
                 libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
                 libsbml.DISTRIB_UNCERTTYPE_RANGE,
             ]:
+                up_span: libsbml.UncertSpan = uncertainty.createUncertSpan()
+                up_span.setType(uncertSpan.type)
+                if uncertSpan.valueLower is not None:
+                    up_span.setValueLower(uncertSpan.valueLower)
+                if uncertSpan.valueUpper is not None:
+                    up_span.setValueUpper(uncertSpan.valueUpper)
+                if uncertSpan.varLower is not None:
+                    up_span.setVarLower(uncertSpan.varLower)
+                if uncertSpan.varUpper is not None:
+                    up_span.setValueLower(uncertSpan.varUpper)
+                if uncertSpan.unit:
+                    up_span.setUnits(Unit.get_unit_string(uncertSpan.unit))
+            else:
+                logger.error(
+                    f"Unsupported type for UncertSpan: '{uncertSpan.type}' "
+                    f"in '{uncertSpan}'."
+                )
 
-                up_span: libsbml.UncertSpan = uncertainty.createUncertSpan()  # type: ignore
-                up_span.setType(uncertParameter.type)
-                if uncertParameter.valueLower is not None:
-                    up_span.setValueLower(uncertParameter.valueLower)
-                if uncertParameter.valueUpper is not None:
-                    up_span.setValueUpper(uncertParameter.valueUpper)
-                if uncertParameter.varLower is not None:
-                    up_span.setVarLower(uncertParameter.varLower)
-                if uncertParameter.varUpper is not None:
-                    up_span.setValueLower(uncertParameter.varUpper)
-                if uncertParameter.unit:
-                    up_span.setUnits(Unit.get_unit_string(uncertParameter.unit))
-
-            elif uncertParameter.type in [
+        uncertParameter: UncertParameter
+        for uncertParameter in self.uncertParameters:
+            if uncertParameter.type in [
                 libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
                 libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
                 libsbml.DISTRIB_UNCERTTYPE_MEAN,
@@ -1460,8 +1493,8 @@ class Uncertainty(Sbase):
                     up_p.setUnits(Unit.get_unit_string(uncertParameter.unit))
             else:
                 logger.error(
-                    "Unsupported UncertParameter or UncertSpan type: %s",
-                    uncertParameter.type,
+                    f"Unsupported type for UncertParameter: "
+                    f"'{uncertParameter.type}' in '{uncertParameter}'."
                 )
 
         # create a distribution uncertainty
