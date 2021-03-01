@@ -91,6 +91,8 @@ def formula_to_expression(formula: str) -> Any:
     formula = _replace_piecewise(formula)
     formula = formula.replace("&&", "&")
     formula = formula.replace("||", "|")
+    # handle special lambda syntax of sympy
+    formula = formula.replace("lambda", "_lambda")
     try:
         expr = sympify(
             formula,
@@ -241,6 +243,8 @@ def _expression_to_mathml(expr: Any, printer: str = "content", **settings: Any) 
     s.apply_patch()
     pretty_xml = xml.toprettyxml()
     s.restore_patch()
+    # hack lambdas back
+    pretty_xml = pretty_xml.replace("lambda", "lambda")
     return str(pretty_xml)
 
 
@@ -264,7 +268,10 @@ def formula_to_latex(formula: str, **settings: Any) -> str:
     :return: Latex string
     """
     expr = formula_to_expression(formula)
-    return latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    latex_str = latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    # hack lambdas back
+    latex_str = latex_str.replace("_lambda", "lambda")
+    return latex_str
 
 
 def astnode_to_latex(astnode: libsbml.ASTNode, **settings: Any) -> str:
@@ -275,7 +282,10 @@ def astnode_to_latex(astnode: libsbml.ASTNode, **settings: Any) -> str:
     :return: Latex string
     """
     expr = astnode_to_expression(astnode)
-    return latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    latex_str = latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    # hack lambdas back
+    latex_str = latex_str.replace("_lambda", "lambda")
+    return latex_str
 
 
 def cmathml_to_latex(cmathml: str, **settings: Any) -> str:
