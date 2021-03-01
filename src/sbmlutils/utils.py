@@ -45,7 +45,7 @@ def create_hash_id(sbase: libsbml.SBase) -> str:
         hash_key = sbase.getId()
     else:
         # hash the xml_node
-        xml_node = sbase.toXMLNode()  # type: libsbml.XMLNode
+        xml_node: libsbml.XMLNode = sbase.toXMLNode()
         xml_str = xml_node.toString().encode("utf-8")
         hash_key = hashlib.md5(xml_str).hexdigest()
     return hash_key  # type: ignore
@@ -84,7 +84,7 @@ def deprecated(f: Callable) -> Callable:
     @functools.wraps(f)
     def new_func(*args: Any, **kwargs: Any) -> Any:
         warnings.warn_explicit(
-            "Call to deprecated function {}.".format(f.__name__),
+            f"Call to deprecated function {f.__name__}.",
             category=DeprecationWarning,
             filename=f.func_code.co_filename,  # type: ignore
             lineno=f.func_code.co_firstlineno + 1,  # type: ignore

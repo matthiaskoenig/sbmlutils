@@ -87,15 +87,13 @@ class SBMLModelInfo:
         values = dict()
 
         # initial assignments
-        for (
-            assignment
-        ) in (
-            self.model.getListOfInitialAssignments()
-        ):  # type: libsbml.InitialAssignment
+        assignment: libsbml.InitialAssignment
+        for assignment in self.model.getListOfInitialAssignments():
             sid = assignment.getSymbol()
             values[sid] = assignment
         # rules
-        for rule in self.model.getListOfRules():  # type: libsbml.Rule
+        rule: libsbml.Rule
+        for rule in self.model.getListOfRules():
             sid = rule.getVariable()
             values[sid] = rule
 
@@ -275,19 +273,15 @@ class SBMLModelInfo:
         :return: list of info dictionaries for comp:ModelDefinitions
         """
         data = []
-        doc_comp = self.doc.getPlugin("comp")
+        doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
-            for (
-                md
-            ) in doc_comp.getListOfModelDefinitions():  # type: libsbml.ModelDefinition
+            md: libsbml.ModelDefinition
+            for md in doc_comp.getListOfModelDefinitions():
                 info = self.info_sbase(md)
                 info["type"] = type(md).__name__
                 data.append(info)
-            for (
-                emd
-            ) in (
-                doc_comp.getListOfExternalModelDefinitions()
-            ):  # type: libsbml.ExternalModelDefinition
+            emd: libsbml.ExternalModelDefinition
+            for emd in doc_comp.getListOfExternalModelDefinitions():
                 info = self.info_sbase(emd)
                 info["type"] = (
                     type(emd).__name__ + f" (<code>source={emd.getSource}</code>)"
@@ -303,7 +297,8 @@ class SBMLModelInfo:
         data = []
         model_comp = self.model.getPlugin("comp")
         if model_comp:
-            for submodel in model_comp.getListOfSubmodels():  # type: libsbml.Submodel
+            submodel: libsbml.Submodel
+            for submodel in model_comp.getListOfSubmodels():
                 info = self.info_sbase(submodel)
                 info["model_ref"] = submodel.getModelRef()
 
@@ -335,8 +330,9 @@ class SBMLModelInfo:
         data = []
         model_comp = self.model.getPlugin("comp")
         if model_comp:
-            for sbref in model_comp.getListOfPorts():  # type: libsbml.Port
-                info = self.info_sbaseref(sbref)
+            port: libsbml.Port
+            for port in model_comp.getListOfPorts():
+                info = self.info_sbaseref(port)
                 data.append(info)
         return data
 
@@ -346,11 +342,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for FunctionDefinitions
         """
         data = []
-        for (
-            fd
-        ) in (
-            self.model.getListOfFunctionDefinitions()
-        ):  # type: libsbml.FunctionDefinition
+        fd: libsbml.FunctionDefinition
+        for fd in self.model.getListOfFunctionDefinitions():
             info = self.info_sbase(fd)
             info["math"] = math(fd, self.math_render)
             data.append(info)
@@ -362,7 +355,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for UnitDefinitions
         """
         data = []
-        for ud in self.model.getListOfUnitDefinitions():  # type: libsbml.UnitDefinition
+        ud: libsbml.UnitDefinition
+        for ud in self.model.getListOfUnitDefinitions():
             info = self.info_sbase(ud)
             info["units"] = formating.formula_to_mathml(
                 formating.unitDefinitionToString(ud)
@@ -377,7 +371,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Compartments
         """
         data = []
-        for c in self.model.getListOfCompartments():  # type: libsbml.Compartment
+        c: libsbml.Compartment
+        for c in self.model.getListOfCompartments():
             info = self.info_sbase(c)
             info["units"] = c.units
             if c.isSetSpatialDimensions():
@@ -401,7 +396,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Species
         """
         data = []
-        for s in self.model.getListOfSpecies():  # type: libsbml.Species
+        s: libsbml.Species
+        for s in self.model.getListOfSpecies():
             info = self.info_sbase(s)
             info["compartment"] = s.compartment
             info["has_only_substance_units"] = boolean(s.has_only_substance_units)
@@ -423,7 +419,7 @@ class SBMLModelInfo:
 
             if s.isSetConversionFactor():
                 cf_sid = s.getConversionFactor()
-                cf_p = self.model.getParameter(cf_sid)  # type: libsbml.Parameter
+                cf_p: libsbml.Parameter = self.model.getParameter(cf_sid)
                 cf_value = cf_p.getValue()
                 cf_units = cf_p.getUnits()
 
@@ -458,9 +454,10 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Reactions
         """
         data = []
-        mfbc = self.model.getPlugin("fbc")
-        if mfbc:
-            for gp in mfbc.getListOfGeneProducts():  # type: libsbml.GeneProduct
+        model_fbc: libsbml.FbcModelPlugin = self.model.getPlugin("fbc")
+        if model_fbc:
+            gp: libsbml.GeneProduct
+            for gp in model_fbc.getListOfGeneProducts():
                 info = self.info_sbase(gp)
                 info["label"] = gp.label
                 associated_species = empty_html()
@@ -476,25 +473,26 @@ class SBMLModelInfo:
         :param assignment_map: map of assignments for symbols
         :return: list of info dictionaries for Reactions
         """
-        items = []
-        for item in self.model.getListOfParameters():  # type: libsbml.Parameter
-            info = self.info_sbase(item)
-            info["units"] = item.units
-            if item.isSetValue():
-                value = item.value
+        data = []
+        p: libsbml.Parameter
+        for p in self.model.getListOfParameters():
+            info = self.info_sbase(p)
+            info["units"] = p.units
+            if p.isSetValue():
+                value = p.value
             else:
-                value_formula = assignment_map.get(item.id, None)
+                value_formula = assignment_map.get(p.id, None)
                 if value_formula is None:
                     warnings.warn(
                         f"No value for parameter via Value, InitialAssignment or "
-                        f"AssignmentRule: {item.id}"
+                        f"AssignmentRule: {p.id}"
                     )
                 value = math(value_formula, self.math_render)
             info["value"] = value
-            info["derived_units"] = derived_units(item)
-            info["constant"] = boolean(item.constant)
-            items.append(info)
-        return items
+            info["derived_units"] = derived_units(p)
+            info["constant"] = boolean(p.constant)
+            data.append(info)
+        return data
 
     def info_initial_assignments(self) -> List[Dict[str, Any]]:
         """Information dictionaries for InitialAssignments.
@@ -502,11 +500,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for InitialAssignments
         """
         data = []
-        for (
-            assignment
-        ) in (
-            self.model.getListOfInitialAssignments()
-        ):  # type: libsbml.InitialAssignment
+        assignment: libsbml.InitialAssignment
+        for assignment in self.model.getListOfInitialAssignments():
             info = self.info_sbase(assignment)
             info["symbol"] = assignment.symbol
             info["assignment"] = math(assignment, self.math_render)
@@ -535,7 +530,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Constraints
         """
         data = []
-        for constraint in self.model.getListOfConstraints():  # type: libsbml.Constraint
+        constraint: libsbml.Constraint
+        for constraint in self.model.getListOfConstraints():
             info = self.info_sbase(constraint)
             info["constraint"] = math(constraint, self.math_render)
             data.append(info)
@@ -548,7 +544,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Reactions
         """
         data = []
-        for r in self.model.getListOfReactions():  # type: libsbml.Reaction
+        r: libsbml.Reaction
+        for r in self.model.getListOfReactions():
             info = self.info_sbase(r)
             if r.reversible:
                 reversible = '<td class ="success">&#8646;</td>'
@@ -581,13 +578,15 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Objectives
         """
         data = []
-        mfbc = self.model.getPlugin("fbc")
-        if mfbc:
-            for objective in mfbc.getListOfObjectives():  # type: libsbml.Objective
+        model_fbc: libsbml.FbcModelPlugin = self.model.getPlugin("fbc")
+        if model_fbc:
+            objective: libsbml.Objective
+            for objective in model_fbc.getListOfObjectives():
                 info = self.info_sbase(objective)
                 info["type"] = objective.getType()
 
                 flux_objectives = []
+                f_obj: libsbml.FluxObjective
                 for f_obj in objective.getListOfFluxObjectives():
                     coefficient = f_obj.getCoefficient()
                     if coefficient < 0.0:
@@ -606,7 +605,8 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Events
         """
         data = []
-        for event in self.model.getListOfEvents():  # type: libsbml.Event
+        event: libsbml.Event
+        for event in self.model.getListOfEvents():
             info = self.info_sbase(event)
 
             trigger = event.getTrigger()

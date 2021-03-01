@@ -28,9 +28,7 @@ def create_ExternalModelDefinition(
     :param source: source
     :return:
     """
-    extdef = (
-        doc_comp.createExternalModelDefinition()
-    )  # type: libsbml.ExternalModelDefinition
+    extdef: libsbml.ExternalModelDefinition = doc_comp.createExternalModelDefinition()
     extdef.setId(emd_id)
     extdef.setName(emd_id)
     extdef.setModelRef(emd_id)
@@ -52,7 +50,7 @@ def add_submodel_from_emd(
     """
 
     model_ref = emd.getModelRef()
-    submodel = model_comp.createSubmodel()  # type: libsbml.Submodel
+    submodel: libsbml.Submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
     submodel.setModelRef(model_ref)
 
@@ -75,7 +73,8 @@ def get_submodel_frameworks(doc: libsbml.SBMLDocument) -> Dict[str, Any]:
     mplugin = model.getPlugin("comp")
 
     # model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
-    for submodel in mplugin.getListOfSubmodels():  # type: libsbml.Submodel
+    submodel: libsbml.Submodel
+    for submodel in mplugin.getListOfSubmodels():
         sid = submodel.getId()
         sbo = None
         if submodel.isSetSBOTerm():
@@ -301,8 +300,8 @@ class ReplacedBy(SbaseRef):
         self, sbase: libsbml.SBase, model: libsbml.Model
     ) -> libsbml.ReplacedBy:
         """Create SBML ReplacedBy."""
-        sbase_comp = sbase.getPlugin("comp")  # type: libsbml.CompSBasePlugin
-        rby = sbase_comp.createReplacedBy()  # type: libsbml.ReplacedBy
+        sbase_comp: libsbml.CompSBasePlugin = sbase.getPlugin("comp")
+        rby: libsbml.ReplacedBy = sbase_comp.createReplacedBy()
         self._set_fields(rby, model)
 
         return rby
@@ -343,10 +342,9 @@ class Deletion(SbaseRef):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Deletion:
         """Create SBML Deletion."""
-        # Deletions for submodels
-        cmodel = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
-        submodel = cmodel.getSubmodel(self.submodelRef)  # type: libsbml.Submodel
-        deletion = submodel.createDeletion()  # type: libsbml.Deletion
+        cmodel: libsbml.CompModelPlugin = model.getPlugin("comp")
+        submodel: libsbml.Submodel = cmodel.getSubmodel(self.submodelRef)
+        deletion: libsbml.Deletion = submodel.createDeletion()
         self._set_fields(deletion, model)
 
         return deletion
@@ -483,20 +481,9 @@ def _create_port(
     metaIdRef: Optional[str] = None,
     portType: str = PORT_TYPE_PORT,
 ) -> libsbml.Port:
-    """Create port in given model.
-
-    :param model:
-    :param pid:
-    :param name:
-    :param portRef:
-    :param idRef:
-    :param unitRef:
-    :param metaIdRef:
-    :param portType:
-    :return:
-    """
-    cmodel = model.getPlugin("comp")
-    p = cmodel.createPort()  # type: libsbml.Port
+    """Create port in given model."""
+    cmodel: libsbml.CompModelPlugin = model.getPlugin("comp")
+    p: libsbml.Port = cmodel.createPort()
     p.setId(pid)
     if name is not None:
         p.setName(name)
@@ -515,7 +502,7 @@ def _create_port(
         p.setMetaIdRef(metaIdRef)
         ref = metaIdRef
     if name is None and ref is not None:
-        p.setName("port {}".format(ref))
+        p.setName(f"port {ref}")
     if portType == PORT_TYPE_PORT:
         # SBO:0000599 - port
         p.setSBOTerm(599)
@@ -577,21 +564,13 @@ def replace_element_in_submodels(
 def _create_replaced_element(
     model: libsbml.Model, sid: str, submodel: str, replaced_id: str, ref_type: str
 ) -> libsbml.ReplacedElement:
-    """Create a replaced element.
-
-    :param model:
-    :param sid:
-    :param submodel:
-    :param replaced_id:
-    :param ref_type:
-    :return:
-    """
+    """Create a replaced element."""
     eplugin = _get_eplugin_by_sid(model, sid)
-    rep_element = eplugin.createReplacedElement()  # type: libsbml.ReplacedElement
-    rep_element.setSubmodelRef(submodel)
-    _set_ref(rep_element, ref_id=replaced_id, ref_type=ref_type)
+    replaced_element: libsbml.ReplacedElement = eplugin.createReplacedElement()
+    replaced_element.setSubmodelRef(submodel)
+    _set_ref(replaced_element, ref_id=replaced_id, ref_type=ref_type)
 
-    return rep_element
+    return replaced_element
 
 
 def replaced_by(
@@ -601,18 +580,11 @@ def replaced_by(
 
     The element with sid in the model is replaced by the
     replacing_id in the submodel with submodel_id.
-
-    :param model:
-    :param sid:
-    :param ref_type:
-    :param submodel:
-    :param replaced_by:
-    :return:
     """
     eplugin = _get_eplugin_by_sid(model=model, sid=sid)
-    rby = eplugin.createReplacedBy()  # type: libsbml.ReplacedBy
+    rby: libsbml.ReplacedBy = eplugin.createReplacedBy()
     rby.setSubmodelRef(submodel)
-    _set_ref(object=rby, ref_id=replaced_by, ref_type=ref_type)
+    _set_ref(sbaseref=rby, ref_id=replaced_by, ref_type=ref_type)
     return rby
 
 
@@ -630,7 +602,7 @@ def _get_eplugin_by_sid(model: libsbml.Model, sid: str) -> Any:
     return eplugin
 
 
-def _set_ref(object: libsbml.SBaseRef, ref_id: str, ref_type: str) -> None:
+def _set_ref(sbaseref: libsbml.SBaseRef, ref_id: str, ref_type: str) -> None:
     """Set reference for given reference type in the object.
 
     Objects can be
@@ -638,10 +610,10 @@ def _set_ref(object: libsbml.SBaseRef, ref_id: str, ref_type: str) -> None:
         ReplacedElement
     """
     if ref_type == SBASE_REF_TYPE_ID:
-        object.setIdRef(ref_id)
+        sbaseref.setIdRef(ref_id)
     elif ref_type == SBASE_REF_TYPE_UNIT:
-        object.setUnitRef(ref_id)
+        sbaseref.setUnitRef(ref_id)
     elif ref_type == SBASE_REF_TYPE_PORT:
-        object.setPortRef(ref_id)
+        sbaseref.setPortRef(ref_id)
     elif ref_type == SBASE_REF_TYPE_METAID:
-        object.setMetaIdRef(ref_id)
+        sbaseref.setMetaIdRef(ref_id)

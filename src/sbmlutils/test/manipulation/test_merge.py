@@ -18,7 +18,7 @@ def test_biomodel_merge(tmp_path: Path) -> None:
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels
-    model_ids = ["BIOMD000000000{}".format(k) for k in range(1, 5)]
+    model_ids = [f"BIOMD000000000{k}" for k in range(1, 5)]
     model_paths = dict(zip(model_ids, [merge_dir / f"{mid}.xml" for mid in model_ids]))
 
     # merge model

@@ -126,7 +126,7 @@ def evaluableMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) 
         astnode.replaceArgument(key, libsbml.parseFormula(str(value)))
 
     # parse formula
-    settings = libsbml.L3ParserSettings()  # type: libsbml.L3ParserSettings
+    settings: libsbml.L3ParserSettings = libsbml.L3ParserSettings()
     settings.setParseUnits(False)
     settings.setParseCollapseMinus(True)
     formula: str = libsbml.formulaToL3StringWithSettings(astnode, settings)

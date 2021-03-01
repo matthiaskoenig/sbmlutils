@@ -28,8 +28,8 @@ def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
 
     # debugging
     if vresults.error_count > 0:
-        doc = core_model.doc  # type: libsbml.SBMLDocument
-        error_log = doc.getErrorLog()  # type: libsbml.SBMLErrorLog
+        doc: libsbml.SBMLDocument = core_model.doc
+        error_log: libsbml.SBMLErrorLog = doc.getErrorLog()
         print(error_log.toString())
 
     assert vresults.is_valid()

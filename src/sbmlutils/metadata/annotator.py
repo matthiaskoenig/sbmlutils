@@ -46,7 +46,7 @@ def annotate_sbml(
     :param filepath: annotated SBML file
     :return: annotated SBMLDocument
     """
-    doc = read_sbml(source=source)  # type: libsbml.SBMLDocument
+    doc: libsbml.SBMLDocument = read_sbml(source=source)
 
     # annotate
     if not os.path.exists(str(annotations_path)):

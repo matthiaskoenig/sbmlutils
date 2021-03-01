@@ -91,8 +91,8 @@ def test_compartment_value(
         units_consistency=False,
     )
 
-    doc = read_sbml(source=result.sbml_path)
-    model = doc.getModel()  # type: libsbml.Model
+    doc: libsbml.SBMLDocument = read_sbml(source=result.sbml_path)
+    model: libsbml.Model = doc.getModel()
     assert model.getNumCompartments() == expected["compartments"]
     assert model.getNumInitialAssignments() == expected["initial_assignments"]
     assert model.getNumRules() == expected["rules"]
@@ -129,8 +129,8 @@ def test_parameter_value(
         units_consistency=False,
     )
 
-    doc = read_sbml(source=result.sbml_path)
-    model = doc.getModel()  # type: libsbml.Model
+    doc: libsbml.SBMLDocument = read_sbml(source=result.sbml_path)
+    model: libsbml.Model = doc.getModel()
     assert model.getNumParameters() == expected["parameters"]
     assert model.getNumInitialAssignments() == expected["initial_assignments"]
     assert model.getNumRules() == expected["rules"]

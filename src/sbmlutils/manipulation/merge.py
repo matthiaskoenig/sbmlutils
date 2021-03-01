@@ -75,14 +75,14 @@ def merge_models(
             validate_sbml(source=path, name=str(path))
 
     # create comp model
-    merged_doc = create_merged_doc(
+    merged_doc: libsbml.SBMLDocument = create_merged_doc(
         model_paths, merged_id=merged_id
-    )  # type: libsbml.SBMLDocument
+    )
     if validate is True:
         validate_sbml(path, name=str(path))
 
     # write merged doc
-    f_out = os.path.join(output_dir, "{}.xml".format(merged_id))  # type: ignore
+    f_out = os.path.join(output_dir, f"{merged_id}.xml")  # type: ignore
     libsbml.writeSBMLToFile(merged_doc, f_out)
 
     os.chdir(cur_dir)
@@ -102,22 +102,22 @@ def create_merged_doc(
     """
     sbmlns = libsbml.SBMLNamespaces(3, 1)
     sbmlns.addPackageNamespace("comp", 1)
-    doc = libsbml.SBMLDocument(sbmlns)  # type: libsbml.SBMLDocument
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
     # model
-    model = doc.createModel()  # type: libsbml.Model
+    model: libsbml.Model = doc.createModel()
     model.setId(merged_id)
 
     # comp plugin
-    comp_doc = doc.getPlugin("comp")  # type: libsbml.CompSBMLDocumentPlugin
-    comp_model = model.getPlugin("comp")  # type: libsbml.CompModelPlugin
+    comp_doc: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
 
     for emd_id, path in model_paths.items():
         # create ExternalModelDefinitions
-        emd = comp.create_ExternalModelDefinition(
+        emd: libsbml.ExternalModelDefinition = comp.create_ExternalModelDefinition(
             comp_doc, emd_id, source=str(path)
-        )  # type: libsbml.ExternalModelDefinition
+        )
 
         # add submodel which references the external model definitions
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)

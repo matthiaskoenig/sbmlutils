@@ -646,7 +646,7 @@ class Function(Sbase):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.FunctionDefinition:
         """Create FunctionDefinition SBML in model."""
-        fd = model.createFunctionDefinition()  # type: libsbml.FunctionDefinition
+        fd: libsbml.FunctionDefinition = model.createFunctionDefinition()
         self._set_fields(fd, model)
 
         self.create_port(model)
@@ -695,7 +695,7 @@ class Parameter(ValueWithUnit):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Parameter:
         """Create Parameter SBML in model."""
-        obj = model.createParameter()  # type: libsbml.Parameter
+        obj: libsbml.Parameter = model.createParameter()
         self._set_fields(obj, model)
         if self.value is None:
             obj.setValue(np.NaN)
@@ -854,17 +854,17 @@ class Species(Sbase):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Species:
         """Create Species SBML in model."""
-        obj = model.createSpecies()  # type: libsbml.Species
-        self._set_fields(obj, model)
+        s: libsbml.Species = model.createSpecies()
+        self._set_fields(s, model)
         # substance unit must be set on the given substance unit
-        obj.setSubstanceUnits(model.getSubstanceUnits())
+        s.setSubstanceUnits(model.getSubstanceUnits())
         if self.substanceUnit is not None:
-            obj.setSubstanceUnits(self.substanceUnit)
+            s.setSubstanceUnits(self.substanceUnit)
         else:
-            obj.setSubstanceUnits(model.getSubstanceUnits())
+            s.setSubstanceUnits(model.getSubstanceUnits())
 
         self.create_port(model)
-        return obj
+        return s
 
     def _set_fields(self, obj: libsbml.Species, model: libsbml.Model) -> None:
         """Set fields on libsbml.Species."""
@@ -887,7 +887,7 @@ class Species(Sbase):
 
         # fbc
         if (self.charge is not None) or (self.chemicalFormula is not None):
-            obj_fbc = obj.getPlugin("fbc")  # type: libsbml.FbcSpeciesPlugin
+            obj_fbc: libsbml.FbcSpeciesPlugin = obj.getPlugin("fbc")
             if obj_fbc is None:
                 logger.error(f"FBC SPlugin not found for species, " f"no fbc: {obj}")
             else:
@@ -1194,7 +1194,7 @@ class Reaction(Sbase):
 
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
-            r_fbc = r.getPlugin("fbc")  # type: libsbml.FbcReactionPlugin
+            r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
             if self.upperFluxBound:
                 r_fbc.setUpperFluxBound(self.upperFluxBound)
             if self.lowerFluxBound:
@@ -1217,7 +1217,7 @@ class Reaction(Sbase):
         model: libsbml.Model, reaction: libsbml.Reaction, formula: str
     ) -> libsbml.KineticLaw:
         """Set the kinetic law in reaction based on given formula."""
-        law = reaction.createKineticLaw()  # type: libsbml.KineticLaw
+        law: libsbml.KineticLaw = reaction.createKineticLaw()
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
             logger.error(libsbml.getLastParseL3Error())
@@ -1628,7 +1628,7 @@ class Constraint(Sbase):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Constraint:
         """Create Constraint SBML in model."""
-        constraint = model.createConstraint()  # type: libsbml.Constraint
+        constraint: libsbml.Constraint = model.createConstraint()
         self._set_fields(constraint, model)
         return constraint
 

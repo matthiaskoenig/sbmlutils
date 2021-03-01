@@ -10,9 +10,9 @@ import libsbml
 def add_uncertainty_example(tmp: bool = False) -> None:
     """Add uncertainty to a model."""
     output_dir = str(Path(__file__).parent)
-    doc = libsbml.readSBMLFromFile(
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
         os.path.join(output_dir, "e_coli_core.xml")
-    )  # type: libsbml.SBMLDocument
+    )
 
     # activate distrib
     doc.enablePackage(
@@ -20,21 +20,19 @@ def add_uncertainty_example(tmp: bool = False) -> None:
     )
     doc.setPackageRequired("distrib", True)
 
-    model = doc.getModel()  # type: libsbml.Model
-    model_fbc = model.getPlugin("fbc")  # type: libsbml.FbcModelPlugin
+    model: libsbml.Model = doc.getModel()
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
 
-    # --------------------------------
-    # [2] write gene expression data
-    # --------------------------------
+    # write gene expression data
     gp = model_fbc.getGeneProduct(0)
     print(gp)
-    gp_distrib = gp.getPlugin("distrib")  # type: libsbml.DistribSBasePlugin
+    gp_distrib: libsbml.DistribSBasePlugin = gp.getPlugin("distrib")
     print(gp_distrib)
 
     if gp_distrib:
-        uncertainty = gp_distrib.createUncertainty()  # type: libsbml.Uncertainty
+        uncertainty: libsbml.Uncertainty = gp_distrib.createUncertainty()
 
-        up_mean = uncertainty.createUncertParameter()  # type: libsbml.UncertParameter
+        up_mean: libsbml.UncertParameter = uncertainty.createUncertParameter()
         up_mean.setType(libsbml.DISTRIB_UNCERTTYPE_MEAN)
         up_mean.setValue(2.5)
     else:

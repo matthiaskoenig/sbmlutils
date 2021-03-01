@@ -112,7 +112,7 @@ def _get_variables(astnode: libsbml.ASTNode, variables: Set[str] = None) -> Set[
             variables.add(name)  # type: ignore
     else:
         for k in range(num_children):
-            child = astnode.getChild(k)  # type: libsbml.ASTNode
+            child: libsbml.ASTNode = astnode.getChild(k)
             _get_variables(child, variables=variables)
 
     return variables  # type: ignore
@@ -130,7 +130,7 @@ def _remove_lambda2(astnode: libsbml.ASTNode) -> libsbml.ASTNode:
     if astnode.isLambda():
         num_children = astnode.getNumChildren()
         # get function with arguments
-        f = astnode.getChild(num_children - 1)  # type: libsbml.ASTNode
+        f: libsbml.ASTNode = astnode.getChild(num_children - 1)
         return f.deepCopy()
 
     return astnode

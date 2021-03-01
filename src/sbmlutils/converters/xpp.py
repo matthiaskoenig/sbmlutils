@@ -131,7 +131,7 @@ def parse_keyword(xpp_id: str) -> Optional[str]:
     for xpp_key, c in XPP_TYPE_CHARS.items():
         if xpp_id.startswith(c):
             return xpp_key
-    warnings.warn("Keyword not supported: {}".format(xpp_id))
+    warnings.warn(f"Keyword not supported: {xpp_id}")
     return None
 
 
@@ -254,7 +254,7 @@ def xpp2sbml(
         # check if valid identifier
         if "(" in sid:
             warnings.warn(
-                "sid is not valid: {}. Initial assignment is not generated".format(sid)
+                f"sid is not valid: {sid}. Initial assignment is not generated"
             )
             return
 
@@ -264,21 +264,20 @@ def xpp2sbml(
                 fac.Parameter(
                     sid=sid,
                     value=f_value,
-                    name="{} = {}".format(sid, value),
+                    name=f"{sid} = {value}",
                     constant=False,
                 )
             )
         except ValueError:
             """
-            Initial data are optional, XPP sets them to zero by default (many xpp model don't write the p(0)=0.
+            Initial data are optional, XPP sets them to zero by default (many
+            xpp model don't write the p(0)=0.
             """
             parameters.append(
                 fac.Parameter(sid=sid, value=0.0, name=sid, constant=False)
             )
             initial_assignments.append(
-                fac.InitialAssignment(
-                    sid=sid, value=value, name="{} = {}".format(sid, value)
-                )
+                fac.InitialAssignment(sid=sid, value=value, name=f"{sid} = {value}")
             )
 
     ###########################################################################
@@ -364,7 +363,7 @@ def xpp2sbml(
                     continue
 
                 # necessary to find the additional arguments from the ast_node
-                ast = libsbml.parseL3Formula(formula)  # type: libsbml.ASTNode
+                ast: libsbml.ASTNode = libsbml.parseL3Formula(formula)
                 names = set(xpp_helpers.find_names_in_ast(ast))
                 old_args = [t.strip() for t in args.split(",")]
                 new_args = [a for a in names if a not in old_args]

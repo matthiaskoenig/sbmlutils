@@ -38,7 +38,7 @@ def read_sbml(
 
     :return: SBMLDocument
     """
-    doc = None  # type: libsbml.SBMLDocument
+    doc: libsbml.SBMLDocument
     if isinstance(source, str) and "<sbml" in source:
         doc = libsbml.readSBMLFromString(source)  # type: ignore
     else:
@@ -176,7 +176,7 @@ def promote_local_variables(
     :param suffix: str suffix for promoted SBML
     :return: SBMLDocument with promoted parameters
     """
-    model = doc.getModel()  # type: libsbml.Model
+    model: libsbml.Model = doc.getModel()
     model.setId(f"{model.id}{suffix}")
 
     # promote local parameters
