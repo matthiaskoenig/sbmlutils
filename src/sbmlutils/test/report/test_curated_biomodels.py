@@ -20,7 +20,7 @@ sbml_paths = [
 
 
 @pytest.mark.parametrize("sbml_path", sbml_paths, ids=test_report.sbml_paths_idfn)
-def test_report_latex(sbml_path, tmp_path):
+def test_report_latex(sbml_path: Path, tmp_path: Path) -> None:
     """Test report generation for GZ reports with Latex rendering"""
     test_report.check_report_math_type(
         sbml_path=sbml_path, math_type="latex", tmp_path=tmp_path

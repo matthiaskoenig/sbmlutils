@@ -14,6 +14,10 @@ formulas = [
     "lambda(x, y, piecewise(x, x > y, y))",
     "lambda(x, y, x+y)",
     "(1 - gamma) * GSn + gamma * GSp",
+    "piecewise(0, (delay(dClk, tau1) - delay(Per, tau1)) < 0, delay(dClk, tau1) - delay(Per, tau1))",
+    "piecewise(VmaxM, exercise_level == 1, piecewise(VmaxH, exercise_level == 2, VmaxVH))",
+    "Gamma(v, u, J, K)",
+    "lambda(r, C, k, r * C * (1 - C / k))",
 ]
 
 cmathmls = [
@@ -71,6 +75,28 @@ cmathmls = [
     </math>
     """,
 ]
+
+
+@pytest.mark.parametrize(
+    "formula, expected",
+    [
+        (
+            "piecewise(VmaxM, exercise_level == 1, VmaxVH)",
+            "Piecewise((VmaxM, exercise_level == 1), (VmaxVH, True))",
+        ),
+        (
+            "piecewise(VmaxM, exercise_level == 1, piecewise(VmaxH, exercise_level == 2, VmaxVH))",
+            "Piecewise((VmaxM, exercise_level == 1), (Piecewise((VmaxH, exercise_level == 2), (VmaxVH, True)), True))",
+        ),
+    ],
+)
+def test_replace_piecewise(formula: str, expected: str) -> None:
+    """Test that piecewise parsing is working correctly."""
+    formula2 = mathml._replace_piecewise(formula)
+    # print("formula:", formula)
+    # print("formula2:", formula2)
+    # print("expected:", expected)
+    assert formula2 == expected
 
 
 @pytest.mark.parametrize("formula", formulas)
