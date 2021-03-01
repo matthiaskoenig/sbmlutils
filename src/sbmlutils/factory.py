@@ -499,8 +499,15 @@ class ValueWithUnit(Value):
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         super(ValueWithUnit, self)._set_fields(obj, model)
         if self.unit is not None:
-            unit_str = Unit.get_unit_string(self.unit)
-            check(obj.setUnits(unit_str), f"Set unit '{unit_str}' on {obj}")
+            if obj.getTypeCode() in [
+                libsbml.SBML_ASSIGNMENT_RULE,
+                libsbml.SBML_RATE_RULE,
+            ]:
+                # AssignmentRules and RateRules have no units
+                pass
+            else:
+                unit_str = Unit.get_unit_string(self.unit)
+                check(obj.setUnits(unit_str), f"Set unit '{unit_str}' on {obj}")
 
 
 class Unit(Sbase):
@@ -963,6 +970,8 @@ class InitialAssignment(Value):
 class Rule(ValueWithUnit):
     """Rule."""
 
+    rule_types = ["AssignmentRule", "RateRule"]
+
     def __repr__(self) -> str:
         """Get string representation."""
         return super(Rule, self).__repr__()
@@ -978,7 +987,11 @@ class Rule(ValueWithUnit):
         :param rule_type:
         :return:
         """
-        assert rule_type in ["AssignmentRule", "RateRule"]
+        if rule_type not in Rule.rule_types:
+            raise ValueError(
+                f"rule_type '{rule_type}' is not supported, use one of: "
+                f"{Rule.rule_types}"
+            )
         sid = rule.sid
 
         # Create parameter if symbol is neither parameter or species, or compartment
@@ -991,18 +1004,13 @@ class Rule(ValueWithUnit):
             Parameter(
                 sid, unit=rule.unit, name=rule.name, value=value, constant=False
             ).create_sbml(model)
-        else:
-            # object exists, units do not mean anything
-            if rule.unit:
-                logger.debug(
-                    f"Units '{rule.unit}' are not used if object "
-                    f"exists for AssignmentRule: '{rule}'."
-                )
 
         # Make sure the parameter is const=False
-        p = model.getParameter(sid)
+        p: libsbml.Parameter = model.getParameter(sid)
         if p is not None:
-            p.setConstant(False)
+            if p.getConstant() is True:
+                logger.warning("")
+                p.setConstant(False)
 
         # Add rule if not existing
         obj: Union[RateRule, AssignmentRule]
@@ -1084,7 +1092,7 @@ class RateRule(Rule):
     @staticmethod
     def _create(model: libsbml.Model, sid: str, formula: str) -> libsbml.RateRule:
         """Create libsbml.RateRule."""
-        rule = model.createRateRule()
+        rule: libsbml.RateRule = model.createRateRule()
         return Rule._create_rule(model, rule, sid, formula)
 
 
