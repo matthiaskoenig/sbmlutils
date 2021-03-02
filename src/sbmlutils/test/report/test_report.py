@@ -31,10 +31,12 @@ def test_report_latex(sbml_path: Path, tmp_path: Path) -> None:
     check_report_math_type(sbml_path=sbml_path, math_type="latex", tmp_path=tmp_path)
 
 
-def check_report_math_type(sbml_path: Path, math_type: str, tmp_path: Path) -> None:
+def check_report_math_type(
+    sbml_path: Path, math_type: str, tmp_path: Path, validate: bool = False
+) -> None:
     """Checks SBML report with given math type."""
     html = sbmlreport.create_report(
-        sbml_path=sbml_path, output_dir=tmp_path, math_type=math_type
+        sbml_path=sbml_path, output_dir=tmp_path, math_type=math_type, validate=validate
     )
 
     # check the returned HTML in the variable for correctness of type

@@ -118,7 +118,7 @@ restricted_words = [
     "with",
     "while",
     "yield",
-] + ["gamma", "log"]
+] + ["gamma", "log", "rf"]
 
 
 def formula_to_expression(formula: str, model: Optional[libsbml.Model] = None) -> Any:
@@ -129,11 +129,8 @@ def formula_to_expression(formula: str, model: Optional[libsbml.Model] = None) -
     :return: sympy expression
     """
     # round trip to remove unnecessary inline dimensions
-    ast_node = formula_to_astnode(formula)
+    ast_node = formula_to_astnode(formula, model=model)
     variables = _get_variables(ast_node)
-
-    # simplify lambda expressions
-    ast_node = _remove_lambda2(ast_node)
 
     settings = libsbml.L3ParserSettings()
     settings.setParseUnits(False)
@@ -154,6 +151,8 @@ def formula_to_expression(formula: str, model: Optional[libsbml.Model] = None) -
         )
     except Exception as e:
         logger.error(f"Formula could not be sympified: '{formula}'")
+        print("formula", formula)
+        print("variables", variables)
         raise e
 
     return expr
