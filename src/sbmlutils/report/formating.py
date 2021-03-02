@@ -1,4 +1,6 @@
 """Helper functions for formating SBML elements."""
+from typing import Optional
+
 import libsbml
 
 from sbmlutils import utils
@@ -469,26 +471,28 @@ def annotation_html(item: libsbml.SBase) -> str:
     return info
 
 
-def math(item: libsbml.SBase, math_type: str = "cmathml") -> str:
+def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
     """Create MathML content for the item.
 
-    :param item: SBML object for which MathML content is to be generated
+    :param sbase: SBML object for which MathML content is to be generated
     :param math_type: specifies which math rendering mode to use
     :return: formatted MathML content for the item
     """
 
-    if item:
-        if not isinstance(item, libsbml.ASTNode):
-            astnode = item.getMath()
+    if sbase:
+        if not isinstance(sbase, libsbml.ASTNode):
+            astnode = sbase.getMath()
+            if not astnode:
+                return empty_html()
         else:
-            astnode = item
+            astnode = sbase
         if math_type == "cmathml":
             return astnode_to_mathml(astnode)
         elif math_type == "pmathml":
             cmathml = astnode_to_mathml(astnode)
             return mathml.cmathml_to_pmathml(cmathml)
         elif math_type == "latex":
-            latex_str = mathml.astnode_to_latex(astnode)
+            latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
             return f"$${latex_str}$$"
     return empty_html()
 

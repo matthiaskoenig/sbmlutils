@@ -17,7 +17,7 @@ formula (annotation) -> expr -> latex
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
 """
 import logging
-from typing import Any, List, Set
+from typing import Any, List, Optional, Set
 
 import libsbml
 from sympy import Symbol, sympify
@@ -28,16 +28,26 @@ from sympy.printing.mathml import MathMLContentPrinter, MathMLPresentationPrinte
 logger = logging.getLogger(__name__)
 
 
-def formula_to_astnode(formula: str) -> libsbml.ASTNode:
+def formula_to_astnode(
+    formula: str, model: Optional[libsbml.Model] = None
+) -> libsbml.ASTNode:
     """Convert formula string to ASTNode.
 
     :param formula: SBML formula string
+    :param model: libsbml.Model
     :return: libsbml.ASTNode
     """
-    astnode = libsbml.parseL3Formula(formula)
+    if model:
+        astnode = libsbml.parseL3FormulaWithModel(formula, model)
+    else:
+        astnode = libsbml.parseL3Formula(formula)
     if not astnode:
         logging.error(f"Formula could not be parsed: '{formula}'")
         logging.error(libsbml.getLastParseL3Error())
+        raise ValueError(
+            f"Formula could not be parsed: '{formula}'.\n"
+            f"{libsbml.getLastParseL3Error()}"
+        )
     return astnode
 
 
@@ -50,7 +60,9 @@ def cmathml_to_astnode(cmathml: str) -> libsbml.ASTNode:
     return libsbml.readMathMLFromString(cmathml)
 
 
-def astnode_to_expression(astnode: libsbml.ASTNode) -> Any:
+def astnode_to_expression(
+    astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None
+) -> Any:
     """Convert AstNode to sympy expression.
 
     An AST node in libSBML is a recursive tree structure; each node has a type,
@@ -63,25 +75,62 @@ def astnode_to_expression(astnode: libsbml.ASTNode) -> Any:
 
     see also: http://sbml.org/Software/libSBML/docs/python-api/libsbml-math.html
 
+    :param model:
     :param astnode: libsbml.ASTNode
     :return: sympy expression
     """
     formula = libsbml.formulaToL3String(astnode)
-    return formula_to_expression(formula)
+    return formula_to_expression(formula, model=model)
 
 
-def formula_to_expression(formula: str) -> Any:
+# python 3 reserved keywords (and sympy lambda)
+restricted_words = [
+    "and",
+    "as",
+    "assert",
+    "break",
+    "class",
+    "continue",
+    "def",
+    "del",
+    "elif",
+    "else",
+    "except",
+    "finally",
+    "false",
+    "for",
+    "from",
+    "global",
+    "if",
+    "import",
+    "in",
+    "is",
+    "lambda",
+    "nonlocal",
+    "none",
+    "not",
+    "or",
+    "pass",
+    "raise",
+    "return",
+    "True",
+    "try",
+    "with",
+    "while",
+    "yield",
+] + ["gamma", "log", "rf"]
+
+
+def formula_to_expression(formula: str, model: Optional[libsbml.Model] = None) -> Any:
     """Parse sympy expression from given formula string.
 
+    :param model:
     :param formula: SBML formula string
     :return: sympy expression
     """
     # round trip to remove unnecessary inline dimensions
-    ast_node = formula_to_astnode(formula)
+    ast_node = formula_to_astnode(formula, model=model)
     variables = _get_variables(ast_node)
-
-    # simplify lambda expressions
-    ast_node = _remove_lambda2(ast_node)
 
     settings = libsbml.L3ParserSettings()
     settings.setParseUnits(False)
@@ -91,10 +140,19 @@ def formula_to_expression(formula: str) -> Any:
     formula = _replace_piecewise(formula)
     formula = formula.replace("&&", "&")
     formula = formula.replace("||", "|")
+    # handle special lambda syntax sympy and restricted eval symbols
+    for word in restricted_words:
+        formula = formula.replace(word, f"_{word}")
+
     try:
-        expr = sympify(formula, locals={v: Symbol(f"{v}") for v in variables})
+        expr = sympify(
+            formula,
+            locals={v: Symbol(f"{v}") for v in variables},
+        )
     except Exception as e:
         logger.error(f"Formula could not be sympified: '{formula}'")
+        print("formula", formula)
+        print("variables", variables)
         raise e
 
     return expr
@@ -118,26 +176,23 @@ def _get_variables(astnode: libsbml.ASTNode, variables: Set[str] = None) -> Set[
     return variables  # type: ignore
 
 
-def _remove_lambda2(astnode: libsbml.ASTNode) -> libsbml.ASTNode:
-    """Replace lambda function with function expression.
-
-    Removes the lambda and argument parts from lambda expressions;
-    lambda(x, y, x+y) -> x+y
-
-    :param formula: SBML formula string
-    :return: formula string
-    """
-    if astnode.isLambda():
-        num_children = astnode.getNumChildren()
-        # get function with arguments
-        f: libsbml.ASTNode = astnode.getChild(num_children - 1)
-        return f.deepCopy()
-
-    return astnode
-
-
 def _replace_piecewise(formula: str) -> str:
-    """Replace libsbml piecewise with sympy piecewise.
+    """Replace libsbml piecewise with sympy Piecewise.
+
+    Handles replacement recursively.
+
+    libsbml.piecewise
+    | x1, y1, [x2, y2,] [...] [z] |
+    A piecewise function: if (y1), x1.  Otherwise, if (y2), x2, etc.  Otherwise, z.
+
+    sympy.Piecewise
+    Piecewise( (expr,cond), (expr,cond), … )
+    Each argument is a 2-tuple defining an expression and condition
+    The conds are evaluated in turn returning the first that is True.
+    If any of the evaluated conds are not determined explicitly False, e.g. x < 1,
+    the function is returned in symbolic form.
+    If the function is evaluated at a place where all conditions are False, nan will
+    be returned. Pairs where the cond is explicitly False, will be removed.
 
     :param formula: SBML formula string
     :return: formula string
@@ -161,6 +216,8 @@ def _replace_piecewise(formula: str) -> str:
                 if bracket_open == 1:
                     pieces.append("".join(piece_chars).strip())
                     piece_chars = []
+                else:
+                    piece_chars.append(c)
             else:
                 if c == "(":
                     if bracket_open != 0:
@@ -187,7 +244,8 @@ def _replace_piecewise(formula: str) -> str:
         sympy_pieces = []
         for k in range(0, int(len(pieces) / 2)):
             sympy_pieces.append(f"({pieces[2*k]}, {pieces[2*k+1]})")
-        new_str = f"Piecewise({','.join(sympy_pieces)})"
+
+        new_str = f"Piecewise({', '.join(sympy_pieces)})"
         formula = formula.replace(formula[index : search_idx + 1], new_str)
 
     return formula
@@ -238,10 +296,16 @@ def _expression_to_mathml(expr: Any, printer: str = "content", **settings: Any) 
     s.apply_patch()
     pretty_xml = xml.toprettyxml()
     s.restore_patch()
+    # hack words back
+    for word in restricted_words:
+        pretty_xml = pretty_xml.replace(f"_{word}", word)
+
     return str(pretty_xml)
 
 
-def cmathml_to_pmathml(cmathml: str, **settings: Any) -> str:
+def cmathml_to_pmathml(
+    cmathml: str, model: Optional[libsbml.Model] = None, **settings: Any
+) -> str:
     """Convert Content MathML to PresentationMathML.
 
     :param cmathml: Content MathML
@@ -249,30 +313,45 @@ def cmathml_to_pmathml(cmathml: str, **settings: Any) -> str:
     :return: Presentation MathML
     """
     astnode = cmathml_to_astnode(cmathml)
-    expr = astnode_to_expression(astnode)
+    expr = astnode_to_expression(astnode, model=model)
     return _expression_to_mathml(expr, printer="presentation", **settings)
 
 
-def formula_to_latex(formula: str, **settings: Any) -> str:
+def formula_to_latex(
+    formula: str, model: Optional[libsbml.Model] = None, **settings: Any
+) -> str:
     """Convert formula to latex.
 
+    :param model:
     :param formula: SBML formula string
     :param settings:
     :return: Latex string
     """
-    expr = formula_to_expression(formula)
-    return latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    expr = formula_to_expression(formula, model=model)
+    latex_str = latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    # hack words back
+    for word in restricted_words:
+        latex_str = latex_str.replace(f"_{word}", word)
+    return str(latex_str)
 
 
-def astnode_to_latex(astnode: libsbml.ASTNode, **settings: Any) -> str:
+def astnode_to_latex(
+    astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None, **settings: Any
+) -> str:
     """Convert AstNode to Latex.
 
+    :param model:
     :param astnode: libsbml.ASTNode
     :param settings:
     :return: Latex string
     """
-    expr = astnode_to_expression(astnode)
-    return latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    # FIXME: remove redundancy with function above
+    expr = astnode_to_expression(astnode, model=model)
+    latex_str = latex(expr, mul_symbol="dot", **settings)  # type: ignore
+    # hack words back
+    for word in restricted_words:
+        latex_str = latex_str.replace(f"_{word}", word)
+    return str(latex_str)
 
 
 def cmathml_to_latex(cmathml: str, **settings: Any) -> str:
