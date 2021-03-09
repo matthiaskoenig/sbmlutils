@@ -1,38 +1,55 @@
 <template>
   <div id="app">
     <h1>{{ msg }}</h1>
-    <u>
-      <h2>Sample SBML Rendering </h2>
-    </u>
+
+    <br>
+    <u><h2>Sample SBML Rendering </h2></u>
+
+    <br>
+    <strong>
+      <h4>{{ data.model_sid }}: {{ data.model_name }}</h4>
+    </strong>
 
     <ul>
-      <li  id="sample-list" v-for="reaction in reactions" :key="reaction.sid">
+      <li  id="sample-list" v-for="reaction in data.reactions" :key="reaction.sid">
         <strong>{{ reaction.sid }}</strong> : {{ reaction.equation }}
       </li>
     </ul>
+
+    <form class="model-upload-form">
+      <legend>Load Another Model</legend>
+      <input ref="upload" type="file" name="file-upload" multiple="" accept="application/JSON" @change="onFileUpload">
+    </form>
+
   </div>
 </template>
 
 <script>
+import json_data from '../src/assets/test_models/test_data.json'
+
 export default {
   name: 'app',
-  data () {
+  data: function() {
     return {
       msg: 'This is a sample SBML Report',
-      reactions: [
-        {
-          "sid": "R1",
-          "equation" : "Reactant 1 + Reactant 2 ==> Product",
-        },
-        {
-          "sid": "R2",
-          "equation" : "Reactant 3 + Reactant 4 ==> Product",
-        },
-        {
-          "sid": "R3",
-          "equation" : "Reactant 5 + Reactant 6 ==> Product",
-        }
-      ]
+      data: json_data,
+    }
+  },
+  methods: {
+
+    onFileUpload: function(event) {
+      let files = event.target.files || event.dataTransfer.files
+      if (!files.length) return;
+      this.readFile(files[0])
+    },
+
+    readFile: function(file) {
+      var fileReader = new FileReader();
+      fileReader.onload = event => {
+        var json_data = JSON.parse(event.target.result)
+        this.data = json_data
+      };
+      fileReader.readAsText(file)
     }
   }
 }
@@ -53,6 +70,11 @@ export default {
   font-size: large;
 }
 
+.model-upload-form{
+  border: 2px black;
+  padding: 20px;
+}
+
 h1, h2 {
   font-weight: normal;
 }
@@ -70,4 +92,6 @@ li {
 a {
   color: #42b983;
 }
+
+@import'~bootstrap/dist/css/bootstrap.css';
 </style>
