@@ -1009,7 +1009,11 @@ class Rule(ValueWithUnit):
         p: libsbml.Parameter = model.getParameter(sid)
         if p is not None:
             if p.getConstant() is True:
-                logger.warning("")
+                logger.warning(
+                    f"Parameter affected by AssignmentRule or RateRule "
+                    f"should be set 'constant=False', but '{p.getId()}' "
+                    f"is 'constant={p.getConstant()}'."
+                )
                 p.setConstant(False)
 
         # Add rule if not existing
