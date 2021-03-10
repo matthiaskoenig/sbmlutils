@@ -1,17 +1,22 @@
 """
-Test manipulation functions.
+Test model merging functionality.
 """
 from pathlib import Path
 
 import pytest
 
 from sbmlutils import comp, validation
+from sbmlutils.examples.merge_models import merge_models_example
 from sbmlutils.io import write_sbml
 from sbmlutils.manipulation import merge
 from sbmlutils.test import DATA_DIR
 
 
-@pytest.mark.skip(reason="Model merging currently not working")
+def test_merge_models_example() -> None:
+    """Testing the merge model example."""
+    merge_models_example()
+
+
 def test_biomodel_merge(tmp_path: Path) -> None:
     """Test model merging."""
     merge_dir = DATA_DIR / "manipulation" / "merge"
@@ -25,7 +30,7 @@ def test_biomodel_merge(tmp_path: Path) -> None:
     out_dir = tmp_path / "output"
     out_dir.mkdir()
 
-    doc = merge.merge_models(model_paths, output_dir=out_dir, validate=False)
+    doc = merge.merge_models(model_paths, output_dir=out_dir)
     assert doc is not None
 
     vresults = validation.validate_doc(doc, units_consistency=False)

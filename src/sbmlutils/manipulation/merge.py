@@ -1,125 +1,145 @@
-"""
-Functions for SBML model manipulation.
+"""Merging of SBML models.
 
-These functions take existing SBML model(s) and provide common manipulations.
-For example merging of models or promoting of local parameters.
+The following is a helper function for merging multiple SBML models into
+a single model.
 """
 import logging
 import os
 from pathlib import Path
-from typing import Dict, Iterable
+from typing import Dict, Iterable, List, Union
 
 import libsbml
 
 from sbmlutils import validation
-from sbmlutils.comp import comp
+from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
+from sbmlutils.test import DATA_DIR
 
 
 logger = logging.getLogger(__name__)
 
-SBML_LEVEL = 3
-SBML_VERSION = 1
-SBML_COMP_VERSION = 1
-
 
 def merge_models(
     model_paths: Dict[str, Path],
-    output_dir: Path = None,
+    output_dir: Path,
     merged_id: str = "merged",
+    flatten: bool = True,
     validate: bool = True,
+    validate_input: bool = True,
+    units_consistency: bool = False,
+    modeling_practice: bool = False,
+    sbml_level: int = 3,
+    sbml_version: int = 1,
 ) -> libsbml.SBMLDocument:
-    """Merge models in model path.
+    """Merge SBML models.
 
-    All models must exist in the same subfolder.
+    Merges SBML models given in `model_paths` in the `output_dir`.
+    Models are provided as dictionary
+    {
+        'model1_id': model1_path,
+        'model2_id': model2_path,
+        ...
+    }
+    The model ids are used as ids for the ExternalModelDefinitions.
     Relative paths are set in the merged models.
 
-    Output directory must exist.
+    The created model is either in SBML L3V1 (default) or SBML L3V2.
 
-    :param output_dir:
-    :param merged_id:
-    :param validate:
     :param model_paths: absolute paths to models
-    :return:
+    :param output_dir: output directory for merged model
+    :param merged_id: model id of the merged model
+    :param flatten: flattens the merged model
+    :param validate: boolean flag to validate the merged model
+    :param validate_input: boolean flag to validate the input models
+    :param units_consistency: boolean flag to check units consistency
+    :param modeling_practice: boolean flag to check modeling practise
+    :param sbml_level: SBML Level of the merged model in [3]
+    :param sbml_version: SBML Version of the merged model in [1, 2]
+    :return: SBMLDocument of the merged models
     """
     # necessary to convert models to SBML L3V1
-    cur_dir = os.getcwd()
-    os.chdir(str(output_dir))
+    if isinstance(output_dir, str):
+        logger.warning(f"'output_dir' should be a Path but: '{type(output_dir)}'")
+        output_dir = Path(output_dir)
+    if not output_dir.exists():
+        raise IOError(f"'output_dir' does not exist: {output_dir}")
 
-    base_dir = None
+    validate_kwargs: Dict[str, bool] = {
+        "units_consistency": units_consistency,
+        "modeling_practice": modeling_practice,
+    }
+
     for model_id, path in model_paths.items():
-        if path.exists():
-            logging.error(f"Path for SBML file does not exist: {path}")
-
-        # get base dir of all model files from first file
-        if base_dir is None:
-            base_dir = path.parent
-        else:
-            new_dir = path.parent
-            if not new_dir != base_dir:
-                raise IOError(
-                    f"All SBML files for merging must be in same "
-                    f"directory: {new_dir} != {base_dir}"
-                )
+        if not path.exists():
+            raise IOError(f"Path for SBML file does not exist: {path}")
+        if isinstance(path, str):
+            path = Path(path)
 
         # convert to L3V1
-        path_L3: Path = output_dir / f"{model_id}_L3.xml"  # type: ignore
-        doc = read_sbml(path_L3)
-        if doc.getLevel() < SBML_LEVEL:
-            doc.setLevelAndVersion(SBML_LEVEL, SBML_VERSION)
+        path_L3: Path = output_dir / f"{model_id}_L3.xml"
+        doc = read_sbml(path)
+        doc.setLevelAndVersion(sbml_level, sbml_version)
         write_sbml(doc, path_L3)
         model_paths[model_id] = path_L3
 
-    if validate is True:
-        for path in model_paths:  # type: ignore
-            validate_sbml(source=path, name=str(path))
+        if validate_input:
+            validate_sbml(
+                source=path_L3,
+                name=str(path),
+                **validate_kwargs,
+            )
 
     # create comp model
-    merged_doc: libsbml.SBMLDocument = create_merged_doc(
+    cur_dir = os.getcwd()
+    os.chdir(str(output_dir))
+    merged_doc: libsbml.SBMLDocument = _create_merged_doc(
         model_paths, merged_id=merged_id
     )
-    if validate is True:
-        validate_sbml(path, name=str(path))
+    os.chdir(cur_dir)
 
     # write merged doc
-    f_out = os.path.join(output_dir, f"{merged_id}.xml")  # type: ignore
-    libsbml.writeSBMLToFile(merged_doc, f_out)
+    merged_path = output_dir / f"{merged_id}.xml"
+    write_sbml(merged_doc, filepath=merged_path)
+    if validate:
+        validate_sbml(merged_path, name=str(merged_path), **validate_kwargs)
 
-    os.chdir(cur_dir)
+    if flatten:
+        flat_path = output_dir / f"{merged_id}_flat.xml"
+        flatten_sbml(sbml_path=merged_path, filepath=flat_path)
+        if validate:
+            validate_sbml(flat_path, name=str(flat_path), **validate_kwargs)
+
     return merged_doc
 
 
-def create_merged_doc(
-    model_paths: Dict[str, Path], merged_id: str = "merged"
+def _create_merged_doc(
+    model_paths: Dict[str, Path],
+    merged_id: str = "merged",
+    sbml_level: int = 3,
+    sbml_version: int = 1,
 ) -> libsbml.SBMLDocument:
     """Create a comp model from given model paths.
 
     Warning: This only works if all models are in the same directory.
-
-    :param model_paths: Dictionary of id:path
-    :param merged_id:
-    :return:
     """
-    sbmlns = libsbml.SBMLNamespaces(3, 1)
+    sbmlns = libsbml.SBMLNamespaces(sbml_level, sbml_version)
     sbmlns.addPackageNamespace("comp", 1)
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
 
-    # model
     model: libsbml.Model = doc.createModel()
     model.setId(merged_id)
 
-    # comp plugin
     comp_doc: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
     comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
 
     for emd_id, path in model_paths.items():
-        # create ExternalModelDefinitions
+        # create ExternalModelDefinition
         emd: libsbml.ExternalModelDefinition = comp.create_ExternalModelDefinition(
             comp_doc, emd_id, source=str(path)
         )
 
-        # add submodel which references the external model definitions
+        # add submodel which references the external model definition
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)
 
     return doc
