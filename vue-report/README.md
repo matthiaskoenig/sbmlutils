@@ -1,6 +1,6 @@
 # vue-report
 
-> Vue report generation for SBML models
+> A Vue.js project
 
 ## Build Setup
 
