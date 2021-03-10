@@ -56,7 +56,7 @@ def merge_models(
             base_dir = path.parent
         else:
             new_dir = path.parent
-            if not new_dir != base_dir:
+            if new_dir != base_dir:
                 raise IOError(
                     f"All SBML files for merging must be in same "
                     f"directory: {new_dir} != {base_dir}"
