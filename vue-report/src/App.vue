@@ -1,30 +1,36 @@
 <template>
   <div id="app">
-    <Header />
-    <Report />
+    <page-header></page-header>
+    <app-report ref="report"></app-report>
   </div>
 </template>
 
 <script>
 import Header from './components/Header.vue'
-import FileUpload from './components/FileUpload.vue'
 import Report from './components/Report.vue'
 
 export default {
   name: 'app',
   components: {
-    Header,
-    FileUpload,
-    Report
+    'page-header': Header,
+    'app-report': Report
   },
   data () {
     return {
-      msg: 'SBML Report Rendering Prototype'
+      msg: 'SBML Report Rendering Prototype',
+      initial_json: {}
     }
+  },
+  created() {
+    var json = JSON.parse(document.getElementById("initial").textContent)
+    this.initial_json = json
+  },
+  mounted: function(){
+    this.$refs.report.updateJSON(this.initial_json)
   },
   methods: {
 
-  }
+  },
 }
 </script>
 

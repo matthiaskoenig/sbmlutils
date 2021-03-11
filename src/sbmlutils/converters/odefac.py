@@ -19,9 +19,9 @@ The following SBML core constructs are currently NOT supported:
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 
 import re
-from collections import Iterable, defaultdict
+from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
 
 import jinja2
 import libsbml
