@@ -2,6 +2,7 @@
   <div id="app">
     <page-header></page-header>
     <app-report ref="report"></app-report>
+    {{ initial_json }}
   </div>
 </template>
 
@@ -22,7 +23,7 @@ export default {
     }
   },
   created() {
-    var json = JSON.parse(document.getElementById("initial").textContent)
+    let json = JSON.parse(document.getElementById("data").textContent)
     this.initial_json = json
   },
   mounted: function(){
