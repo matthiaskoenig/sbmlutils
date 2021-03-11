@@ -86,7 +86,7 @@ XPP_TYPE_CHARS = {
 NOTES = """
     <body xmlns='http://www.w3.org/1999/xhtml'>
     <h1>XPP model</h1>
-    <p>This model was converted from XPP ode format to SBML using <code>sbmlutils-{}</code>.</p>
+    <p>This model was converted from XPP ode format to SBML using <code>sbmlutils</code>.</p>
     <pre>{}</pre>
     <div class="dc:publisher">This file has been produced by
       <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
@@ -108,9 +108,7 @@ NOTES = """
              the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
       </div>
     </body>
-""".format(
-    __version__, "{}"
-)
+"""
 
 
 def escape_string(info: str) -> str:
