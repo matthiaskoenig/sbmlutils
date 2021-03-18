@@ -25,7 +25,6 @@ echo "DONE"
 # create rst files from the notebooks
 # ./make_notebooks_rst.sh 2>&1 | tee ./make_notebooks_rst.log
 
-
 # create html documentation
 echo "--------------------------------------"
 echo "create html docs"
