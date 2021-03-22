@@ -83,6 +83,10 @@ def create_reports(
         if html_report is not None:
             html_reports.append(html_report)
 
+    html = _create_index_html(sbml_paths)
+    with open(output_dir / "index.html", "w", encoding="utf-8") as f_index:
+        f_index.write(html)
+
     return html_reports
 
 
@@ -154,6 +158,13 @@ def create_report(
 
     # write html
     html = _create_html(doc, basename, html_template=template, math_type=math_type)
+
+    # write html
+    name = ".".join(basename.split(".")[:-1])
+    path_html = output_dir / f"{name}.html"
+    with open(path_html, "w", encoding="utf-8") as f_html:
+        f_html.write(html)
+
     return html
 
 

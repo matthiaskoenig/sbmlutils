@@ -42,16 +42,20 @@ sbmlutils: python utilities for SBML
    :alt: mypy
 
 sbmlutils is a collection of python utilities for working with
-`SBML <http://www.sbml.org>`__ models implemented on top of
+`SBML <http://www.sbml.org>`__ models. sbmlutils is implemented on top of
 `libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
 with source code available from `https://github.com/matthiaskoenig/sbmlutils <https://github.com/matthiaskoenig/sbmlutils>`__.
 
-Features include among others
+Features include
 
--  helper functions for model creation, manipulation, and annotation
--  HTML reports of SBML models
--  interpolation functions to add experimental data to models
--  file converters (XPP)
+- model creation, manipulation, and annotation
+- HTML reports of SBML models
+- interpolation functions to add experimental data to models
+- file converters (XPP)
+- support of SBML core, comp, distrib, fbc and layout. 
+
+sbmlutils provides a simplification layer around libsbml which allows simple
+programatic model building and manipulation.
 
 The documentation is available on `https://sbmlutils.readthedocs.io <https://sbmlutils.readthedocs.io>`__. 
 If you have any questions or issues please `open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__.

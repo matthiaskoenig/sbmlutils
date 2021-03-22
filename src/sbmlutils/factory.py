@@ -295,7 +295,7 @@ class Sbase:
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
         notes: Optional[str] = None,
-        port: Any = None,
+        port: Union[bool, 'Port'] = False,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
@@ -363,10 +363,13 @@ class Sbase:
         self.create_uncertainties(obj, model)
         self.create_replaced_by(obj, model)
 
-    def create_port(self, model: libsbml.Model) -> libsbml.Port:
-        """Create port if existing."""
-        if self.port is None:
-            return
+    def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
+        """Create port if port information exists.
+
+        Returns None otherwise
+        """
+        if not self.port:
+            return None
 
         p: libsbml.Port
         if isinstance(self.port, bool):
