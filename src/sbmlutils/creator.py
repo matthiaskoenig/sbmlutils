@@ -414,7 +414,7 @@ def create_model(
             logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
             output_dir.mkdir(parents=True)  # type: ignore
         else:
-            if not output_dir.is_dir():
+            if not output_dir.is_dir():  # type: ignore
                 raise IOError(f"output_dir must be a directory: '{output_dir}'")
         sbml_path = output_dir / filename  # type: ignore
 

@@ -295,7 +295,7 @@ class Sbase:
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
         notes: Optional[str] = None,
-        port: Union[bool, 'Port'] = False,
+        port: Union[bool, "Port"] = False,   # noqa: F821, type: ignore
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
