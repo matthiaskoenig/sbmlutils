@@ -1,32 +1,4 @@
-"""Module for parsing equation strings.
-
-Various string formats are allowed which are subsequently brought into
-an internal standard format.
-
-Equations are of the form
-    '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]'
-
-The equation consists of
-- substrates concatenated via '+' on the left side
-  (with optional stoichiometric coefficients)
-- separation characters separating the left and right equation sides:
-  '<=>' or '<->' for reversible reactions,
-  '=>' or '->' for irreversible reactions (irreversible reactions
-  are written from left to right)
-- products concatenated via '+' on the right side
-  (with optional stoichiometric coefficients)
-- optional list of modifiers within brackets [] separated by ','
-
-Examples of valid equations are:
-    '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
-    'c__gal1p => c__gal + c__phos',
-    'e__h2oM <-> c__h2oM',
-    '3 atp + 2.0 phos + ki <-> 16.98 tet',
-    'c__gal1p => c__gal + c__phos [c__udp, c__utp]',
-    'A_ext => A []',
-    '=> cit',
-    'acoa =>',
-"""
+"""Module for parsing equation strings."""
 
 import re
 from collections import namedtuple
@@ -43,7 +15,42 @@ IRREV_SEP = r"=>"
 
 
 class Equation:
-    """Representation of stoichiometric equations with modifiers."""
+    """Representation of stoichiometric equations with modifiers.
+
+    Equations consist of three main parts
+    1. left handside
+    2. right handside
+    3 optional allosteric effectors in [] brackets
+
+    Left and right handside are separated by a reversible/irreversibel arrow.
+
+    Various string formats are allowed which are subsequently brought into
+    an internal standard format.
+
+    Equations are of the form
+        '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]'
+
+    The equation consists of
+    - substrates concatenated via '+' on the left side
+      (with optional stoichiometric coefficients)
+    - separation characters separating the left and right equation sides:
+      '<=>' or '<->' for reversible reactions,
+      '=>' or '->' for irreversible reactions (irreversible reactions
+      are written from left to right)
+    - products concatenated via '+' on the right side
+      (with optional stoichiometric coefficients)
+    - optional list of modifiers within brackets [] separated by ','
+
+    Examples of valid equations are:
+        '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
+        'c__gal1p => c__gal + c__phos',
+        'e__h2oM <-> c__h2oM',
+        '3 atp + 2.0 phos + ki <-> 16.98 tet',
+        'c__gal1p => c__gal + c__phos [c__udp, c__utp]',
+        'A_ext => A []',
+        '=> cit',
+        'acoa =>',
+    """
 
     class EquationException(Exception):
         """Exception in Equation."""

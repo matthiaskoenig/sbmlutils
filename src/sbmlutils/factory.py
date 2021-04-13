@@ -1130,6 +1130,31 @@ class Reaction(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Create SBML reaction object.
+
+        The 'equation' defines the stoichiometric equation of the reaction.
+        Possible allosteric effectors can be added. See 'Equation' for details.
+
+        :param sid:
+        :param equation: stoichiometric equation with allosteric effectors
+        :param formula:
+        :param pars:
+        :param rules:
+        :param compartment:
+        :param fast:
+        :param reversible:
+        :param lowerFluxBound:
+        :param upperFluxBound:
+        :param name:
+        :param sboTerm:
+        :param metaId:
+        :param annotations:
+        :param notes:
+        :param port:
+        :param uncertainties:
+        :param replacedBy:
+        """
+
         super(Reaction, self).__init__(
             sid=sid,
             name=name,

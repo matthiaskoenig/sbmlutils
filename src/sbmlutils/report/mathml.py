@@ -363,3 +363,8 @@ def cmathml_to_latex(cmathml: str, **settings: Any) -> str:
     """
     astnode = cmathml_to_astnode(cmathml)
     return astnode_to_latex(astnode, **settings)
+
+
+if __name__ == "__main__":
+    mathml = formula_to_mathml(formula="S1 * 1.2", printer="content")
+    print(mathml)
