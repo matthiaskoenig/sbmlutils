@@ -130,78 +130,50 @@ class SBMLModelInfo:
             if item_comp.isSetReplacedBy():
                 replaced_by = item_comp.getReplacedBy()
                 submodel_ref = replaced_by.getSubmodelRef()
-                info[
-                    "replaced_by"
-                ] = f"""
-                    <br /><i class="fa fa-arrow-circle-right" aria-hidden="true"></i>
-                    <code>ReplacedBy {submodel_ref}:{sbaseref(replaced_by)}</code>
-                    """
+                info["replaced_by"] = {
+                    "submodel_ref": submodel_ref,
+                    "replaced_by_sbaseref": sbaseref(replaced_by)
+                }
 
             # ListOfReplacedElements
             if item_comp.getNumReplacedElements() > 0:
                 replaced_elements = []
                 for rep_el in item_comp.getListOfReplacedElements():
                     submodel_ref = rep_el.getSubmodelRef()
-                    replaced_elements.append(
-                        f"""
-                        <br /><i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
-                        <code>ReplacedElement {submodel_ref}:{sbaseref(rep_el)}</code>
-                        """
-                    )
-                if len(replaced_elements) == 0:
-                    replaced_elements_combined = ""
-                else:
-                    replaced_elements_combined = "".join(replaced_elements)
-                info["replaced_elements"] = replaced_elements_combined
+                    replaced_elements.append({
+                        "submodel_ref": submodel_ref,
+                        "replaced_element_sbaseref": sbaseref(rep_el)
+                    })
+
+                info["replaced_elements"] = replaced_elements
 
         # distrib
         sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
             info["uncertainties"] = []
-            info["uncert_strings"] = []
 
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLModelInfo.info_sbase(uncertainty)
 
                 u_dict["uncert_parameters"] = []
-                u_dict["uncert_params_strings"] = []
 
                 upar: libsbml.UncertParameter
                 for upar in uncertainty.getListOfUncertParameters():
                     param_dict = {}
-                    param_str = ""
                     if upar.isSetVar():
                         param_dict["var"] = upar.getVar()
-                        param_str += f"{param_dict['var']}, "
                     if upar.isSetValue():
                         param_dict["value"] = upar.getValue()
-                        param_str += f"{param_dict['value']}, "
                     if upar.isSetUnits():
                         param_dict["units"] = upar.getUnits()
-                        param_str += f"{param_dict['units']}, "
                     if upar.isSetType():
                         param_dict["type"] = upar.getTypeAsString()
-                        param_str += f"{param_dict['type']}, "
                     if upar.isSetDefinitionURL():
-                        param_dict[
-                            "definition_url"
-                        ] = f"""
-                                        <a href='{upar.getDefinitionURL()}'>
-                                        {upar.getDefinitionURL()}</a>
-                                        """
-                        param_str += param_dict["definition_url"]
+                        param_dict["definition_url"] = upar.getDefinitionURL()
                     if upar.isSetMath():
                         param_dict["math"] = formating.math(upar.getMath())
-                        param_str += f"{param_dict['math']}, "
-
-                    # create param info string
-                    param_str = "<li>"
-                    for key in param_dict.keys():
-                        param_str += f"{key}:{param_dict.get(key, '')}, "
-                    param_str += "</li>"
 
                     u_dict["uncert_parameters"].append(param_dict)
-                    u_dict["uncert_params_strings"].append(param_str)
 
                 info["uncertainties"].append(u_dict)
 
@@ -231,10 +203,10 @@ class SBMLModelInfo:
             metaid_ref = sbref.getMetaIdRef()
         info["metaid_ref"] = metaid_ref
         element = sbref.getReferencedElement()
-        info[
-            "referenced_element"
-        ] = f"<code>{type(element).__name__}: {element.getId()}</code>"
-        return info
+        info["referenced_element"] = {
+            "element": type(element).__name__,
+            "element_id": element.getId()
+        }
 
     def info_document(self, doc: libsbml.SBMLDocument) -> Dict[str, str]:
         """Info dictionary for SBaseRef.
@@ -243,20 +215,25 @@ class SBMLModelInfo:
         :return: information dictionary for SBMLDocument
         """
         info = self.info_sbase(doc)
-        packages = [
-            f'<span class="package">L{doc.getLevel()}V{doc.getVersion()}</span>'
-        ]
-
+        packages = {}
+        packages["document"] = {
+            "level": doc.getLevel(),
+            "version": doc.getVersion()
+        }
+        packages["plugins"] = []
         for k in range(doc.getNumPlugins()):
             plugin = doc.getPlugin(k)
             prefix = plugin.getPrefix()
             version = plugin.getPackageVersion()
-            packages.append(f'<span class="package">{prefix}-V{version}</span>')
-        info["packages"] = " ".join(packages)
+            packages["plugins"].append({
+                "prefix": prefix,
+                "version": version
+            })
+        info["packages"] = packages
         return info
 
     def info_model(self, model: libsbml.Model) -> Dict[str, str]:
-        """Info dictionary for SBaseRef.
+        """Info dictionary for SBML Model.
 
         :param model: Model
         :return: information dictionary for Model
@@ -278,14 +255,17 @@ class SBMLModelInfo:
             md: libsbml.ModelDefinition
             for md in doc_comp.getListOfModelDefinitions():
                 info = self.info_sbase(md)
-                info["type"] = type(md).__name__
+                info["type"] = {
+                    "class": type(md).__name__
+                }
                 data.append(info)
             emd: libsbml.ExternalModelDefinition
             for emd in doc_comp.getListOfExternalModelDefinitions():
                 info = self.info_sbase(emd)
-                info["type"] = (
-                    type(emd).__name__ + f" (<code>source={emd.getSource}</code>)"
-                )
+                info["type"] = {
+                    "class": type(emd).__name__,
+                    "source_code": emd.getSource
+                }
                 data.append(info)
         return data
 
@@ -305,17 +285,15 @@ class SBMLModelInfo:
                 deletions = []
                 for deletion in submodel.getListOfDeletions():
                     deletions.append(sbaseref(deletion))
-                if len(deletions) == 0:
-                    deletions_combined = empty_html()
-                else:
-                    deletions_combined = "<br />".join(deletions)
-                info["deletions"] = deletions_combined
 
-                time_conversion = empty_html()
+                info["deletions"] = deletions
+
+                time_conversion = ""
                 if submodel.isSetTimeConversionFactor():
                     time_conversion = submodel.getTimeConversionFactor()
                 info["time_conversion"] = time_conversion
-                extent_conversion = empty_html()
+
+                extent_conversion = ""
                 if submodel.isSetExtentConversionFactor():
                     extent_conversion = submodel.getExtentConversionFactor()
                 info["extent_conversion"] = extent_conversion
@@ -423,9 +401,13 @@ class SBMLModelInfo:
                 cf_value = cf_p.getValue()
                 cf_units = cf_p.getUnits()
 
-                info["conversion_factor"] = f"{cf_sid}={cf_value} [{cf_units}]"
+                info["conversion_factor"] = {
+                    "cf_sid": cf_sid,
+                    "cf_value": cf_value,
+                    "cf_units": cf_units
+                }
             else:
-                info["conversion_factor"] = empty_html()
+                info["conversion_factor"] = ""
 
             # fbc
             sfbc = s.getPlugin("fbc")
@@ -435,16 +417,12 @@ class SBMLModelInfo:
                 if sfbc.isSetCharge():
                     c = sfbc.getCharge()
                     if c != 0:
-                        info["fbc_charge"] = f"({sfbc.getCharge()})"
+                        info["fbc_charge"] = sfbc.getCharge()
                 if ("fbc_formula" in info) or ("fbc_charge" in info):
-                    info[
-                        "fbc"
-                    ] = f"""
-                        <br />
-                        <code>
-                            {info.get('fbc_formula', '')}{info.get('fbc_charge', '')}
-                        </code>
-                        """
+                    info["fbc"] = {
+                        "fbc_formula": info.get('fbc_formula', ''),
+                        "fbc_charge": info.get('fbc_charge', '')
+                    }
             data.append(info)
         return data
 
@@ -547,19 +525,11 @@ class SBMLModelInfo:
         r: libsbml.Reaction
         for r in self.model.getListOfReactions():
             info = self.info_sbase(r)
-            if r.reversible:
-                reversible = '<td class ="success">&#8646;</td>'
-            else:
-                reversible = '<td class ="danger">&#10142;</td>'
-            info["reversible"] = reversible
+            info["reversible"] = r.reversible
             info["equation"] = formating.equationStringFromReaction(r)
 
             modifiers = [mod.getSpecies() for mod in r.getListOfModifiers()]
-            if modifiers:
-                modifiers_html = "<br />".join(modifiers)
-            else:
-                modifiers_html = empty_html()
-            info["modifiers"] = modifiers_html
+            info["modifiers"] = modifiers
 
             klaw = r.getKineticLaw()
             info["formula"] = math(klaw, self.math_render)
@@ -593,9 +563,13 @@ class SBMLModelInfo:
                         sign = "-"
                     else:
                         sign = "+"
-                    part = f"{sign}{abs(coefficient)}*{f_obj.getReaction()}"
+                    part = {
+                        "sign": sign,
+                        "coefficient": abs(coefficient),
+                        "reaction": f_obj.getReaction()
+                    }
                     flux_objectives.append(part)
-                info["flux_objectives"] = " ".join(flux_objectives)
+                info["flux_objectives"] = flux_objectives
                 data.append(info)
         return data
 
@@ -610,28 +584,29 @@ class SBMLModelInfo:
             info = self.info_sbase(event)
 
             trigger = event.getTrigger()
-            info[
-                "trigger"
-            ] = f"""
-                {math(trigger, self.math_render)}
-                <br />initialValue = {trigger.initial_value}
-                <br /> persistent = {trigger.persistent}
-                """
+            info["trigger"] = {
+                "math": math(trigger, self.math_render),
+                "initial_value": trigger.initial_value,
+                "persistent": trigger.persistent
+            }
 
-            priority = empty_html()
+            priority = ""
             if event.isSetPriority():
                 priority = event.getPriority()
             info["priority"] = priority
 
-            delay = empty_html()
+            delay = ""
             if event.isSetDelay():
                 delay = event.getDelay()
             info["delay"] = delay
-            assignments = ""
+
+            assignments = []
             for eva in event.getListOfEventAssignments():
-                assignments += f"{eva.getId()} = {math(eva, self.math_render)}<br />"
-            if len(assignments) == 0:
-                assignments = empty_html()
+                assignments.append({
+                    "id": eva.getId(),
+                    "meth": math(eva, self.math_render)
+                })
+
             info["assignments"] = assignments
             data.append(info)
         return data
