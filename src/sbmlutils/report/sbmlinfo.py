@@ -12,14 +12,14 @@ import libsbml
 
 from sbmlutils.report import formating
 from sbmlutils.report.formating import (
-    annotation_html,
+    annotation_to_list,
     boolean,
     cvterm,
     derived_units,
     empty_html,
     id_html,
     math,
-    metaid_html,
+    metaid,
     notes,
     sbaseref,
     sbo,
@@ -109,11 +109,11 @@ class SBMLModelInfo:
         info = {
             "object": sbase,
             "id": sbase.getId(),
-            "metaId": metaid_html(sbase),
+            "metaId": metaid(sbase),
             "sbo": sbo(sbase),
             "cvterm": cvterm(sbase),
             "notes": notes(sbase),
-            "annotation": annotation_html(sbase),
+            "annotation": annotation_to_list(sbase),
         }
 
         if sbase.isSetName():
@@ -336,9 +336,12 @@ class SBMLModelInfo:
         ud: libsbml.UnitDefinition
         for ud in self.model.getListOfUnitDefinitions():
             info = self.info_sbase(ud)
-            info["units"] = formating.formula_to_mathml(
-                formating.unitDefinitionToString(ud)
-            )
+            info["units"] = {
+                "math": formating.formula_to_mathml(
+                    formating.unitDefinitionToString(ud)
+                ),
+                "unit_definition": formating.unit_definitions_dict(ud)
+            }
             data.append(info)
         return data
 
