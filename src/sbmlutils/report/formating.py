@@ -7,6 +7,8 @@ from sbmlutils import utils
 from sbmlutils.metadata import miriam
 from sbmlutils.report import mathml
 
+from typing import Dict, List
+
 
 def annotation_to_html(item: libsbml.SBase) -> str:
     """Render HTML representation of given annotation.
@@ -36,6 +38,37 @@ def annotation_to_html(item: libsbml.SBase) -> str:
     res = "<br />".join(lines)
     return res
 
+def annotation_dict(item: libsbml.SBase) -> Dict:
+    """Render dictionary representation of given annotation.
+
+    :param item: SBase instance
+    """
+    res = {}
+    res["cvterms"] = []
+    for kcv in range(item.getNumCVTerms()):
+        info = {}
+        cv = item.getCVTerm(kcv)
+        q_type = cv.getQualifierType()
+        if q_type == 0:
+            qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
+        elif q_type == 1:
+            qualifier = miriam.BiologicalQualifierType[cv.getBiologicalQualifierType()]
+        info["qualifier"] = qualifier
+
+        links = []
+        for k in range(cv.getNumResources()):
+            uri = cv.getResourceURI(k)
+            tokens = uri.split("/")
+            resource_id = tokens[-1]
+            link = {
+                "resource_id": resource_id,
+                "uri": uri
+            }
+            links.append(link)
+        info["links"] = links
+
+        res["cvterms"].append(info)
+    return res
 
 def notes_to_string(sbase: libsbml.SBase) -> str:
     """Render notes to string.
@@ -171,12 +204,10 @@ def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
         if (lb_value is not None) or (ub_value is not None):
-            bounds = f"""
-                    <code>[{lb_value}
-                    <i class="fa fa-sort fa-rotate-90" aria-hidden="true"></i>
-                    {ub_value}]
-                    </code>
-                    """
+            bounds = {
+                "lb_value": lb_value,
+                "ub_value": ub_value
+            }
     return bounds
 
 
@@ -206,30 +237,32 @@ def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
     :return HTML representation of the model history
     """
     if not mhistory:
-        return ""
-    items = []
-    items.append("<b>Creator</b>")
+        return {}
+    creators = []
     for kc in range(mhistory.getNumCreators()):
-        cdata = []
+        cdata = {}
         c = mhistory.getCreator(kc)
         if c.isSetGivenName():
-            cdata.append(c.getGivenName())
+            cdata["given_namw"] = c.getGivenName()
         if c.isSetFamilyName():
-            cdata.append(c.getFamilyName())
+            cdata["family_name"] = c.getFamilyName()
         if c.isSetOrganisation():
-            cdata.append(c.getOrganisation())
+            cdata["organization"] = c.getOrganisation()
         if c.isSetEmail():
-            cdata.append(
-                f'<a href="mailto:{c.getEmail()}" target="_blank">{c.getEmail()}</a>'
-            )
-        items.append(", ".join(cdata))
-    if mhistory.isSetCreatedDate():
-        items.append("<b>Created:</b> " + dateToString(mhistory.getCreatedDate()))
-    for km in range(mhistory.getNumModifiedDates()):
-        items.append("<b>Modified:</b> " + dateToString(mhistory.getModifiedDate(km)))
-    items.append("<br />")
-    return "<br />".join(items)
+            cdata["email"] = c.getEmail()
+        creators.append(cdata)
 
+    mhistory["creators"] = creators
+
+    if mhistory.isSetCreatedDate():
+        mhistory["created_date"] = dateToDict(mhistory.getCreatedDate())
+    modified_dates = []
+    for km in range(mhistory.getNumModifiedDates()):
+        modified_dates.append({
+            "modified_date": dateToDict(mhistory.getModifiedDate(km))
+        })
+    mhistory["modified_dates"] = modified_dates
+    return mhistory
 
 def dateToString(d: libsbml.Date) -> str:
     """Create string representation of date.
@@ -242,6 +275,23 @@ def dateToString(d: libsbml.Date) -> str:
         f"{str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
     )
 
+def dateToDict(d: libsbml.Date) -> Dict:
+    """Create dictionary representation of date.
+
+    :param d: SBML Date instance
+    return dictionary containing date details
+    """
+    return {
+        "date": {
+            "year": d.getYear(),
+            "month": str(d.getMonth()).zfill(2),
+            "day": str(d.getDay()).zfill(2)
+        },
+        "time": {
+            "hour": str(d.getHour()).zfill(2),
+            "minute": str(d.getMinute()).zfill(2)
+        }
+    }
 
 def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -> bool:
     """Calculate the two floats are identical.
@@ -347,6 +397,66 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     return ""
 
 
+def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
+    """Render dictionary for units.
+
+    Units have the general format
+        (multiplier * 10^scale *ukind)^exponent
+        (m * 10^s *k)^e
+
+    :param udef: unit definition which is to be converted to dictionary
+    """
+    if udef is None:
+        return {}
+
+    libsbml.UnitDefinition_reorder(udef)
+    # collect formatted nominators and denominators
+    nom_terms = []
+    denom_terms = []
+    for u in udef.getListOfUnits():
+        m = u.getMultiplier()
+        s = u.getScale()
+        e = u.getExponent()
+        k = libsbml.UnitKind_toString(u.getKind())
+
+        # get better name for unit
+        kind = {
+            "name": UNIT_ABBREVIATIONS.get(k, k)
+        }
+
+        # (m * 10^s *k)^e
+
+        # handle m
+        multiplier = {
+            "is_close": _isclose(m, 1.0),
+            "value": m
+        }
+
+        exponent = {
+            "is_close": _isclose(abs(e), 1.0),
+            "value": abs(e)
+        }
+
+        unit = {
+            "is_close": _isclose(s, 0.0),
+            "scale": s,
+            "multiplier": multiplier,
+            "exponent": exponent,
+            "kind": kind,
+        }
+
+        # collect the terms
+        if e >= 0.0:
+            nom_terms.append(unit)
+        else:
+            denom_terms.append(unit)
+
+    res = {
+        "nom_terms": nom_terms,
+        "denom_terms": denom_terms
+    }
+    return res
+
 def notes(item: libsbml.SBase) -> str:
     """Convert the SBML object's notes subelement to formatted string.
 
@@ -358,50 +468,60 @@ def notes(item: libsbml.SBase) -> str:
     return ""
 
 
-def cvterm(item: libsbml.SBase) -> str:
+def cvterm(item: libsbml.SBase) -> Dict:
     """Create HTML code fragment enclosing cvterm data for the item.
 
     :param item: SBML object for which cvterm data has to be displayed
     :return: HTML code fragment enclosing cvterm data for the item
     """
     if item.isSetAnnotation():
-        return f'<div class="cvterm">{annotation_to_html(item)}</div>'
-    return ""
+        return annotation_dict(item)
+    return {}
 
 
-def sbo(item: libsbml.SBase) -> str:
+def sbo(item: libsbml.SBase) -> Dict:
     """Create HTML code fragment enclosing SBOTerm data for the item.
 
     :param item: SBML object for which SBOTerm data has to be displayed
-    :return: HTML code fragment enclosing SBOTerm data for the item
+    :return: Dictionary enclosing SBOTerm data for the item
     """
 
     if item.getSBOTerm() != -1:
-        return f"""<div class="cvterm">
-                        <a href="{item.getSBOTermAsURL()}" target="_blank">
-                            {item.getSBOTermID()}
-                        </a>
-                    </div>
-                """
-    return ""
+        return {
+            "url": item.getSBOTermAsURL(),
+            "ID": item.getSBOTermID()
+        }
+    return {}
 
 
-def sbaseref(sref: libsbml.SBaseRef) -> str:
+def sbaseref(sref: libsbml.SBaseRef) -> Dict:
     """Format the SBaseRef instance.
 
     :param sref: SBaseRef instance
-    :return: string containging formatted SBaseRef instance's data
+    :return: Dictionary containging formatted SBaseRef instance's data
     """
 
     if sref.isSetPortRef():
-        return f"portRef={sref.getPortRef()}"
+        return {
+            "type": "port_ref",
+            "value": sref.getPortRef()
+        }
     elif sref.isSetIdRef():
-        return f"idRef={sref.getIdRef()}"
+        return {
+            "type": "id_ref",
+            "value": sref.getIdRef()
+        }
     elif sref.isSetUnitRef():
-        return f"unitRef={sref.getUnitRef()}"
+        return {
+            "type": "unit_ref",
+            "value": sref.getUnitRef()
+        }
     elif sref.isSetMetaIdRef():
-        return f"metaIdRef={sref.getMetaIdRef()}"
-    return ""
+        return {
+            "type": "meta_ID_ref",
+            "value": sref.getMetaIdRef()
+        }
+    return {}
 
 
 def empty_html() -> str:
@@ -410,18 +530,18 @@ def empty_html() -> str:
     return '<i class="fa fa-ban gray"></i>'
 
 
-def metaid_html(item: libsbml.SBase) -> str:
+def metaid(item: libsbml.SBase) -> str:
     """Create metaid data for the item.
 
     :param item: SBML object for which metaid data has to be generated
     :return: HTML code fragment enclosing metaid data for item
     """
     if item.isSetMetaId():
-        return f"<code>{item.getMetaId()}</code>"
+        return str(item.getMetaId())
     return ""
 
 
-def id_html(item: libsbml.SBase) -> str:
+def id_dict(item: libsbml.SBase) -> Dict:
     """Create info from id and metaid.
 
     :param item: SBML object for which info is to be generated
@@ -429,24 +549,26 @@ def id_html(item: libsbml.SBase) -> str:
     """
 
     sid = item.getId()
-    meta = metaid_html(item)
+    meta = metaid(item)
 
+    info = {}
     if sid:
         display_sid = sid
         if isinstance(item, libsbml.RateRule) and item.isSetVariable():
             display_sid = "d {}/dt".format(item.getVariable())
-        info = f"""
-                <td id="{sid}" class="active">
-                <span class="package">{display_sid}</span> {meta}
-            """
+        info = {
+            "id": sid,
+            "display_sid": display_sid,
+            "meta": meta
+        }
     else:
         if meta:
-            info = f'<td class="active">{meta}'
-        else:
-            info = f'<td class="active">{empty_html()}'
+            info = {
+                "meta": meta
+            }
 
     # create modal information
-    info += xml_modal(item)
+    info["xml_modal"] = xml_modal(item)
 
     return info
 
@@ -497,22 +619,14 @@ def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
     return empty_html()
 
 
-def boolean(condition: bool) -> str:
+def boolean(condition: bool) -> bool:
     """Check the truth value of condition and create corresponding HTML code fragment.
 
     :param condition: condition for which the truth value is to be checked
-    :return: HTML code fragment
+    :return: boolean value of the condition
     """
 
-    if condition:
-        return """
-            <td>
-                <span class="fas fa-check-circle green"></span>
-                <span class="invisible">T</span>
-            </td>
-        """
-    else:
-        return '<td><span class=""><span class="invisible">F</span></span></td>'
+    return condition
 
 
 def annotation_xml(item: libsbml.SBase) -> str:
