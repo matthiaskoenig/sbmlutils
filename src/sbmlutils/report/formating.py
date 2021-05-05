@@ -15,15 +15,18 @@ def annotation_dict(item: libsbml.SBase) -> Dict:
 
     :param item: SBase instance
     """
+    if not item.isSetAnnotation():
+        return None
+
     res = {}
     cvterms = []
     for kcv in range(item.getNumCVTerms()):
         info = {}
         cv = item.getCVTerm(kcv)
         q_type = cv.getQualifierType()
-        if q_type == 0:
+        if q_type == libsbml.MODEL_QUALIFIER:
             qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
-        elif q_type == 1:
+        elif q_type == libsbml.BIOLOGICAL_QUALIFIER:
             qualifier = miriam.BiologicalQualifierType[cv.getBiologicalQualifierType()]
         info["qualifier"] = qualifier
 
@@ -431,19 +434,6 @@ def notes(item: libsbml.SBase) -> Dict
         "notes": notes_to_string(item) if item.isSetNotes() else None
     }
     return notes
-
-
-def cvterm(item: libsbml.SBase) -> Dict:
-    """Create HTML code fragment enclosing cvterm data for the item.
-
-    :param item: SBML object for which cvterm data has to be displayed
-    :return: HTML code fragment enclosing cvterm data for the item
-    """
-
-    cvterm = {
-        "cvterm": annotation_dict(item) if item.isSetAnnotation() else None
-    }
-    return cvterm
 
 
 def sbo(item: libsbml.SBase) -> Dict:

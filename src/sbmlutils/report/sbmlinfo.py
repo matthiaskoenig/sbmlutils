@@ -14,7 +14,6 @@ from sbmlutils.report import formating
 from sbmlutils.report.formating import (
     annotation_dict,
     boolean,
-    cvterm,
     derived_units,
     empty_html,
     id_html,
@@ -113,7 +112,7 @@ class SBMLModelInfo:
             "id": sbase.getId(),
             "metaId": metaid(sbase),
             "sbo": sbo(sbase),
-            "cvterm": cvterm(sbase),
+            "cvterm": annotation_dict(sbase),
             "notes": notes(sbase),
             "annotation": annotation_dict(sbase),
         }
