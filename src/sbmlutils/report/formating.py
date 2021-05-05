@@ -10,41 +10,13 @@ from sbmlutils.report import mathml
 from typing import Dict, List
 
 
-def annotation_to_html(item: libsbml.SBase) -> str:
-    """Render HTML representation of given annotation.
-
-    :param item: SBase instance
-    """
-    lines = []
-    for kcv in range(item.getNumCVTerms()):
-        cv = item.getCVTerm(kcv)
-        q_type = cv.getQualifierType()
-        if q_type == 0:
-            qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
-        elif q_type == 1:
-            qualifier = miriam.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-        lines.append("".join(['<span class="collection">', qualifier, "</span>"]))
-
-        items = []
-        for k in range(cv.getNumResources()):
-            uri = cv.getResourceURI(k)
-            tokens = uri.split("/")
-            resource_id = tokens[-1]
-            link = "".join(
-                ['<a href="', uri, '" target="_blank">', resource_id, "</a>"]
-            )
-            items.append(link)
-        lines.append("; ".join(items))
-    res = "<br />".join(lines)
-    return res
-
 def annotation_dict(item: libsbml.SBase) -> Dict:
     """Render dictionary representation of given annotation.
 
     :param item: SBase instance
     """
     res = {}
-    res["cvterms"] = []
+    cvterms = []
     for kcv in range(item.getNumCVTerms()):
         info = {}
         cv = item.getCVTerm(kcv)
@@ -65,9 +37,12 @@ def annotation_dict(item: libsbml.SBase) -> Dict:
                 "uri": uri
             }
             links.append(link)
-        info["links"] = links
+        info["links"] = links if len(links) > 0 else None
 
-        res["cvterms"].append(info)
+        cvterms.append(info)
+
+    res["cvterms"] = cvterms if len(cvterms) > 0 else None
+
     return res
 
 def notes_to_string(sbase: libsbml.SBase) -> str:
@@ -180,14 +155,14 @@ def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
 # ------------------------------
 # FBC
 # ------------------------------
-def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> str:
+def boundsDictFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> Dict:
     """Render string of bounds from the reaction.
 
     :param reaction: SBML reaction instance
     :param model: SBML model instance
     :return: String of bounds extracted from the reaction
     """
-    bounds = ""
+    bounds = {}
     rfbc = reaction.getPlugin("fbc")
     if rfbc is not None:
         # get values for bounds
@@ -203,27 +178,27 @@ def boundsStringFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -
             ub_p = model.getParameter(ub_id)
             if ub_p.isSetValue():
                 ub_value = ub_p.getValue()
-        if (lb_value is not None) or (ub_value is not None):
-            bounds = {
-                "lb_value": lb_value,
-                "ub_value": ub_value
-            }
+
+        bounds["lb_value"] = lb_value
+        bounds["ub_value"] = ub_value
+    else:
+        bounds = None
+
     return bounds
 
 
-def geneProductAssociationStringFromReaction(reaction: libsbml.Reaction) -> str:
+def geneProductAssociationDictFromReaction(reaction: libsbml.Reaction) -> Dict:
     """Render string representation of the GeneProductAssociation for given reaction.
 
     :param reaction: SBML reaction instance
     :return: string representation of GeneProductAssociation
     """
-    info = ""
-    rfbc = reaction.getPlugin("fbc")
 
-    if rfbc and rfbc.isSetGeneProductAssociation():
-        gpa = rfbc.getGeneProductAssociation()
-        association = gpa.getAssociation()
-        info = association.toInfix()
+    rfbc = reaction.getPlugin("fbc")
+    info = rfbc.getGeneProductAssociation().getAssociation().toInfix() if (
+        rfbc and rfbc.isSetGeneProductAssociation()
+    ) else None
+
     return info
 
 
@@ -237,43 +212,31 @@ def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
     :return HTML representation of the model history
     """
     if not mhistory:
-        return {}
+        return None
+
     creators = []
     for kc in range(mhistory.getNumCreators()):
         cdata = {}
         c = mhistory.getCreator(kc)
-        if c.isSetGivenName():
-            cdata["given_namw"] = c.getGivenName()
-        if c.isSetFamilyName():
-            cdata["family_name"] = c.getFamilyName()
-        if c.isSetOrganisation():
-            cdata["organization"] = c.getOrganisation()
-        if c.isSetEmail():
-            cdata["email"] = c.getEmail()
+        cdata["given_namw"] = c.getGivenName() if c.isSetGivenName() else None
+        cdata["family_namw"] = c.getFamilyName() if c.isSetFamilyName() else None
+        cdata["organization"] = c.getOrganization() if c.isSetOrganization() else None
+        cdata["email"] = c.getEmail() if c.isSetEmail() else None
+
         creators.append(cdata)
 
     mhistory["creators"] = creators
 
-    if mhistory.isSetCreatedDate():
-        mhistory["created_date"] = dateToDict(mhistory.getCreatedDate())
+    mhistory["created_date"] = dateToDict(mhistory.getCreatedDate()) if mhistory.isSetCreatedDate() else None
+
     modified_dates = []
     for km in range(mhistory.getNumModifiedDates()):
         modified_dates.append({
             "modified_date": dateToDict(mhistory.getModifiedDate(km))
         })
-    mhistory["modified_dates"] = modified_dates
+    mhistory["modified_dates"] = modified_dates if len(modified_dates) > 0 else None
+
     return mhistory
-
-def dateToString(d: libsbml.Date) -> str:
-    """Create string representation of date.
-
-    :param d: SBML Date instance
-    return string representation of date
-    """
-    return (
-        f"{d.getYear()}-{str(d.getMonth()).zfill(2)}-{str(d.getDay()).zfill(2)} "
-        f"{str(d.getHour()).zfill(2)}:{str(d.getMinute()).zfill(2)}"
-    )
 
 def dateToDict(d: libsbml.Date) -> Dict:
     """Create dictionary representation of date.
@@ -333,7 +296,7 @@ UNIT_ABBREVIATIONS = {
     "gram": "g",
 }
 
-
+# still being used in convering derived units
 def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     """Render formatted string for units.
 
@@ -407,7 +370,7 @@ def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
     :param udef: unit definition which is to be converted to dictionary
     """
     if udef is None:
-        return {}
+        return None
 
     libsbml.UnitDefinition_reorder(udef)
     # collect formatted nominators and denominators
@@ -457,15 +420,17 @@ def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
     }
     return res
 
-def notes(item: libsbml.SBase) -> str:
+def notes(item: libsbml.SBase) -> Dict
     """Convert the SBML object's notes subelement to formatted string.
 
     :param item: SBML object containing the notes subelement
     :return: formatted string for the notes subelement of the item
     """
-    if item.isSetNotes():
-        return notes_to_string(item)
-    return ""
+
+    notes = {
+        "notes": notes_to_string(item) if item.isSetNotes() else None
+    }
+    return notes
 
 
 def cvterm(item: libsbml.SBase) -> Dict:
@@ -474,9 +439,11 @@ def cvterm(item: libsbml.SBase) -> Dict:
     :param item: SBML object for which cvterm data has to be displayed
     :return: HTML code fragment enclosing cvterm data for the item
     """
-    if item.isSetAnnotation():
-        return annotation_dict(item)
-    return {}
+
+    cvterm = {
+        "cvterm": annotation_dict(item) if item.isSetAnnotation() else None
+    }
+    return cvterm
 
 
 def sbo(item: libsbml.SBase) -> Dict:
@@ -486,12 +453,12 @@ def sbo(item: libsbml.SBase) -> Dict:
     :return: Dictionary enclosing SBOTerm data for the item
     """
 
-    if item.getSBOTerm() != -1:
-        return {
-            "url": item.getSBOTermAsURL(),
-            "ID": item.getSBOTermID()
-        }
-    return {}
+    sbo = {
+        "url": item.getSBOTermAsURL(),
+        "ID": item.getSBOTermID()
+    } if item.isSetSBOTerm() else None
+
+    return sbo
 
 
 def sbaseref(sref: libsbml.SBaseRef) -> Dict:
@@ -521,24 +488,20 @@ def sbaseref(sref: libsbml.SBaseRef) -> Dict:
             "type": "meta_ID_ref",
             "value": sref.getMetaIdRef()
         }
-    return {}
+    return None
 
 
-def empty_html() -> str:
-    """Create a blank HTML code fragment."""
-
-    return '<i class="fa fa-ban gray"></i>'
-
-
-def metaid(item: libsbml.SBase) -> str:
+def metaid(item: libsbml.SBase) -> Dict:
     """Create metaid data for the item.
 
     :param item: SBML object for which metaid data has to be generated
     :return: HTML code fragment enclosing metaid data for item
     """
-    if item.isSetMetaId():
-        return str(item.getMetaId())
-    return ""
+
+    metaid = {
+        "metaid": str(item.getMetaId()) if item.isSetMetaId() else None
+    }
+    return metaid
 
 
 def id_dict(item: libsbml.SBase) -> Dict:
@@ -573,26 +536,6 @@ def id_dict(item: libsbml.SBase) -> Dict:
     return info
 
 
-def annotation_html(item: libsbml.SBase) -> str:
-    """Create annotation HTML content for the item.
-
-    :param item: SBML object for which annotation HTML content is to be generated
-    :return: HTML code fragment enclosing annotation for item
-    """
-
-    info = '<div class="cvterm">'
-    if item.getSBOTerm() != -1:
-        info += f"""
-            <a href="{item.getSBOTermAsURL()}" target="_blank">
-                {item.getSBOTermID()}
-            </a><br />
-            """
-    if item.isSetAnnotation():
-        info += annotation_to_html(item)
-    info += "</div>"
-    return info
-
-
 def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
     """Create MathML content for the item.
 
@@ -601,22 +544,32 @@ def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
     :return: formatted MathML content for the item
     """
 
+    info = {}
     if sbase:
         if not isinstance(sbase, libsbml.ASTNode):
             astnode = sbase.getMath()
             if not astnode:
-                return empty_html()
+                info["type"] = None
+                info["math"] = None
         else:
             astnode = sbase
-        if math_type == "cmathml":
-            return astnode_to_mathml(astnode)
-        elif math_type == "pmathml":
-            cmathml = astnode_to_mathml(astnode)
-            return mathml.cmathml_to_pmathml(cmathml)
-        elif math_type == "latex":
-            latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
-            return f"$${latex_str}$$"
-    return empty_html()
+
+            if math_type == "cmathml":
+                info["type"] = "cmathml"
+                info["math"] = astnode_to_mathml(astnode)
+            elif math_type == "pmathml":
+                info["type"] = "pmathml"
+                cmathml = astnode_to_mathml(astnode)
+                info["math"] = mathml.cmathml_to_pmathml(cmathml)
+            elif math_type == "latex":
+                info["type"] = "latex"
+                latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
+                info["math"] = f"$${latex_str}$$"
+    else:
+        info["type"] = None
+        info["math"] = None
+
+    return info
 
 
 def boolean(condition: bool) -> bool:
@@ -627,17 +580,6 @@ def boolean(condition: bool) -> bool:
     """
 
     return condition
-
-
-def annotation_xml(item: libsbml.SBase) -> str:
-    """Create Annotation string for the item.
-
-    :param item: SBML object for which MathML content is to be generated
-    :return: Annotation string for the item
-    """
-    if item.isSetAnnotation():
-        return f"<pre>{item.getAnnotationString().decode('utf-8')}</pre>"
-    return ""
 
 
 def xml_modal(item: libsbml.SBase) -> str:
@@ -689,15 +631,17 @@ def xml(item: libsbml.SBase) -> str:
     # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
 
 
-def derived_units(item: libsbml.SBase) -> str:
+def derived_units(item: libsbml.SBase) -> Dict:
     """Create formatted string for Unit definition object.
 
     :param item: SBML object from which Unit Definition string is to be created
     :return: formatted string for Unit Definition derived from the item
     """
 
-    if item:
-        return formula_to_mathml(
+    info = {
+        "units": formula_to_mathml(
             unitDefinitionToString(item.getDerivedUnitDefinition())
         )
-    return ""
+    } if item else None
+
+    return info
