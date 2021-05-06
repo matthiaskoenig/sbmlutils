@@ -17,20 +17,13 @@ import ntpath
 from pathlib import Path
 from typing import Any, Dict, List
 
-import jinja2
 import libsbml
-from jinja2 import TemplateNotFound
 
-from sbmlutils import RESOURCES_DIR
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.report import sbmlfilters
 from sbmlutils.report.sbmlinfo import SBMLModelInfo
 
 
 logger = logging.getLogger(__name__)
-
-TEMPLATE_DIR = RESOURCES_DIR / "templates"
-
 
 def _check_report_math_type(math_type: str) -> None:
     """Check the math type in the report."""
@@ -90,7 +83,6 @@ def create_report(
     sbml_path: Path,
     output_dir: Path,
     promote: bool = False,
-    template: str = "report.html",
     math_type: str = "cmathml",
     validate: bool = True,
     log_errors: bool = True,
@@ -115,6 +107,7 @@ def create_report(
 
     :return: string variable containing content of the generated HTML report
     """
+
     # validate and check arguments
     _check_report_math_type(math_type)
 
@@ -152,55 +145,15 @@ def create_report(
     basename = sbml_path.name
     write_sbml(doc, filepath=output_dir / basename)
 
-    # write html
-    html = _create_html(doc, basename, html_template=template, math_type=math_type)
-    return html
+    logging.error(f"No model in SBML file when creating model report: {doc}")
+
+    # return JSON serialized model info
+    return _get_serialized_model_info(doc, math_type=math_type)
 
 
-def _create_index_html(
-    sbml_paths: List[Path], html_template: str = "index.html", offline: bool = True
-) -> str:
-    """Create index.html for given sbml_paths.
-
-    :param sbml_paths: List of paths to SBML files
-    :param html_template: which template file to use for rendering
-    :param offline: to specify offline report generation for appropriate linking
-                    of stylesheet and script files
-
-    :return
-    """
-
-    # template environment
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-        extensions=["jinja2.ext.autoescape"],
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-    template = env.get_template(html_template)
-
-    sbml_basenames = [ntpath.basename(path) for path in sbml_paths]
-    sbml_links = []
-    for basename in sbml_basenames:
-        tokens = basename.split(".")
-        name = ".".join(tokens[:-1]) + ".html"
-        sbml_links.append(name)
-
-    return template.render(
-        {
-            "offline": offline,
-            "sbml_basenames": sbml_basenames,
-            "sbml_links": sbml_links,
-        }
-    )
-
-
-def _create_html(
+def _get_serialized_model_info(
     doc: libsbml.SBMLDocument,
-    basename: str,
-    html_template: str = "report.html",
     math_type: str = "cmathml",
-    offline: bool = True,
 ) -> str:
     """Create HTML from SBML.
 
@@ -213,37 +166,15 @@ def _create_html(
 
     :return: rendered HTML report template for the SBML document
     """
-    # template environment
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-        extensions=["jinja2.ext.autoescape"],
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-    # additional SBML filters
-    for key in sbmlfilters.filters:
-        env.filters[key] = getattr(sbmlfilters, key)
 
     model = doc.getModel()
-    context: Dict[str, Any] = {
-        "offline": offline,
-        "basename": basename,
-    }
-    if model is not None:
-        try:
-            template = env.get_template(html_template)
-        except TemplateNotFound as err:
-            logger.error(f"TemplateNotFound: {TEMPLATE_DIR} / {html_template}; {err}")
 
+    if model is not None:
         model_info = SBMLModelInfo(doc=doc, model=model, math_render=math_type)
-        context.update(model_info.info)
+
+        serialized_model_info = model_info.info
+
+        return serialized_model_info
     else:
         # no model exists
         logging.error(f"No model in SBML file when creating model report: {doc}")
-        template = env.get_template("report_no_model.html")
-        context.update(
-            {
-                "doc": doc,
-            }
-        )
-    return template.render(context)
