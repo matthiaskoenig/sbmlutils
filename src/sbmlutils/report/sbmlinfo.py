@@ -4,9 +4,9 @@ The model dictionary can be used for rendering the HTML report.
 The information can be serialized to JSON for later rendering in web app.
 """
 
-
+import json
 import warnings
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import libsbml
 
@@ -48,6 +48,17 @@ class SBMLModelInfo:
         self.model = model
         self.math_render = math_render
         self.info = self.create_info()
+
+    def serialize_model(self):
+
+        if self.info is None:
+            self.info = self.create_info()
+
+        model_json = json.dumps(self.info, indent=4)
+
+        print(59)
+        print(model_json)
+        return model_json
 
     def create_info(self) -> Dict[str, Any]:
         """Create information dictionary for report rendering."""

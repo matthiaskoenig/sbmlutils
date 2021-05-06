@@ -1,6 +1,7 @@
 """Test SBML report."""
 from pathlib import Path
 
+import json
 import pytest
 
 from sbmlutils.report import sbmlreport
@@ -10,7 +11,7 @@ from sbmlutils.test import ALL_SBML_PATHS, GZ_SBML, sbml_paths_idfn
 @pytest.mark.parametrize("sbml_path", [GZ_SBML], ids=sbml_paths_idfn)
 def test_report_gz(sbml_path: Path, tmp_path: Path) -> None:
     """Test report generation for compressed models."""
-    sbmlreport.create_report(sbml_path=sbml_path, output_dir=tmp_path)
+    print(sbmlreport.create_report(sbml_path=sbml_path, output_dir=tmp_path))
 
 
 @pytest.mark.parametrize("sbml_path", ALL_SBML_PATHS, ids=sbml_paths_idfn)
@@ -42,3 +43,16 @@ def check_report_math_type(
     # check the returned HTML in the variable for correctness of type
     assert html
     assert isinstance(html, str)
+
+
+#### not working
+@pytest.mark.parametrize("sbml_path", [GLUCOSE_SBML], ids=sbml_paths_idfn)
+def test_serialization(sbml_path: Path, tmp_path: Path) -> None:
+    """Test report generation for compressed models."""
+    serialized_model_info = sbmlreport.create_report(sbml_path=sbml_path, output_dir=tmp_path)
+
+    filename = "test.json"
+    print(serialized_model_info)
+    with open(filename, "w") as json_file:
+        json.dump(serialized_model_info, json_file)
+
