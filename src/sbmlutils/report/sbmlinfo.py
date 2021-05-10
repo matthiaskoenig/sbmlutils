@@ -121,7 +121,7 @@ class SBMLModelInfo:
         info = {
             "object": sbase,
             "id": sbase.getId(),
-            "metaId": metaid(sbase),
+            "metaId": sbase.getMetaId() if sbase.isSetMetaId() else None,
             "sbo": sbo(sbase),
             "cvterm": annotation_dict(sbase),
             "notes": notes(sbase),
