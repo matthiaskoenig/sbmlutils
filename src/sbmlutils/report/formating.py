@@ -1,28 +1,26 @@
 """Helper functions for formating SBML elements."""
-from typing import Optional
-
 import libsbml
 
 from sbmlutils import utils
 from sbmlutils.metadata import miriam
 from sbmlutils.report import mathml
 
-from typing import Dict, List
+from typing import Dict
 
 
-def annotation_dict(item: libsbml.SBase) -> Dict:
-    """Render dictionary representation of given annotation.
+def annotation_dict(sbase: libsbml.SBase) -> Dict:
+    """Render dictionary representation of annotation for sbase.
 
-    :param item: SBase instance
+    :param sbase: SBase instance
     """
-    if not item.isSetAnnotation():
-        return None
+    if not sbase.isSetAnnotation():
+        return {}
 
-    res = {}
+    d = {}
     cvterms = []
-    for kcv in range(item.getNumCVTerms()):
+    for kcv in range(sbase.getNumCVTerms()):
         info = {}
-        cv = item.getCVTerm(kcv)
+        cv = sbase.getCVTerm(kcv)
         q_type = cv.getQualifierType()
         if q_type == libsbml.MODEL_QUALIFIER:
             qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
@@ -40,13 +38,13 @@ def annotation_dict(item: libsbml.SBase) -> Dict:
                 "uri": uri
             }
             links.append(link)
-        info["links"] = links if len(links) > 0 else None
+        info["links"] = links
 
         cvterms.append(info)
 
-    res["cvterms"] = cvterms if len(cvterms) > 0 else None
+    d["cvterms"] = cvterms
 
-    return res
+    return d
 
 def notes_to_string(sbase: libsbml.SBase) -> str:
     """Render notes to string.
@@ -423,7 +421,8 @@ def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
     }
     return res
 
-def notes(item: libsbml.SBase) -> Dict
+
+def notes(item: libsbml.SBase) -> Dict:
     """Convert the SBML object's notes subelement to formatted string.
 
     :param item: SBML object containing the notes subelement
@@ -481,19 +480,6 @@ def sbaseref(sref: libsbml.SBaseRef) -> Dict:
     return None
 
 
-def metaid(item: libsbml.SBase) -> Dict:
-    """Create metaid data for the item.
-
-    :param item: SBML object for which metaid data has to be generated
-    :return: HTML code fragment enclosing metaid data for item
-    """
-
-    metaid = {
-        "metaid": str(item.getMetaId()) if item.isSetMetaId() else None
-    }
-    return metaid
-
-
 def id_dict(item: libsbml.SBase) -> Dict:
     """Create info from id and metaid.
 
@@ -502,7 +488,7 @@ def id_dict(item: libsbml.SBase) -> Dict:
     """
 
     sid = item.getId()
-    meta = metaid(item)
+    metaid = item.getMetaId() if item.isSetMetaId() else None
 
     info = {}
     if sid:
@@ -512,12 +498,12 @@ def id_dict(item: libsbml.SBase) -> Dict:
         info = {
             "id": sid,
             "display_sid": display_sid,
-            "meta": meta
+            "meta": metaid
         }
     else:
-        if meta:
+        if metaid:
             info = {
-                "meta": meta
+                "meta": metaid
             }
 
     # create modal information
