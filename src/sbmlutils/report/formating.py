@@ -1,60 +1,122 @@
 """Helper functions for formating SBML elements."""
 import libsbml
+import numpy as np
 
-from sbmlutils import utils
-from sbmlutils.metadata import miriam
 from sbmlutils.report import mathml
 
-from typing import Dict
+from typing import Dict, Optional
 
 
-def annotation_dict(sbase: libsbml.SBase) -> Dict:
-    """Render dictionary representation of annotation for sbase.
+# -------------------------------------------------------------------------------------
+# Core
+# -------------------------------------------------------------------------------------
 
-    :param sbase: SBase instance
+def sbo(item: libsbml.SBase) -> Dict:
+    """Create HTML code fragment enclosing SBOTerm data for the item.
+
+    :param item: SBML object for which SBOTerm data has to be displayed
+    :return: Dictionary enclosing SBOTerm data for the item
     """
-    if not sbase.isSetAnnotation():
-        return {}
 
-    d = {}
-    cvterms = []
-    for kcv in range(sbase.getNumCVTerms()):
-        info = {}
-        cv = sbase.getCVTerm(kcv)
-        q_type = cv.getQualifierType()
-        if q_type == libsbml.MODEL_QUALIFIER:
-            qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
-        elif q_type == libsbml.BIOLOGICAL_QUALIFIER:
-            qualifier = miriam.BiologicalQualifierType[cv.getBiologicalQualifierType()]
-        info["qualifier"] = qualifier
+    sbo = {
+        "url": item.getSBOTermAsURL(),
+        "ID": item.getSBOTermID()
+    } if item.isSetSBOTerm() else None
 
-        links = []
-        for k in range(cv.getNumResources()):
-            uri = cv.getResourceURI(k)
-            tokens = uri.split("/")
-            resource_id = tokens[-1]
-            link = {
-                "resource_id": resource_id,
-                "uri": uri
+    return sbo
+
+
+def sbaseref(sref: libsbml.SBaseRef) -> Optional[Dict]:
+    """Format the SBaseRef instance.
+
+    :param sref: SBaseRef instance
+    :return: Dictionary containging formatted SBaseRef instance's data
+    """
+
+    if sref.isSetPortRef():
+        return {
+            "type": "port_ref",
+            "value": sref.getPortRef()
+        }
+    elif sref.isSetIdRef():
+        return {
+            "type": "id_ref",
+            "value": sref.getIdRef()
+        }
+    elif sref.isSetUnitRef():
+        return {
+            "type": "unit_ref",
+            "value": sref.getUnitRef()
+        }
+    elif sref.isSetMetaIdRef():
+        return {
+            "type": "meta_ID_ref",
+            "value": sref.getMetaIdRef()
+        }
+    return None
+
+
+def id_dict(item: libsbml.SBase) -> Dict:
+    """Create info from id and metaid.
+
+    :param item: SBML object for which info is to be generated
+    :return: HTML code fragment enclosing info for item
+    """
+
+    sid = item.getId()
+    metaid = item.getMetaId() if item.isSetMetaId() else None
+
+    info = {}
+    if sid:
+        display_sid = sid
+        if isinstance(item, libsbml.RateRule) and item.isSetVariable():
+            display_sid = "d {}/dt".format(item.getVariable())
+        info = {
+            "id": sid,
+            "display_sid": display_sid,
+            "meta": metaid
+        }
+    else:
+        if metaid:
+            info = {
+                "meta": metaid
             }
-            links.append(link)
-        info["links"] = links
 
-        cvterms.append(info)
+    return info
 
-    d["cvterms"] = cvterms
 
-    return d
+def xml(item: libsbml.SBase) -> str:
+    """Create SBML specification in XML for the item and return HTML code fragment.
 
-def notes_to_string(sbase: libsbml.SBase) -> str:
-    """Render notes to string.
-
-    :param sbase: SBase instance
-    :return string rendering of the notes in the SBase instance
+    :param item: SBML object for which SBML specification (in XML) has to be created
+    :return: HTML code fragment enclosing the SBML specification for the item
     """
-    return str(sbase.getNotesString())
+
+    html = f"{item.toSBML()}"
+
+    return html
+    # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
 
 
+def rule_variable_to_string(rule: libsbml.Rule) -> str:
+    """Format variable for rule.
+
+    :param rule: SBML rule instance
+    :return formatted string representation of the rule
+    """
+    if isinstance(rule, libsbml.AlgebraicRule):
+        return "0"
+    elif isinstance(rule, libsbml.AssignmentRule):
+        return rule.variable  # type: ignore
+    elif isinstance(rule, libsbml.RateRule):
+        return f"d {rule.variable}/dt"
+    else:
+        raise TypeError(rule)
+
+
+# -------------------------------------------------------------------------------------
+# Math
+# -------------------------------------------------------------------------------------
 def formula_to_mathml(string: str) -> str:
     """Parse formula string.
 
@@ -84,10 +146,46 @@ def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
     return libsbml.writeMathMLToString(astnode)  # type: ignore
 
 
-# ---------
+def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
+    """Create MathML content for the item.
+
+    :param sbase: SBML object for which MathML content is to be generated
+    :param math_type: specifies which math rendering mode to use
+    :return: formatted MathML content for the item
+    """
+
+    info = {}
+    if sbase:
+        if not isinstance(sbase, libsbml.ASTNode):
+            astnode = sbase.getMath()
+            if not astnode:
+                info["type"] = None
+                info["math"] = None
+        else:
+            astnode = sbase
+
+            if math_type == "cmathml":
+                info["type"] = "cmathml"
+                info["math"] = astnode_to_mathml(astnode)
+            elif math_type == "pmathml":
+                info["type"] = "pmathml"
+                cmathml = astnode_to_mathml(astnode)
+                info["math"] = mathml.cmathml_to_pmathml(cmathml)
+            elif math_type == "latex":
+                info["type"] = "latex"
+                latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
+                info["math"] = f"$${latex_str}$$"
+    else:
+        info["type"] = None
+        info["math"] = None
+
+    return info
+
+
+# -------------------------------------------------------------------------------------
 # Equations
-# ---------
-def equationStringFromReaction(
+# -------------------------------------------------------------------------------------
+def equation_from_reaction(
     reaction: libsbml.Reaction,
     sep_reversible: str = "&#8646;",
     sep_irreversible: str = "&#10142;",
@@ -102,8 +200,8 @@ def equationStringFromReaction(
     :return equation string generated for the reaction
     """
 
-    left = _halfEquation(reaction.getListOfReactants())
-    right = _halfEquation(reaction.getListOfProducts())
+    left = _half_equation(reaction.getListOfReactants())
+    right = _half_equation(reaction.getListOfProducts())
     if reaction.getReversible():
         # '<=>'
         sep = sep_reversible
@@ -111,7 +209,7 @@ def equationStringFromReaction(
         # '=>'
         sep = sep_irreversible
     if modifiers:
-        mods = _modifierEquation(reaction.getListOfModifiers())
+        mods = _modifier_equation(reaction.getListOfModifiers())
         if mods is None:
             return " ".join([left, sep, right])
         else:
@@ -119,7 +217,7 @@ def equationStringFromReaction(
     return " ".join([left, sep, right])
 
 
-def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
+def _modifier_equation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
     """Render string representation for list of modifiers.
 
     :param modifierList: list of modifiers
@@ -131,7 +229,7 @@ def _modifierEquation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
     return "[" + ", ".join(mids) + "]"  # type: ignore
 
 
-def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
+def _half_equation(speciesList: libsbml.ListOfSpecies) -> str:
     """Create equation string of the half reaction of the species in the species list.
 
     :param speciesList: list of species in the half reaction
@@ -153,9 +251,9 @@ def _halfEquation(speciesList: libsbml.ListOfSpecies) -> str:
     return " + ".join(items)
 
 
-# ------------------------------
+# -------------------------------------------------------------------------------------
 # FBC
-# ------------------------------
+# -------------------------------------------------------------------------------------
 def boundsDictFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> Dict:
     """Render string of bounds from the reaction.
 
@@ -239,6 +337,7 @@ def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
 
     return mhistory
 
+
 def dateToDict(d: libsbml.Date) -> Dict:
     """Create dictionary representation of date.
 
@@ -257,36 +356,10 @@ def dateToDict(d: libsbml.Date) -> Dict:
         }
     }
 
-def _isclose(a: float, b: float, rel_tol: float = 1e-09, abs_tol: float = 0.0) -> bool:
-    """Calculate the two floats are identical.
 
-    :param a: float value
-    :param b: float value
-    :param rel_tol: relative tolerance value
-    :param abs_tol: absolute tolerance value
-    """
-    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-
-
-def ruleVariableToString(rule: libsbml.Rule) -> str:
-    """Format variable for rule.
-
-    :param rule: SBML rule instance
-    :return formatted string representation of the rule
-    """
-    if isinstance(rule, libsbml.AlgebraicRule):
-        return "0"
-    elif isinstance(rule, libsbml.AssignmentRule):
-        return rule.variable  # type: ignore
-    elif isinstance(rule, libsbml.RateRule):
-        return f"d {rule.variable}/dt"
-    else:
-        raise TypeError(rule)
-
-
-# ---------------
-# UnitDefinitions
-# ---------------
+# -------------------------------------------------------------------------------------
+# Units
+# -------------------------------------------------------------------------------------
 UNIT_ABBREVIATIONS = {
     "kilogram": "kg",
     "meter": "m",
@@ -326,17 +399,17 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
         # (m * 10^s *k)^e
 
         # handle m
-        if _isclose(m, 1.0):
+        if np.isclose(m, 1.0):
             m_str = ""
         else:
             m_str = str(m) + "*"
 
-        if _isclose(abs(e), 1.0):
+        if np.isclose(abs(e), 1.0):
             e_str = ""
         else:
             e_str = "^" + str(abs(e))
 
-        if _isclose(s, 0.0):
+        if np.isclose(s, 0.0):
             string = f"{m_str}{k_str}{e_str}"
         else:
             if e_str == "":
@@ -392,17 +465,17 @@ def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
 
         # handle m
         multiplier = {
-            "is_close": _isclose(m, 1.0),
+            "is_close": np.isclose(m, 1.0),
             "value": m
         }
 
         exponent = {
-            "is_close": _isclose(abs(e), 1.0),
+            "is_close": np.isclose(abs(e), 1.0),
             "value": abs(e)
         }
 
         unit = {
-            "is_close": _isclose(s, 0.0),
+            "is_close": np.isclose(s, 0.0),
             "scale": s,
             "multiplier": multiplier,
             "exponent": exponent,
@@ -420,191 +493,6 @@ def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
         "denom_terms": denom_terms
     }
     return res
-
-
-def notes(item: libsbml.SBase) -> Dict:
-    """Convert the SBML object's notes subelement to formatted string.
-
-    :param item: SBML object containing the notes subelement
-    :return: formatted string for the notes subelement of the item
-    """
-
-    notes = {
-        "notes": notes_to_string(item) if item.isSetNotes() else None
-    }
-    return notes
-
-
-def sbo(item: libsbml.SBase) -> Dict:
-    """Create HTML code fragment enclosing SBOTerm data for the item.
-
-    :param item: SBML object for which SBOTerm data has to be displayed
-    :return: Dictionary enclosing SBOTerm data for the item
-    """
-
-    sbo = {
-        "url": item.getSBOTermAsURL(),
-        "ID": item.getSBOTermID()
-    } if item.isSetSBOTerm() else None
-
-    return sbo
-
-
-def sbaseref(sref: libsbml.SBaseRef) -> Dict:
-    """Format the SBaseRef instance.
-
-    :param sref: SBaseRef instance
-    :return: Dictionary containging formatted SBaseRef instance's data
-    """
-
-    if sref.isSetPortRef():
-        return {
-            "type": "port_ref",
-            "value": sref.getPortRef()
-        }
-    elif sref.isSetIdRef():
-        return {
-            "type": "id_ref",
-            "value": sref.getIdRef()
-        }
-    elif sref.isSetUnitRef():
-        return {
-            "type": "unit_ref",
-            "value": sref.getUnitRef()
-        }
-    elif sref.isSetMetaIdRef():
-        return {
-            "type": "meta_ID_ref",
-            "value": sref.getMetaIdRef()
-        }
-    return None
-
-
-def id_dict(item: libsbml.SBase) -> Dict:
-    """Create info from id and metaid.
-
-    :param item: SBML object for which info is to be generated
-    :return: HTML code fragment enclosing info for item
-    """
-
-    sid = item.getId()
-    metaid = item.getMetaId() if item.isSetMetaId() else None
-
-    info = {}
-    if sid:
-        display_sid = sid
-        if isinstance(item, libsbml.RateRule) and item.isSetVariable():
-            display_sid = "d {}/dt".format(item.getVariable())
-        info = {
-            "id": sid,
-            "display_sid": display_sid,
-            "meta": metaid
-        }
-    else:
-        if metaid:
-            info = {
-                "meta": metaid
-            }
-
-    # create modal information
-    info["xml_modal"] = xml_modal(item)
-
-    return info
-
-
-def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
-    """Create MathML content for the item.
-
-    :param sbase: SBML object for which MathML content is to be generated
-    :param math_type: specifies which math rendering mode to use
-    :return: formatted MathML content for the item
-    """
-
-    info = {}
-    if sbase:
-        if not isinstance(sbase, libsbml.ASTNode):
-            astnode = sbase.getMath()
-            if not astnode:
-                info["type"] = None
-                info["math"] = None
-        else:
-            astnode = sbase
-
-            if math_type == "cmathml":
-                info["type"] = "cmathml"
-                info["math"] = astnode_to_mathml(astnode)
-            elif math_type == "pmathml":
-                info["type"] = "pmathml"
-                cmathml = astnode_to_mathml(astnode)
-                info["math"] = mathml.cmathml_to_pmathml(cmathml)
-            elif math_type == "latex":
-                info["type"] = "latex"
-                latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
-                info["math"] = f"$${latex_str}$$"
-    else:
-        info["type"] = None
-        info["math"] = None
-
-    return info
-
-
-def boolean(condition: bool) -> bool:
-    """Check the truth value of condition and create corresponding HTML code fragment.
-
-    :param condition: condition for which the truth value is to be checked
-    :return: boolean value of the condition
-    """
-
-    return condition
-
-
-def xml_modal(item: libsbml.SBase) -> str:
-    """Create modal information for a given sbase.
-
-    This provides some popup which allows to inspect the xml content of the element.
-
-    :param item: SBML object for which xml content is to be created
-    :return: HTML code fragment enclosing the xml content for the item
-    """
-    # filter sbase
-    if type(item) is libsbml.Model:
-        return ""
-
-    hash_id = utils.create_hash_id(item)
-
-    info = f"""
-      <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
-         data-target="#model-{hash_id}">
-        <i class="fa fa-code"></i>
-      </button>
-      <div class="modal fade" id="model-{hash_id}" role="dialog">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header"><h4 class="modal-title">{hash_id}</h4></div>
-            <div class="modal-body">
-                <textarea rows="20" class="form-control"
-                    style="min-width: 100%; font-family: 'Courier New'">
-                    {xml(item)}
-                </textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-    """
-    return info
-
-
-def xml(item: libsbml.SBase) -> str:
-    """Create SBML specification in XML for the item and return HTML code fragment.
-
-    :param item: SBML object for which SBML specification (in XML) has to be created
-    :return: HTML code fragment enclosing the SBML specification for the item
-    """
-
-    html = f"{item.toSBML()}"
-
-    return html
-    # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
 
 
 def derived_units(item: libsbml.SBase) -> Dict:
