@@ -135,13 +135,12 @@ class SBMLModelInfo:
         info = {
             "object": sbase,
             "id": sbase.getId(),
+            "name": sbase.name if sbase.isSetName() else None,
             "metaId": sbase.getMetaId() if sbase.isSetMetaId() else None,
             "sbo": sbo(sbase),
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
             "annotation": cls.annotation_info(sbase),
         }
-
-        info["name"] = sbase.name if sbase.isSetName() else None
 
         # comp
         item_comp = sbase.getPlugin("comp")
