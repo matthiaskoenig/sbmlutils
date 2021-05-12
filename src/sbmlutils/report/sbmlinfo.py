@@ -13,13 +13,14 @@ from typing import Any, Dict, Union
 import libsbml
 
 from sbmlutils.io import read_sbml
-from sbmlutils.report import formating
 from sbmlutils.metadata import miriam
-from sbmlutils.report.formating import (
-    derived_units,
-    math,
-    sbaseref,
+from src.sbmlutils.report import formating
+from src.sbmlutils.report.formating import (
     sbo,
+    sbaseref,
+    derived_units,
+    unitDefinitionToString,
+    math
 )
 
 
@@ -102,7 +103,7 @@ class SBMLModelInfo:
         }
         return d
 
-    def _create_assignment_map(self) -> Dict[str, str]:
+    def _create_assignment_map(self) -> Dict:
         """Create dictionary of symbols:assignment for symbols in model.
 
         This allows to lookup assignments for a given variable.
@@ -112,15 +113,30 @@ class SBMLModelInfo:
         values = dict()
 
         # initial assignments
+        initial_assignments = []
         assignment: libsbml.InitialAssignment
         for assignment in self.model.getListOfInitialAssignments():
-            sid = assignment.getSymbol()
-            values[sid] = assignment
+            info = self.sbase_info(assignment)
+            info["sid"] = assignment.getSymbol() if assignment.isSetSymbol() else None
+            info["assignment"] = math(assignment, self.math_render)
+            info["derived_units"] = derived_units(assignment)
+
+            initial_assignments.append(info)
+
+        values["assignments"] = initial_assignments if len(initial_assignments) > 0 else None
+
         # rules
+        rules = []
         rule: libsbml.Rule
         for rule in self.model.getListOfRules():
-            sid = rule.getVariable()
-            values[sid] = rule
+            info = self.sbase_info(rule)
+            info["sid"] = rule.getVariable() if rule.isSetVariable() else None
+            info["assignment"] = math(rule, self.math_render)
+            info["derived_units"] = derived_units(rule)
+
+            rules.append(info)
+
+        values["rules"] = rules if len(rules) > 0 else None
 
         return values
 
@@ -133,9 +149,9 @@ class SBMLModelInfo:
         """
 
         info = {
-            "object": sbase,
+            #"object": sbase,
             "id": sbase.getId(),
-            "name": sbase.name if sbase.isSetName() else None,
+            "name": sbase.getName() if sbase.isSetName() else None,
             "metaId": sbase.getMetaId() if sbase.isSetMetaId() else None,
             "sbo": sbo(sbase),
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
@@ -409,9 +425,9 @@ class SBMLModelInfo:
             info = self.sbase_info(ud)
             info["units"] = {
                 "math": formating.formula_to_mathml(
-                    formating.unitDefinitionToString(ud)
+                    unitDefinitionToString(ud)
                 ),
-                "unit_definition": formating.unit_definitions_dict(ud)
+                "unit_definition": formating.derived_units(ud)
             }
             unit_defs.append(info)
 
@@ -715,7 +731,7 @@ class SBMLModelInfo:
 
 if __name__ == "__main__":
     print("-" * 80)
-    from sbmlutils.test import REPRESSILATOR_SBML
+    from src.sbmlutils.test import REPRESSILATOR_SBML
     info = SBMLModelInfo.from_sbml(REPRESSILATOR_SBML)
     print(info)
     print("-" * 80)
@@ -723,3 +739,7 @@ if __name__ == "__main__":
     print("-" * 80)
     print(info.to_json())
     print("-" * 80)
+
+    with open("test_json.json", "w") as fout:
+        fout.write(info.to_json())
+    fout.close

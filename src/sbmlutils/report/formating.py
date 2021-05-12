@@ -2,7 +2,7 @@
 import libsbml
 import numpy as np
 
-from sbmlutils.report import mathml
+from src.sbmlutils.report import mathml
 
 from typing import Dict, Optional
 
@@ -434,7 +434,7 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     return ""
 
 
-def unit_definitions_dict(udef: libsbml.UnitDefinition) -> Dict:
+def derived_units(udef: libsbml.UnitDefinition) -> Dict:
     """Render dictionary for units.
 
     Units have the general format
@@ -504,7 +504,7 @@ def derived_units(item: libsbml.SBase) -> Dict:
 
     info = {
         "units": formula_to_mathml(
-            unitDefinitionToString(item.getDerivedUnitDefinition())
+            derived_units(item.getDerivedUnitDefinition())
         )
     } if item else None
 
