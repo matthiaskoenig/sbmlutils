@@ -8,7 +8,7 @@ import json
 import warnings
 from pathlib import Path
 import pprint
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, List
 
 import libsbml
 
@@ -119,7 +119,7 @@ class SBMLModelInfo:
             info = self.sbase_info(assignment)
             info["sid"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             info["assignment"] = math(assignment, self.math_render)
-            info["derived_units"] = derived_units(assignment)
+            info["units"] = derived_units(assignment)
 
             initial_assignments.append(info)
 
@@ -132,7 +132,7 @@ class SBMLModelInfo:
             info = self.sbase_info(rule)
             info["sid"] = rule.getVariable() if rule.isSetVariable() else None
             info["assignment"] = math(rule, self.math_render)
-            info["derived_units"] = derived_units(rule)
+            info["units"] = derived_units(rule)
 
             rules.append(info)
 
@@ -150,7 +150,7 @@ class SBMLModelInfo:
 
         info = {
             #"object": sbase,
-            "id": sbase.getId(),
+            "id": sbase.getId() if sbase.isSetId() else None,
             "name": sbase.getName() if sbase.isSetName() else None,
             "metaId": sbase.getMetaId() if sbase.isSetMetaId() else None,
             "sbo": sbo(sbase),
@@ -219,7 +219,7 @@ class SBMLModelInfo:
         :param sbase: SBase instance
         """
         if not sbase.isSetAnnotation():
-            return {}
+            return {}                   #FIXME: shouldn't this be None?
 
         d = {}
         cvterms = []
@@ -393,13 +393,11 @@ class SBMLModelInfo:
 
         return data
 
-    def info_function_definitions(self) -> Dict:
+    def info_function_definitions(self) -> List:
         """Information dictionaries for FunctionDefinitions.
 
         :return: list of info dictionaries for FunctionDefinitions
         """
-        data = {}
-
         func_defs = []
         fd: libsbml.FunctionDefinition
         for fd in self.model.getListOfFunctionDefinitions():
@@ -408,62 +406,49 @@ class SBMLModelInfo:
 
             func_defs.append(info)
 
-        data["functional_definitions"] = func_defs if len(func_defs) > 0 else None
+        return func_defs if len(func_defs) > 0 else None
 
-        return data
 
-    def info_unit_definitions(self) -> Dict:
+    def info_unit_definitions(self) -> List:
         """Information dictionaries for UnitDefinitions.
 
         :return: list of info dictionaries for UnitDefinitions
         """
-        data = {}
 
         unit_defs = []
         ud: libsbml.UnitDefinition
         for ud in self.model.getListOfUnitDefinitions():
             info = self.sbase_info(ud)
-            info["units"] = {
-                "math": formating.formula_to_mathml(
-                    unitDefinitionToString(ud)
-                ),
-                "unit_definition": formating.derived_units(ud)
-            }
+            info["math"] = formating.formula_to_mathml(ud)
+            info["unit_terms"] = formating.units_dict(ud)
             unit_defs.append(info)
 
-        data["unit_definitions"] = unit_defs if len(unit_defs) > 0 else None
+        return unit_defs if len(unit_defs) > 0 else None
 
-        return data
-
-    def info_compartments(self, assignment_map: Dict[str, str]) -> Dict:
+    def info_compartments(self, assignment_map: Dict[str, str]) -> List:
         """Information dictionaries for Compartments.
 
         :param assignment_map: map of assignments for symbols
         :return: list of info dictionaries for Compartments
         """
-        data = {}
 
         compartments = []
         c: libsbml.Compartment
         for c in self.model.getListOfCompartments():
             info = self.sbase_info(c)
-            info["units"] = c.getUnits() if c.isSetUnits() else None
             info["spatial_dimensions"] = c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
             info["constant"] = c.getConstant() if c.isSetConstant() else None
-            info["derived_units"] = derived_units(c)
+            info["units"] = derived_units(c)
             info["size"] = c.size if c.isSetSize() else math(assignment_map.get(c.id, ""), self.math_render)
             compartments.append(info)
 
-        data["compartments"] = compartments if len(compartments) > 0 else None
+        return compartments if len(compartments) > 0 else None
 
-        return data
-
-    def info_species(self) -> Dict:
+    def info_species(self) -> List:
         """Information dictionaries for Species.
 
         :return: list of info dictionaries for Species
         """
-        data = {}
 
         species = []
         s: libsbml.Species
@@ -475,9 +460,8 @@ class SBMLModelInfo:
             info["constant"] = s.getConstant() if s.isSetConstant() else None
             info["initial_amount"] = s.getInitialAmount() if s.isSetInitialAmount() else None
             info["initial_concentration"] = s.getInitialConcentration() if s.isSetInitialConcentration() else None
-            info["units"] = s.getUnits() if s.isSetUnits() else None
             info["substance_units"] = s.getSubstanceUnits() if s.isSetSubstanceUnits() else None
-            info["derived_units"] = derived_units(s)
+            info["units"] = derived_units(s)
 
             if s.isSetConversionFactor():
                 cf_sid = s.getConversionFactor()
@@ -502,9 +486,8 @@ class SBMLModelInfo:
 
             species.append(info)
 
-        data["species"] = species if len(species) > 0 else None
+        return species if len(species) > 0 else None
 
-        return data
 
     def info_gene_products(self) -> Dict:
         """Information dictionaries for GeneProducts.
@@ -529,19 +512,17 @@ class SBMLModelInfo:
 
         return data
 
-    def info_parameters(self, assignment_map: Dict[str, str]) -> Dict:
+    def info_parameters(self, assignment_map: Dict[str, str]) -> List:
         """Information dictionaries for Parameters.
 
         :param assignment_map: map of assignments for symbols
         :return: list of info dictionaries for Reactions
         """
-        data = {}
 
         parameters = []
         p: libsbml.Parameter
         for p in self.model.getListOfParameters():
             info = self.sbase_info(p)
-            info["units"] = p.getUnits() if p.isSetUnits() else None
             if p.isSetValue():
                 value = p.getValue()
             else:
@@ -553,15 +534,14 @@ class SBMLModelInfo:
                     )
                 value = math(value_formula, self.math_render)
             info["value"] = value
-            info["derived_units"] = derived_units(p)
+            info["units"] = derived_units(p)
             info["constant"] = p.getConstant() if p.isSetConstant() else None
             parameters.append(info)
 
-        data["parameters"] = parameters if len(parameters) > 0 else None
+        return parameters if len(parameters) > 0 else None
 
-        return data
 
-    def info_initial_assignments(self) -> Dict:
+    def info_initial_assignments(self) -> List:
         """Information dictionaries for InitialAssignments.
 
         :return: list of info dictionaries for InitialAssignments
@@ -574,19 +554,17 @@ class SBMLModelInfo:
             info = self.sbase_info(assignment)
             info["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             info["assignment"] = math(assignment, self.math_render)
-            info["derived_units"] = derived_units(assignment)
+            info["units"] = derived_units(assignment)
             assignments.append(info)
 
-        data["assignments"] = assignments if len(assignments) > 0 else None
+        return assignments if len(assignments) > 0 else None
 
-        return data
 
-    def info_rules(self) -> Dict:
+    def info_rules(self) -> List:
         """Information dictionaries for Rules.
 
         :return: list of info dictionaries for Rules
         """
-        data = {}
 
         rules = []
         rule: libsbml.Rule
@@ -594,20 +572,18 @@ class SBMLModelInfo:
             info = self.sbase_info(rule)
             info["variable"] = formating.rule_variable_to_string(rule)
             info["assignment"] = math(rule, self.math_render)
-            info["derived_units"] = derived_units(rule)
+            info["units"] = derived_units(rule)
 
             rules.append(info)
 
-        data["rules"] = rules if len(rules) > 0 else None
+        return rules if len(rules) > 0 else None
 
-        return data
 
-    def info_constraints(self) -> Dict:
+    def info_constraints(self) -> List:
         """Information dictionaries for Constraints.
 
         :return: list of info dictionaries for Constraints
         """
-        data = {}
 
         constraints = []
         constraint: libsbml.Constraint
@@ -616,16 +592,14 @@ class SBMLModelInfo:
             info["constraint"] = math(constraint, self.math_render)
             constraints.append(info)
 
-        data["constraints"] = constraints if len(constraints) > 0 else None
+        return constraints if len(constraints) > 0 else None
 
-        return data
 
-    def info_reactions(self) -> Dict:
+    def info_reactions(self) -> List:
         """Information dictionaries for ListOfReactions.
 
         :return: list of info dictionaries for Reactions
         """
-        data = {}
 
         reactions = []
         r: libsbml.Reaction
@@ -636,28 +610,26 @@ class SBMLModelInfo:
             info["modifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
             info["kinetic_law"] = {
                 "formula": math(r.getKineticLaw(), self.math_render),
-                "derived_units": derived_units(r.getKineticLaw())
+                "units": derived_units(r.getKineticLaw())
             } if r.isSetKineticLaw() else None
 
             # fbc
             rfbc = r.getPlugin("fbc")
             info["fbc"] = {
-                "bounds": formating.boundsStringFromReaction(r, self.model),
-                "gpa": formating.geneProductAssociationStringFromReaction(r)
+                "bounds": formating.boundsDictFromReaction(r, self.model),
+                "gpa": formating.geneProductAssociationDictFromReaction(r)
             } if rfbc else None
 
             reactions.append(info)
 
-        data["reactions"] = reactions if len(reactions) > 0 else None
+        return reactions if len(reactions) > 0 else None
 
-        return data
 
-    def info_objectives(self) -> Dict:
+    def info_objectives(self) -> List:
         """Information dictionaries for Objectives.
 
         :return: list of info dictionaries for Objectives
         """
-        data = {}
 
         model_fbc: libsbml.FbcModelPlugin = self.model.getPlugin("fbc")
         if model_fbc:
@@ -685,18 +657,16 @@ class SBMLModelInfo:
 
                 objectives.append(info)
 
-            data["objectives"] = objectives if len(objectives) > 0 else None
+            return objectives if len(objectives) > 0 else None
         else:
-            data = None
+            return None
 
-        return data
 
-    def info_events(self) -> Dict:
+    def info_events(self) -> List:
         """Information dictionaries for Events.
 
         :return: list of info dictionaries for Events
         """
-        data = {}
 
         events = []
         event: libsbml.Event
@@ -724,9 +694,7 @@ class SBMLModelInfo:
 
             events.append(info)
 
-        data["events"] = events if len(events) > 0 else None
-
-        return data
+        return events if len(events) > 0 else None
 
 
 if __name__ == "__main__":

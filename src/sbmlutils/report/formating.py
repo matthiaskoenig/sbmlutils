@@ -434,7 +434,7 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     return ""
 
 
-def derived_units(udef: libsbml.UnitDefinition) -> Dict:
+def units_dict(udef: libsbml.UnitDefinition) -> Dict:
     """Render dictionary for units.
 
     Units have the general format
@@ -462,23 +462,10 @@ def derived_units(udef: libsbml.UnitDefinition) -> Dict:
         }
 
         # (m * 10^s *k)^e
-
-        # handle m
-        multiplier = {
-            "is_close": np.isclose(m, 1.0),
-            "value": m
-        }
-
-        exponent = {
-            "is_close": np.isclose(abs(e), 1.0),
-            "value": abs(e)
-        }
-
         unit = {
-            "is_close": np.isclose(s, 0.0),
             "scale": s,
-            "multiplier": multiplier,
-            "exponent": exponent,
+            "multiplier": m,
+            "exponent": abs(e),
             "kind": kind,
         }
 
@@ -503,9 +490,10 @@ def derived_units(item: libsbml.SBase) -> Dict:
     """
 
     info = {
-        "units": formula_to_mathml(
-            derived_units(item.getDerivedUnitDefinition())
-        )
+        "math": formula_to_mathml(
+            item.getDerivedUnitDefinition()
+        ),
+        "unit_terms": units_dict(item.getDerivedUnitDefinition())
     } if item else None
 
     return info
