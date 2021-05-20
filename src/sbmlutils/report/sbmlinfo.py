@@ -23,6 +23,12 @@ from src.sbmlutils.report.formating import (
     math
 )
 
+# TODO: go over specification and support all attributes
+# TODO: unify the names of the attributes and lists in JSON to be in line with specification (camel case)
+# TODO: rename the info functions
+# TODO: do the model history on SBase
+# FIXME: support multiple model definitions in comp
+
 
 class SBMLModelInfo:
     """Class for collecting model information for report.
@@ -70,36 +76,41 @@ class SBMLModelInfo:
             self.info = self.create_info()
 
         model_json = json.dumps(self.info, indent=2)
-
-        print(59)
-        print(model_json)
         return model_json
 
     def create_info(self) -> Dict[str, Any]:
         """Create information dictionary for report rendering."""
         values = self._create_assignment_map()
-        d = {
-            "values": values,
+        model_info = {
+            "model": self.model_dict(model=self.model),
             # core
-            "doc": self.info_document(doc=self.doc),
-            "model": self.info_model(model=self.model),
-            "units": self.info_unit_definitions(),
-            "functions": self.info_function_definitions(),
+            "unitDefinitions": self.unit_definitions_dict(),
+            "functionDefinitions": self.info_function_definitions(),
             "compartments": self.info_compartments(values),
             "species": self.info_species(),
             "parameters": self.info_parameters(values),
-            "assignments": self.info_initial_assignments(),
+            "initialAssignments": self.info_initial_assignments(),
             "rules": self.info_rules(),
-            "reactions": self.info_reactions(),
             "constraints": self.info_constraints(),
+            "reactions": self.info_reactions(),
             "events": self.info_events(),
+
             # comp
-            "modeldefs": self.info_model_definitions(),
             "submodels": self.info_submodels(),
             "ports": self.info_ports(),
             # fbc
-            "geneproducts": self.info_gene_products(),
+            "geneProducts": self.info_gene_products(),
             "objectives": self.info_objectives(),
+        }
+        d = {
+
+            # sbml model information
+            # core
+            "doc": self.info_document(doc=self.doc),
+            "modeldefs": self.info_model_definitions(),
+            "models": model_info,  # FIXME: support multiple models with comp
+            # helper information
+            "values": values,
         }
         return d
 
@@ -116,7 +127,7 @@ class SBMLModelInfo:
         initial_assignments = []
         assignment: libsbml.InitialAssignment
         for assignment in self.model.getListOfInitialAssignments():
-            info = self.sbase_info(assignment)
+            info = self.sbase_dict(assignment)
             info["sid"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             info["assignment"] = math(assignment, self.math_render)
             info["units"] = derived_units(assignment)
@@ -129,7 +140,7 @@ class SBMLModelInfo:
         rules = []
         rule: libsbml.Rule
         for rule in self.model.getListOfRules():
-            info = self.sbase_info(rule)
+            info = self.sbase_dict(rule)
             info["sid"] = rule.getVariable() if rule.isSetVariable() else None
             info["assignment"] = math(rule, self.math_render)
             info["units"] = derived_units(rule)
@@ -141,15 +152,14 @@ class SBMLModelInfo:
         return values
 
     @classmethod
-    def sbase_info(cls, sbase: libsbml.SBase) -> Dict[str, Any]:
+    def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:
         """Info dictionary for SBase.
 
         :param sbase: SBase instance for which info dictionary is to be created
         :return info dictionary for item
         """
 
-        info = {
-            #"object": sbase,
+        d = {
             "id": sbase.getId() if sbase.isSetId() else None,
             "name": sbase.getName() if sbase.isSetName() else None,
             "metaId": sbase.getMetaId() if sbase.isSetMetaId() else None,
@@ -158,6 +168,13 @@ class SBMLModelInfo:
             "annotation": cls.annotation_info(sbase),
         }
 
+        # see specification 6.6
+        # FIXME: add history to all objects (see supported methods: createdDate, modifiedDates (list), creators (list)
+        history: libsbml.ModelHistory = sbase.getModelHistory()
+        history
+
+        # info["history"] = formating.modelHistoryToString(model.getModelHistory()) if model.isSetModelHistory() else None
+
         # comp
         item_comp = sbase.getPlugin("comp")
         if item_comp and type(item_comp) == libsbml.CompSBasePlugin:
@@ -165,12 +182,12 @@ class SBMLModelInfo:
             if item_comp.isSetReplacedBy():
                 replaced_by = item_comp.getReplacedBy()
                 submodel_ref = replaced_by.getSubmodelRef()
-                info["replaced_by"] = {
+                d["replacedBy"] = {
                     "submodel_ref": submodel_ref,
                     "replaced_by_sbaseref": sbaseref(replaced_by)
                 }
             else:
-                info["replaced_by"] = None
+                d["replaced_by"] = None
 
             # ListOfReplacedElements
             if item_comp.getNumReplacedElements() > 0:
@@ -182,17 +199,17 @@ class SBMLModelInfo:
                         "replaced_element_sbaseref": sbaseref(rep_el)
                     })
 
-                info["replaced_elements"] = replaced_elements
+                d["replaced_elements"] = replaced_elements
             else:
-                info["replaced_elements"] = None
+                d["replaced_elements"] = None
 
 
         # distrib
         sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
-            info["uncertainties"] = []
+            d["uncertainties"] = []
             for uncertainty in sbml_distrib.getListOfUncertainties():
-                u_dict = SBMLModelInfo.sbase_info(uncertainty)
+                u_dict = SBMLModelInfo.sbase_dict(uncertainty)
 
                 u_dict["uncert_parameters"] = []
                 upar: libsbml.UncertParameter
@@ -208,9 +225,9 @@ class SBMLModelInfo:
 
                     u_dict["uncert_parameters"].append(param_dict)
 
-                info["uncertainties"].append(u_dict)
+                d["uncertainties"].append(u_dict)
 
-        return info
+        return d
 
     @classmethod
     def annotation_info(cls, sbase: libsbml.SBase) -> Dict:
@@ -258,7 +275,7 @@ class SBMLModelInfo:
         :param sbref: SBaseRef instance for which information dictionary is created
         :return: information dictionary for SBaseRef
         """
-        info = self.sbase_info(sbref)
+        info = self.sbase_dict(sbref)
 
         info["port_ref"] = sbref.getPortRef() if sbref.setPortRef() else None
         info["id_ref"] = sbref.getIdRef() if sbref.isSetIdRef() else None
@@ -277,7 +294,7 @@ class SBMLModelInfo:
         :param doc: SBMLDocument
         :return: information dictionary for SBMLDocument
         """
-        info = self.sbase_info(doc)
+        info = self.sbase_dict(doc)
 
         packages = {}
         packages["document"] = {
@@ -299,18 +316,29 @@ class SBMLModelInfo:
         info["packages"] = packages
         return info
 
-    def info_model(self, model: libsbml.Model) -> Dict[str, str]:
+    def model_dict(self, model: libsbml.Model) -> Dict[str, str]:
         """Info dictionary for SBML Model.
 
         :param model: Model
         :return: information dictionary for Model
         """
-        info = self.sbase_info(model)
+        d = self.sbase_dict(model)
+        for key in [
+            "substanceUnits",
+            "timeUnits",
+            "volumeUnits",
+            "areaUnits",
+            "lengthUnits",
+            "extentUnits",
+            "conversionFactor",
+        ]:
+            field = f"{key[0].upper()}{key[1:]}"
+            if getattr(model, f"isSet{field}")():
+                d[key] = getattr(model, f"get{field}")()
+            else:
+                d[key] = None
 
-        # FIXME: add history to all objects
-        # info["history"] = formating.modelHistoryToString(model.getModelHistory()) if model.isSetModelHistory() else None
-
-        return info
+        return d
 
     def info_model_definitions(self) -> Dict:
         """Information dictionaries for comp:ModelDefinitions.
@@ -323,7 +351,7 @@ class SBMLModelInfo:
             model_defs = []
             md: libsbml.ModelDefinition
             for md in doc_comp.getListOfModelDefinitions():
-                info = self.sbase_info(md)
+                info = self.sbase_dict(md)
                 info["type"] = {
                     "class": type(md).__name__
                 }
@@ -333,7 +361,7 @@ class SBMLModelInfo:
             external_model_defs = []
             emd: libsbml.ExternalModelDefinition
             for emd in doc_comp.getListOfExternalModelDefinitions():
-                info = self.sbase_info(emd)
+                info = self.sbase_dict(emd)
                 info["type"] = {
                     "class": type(emd).__name__,
                     "source_code": emd.getSource()
@@ -356,7 +384,7 @@ class SBMLModelInfo:
             submodels = []
             submodel: libsbml.Submodel
             for submodel in model_comp.getListOfSubmodels():
-                info = self.sbase_info(submodel)
+                info = self.sbase_dict(submodel)
                 info["model_ref"] = submodel.getModelRef() if submodel.isSetModelRef() else None
 
                 deletions = []
@@ -401,24 +429,22 @@ class SBMLModelInfo:
         func_defs = []
         fd: libsbml.FunctionDefinition
         for fd in self.model.getListOfFunctionDefinitions():
-            info = self.sbase_info(fd)
+            info = self.sbase_dict(fd)
             info["math"] = math(fd, self.math_render)
 
             func_defs.append(info)
 
         return func_defs if len(func_defs) > 0 else None
 
-
-    def info_unit_definitions(self) -> List:
+    def unit_definitions_dict(self) -> List:
         """Information dictionaries for UnitDefinitions.
 
         :return: list of info dictionaries for UnitDefinitions
         """
-
         unit_defs = []
         ud: libsbml.UnitDefinition
         for ud in self.model.getListOfUnitDefinitions():
-            info = self.sbase_info(ud)
+            info = self.sbase_dict(ud)
             info["math"] = formating.formula_to_mathml(ud)
             info["unit_terms"] = formating.units_dict(ud)
             unit_defs.append(info)
@@ -432,17 +458,20 @@ class SBMLModelInfo:
         :return: list of info dictionaries for Compartments
         """
 
+        # FIXME: cleanup assignment map
         compartments = []
         c: libsbml.Compartment
         for c in self.model.getListOfCompartments():
-            info = self.sbase_info(c)
-            info["spatial_dimensions"] = c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
-            info["constant"] = c.getConstant() if c.isSetConstant() else None
-            info["units"] = derived_units(c)
+            info = self.sbase_dict(c)
+            info["spatialDimensions"] = c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
+
             info["size"] = c.size if c.isSetSize() else math(assignment_map.get(c.id, ""), self.math_render)
+            info["units"] = derived_units(c)
+            info["constant"] = c.getConstant() if c.isSetConstant() else None
+
             compartments.append(info)
 
-        return compartments if len(compartments) > 0 else None
+        return compartments
 
     def info_species(self) -> List:
         """Information dictionaries for Species.
@@ -453,7 +482,7 @@ class SBMLModelInfo:
         species = []
         s: libsbml.Species
         for s in self.model.getListOfSpecies():
-            info = self.sbase_info(s)
+            info = self.sbase_dict(s)
             info["compartment"] = s.getCompartment() if s.isSetCompartment() else None
             info["has_only_substance_units"] = s.getHasOnlySubstanceUnits() if s.isSetHasOnlySubstanceUnits() else None
             info["boundary_condition"] = s.getBoundaryCondition() if s.isSetBoundaryCondition() else None
@@ -501,7 +530,7 @@ class SBMLModelInfo:
             gene_products = []
             gp: libsbml.GeneProduct
             for gp in model_fbc.getListOfGeneProducts():
-                info = self.sbase_info(gp)
+                info = self.sbase_dict(gp)
                 info["label"] = gp.getLabel() if gp.isSetLabel() else None
                 info["associated_species"] = gp.getAssociatedSpecies() if gp.isSetAssociatedSpecies() else None
 
@@ -522,7 +551,7 @@ class SBMLModelInfo:
         parameters = []
         p: libsbml.Parameter
         for p in self.model.getListOfParameters():
-            info = self.sbase_info(p)
+            info = self.sbase_dict(p)
             if p.isSetValue():
                 value = p.getValue()
             else:
@@ -551,7 +580,7 @@ class SBMLModelInfo:
         assignments = []
         assignment: libsbml.InitialAssignment
         for assignment in self.model.getListOfInitialAssignments():
-            info = self.sbase_info(assignment)
+            info = self.sbase_dict(assignment)
             info["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             info["assignment"] = math(assignment, self.math_render)
             info["units"] = derived_units(assignment)
@@ -569,7 +598,7 @@ class SBMLModelInfo:
         rules = []
         rule: libsbml.Rule
         for rule in self.model.getListOfRules():
-            info = self.sbase_info(rule)
+            info = self.sbase_dict(rule)
             info["variable"] = formating.rule_variable_to_string(rule)
             info["assignment"] = math(rule, self.math_render)
             info["units"] = derived_units(rule)
@@ -588,7 +617,7 @@ class SBMLModelInfo:
         constraints = []
         constraint: libsbml.Constraint
         for constraint in self.model.getListOfConstraints():
-            info = self.sbase_info(constraint)
+            info = self.sbase_dict(constraint)
             info["constraint"] = math(constraint, self.math_render)
             constraints.append(info)
 
@@ -604,7 +633,7 @@ class SBMLModelInfo:
         reactions = []
         r: libsbml.Reaction
         for r in self.model.getListOfReactions():
-            info = self.sbase_info(r)
+            info = self.sbase_dict(r)
             info["reversible"] = r.getReversible() if r.isSetReversible() else None
             info["equation"] = formating.equation_from_reaction(r)
             info["modifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
@@ -636,7 +665,7 @@ class SBMLModelInfo:
             objectives = []
             objective: libsbml.Objective
             for objective in model_fbc.getListOfObjectives():
-                info = self.sbase_info(objective)
+                info = self.sbase_dict(objective)
                 info["type"] = objective.getType() if objective.isSetType() else None
 
                 flux_objectives = []
@@ -671,7 +700,7 @@ class SBMLModelInfo:
         events = []
         event: libsbml.Event
         for event in self.model.getListOfEvents():
-            info = self.sbase_info(event)
+            info = self.sbase_dict(event)
 
             trigger = event.getTrigger()
             info["trigger"] = {
@@ -698,16 +727,23 @@ class SBMLModelInfo:
 
 
 if __name__ == "__main__":
+    from pathlib import Path
+
+    output_dir = Path(__file__).parent / "test"
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True, exist_ok=True)
+
     print("-" * 80)
     from src.sbmlutils.test import REPRESSILATOR_SBML
     info = SBMLModelInfo.from_sbml(REPRESSILATOR_SBML)
+    json_str = info.to_json()
     print(info)
     print("-" * 80)
     print(str(info))
     print("-" * 80)
-    print(info.to_json())
+    print(json_str)
     print("-" * 80)
 
-    with open("test_json.json", "w") as fout:
-        fout.write(info.to_json())
-    fout.close
+    with open(output_dir / "test_json.json", "w") as fout:
+        fout.write(json_str)
+
