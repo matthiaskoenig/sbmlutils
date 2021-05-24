@@ -23,8 +23,8 @@ from src.sbmlutils.report.formating import (
     math
 )
 
-# TODO: go over specification and support all attributes
-# TODO: unify the names of the attributes and lists in JSON to be in line with specification (camel case)
+# TODO: go over specification and support all attributes ---- done
+# TODO: unify the names of the attributes and lists in JSON to be in line with specification (camel case) ---- done
 # TODO: rename the info functions ---- done
 # TODO: do the model history on SBase
 # FIXME: support multiple model definitions in comp
@@ -85,13 +85,13 @@ class SBMLModelInfo:
             # sbml model information
             "model": self.model_dict(model=self.model),
             # core
-            "unitDefinitions": self.unit_definitions_dict(),
-            "functionDefinitions": self.function_definitions_dict(),
-            "compartments": self.compartments_dict(values),
-            "species": self.species_dict(),
-            "parameters": self.parameters_dict(values),
-            "initialAssignments": self.initial_assignments_dict(),
-            "rules": self.rules_dict(),
+            "functionDefinitions": self.function_definitions_list(),
+            "unitDefinitions": self.unit_definitions_list(),
+            "compartments": self.compartments_list(values),
+            "species": self.species_list(),
+            "parameters": self.parameters_list(values),
+            "initialAssignments": self.initial_assignments_list(),
+            "rules": self.rules_list(),
             "constraints": self.constraints_dict(),
             "reactions": self.reactions_dict(),
             "events": self.events_dict(),
@@ -236,7 +236,7 @@ class SBMLModelInfo:
         :param sbase: SBase instance
         """
         if not sbase.isSetAnnotation():
-            return {}                   #FIXME: shouldn't this be None?
+            return None
 
         d = {}
         cvterms = []
@@ -311,7 +311,7 @@ class SBMLModelInfo:
                 "prefix": prefix,
                 "version": version
             })
-        packages["plugins"] = plugins if len(plugins) > 0 else None
+        packages["plugins"] = plugins
 
         info["packages"] = packages
         return info
@@ -345,7 +345,7 @@ class SBMLModelInfo:
 
         :return: list of info dictionaries for comp:ModelDefinitions
         """
-        data = {}
+        d = {}
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
             model_defs = []
@@ -356,7 +356,7 @@ class SBMLModelInfo:
                     "class": type(md).__name__
                 }
                 model_defs.append(info)
-            data["model_defs"] = model_defs if len(model_defs) > 0 else None
+            d["model_defs"] = model_defs
 
             external_model_defs = []
             emd: libsbml.ExternalModelDefinition
@@ -367,18 +367,18 @@ class SBMLModelInfo:
                     "source_code": emd.getSource()
                 }
                 external_model_defs.append(info)
-            data["external_model_defs"] = external_model_defs if len(model_defs) > 0 else None
+            d["external_model_defs"] = external_model_defs
         else:
-            data = None
+            d = None
 
-        return data
+        return d
 
     def submodels_dict(self) -> Dict:
         """Information dictionaries for comp:Submodels.
 
         :return: list of info dictionaries for comp:Submodels
         """
-        data = {}
+        d = {}
         model_comp = self.model.getPlugin("comp")
         if model_comp:
             submodels = []
@@ -390,23 +390,23 @@ class SBMLModelInfo:
                 deletions = []
                 for deletion in submodel.getListOfDeletions():
                     deletions.append(sbaseref(deletion))
-                info["deletions"] = deletions if len(deletions) > 0 else None
+                info["deletions"] = deletions
 
                 info["time_conversion"] = submodel.getTimeConversionFactor() if submodel.isSetTimeConversionFactor() else None
                 info["extent_conversion"] = submodel.getExtentConversionFactor() if submodel.isSetExtentConversionFactor() else None
 
                 submodels.append(info)
-            data["submodels"] = submodels if len(submodels) > 0 else None
+            d["submodels"] = submodels
         else:
-            data = None
-        return data
+            d = None
+        return d
 
     def ports_dict(self) -> Dict:
         """Information dictionaries for comp:Ports.
 
         :return: list of info dictionaries for comp:Ports
         """
-        data = {}
+        d = {}
         model_comp = self.model.getPlugin("comp")
         if model_comp:
             ports = []
@@ -415,13 +415,13 @@ class SBMLModelInfo:
                 info = self.info_sbaseref(port)
                 ports.append(info)
 
-            data["ports"] = ports if len(ports) > 0 else None
+            d["ports"] = ports
         else:
-            data = None
+            d = None
 
-        return data
+        return d
 
-    def function_definitions_dict(self) -> List:
+    def function_definitions_list(self) -> List:
         """Information dictionaries for FunctionDefinitions.
 
         :return: list of info dictionaries for FunctionDefinitions
@@ -432,14 +432,13 @@ class SBMLModelInfo:
         fd: libsbml.FunctionDefinition
         for fd in self.model.getListOfFunctionDefinitions():
             info = self.sbase_dict(fd)
-            info["id"] = fd.getId() if fd.isSetId() else None
             info["math"] = math(fd, self.math_render)
 
             func_defs.append(info)
 
         return func_defs
 
-    def unit_definitions_dict(self) -> List:
+    def unit_definitions_list(self) -> List:
         """Information dictionaries for UnitDefinitions.
 
         :return: list of info dictionaries for UnitDefinitions
@@ -448,14 +447,13 @@ class SBMLModelInfo:
         ud: libsbml.UnitDefinition
         for ud in self.model.getListOfUnitDefinitions():
             info = self.sbase_dict(ud)
-            info["id"] = ud.getId() if ud.isSetId() else None
-            info["math"] = formating.formula_to_mathml(ud)
-            info["unit_terms"] = formating.units_dict(ud)
+            info["listOfUnits"] = formating.units_dict(ud)
+            #info["math"] = formating.formula_to_mathml(ud)     --- removing since "math" was not present in specification for UnitDefinition
             unit_defs.append(info)
 
         return unit_defs
 
-    def compartments_dict(self, assignment_map: Dict[str, str]) -> List:
+    def compartments_list(self, assignment_map: Dict[str, str]) -> List:
         """Information dictionaries for Compartments.
 
         :param assignment_map: map of assignments for symbols
@@ -464,30 +462,30 @@ class SBMLModelInfo:
 
         # FIXME: cleanup assignment map
         compartments = []
-        compartment: libsbml.Compartment
-        for compartment in self.model.getListOfCompartments():
+        c: libsbml.Compartment
+        for c in self.model.getListOfCompartments():
             info = self.sbase_dict(c)
 
             for key in [
-                "id",
                 "spatialDimensions",
                 "size",
                 "units",
                 "constant"
             ]:
                 field = f"{key[0].upper()}{key[1:]}"
-                if getattr(compartment, f"isSet{field}")():
-                    info[key] = getattr(compartment, f"get{field}")()
+                if getattr(c, f"isSet{field}")():
+                    info[key] = getattr(c, f"get{field}")()
                 else:
                     info[key] = None
 
+            #-- look into this
             #info["size"] = c.size if c.isSetSize() else math(assignment_map.get(c.id, ""), self.math_render)
 
             compartments.append(info)
 
         return compartments
 
-    def species_dict(self) -> List:
+    def species_list(self) -> List:
         """Information dictionaries for Species.
 
         :return: list of info dictionaries for Species
@@ -499,7 +497,6 @@ class SBMLModelInfo:
             info = self.sbase_dict(s)
 
             for key in [
-                "id",
                 "compartment",
                 "initialAmount",
                 "initialConcentration",
@@ -507,11 +504,10 @@ class SBMLModelInfo:
                 "hasOnlySubstanceUnits",
                 "boundaryCondition",
                 "constant",
-                #"conversionFactor"
             ]:
                 field = f"{key[0].upper()}{key[1:]}"
-                if getattr(species, f"isSet{field}")():
-                    info[key] = getattr(species, f"get{field}")()
+                if getattr(s, f"isSet{field}")():
+                    info[key] = getattr(s, f"get{field}")()
                 else:
                     info[key] = None
 
@@ -533,7 +529,7 @@ class SBMLModelInfo:
             sfbc = s.getPlugin("fbc")
             info["fbc"] = {
                 "formula": sfbc.getChemicalFormula() if sfbc.isSetChemicalFormula() else None,
-                "charge": sfbc.getCharge() if sfbc.isSetCharge() and sfbc.getCharge() != 0 else None,
+                "charge": sfbc.getCharge() if (sfbc.isSetCharge() and sfbc.getCharge() != 0) else None,
             } if sfbc else None
 
             species.append(info)
@@ -545,6 +541,8 @@ class SBMLModelInfo:
         """Information dictionaries for GeneProducts.
 
         :return: list of info dictionaries for Reactions
+
+        -- revisit
         """
         data = {}
 
@@ -564,11 +562,13 @@ class SBMLModelInfo:
 
         return data
 
-    def parameters_dict(self, assignment_map: Dict[str, str]) -> List:
+    def parameters_list(self, assignment_map: Dict[str, str]) -> List:
         """Information dictionaries for Parameters.
 
         :param assignment_map: map of assignments for symbols
         :return: list of info dictionaries for Reactions
+
+        -- take a look at units
         """
 
         parameters = []
@@ -576,7 +576,6 @@ class SBMLModelInfo:
         for p in self.model.getListOfParameters():
             info = self.sbase_dict(p)
 
-            info["id"] = p.getId() if p.isSetId() else None
             if p.isSetValue():
                 value = p.getValue()
             else:
@@ -586,7 +585,9 @@ class SBMLModelInfo:
                         f"No value for parameter via Value, InitialAssignment or "
                         f"AssignmentRule: {p.getId()}"
                     )
-                value = math(value_formula, self.math_render)
+                    value = None
+                else:
+                    value = math(value_formula, self.math_render)
             info["value"] = value
             info["units"] = derived_units(p)
             info["constant"] = p.getConstant() if p.isSetConstant() else None
@@ -595,10 +596,12 @@ class SBMLModelInfo:
         return parameters
 
 
-    def initial_assignments_dict(self) -> List:
+    def initial_assignments_list(self) -> List:
         """Information dictionaries for InitialAssignments.
 
         :return: list of info dictionaries for InitialAssignments
+
+        -- look at math and units once
         """
 
         assignments = []
@@ -606,17 +609,19 @@ class SBMLModelInfo:
         for assignment in self.model.getListOfInitialAssignments():
             info = self.sbase_dict(assignment)
             info["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            info["assignment"] = math(assignment, self.math_render)
-            info["units"] = derived_units(assignment)
+            info["math"] = math(assignment, self.math_render)
+            #info["units"] = derived_units(assignment)   --- not there in the specification
             assignments.append(info)
 
         return assignments
 
 
-    def rules_dict(self) -> List:
+    def rules_list(self) -> List:
         """Information dictionaries for Rules.
 
         :return: list of info dictionaries for Rules
+
+        -- look at math and units once
         """
 
         rules = []
@@ -624,8 +629,8 @@ class SBMLModelInfo:
         for rule in self.model.getListOfRules():
             info = self.sbase_dict(rule)
             info["variable"] = formating.rule_variable_to_string(rule)
-            info["assignment"] = math(rule, self.math_render)
-            info["units"] = derived_units(rule)
+            info["math"] = math(rule, self.math_render)
+            #info["units"] = derived_units(rule)   --- not there in spec
 
             rules.append(info)
 
@@ -635,13 +640,16 @@ class SBMLModelInfo:
         """Information dictionaries for Constraints.
 
         :return: list of info dictionaries for Constraints
+
+        -- take a look at math once
         """
 
         constraints = []
         constraint: libsbml.Constraint
         for constraint in self.model.getListOfConstraints():
             info = self.sbase_dict(constraint)
-            info["constraint"] = math(constraint, self.math_render)
+            info["math"] = math(constraint, self.math_render)
+            info["message"] = constraint.getMessage() if constraint.isSetMessage() else None
             constraints.append(info)
 
         return constraints
@@ -651,21 +659,43 @@ class SBMLModelInfo:
         """Information dictionaries for ListOfReactions.
 
         :return: list of info dictionaries for Reactions
+
+        -- take a look at local parameter once
+        -- also made additions for products and reactions
         """
 
         reactions = []
         r: libsbml.Reaction
         for r in self.model.getListOfReactions():
             info = self.sbase_dict(r)
-            info["id"] = r.getId() if r.isSetId() else None
             info["reversible"] = r.getReversible() if r.isSetReversible() else None
             info["compartment"] = r.getCompartment() if r.isSetCompartment() else None
+            info["listOfReactants"] = [formating.species_dict(reac) for reac in r.getListOfReactants()]
+            info["listOfProducts"] = [formating.species_dict(prod) for prod in r.getListOfProducts()]
+            info["listOfModifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
+            info["fast"] = r.getFast() if r.isSetFast() else None
             info["equation"] = formating.equation_from_reaction(r)
-            info["modifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
-            info["kinetic_law"] = {
-                "formula": math(r.getKineticLaw(), self.math_render),
-                "units": derived_units(r.getKineticLaw())
-            } if r.isSetKineticLaw() else None
+
+            klaw = r.getKineticLaw() if r.isSetKineticLaw() else None
+            if klaw:
+                info["kineticLaw"] = {
+                    "math": math(klaw, self.math_render),
+                    #"units": derived_units(r.getKineticLaw())  -- removing as not in spec
+                }
+
+                local_params = []
+                for i in range(len(klaw.getListOfLocalParameters())):
+                    lpar = klaw.getLocalParameter(i)
+                    lpar_info = {
+                        "id": lpar.getId() if lpar.isSetId() else None,
+                        "value": lpar.getValue() if lpar.isSetValue() else None,
+                        "units": derived_units(lpar)
+                    }
+                    local_params.append(lpar_info)
+                info["kineticLaw"]["listOfLocalParameters"] = local_params
+
+            else:
+                info["kineticLaw"] = None
 
             # fbc
             rfbc = r.getPlugin("fbc")
@@ -707,11 +737,10 @@ class SBMLModelInfo:
                         "reaction": f_obj.getReaction() if f_obj.isSetReaction() else None
                     }
                     flux_objectives.append(part)
-                info["flux_objectives"] = flux_objectives if len(flux_objectives) > 0 else None
-
+                info["flux_objectives"] = flux_objectives
                 objectives.append(info)
 
-            return objectives if len(objectives) > 0 else None
+            return objectives
         else:
             return None
 
@@ -730,27 +759,29 @@ class SBMLModelInfo:
             info["useValuesFromTriggerTime"] = event.getUseValuesFromTriggerTime() if event.isSetUseValuesFromTriggerTime() else None
 
             trigger = event.getTrigger()
-            info["trigger"] = {
-                "math": math(trigger, self.math_render),
-                "initial_value": trigger.initial_value,
-                "persistent": trigger.persistent
-            }
+            if trigger:
+                info["trigger"] = {
+                    "math": math(trigger, self.math_render),
+                    "initial_value": trigger.initial_value,
+                    "persistent": trigger.persistent
+                }
+            else:
+                info["trigger"] = None
 
-            info["priority"] = event.getPriority() if event.isSetPriority() else None
-            info["delay"] = event.getDelay() if event.isSetDelay() else None
+            info["priority"] = math(event.getPriority(), self.math_render) if event.isSetPriority() else None
+            info["delay"] = math(event.getDelay(), self.math_render) if event.isSetDelay() else None
 
             assignments = []
             for eva in event.getListOfEventAssignments():
                 assignments.append({
-                    "id": eva.getId(),
-                    "meth": math(eva, self.math_render)
+                    "variable": eva.getVariable() if eva.isSetVariable() else None,
+                    "math": math(eva, self.math_render)
                 })
-
-            info["assignments"] = assignments if len(assignments) > 0 else None
+            info["listOfEventAssignments"] = assignments
 
             events.append(info)
 
-        return events if len(events) > 0 else None
+        return events
 
 
 if __name__ == "__main__":
@@ -773,4 +804,3 @@ if __name__ == "__main__":
 
     with open(output_dir / "test_json.json", "w") as fout:
         fout.write(json_str)
-

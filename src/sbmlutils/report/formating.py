@@ -250,6 +250,12 @@ def _half_equation(speciesList: libsbml.ListOfSpecies) -> str:
         items.append(sd)
     return " + ".join(items)
 
+def species_dict(species: libsbml.SpeciesReference):
+    return {
+        "species": species.getSpecies() if species.isSetSpecies() else None,
+        "stoichiometry": species.getStoichiometry() if species.isSetStoichiometry() else None,
+        "constant": species.getConstant() if species.isSetConstant() else None
+    }
 
 # -------------------------------------------------------------------------------------
 # FBC
