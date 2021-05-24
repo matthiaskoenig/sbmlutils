@@ -310,7 +310,7 @@ def geneProductAssociationDictFromReaction(reaction: libsbml.Reaction) -> Dict:
 # ------------
 # ModelHistory
 # ------------
-def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
+def modelHistoryToDict(mhistory: libsbml.ModelHistory) -> Dict:
     """Render HTML representation of the model history.
 
     :param mhistory: SBML ModelHistory instance
@@ -323,23 +323,20 @@ def modelHistoryToString(mhistory: libsbml.ModelHistory) -> str:
     for kc in range(mhistory.getNumCreators()):
         cdata = {}
         c = mhistory.getCreator(kc)
-        cdata["given_namw"] = c.getGivenName() if c.isSetGivenName() else None
-        cdata["family_namw"] = c.getFamilyName() if c.isSetFamilyName() else None
+        cdata["givenNamw"] = c.getGivenName() if c.isSetGivenName() else None
+        cdata["familyNamw"] = c.getFamilyName() if c.isSetFamilyName() else None
         cdata["organization"] = c.getOrganization() if c.isSetOrganization() else None
         cdata["email"] = c.getEmail() if c.isSetEmail() else None
 
         creators.append(cdata)
-
     mhistory["creators"] = creators
 
-    mhistory["created_date"] = dateToDict(mhistory.getCreatedDate()) if mhistory.isSetCreatedDate() else None
+    mhistory["createdDate"] = dateToDict(mhistory.getCreatedDate()) if mhistory.isSetCreatedDate() else None
 
     modified_dates = []
     for km in range(mhistory.getNumModifiedDates()):
-        modified_dates.append({
-            "modified_date": dateToDict(mhistory.getModifiedDate(km))
-        })
-    mhistory["modified_dates"] = modified_dates if len(modified_dates) > 0 else None
+        modified_dates.append(dateToDict(mhistory.getModifiedDate(km)))
+    mhistory["modifiedDates"] = modified_dates
 
     return mhistory
 
