@@ -26,7 +26,7 @@ from src.sbmlutils.report.formating import (
 # TODO: go over specification and support all attributes ---- done
 # TODO: unify the names of the attributes and lists in JSON to be in line with specification (camel case) ---- done
 # TODO: rename the info functions ---- done
-# TODO: do the model history on SBase
+# TODO: do the model history on SBase ---- done
 # FIXME: support multiple model definitions in comp
 
 
@@ -168,12 +168,7 @@ class SBMLModelInfo:
             "annotation": cls.annotation_info(sbase),
         }
 
-        # see specification 6.6
-        # FIXME: add history to all objects (see supported methods: createdDate, modifiedDates (list), creators (list)
-        history: libsbml.ModelHistory = sbase.getModelHistory()
-        history
-
-        # info["history"] = formating.modelHistoryToString(model.getModelHistory()) if model.isSetModelHistory() else None
+        info["history"] = formating.modelHistoryToDict(model.getModelHistory()) if model.isSetModelHistory() else None
 
         # comp
         item_comp = sbase.getPlugin("comp")
