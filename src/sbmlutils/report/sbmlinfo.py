@@ -168,7 +168,7 @@ class SBMLModelInfo:
             "annotation": cls.annotation_info(sbase),
         }
 
-        info["history"] = formating.modelHistoryToDict(model.getModelHistory()) if model.isSetModelHistory() else None
+        d["history"] = formating.modelHistoryToDict(sbase.getModelHistory()) if sbase.isSetModelHistory() else None
 
         # comp
         item_comp = sbase.getPlugin("comp")

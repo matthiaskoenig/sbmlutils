@@ -319,6 +319,8 @@ def modelHistoryToDict(mhistory: libsbml.ModelHistory) -> Dict:
     if not mhistory:
         return None
 
+    d = {}
+
     creators = []
     for kc in range(mhistory.getNumCreators()):
         cdata = {}
@@ -329,16 +331,16 @@ def modelHistoryToDict(mhistory: libsbml.ModelHistory) -> Dict:
         cdata["email"] = c.getEmail() if c.isSetEmail() else None
 
         creators.append(cdata)
-    mhistory["creators"] = creators
+    d["creators"] = creators
 
-    mhistory["createdDate"] = dateToDict(mhistory.getCreatedDate()) if mhistory.isSetCreatedDate() else None
+    d["createdDate"] = dateToDict(mhistory.getCreatedDate()) if mhistory.isSetCreatedDate() else None
 
     modified_dates = []
     for km in range(mhistory.getNumModifiedDates()):
         modified_dates.append(dateToDict(mhistory.getModifiedDate(km)))
-    mhistory["modifiedDates"] = modified_dates
+    d["modifiedDates"] = modified_dates
 
-    return mhistory
+    return d
 
 
 def dateToDict(d: libsbml.Date) -> Dict:
