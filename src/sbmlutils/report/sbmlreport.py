@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 import libsbml
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.report.sbmlinfo import SBMLModelInfo
+from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
 logger = logging.getLogger(__name__)
@@ -170,7 +170,7 @@ def _get_serialized_model_info(
     model = doc.getModel()
 
     if model is not None:
-        model_info = SBMLModelInfo(doc=doc, model=model, math_render=math_type)
+        model_info = SBMLDocumentInfo(doc=doc, model=model, math_render=math_type)
 
         serialized_model_info = model_info.info
 

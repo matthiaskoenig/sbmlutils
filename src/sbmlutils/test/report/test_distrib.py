@@ -26,7 +26,7 @@ def test_report_uncertainty_example(tmp_path: Path) -> None:
         modeling_practice=True,
     )
     model = doc.getModel()
-    model_info = sbmlinfo.SBMLModelInfo(doc=doc, model=model, math_render="cmathml")
+    model_info = sbmlinfo.SBMLDocumentInfo(doc=doc, model=model, math_render="cmathml")
 
     assert isinstance(model_info.info, Dict)
 
