@@ -15,6 +15,7 @@ import libsbml
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
 from src.sbmlutils.report import helpers
+from src.sbmlutils.report import mathml
 from src.sbmlutils.report.helpers import derived_units
 
 # FIXME: better data structure for fast lookup via "id" and "metaId"
@@ -189,10 +190,9 @@ class SBMLDocumentInfo:
             info["math"] = mathml.cmathml_to_pmathml(cmathml)
         elif math_type == "latex":
             info["type"] = "latex"
-            # FIXME: not supported here
-            latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
+            # FIXME: not supported here ---- latex support added
+            latex_str = mathml.astnode_to_latex(astnode, model=model)
             info["math"] = f"$${latex_str}$$"
-            info["math"] = "FIXME"
         else:
             info["type"] = None
             info["math"] = None
@@ -1038,7 +1038,7 @@ if __name__ == "__main__":
 
     print("-" * 80)
     from src.sbmlutils.test import REPRESSILATOR_SBML
-    info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML)
+    info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML, "latex")
     json_str = info.to_json()
     print(info)
     print("-" * 80)
