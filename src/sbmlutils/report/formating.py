@@ -6,25 +6,11 @@ from src.sbmlutils.report import mathml
 
 from typing import Dict, Optional
 
-
+# TODO: remove everything besides units from here
+# TODO: rename to 'helpers.py'
 # -------------------------------------------------------------------------------------
 # Core
 # -------------------------------------------------------------------------------------
-
-def sbo(item: libsbml.SBase) -> Dict:
-    """Create HTML code fragment enclosing SBOTerm data for the item.
-
-    :param item: SBML object for which SBOTerm data has to be displayed
-    :return: Dictionary enclosing SBOTerm data for the item
-    """
-
-    sbo = {
-        "url": item.getSBOTermAsURL(),
-        "ID": item.getSBOTermID()
-    } if item.isSetSBOTerm() else None
-
-    return sbo
-
 
 def sbaseref(sref: libsbml.SBaseRef) -> Optional[Dict]:
     """Format the SBaseRef instance.
@@ -85,19 +71,6 @@ def id_dict(item: libsbml.SBase) -> Dict:
     return info
 
 
-def xml(item: libsbml.SBase) -> str:
-    """Create SBML specification in XML for the item and return HTML code fragment.
-
-    :param item: SBML object for which SBML specification (in XML) has to be created
-    :return: HTML code fragment enclosing the SBML specification for the item
-    """
-
-    html = f"{item.toSBML()}"
-
-    return html
-    # return '<textarea style="border:none;">{}</textarea>'.format(item.toSBML())
-
-
 def rule_variable_to_string(rule: libsbml.Rule) -> str:
     """Format variable for rule.
 
@@ -112,6 +85,56 @@ def rule_variable_to_string(rule: libsbml.Rule) -> str:
         return f"d {rule.variable}/dt"
     else:
         raise TypeError(rule)
+
+
+# -------------------------------------------------------------------------------------
+# FBC
+# -------------------------------------------------------------------------------------
+def boundsDictFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> Dict:
+    """Render string of bounds from the reaction.
+
+    :param reaction: SBML reaction instance
+    :param model: SBML model instance
+    :return: String of bounds extracted from the reaction
+    """
+    bounds = {}
+    rfbc = reaction.getPlugin("fbc")
+    if rfbc is not None:
+        # get values for bounds
+        lb_id, ub_id = None, None
+        lb_value, ub_value = None, None
+        if rfbc.isSetLowerFluxBound():
+            lb_id = rfbc.getLowerFluxBound()
+            lb_p = model.getParameter(lb_id)
+            if lb_p.isSetValue():
+                lb_value = lb_p.getValue()
+        if rfbc.isSetUpperFluxBound():
+            ub_id = rfbc.getUpperFluxBound()
+            ub_p = model.getParameter(ub_id)
+            if ub_p.isSetValue():
+                ub_value = ub_p.getValue()
+
+        bounds["lb_value"] = lb_value
+        bounds["ub_value"] = ub_value
+    else:
+        bounds = None
+
+    return bounds
+
+
+def geneProductAssociationDictFromReaction(reaction: libsbml.Reaction) -> Dict:
+    """Render string representation of the GeneProductAssociation for given reaction.
+
+    :param reaction: SBML reaction instance
+    :return: string representation of GeneProductAssociation
+    """
+
+    rfbc = reaction.getPlugin("fbc")
+    info = rfbc.getGeneProductAssociation().getAssociation().toInfix() if (
+        rfbc and rfbc.isSetGeneProductAssociation()
+    ) else None
+
+    return info
 
 
 # -------------------------------------------------------------------------------------
@@ -146,7 +169,7 @@ def astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
     return libsbml.writeMathMLToString(astnode)  # type: ignore
 
 
-def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
+def math(astnode: libsbml.ASTNode, math_type: str = "cmathml") -> str:
     """Create MathML content for the item.
 
     :param sbase: SBML object for which MathML content is to be generated
@@ -155,26 +178,19 @@ def math(sbase: libsbml.SBase, math_type: str = "cmathml") -> str:
     """
 
     info = {}
-    if sbase:
-        if not isinstance(sbase, libsbml.ASTNode):
-            astnode = sbase.getMath()
-            if not astnode:
-                info["type"] = None
-                info["math"] = None
-        else:
-            astnode = sbase
-
-            if math_type == "cmathml":
-                info["type"] = "cmathml"
-                info["math"] = astnode_to_mathml(astnode)
-            elif math_type == "pmathml":
-                info["type"] = "pmathml"
-                cmathml = astnode_to_mathml(astnode)
-                info["math"] = mathml.cmathml_to_pmathml(cmathml)
-            elif math_type == "latex":
-                info["type"] = "latex"
-                latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
-                info["math"] = f"$${latex_str}$$"
+    if math_type == "cmathml":
+        info["type"] = "cmathml"
+        info["math"] = astnode_to_mathml(astnode)
+    elif math_type == "pmathml":
+        info["type"] = "pmathml"
+        cmathml = astnode_to_mathml(astnode)
+        info["math"] = mathml.cmathml_to_pmathml(cmathml)
+    elif math_type == "latex":
+        info["type"] = "latex"
+        # FIXME: not supported here
+        # latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
+        # info["math"] = f"$${latex_str}$$"
+        info["math"] = "FIXME"
     else:
         info["type"] = None
         info["math"] = None
@@ -249,118 +265,6 @@ def _half_equation(speciesList: libsbml.ListOfSpecies) -> str:
             sd = f"-{stoichiometry} {species}"
         items.append(sd)
     return " + ".join(items)
-
-def species_dict(species: libsbml.SpeciesReference):
-    return {
-        "species": species.getSpecies() if species.isSetSpecies() else None,
-        "stoichiometry": species.getStoichiometry() if species.isSetStoichiometry() else None,
-        "constant": species.getConstant() if species.isSetConstant() else None
-    }
-
-# -------------------------------------------------------------------------------------
-# FBC
-# -------------------------------------------------------------------------------------
-def boundsDictFromReaction(reaction: libsbml.Reaction, model: libsbml.Model) -> Dict:
-    """Render string of bounds from the reaction.
-
-    :param reaction: SBML reaction instance
-    :param model: SBML model instance
-    :return: String of bounds extracted from the reaction
-    """
-    bounds = {}
-    rfbc = reaction.getPlugin("fbc")
-    if rfbc is not None:
-        # get values for bounds
-        lb_id, ub_id = None, None
-        lb_value, ub_value = None, None
-        if rfbc.isSetLowerFluxBound():
-            lb_id = rfbc.getLowerFluxBound()
-            lb_p = model.getParameter(lb_id)
-            if lb_p.isSetValue():
-                lb_value = lb_p.getValue()
-        if rfbc.isSetUpperFluxBound():
-            ub_id = rfbc.getUpperFluxBound()
-            ub_p = model.getParameter(ub_id)
-            if ub_p.isSetValue():
-                ub_value = ub_p.getValue()
-
-        bounds["lb_value"] = lb_value
-        bounds["ub_value"] = ub_value
-    else:
-        bounds = None
-
-    return bounds
-
-
-def geneProductAssociationDictFromReaction(reaction: libsbml.Reaction) -> Dict:
-    """Render string representation of the GeneProductAssociation for given reaction.
-
-    :param reaction: SBML reaction instance
-    :return: string representation of GeneProductAssociation
-    """
-
-    rfbc = reaction.getPlugin("fbc")
-    info = rfbc.getGeneProductAssociation().getAssociation().toInfix() if (
-        rfbc and rfbc.isSetGeneProductAssociation()
-    ) else None
-
-    return info
-
-
-# ------------
-# ModelHistory
-# ------------
-def modelHistoryToDict(mhistory: libsbml.ModelHistory) -> Dict:
-    """Render HTML representation of the model history.
-
-    :param mhistory: SBML ModelHistory instance
-    :return HTML representation of the model history
-    """
-    if not mhistory:
-        return None
-
-    d = {}
-
-    creators = []
-    for kc in range(mhistory.getNumCreators()):
-        cdata = {}
-        c = mhistory.getCreator(kc)
-        cdata["givenNamw"] = c.getGivenName() if c.isSetGivenName() else None
-        cdata["familyNamw"] = c.getFamilyName() if c.isSetFamilyName() else None
-        cdata["organization"] = c.getOrganization() if c.isSetOrganization() else None
-        cdata["email"] = c.getEmail() if c.isSetEmail() else None
-
-        creators.append(cdata)
-    d["creators"] = creators
-
-    d["createdDate"] = dateToDict(mhistory.getCreatedDate()) if mhistory.isSetCreatedDate() else None
-
-    modified_dates = []
-    for km in range(mhistory.getNumModifiedDates()):
-        modified_dates.append(dateToDict(mhistory.getModifiedDate(km)))
-    d["modifiedDates"] = modified_dates
-
-    return d
-
-
-def dateToDict(d: libsbml.Date) -> Dict:
-    """Create dictionary representation of date.
-
-    :param d: SBML Date instance
-    return dictionary containing date details
-    """
-    return {
-        "date": {
-            "year": d.getYear(),
-            "month": str(d.getMonth()).zfill(2),
-            "day": str(d.getDay()).zfill(2)
-        },
-        "time": {
-            "hour": str(d.getHour()).zfill(2),
-            "minute": str(d.getMinute()).zfill(2)
-        }
-    }
-
 
 # -------------------------------------------------------------------------------------
 # Units
