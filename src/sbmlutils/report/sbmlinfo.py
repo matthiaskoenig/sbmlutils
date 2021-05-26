@@ -15,11 +15,7 @@ import libsbml
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
 from src.sbmlutils.report import helpers
-from src.sbmlutils.report.helpers import (
-    sbaseref,
-    derived_units,
-    math
-)
+from src.sbmlutils.report.helpers import derived_units
 
 # FIXME: better data structure for fast lookup via "id" and "metaId"
 # FIXME: support multiple model definitions in comp
@@ -112,6 +108,98 @@ class SBMLDocumentInfo:
         }
         return d
 
+    @staticmethod
+    def _sbaseref(sref: libsbml.SBaseRef) -> Optional[Dict]:
+        """Format the SBaseRef instance.
+
+        :param sref: SBaseRef instance
+        :return: Dictionary containging formatted SBaseRef instance's data
+        """
+
+        if sref.isSetPortRef():
+            return {
+                "type": "port_ref",
+                "value": sref.getPortRef()
+            }
+        elif sref.isSetIdRef():
+            return {
+                "type": "id_ref",
+                "value": sref.getIdRef()
+            }
+        elif sref.isSetUnitRef():
+            return {
+                "type": "unit_ref",
+                "value": sref.getUnitRef()
+            }
+        elif sref.isSetMetaIdRef():
+            return {
+                "type": "meta_ID_ref",
+                "value": sref.getMetaIdRef()
+            }
+        return None
+
+    # -------------------------------------------------------------------------------------
+    # Math
+    # -------------------------------------------------------------------------------------
+    @staticmethod
+    def _formula_to_mathml(string: str) -> str:
+        """Parse formula string.
+
+        :param string: formula string
+        :return string rendering of parsed formula in the formula string
+        """
+        astnode = libsbml.parseL3Formula(str(string))
+        mathml = libsbml.writeMathMLToString(astnode)
+        return str(mathml)
+
+    @staticmethod
+    def _astnode_to_string(astnode: libsbml.ASTNode) -> str:
+        """Convert to string representation.
+
+        :param astnode: ASTNode instance
+        :return string rendering of formula in the ASTnode instance
+        """
+        return str(libsbml.formulaToString(astnode))
+
+    @staticmethod
+    def _astnode_to_mathml(astnode: libsbml.ASTNode) -> str:
+        """Convert to MathML string representation.
+
+        :param astnode: ASTNode instance
+        :return string rendering of MathML content for the ASTNode instance
+        """
+        return libsbml.writeMathMLToString(astnode)  # type: ignore
+
+    @staticmethod
+    def _math(astnode: libsbml.ASTNode, model: Optional[libsbml.Model], math_type: str = "cmathml") -> str:
+        """Create MathML content for the item.
+
+        :param sbase: SBML object for which MathML content is to be generated
+        :param math_type: specifies which math rendering mode to use
+        :return: formatted MathML content for the item
+        """
+
+        info = {}
+        if math_type == "cmathml":
+            info["type"] = "cmathml"
+            info["math"] = SBMLDocumentInfo._astnode_to_mathml(astnode)
+        elif math_type == "pmathml":
+            info["type"] = "pmathml"
+            cmathml = SBMLDocumentInfo._astnode_to_mathml(astnode)
+            info["math"] = mathml.cmathml_to_pmathml(cmathml)
+        elif math_type == "latex":
+            info["type"] = "latex"
+            # FIXME: not supported here
+            latex_str = mathml.astnode_to_latex(astnode, model=sbase.getModel())
+            info["math"] = f"$${latex_str}$$"
+            info["math"] = "FIXME"
+        else:
+            info["type"] = None
+            info["math"] = None
+
+        return info
+
+
     def _create_assignment_map(self) -> Dict:
         """Create dictionary of symbols:assignment for symbols in model.
 
@@ -127,7 +215,7 @@ class SBMLDocumentInfo:
         for assignment in self.model.getListOfInitialAssignments():
             info = self.sbase_dict(assignment)
             info["sid"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            info["assignment"] = math(assignment.getMath(), self.math_render)
+            info["assignment"] = self._math(assignment.getMath(), self.model, self.math_render)
             info["units"] = derived_units(assignment)
 
             initial_assignments.append(info)
@@ -140,7 +228,7 @@ class SBMLDocumentInfo:
         for rule in self.model.getListOfRules():
             info = self.sbase_dict(rule)
             info["sid"] = rule.getVariable() if rule.isSetVariable() else None
-            info["assignment"] = math(rule.getMath(), self.math_render)
+            info["assignment"] = self._math(rule.getMath(), self.model, self.math_render)
             info["units"] = derived_units(rule)
 
             rules.append(info)
@@ -166,6 +254,9 @@ class SBMLDocumentInfo:
             "history": cls.model_history(sbase),
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
             "xml": sbase.toSBML(),
+            "displaySId": f"d{sbase.getVariable()}/dt" if (
+                isinstance(sbase, libsbml.RateRule) and sbase.isSetVariable()
+            ) else sbase.getId()    # --- should we add the displaySId?
         }
 
         # comp
@@ -177,7 +268,7 @@ class SBMLDocumentInfo:
                 submodel_ref = replaced_by.getSubmodelRef()
                 d["replacedBy"] = {
                     "submodel_ref": submodel_ref,
-                    "replaced_by_sbaseref": sbaseref(replaced_by)
+                    "replaced_by_sbaseref": cls._sbaseref(replaced_by)
                 }
             else:
                 d["replaced_by"] = None
@@ -189,7 +280,7 @@ class SBMLDocumentInfo:
                     submodel_ref = rep_el.getSubmodelRef()
                     replaced_elements.append({
                         "submodel_ref": submodel_ref,
-                        "replaced_element_sbaseref": sbaseref(rep_el)
+                        "replaced_element_sbaseref": cls._sbaseref(rep_el)
                     })
 
                 d["replaced_elements"] = replaced_elements
@@ -213,7 +304,7 @@ class SBMLDocumentInfo:
                         "units": upar.getUnits() if upar.isSetUnits() else None,
                         "type": upar.getTypeAsString() if upar.isSetType() else None,
                         "definition_url": upar.getDefinitionURL() if upar.isSetDefinitionURL() else None,
-                        "math": helpers.math(upar.getMath()) if upar.isSetMath() else None
+                        "math": cls._math(upar.getMath(), sbase.getModel()) if upar.isSetMath() else None
                     }
 
                     u_dict["uncert_parameters"].append(param_dict)
@@ -408,7 +499,7 @@ class SBMLDocumentInfo:
 
                 deletions = []
                 for deletion in submodel.getListOfDeletions():
-                    deletions.append(sbaseref(deletion))
+                    deletions.append(self._sbaseref(deletion))
                 info["deletions"] = deletions
 
                 info["time_conversion"] = submodel.getTimeConversionFactor() if submodel.isSetTimeConversionFactor() else None
@@ -447,7 +538,7 @@ class SBMLDocumentInfo:
         fd: libsbml.FunctionDefinition
         for fd in self.model.getListOfFunctionDefinitions():
             info = self.sbase_dict(fd)
-            info["math"] = math(fd.getMath(), self.math_render)
+            info["math"] = self._math(fd.getMath(), self.model, self.math_render)
 
             func_defs.append(info)
 
@@ -624,11 +715,28 @@ class SBMLDocumentInfo:
         for assignment in self.model.getListOfInitialAssignments():
             info = self.sbase_dict(assignment)
             info["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            info["math"] = math(assignment.getMath(), self.math_render)
+            info["math"] = self._math(assignment.getMath(), self.model, self.math_render)
             info["units"] = derived_units(assignment)
             assignments.append(info)
 
         return assignments
+
+
+    @staticmethod
+    def _rule_variable_to_string(rule: libsbml.Rule) -> str:
+        """Format variable for rule.
+
+        :param rule: SBML rule instance
+        :return formatted string representation of the rule
+        """
+        if isinstance(rule, libsbml.AlgebraicRule):
+            return "0"
+        elif isinstance(rule, libsbml.AssignmentRule):
+            return rule.variable  # type: ignore
+        elif isinstance(rule, libsbml.RateRule):
+            return f"d {rule.variable}/dt"
+        else:
+            raise TypeError(rule)
 
 
     def rules_list(self) -> List:
@@ -641,8 +749,8 @@ class SBMLDocumentInfo:
         rule: libsbml.Rule
         for rule in self.model.getListOfRules():
             info = self.sbase_dict(rule)
-            info["variable"] = helpers.rule_variable_to_string(rule)
-            info["math"] = math(rule.getMath(), self.math_render)
+            info["variable"] = self._rule_variable_to_string(rule)
+            info["math"] = self._math(rule.getMath(), self.model, self.math_render)
             info["units"] = derived_units(rule)
             rules.append(info)
 
@@ -658,12 +766,14 @@ class SBMLDocumentInfo:
         constraint: libsbml.Constraint
         for constraint in self.model.getListOfConstraints():
             info = self.sbase_dict(constraint)
-            info["math"] = math(constraint.getMath(), self.math_render)
+            info["math"] = self._math(constraint.getMath(), self.model, self.math_render)
             info["message"] = constraint.getMessage() if constraint.isSetMessage() else None
             constraints.append(info)
 
         return constraints
 
+
+    # Utility Methods for Reactions
     @staticmethod
     def _species_reference(species: libsbml.SpeciesReference):
         return {
@@ -671,6 +781,121 @@ class SBMLDocumentInfo:
             "stoichiometry": species.getStoichiometry() if species.isSetStoichiometry() else 1.0,
             "constant": species.getConstant() if species.isSetConstant() else None
         }
+
+    @staticmethod
+    def _bounds_dict_from_reaction(reaction: libsbml.Reaction, model: libsbml.Model) -> Dict:
+        """Render string of bounds from the reaction.
+
+        :param reaction: SBML reaction instance
+        :param model: SBML model instance
+        :return: String of bounds extracted from the reaction
+        """
+        bounds = {}
+        rfbc = reaction.getPlugin("fbc")
+        if rfbc is not None:
+            # get values for bounds
+            lb_id, ub_id = None, None
+            lb_value, ub_value = None, None
+            if rfbc.isSetLowerFluxBound():
+                lb_id = rfbc.getLowerFluxBound()
+                lb_p = model.getParameter(lb_id)
+                if lb_p.isSetValue():
+                    lb_value = lb_p.getValue()
+            if rfbc.isSetUpperFluxBound():
+                ub_id = rfbc.getUpperFluxBound()
+                ub_p = model.getParameter(ub_id)
+                if ub_p.isSetValue():
+                    ub_value = ub_p.getValue()
+
+            bounds["lb_value"] = lb_value
+            bounds["ub_value"] = ub_value
+        else:
+            bounds = None
+
+        return bounds
+
+    @staticmethod
+    def _gene_product_association_dict_from_reaction(reaction: libsbml.Reaction) -> Dict:
+        """Render string representation of the GeneProductAssociation for given reaction.
+
+        :param reaction: SBML reaction instance
+        :return: string representation of GeneProductAssociation
+        """
+
+        rfbc = reaction.getPlugin("fbc")
+        info = rfbc.getGeneProductAssociation().getAssociation().toInfix() if (
+            rfbc and rfbc.isSetGeneProductAssociation()
+        ) else None
+
+        return info
+
+    # Utility method for equations
+    @staticmethod
+    def _equation_from_reaction(
+        reaction: libsbml.Reaction,
+        sep_reversible: str = "&#8646;",
+        sep_irreversible: str = "&#10142;",
+        modifiers: bool = False,
+    ) -> str:
+        """Create equation for reaction.
+
+        :param reaction: SBML reaction instance for which equation is to be generated
+        :param sep_reversible: escape sequence for reversible equation (<=>) separator
+        :param sep_irreversible: escape sequence for irreversible equation (=>) separator
+        :param modifiers: boolean flag to use modifiers
+        :return equation string generated for the reaction
+        """
+
+        left = SBMLDocumentInfo._half_equation(reaction.getListOfReactants())
+        right = SBMLDocumentInfo._half_equation(reaction.getListOfProducts())
+        if reaction.getReversible():
+            # '<=>'
+            sep = sep_reversible
+        else:
+            # '=>'
+            sep = sep_irreversible
+        if modifiers:
+            mods = SBMLDocumentInfo._modifier_equation(reaction.getListOfModifiers())
+            if mods is None:
+                return " ".join([left, sep, right])
+            else:
+                return " ".join([left, sep, right, mods])
+        return " ".join([left, sep, right])
+
+    @staticmethod
+    def _modifier_equation(modifierList: libsbml.ListOfSpeciesReferences) -> str:
+        """Render string representation for list of modifiers.
+
+        :param modifierList: list of modifiers
+        :return: string representation for list of modifiers
+        """
+        if len(modifierList) == 0:
+            return ""
+        mids = [m.getSpecies() for m in modifierList]
+        return "[" + ", ".join(mids) + "]"  # type: ignore
+
+    @staticmethod
+    def _half_equation(speciesList: libsbml.ListOfSpecies) -> str:
+        """Create equation string of the half reaction of the species in the species list.
+
+        :param speciesList: list of species in the half reaction
+        :return: half equation string
+        """
+        items = []
+        for sr in speciesList:
+            stoichiometry = sr.getStoichiometry()
+            species = sr.getSpecies()
+            if abs(stoichiometry - 1.0) < 1e-8:
+                sd = f"{species}"
+            elif abs(stoichiometry + 1.0) < 1e-8:
+                sd = f"-{species}"
+            elif stoichiometry >= 0:
+                sd = f"{stoichiometry} {species}"
+            elif stoichiometry < 0:
+                sd = f"-{stoichiometry} {species}"
+            items.append(sd)
+        return " + ".join(items)
+
 
     def reactions_dict(self) -> List:
         """Information dictionaries for ListOfReactions.
@@ -695,12 +920,12 @@ class SBMLDocumentInfo:
             ]
             info["listOfModifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
             info["fast"] = r.getFast() if r.isSetFast() else None
-            info["equation"] = helpers.equation_from_reaction(r)
+            info["equation"] = self._equation_from_reaction(r)
 
             klaw: libsbml.KineticLaw = r.getKineticLaw() if r.isSetKineticLaw() else None
             if klaw:
                 info["kineticLaw"] = {
-                    "math": math(klaw.getMath(), self.math_render),  # FIXME:
+                    "math": self._math(klaw.getMath(), self.model, self.math_render),  # FIXME:
                     "units": derived_units(r.getKineticLaw())
                 }
 
@@ -721,7 +946,7 @@ class SBMLDocumentInfo:
             # fbc
             rfbc = r.getPlugin("fbc")
             info["fbc"] = {
-                "bounds": helpers.boundsDictFromReaction(r, self.model),
+                "bounds": self._bounds_dict_from_reaction(r, self.model),
                 "gpa": helpers.geneProductAssociationDictFromReaction(r)
             } if rfbc else None
 
@@ -780,22 +1005,22 @@ class SBMLDocumentInfo:
             trigger: libsbml.Trigger = event.getTrigger()
             if trigger:
                 info["trigger"] = {
-                    "math": math(trigger.getMath(), self.math_render),
+                    "math": self._math(trigger.getMath(), self.model, self.math_render),
                     "initial_value": trigger.initial_value,
                     "persistent": trigger.persistent
                 }
             else:
                 info["trigger"] = None
 
-            info["priority"] = math(event.getPriority(), self.math_render) if event.isSetPriority() else None
-            info["delay"] = math(event.getDelay(), self.math_render) if event.isSetDelay() else None
+            info["priority"] = self._math(event.getPriority(), self.model, self.math_render) if event.isSetPriority() else None
+            info["delay"] = self._math(event.getDelay(), self.model, self.math_render) if event.isSetDelay() else None
 
             assignments = []
             eva: libsbml.EventAssignment
             for eva in event.getListOfEventAssignments():
                 assignments.append({
                     "variable": eva.getVariable() if eva.isSetVariable() else None,
-                    "math": math(eva.getMath(), self.math_render)
+                    "math": self._math(eva.getMath(), self.model, self.math_render)
                 })
             info["listOfEventAssignments"] = assignments
 
