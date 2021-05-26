@@ -398,11 +398,10 @@ def derived_units(item: libsbml.SBase) -> Dict:
     :return: formatted string for Unit Definition derived from the item
     """
 
+    ud: libsbml.UnitDefinition = item.getDerivedUnitDefinition()
     info = {
-        "math": formula_to_mathml(
-            item.getDerivedUnitDefinition()
-        ),
-        "unit_terms": units_dict(item.getDerivedUnitDefinition())
+        "math": formula_to_mathml(unitDefinitionToString(ud)),
+        "unit_terms": units_dict(ud)
     } if item else None
 
     return info

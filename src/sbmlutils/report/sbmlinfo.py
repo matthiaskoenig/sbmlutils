@@ -14,8 +14,8 @@ import libsbml
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
-from src.sbmlutils.report import formating
-from src.sbmlutils.report.formating import (
+from src.sbmlutils.report import helpers
+from src.sbmlutils.report.helpers import (
     sbaseref,
     derived_units,
     math
@@ -95,11 +95,11 @@ class SBMLDocumentInfo:
 
             # comp
             "submodels": self.submodels_dict(),
-            "ports": self.ports_dict(),
+            "ports": self.ports_list(),
 
             # fbc
             "geneProducts": self.gene_products_dict(),
-            "objectives": self.objectives_dict(),
+            "objectives": self.objectives_list(),
         }
         d = {
             # core
@@ -127,12 +127,12 @@ class SBMLDocumentInfo:
         for assignment in self.model.getListOfInitialAssignments():
             info = self.sbase_dict(assignment)
             info["sid"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            info["assignment"] = math(assignment, self.math_render)
+            info["assignment"] = math(assignment.getMath(), self.math_render)
             info["units"] = derived_units(assignment)
 
             initial_assignments.append(info)
 
-        values["assignments"] = initial_assignments if len(initial_assignments) > 0 else None
+        values["assignments"] = initial_assignments
 
         # rules
         rules = []
@@ -140,12 +140,12 @@ class SBMLDocumentInfo:
         for rule in self.model.getListOfRules():
             info = self.sbase_dict(rule)
             info["sid"] = rule.getVariable() if rule.isSetVariable() else None
-            info["assignment"] = math(rule, self.math_render)
+            info["assignment"] = math(rule.getMath(), self.math_render)
             info["units"] = derived_units(rule)
 
             rules.append(info)
 
-        values["rules"] = rules if len(rules) > 0 else None
+        values["rules"] = rules
 
         return values
 
@@ -167,6 +167,7 @@ class SBMLDocumentInfo:
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
             "xml": sbase.toSBML(),
         }
+
         # comp
         item_comp = sbase.getPlugin("comp")
         if item_comp and type(item_comp) == libsbml.CompSBasePlugin:
@@ -195,6 +196,7 @@ class SBMLDocumentInfo:
             else:
                 d["replaced_elements"] = None
 
+
         # distrib
         sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
@@ -211,7 +213,7 @@ class SBMLDocumentInfo:
                         "units": upar.getUnits() if upar.isSetUnits() else None,
                         "type": upar.getTypeAsString() if upar.isSetType() else None,
                         "definition_url": upar.getDefinitionURL() if upar.isSetDefinitionURL() else None,
-                        "math": formating.math(upar.getMath()) if upar.isSetMath() else None
+                        "math": helpers.math(upar.getMath()) if upar.isSetMath() else None
                     }
 
                     u_dict["uncert_parameters"].append(param_dict)
@@ -254,10 +256,13 @@ class SBMLDocumentInfo:
             # qualifier
             q_type = cv.getQualifierType()
             if q_type == libsbml.MODEL_QUALIFIER:
-                qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
+                qualifier = miriam.ModelQualifierType[
+                    cv.getModelQualifierType()
+                ]
             elif q_type == libsbml.BIOLOGICAL_QUALIFIER:
                 qualifier = miriam.BiologicalQualifierType[
-                    cv.getBiologicalQualifierType()]
+                    cv.getBiologicalQualifierType()
+                ]
 
             resources = [
                 cv.getResourceURI(k) for k in range(cv.getNumResources())
@@ -387,7 +392,7 @@ class SBMLDocumentInfo:
 
         return d
 
-    def submodels_dict(self) -> Dict:
+    def submodels_dict(self) -> Optional[Dict]:
         """Information dictionaries for comp:Submodels.
 
         :return: list of info dictionaries for comp:Submodels
@@ -415,25 +420,21 @@ class SBMLDocumentInfo:
             d = None
         return d
 
-    def ports_dict(self) -> Dict:
+    def ports_list(self) -> List:
         """Information dictionaries for comp:Ports.
 
         :return: list of info dictionaries for comp:Ports
         """
-        d = {}
+
         model_comp = self.model.getPlugin("comp")
+        ports = []
         if model_comp:
-            ports = []
             port: libsbml.Port
             for port in model_comp.getListOfPorts():
                 info = self.sbaseref_dict(port)
                 ports.append(info)
 
-            d["ports"] = ports
-        else:
-            d = None
-
-        return d
+        return ports
 
     def function_definitions_list(self) -> List:
         """Information dictionaries for FunctionDefinitions.
@@ -446,7 +447,7 @@ class SBMLDocumentInfo:
         fd: libsbml.FunctionDefinition
         for fd in self.model.getListOfFunctionDefinitions():
             info = self.sbase_dict(fd)
-            info["math"] = math(fd, self.math_render)
+            info["math"] = math(fd.getMath(), self.math_render)
 
             func_defs.append(info)
 
@@ -461,7 +462,7 @@ class SBMLDocumentInfo:
         ud: libsbml.UnitDefinition
         for ud in self.model.getListOfUnitDefinitions():
             info = self.sbase_dict(ud)
-            info["listOfUnits"] = formating.units_dict(ud)
+            info["listOfUnits"] = helpers.units_dict(ud)
             unit_defs.append(info)
 
         return unit_defs
@@ -548,7 +549,7 @@ class SBMLDocumentInfo:
 
         return species
 
-    def gene_products_dict(self) -> Dict:
+    def gene_products_dict(self) -> Optional[Dict]:
         """Information dictionaries for GeneProducts.
 
         :return: list of info dictionaries for Reactions
@@ -567,6 +568,7 @@ class SBMLDocumentInfo:
                 info["associatedSpecies"] = gp.getAssociatedSpecies() if gp.isSetAssociatedSpecies() else None
 
                 gene_products.append(info)
+
             data["geneProducts"] = gene_products
         else:
             data = None
@@ -614,7 +616,7 @@ class SBMLDocumentInfo:
 
         :return: list of info dictionaries for InitialAssignments
 
-        -- look at math and units once
+        -- look at units once
         """
 
         assignments = []
@@ -622,7 +624,7 @@ class SBMLDocumentInfo:
         for assignment in self.model.getListOfInitialAssignments():
             info = self.sbase_dict(assignment)
             info["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            info["math"] = math(assignment, self.math_render)
+            info["math"] = math(assignment.getMath(), self.math_render)
             info["units"] = derived_units(assignment)
             assignments.append(info)
 
@@ -639,8 +641,8 @@ class SBMLDocumentInfo:
         rule: libsbml.Rule
         for rule in self.model.getListOfRules():
             info = self.sbase_dict(rule)
-            info["variable"] = formating.rule_variable_to_string(rule)
-            info["math"] = math(rule, self.math_render)
+            info["variable"] = helpers.rule_variable_to_string(rule)
+            info["math"] = math(rule.getMath(), self.math_render)
             info["units"] = derived_units(rule)
             rules.append(info)
 
@@ -656,7 +658,7 @@ class SBMLDocumentInfo:
         constraint: libsbml.Constraint
         for constraint in self.model.getListOfConstraints():
             info = self.sbase_dict(constraint)
-            info["math"] = math(constraint, self.math_render)
+            info["math"] = math(constraint.getMath(), self.math_render)
             info["message"] = constraint.getMessage() if constraint.isSetMessage() else None
             constraints.append(info)
 
@@ -693,7 +695,8 @@ class SBMLDocumentInfo:
             ]
             info["listOfModifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
             info["fast"] = r.getFast() if r.isSetFast() else None
-            info["equation"] = formating.equation_from_reaction(r)
+            info["equation"] = helpers.equation_from_reaction(r)
+
             klaw: libsbml.KineticLaw = r.getKineticLaw() if r.isSetKineticLaw() else None
             if klaw:
                 info["kineticLaw"] = {
@@ -718,23 +721,23 @@ class SBMLDocumentInfo:
             # fbc
             rfbc = r.getPlugin("fbc")
             info["fbc"] = {
-                "bounds": formating.boundsDictFromReaction(r, self.model),
-                "gpa": formating.geneProductAssociationDictFromReaction(r)
+                "bounds": helpers.boundsDictFromReaction(r, self.model),
+                "gpa": helpers.geneProductAssociationDictFromReaction(r)
             } if rfbc else None
 
             reactions.append(info)
 
         return reactions
 
-    def objectives_dict(self) -> List:
+    def objectives_list(self) -> List:
         """Information dictionaries for Objectives.
 
         :return: list of info dictionaries for Objectives
         """
 
+        objectives = []
         model_fbc: libsbml.FbcModelPlugin = self.model.getPlugin("fbc")
         if model_fbc:
-            objectives = []
             objective: libsbml.Objective
             for objective in model_fbc.getListOfObjectives():
                 info = self.sbase_dict(objective)
@@ -755,11 +758,11 @@ class SBMLDocumentInfo:
                     }
                     flux_objectives.append(part)
                 info["flux_objectives"] = flux_objectives
+
                 objectives.append(info)
 
-            return objectives
-        else:
-            return None
+        return objectives
+
 
     def events_dict(self) -> List:
         """Information dictionaries for Events.
@@ -774,10 +777,10 @@ class SBMLDocumentInfo:
 
             info["useValuesFromTriggerTime"] = event.getUseValuesFromTriggerTime() if event.isSetUseValuesFromTriggerTime() else None
 
-            trigger = event.getTrigger()
+            trigger: libsbml.Trigger = event.getTrigger()
             if trigger:
                 info["trigger"] = {
-                    "math": math(trigger, self.math_render),
+                    "math": math(trigger.getMath(), self.math_render),
                     "initial_value": trigger.initial_value,
                     "persistent": trigger.persistent
                 }
@@ -788,10 +791,11 @@ class SBMLDocumentInfo:
             info["delay"] = math(event.getDelay(), self.math_render) if event.isSetDelay() else None
 
             assignments = []
+            eva: libsbml.EventAssignment
             for eva in event.getListOfEventAssignments():
                 assignments.append({
                     "variable": eva.getVariable() if eva.isSetVariable() else None,
-                    "math": math(eva, self.math_render)
+                    "math": math(eva.getMath(), self.math_render)
                 })
             info["listOfEventAssignments"] = assignments
 
