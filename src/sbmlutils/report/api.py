@@ -10,7 +10,9 @@ import logging
 
 from pathlib import Path
 from typing import Optional, Dict
+from datetime import datetime
 
+import uvicorn
 from fastapi import FastAPI
 
 from sbmlutils.test import REPRESSILATOR_SBML
@@ -20,14 +22,14 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # TODO: create prototype of vue-report in sbml4humans branch;
-# remove the feature vue-prototype branch;
-# close issue #226 https://github.com/matthiaskoenig/sbmlutils/issues/226
+# TODO: remove the feature vue-prototype branch;
+# TODO: close issue #226 https://github.com/matthiaskoenig/sbmlutils/issues/226
 
 
 # TODO: very simple first prototype for component: component SBase; component Species; component for SBaseListView
 # -> Long list of all SBases: * (id, metaId, sbml_type) <- on click show detail View
 
-# TODO: add `sbml_type` attribute in SBMLInfo: Reaction; Species, Compartment, ...
+# TODO: add `sbml_type` attribute in SBMLInfo: Reaction, Species, Compartment, ...
 
 
 # TODO: implement sbml endpoint;
@@ -53,7 +55,6 @@ examples = {
 @app.get("/examples/{example_id}")
 def read_item(example_id: str) -> Dict:
     """
-
     example endpoint for testing
 
     http://127.0.0.1:1444/examples/0 -> JSON for repressilator
@@ -64,26 +65,27 @@ def read_item(example_id: str) -> Dict:
     content: Dict
 
     if source:
-        # TODO: add timing information
+        fetch_start = datetime.now()    # debug information
         info = SBMLDocumentInfo.from_sbml(source=source, math_render="latex")
         content = info.info
+        fetch_end = datetime.now()      # debug information
+
+        time_elapsed = (fetch_end - fetch_start).total_seconds()
     else:
         content = {
             "error": f"example for id does not exist '{example_id}'"
         }
+        time_elapsed = 0
 
     content["debug"] = {
-        # FIXME inject time
-        "json_report_time": 5.1234
-
+        "json_report_time": f"{round(time_elapsed, 3)} seconds"
     }
 
     return content
 
 
 if __name__ == "__main__":
-    pass
-    # TODO: start uvicorn from python
     # shell command:
     #   uvicorn sbmlutils.report.api:app --reload --port 1444
+    uvicorn.run("sbmlutils.report.api:app", host="127.0.0.1", port=1444, log_level="info")
 

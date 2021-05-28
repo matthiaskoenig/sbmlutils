@@ -237,6 +237,11 @@ class SBMLDocumentInfo:
 
         return values
 
+    @staticmethod
+    def _sbase_type(sbase: libsbml.SBase) -> str:
+        class_name = str(sbase.__class__)[16:-2]
+        return class_name
+
     @classmethod
     def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:
         """Info dictionary for SBase.
@@ -256,7 +261,8 @@ class SBMLDocumentInfo:
             "xml": sbase.toSBML(),
             "displaySId": f"d{sbase.getVariable()}/dt" if (
                 isinstance(sbase, libsbml.RateRule) and sbase.isSetVariable()
-            ) else sbase.getId()    # --- should we add the displaySId?
+            ) else sbase.getId(),    # --- should we add the displaySId?
+            "sbaseType": cls._sbase_type(sbase)
         }
 
         # comp
@@ -1040,11 +1046,11 @@ if __name__ == "__main__":
     from src.sbmlutils.test import REPRESSILATOR_SBML
     info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML, "latex")
     json_str = info.to_json()
-    print(info)
+    #print(info)
     print("-" * 80)
-    print(str(info))
+    #print(str(info))
     print("-" * 80)
-    print(json_str)
+    #print(json_str)
     print("-" * 80)
 
     with open(output_dir / "test_json.json", "w") as fout:
