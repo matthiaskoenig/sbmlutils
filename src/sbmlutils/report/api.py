@@ -19,6 +19,10 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
+# TODO: create prototype of vue-report in sbml4humans branch;
+# remove the feature vue-prototype branch;
+# close issue #226 https://github.com/matthiaskoenig/sbmlutils/issues/226
+
 
 # TODO: very simple first prototype for component: component SBase; component Species; component for SBaseListView
 # -> Long list of all SBases: * (id, metaId, sbml_type) <- on click show detail View
