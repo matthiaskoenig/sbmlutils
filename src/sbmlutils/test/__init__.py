@@ -32,6 +32,8 @@ GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
 REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
 
+RECON3D_SBML = MODELS_DIR / "bigg" / "Recon3D.xml.gz"
+
 TESTSUITE_PATH = DATA_DIR / "testsuite"
 
 # --- Combine Archives ---

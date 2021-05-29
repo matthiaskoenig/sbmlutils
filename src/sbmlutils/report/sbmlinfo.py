@@ -953,7 +953,7 @@ class SBMLDocumentInfo:
             rfbc = r.getPlugin("fbc")
             info["fbc"] = {
                 "bounds": self._bounds_dict_from_reaction(r, self.model),
-                "gpa": helpers.geneProductAssociationDictFromReaction(r)
+                "gpa": self._gene_product_association_dict_from_reaction(r)
             } if rfbc else None
 
             reactions.append(info)
@@ -1046,11 +1046,9 @@ if __name__ == "__main__":
     from src.sbmlutils.test import REPRESSILATOR_SBML
     info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML, "latex")
     json_str = info.to_json()
-    #print(info)
+    print(info)
     print("-" * 80)
-    #print(str(info))
-    print("-" * 80)
-    #print(json_str)
+    print(json_str)
     print("-" * 80)
 
     with open(output_dir / "test_json.json", "w") as fout:
