@@ -6,14 +6,17 @@ flask
 fastapi
 
 """
+import os
 import logging
+import json
 
 from pathlib import Path
 from typing import Optional, Dict
 from datetime import datetime
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 
 import libsbml
 from sbmlutils.test import REPRESSILATOR_SBML, RECON3D_SBML
@@ -21,6 +24,19 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
+
+origins = [
+    "127.0.0.1",
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # TODO: create prototype of vue-report in sbml4humans branch;
 # TODO: remove the feature vue-prototype branch;
@@ -36,35 +52,45 @@ app = FastAPI()
 # TODO: implement sbml endpoint;
 # TODO: consume this in the vue report
 # post SBML file and returns JSON sbmlinfo
-# @app.post("/sbml")
-# def send_sbml_file(source: libsbml.SBMLDocument, math_render: str): #, file_content: str, filename: str):
-#     try:
-#         # files_dir = Path(__file__).parent / "file_uploads"
-#         # if not output_dir.exists():
-#         #     output_dir.mkdir(parents=True, exist_ok=True)
-#         #
-#         # with open(files_dir / filename, "w") as sbml_file:
-#         #     sbml_file.write(file_content)
-#         # source = files_dir / filename
-#
-#         fetch_start = datetime.now()    # debug information
-#         info = SBMLDocumentInfo.from_sbml(source=source, math_render=math_render)
-#         fetch_end = datetime.now()    # debug information
-#         content = info.info
-#
-#         time_elapsed = (fetch_end - fetch_start).total_seconds()
-#     except:
-#         content = {
-#             "error": "SBML Document could not be parsed."
-#         }
-#
-#         time_elapsed = 0
-#
-#     content["debug"] = {
-#         "json_report_time": f"{time_elapsed} seconds"
-#     }
-#
-#     return content
+@app.post("/sbml")
+async def send_sbml_file(request: Request):
+    try:
+        file_data = await request.form()
+
+        math_render = file_data["math"]
+        filename = file_data["source"].filename
+        file_content = await file_data["source"].read()
+
+        files_dir = Path(__file__).parent / "file_uploads"
+        if not files_dir.exists():
+            files_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(files_dir / filename, "wb") as sbml_file:
+            sbml_file.write(file_content)
+        source = files_dir / filename
+
+        fetch_start = datetime.now()    # debug information
+        info = SBMLDocumentInfo.from_sbml(source=source, math_render=math_render)
+        fetch_end = datetime.now()    # debug information
+        content = info.info
+
+        time_elapsed = (fetch_end - fetch_start).total_seconds()
+
+        os.remove(files_dir / filename)
+    except:
+        content = {
+            "error": "SBML Document could not be parsed."
+        }
+
+        time_elapsed = 0
+
+    content["debug"] = {
+        "json_report_time": f"{round(time_elapsed, 3)} seconds"
+    }
+
+    res = Response(content=json.dumps(content, indent=2), media_type="application/json")
+    print(res.__dict__)
+    return res
 
 
 # post COMBINE archive and returns JSON sbmlinfo
@@ -94,14 +120,14 @@ def read_item(example_id: str) -> Dict:
     source = examples.get(example_id, None)
     content: Dict
 
-    if source:
+    try:
         fetch_start = datetime.now()    # debug information
         info = SBMLDocumentInfo.from_sbml(source=source, math_render="latex")
         fetch_end = datetime.now()      # debug information
         content = info.info
 
         time_elapsed = (fetch_end - fetch_start).total_seconds()
-    else:
+    except:
         content = {
             "error": f"example for id does not exist '{example_id}'"
         }
@@ -111,10 +137,12 @@ def read_item(example_id: str) -> Dict:
         "json_report_time": f"{round(time_elapsed, 3)} seconds"
     }
 
-    return content
+    res = Response(content=json.dumps(content, indent=2), media_type="application/json")
+    print(res.__dict__)
+    return res
 
 
 if __name__ == "__main__":
     # shell command: uvicorn sbmlutils.report.api:app --reload --port 1444
-    uvicorn.run("sbmlutils.report.api:app", host="127.0.0.1", port=1444, log_level="info")
+    uvicorn.run("sbmlutils.report.api:app", host="localhost", port=1444, log_level="info")
 
