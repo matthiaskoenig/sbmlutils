@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <img alt="Vue logo" src="../assets/images/logo.png" />
+        <img alt="SBML logo" src="@/assets/images/logo.png" />
         <HomeInfo msg="Generate SBML Model Reports on the go!" />
     </div>
 </template>

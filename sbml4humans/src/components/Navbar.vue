@@ -1,6 +1,6 @@
 <template>
     <nav class="navbar navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">SBML4Humans</a>
+        <router-link class="navbar-brand" to="/">SBML4Humans</router-link>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -10,8 +10,11 @@
                 <li class="nav-item active">
                     <router-link class="nav-link" to="/">Home</router-link>
                 </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/">Upload SBML</router-link>
+                <li class="nav-item active">
+                    <router-link class="nav-link" to="/examples">Examples</router-link>
+                </li>
+                <li class="nav-item active">
+                    <router-link class="nav-link" to="/uploadSBML">Upload SBML</router-link>
                 </li>
             </ul>
         </div>
