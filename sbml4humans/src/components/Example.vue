@@ -7,9 +7,7 @@
 </template>
 
 <script>
-import axios from "axios";
-
-import BASE_URLS from "@/data/urls";
+import createStore from "@/store/index";
 
 export default {
     props: {
@@ -23,16 +21,19 @@ export default {
         },
     },
 
+    data() {
+        return {
+            loading: createStore.state.jsonReport,
+        };
+    },
+
     methods: {
         async getExample() {
-            const url = BASE_URLS.API_BASE_URL + "/examples/" + this.exampleId;
-            const res = await axios.get(url);
+            const payload = {
+                exampleId: this.exampleId,
+            };
 
-            if (res.status === 200) {
-                alert("SUCCESS: " + res.data.debug.json_report_time);
-            } else {
-                alert("FAILURE");
-            }
+            createStore.dispatch("fetchExampleReport", payload);
         },
     },
 };

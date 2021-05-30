@@ -53,12 +53,11 @@
             <button class="btn btn-primary">Submit form</button>
         </form>
     </div>
+    <h3 v-if="loading">Loading</h3>
 </template>
 
 <script>
-import axios from "axios";
-
-import API_BASE_URL from "@/data/urls";
+import createStore from "@/store/index";
 
 export default {
     data() {
@@ -66,6 +65,7 @@ export default {
             file: null,
             mathRender: "latex",
             fileFormat: "sbml",
+            loading: createStore.state.loading,
         };
     },
 
@@ -81,24 +81,19 @@ export default {
 
             let formData = new FormData();
             formData.append("source", this.file);
-
             formData.append("math", this.mathRender);
             formData.append("format", this.fileFormat);
 
-            const url = API_BASE_URL + "/sbml";
-            const res = await axios.post(url, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const headers = {
+                "Content-Type": "multipart/form-data",
+            };
 
-            if (res.status === 200 && !res.data.error) {
-                alert("SUCCESS: " + res.data.debug.json_report_time + " seconds");
-            } else if (res.data.error) {
-                alert("ERROR: " + res.data.error);
-            } else {
-                alert("FAILURE");
-            }
+            var payload = {
+                formData: formData,
+                headers: headers,
+            };
+
+            createStore.dispatch("fetchReport", payload);
         },
     },
 };

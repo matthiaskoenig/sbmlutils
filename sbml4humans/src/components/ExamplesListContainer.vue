@@ -7,10 +7,13 @@
             v-bind:exampleId="ex.id"
         ></example>
     </div>
+    <h5 v-if="loading">Loading</h5>
+    <h5>{{ jsonReport }}</h5>
 </template>
 
 <script>
 import examples from "@/data/examples";
+import createStore from "@/store/index";
 
 /* Components */
 import Example from "@/components/Example";
@@ -24,6 +27,15 @@ export default {
         return {
             examples: examples.listOfExamples,
         };
+    },
+
+    computed: {
+        jsonReport() {
+            return createStore.state.jsonReport;
+        },
+        loading(){
+            return createStore.state.loading;
+        },
     },
 };
 </script>

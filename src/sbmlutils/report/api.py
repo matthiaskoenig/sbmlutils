@@ -104,10 +104,29 @@ examples = {
     "repressilator": REPRESSILATOR_SBML,
     "recon3d": RECON3D_SBML
 }
-# TODO: add a large model example: Recon3D/Recon bigg collection
+
+list_of_examples = [
+    {
+        "name": key,
+        "id": examples[key]
+    } for key in examples
+]
 
 
-# TODO: consume this in the vue report
+@app.get("/examples/list")
+def list_of_examples():
+    """
+    Endpoint to fetch all available examples in the API
+    """
+    content = {
+        "examples": list_of_examples
+    }
+    res = Response(content=json.dumps(content, indent=2), media_type="application/json")
+
+    print(res.__dict__)
+    return res
+
+
 @app.get("/examples/{example_id}")
 def read_item(example_id: str) -> Dict:
     """
