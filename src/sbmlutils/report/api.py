@@ -54,6 +54,7 @@ app.add_middleware(
 # post SBML file and returns JSON sbmlinfo
 @app.post("/sbml")
 async def send_sbml_file(request: Request):
+    content = {}
     try:
         file_data = await request.form()
 
@@ -72,7 +73,7 @@ async def send_sbml_file(request: Request):
         fetch_start = datetime.now()    # debug information
         info = SBMLDocumentInfo.from_sbml(source=source, math_render=math_render)
         fetch_end = datetime.now()    # debug information
-        content = info.info
+        content["report"] = info.info
 
         time_elapsed = (fetch_end - fetch_start).total_seconds()
 
@@ -137,13 +138,13 @@ def read_item(example_id: str) -> Dict:
     :return:
     """
     source = examples.get(example_id, None)
-    content: Dict
+    content: Dict = {}
 
     try:
         fetch_start = datetime.now()    # debug information
         info = SBMLDocumentInfo.from_sbml(source=source, math_render="latex")
         fetch_end = datetime.now()      # debug information
-        content = info.info
+        content["report"] = info.info
 
         time_elapsed = (fetch_end - fetch_start).total_seconds()
     except:

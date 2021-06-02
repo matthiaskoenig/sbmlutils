@@ -153,7 +153,7 @@ def derived_units(item: libsbml.SBase) -> Dict:
     ud: libsbml.UnitDefinition = item.getDerivedUnitDefinition()
     info = {
         "math": formula_to_mathml(unitDefinitionToString(ud)),
-        "unit_terms": units_dict(ud)
+        "unitTerms": units_dict(ud)
     } if item else None
 
     return info

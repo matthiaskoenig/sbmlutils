@@ -327,13 +327,13 @@ class SBMLDocumentInfo:
         """
         info = self.sbase_dict(sbref)
 
-        info["port_ref"] = sbref.getPortRef() if sbref.setPortRef() else None
-        info["id_ref"] = sbref.getIdRef() if sbref.isSetIdRef() else None
-        info["unit_ref"] = sbref.getUnitRef() if sbref.isSetUnitRef() else None
-        info["metaid_ref"] = sbref.getMetaIdRef() if sbref.isSetMetaIdRef() else None
-        info["referenced_element"] = {
+        info["portRef"] = sbref.getPortRef() if sbref.setPortRef() else None
+        info["idRef"] = sbref.getIdRef() if sbref.isSetIdRef() else None
+        info["unitRef"] = sbref.getUnitRef() if sbref.isSetUnitRef() else None
+        info["metaIdRef"] = sbref.getMetaIdRef() if sbref.isSetMetaIdRef() else None
+        info["referencedElement"] = {
             "element": type(sbref.getReferencedElement()).__name__,
-            "element_id": sbref.getReferencedElement().getId()
+            "elementId": sbref.getReferencedElement().getId()
         }
 
         return info
@@ -494,27 +494,27 @@ class SBMLDocumentInfo:
 
         :return: list of info dictionaries for comp:Submodels
         """
-        d = {}
+        d = []
         model_comp = self.model.getPlugin("comp")
         if model_comp:
             submodels = []
             submodel: libsbml.Submodel
             for submodel in model_comp.getListOfSubmodels():
                 info = self.sbase_dict(submodel)
-                info["model_ref"] = submodel.getModelRef() if submodel.isSetModelRef() else None
+                info["modelRef"] = submodel.getModelRef() if submodel.isSetModelRef() else None
 
                 deletions = []
                 for deletion in submodel.getListOfDeletions():
                     deletions.append(self._sbaseref(deletion))
                 info["deletions"] = deletions
 
-                info["time_conversion"] = submodel.getTimeConversionFactor() if submodel.isSetTimeConversionFactor() else None
-                info["extent_conversion"] = submodel.getExtentConversionFactor() if submodel.isSetExtentConversionFactor() else None
+                info["timeConversion"] = submodel.getTimeConversionFactor() if submodel.isSetTimeConversionFactor() else None
+                info["extentConversion"] = submodel.getExtentConversionFactor() if submodel.isSetExtentConversionFactor() else None
 
                 submodels.append(info)
-            d["submodels"] = submodels
+            d = submodels
         else:
-            d = None
+            d = []
         return d
 
     def ports_list(self) -> List:
@@ -633,7 +633,7 @@ class SBMLDocumentInfo:
                     "units": cf_units
                 }
             else:
-                info["conversionFactor"] = None
+                info["conversionFactor"] = {}
 
             # fbc
             sfbc = s.getPlugin("fbc")
@@ -653,7 +653,7 @@ class SBMLDocumentInfo:
 
         -- revisit
         """
-        data = {}
+        data = []
 
         model_fbc: libsbml.FbcModelPlugin = self.model.getPlugin("fbc")
         if model_fbc:
@@ -666,9 +666,9 @@ class SBMLDocumentInfo:
 
                 gene_products.append(info)
 
-            data["geneProducts"] = gene_products
+            data = gene_products
         else:
-            data = None
+            data = []
 
         return data
 
@@ -988,7 +988,7 @@ class SBMLDocumentInfo:
                         "reaction": f_obj.getReaction() if f_obj.isSetReaction() else None
                     }
                     flux_objectives.append(part)
-                info["flux_objectives"] = flux_objectives
+                info["fluxObjectives"] = flux_objectives
 
                 objectives.append(info)
 
@@ -1012,7 +1012,7 @@ class SBMLDocumentInfo:
             if trigger:
                 info["trigger"] = {
                     "math": self._math(trigger.getMath(), self.model, self.math_render),
-                    "initial_value": trigger.initial_value,
+                    "initialValue": trigger.initial_value,
                     "persistent": trigger.persistent
                 }
             else:
