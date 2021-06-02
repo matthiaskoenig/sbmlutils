@@ -1,6 +1,6 @@
 import { createStore } from "vuex";
-
 import axios from "axios";
+import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
 import LIST_OF_EXAMPLES from "@/data/examples";
@@ -10,8 +10,14 @@ export default createStore({
         // list of examples
         examples: LIST_OF_EXAMPLES.listOfExamples,
 
-        // json rendering of the report for the SBML model
+        // raw report
+        rawReport: {},
+
+        // final report
         jsonReport: {},
+
+        // compartments
+        compartments: [],
 
         // describe if the model is still loading
         loading: false,
@@ -22,6 +28,17 @@ export default createStore({
         },
         SET_JSON_REPORT(state, payload) {
             state.jsonReport = payload;
+
+            if (payload.report && payload.report.models) {
+                console.log("here at 33");
+                const sbmlInfo = payload.report.models;
+
+                if (sbmlInfo.compartments) {
+                    console.log("here at 37");
+                    state.compartments = sbmlInfo.compartments;
+                    console.log(state.compartments);
+                }
+            }
         },
         SET_LOADING_STATUS(state, payload) {
             state.loading = payload;
@@ -55,6 +72,8 @@ export default createStore({
             if (res.status === 200) {
                 context.commit("SET_JSON_REPORT", res.data);
                 //alert("SUCCESS: " + res.data.debug.json_report_time);
+                console.log(context.state);
+                router.push("report");
             } else {
                 alert("Failed to fetch example report from API");
             }
