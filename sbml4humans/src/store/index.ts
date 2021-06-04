@@ -6,23 +6,34 @@ import BASE_URLS from "@/data/urls";
 import LIST_OF_EXAMPLES from "@/data/examples";
 
 export default createStore({
+
+    // FIXME: use the identical variable names between JSON & state/internals
+
     state: {
         // list of examples
+        // FIXME: query examples from python backend
         examples: LIST_OF_EXAMPLES.listOfExamples,
 
-        // raw report
+        // FIXME: add a static flag/switch
+        //e.g. do not show/query examples & upload SBML in static mode
+        // if static is activated: => no queries to the endpoint;
+        // no debug information in static;
+
+        // raw report (complete backend response)
+        // FIXME: split in "debug"
         rawReport: {},
 
         // final report
+        // FIXME: call in "report"
         jsonReport: {},
 
-        // compartments
+        // compartments (helper state variable)
         compartments: [],
 
-        // detail view info
+        // detail view info (for access from every where)
         detailInfo: {},
 
-        // describe if the model is still loading
+        // describe if the model is still loading (REST endpoint)
         loading: false,
     },
     mutations: {
@@ -33,13 +44,13 @@ export default createStore({
             state.jsonReport = payload;
 
             if (payload.report && payload.report.models) {
-                const sbmlInfo = payload.report.models;
                 const doc = payload.report.doc;
+                const models = payload.report.models;
 
                 state.detailInfo = doc;
 
-                if (sbmlInfo.compartments) {
-                    state.compartments = sbmlInfo.compartments;
+                if (models.compartments) {
+                    state.compartments = models.compartments;
                 }
             }
         },

@@ -38,6 +38,7 @@
 <script>
 export default {
     props: {
+        //FIXME: initialize with empty data
         info: {},
     },
 
