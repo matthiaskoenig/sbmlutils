@@ -2,7 +2,6 @@
 API for the sbmlreport web service. This provides basic functionality of
 parsing the model and returning the JSON representation.
 
-flask
 fastapi
 
 """
@@ -19,7 +18,9 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 import libsbml
-from sbmlutils.test import REPRESSILATOR_SBML, RECON3D_SBML
+from sbmlutils.test import (
+    REPRESSILATOR_SBML, RECON3D_SBML, ICG_LIVER, ICG_BODY_FLAT, ICG_BODY,
+)
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 logger = logging.getLogger(__name__)
@@ -41,12 +42,6 @@ app.add_middleware(
 # TODO: create prototype of vue-report in sbml4humans branch;
 # TODO: remove the feature vue-prototype branch;
 # TODO: close issue #226 https://github.com/matthiaskoenig/sbmlutils/issues/226
-
-
-# TODO: very simple first prototype for component: component SBase; component Species; component for SBaseListView
-# -> Long list of all SBases: * (id, metaId, sbml_type) <- on click show detail View
-
-# TODO: add `sbml_type` attribute in SBMLInfo: Reaction, Species, Compartment, ...
 
 
 @app.post("/sbml")
@@ -103,7 +98,10 @@ def read_root():
 
 examples = {
     "repressilator": REPRESSILATOR_SBML,
-    "recon3d": RECON3D_SBML
+    "recon3d": RECON3D_SBML,
+    "icg_liver": ICG_LIVER,
+    "icg_body_flat": ICG_BODY_FLAT,
+    "icg_body": ICG_BODY,
 }
 
 @app.get("/examples/list")
@@ -114,7 +112,7 @@ async def list_of_examples():
     list_of_examples = []
     for key in examples:
         list_of_examples.append({
-            "name": f"{key[0].upper()}{key[1:]}",
+            "name": key.replace('_', ' ').title(),
             "id": key
         })
 
