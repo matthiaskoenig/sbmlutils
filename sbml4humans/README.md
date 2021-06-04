@@ -1,5 +1,10 @@
 # sbml4humans
 
+## Technology
+# FIXME: 
+- antdv ...
+
+
 ## Project setup
 ```
 npm install
