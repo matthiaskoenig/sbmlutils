@@ -1,20 +1,31 @@
 <template>
-    <h5>List of SBases</h5>
-    <list-of-sbases></list-of-sbases>
-    <br />
-    <h5>List of Compartments</h5>
-    <list-of-compartments></list-of-compartments>
+    <div class="row">
+        <div class="left-container">
+            <list-of-sbases></list-of-sbases>
+            <br />
+            <list-of-compartments></list-of-compartments>
+        </div>
+        <div class="right-container">
+            <detail-container></detail-container>
+        </div>
+    </div>
 </template>
 
 <script>
 /* Compartments */
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
 import ListOfCompartments from "@/components/sbml/listOf/ListOfCompartments";
+import DetailContainer from "@/components/DetailContainer";
 
 export default {
     components: {
         "list-of-sbases": ListOfSBases,
         "list-of-compartments": ListOfCompartments,
+        "detail-container": DetailContainer,
     },
 };
 </script>
+
+<style lang="scss" scoped>
+@import "@/assets/styles/scss/components/ReportContainer.scss";
+</style>

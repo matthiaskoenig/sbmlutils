@@ -12,10 +12,6 @@ export default {
     components: {
         'navbar': Navbar,
         'main-window': MainWindow,
-    }
-}
+    },
+};
 </script>
-
-<style lang="scss">
-@import '../src/assets/styles/scss/App.scss';
-</style>

@@ -50,7 +50,9 @@
                     </div>
                 </div>
             </div>
-            <button class="btn btn-primary">Submit form</button>
+            <a-button type="primary" shape="round" :size="size">
+                <template #icon> Submit </template>
+            </a-button>
         </form>
     </div>
     <h3 v-if="loading">Loading</h3>

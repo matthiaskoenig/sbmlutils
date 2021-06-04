@@ -1,10 +1,16 @@
 <template>
-    <div class="list-group">
-        <sBase
-            v-for="sbase in listOfSBases"
-            v-bind:key="sbase.sbo"
-            v-bind:info="sbase"
-        ></sBase>
+    <div class="container">
+        <h5 class="header-pill">List of SBases</h5>
+        <a-list bordered class="list-container">
+            <toaster
+                v-for="sbase in listOfSBases"
+                v-bind:key="sbase.id"
+                v-bind:sid="sbase.id"
+                v-bind:name="sbase.name"
+                v-bind:sbmlType="sbase.sbaseType"
+                v-bind:info="sbase"
+            ></toaster>
+        </a-list>
     </div>
 </template>
 
@@ -13,10 +19,11 @@ import store from "@/store/index";
 
 /* Compartments */
 import SBase from "@/components/sbml/SBase";
+import SBMLToaster from "@/components/SBMLToaster";
 
 export default {
     components: {
-        sBase: SBase,
+        toaster: SBMLToaster,
     },
 
     data() {
@@ -63,5 +70,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/listOf/ListOfSBases.scss";
+@import "@/assets/styles/scss/components/sbml/listOf/ListOf.scss";
 </style>

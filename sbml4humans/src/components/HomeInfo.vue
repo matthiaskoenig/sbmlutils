@@ -1,17 +1,27 @@
 <template>
-    <div class="hello">
+    <div class="container">
+        <img class="logo" alt="SBML logo" src="@/assets/images/logo.png" />
         <h1>{{ msg }}</h1>
-
         <h3>Essential Links</h3>
         <ul>
             <li>
-                <a href="https://https://github.com/matthiaskoenig/sbmlutils" target="_blank" rel="noopener">sbmlutils</a>
+                <a
+                    href="https://https://github.com/matthiaskoenig/sbmlutils"
+                    target="_blank"
+                    rel="noopener"
+                    >sbmlutils</a
+                >
             </li>
             <li>
                 <a href="http://sbml.org" target="_blank" rel="noopener">SBML</a>
             </li>
             <li>
-                <a href="https://summerofcode.withgoogle.com/projects/#5355377035575296" target="_blank" rel="noopener">Project Description</a>
+                <a
+                    href="https://summerofcode.withgoogle.com/projects/#5355377035575296"
+                    target="_blank"
+                    rel="noopener"
+                    >Project Description</a
+                >
             </li>
         </ul>
     </div>
@@ -31,5 +41,5 @@ export default class HomeInfo extends Vue {
 </script>
 
 <style scoped lang="scss">
-@import '../assets/styles/scss/components/HomeInfo.scss';
+@import "../assets/styles/scss/components/HomeInfo.scss";
 </style>

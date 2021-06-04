@@ -1,6 +1,5 @@
 <template>
     <div class="home">
-        <img alt="SBML logo" src="@/assets/images/logo.png" />
         <HomeInfo msg="Generate SBML Model Reports on the go!" />
     </div>
 </template>
@@ -15,6 +14,5 @@ import createStore from "@/store/index";
         HomeInfo,
     },
 })
-
 export default class Home extends Vue {}
 </script>

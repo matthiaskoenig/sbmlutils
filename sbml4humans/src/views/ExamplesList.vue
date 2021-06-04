@@ -1,5 +1,4 @@
 <template>
-    <h4>Choose from the below list of example SBML models to generate a report</h4>
     <examples-container></examples-container>
 </template>
 
@@ -11,11 +10,12 @@ import ExamplesListContainer from "@/components/ExamplesListContainer.vue";
 
 @Options({
     components: {
-        'examples-container': ExamplesListContainer
-    }
+        "examples-container": ExamplesListContainer,
+    },
 })
-
-export default class ExamplesList extends Vue{
-
-}
+export default class ExamplesList extends Vue {}
 </script>
+
+<style lang="scss" scoped>
+
+</style>

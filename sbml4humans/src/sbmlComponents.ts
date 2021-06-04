@@ -123,7 +123,7 @@ type Species = {
         units: string;
     };
     fbc: {
-        formula: string,
+        formula: string;
         charge: number;
     };
 };

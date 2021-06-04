@@ -19,6 +19,9 @@ export default createStore({
         // compartments
         compartments: [],
 
+        // detail view info
+        detailInfo: {},
+
         // describe if the model is still loading
         loading: false,
     },
@@ -30,15 +33,19 @@ export default createStore({
             state.jsonReport = payload;
 
             if (payload.report && payload.report.models) {
-                console.log("here at 33");
                 const sbmlInfo = payload.report.models;
+                const doc = payload.report.doc;
+
+                state.detailInfo = doc;
 
                 if (sbmlInfo.compartments) {
-                    console.log("here at 37");
                     state.compartments = sbmlInfo.compartments;
-                    console.log(state.compartments);
                 }
             }
+        },
+        SET_DETAIL_INFO(state, payload) {
+            state.detailInfo = payload;
+            console.log(state.detailInfo);
         },
         SET_LOADING_STATUS(state, payload) {
             state.loading = payload;
@@ -69,11 +76,11 @@ export default createStore({
             const res = await axios.get(url);
 
             context.commit("SET_LOADING_STATUS", false);
+
             if (res.status === 200) {
                 context.commit("SET_JSON_REPORT", res.data);
-                //alert("SUCCESS: " + res.data.debug.json_report_time);
-                console.log(context.state);
-                router.push("report");
+                context.commit("SET_DETAIL_INFO", res.data.report.doc);
+                router.replace("report");
             } else {
                 alert("Failed to fetch example report from API");
             }
@@ -90,12 +97,18 @@ export default createStore({
             const res = await axios.post(url, formData, headers);
 
             context.commit("SET_LOADING_STATUS", false);
+
             if (res.status === 200) {
                 context.commit("SET_JSON_REPORT", res.data);
-                alert("SUCCESS: " + res.data.debug.json_report_time);
+                context.commit("SET_DETAIL_INFO", res.data.report.doc);
+                router.replace("report");
             } else {
                 alert("Failed to fetch report from API.");
             }
+        },
+        updateDetailInfo(context, payload) {
+            console.log("INDEX 110");
+            context.commit("SET_DETAIL_INFO", payload);
         },
     },
     getters: {
