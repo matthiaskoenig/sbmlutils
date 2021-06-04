@@ -49,11 +49,11 @@ app.add_middleware(
 # TODO: add `sbml_type` attribute in SBMLInfo: Reaction, Species, Compartment, ...
 
 
-# TODO: implement sbml endpoint;
-# TODO: consume this in the vue report
-# post SBML file and returns JSON sbmlinfo
 @app.post("/sbml")
 async def send_sbml_file(request: Request):
+    """
+    Upload SBML file and return JSON report.
+    """
     content = {}
     try:
         file_data = await request.form()
@@ -106,19 +106,18 @@ examples = {
     "recon3d": RECON3D_SBML
 }
 
-list_of_examples = [
-    {
-        "name": key,
-        "id": examples[key]
-    } for key in examples
-]
-
-
 @app.get("/examples/list")
-def list_of_examples():
+async def list_of_examples():
     """
     Endpoint to fetch all available examples in the API
     """
+    list_of_examples = []
+    for key in examples:
+        list_of_examples.append({
+            "name": f"{key[0].upper()}{key[1:]}",
+            "id": key
+        })
+
     content = {
         "examples": list_of_examples
     }
