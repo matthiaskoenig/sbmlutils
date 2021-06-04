@@ -1,14 +1,20 @@
 <template>
-    <div class="list-group">
-        <example
-            v-for="ex in examples"
-            v-bind:key="ex.id"
-            v-bind:exampleName="ex.name"
-            v-bind:exampleId="ex.id"
-        ></example>
+    <div class="container">
+        <img class="logo" alt="SBML logo" src="@/assets/images/logo.png" />
+        <h5>Choose from the below list of example SBML models to generate a report</h5>
+        <div class="list-group">
+            <example
+                v-for="ex in examples"
+                v-bind:key="ex.id"
+                v-bind:exampleName="ex.name"
+                v-bind:exampleId="ex.id"
+            ></example>
+        </div>
+        <div class="loader" v-if="loading">
+            <h6>Please wait...</h6>
+            <span class="loading"><a-spin size="large" /></span>
+        </div>
     </div>
-    <h5 v-if="loading">Loading</h5>
-    <h5>{{ jsonReport }}</h5>
 </template>
 
 <script>
@@ -33,7 +39,7 @@ export default {
         jsonReport() {
             return createStore.state.jsonReport;
         },
-        loading(){
+        loading() {
             return createStore.state.loading;
         },
     },
