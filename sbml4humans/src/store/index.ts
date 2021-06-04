@@ -45,7 +45,6 @@ export default createStore({
         },
         SET_DETAIL_INFO(state, payload) {
             state.detailInfo = payload;
-            console.log(state.detailInfo);
         },
         SET_LOADING_STATUS(state, payload) {
             state.loading = payload;
@@ -107,7 +106,6 @@ export default createStore({
             }
         },
         updateDetailInfo(context, payload) {
-            console.log("INDEX 110");
             context.commit("SET_DETAIL_INFO", payload);
         },
     },

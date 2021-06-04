@@ -1,5 +1,6 @@
 <template>
-    <div class="container">
+    <div class="detail-container">
+        <!-- SBASE INFO -->
         <a-descriptions
             bordered
             v-bind:title="`${info.name} - ${info.sbo}`"
@@ -25,14 +26,19 @@
                 </a-modal>
             </a-descriptions-item>
         </a-descriptions>
+
+        <br />
+
+        <!-- COMPONENT SPECIFIC INFO -->
+        <div ref="child"></div>
     </div>
 </template>
 
 <script>
 import store from "@/store/index";
-import vkbeautify from "vkbeautify";
+import Vue from "vue";
 
-import { ref } from "vue";
+import { Compartment } from "@/components/sbml/Compartment";
 
 export default {
     data() {
@@ -47,9 +53,30 @@ export default {
         },
     },
 
-    mounted() {
-        this.info = store.state.info;
-    },
+    /*mounted() {
+        console.log(this.info.sbmlType);
+        if (this.info.sbmlType === "Compartment") {
+            var ComponentClass = Vue.extend(Compartment);
+            var componentInstance = new ComponentClass({
+                propsData: {
+                    info: this.info,
+                },
+            });
+        }
+
+        var childContainer = this.$refs.child;
+
+        // remove existing elements in the component container
+        if (childContainer.hasChildrenNodes) {
+            while (childContainer.firstChild) {
+                childContainer.removeChild(childContainer.firstChild);
+            }
+        }
+
+        // inserting the new component in the container
+        componentInstance.$mount();
+        childContainer.child.appendChild(componentInstance.$el);
+    },*/
 
     methods: {
         showModal() {
