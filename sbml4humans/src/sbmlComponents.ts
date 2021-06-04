@@ -1,294 +1,348 @@
 /* SBML Component Model Representations */
 
-type CVTerm = {
-    url: string;
-    resources: string[];
+const CVTerm = {
+    url: String,
+    resources: [String],
 };
 
-type History = {
-    creators: {
-        givenName: string;
-        familyName: string;
-        organization: string;
-        email: string;
-    }[];
-    createdDate: string;
-    modifiedDates: string[];
+const History = {
+    creators: [
+        {
+            givenName: String,
+            familyName: String,
+            organization: String,
+            email: String,
+        },
+    ],
+    createdDate: String,
+    modifiedDates: [String],
 };
 
-type mathDict = {
-    type: string;
-    math: string;
+const mathDict = {
+    type: String,
+    math: String,
 };
 
 // sbase
-type SBase = {
-    id: string;
-    metaId: string;
-    name: string;
-    sbo: string;
-    cvTerms: CVTerm[];
-    history: History[];
-    notes: string;
-    xml: string;
-    displaySId: string;
-    sbaseType: string;
+const SBase = {
+    id: String,
+    metaId: String,
+    name: String,
+    sbo: String,
+    cvTerms: [CVTerm],
+    history: [History],
+    notes: String,
+    xml: String,
+    displaySId: String,
+    sbmlType: String,
 };
 
 // doc
-type SBMLDocument = {
-    sbase: SBase;
+const SBMLDocument = {
+    sbase: SBase,
     packages: {
         document: {
-            level: number;
-            version: number;
-        };
-        plugins: {
-            prefix: string;
-            version: number;
-        }[];
-    };
+            level: Number,
+            version: Number,
+        },
+        plugins: [
+            {
+                prefix: String,
+                version: Number,
+            },
+        ],
+    },
 };
 
 // model
-type Model = {
-    sbase: SBase;
-    substanceUnits: string;
-    timeUnits: string;
-    volumeUnits: string;
-    areaUnits: string;
-    lengthUnits: string;
-    extentUnits: string;
-    conversionFactor: string;
+const Model = {
+    sbase: SBase,
+    substanceUnits: String,
+    timeUnits: String,
+    volumeUnits: String,
+    areaUnits: String,
+    lengthUnits: String,
+    extentUnits: String,
+    conversionFactor: String,
 };
 
 // function definition
-type FunctionDefinition = {
-    sbase: SBase;
-    math: mathDict;
+const FunctionDefinition = {
+    sbase: SBase,
+    math: mathDict,
 };
 
 // unit definition
-type UnitDefinition = {
-    sbase: SBase;
-    listOfUnits: {
-        nomTerms: {
-            scale: number;
-            multiplier: number;
-            exponent: number;
-            kind: {
-                name: string;
-            };
-        }[];
-        denomTerms: {
-            scale: number;
-            multiplier: number;
-            exponent: number;
-            kind: string;
-        }[];
-    }[];
+const UnitDefinition = {
+    sbase: SBase,
+    listOfUnits: [
+        {
+            nomTerms: [
+                {
+                    scale: Number,
+                    multiplier: Number,
+                    exponent: Number,
+                    kind: {
+                        name: String,
+                    },
+                },
+            ],
+            denomTerms: [
+                {
+                    scale: Number,
+                    multiplier: Number,
+                    exponent: Number,
+                    kind: String,
+                },
+            ],
+        },
+    ],
 };
 
-type derivedUnits = {
-    math: string;
-    unitTerms: {
-        scale: number;
-        multiplier: number;
-        exponent: number;
-        kind: string;
-    }[];
+const derivedUnits = {
+    math: String,
+    unitTerms: [
+        {
+            scale: Number,
+            multiplier: Number,
+            exponent: Number,
+            kind: String,
+        },
+    ],
 };
 
 // compartment
-type Compartment = {
-    sbase: SBase;
-    spatialDimensions: number;
-    size: number;
-    units: UnitDefinition; // add unit
-    constant: boolean;
+const Compartment = {
+    sbase: SBase,
+    spatialDimensions: Number,
+    size: Number,
+    units: UnitDefinition, // add unit
+    constant: Boolean,
 };
 
-type Species = {
-    sbase: SBase;
-    compartment: Compartment;
-    initialAmount: number;
-    initialConcentration: number;
-    substanceUnits: string;
-    hasOnlySubstanceUnits: boolean;
-    boundaryCondition: boolean;
-    constant: boolean;
+const Species = {
+    sbase: SBase,
+    compartment: Compartment,
+    initialAmount: Number,
+    initialConcentration: Number,
+    substanceUnits: String,
+    hasOnlySubstanceUnits: Boolean,
+    boundaryCondition: Boolean,
+    constant: Boolean,
     conversionFactor: {
-        sid: string;
-        value: number;
-        units: string;
-    };
+        sid: String,
+        value: Number,
+        units: String,
+    },
     fbc: {
-        formula: string;
-        charge: number;
-    };
+        formula: String,
+        charge: Number,
+    },
 };
 
-type Parameter = {
-    sbase: SBase;
-    value: number;
-    units: derivedUnits;
-    constant: boolean;
+const Parameter = {
+    sbase: SBase,
+    value: Number,
+    units: derivedUnits,
+    constant: Boolean,
 };
 
-type InitialAssignment = {
-    sbase: SBase;
-    symbol: string;
-    math: mathDict;
-    units: derivedUnits;
+const InitialAssignment = {
+    sbase: SBase,
+    symbol: String,
+    math: mathDict,
+    units: derivedUnits,
 };
 
-type Rule = {
-    sbase: SBase;
-    variable: string;
-    math: mathDict;
-    units: derivedUnits;
+const Rule = {
+    sbase: SBase,
+    variable: String,
+    math: mathDict,
+    units: derivedUnits,
 };
 
-type Constraint = {
-    sbase: SBase;
-    math: mathDict;
-    message: string;
+const Constraint = {
+    sbase: SBase,
+    math: mathDict,
+    message: String,
 };
 
-type Reaction = {
-    sbase: SBase;
-    reversible: boolean;
-    compartment: Compartment;
-    listOfReactants: {
-        species: string;
-        stoichiometry: number;
-        constant: boolean;
-    }[];
-    listOfProducts: {
-        species: string;
-        stoichiometry: number;
-        constant: boolean;
-    }[];
-    listOfModifiers: string[];
-    fast: boolean;
-    equation: string;
+const Reaction = {
+    sbase: SBase,
+    reversible: Boolean,
+    compartment: Compartment,
+    listOfReactants: [
+        {
+            species: String,
+            stoichiometry: Number,
+            constant: Boolean,
+        },
+    ],
+    listOfProducts: [
+        {
+            species: String,
+            stoichiometry: Number,
+            constant: Boolean,
+        },
+    ],
+    listOfModifiers: [String],
+    fast: Boolean,
+    equation: String,
     kineticLaw: {
-        math: mathDict;
-        units: derivedUnits;
-        listOfLocalParameters: {
-            id: string;
-            value: number;
-            units: derivedUnits;
-        }[];
-    };
+        math: mathDict,
+        units: derivedUnits,
+        listOfLocalParameters: [
+            {
+                id: String,
+                value: Number,
+                units: derivedUnits,
+            },
+        ],
+    },
 };
 
-type Objective = {
-    sbase: SBase;
-    type: string;
-    fluxObjectives: {
-        sign: string;
-        coefficient: number;
-        reaction: Reaction;
-    }[];
+const Objective = {
+    sbase: SBase,
+    type: String,
+    fluxObjectives: [
+        {
+            sign: String,
+            coefficient: Number,
+            reaction: Reaction,
+        },
+    ],
 };
 
-type Event = {
-    sbase: SBase;
-    useValuesFromTriggerTime: boolean;
+const Event = {
+    sbase: SBase,
+    useValuesFromTriggerTime: Boolean,
     trigger: {
-        math: mathDict;
-        initialValue: number;
-        persistent: boolean;
-    };
-    priority: mathDict;
-    delay: mathDict;
-    listOfEventAssignments: {
-        variable: string;
-        math: mathDict;
-    }[];
+        math: mathDict,
+        initialValue: Number,
+        persistent: Boolean,
+    },
+    priority: mathDict,
+    delay: mathDict,
+    listOfEventAssignments: [
+        {
+            variable: String,
+            math: mathDict,
+        },
+    ],
 };
 
-type GeneProduct = {
-    sbase: SBase;
-    label: string;
-    associatedSpecies: Species;
+const GeneProduct = {
+    sbase: SBase,
+    label: String,
+    associatedSpecies: Species,
 };
 
-type sbaseRef = {
-    sbase: SBase;
-    portRef: string;
-    idRef: string;
-    unitRef: string;
-    metaIdRef: string;
+const sbaseRef = {
+    sbase: SBase,
+    portRef: String,
+    idRef: String,
+    unitRef: String,
+    metaIdRef: String,
     referencedElement: {
-        element: string;
-        elementId: string;
-    };
+        element: String,
+        elementId: String,
+    },
 };
 
-type SubModel = {
-    sbase: SBase;
-    modelRef: string;
-    deletions: {
-        type: string;
-        value: string;
-    }[];
-    timeConversion: string;
-    extentConversion: string;
+const SubModel = {
+    sbase: SBase,
+    modelRef: String,
+    deletions: [
+        {
+            type: String,
+            value: String,
+        },
+    ],
+    timeConversion: String,
+    extentConversion: String,
 };
 
-type Port = {
-    sbaseRef: sbaseRef;
+const Port = {
+    sbaseRef: sbaseRef,
 };
 
-type ModelInfo = {
-    model: Model;
-    submodels: SubModel[];
-    ports: Port[];
-    functionDefinitions: FunctionDefinition[];
-    unitDefinitions: UnitDefinition[];
-    compartments: Compartment[];
-    species: Species[];
-    parameters: Parameter[];
-    initialAssignments: InitialAssignment[];
-    rules: Rule[];
-    constraints: Constraint[];
-    reactions: Reaction[];
-    objectives: Objective[];
-    events: Event[];
-    geneProducts: GeneProduct[];
+const Models = {
+    model: Model,
+    submodels: [SubModel],
+    ports: [Port],
+    functionDefinitions: [FunctionDefinition],
+    unitDefinitions: [UnitDefinition],
+    compartments: [Compartment],
+    species: [Species],
+    parameters: [Parameter],
+    initialAssignments: [InitialAssignment],
+    rules: [Rule],
+    constraints: [Constraint],
+    reactions: [Reaction],
+    objectives: [Objective],
+    events: [Event],
+    geneProducts: [GeneProduct],
 };
 
-type ModelDefinitions = Model[];
+const ModelDefinitions = {
+    modelDefs: [],
+    externalModelDefs: [
+        {
+            sbase: SBase,
+            replaced_by: {
+                class: String,
+                source_code: String,
+            },
+            replaced_elements: [
+                {
+                    submodelRef: String,
+                    replacedBySbaseref: {
+                        class: String,
+                        source_code: String,
+                    },
+                },
+            ],
+            type: {
+                class: String,
+                source_code: String,
+            },
+        },
+    ],
+}; // refactor
 
-type Report = {
-    doc: SBMLDocument;
-    modelDefinitions: ModelDefinitions;
-    debugInfo: {
-        renderTime: string;
-    };
+const Report = {
+    doc: SBMLDocument,
+    modelDefinitions: ModelDefinitions,
+    models: Models,
 };
 
-export {
-    SBase,
-    SBMLDocument,
-    Model,
-    FunctionDefinition,
-    UnitDefinition,
-    Compartment,
-    Species,
-    Parameter,
-    InitialAssignment,
-    Rule,
-    Constraint,
-    Reaction,
-    Objective,
-    Event,
-    GeneProduct,
-    SubModel,
-    Port,
-    ModelInfo,
-    ModelDefinitions,
-    Report,
+const RawData = {
+    report: Report,
+    debug: {
+        jsonReportTime: String,
+    },
+};
+
+export default {
+    SBase: SBase,
+    SBMLDocument: SBMLDocument,
+    Model: Model,
+    FunctionDefinition: FunctionDefinition,
+    UnitDefinition: UnitDefinition,
+    Compartment: Compartment,
+    Species: Species,
+    Parameter: Parameter,
+    InitialAssignment: InitialAssignment,
+    Rule: Rule,
+    Constraint: Constraint,
+    Reaction: Reaction,
+    Objective: Objective,
+    Event: Event,
+    GeneProduct: GeneProduct,
+    SubModel: SubModel,
+    Port: Port,
+    Models: Models,
+    ModelDefinitions: ModelDefinitions,
+    Report: Report,
+    RawData: RawData,
 };
