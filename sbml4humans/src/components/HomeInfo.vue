@@ -2,7 +2,8 @@
     <div class="container">
         <img class="logo" alt="SBML logo" src="@/assets/images/logo.png" />
         <h1>{{ msg }}</h1>
-        <h3>Essential Links</h3>
+        <br />
+        <h5>Essential Links</h5>
         <ul>
             <li>
                 <a

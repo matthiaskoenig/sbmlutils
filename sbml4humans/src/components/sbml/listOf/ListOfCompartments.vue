@@ -3,11 +3,12 @@
         <h5 class="header-pill">List of Compartments</h5>
         <a-list bordered class="list-container">
             <toaster
-                v-for="compt in listOfCompartments"
+                v-for="compt in collectCompartments"
                 v-bind:key="compt.id"
                 v-bind:sid="compt.id"
                 v-bind:name="compt.name"
                 v-bind:sbmlType="compt.sbaseType"
+                v-bind:info="compt"
             ></toaster>
         </a-list>
     </div>
@@ -21,12 +22,12 @@ import SBMLToaster from "@/components/SBMLToaster";
 
 export default {
     components: {
-        "toaster": SBMLToaster,
+        toaster: SBMLToaster,
     },
 
     data() {
         return {
-            listOfCompartments: [],
+            listOfSBases: [],
         };
     },
 
@@ -37,7 +38,7 @@ export default {
     },
 
     mounted() {
-        this.listOfCompartments = this.collectCompartments;
+        this.listOfSBases = this.collectSBases;
     },
 };
 </script>

@@ -17,8 +17,7 @@
 <script>
 import store from "@/store/index";
 
-/* Compartments */
-import SBase from "@/components/sbml/SBase";
+/* Components */
 import SBMLToaster from "@/components/SBMLToaster";
 
 export default {
@@ -50,6 +49,7 @@ export default {
                 console.log("found compartments in sbases");
                 var compartments = sbmlInfo.compartments;
                 listOfSBases.push(...compartments);
+                console.log(compartments);
             }
 
             // collecting species
