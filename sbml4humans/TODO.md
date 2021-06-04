@@ -1,8 +1,8 @@
 - [ ] cleanup state variables (naming variables, ...); see store
-- [ ] document in the README what technology/frameworks are used with links
+- [x] document in the README what technology/frameworks are used with links
 - [ ] static switch
 - [ ] load examples from backend
-- [ ] add medium size examples (ICG)
+- [x] add medium size examples (ICG)
 - [ ] use better color schemes: https://colorbrewer2.org
   https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9
   to color components; just small color patch at begining

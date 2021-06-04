@@ -1,11 +1,16 @@
-# sbml4humans
+# SBML4Humans
 
 ## Technology
-# FIXME: 
-- antdv ...
-
+1. Backend API: ```sbmlutils``` Python package served using FastAPI service [https://fastapi.tiangolo.com/]
+2. Frontend User Interface: Build using Vue.js [https://vuejs.org/]
+    - TypeScript + SCSS
+    - Vuex
+    - Vue Router
+3. Frontend UI/UX Package: Ant Design Vue [https://www.antdv.com/docs/vue/introduce/]
 
 ## Project setup
+
+### Install all dependencies
 ```
 npm install
 ```
