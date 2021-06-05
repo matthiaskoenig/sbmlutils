@@ -16,6 +16,4 @@ import ExamplesListContainer from "@/components/ExamplesListContainer.vue";
 export default class ExamplesList extends Vue {}
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

@@ -22,9 +22,7 @@ export default {
     },
 
     data() {
-        return {
-            loading: createStore.state.jsonReport,
-        };
+        return {};
     },
 
     methods: {

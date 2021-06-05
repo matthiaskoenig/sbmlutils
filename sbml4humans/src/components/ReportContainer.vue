@@ -2,8 +2,6 @@
     <div class="row">
         <div class="left-container">
             <list-of-sbases></list-of-sbases>
-            <br />
-            <list-of-compartments></list-of-compartments>
         </div>
         <div class="right-container">
             <detail-container></detail-container>
@@ -14,13 +12,11 @@
 <script>
 /* Compartments */
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
-import ListOfCompartments from "@/components/sbml/listOf/ListOfCompartments";
 import DetailContainer from "@/components/DetailContainer";
 
 export default {
     components: {
         "list-of-sbases": ListOfSBases,
-        "list-of-compartments": ListOfCompartments,
         "detail-container": DetailContainer,
     },
 };
