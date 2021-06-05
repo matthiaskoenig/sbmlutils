@@ -6,10 +6,10 @@
 - [ ] use better color schemes: https://colorbrewer2.org
   https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9
   to color components; just small color patch at begining
-- [ ] remove "View Details" -> just make work on click  
-- [ ] SBases instead of "List of SBases", Compartments
-- [ ] Add all SBases to the Lists; make a scrollable list with fixed max length
-- [ ] make list much more compact; single list
+- [x] remove "View Details" -> just make work on click  
+- [x] SBases instead of "List of SBases", Compartments
+- [x] Add all SBases to the Lists; make a scrollable list with fixed max length
+- [x] make list much more compact; single list
 - [ ] make a filter option for the ListOfSbases -> Multiple [Type] selection
 - [ ] make a search option on the list;
 - Detail view 
