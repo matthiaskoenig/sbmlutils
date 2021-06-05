@@ -17,30 +17,38 @@
     </div>
 </template>
 
-<script>
-import examples from "@/data/examples";
-import createStore from "@/store/index";
+<script lang="ts">
+import store from "@/store/index";
 
 /* Components */
-import Example from "@/components/Example";
+import Example from "@/components/Example.vue";
 
 export default {
     components: {
         example: Example,
     },
 
-    data() {
+    data(): Record<string, unknown> {
         return {
-            examples: examples.listOfExamples,
+            listOfExamples: [
+                {
+                    name: String,
+                    id: String,
+                },
+            ],
         };
     },
 
+    created(): void {
+        store.dispatch("fetchExamples");
+    },
+
     computed: {
-        jsonReport() {
-            return createStore.state.jsonReport;
+        examples(): Array<Record<string, unknown>> {
+            return store.state.examples;
         },
-        loading() {
-            return createStore.state.loading;
+        loading(): boolean {
+            return store.state.loading;
         },
     },
 };

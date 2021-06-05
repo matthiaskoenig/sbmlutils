@@ -87,7 +87,7 @@ export default createStore({
                 context.commit("SET_DETAIL_INFO", res.data.report.doc);
 
                 // redirect to report view
-                router.replace("report");
+                router.push("/report");
             } else {
                 alert("Failed to fetch example report from API");
             }
@@ -116,7 +116,7 @@ export default createStore({
                 context.commit("SET_DETAIL_INFO", res.data.report.doc);
 
                 // redirect to report view
-                router.replace("report");
+                router.push("/report");
             } else {
                 alert("Failed to fetch report from API.");
             }

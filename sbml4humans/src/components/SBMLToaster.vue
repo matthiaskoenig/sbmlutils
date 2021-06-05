@@ -1,24 +1,28 @@
 <template>
-    <a-list-item
-        :key="`a-${sid}`"
-        v-bind:style="`background-color: ${color};`"
-        class="toaster"
-    >
-        <template #actions><a @click="showDetail()">View Details</a></template>
-        <a-list-item-meta v-bind:description="`SID: ${sid}`">
-            <template #title>
-                <a href="#">{{ name }}</a>
-            </template>
-            <template #avatar>
-                <a-tag color="success">{{ sbmlType }}</a-tag>
-            </template>
-        </a-list-item-meta>
-    </a-list-item>
+    <div class="card shadow-sm" v-on:click="showDetail()">
+        <div
+            class="tag d-flex justify-content-between"
+            v-bind:style="`background-color: ${color}`"
+        >
+            <div class="left-text">
+                <strong>{{ info.sbmlType }}</strong>
+            </div>
+            <div class="right-text">{{ info.sbo }}</div>
+        </div>
+        <div class="card-body">
+            <h6 class="card-subtitle" v-if="info.name">Name: {{ info.name }}</h6>
+            <div class="card-meta d-flex justify-content-between text-primary">
+                <div v-if="info.metaId">Meta ID: {{ info.metaId }}</div>
+                <div v-if="info.id">SID: {{ info.id }}</div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
+import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
@@ -42,6 +46,7 @@ export default {
 
     methods: {
         showDetail() {
+            console.log("here at 55");
             store.dispatch("updateDetailInfo", this.info);
         },
     },

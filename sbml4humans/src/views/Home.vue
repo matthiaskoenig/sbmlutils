@@ -7,7 +7,6 @@
 <script lang="ts">
 import { Options, Vue } from "vue-class-component";
 import HomeInfo from "@/components/HomeInfo.vue"; // @ is an alias to /src
-import createStore from "@/store/index";
 
 @Options({
     components: {

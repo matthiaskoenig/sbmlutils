@@ -11,7 +11,7 @@
             <a-descriptions-item label="SBO">{{ info.sbo }}</a-descriptions-item>
             <a-descriptions-item label="Meta ID">{{ info.metaId }}</a-descriptions-item>
             <a-descriptions-item label="SBML Type">{{
-                info.sbaseType
+                info.sbmlType
             }}</a-descriptions-item>
             <a-descriptions-item label="XML">
                 <a-button type="info" @click="showModal">View Source</a-button>

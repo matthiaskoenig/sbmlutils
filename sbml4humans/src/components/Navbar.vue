@@ -32,7 +32,16 @@
 </template>
 
 <script lang="ts">
-export default {};
+import router from "@/router/index";
+
+export default {
+    methods: {
+        // currently not being used
+        redirect(route: string): void {
+            router.replace(route.toString());
+        },
+    },
+};
 </script>
 
 <style lang="scss">
