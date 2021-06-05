@@ -2,16 +2,19 @@
 
 const componentColor = {
     SBase: "#00ccff",
-    FunctionDefinition: "#ff66cc",
-    UnitDefinition: "#ffff66",
-    Model: "#99ff33",
-    Parameter: "#ff9933",
-    Compartment: "#00ccff",
-    Species: "#009900",
-    Reaction: "#ff5050",
-    Event: "#0000ff",
-    Objective: "#00cc66",
-    Default: "#9966ff",
+    SBMLDocument: "#fee090",
+    Port: "#fed9a6",
+    FunctionDefinition: "#e6f598",
+    UnitDefinition: "#f1b6da",
+    Model: "#66c2a5",
+    Parameter: "#fdae61",
+    AssignmentRule: "#fb9a99",
+    Compartment: "#92c5de",
+    Species: "#abdda4",
+    Reaction: "#a6cee3",
+    Event: "#fee08b",
+    Objective: "#f46d43",
+    Default: "#d53e4f",
 };
 
 export default {
