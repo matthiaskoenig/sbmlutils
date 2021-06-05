@@ -81,7 +81,7 @@ async def send_sbml_file(request: Request):
         time_elapsed = 0
 
     content["debug"] = {
-        "json_report_time": f"{round(time_elapsed, 3)} seconds"
+        "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
     }
 
     res = Response(content=json.dumps(content, indent=2), media_type="application/json")
@@ -151,7 +151,7 @@ def read_item(example_id: str) -> Dict:
         time_elapsed = 0
 
     content["debug"] = {
-        "json_report_time": f"{round(time_elapsed, 3)} seconds"
+        "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
     }
 
     res = Response(content=json.dumps(content, indent=2), media_type="application/json")

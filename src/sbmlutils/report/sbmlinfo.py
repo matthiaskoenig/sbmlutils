@@ -238,7 +238,7 @@ class SBMLDocumentInfo:
         return values
 
     @staticmethod
-    def _sbase_type(sbase: libsbml.SBase) -> str:
+    def _sbml_type(sbase: libsbml.SBase) -> str:
         class_name = str(sbase.__class__)[16:-2]
         return class_name
 
@@ -262,7 +262,7 @@ class SBMLDocumentInfo:
             "displaySId": f"d{sbase.getVariable()}/dt" if (
                 isinstance(sbase, libsbml.RateRule) and sbase.isSetVariable()
             ) else sbase.getId(),    # --- should we add the displaySId?
-            "sbaseType": cls._sbase_type(sbase)
+            "sbmlType": cls._sbml_type(sbase)
         }
 
         # comp
@@ -273,11 +273,11 @@ class SBMLDocumentInfo:
                 replaced_by = item_comp.getReplacedBy()
                 submodel_ref = replaced_by.getSubmodelRef()
                 d["replacedBy"] = {
-                    "submodel_ref": submodel_ref,
-                    "replaced_by_sbaseref": cls._sbaseref(replaced_by)
+                    "submodelRef": submodel_ref,
+                    "replacedBySbaseref": cls._sbaseref(replaced_by)
                 }
             else:
-                d["replaced_by"] = None
+                d["replacedBy"] = None
 
             # ListOfReplacedElements
             if item_comp.getNumReplacedElements() > 0:
@@ -285,13 +285,13 @@ class SBMLDocumentInfo:
                 for rep_el in item_comp.getListOfReplacedElements():
                     submodel_ref = rep_el.getSubmodelRef()
                     replaced_elements.append({
-                        "submodel_ref": submodel_ref,
-                        "replaced_element_sbaseref": cls._sbaseref(rep_el)
+                        "submodelRef": submodel_ref,
+                        "replacedElementSbaseref": cls._sbaseref(rep_el)
                     })
 
-                d["replaced_elements"] = replaced_elements
+                d["replacedElements"] = replaced_elements
             else:
-                d["replaced_elements"] = None
+                d["replacedElements"] = None
 
 
         # distrib
@@ -327,7 +327,7 @@ class SBMLDocumentInfo:
         """
         info = self.sbase_dict(sbref)
 
-        info["portRef"] = sbref.getPortRef() if sbref.setPortRef() else None
+        info["portRef"] = sbref.getPortRef() if sbref.isSetPortRef() else None
         info["idRef"] = sbref.getIdRef() if sbref.isSetIdRef() else None
         info["unitRef"] = sbref.getUnitRef() if sbref.isSetUnitRef() else None
         info["metaIdRef"] = sbref.getMetaIdRef() if sbref.isSetMetaIdRef() else None
@@ -472,7 +472,7 @@ class SBMLDocumentInfo:
                     "class": type(md).__name__
                 }
                 model_defs.append(info)
-            d["model_defs"] = model_defs
+            d["modelDefs"] = model_defs
 
             external_model_defs = []
             emd: libsbml.ExternalModelDefinition
@@ -483,7 +483,7 @@ class SBMLDocumentInfo:
                     "source_code": emd.getSource()
                 }
                 external_model_defs.append(info)
-            d["external_model_defs"] = external_model_defs
+            d["externalModelDefs"] = external_model_defs
         else:
             d = None
 
@@ -1043,8 +1043,8 @@ if __name__ == "__main__":
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from src.sbmlutils.test import REPRESSILATOR_SBML
-    info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML, "latex")
+    from src.sbmlutils.test import ICG_BODY
+    info = SBMLDocumentInfo.from_sbml(ICG_BODY, "latex")
     json_str = info.to_json()
     print(info)
     print("-" * 80)
