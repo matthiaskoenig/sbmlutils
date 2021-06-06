@@ -18,7 +18,7 @@ import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
-        info: TYPES.Compartment,
+        info: TYPES.Reaction,
     },
 
     data() {

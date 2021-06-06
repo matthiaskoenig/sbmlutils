@@ -1,5 +1,6 @@
 <template>
     <div class="container">
+        <h4>Compartments</h4>
         <a-descriptions bordered :size="size">
             <a-descriptions-item label="Spatial Dimensions">{{
                 info.spatialDimensions
@@ -14,11 +15,9 @@
 </template>
 
 <script>
-import TYPES from "@/sbmlComponents";
-
 export default {
     props: {
-        info: TYPES.Compartment,
+        info: {},
     },
 
     data() {
