@@ -7,11 +7,13 @@
             <div class="left-text">
                 <strong>{{ info.sbmlType }}</strong>
             </div>
-            <div class="right-text">{{ info.sbo }}</div>
         </div>
         <div class="card-body">
-            <h6 class="card-subtitle" v-if="info.name">Name: {{ info.name }}</h6>
-            <div class="card-meta d-flex justify-content-between text-primary">
+            <h6 class="card-subtitle d-flex justify-content-between">
+                <div class="name" v-if="info.name">Name: {{ info.name }}</div>
+                <div class="sbo" v-if="info.sbo">{{ info.sbo }}</div>
+            </h6>
+            <div class="meta d-flex justify-content-between text-primary">
                 <div v-if="info.metaId">Meta ID: {{ info.metaId }}</div>
                 <div v-if="info.id">SID: {{ info.id }}</div>
             </div>
