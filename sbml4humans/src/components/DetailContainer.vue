@@ -72,18 +72,52 @@ import { Compartment } from "@/components/sbml/Compartment";
 export default {
     data() {
         return {
+            infoData: {},
             visible: false,
         };
     },
 
     computed: {
-        info() {
-            return store.state.detailInfo;
+        info: {
+            set() {
+                this.infoData = store.state.detailInfo;
+            },
+            get() {
+                return store.state.detailInfo;
+            },
         },
     },
 
-    /*mounted() {
-        console.log(this.info.sbmlType);
+    watch: {
+        infoData: {
+            handler (newValue) {
+                console.log(newValue);
+                console.log(this.info.sbmlType);
+                if (this.info.sbmlType === "Compartment") {
+                    var ComponentClass = Vue.extend(Compartment);
+                    var componentInstance = new ComponentClass({
+                        propsData: {
+                            info: this.info,
+                        },
+                    });
+                }
+
+                var childContainer = this.$refs.child;
+
+                // remove existing elements in the component container
+                if (childContainer.hasChildrenNodes) {
+                    while (childContainer.firstChild) {
+                        childContainer.removeChild(childContainer.firstChild);
+                    }
+                }
+
+                // inserting the new component in the container
+                componentInstance.$mount();
+                childContainer.child.appendChild(componentInstance.$el);
+            },
+            deep: true,
+        },
+        /*console.log(this.info.sbmlType);
         if (this.info.sbmlType === "Compartment") {
             var ComponentClass = Vue.extend(Compartment);
             var componentInstance = new ComponentClass({
@@ -104,8 +138,8 @@ export default {
 
         // inserting the new component in the container
         componentInstance.$mount();
-        childContainer.child.appendChild(componentInstance.$el);
-    },*/
+        childContainer.child.appendChild(componentInstance.$el);*/
+    },
 
     methods: {
         showModal() {
