@@ -46,7 +46,6 @@ export default {
 
     methods: {
         showDetail() {
-            console.log("here at 55");
             store.dispatch("updateDetailInfo", this.info);
         },
     },
