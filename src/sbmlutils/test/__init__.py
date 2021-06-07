@@ -34,11 +34,16 @@ REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
 
 RECON3D_SBML = MODELS_DIR / "bigg" / "Recon3D.xml.gz"
 
+# Medium Sized Models
+ICG_LIVER = MODELS_DIR / "icg" / "icg_liver.xml"
+ICG_BODY_FLAT = MODELS_DIR / "icg" / "icg_body_flat.xml"
+ICG_BODY = MODELS_DIR / "icg" / "icg_body.xml"      # comp example model
+
+
 TESTSUITE_PATH = DATA_DIR / "testsuite"
 
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / "omex" / "CombineArchiveShowCase.omex"
-
 
 # --- Data ---
 csv_filepath = DATA_DIR / "data" / "test.csv"
