@@ -30,7 +30,7 @@ export default createStore({
         //e.g. do not show/query examples & upload SBML in static mode
         // if static is activated: => no queries to the endpoint;
         // no debug information in static;
-        static: false,
+        static: localStorage.static,
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -45,20 +45,35 @@ export default createStore({
         SET_DETAIL_INFO(state, payload) {
             state.detailInfo = payload;
         },
-        SET_LOADING_STATUS(state, payload) {
+        SET_LOADING(state, payload) {
             state.loading = payload;
+        },
+        SET_STATIC(state, payload) {
+            state.static = payload;
+
+            /* the localStorage stores previously selected Static state to maintain it accross
+               page refreshes. We can plan on extending this feature to jsonReport and detailInfo too perhaps. */
+            localStorage.static = state.static;
         },
     },
     actions: {
         // get list of all available examples from backend API
         async fetchExamples(context) {
-            context.commit("SET_LOADING_STATUS", true);
+            // no queries to the API if static is ON
+            if (this.state.static === true) {
+                alert(
+                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch examples."
+                );
+                return;
+            }
+
+            context.commit("SET_LOADING", true);
 
             const url = BASE_URLS.API_BASE_URL + "/examples/list";
 
             const res = await axios.get(url);
 
-            context.commit("SET_LOADING_STATUS", false);
+            context.commit("SET_LOADING", false);
 
             if (res.status === 200) {
                 context.commit("SET_EXAMPLES", res.data.examples);
@@ -68,13 +83,21 @@ export default createStore({
         },
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
-            context.commit("SET_LOADING_STATUS", true);
+            // no queries to the API if static is ON
+            if (this.state.static === true) {
+                alert(
+                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this example."
+                );
+                return;
+            }
+
+            context.commit("SET_LOADING", true);
 
             const url = BASE_URLS.API_BASE_URL + "/examples/" + payload.exampleId;
 
             const res = await axios.get(url);
 
-            context.commit("SET_LOADING_STATUS", false);
+            context.commit("SET_LOADING", false);
 
             if (res.status === 200) {
                 // dump the raw data fetched from the backend
@@ -94,7 +117,15 @@ export default createStore({
         },
         // generate report for uploaded SBML file
         async fetchReport(context, payload) {
-            context.commit("SET_LOADING_STATUS", true);
+            // no queries to the API if static is ON
+            if (this.state.static === true) {
+                alert(
+                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this file."
+                );
+                return;
+            }
+
+            context.commit("SET_LOADING", true);
 
             // assembling the request parameters
             const url = BASE_URLS.API_BASE_URL + "/sbml";
@@ -103,7 +134,7 @@ export default createStore({
 
             const res = await axios.post(url, formData, headers);
 
-            context.commit("SET_LOADING_STATUS", false);
+            context.commit("SET_LOADING", false);
 
             if (res.status === 200) {
                 // dump the raw data fetched from the backend
@@ -124,6 +155,10 @@ export default createStore({
         // update the detailInfo to show new data in the detail view box
         updateDetailInfo(context, payload) {
             context.commit("SET_DETAIL_INFO", payload);
+        },
+        // update the static flag according to the state of the switch on the navbar
+        updateStatic(context, payload) {
+            context.commit("SET_STATIC", payload);
         },
     },
     getters: {
