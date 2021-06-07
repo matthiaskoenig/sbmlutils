@@ -1043,8 +1043,8 @@ if __name__ == "__main__":
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from src.sbmlutils.test import ICG_BODY
-    info = SBMLDocumentInfo.from_sbml(ICG_BODY, "latex")
+    from src.sbmlutils.test import ICG_BODY, REPRESSILATOR_SBML
+    info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML, "latex")
     json_str = info.to_json()
     print(info)
     print("-" * 80)
