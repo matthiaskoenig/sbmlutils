@@ -54,6 +54,7 @@ export default {
         return {
             // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
             storage: {},
+            staticStatus: false,
         };
     },
 
@@ -62,26 +63,20 @@ export default {
             const staticSwitch = this.$refs["static-switch"];
             console.log("static switch");
             if (staticSwitch.checked) {
+                this.staticStatus = true;
                 store.dispatch("updateStatic", true);
             } else {
+                this.staticStatus = false;
                 store.dispatch("updateStatic", false);
             }
         },
     },
 
-    computed: {
-        staticStatus() {
-            return store.state.static;
-        },
-    },
-
-    watch: {
-        staticStatus() {
-            /* storage gets updated only when the Static flag is changed in the Vuex state
-                (which is also reflected in the localStorage) */
-            this.storage = localStorage;
-        },
-    },
+    // computed: {
+    //     staticStatus() {
+    //         return localStorage.static;
+    //     },
+    // },
 };
 </script>
 
