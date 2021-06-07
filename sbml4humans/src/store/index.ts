@@ -30,7 +30,13 @@ export default createStore({
         //e.g. do not show/query examples & upload SBML in static mode
         // if static is activated: => no queries to the endpoint;
         // no debug information in static;
-        static: localStorage.static,
+        static: Boolean(localStorage.static),
+
+        /* For Search and Filter feature */
+        visibilityAltered: {
+            alteredAgain: 0,
+            alteredFor: "",
+        },
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -49,18 +55,24 @@ export default createStore({
             state.loading = payload;
         },
         SET_STATIC(state, payload) {
-            state.static = payload;
+            //state.static = payload;
 
             /* the localStorage stores previously selected Static state to maintain it accross
                page refreshes. We can plan on extending this feature to jsonReport and detailInfo too perhaps. */
-            localStorage.static = state.static;
+            localStorage.static = payload;
+        },
+        SET_VISIBILITY_ALTERED(state, payload) {
+            state.visibilityAltered.alteredFor = payload;
+            console.log(state.visibilityAltered.alteredFor);
+            state.visibilityAltered.alteredAgain =
+                (state.visibilityAltered.alteredAgain + 1) % 2;
         },
     },
     actions: {
         // get list of all available examples from backend API
         async fetchExamples(context) {
             // no queries to the API if static is ON
-            if (this.state.static === true) {
+            if (localStorage.static === true) {
                 alert(
                     "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch examples."
                 );
@@ -84,7 +96,7 @@ export default createStore({
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
             // no queries to the API if static is ON
-            if (this.state.static === true) {
+            if (localStorage.static === true) {
                 alert(
                     "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this example."
                 );
@@ -118,7 +130,7 @@ export default createStore({
         // generate report for uploaded SBML file
         async fetchReport(context, payload) {
             // no queries to the API if static is ON
-            if (this.state.static === true) {
+            if (localStorage.static === true) {
                 alert(
                     "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this file."
                 );
@@ -159,6 +171,10 @@ export default createStore({
         // update the static flag according to the state of the switch on the navbar
         updateStatic(context, payload) {
             context.commit("SET_STATIC", payload);
+        },
+        // update visibilityAlteredFor to indicate that component for which visibility was just altered
+        updateVisibilityAltered(context, payload) {
+            context.commit("SET_VISIBILITY_ALTERED", payload);
         },
     },
     getters: {
