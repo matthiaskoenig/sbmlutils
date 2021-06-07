@@ -54,19 +54,39 @@ export default {
         collectSBases() {
             const report = store.state.jsonReport;
             var sbases = [];
+            var counts = {
+                SBMLDocument: 0,
+                Model: 0,
+                FunctionDefinitions: 0,
+                UnitDefinitions: 0,
+                Compartments: 0,
+                Species: 0,
+                Parameters: 0,
+                InitialAssignments: 0,
+                Rules: 0,
+                Constraints: 0,
+                Reactions: 0,
+                Objectives: 0,
+                Events: 0,
+                GeneProducts: 0,
+                SubModels: 0,
+                Ports: 0,
+            };
 
             // collecting doc
             if (report.doc) {
-                console.log("found doc");
+                counts.SBMLDocument = 1;
                 if (this.visibility.SBMLDocument) {
                     sbases.push(report.doc);
+                    counts.SBMLDocument = 1;
                 }
             }
 
             if (report.models) {
-                sbases.push(...this.assembleSBasesInModels(report.models));
+                sbases.push(...this.assembleSBasesInModels(report.models, counts));
             }
 
+            store.dispatch("updateCounts", counts);
             return sbases;
         },
 
@@ -76,97 +96,127 @@ export default {
     },
 
     methods: {
-        assembleSBasesInModels(models = TYPES.Models) {
+        assembleSBasesInModels(models = TYPES.Models, counts) {
             var sbases = [];
 
             // collecting model
-            if (models.model && this.visibility.Model) {
-                console.log("found model");
-                sbases.push(models.model);
+            if (models.model) {
+                counts.Model = 1;
+                if (this.visibility.Model) {
+                    sbases.push(models.model);
+                }
             }
 
             // collecting submodels
-            if (models.submodels && this.visibility.SubModels) {
-                console.log("found submodels");
-                sbases.push(...models.submodels);
+            if (models.submodels) {
+                counts.SubModels = models.submodels.length;
+                if (this.visibility.SubModels) {
+                    sbases.push(...models.submodels);
+                }
             }
 
             // collecting ports
-            if (models.ports && this.visibility.Ports) {
-                console.log("found ports");
-                sbases.push(...models.ports);
+            if (models.ports) {
+                counts.Ports = models.ports.length;
+                if (this.visibility.Ports) {
+                    sbases.push(...models.ports);
+                }
             }
 
             // collecting function definitions
-            if (models.functionDefinitions && this.visibility.FunctionDefinitions) {
-                console.log("found func defs");
-                sbases.push(...models.functionDefinitions);
+            if (models.functionDefinitions) {
+                counts.FunctionDefinitions = models.functionDefinitions.length;
+                if (this.visibility.FunctionDefinitions) {
+                    sbases.push(...models.functionDefinitions);
+                }
             }
 
             // collecting unit definitions
-            if (models.unitDefinitions && this.visibility.UnitDefinitions) {
-                console.log("found unit defs");
-                sbases.push(...models.unitDefinitions);
+            if (models.unitDefinitions) {
+                counts.UnitDefinitions = models.unitDefinitions.length;
+                if (this.visibility.UnitDefinitions) {
+                    sbases.push(...models.unitDefinitions);
+                }
             }
 
             // collecting compartments
-            if (models.compartments && this.visibility.Compartments) {
-                console.log("found compartments");
-                sbases.push(...models.compartments);
+            if (models.compartments) {
+                counts.Compartments = models.compartments.length;
+                if (this.visibility.Compartments) {
+                    sbases.push(...models.compartments);
+                }
             }
 
             // collecting species
-            if (models.species && this.visibility.Species) {
-                console.log("found species");
-                sbases.push(...models.species);
+            if (models.species) {
+                counts.Species = models.species.length;
+                if (this.visibility.Species) {
+                    sbases.push(...models.species);
+                }
             }
 
             // collecting parameters
-            if (models.parameters && this.visibility.Parameters) {
-                console.log("found parameters");
-                sbases.push(...models.parameters);
+            if (models.parameters) {
+                counts.Parameters = models.parameters.length;
+                if (this.visibility.Parameters) {
+                    sbases.push(...models.parameters);
+                }
             }
 
             // collecting intial assignments
-            if (models.initialAssignments && this.visibility.InitialAssignments) {
-                console.log("found initial assignments");
-                sbases.push(...models.initialAssignments);
+            if (models.initialAssignments) {
+                counts.InitialAssignments = models.initialAssignments.length;
+                if (this.visibility.InitialAssignments) {
+                    sbases.push(...models.initialAssignments);
+                }
             }
 
             // collecting rules
-            if (models.rules && this.visibility.Rules) {
-                console.log("found rules");
-                sbases.push(...models.rules);
+            if (models.rules) {
+                counts.Rules = models.rules.length;
+                if (this.visibility.Rules) {
+                    sbases.push(...models.rules);
+                }
             }
 
             // collecting contraints
-            if (models.contraints && this.visibility.Constraints) {
-                console.log("found contraints");
-                sbases.push(...models.constraints);
+            if (models.contraints) {
+                counts.Constraints = models.constraints.length;
+                if (this.visibility.Constraints) {
+                    sbases.push(...models.constraints);
+                }
             }
 
             // collecting reactions
-            if (models.reactions && this.visibility.Reactions) {
-                console.log("found reactions");
-                sbases.push(...models.reactions);
+            if (models.reactions) {
+                counts.Reactions = models.reactions.length;
+                if (this.visibility.Reactions) {
+                    sbases.push(...models.reactions);
+                }
             }
 
             // collecting objectives
-            if (models.objectives && this.visibility.Objectives) {
-                console.log("found objectives");
-                sbases.push(...models.objectives);
+            if (models.objectives) {
+                counts.Objectives = models.objectives.length;
+                if (this.visibility.Objectives) {
+                    sbases.push(...models.objectives);
+                }
             }
 
             // collecting events
-            if (models.events && this.visibility.Events) {
-                console.log("found events");
-                sbases.push(...models.events);
+            if (models.events) {
+                counts.Events = models.events.length;
+                if (this.visibility.Events) {
+                    sbases.push(...models.events);
+                }
             }
 
             // collecting gene products
-            if (models.geneProducts && this.visibility.GeneProducts) {
-                console.log("found gene products");
-                sbases.push(...models.geneProducts);
+            if (models.geneProducts) {
+                counts.GeneProducts = models.geneProducts.length;
+                if (this.visibility.GeneProducts) {
+                    sbases.push(...models.geneProducts);
+                }
             }
 
             return sbases;

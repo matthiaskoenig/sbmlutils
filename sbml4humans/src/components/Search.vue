@@ -1,11 +1,11 @@
 <template>
-    <div class="search"></div>
+    <div class="search">
+        <input class="form-control" type="text" placeholder="&#128270; &nbsp; Search for an SBML Component" />
+    </div>
 </template>
 
 <script>
-export default {
-
-};
+export default {};
 </script>
 
 <style lang="scss" scoped>
