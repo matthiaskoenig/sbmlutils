@@ -1,37 +1,55 @@
 <template>
-    <form @submit.prevent="getExample()">
-        <button class="btn list-item" type="submit">
-            {{ exampleName }}
-        </button>
-    </form>
+    <div class="card shadow-sm" v-on:click="getExample()">
+        <div
+            class="tag d-flex justify-content-between"
+            v-bind:style="`background-color: ${color}`"
+        >
+            <div class="left-text">
+                <strong>{{ sbmlType }}</strong>
+            </div>
+        </div>
+        <div class="card-body">
+            <h6 class="card-subtitle d-flex justify-content-between">
+                <div class="name" v-if="info.name">Name: {{ info.name }}</div>
+                <div class="sbo" v-if="info.sbo">{{ info.sbo }}</div>
+            </h6>
+            <div class="meta d-flex justify-content-between text-primary">
+                <div v-if="info.metaId">Meta ID: {{ info.metaId }}</div>
+                <div v-if="info.id">SID: {{ info.id }}</div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
-import createStore from "@/store/index";
+import colors from "@/data/colorScheme";
+import store from "@/store/index";
 
 export default {
     props: {
-        exampleName: {
-            type: String,
-            default: "Model Name",
-        },
-        exampleId: {
-            type: String,
-            default: "example-id",
-        },
+        sbmlType: String,
+        info: {},
     },
 
     data() {
-        return {};
+        return {
+            color: String,
+        };
+    },
+
+    mounted() {
+        this.color = colors.componentColor[this.sbmlType]
+            ? colors.componentColor[this.sbmlType]
+            : colors.componentColor.Default;
     },
 
     methods: {
-        async getExample() {
+        getExample() {
             const payload = {
-                exampleId: this.exampleId,
+                exampleId: this.info.fetchId,
             };
 
-            createStore.dispatch("fetchExampleReport", payload);
+            store.dispatch("fetchExampleReport", payload);
         },
     },
 };

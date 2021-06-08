@@ -1,10 +1,10 @@
 <template>
     <div class="divider">
         <div class="left-container">
-            <examples-list></examples-list>
+            <upload-sbml></upload-sbml>
         </div>
         <div class="right-container">
-            <upload-sbml></upload-sbml>
+            <examples-list></examples-list>
         </div>
     </div>
 </template>

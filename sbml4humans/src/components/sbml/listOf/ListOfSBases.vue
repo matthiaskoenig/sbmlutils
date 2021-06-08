@@ -4,8 +4,6 @@
             <toaster
                 v-for="sbase in collectSBases"
                 v-bind:key="sbase.id"
-                v-bind:sid="sbase.id"
-                v-bind:name="sbase.name"
                 v-bind:sbmlType="sbase.sbmlType"
                 v-bind:info="sbase"
             ></toaster>

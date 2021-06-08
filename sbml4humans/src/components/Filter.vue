@@ -25,7 +25,7 @@
                     ref="Ports"
                     v-if="counts.Ports > 0"
                     class="tag btn btn-outline"
-                    @click="alterVisibility('Port')"
+                    @click="alterVisibility('Ports')"
                     :style="`background-color: ${colors.Ports}`"
                 >
                     Ports

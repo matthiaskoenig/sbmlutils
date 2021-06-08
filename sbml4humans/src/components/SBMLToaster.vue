@@ -5,7 +5,7 @@
             v-bind:style="`background-color: ${color}`"
         >
             <div class="left-text">
-                <strong>{{ info.sbmlType }}</strong>
+                <strong>{{ sbmlType }}</strong>
             </div>
         </div>
         <div class="card-body">
@@ -24,12 +24,9 @@
 <script>
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
-import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
-        sid: String,
-        name: String,
         sbmlType: String,
         info: {},
     },

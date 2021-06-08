@@ -1,15 +1,14 @@
 <template>
     <div class="container">
-        <img class="logo" alt="SBML logo" src="@/assets/images/logo.png" />
         <h5>Choose from the below list of example SBML models to generate a report</h5>
-        <div class="list-group">
+        <a-list class="list-container">
             <example
                 v-for="ex in examples"
-                v-bind:key="ex.id"
-                v-bind:exampleName="ex.name"
-                v-bind:exampleId="ex.id"
+                v-bind:key="ex.fetchId"
+                v-bind:info="ex"
+                sbmlType="Model"
             ></example>
-        </div>
+        </a-list>
         <div class="loader" v-if="loading">
             <h6>Please wait...</h6>
             <span class="loading"><a-spin size="large" /></span>
@@ -32,8 +31,11 @@ export default {
         return {
             listOfExamples: [
                 {
+                    fetchId: String,
                     name: String,
                     id: String,
+                    sbo: String,
+                    metaId: String,
                 },
             ],
         };
