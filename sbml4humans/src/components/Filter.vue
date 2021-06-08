@@ -12,12 +12,10 @@
                     SBMLDocument
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.SBMLDocument"
-                ></a-badge>
+            <sup v-if="counts.SBMLDocument > 0">
+                <badge ref="SBMLDocumentBadge" class="badge">{{
+                    counts.SBMLDocument
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -31,12 +29,10 @@
                     Ports
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Ports"
-                ></a-badge>
+            <sup v-if="counts.Ports > 0">
+                <badge ref="PortsBadge" class="badge">{{
+                    counts.Ports
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -50,12 +46,10 @@
                     Models
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Model"
-                ></a-badge>
+            <sup v-if="counts.Model > 0">
+                <badge ref="ModelBadge" class="badge">{{
+                    counts.Model
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -69,13 +63,10 @@
                     FunctionDefinitions
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.FunctionDefinitions"
-                >
-                </a-badge>
+            <sup v-if="counts.FunctionDefinitions > 0">
+                <badge ref="FunctionDefinitionsBadge" class="badge">{{
+                    counts.FunctionDefinitions
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -89,13 +80,11 @@
                     UnitDefinitions
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.UnitDefinitions"
-                ></a-badge
-            ></sup>
+            <sup v-if="counts.UnitDefinitions > 0">
+                <badge ref="UnitDefinitionsBadge" class="badge">{{
+                    counts.UnitDefinitions
+                }}</badge>
+            </sup>
 
             <div class="selector">
                 <button
@@ -108,13 +97,11 @@
                     Compartments
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Compartments"
-                ></a-badge
-            ></sup>
+            <sup v-if="counts.Compartments > 0">
+                <badge ref="CompartmentsBadge" class="badge">{{
+                    counts.Compartments
+                }}</badge>
+            </sup>
 
             <div class="selector">
                 <button
@@ -127,12 +114,10 @@
                     Species
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Species"
-                ></a-badge>
+            <sup v-if="counts.Species > 0">
+                <badge ref="SpeciesBadge" class="badge">{{
+                    counts.Species
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -146,12 +131,10 @@
                     Parameters
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Parameters"
-                ></a-badge>
+            <sup v-if="counts.Parameters > 0">
+                <badge ref="ParametersBadge" class="badge">{{
+                    counts.Parameters
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -165,12 +148,10 @@
                     Reactions
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Reactions"
-                ></a-badge>
+            <sup v-if="counts.Reactions > 0">
+                <badge ref="ReactionsBadge" class="badge">{{
+                    counts.Reactions
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -184,12 +165,10 @@
                     AssignmentRules
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Rules"
-                ></a-badge>
+            <sup v-if="counts.Rules > 0">
+                <badge ref="RulesBadge" class="badge">{{
+                    counts.Rules
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -203,12 +182,10 @@
                     Constraints
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Constraints"
-                ></a-badge>
+            <sup v-if="counts.Constraints > 0">
+                <badge ref="ConstraintsBadge" class="badge">{{
+                    counts.Constraints
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -222,12 +199,10 @@
                     InitialAssignments
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.InitialAssignmens"
-                ></a-badge>
+            <sup v-if="counts.InitialAssignments > 0">
+                <badge ref="InitialAssignmentsBadge" class="badge">{{
+                    counts.InitialAssignments
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -241,12 +216,10 @@
                     Events
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Events"
-                ></a-badge>
+            <sup v-if="counts.Events > 0">
+                <badge ref="EventsBadge" class="badge">{{
+                    counts.Events
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -260,12 +233,10 @@
                     Objectives
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Objectives"
-                ></a-badge>
+            <sup v-if="counts.Objectives > 0">
+                <badge ref="ObjectivesBadge" class="badge">{{
+                    counts.Objectives
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -279,12 +250,10 @@
                     Submodels
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.Submodels"
-                ></a-badge>
+            <sup v-if="counts.Submodels > 0">
+                <badge ref="SubmodelsBadge" class="badge">{{
+                    counts.Submodels
+                }}</badge>
             </sup>
 
             <div class="selector">
@@ -298,21 +267,20 @@
                     GeneProducts
                 </button>
             </div>
-            <sup>
-                <a-badge
-                    class="count-badge"
-                    :number-style="{ backgroundColor: '#000000' }"
-                    v-bind:count="counts.GeneProducts"
-                ></a-badge>
+            <sup v-if="counts.GeneProducts > 0">
+                <badge ref="GeneProductsBadge" class="badge">{{
+                    counts.GeneProducts
+                }}</badge>
             </sup>
-        </div>
 
-        <div class="master-select">
-            <input ref="select" class="tick" type="radio" @click="selectAll()" />
-            <div class="label">Select All</div>
 
-            <input ref="de-select" class="tick ml-4" type="radio" @click="deSelectAll()" />
-            <div class="label">De-Select All</div>
+            <div class="master-select">
+                <input ref="select" class="tick" type="radio" @click="selectAll()" />
+                <div class="label">Select All</div>
+
+                <input ref="de-select" class="tick ml-4" type="radio" @click="deSelectAll()" />
+                <div class="label">De-Select All</div>
+            </div>
         </div>
     </div>
 </template>
@@ -325,14 +293,22 @@ export default {
         changeButtonShade(component, active) {
             console.log(component);
             var button = this.$refs[component];
+            var badge = this.$refs[String(component) + "Badge"];
+
             if (active === true) {
                 button.style.backgroundColor = this.colors[component];
                 button.style.color = "#000000";
                 button.style.borderColor = "#000000";
+
+                badge.style.backgroundColor = "#000000";
+                badge.style.color = "#ffffff";
             } else {
                 button.style.backgroundColor = "#F5F5F5";
                 button.style.color = "#D3D3D3";
                 button.style.borderColor = "#D3D3D3";
+
+                badge.style.backgroundColor = "#F5F5F5";
+                badge.style.color = "#f7f7f7";
             }
         },
 
@@ -410,7 +386,6 @@ export default {
 
     computed: {
         counts() {
-            console.log(store.state.counts);
             return store.state.counts;
         },
 
