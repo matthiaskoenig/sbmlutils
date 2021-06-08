@@ -97,11 +97,61 @@ def read_root():
 
 
 examples = {
-    "repressilator": REPRESSILATOR_SBML,
-    "recon3d": RECON3D_SBML,
-    "icg_liver": ICG_LIVER,
-    "icg_body_flat": ICG_BODY_FLAT,
-    "icg_body": ICG_BODY,
+    "repressilator": {
+        "file": REPRESSILATOR_SBML,
+        "model": {
+            "fetchId": "repressilator",
+            "name": "Elowitz2000 - Repressilator",
+            "id": "BIOMD0000000012",
+            "sbo": None,
+            "metaId": "_000001",
+        },
+    },
+
+
+    "recon3d": {
+        "file": RECON3D_SBML,
+        "model": {
+            "fetchId": "recon3d",
+            "name": None,
+            "id": "Recon3D",
+            "sbo": None,
+            "metaId": None,
+        }
+    },
+
+    "icg_liver": {
+        "file": ICG_LIVER,
+        "model": {
+            "fetchId": "icg_liver",
+            "name": "icg_liver",
+            "id": "icg_liver",
+            "sbo": None,
+            "metaId": "meta_icg_liver",
+        }
+    },
+
+    "icg_body_flat": {
+        "file": ICG_BODY_FLAT,
+        "model": {
+            "fetchId": "icg_body_flat",
+            "name": "icg_body",
+            "id": "icg_body",
+            "sbo": None,
+            "metaId": "meta_icg_body",
+        }
+    },
+
+    "icg_body": {
+        "file": ICG_BODY,
+        "model": {
+            "fetchId": "icg_body",
+            "name": "icg_body",
+            "id": "icg_body",
+            "sbo": None,
+            "metaId": "meta_icg_body",
+        }
+    },
 }
 
 @app.get("/examples/list")
@@ -111,10 +161,7 @@ async def list_of_examples():
     """
     list_of_examples = []
     for key in examples:
-        list_of_examples.append({
-            "name": key.replace('_', ' ').title(),
-            "id": key
-        })
+        list_of_examples.append(examples[key]["model"])
 
     content = {
         "examples": list_of_examples
@@ -130,11 +177,16 @@ def read_item(example_id: str) -> Dict:
     """
     example endpoint for testing
 
-    http://127.0.0.1:1444/examples/repressilator -> JSON for repressilator
-    :param item_id:
+    E.g. http://127.0.0.1:1444/examples/repressilator -> JSON for repressilator
+    :param example_id:
     :return:
     """
-    source = examples.get(example_id, None)
+    example = examples.get(example_id, None)
+    if example is not None:
+        source = example["file"]
+    else:
+        source = None
+    print(source)
     content: Dict = {}
 
     try:

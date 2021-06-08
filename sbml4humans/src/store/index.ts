@@ -33,14 +33,9 @@ export default createStore({
         //e.g. do not show/query examples & upload SBML in static mode
         // if static is activated: => no queries to the endpoint;
         // no debug information in static;
-        //static: Boolean(!window.localStorage.getItem("static")),
+        // UPDATE: static has been migrated to localStorage
 
         /* For Search and Filter feature */
-        visibilityAltered: {
-            alteredAgain: 0,
-            alteredFor: "",
-        },
-
         visibility: {
             SBMLDocument: true,
             Model: true,
@@ -102,11 +97,6 @@ export default createStore({
             /* the localStorage stores previously selected Static state to maintain it accross
                page refreshes. We can plan on extending this feature to jsonReport and detailInfo too perhaps. */
             window.localStorage.setItem("static", payload);
-        },
-        SET_VISIBILITY_ALTERED(state, payload) {
-            state.visibilityAltered.alteredFor = payload;
-            state.visibilityAltered.alteredAgain =
-                (state.visibilityAltered.alteredAgain + 1) % 2;
         },
         SET_VISIBILITY(state, payload) {
             state.visibility = payload;
@@ -184,7 +174,6 @@ export default createStore({
                 return;
             }
 
-            console.log("161 at store");
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
@@ -220,30 +209,12 @@ export default createStore({
         updateStatic(context, payload) {
             context.commit("SET_STATIC", payload);
         },
-        // update visibilityAlteredFor to indicate that component for which visibility was just altered
-        updateVisibilityAltered(context, payload) {
-            context.commit("SET_VISIBILITY_ALTERED", payload);
-        },
         updateVisibility(context, payload) {
             context.commit("SET_VISIBILITY", payload);
         },
         // update counts of SBML components as calculated in ListOfSBases
         updateCounts(context, payload) {
             context.commit("SET_COUNTS", payload);
-        },
-    },
-    getters: {
-        getExamples(state) {
-            return state.examples;
-        },
-        getRawData(state) {
-            return state.rawData;
-        },
-        getJSONReport(state) {
-            return state.jsonReport;
-        },
-        getDetailInfo(state) {
-            return state.detailInfo;
         },
     },
     modules: {},
