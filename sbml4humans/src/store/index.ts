@@ -41,6 +41,25 @@ export default createStore({
             alteredFor: "",
         },
 
+        visibility: {
+            SBMLDocument: true,
+            Model: true,
+            FunctionDefinitions: true,
+            UnitDefinitions: true,
+            Compartments: true,
+            Species: true,
+            Parameters: true,
+            InitialAssignments: true,
+            Rules: true,
+            Constraints: true,
+            Reactions: true,
+            Objectives: true,
+            Events: true,
+            GeneProducts: true,
+            SubModels: true,
+            Ports: true,
+        },
+
         counts: {
             SBMLDocument: 0,
             Model: 0,
@@ -88,6 +107,9 @@ export default createStore({
             state.visibilityAltered.alteredFor = payload;
             state.visibilityAltered.alteredAgain =
                 (state.visibilityAltered.alteredAgain + 1) % 2;
+        },
+        SET_VISIBILITY(state, payload) {
+            state.visibility = payload;
         },
         SET_COUNTS(state, payload) {
             state.counts = payload;
@@ -201,6 +223,9 @@ export default createStore({
         // update visibilityAlteredFor to indicate that component for which visibility was just altered
         updateVisibilityAltered(context, payload) {
             context.commit("SET_VISIBILITY_ALTERED", payload);
+        },
+        updateVisibility(context, payload) {
+            context.commit("SET_VISIBILITY", payload);
         },
         // update counts of SBML components as calculated in ListOfSBases
         updateCounts(context, payload) {
