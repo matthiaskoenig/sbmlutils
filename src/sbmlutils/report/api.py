@@ -26,6 +26,7 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
+# API Permissions Data
 origins = [
     "127.0.0.1",
     "*"
@@ -42,6 +43,14 @@ app.add_middleware(
 # TODO: create prototype of vue-report in sbml4humans branch;
 # TODO: remove the feature vue-prototype branch;
 # TODO: close issue #226 https://github.com/matthiaskoenig/sbmlutils/issues/226
+
+
+@app.get("/")
+def read_root():
+    """
+    Information to be returned by root path of the API.
+    """
+    return {"sbmlutils": "sbml4humans"}
 
 
 @app.post("/sbml")
@@ -73,7 +82,8 @@ async def send_sbml_file(request: Request):
         time_elapsed = (fetch_end - fetch_start).total_seconds()
 
         os.remove(files_dir / filename)
-    except:
+    except IOError as err:
+        logger.error(err)
         content = {
             "error": "SBML Document could not be parsed."
         }
@@ -85,17 +95,15 @@ async def send_sbml_file(request: Request):
     }
 
     res = Response(content=json.dumps(content, indent=2), media_type="application/json")
-    print(res.__dict__)
+
     return res
 
 
 # post COMBINE archive and returns JSON sbmlinfo
 # @app.post("/combine")
-@app.get("/")
-def read_root():
-    return {"sbmlutils": "sbml4humans"}
 
 
+# Data and Endpoints for Example Models
 examples = {
     "repressilator": {
         "file": REPRESSILATOR_SBML,
@@ -154,6 +162,7 @@ examples = {
     },
 }
 
+
 @app.get("/examples/list")
 async def list_of_examples():
     """
@@ -168,7 +177,6 @@ async def list_of_examples():
     }
     res = Response(content=json.dumps(content, indent=2), media_type="application/json")
 
-    print(res.__dict__)
     return res
 
 
@@ -196,7 +204,8 @@ def read_item(example_id: str) -> Dict:
         content["report"] = info.info
 
         time_elapsed = (fetch_end - fetch_start).total_seconds()
-    except:
+    except IOError as err:
+        logger.error(err)
         content = {
             "error": f"example for id does not exist '{example_id}'"
         }
@@ -207,7 +216,7 @@ def read_item(example_id: str) -> Dict:
     }
 
     res = Response(content=json.dumps(content, indent=2), media_type="application/json")
-    print(res.__dict__)
+
     return res
 
 
