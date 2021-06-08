@@ -13,9 +13,9 @@
                 </button>
             </div>
             <sup v-if="counts.SBMLDocument > 0">
-                <badge ref="SBMLDocumentBadge" class="badge">{{
+                <div ref="SBMLDocumentBadge" class="badge">{{
                     counts.SBMLDocument
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -30,9 +30,7 @@
                 </button>
             </div>
             <sup v-if="counts.Ports > 0">
-                <badge ref="PortsBadge" class="badge">{{
-                    counts.Ports
-                }}</badge>
+                <div ref="PortsBadge" class="badge">{{ counts.Ports }}</div>
             </sup>
 
             <div class="selector">
@@ -47,9 +45,7 @@
                 </button>
             </div>
             <sup v-if="counts.Model > 0">
-                <badge ref="ModelBadge" class="badge">{{
-                    counts.Model
-                }}</badge>
+                <div ref="ModelBadge" class="badge">{{ counts.Model }}</div>
             </sup>
 
             <div class="selector">
@@ -64,9 +60,9 @@
                 </button>
             </div>
             <sup v-if="counts.FunctionDefinitions > 0">
-                <badge ref="FunctionDefinitionsBadge" class="badge">{{
+                <div ref="FunctionDefinitionsBadge" class="badge">{{
                     counts.FunctionDefinitions
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -81,9 +77,9 @@
                 </button>
             </div>
             <sup v-if="counts.UnitDefinitions > 0">
-                <badge ref="UnitDefinitionsBadge" class="badge">{{
+                <div ref="UnitDefinitionsBadge" class="badge">{{
                     counts.UnitDefinitions
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -98,9 +94,9 @@
                 </button>
             </div>
             <sup v-if="counts.Compartments > 0">
-                <badge ref="CompartmentsBadge" class="badge">{{
+                <div ref="CompartmentsBadge" class="badge">{{
                     counts.Compartments
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -115,9 +111,7 @@
                 </button>
             </div>
             <sup v-if="counts.Species > 0">
-                <badge ref="SpeciesBadge" class="badge">{{
-                    counts.Species
-                }}</badge>
+                <div ref="SpeciesBadge" class="badge">{{ counts.Species }}</div>
             </sup>
 
             <div class="selector">
@@ -132,9 +126,9 @@
                 </button>
             </div>
             <sup v-if="counts.Parameters > 0">
-                <badge ref="ParametersBadge" class="badge">{{
+                <div ref="ParametersBadge" class="badge">{{
                     counts.Parameters
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -149,9 +143,7 @@
                 </button>
             </div>
             <sup v-if="counts.Reactions > 0">
-                <badge ref="ReactionsBadge" class="badge">{{
-                    counts.Reactions
-                }}</badge>
+                <div ref="ReactionsBadge" class="badge">{{ counts.Reactions }}</div>
             </sup>
 
             <div class="selector">
@@ -166,9 +158,7 @@
                 </button>
             </div>
             <sup v-if="counts.Rules > 0">
-                <badge ref="RulesBadge" class="badge">{{
-                    counts.Rules
-                }}</badge>
+                <div ref="RulesBadge" class="badge">{{ counts.Rules }}</div>
             </sup>
 
             <div class="selector">
@@ -183,9 +173,9 @@
                 </button>
             </div>
             <sup v-if="counts.Constraints > 0">
-                <badge ref="ConstraintsBadge" class="badge">{{
+                <div ref="ConstraintsBadge" class="badge">{{
                     counts.Constraints
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -200,9 +190,9 @@
                 </button>
             </div>
             <sup v-if="counts.InitialAssignments > 0">
-                <badge ref="InitialAssignmentsBadge" class="badge">{{
+                <div ref="InitialAssignmentsBadge" class="badge">{{
                     counts.InitialAssignments
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -217,9 +207,7 @@
                 </button>
             </div>
             <sup v-if="counts.Events > 0">
-                <badge ref="EventsBadge" class="badge">{{
-                    counts.Events
-                }}</badge>
+                <div ref="EventsBadge" class="badge">{{ counts.Events }}</div>
             </sup>
 
             <div class="selector">
@@ -234,9 +222,9 @@
                 </button>
             </div>
             <sup v-if="counts.Objectives > 0">
-                <badge ref="ObjectivesBadge" class="badge">{{
+                <div ref="ObjectivesBadge" class="badge">{{
                     counts.Objectives
-                }}</badge>
+                }}</div>
             </sup>
 
             <div class="selector">
@@ -251,9 +239,7 @@
                 </button>
             </div>
             <sup v-if="counts.Submodels > 0">
-                <badge ref="SubmodelsBadge" class="badge">{{
-                    counts.Submodels
-                }}</badge>
+                <div ref="SubmodelsBadge" class="badge">{{ counts.Submodels }}</div>
             </sup>
 
             <div class="selector">
@@ -268,17 +254,21 @@
                 </button>
             </div>
             <sup v-if="counts.GeneProducts > 0">
-                <badge ref="GeneProductsBadge" class="badge">{{
+                <div ref="GeneProductsBadge" class="badge">{{
                     counts.GeneProducts
-                }}</badge>
+                }}</div>
             </sup>
-
 
             <div class="master-select">
                 <input ref="select" class="tick" type="radio" @click="selectAll()" />
                 <div class="label">Select All</div>
 
-                <input ref="de-select" class="tick ml-4" type="radio" @click="deSelectAll()" />
+                <input
+                    ref="de-select"
+                    class="tick ml-4"
+                    type="radio"
+                    @click="deSelectAll()"
+                />
                 <div class="label">De-Select All</div>
             </div>
         </div>
@@ -301,14 +291,16 @@ export default {
                 button.style.borderColor = "#000000";
 
                 badge.style.backgroundColor = "#000000";
-                badge.style.color = "#ffffff";
+                badge.style.color = "#FFFFFF";
+                badge.style.borderColor = "#000000";
             } else {
                 button.style.backgroundColor = "#F5F5F5";
                 button.style.color = "#D3D3D3";
                 button.style.borderColor = "#D3D3D3";
 
                 badge.style.backgroundColor = "#F5F5F5";
-                badge.style.color = "#f7f7f7";
+                badge.style.color = "#A9A9A9";
+                badge.style.borderColor = "#A9A9A9";
             }
         },
 

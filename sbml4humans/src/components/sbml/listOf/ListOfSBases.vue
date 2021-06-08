@@ -3,7 +3,7 @@
         <a-list class="list-container">
             <toaster
                 v-for="sbase in collectSBases"
-                v-bind:key="sbase.id"
+                v-bind:key="sbase.id + sbase.sbo + sbase.name + sbase.metaId"
                 v-bind:sbmlType="sbase.sbmlType"
                 v-bind:info="sbase"
             ></toaster>
@@ -65,16 +65,20 @@ export default {
                 sbases.push(...this.assembleSBasesInModels(report.models, counts));
             }
 
+            if (!(this.searchQuery === null || this.searchQuery === "")) {
+                sbases = this.filterForSearchResults(sbases, this.searchQuery);
+            }
+
             store.dispatch("updateCounts", counts);
             return sbases;
         },
 
-        visibilityAlteredAgain() {
-            return store.state.visibilityAltered.alteredAgain;
-        },
-
         visibility() {
             return store.state.visibility;
+        },
+
+        searchQuery() {
+            return store.state.searchQuery;
         },
     },
 
@@ -203,6 +207,20 @@ export default {
             }
 
             return sbases;
+        },
+
+        filterForSearchResults(sbases = [TYPES.SBase], searchQuery = "") {
+            return sbases.filter((sbase) => {
+                return searchQuery
+                    .toLowerCase()
+                    .split(" ")
+                    .every((attr) =>
+                        (sbase.name + sbase.id + sbase.metaId + sbase.sbo)
+                            .toString()
+                            .toLowerCase()
+                            .includes(attr)
+                    );
+            });
         },
     },
 
