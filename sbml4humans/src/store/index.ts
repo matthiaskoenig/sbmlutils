@@ -73,6 +73,8 @@ export default createStore({
             SubModels: 0,
             Ports: 0,
         },
+
+        searchQuery: null,
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -103,6 +105,9 @@ export default createStore({
         },
         SET_COUNTS(state, payload) {
             state.counts = payload;
+        },
+        SET_SEARCH_QUERY(state, payload) {
+            state.searchQuery = payload;
         },
     },
     actions: {
@@ -215,6 +220,9 @@ export default createStore({
         // update counts of SBML components as calculated in ListOfSBases
         updateCounts(context, payload) {
             context.commit("SET_COUNTS", payload);
+        },
+        updateSearchQuery(context, payload) {
+            context.commit("SET_SEARCH_QUERY", payload);
         },
     },
     modules: {},

@@ -37,6 +37,7 @@ export default {
     props: {
         sbmlType: String,
         info: {},
+        visible: Boolean,
     },
 
     data() {

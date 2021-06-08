@@ -3,13 +3,22 @@
         <input
             class="form-control"
             type="text"
-            placeholder="&#128270; &nbsp; Search for an SBML Component"
+            placeholder="&nbsp; &#128270; &nbsp; Search for an SBML Component"
+            @input="updateSearchQuery"
         />
     </div>
 </template>
 
 <script>
-export default {};
+import store from "@/store/index";
+
+export default {
+    methods: {
+        updateSearchQuery(e) {
+            store.dispatch("updateSearchQuery", e.target.value);
+        },
+    },
+};
 </script>
 
 <style lang="scss" scoped>
