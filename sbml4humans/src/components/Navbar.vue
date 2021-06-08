@@ -1,20 +1,6 @@
 <template>
-    <nav class="navbar navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <router-link class="navbar-brand" to="/">SBML4Humans</router-link>
-
-        <!-- Static switch -->
-        <div class="static d-flex ml-auto mt-auto mb-auto">
-            <p class="label">Static</p>
-            <label class="switch">
-                <input
-                    ref="static-switch"
-                    type="checkbox"
-                    v-bind:checked="staticStatus"
-                    @change="handleSwitchChange()"
-                />
-                <span class="slider round"></span>
-            </label>
-        </div>
 
         <button
             class="navbar-toggler"
@@ -28,18 +14,31 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
+        <!-- Static switch -->
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item active">
-                    <router-link class="nav-link" to="/">Home</router-link>
-                </li>
-                <li class="nav-item active" v-if="!staticStatus">
+            <ul class="navbar-nav ml-auto mr-20">
+                <li class="nav-item" v-if="!staticStatus">
                     <router-link class="nav-link" to="/examples">Examples</router-link>
                 </li>
-                <li class="nav-item active" v-if="!staticStatus">
+                <li class="nav-item" v-if="!staticStatus">
                     <router-link class="nav-link" to="/uploadSBML"
                         >Upload SBML</router-link
                     >
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link">
+                        <p class="label">Static</p>
+                        <label class="switch">
+                            <input
+                                ref="static-switch"
+                                type="checkbox"
+                                v-bind:checked="staticStatus"
+                                @change="handleSwitchChange()"
+                            />
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -53,30 +52,22 @@ export default {
     data() {
         return {
             // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
-            storage: {},
-            staticStatus: false,
+            staticStatus: window.localStorage.getItem("static") === "true",
         };
     },
 
     methods: {
         handleSwitchChange() {
             const staticSwitch = this.$refs["static-switch"];
-            console.log("static switch");
             if (staticSwitch.checked) {
-                this.staticStatus = true;
                 store.dispatch("updateStatic", true);
+                this.staticStatus = window.localStorage.getItem("static") === "true";
             } else {
-                this.staticStatus = false;
                 store.dispatch("updateStatic", false);
+                this.staticStatus = window.localStorage.getItem("static") === "true";
             }
         },
     },
-
-    // computed: {
-    //     staticStatus() {
-    //         return localStorage.static;
-    //     },
-    // },
 };
 </script>
 

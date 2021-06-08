@@ -23,14 +23,17 @@ export default createStore({
         // detail view info (for access from every where)
         detailInfo: {},
 
-        // describe if the model is still loading (REST endpoint)
-        loading: false,
+        // describe if the file report is still loading (REST endpoint)
+        fileLoading: false,
+
+        // describe if the file report is still loading (REST endpoint)
+        exampleLoading: false,
 
         // FIXME: add a static flag/switch
         //e.g. do not show/query examples & upload SBML in static mode
         // if static is activated: => no queries to the endpoint;
         // no debug information in static;
-        static: Boolean(localStorage.static),
+        //static: Boolean(!window.localStorage.getItem("static")),
 
         /* For Search and Filter feature */
         visibilityAltered: {
@@ -70,15 +73,16 @@ export default createStore({
         SET_DETAIL_INFO(state, payload) {
             state.detailInfo = payload;
         },
-        SET_LOADING(state, payload) {
-            state.loading = payload;
+        SET_FILE_LOADING(state, payload) {
+            state.fileLoading = payload;
+        },
+        SET_EXAMPLE_LOADING(state, payload) {
+            state.exampleLoading = payload;
         },
         SET_STATIC(state, payload) {
-            //state.static = payload;
-
             /* the localStorage stores previously selected Static state to maintain it accross
                page refreshes. We can plan on extending this feature to jsonReport and detailInfo too perhaps. */
-            localStorage.static = payload;
+            window.localStorage.setItem("static", payload);
         },
         SET_VISIBILITY_ALTERED(state, payload) {
             state.visibilityAltered.alteredFor = payload;
@@ -93,20 +97,20 @@ export default createStore({
         // get list of all available examples from backend API
         async fetchExamples(context) {
             // no queries to the API if static is ON
-            if (localStorage.static === true) {
+            if (window.localStorage.getItem("static") === "true") {
                 alert(
                     "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch examples."
                 );
                 return;
             }
 
-            context.commit("SET_LOADING", true);
+            context.commit("SET_EXAMPLE_LOADING", true);
 
             const url = BASE_URLS.API_BASE_URL + "/examples/list";
 
             const res = await axios.get(url);
 
-            context.commit("SET_LOADING", false);
+            context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
                 context.commit("SET_EXAMPLES", res.data.examples);
@@ -117,20 +121,20 @@ export default createStore({
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
             // no queries to the API if static is ON
-            if (localStorage.static === true) {
+            if (window.localStorage.getItem("static") === "true") {
                 alert(
                     "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this example."
                 );
                 return;
             }
 
-            context.commit("SET_LOADING", true);
+            context.commit("SET_EXAMPLE_LOADING", true);
 
             const url = BASE_URLS.API_BASE_URL + "/examples/" + payload.exampleId;
 
             const res = await axios.get(url);
 
-            context.commit("SET_LOADING", false);
+            context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
                 // dump the raw data fetched from the backend
@@ -151,14 +155,15 @@ export default createStore({
         // generate report for uploaded SBML file
         async fetchReport(context, payload) {
             // no queries to the API if static is ON
-            if (localStorage.static === true) {
+            if (window.localStorage.getItem("static") === "true") {
                 alert(
                     "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this file."
                 );
                 return;
             }
 
-            context.commit("SET_LOADING", true);
+            console.log("161 at store");
+            context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
             const url = BASE_URLS.API_BASE_URL + "/sbml";
@@ -167,7 +172,7 @@ export default createStore({
 
             const res = await axios.post(url, formData, headers);
 
-            context.commit("SET_LOADING", false);
+            context.commit("SET_FILE_LOADING", false);
 
             if (res.status === 200) {
                 // dump the raw data fetched from the backend
@@ -214,12 +219,6 @@ export default createStore({
         },
         getDetailInfo(state) {
             return state.detailInfo;
-        },
-        getLoadingStatus(state) {
-            return state.loading;
-        },
-        getStaticFlag(state) {
-            return state.static;
         },
     },
     modules: {},

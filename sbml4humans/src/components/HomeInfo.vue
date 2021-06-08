@@ -1,37 +1,27 @@
 <template>
-    <div class="container">
-        <img class="logo" alt="SBML logo" src="@/assets/images/logo.png" />
-        <h1>{{ msg }}</h1>
-        <br />
-        <h5>Essential Links</h5>
-        <ul>
-            <li>
-                <a
-                    href="https://https://github.com/matthiaskoenig/sbmlutils"
-                    target="_blank"
-                    rel="noopener"
-                    >sbmlutils</a
-                >
-            </li>
-            <li>
-                <a href="http://sbml.org" target="_blank" rel="noopener">SBML</a>
-            </li>
-            <li>
-                <a
-                    href="https://summerofcode.withgoogle.com/projects/#5355377035575296"
-                    target="_blank"
-                    rel="noopener"
-                    >Project Description</a
-                >
-            </li>
-        </ul>
+    <div class="divider">
+        <div class="left-container">
+            <examples-list></examples-list>
+        </div>
+        <div class="right-container">
+            <upload-sbml></upload-sbml>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import { Options, Vue } from "vue-class-component";
 
+/* Components */
+import ExamplesListContainer from "@/components/ExamplesListContainer.vue";
+import FileUploadForm from "@/components/FileUploadForm.vue";
+
 @Options({
+    components: {
+        "examples-list": ExamplesListContainer,
+        "upload-sbml": FileUploadForm,
+    },
+
     props: {
         msg: String,
     },

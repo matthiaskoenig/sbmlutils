@@ -48,7 +48,7 @@ export default {
             return store.state.examples;
         },
         loading(): boolean {
-            return store.state.loading;
+            return store.state.exampleLoading;
         },
     },
 };
