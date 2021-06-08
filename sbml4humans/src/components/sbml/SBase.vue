@@ -51,26 +51,58 @@
     </div>
 
     <!-- XML -->
-    <div class="data" v-if="info.xml">
-        <a-button type="info" @click="showModal">View XML</a-button>
-    </div>
-    <a-modal
-        v-model:visible="visible"
-        width="1000px"
-        v-bind:footer="null"
-        @ok="handleOk"
+    <button
+        type="button"
+        class="btn outline btn-info"
+        data-toggle="modal"
+        data-target="#exampleModalScrollable"
     >
-        <p>{{ info.xml }}</p>
-    </a-modal>
+        View XML
+    </button>
+
+    <!-- Modal -->
+    <div
+        class="modal fade"
+        id="exampleModalScrollable"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalScrollableTitle"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                    >
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <xml-container v-bind:rawXML="info.xml"></xml-container>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
 import TYPES from "@/sbmlComponents";
 
+/* Compartments */
+import XMLContainer from "@/components/XMLContainer.vue";
+
 export default {
     props: {
         //FIXME: initialize with empty data
         info: TYPES.SBase,
+    },
+
+    components: {
+        "xml-container": XMLContainer,
     },
 
     data() {
