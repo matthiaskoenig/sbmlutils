@@ -28,25 +28,6 @@ export default {
     data() {
         return {
             listOfSBases: [TYPES.SBase],
-
-            visibility: {
-                SBMLDocument: true,
-                Model: true,
-                FunctionDefinitions: true,
-                UnitDefinitions: true,
-                Compartments: true,
-                Species: true,
-                Parameters: true,
-                InitialAssignments: true,
-                Rules: true,
-                Constraints: true,
-                Reactions: true,
-                Objectives: true,
-                Events: true,
-                GeneProducts: true,
-                SubModels: true,
-                Ports: true,
-            },
         };
     },
 
@@ -92,6 +73,10 @@ export default {
 
         visibilityAlteredAgain() {
             return store.state.visibilityAltered.alteredAgain;
+        },
+
+        visibility() {
+            return store.state.visibility;
         },
     },
 
@@ -225,13 +210,6 @@ export default {
 
     mounted() {
         this.listOfSBases = this.collectSBases;
-    },
-
-    watch: {
-        visibilityAlteredAgain() {
-            this.visibility[store.state.visibilityAltered.alteredFor] =
-                !this.visibility[store.state.visibilityAltered.alteredFor];
-        },
     },
 };
 </script>

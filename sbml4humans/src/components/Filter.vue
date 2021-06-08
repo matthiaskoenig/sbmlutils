@@ -308,8 +308,11 @@
         </div>
 
         <div class="master-select">
-            <input ref="select" class="tick" type="checkbox" @click="selectDeselectAll()" />
-            <div ref="label" class="label">Select All</div>
+            <input ref="select" class="tick" type="radio" @click="selectAll()" />
+            <div class="label">Select All</div>
+
+            <input ref="de-select" class="tick ml-4" type="radio" @click="deSelectAll()" />
+            <div class="label">De-Select All</div>
         </div>
     </div>
 </template>
@@ -319,15 +322,11 @@ import store from "@/store/index";
 
 export default {
     methods: {
-        alterVisibility(component) {
-            var button = this.$refs[String(component)];
-
-            store.dispatch("updateVisibilityAltered", String(component));
-
-            this.visibility[String(component)] = !this.visibility[String(component)];
-
-            if (this.visibility[String(component)]) {
-                button.style.backgroundColor = this.colors[String(component)];
+        changeButtonShade(component, active) {
+            console.log(component);
+            var button = this.$refs[component];
+            if (active === true) {
+                button.style.backgroundColor = this.colors[component];
                 button.style.color = "#000000";
                 button.style.borderColor = "#000000";
             } else {
@@ -337,18 +336,52 @@ export default {
             }
         },
 
-        selectDeselectAll() {
-            var select = this.$refs["select"];
-            var label = this.$refs["label"];
+        alterVisibility(component) {
+            var currVisibility = this.visibility;
+            // update the visibility of the specific component
+            currVisibility[String(component)] = !currVisibility[String(component)];
 
-            // complete this, make visibility a state variable
-            if (select.checked) {
-                // dispatch new visibility
-                label.innerText = "De-select All";
+            store.dispatch("updateVisibility", currVisibility);
+
+            if (this.visibility[String(component)] === true) {
+                this.changeButtonShade(String(component), true);
             } else {
-                // dispatch new visibility
-                label.innerText = "Select All";
+                this.changeButtonShade(String(component), false);
             }
+        },
+
+        selectAll() {
+            var deSelect = this.$refs["de-select"];
+
+            var currVisibility = this.visibility;
+            // make visibility of all SBML components "true"
+            for (let component in currVisibility) {
+                currVisibility[String(component)] = true;
+                if (this.counts[String(component)] > 0) {
+                    this.changeButtonShade(String(component), true);
+                }
+            }
+
+            store.dispatch("updateVisibility", currVisibility);
+
+            deSelect.checked = false;
+        },
+
+        deSelectAll() {
+            var select = this.$refs["select"];
+
+            var currVisibility = this.visibility;
+            // make visibility of all SBML components "false"
+            for (let component in currVisibility) {
+                currVisibility[String(component)] = false;
+                if (this.counts[String(component)] > 0) {
+                    this.changeButtonShade(String(component), false);
+                }
+            }
+
+            store.dispatch("updateVisibility", currVisibility);
+
+            select.checked = false;
         },
     },
 
@@ -372,24 +405,6 @@ export default {
                 Submodels: "#d53e4f",
                 GeneProducts: "#f46d43",
             },
-            visibility: {
-                SBMLDocument: true,
-                Model: true,
-                FunctionDefinitions: true,
-                UnitDefinitions: true,
-                Compartments: true,
-                Species: true,
-                Parameters: true,
-                InitialAssignments: true,
-                Rules: true,
-                Constraints: true,
-                Reactions: true,
-                Objectives: true,
-                Events: true,
-                GeneProducts: true,
-                SubModels: true,
-                Ports: true,
-            },
         };
     },
 
@@ -397,6 +412,10 @@ export default {
         counts() {
             console.log(store.state.counts);
             return store.state.counts;
+        },
+
+        visibility() {
+            return store.state.visibility;
         },
     },
 };
