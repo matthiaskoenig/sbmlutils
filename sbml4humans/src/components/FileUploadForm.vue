@@ -1,8 +1,7 @@
 <template>
     <div class="container">
-        <img alt="SBML logo" src="@/assets/images/logo.png" />
-        <form class="needs-validation" @submit.prevent="submitForm()">
-            <legend>Upload an SBML file to generate report</legend>
+        <form class="needs-validation" @submit.prevent="submitForm">
+            <h5>Upload an SBML file to generate report</h5>
             <div class="form-row">
                 <div class="col-md-12 mb-3">
                     <label for="fileField">File</label>
@@ -34,11 +33,11 @@
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="validationTooltip04">Math Rendering Format</label>
+                    <label for="validationTooltip05">Math Rendering Format</label>
                     <select
                         ref="math"
                         class="custom-select"
-                        id="validationTooltip04"
+                        id="validationTooltip05"
                         required
                     >
                         <option selected value="latex">LaTex</option>
@@ -50,16 +49,17 @@
                     </div>
                 </div>
             </div>
-            <a-button type="primary" shape="round" :size="size">
-                <template #icon> Submit </template>
-            </a-button>
+            <button class="btn btn-info w-25" type="submit" style="border-radius: 25px">Submit</button>
         </form>
+        <div class="loader" v-if="loading">
+            <h6>Please wait...</h6>
+            <span class="loading"><a-spin size="large" /></span>
+        </div>
     </div>
-    <h3 v-if="loading">Loading</h3>
 </template>
 
 <script>
-import createStore from "@/store/index";
+import store from "@/store/index";
 
 export default {
     data() {
@@ -67,7 +67,6 @@ export default {
             file: null,
             mathRender: "latex",
             fileFormat: "sbml",
-            loading: createStore.state.loading,
         };
     },
 
@@ -95,9 +94,16 @@ export default {
                 headers: headers,
             };
 
-            createStore.dispatch("fetchReport", payload);
+            console.log("here at 99");
+            store.dispatch("fetchReport", payload);
         },
     },
+
+    computed: {
+        loading() {
+            return store.state.fileLoading;
+        },
+    }
 };
 </script>
 
