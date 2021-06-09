@@ -7,6 +7,10 @@
         <species v-bind:info="info"></species>
     </div>
 
+    <div id="parameterDiv" v-if="sbmlType === 'Parameter'">
+        <parameter v-bind:info="info"></parameter>
+    </div>
+
     <div id="reactionsDiv" v-if="sbmlType === 'Reaction'">
         <reaction v-bind:info="info"></reaction>
     </div>
@@ -15,6 +19,7 @@
 <script>
 import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
+import Parameter from "@/components/sbml/Parameter.vue";
 import Reaction from "@/components/sbml/Reaction.vue";
 
 export default {
@@ -27,6 +32,7 @@ export default {
         compartment: Compartment,
         species: Species,
         reaction: Reaction,
+        parameter: Parameter,
     },
 };
 </script>
