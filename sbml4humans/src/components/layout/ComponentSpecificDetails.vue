@@ -3,6 +3,10 @@
         <model v-bind:info="info"></model>
     </div>
 
+    <div id="portDiv" v-if="sbmlType === 'Port'">
+        <port v-bind:info="info"></port>
+    </div>
+
     <div id="compartmentDiv" v-if="sbmlType === 'Compartment'">
         <compartment v-bind:info="info"></compartment>
     </div>
@@ -22,6 +26,7 @@
 
 <script>
 import Model from "@/components/sbml/Model.vue";
+import Port from "@/components/sbml/Port.vue";
 import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
 import Parameter from "@/components/sbml/Parameter.vue";
@@ -35,6 +40,7 @@ export default {
 
     components: {
         model: Model,
+        port: Port,
         compartment: Compartment,
         species: Species,
         reaction: Reaction,
