@@ -1,15 +1,17 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Value -->
+    <div class="data" v-if="info.value">
+        <div class="label"><strong>Value:</strong> {{ info.value }}</div>
+    </div>
+
+    <!-- Units -->
+    <div class="data" v-if="info.units">
+        <div class="label"><strong>Units:</strong> {{ info.units }}</div>
+    </div>
+
+    <!-- Constant -->
+    <div class="data" v-if="info.constant">
+        <div class="label"><strong>Constant:</strong> {{ info.constant }}</div>
     </div>
 </template>
 
@@ -18,7 +20,7 @@ import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
-        info: TYPES.Reaction,
+        info: TYPES.Parameter,
     },
 
     data() {
