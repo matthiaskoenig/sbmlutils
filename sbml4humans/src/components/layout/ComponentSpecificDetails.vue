@@ -1,4 +1,8 @@
 <template>
+    <div id="modelDiv" v-if="sbmlType === 'Model'">
+        <model v-bind:info="info"></model>
+    </div>
+
     <div id="compartmentDiv" v-if="sbmlType === 'Compartment'">
         <compartment v-bind:info="info"></compartment>
     </div>
@@ -17,6 +21,7 @@
 </template>
 
 <script>
+import Model from "@/components/sbml/Model.vue";
 import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
 import Parameter from "@/components/sbml/Parameter.vue";
@@ -29,6 +34,7 @@ export default {
     },
 
     components: {
+        model: Model,
         compartment: Compartment,
         species: Species,
         reaction: Reaction,
