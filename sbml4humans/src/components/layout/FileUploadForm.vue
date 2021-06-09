@@ -108,5 +108,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/styles/scss/components/FileUpload.scss";
+@import "@/assets/styles/scss/components/layout/FileUpload.scss";
 </style>

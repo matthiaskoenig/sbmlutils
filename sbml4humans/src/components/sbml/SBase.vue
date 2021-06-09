@@ -93,7 +93,7 @@
 import TYPES from "@/sbmlComponents";
 
 /* Compartments */
-import XMLContainer from "@/components/XMLContainer.vue";
+import XMLContainer from "@/components/layout/XMLContainer.vue";
 
 export default {
     props: {

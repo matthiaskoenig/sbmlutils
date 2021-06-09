@@ -6,7 +6,7 @@
 import { Options, Vue } from "vue-class-component";
 
 /* Components */
-import FileUpload from "@/components/FileUploadForm.vue";
+import FileUpload from "@/components/layout/FileUploadForm.vue";
 
 @Options({
     components: {

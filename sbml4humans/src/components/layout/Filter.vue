@@ -389,5 +389,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/Filter.scss";
+@import "@/assets/styles/scss/components/layout/Filter.scss";
 </style>

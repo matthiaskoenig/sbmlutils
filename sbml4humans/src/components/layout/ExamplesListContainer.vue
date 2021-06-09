@@ -20,7 +20,7 @@
 import store from "@/store/index";
 
 /* Components */
-import Example from "@/components/Example.vue";
+import Example from "@/components/layout/Example.vue";
 
 export default {
     components: {
@@ -57,5 +57,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/ExamplesListContainer.scss";
+@import "@/assets/styles/scss/components/layout/ExamplesListContainer.scss";
 </style>

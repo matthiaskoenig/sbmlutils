@@ -1,15 +1,93 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Reversible -->
+    <div class="data" v-if="info.reversible">
+        <div class="label"><strong>Reversible:</strong> {{ info.reversible }}</div>
+    </div>
+
+    <!-- Compartment -->
+    <div class="data" v-if="info.compartment">
+        <div class="label"><strong>Compartment:</strong> {{ info.compartment }}</div>
+    </div>
+
+    <!-- List of Reactants -->
+    <div class="data" v-if="info.listOfReactants.length > 0">
+        <div class="label"><strong>Reactants:</strong></div>
+        <br />
+        <div class="ml-4">
+            <ul title="Reactants">
+                <li
+                    v-for="reactant in info.listOfReactants"
+                    v-bind:key="reactant.species"
+                >
+                    {{ reactant.species }} [<span v-if="reactant.stoichiometry"
+                        >stoichiometry: {{ reactant.stoichiometry }}</span
+                    >
+                    <span v-if="reactant.constant">, constant</span>]
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- List of Products -->
+    <div class="data" v-if="info.listOfProducts.length > 0">
+        <div class="label"><strong>Products:</strong></div>
+        <br />
+        <div class="ml-4">
+            <ul title="Products">
+                <li v-for="product in info.listOfProducts" v-bind:key="product.species">
+                    {{ product.species }} [<span v-if="product.stoichiometry"
+                        >stoichiometry: {{ product.stoichiometry }}</span
+                    >
+                    <span v-if="product.constant">, constant</span>]
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- List of Modifiers -->
+    <div class="data" v-if="info.listOfModifiers.length > 0">
+        <div class="label"><strong>Modifiers:</strong></div>
+        <br />
+        <div class="ml-4">
+            <ul title="Modifiers">
+                <li v-for="modifier in info.listOfModifiers" v-bind:key="modifier">
+                    {{ modifier }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Equation -->
+    <div class="data" v-if="info.equation">
+        <div class="label">
+            <strong>Equation:</strong>
+            <span v-html="info.equation"></span>
+        </div>
+    </div>
+
+    <!-- Fast -->
+    <div class="data" v-if="info.fast">
+        <div class="label"><strong>Fast:</strong> {{ info.fast }}</div>
+    </div>
+
+    <!-- Kinetic Law (To be added after fixing the sbmlutils implementation)  -->
+
+    <!-- FBC -->
+    <div class="data" v-if="info.fbc">
+        <div class="label"><strong>FBC:</strong> {{ info.fbc }}</div>
+        <div class="ml-4">
+            <div v-if="info.fbc.bounds">
+                Bounds: [<span v-if="info.fbc.bounds.lb_value">{{
+                    info.fbc.bounds.lb_value
+                }}</span
+                >,
+                <span v-if="info.fbc.bounds.ub_value">{{
+                    info.fbc.bounds.ub_value
+                }}</span
+                >]
+            </div>
+            <div v-if="info.fbc.gpa">{{ info.fbc.gpa }}</div>
+        </div>
     </div>
 </template>
 

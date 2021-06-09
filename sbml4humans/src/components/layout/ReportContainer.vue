@@ -12,9 +12,9 @@
 
 <script>
 /* Compartments */
-import SearchAndFilter from "@/components/SearchAndFilter";
+import SearchAndFilter from "@/components/layout/SearchAndFilter";
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
-import DetailContainer from "@/components/DetailContainer";
+import DetailContainer from "@/components/layout/DetailContainer";
 
 export default {
     components: {
@@ -26,5 +26,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/ReportContainer.scss";
+@import "@/assets/styles/scss/components/layout/ReportContainer.scss";
 </style>

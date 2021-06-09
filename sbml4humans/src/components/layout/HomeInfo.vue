@@ -13,8 +13,8 @@
 import { Options, Vue } from "vue-class-component";
 
 /* Components */
-import ExamplesListContainer from "@/components/ExamplesListContainer.vue";
-import FileUploadForm from "@/components/FileUploadForm.vue";
+import ExamplesListContainer from "@/components/layout/ExamplesListContainer.vue";
+import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 
 @Options({
     components: {
@@ -32,5 +32,5 @@ export default class HomeInfo extends Vue {
 </script>
 
 <style scoped lang="scss">
-@import "../assets/styles/scss/components/HomeInfo.scss";
+@import "@/assets/styles/scss/components/layout/HomeInfo.scss";
 </style>

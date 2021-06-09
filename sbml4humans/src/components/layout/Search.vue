@@ -22,5 +22,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/Search.scss";
+@import "@/assets/styles/scss/components/layout/Search.scss";
 </style>
