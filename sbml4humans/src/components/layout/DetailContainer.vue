@@ -17,7 +17,7 @@
 import store from "@/store/index";
 
 import SBase from "@/components/sbml/SBase.vue";
-import ComponentSpecificDetails from "@/components/ComponentSpecificDetails.vue";
+import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetails.vue";
 
 export default {
     components: {
@@ -49,5 +49,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/DetailContainer.scss";
+@import "@/assets/styles/scss/components/layout/DetailContainer.scss";
 </style>

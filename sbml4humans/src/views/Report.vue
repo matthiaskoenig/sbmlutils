@@ -6,7 +6,7 @@
 import { Vue, Options } from "vue-class-component";
 
 /* Components */
-import ReportContainer from "@/components/ReportContainer.vue";
+import ReportContainer from "@/components/layout/ReportContainer.vue";
 
 @Options({
     components: {

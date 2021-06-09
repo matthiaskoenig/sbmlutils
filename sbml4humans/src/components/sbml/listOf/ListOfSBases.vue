@@ -16,7 +16,7 @@ import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
 
 /* Components */
-import SBMLToaster from "@/components/SBMLToaster";
+import SBMLToaster from "@/components/layout/SBMLToaster";
 
 export default {
     components: {

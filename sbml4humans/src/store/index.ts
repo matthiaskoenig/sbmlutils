@@ -6,8 +6,6 @@ import BASE_URLS from "@/data/urls";
 import TYPES from "@/sbmlComponents";
 
 export default createStore({
-    // FIXME: use the identical variable names between JSON & state/internals
-
     state: {
         // list of examples
         examples: [],
@@ -96,7 +94,7 @@ export default createStore({
             state.exampleLoading = payload;
         },
         SET_STATIC(state, payload) {
-            /* the localStorage stores previously selected Static state to maintain it accross
+            /* the localStorage stores selected static state to maintain it accross
                page refreshes. We can plan on extending this feature to jsonReport and detailInfo too perhaps. */
             window.localStorage.setItem("static", payload);
         },
@@ -154,6 +152,18 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
+                // DEBUGGING ATTEMPTS FOR ICG_BODY AND ICG_BODY_FLAT
+                //console.log(res.data);
+                // let strRes = JSON.stringify(res.data);
+                // strRes = strRes.replace(/\\n/g, "\n").replace(/\\/g, "");
+
+                // strRes = String(strRes);
+                // console.log(strRes);
+
+                // const stRes = JSON.parse(strRes);
+                // console.log(stRes);
+                // // console.log(Object.keys(stRes));
+
                 // dump the raw data fetched from the backend
                 context.commit("SET_RAW_DATA", res.data);
 

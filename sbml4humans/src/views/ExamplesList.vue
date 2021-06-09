@@ -6,7 +6,7 @@
 import { Vue, Options } from "vue-class-component";
 
 /* Components */
-import ExamplesListContainer from "@/components/ExamplesListContainer.vue";
+import ExamplesListContainer from "@/components/layout/ExamplesListContainer.vue";
 
 @Options({
     components: {

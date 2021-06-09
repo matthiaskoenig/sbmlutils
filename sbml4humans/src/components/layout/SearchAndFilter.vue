@@ -15,8 +15,8 @@
 </template>
 
 <script>
-import Search from "@/components/Search.vue";
-import Filter from "@/components/Filter.vue";
+import Search from "@/components/layout/Search.vue";
+import Filter from "@/components/layout/Filter.vue";
 
 export default {
     components: {
@@ -27,5 +27,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/SearchAndFilter.scss";
+@import "@/assets/styles/scss/components/layout/SearchAndFilter.scss";
 </style>
