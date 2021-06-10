@@ -1,15 +1,33 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Type -->
+    <div class="data" v-if="info.type">
+        <div class="label"><strong>Type:</strong> {{ info.type }}</div>
+    </div>
+
+    <!-- Flux Objectives -->
+    <div class="data" v-if="info.fluxObjectives.length > 0">
+        <div class="label"><strong>Flux Objectives:</strong></div>
+        <br />
+        <div class="ml-4">
+            <ul title="Flux Objectives">
+                <li
+                    v-for="fluxObjective in info.fluxObjectives"
+                    v-bind:key="fluxObjective.reaction"
+                >
+                    <div v-if="fluxObjective.reaction">
+                        {{ fluxObjective.reaction }}
+                    </div>
+                    <div v-if="fluxObjective.sign || fluxObjective.coefficient">
+                        <span v-if="fluxObjective.sign"
+                            >Sign: {{ fluxObjective.sign }}</span
+                        >
+                        <span v-if="fluxObjective.coefficient"
+                            >, Coefficient: {{ fluxObjective.coefficient }}</span
+                        >
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -18,7 +36,7 @@ import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
-        info: TYPES.Reaction,
+        info: TYPES.Objective,
     },
 
     data() {

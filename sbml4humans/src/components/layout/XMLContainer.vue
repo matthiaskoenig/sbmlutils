@@ -14,7 +14,11 @@ export default {
 
     computed: {
         formattedXML() {
-            var formattedXML = xmlFormatter(this.rawXML);
+            const xml =
+                this.rawXML === "" || this.rawXML === null
+                    ? "<xml></xml>"
+                    : this.rawXML;
+            var formattedXML = xmlFormatter(xml);
             return formattedXML;
         },
     },
