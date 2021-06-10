@@ -10,7 +10,7 @@ import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
-        info: TYPES.Reaction,
+        info: TYPES.FunctionDefinition,
     },
 
     data() {

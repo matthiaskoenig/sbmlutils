@@ -7,6 +7,10 @@
         <port v-bind:info="info"></port>
     </div>
 
+    <div id="functionDefinitionDiv" v-if="sbmlType === 'Function Definition'">
+        <function-definition v-bind:info="info"></function-definition>
+    </div>
+
     <div id="compartmentDiv" v-if="sbmlType === 'Compartment'">
         <compartment v-bind:info="info"></compartment>
     </div>
@@ -19,18 +23,24 @@
         <parameter v-bind:info="info"></parameter>
     </div>
 
-    <div id="reactionsDiv" v-if="sbmlType === 'Reaction'">
+    <div id="reactionDiv" v-if="sbmlType === 'Reaction'">
         <reaction v-bind:info="info"></reaction>
+    </div>
+
+    <div id="constraintDiv" v-if="sbmlType === 'Constraint'">
+        <constraint v-bind:info="info"></constraint>
     </div>
 </template>
 
 <script>
 import Model from "@/components/sbml/Model.vue";
 import Port from "@/components/sbml/Port.vue";
+import FunctionDefinition from "@/components/sbml/FunctionDefinition.vue";
 import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
 import Parameter from "@/components/sbml/Parameter.vue";
 import Reaction from "@/components/sbml/Reaction.vue";
+import Constraint from "@/components/sbml/Constraint.vue";
 
 export default {
     props: {
@@ -41,10 +51,12 @@ export default {
     components: {
         model: Model,
         port: Port,
+        "function-definition": FunctionDefinition,
         compartment: Compartment,
         species: Species,
-        reaction: Reaction,
         parameter: Parameter,
+        reaction: Reaction,
+        constraint: Constraint,
     },
 };
 </script>
