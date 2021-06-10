@@ -1,15 +1,7 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Math -->
+    <div class="data" v-if="info.math">
+        <div class="label"><strong>Math:</strong> <span v-html="info.math"></span></div>
     </div>
 </template>
 
