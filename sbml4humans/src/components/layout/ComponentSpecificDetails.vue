@@ -34,6 +34,10 @@
     <div id="constraintDiv" v-if="sbmlType === 'Constraint'">
         <constraint v-bind:info="info"></constraint>
     </div>
+
+    <div id="objectiveDiv" v-if="sbmlType === 'Objective'">
+        <objective v-bind:info="info"></objective>
+    </div>
 </template>
 
 <script>
@@ -46,6 +50,7 @@ import Parameter from "@/components/sbml/Parameter.vue";
 import Reaction from "@/components/sbml/Reaction.vue";
 import Rule from "@/components/sbml/Rule.vue";
 import Constraint from "@/components/sbml/Constraint.vue";
+import Objective from "@/components/sbml/Objective.vue";
 
 export default {
     props: {
@@ -63,6 +68,7 @@ export default {
         reaction: Reaction,
         rule: Rule,
         constraint: Constraint,
+        objective:  Objective,
     },
 };
 </script>

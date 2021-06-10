@@ -215,7 +215,10 @@ def read_item(example_id: str) -> Dict:
         "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
     }
 
-    res = Response(content=json.dumps(content, indent=2), media_type="application/json")
+    res = Response(content=json.dumps(content, indent=4), media_type="application/json")
+    print(res.__dict__)
+    with open("res.json", "w+") as f:
+        f.write(str(res.__dict__))
 
     return res
 

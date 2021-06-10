@@ -97,7 +97,6 @@ import XMLContainer from "@/components/layout/XMLContainer.vue";
 
 export default {
     props: {
-        //FIXME: initialize with empty data
         info: TYPES.SBase,
     },
 

@@ -88,6 +88,7 @@ export default {
 
             // collecting model
             if (models.model) {
+                console.log("found models");
                 counts.Model = 1;
                 if (this.visibility.Model) {
                     sbases.push(models.model);
@@ -96,6 +97,7 @@ export default {
 
             // collecting submodels
             if (models.submodels) {
+                console.log("found models");
                 counts.SubModels = models.submodels.length;
                 if (this.visibility.SubModels) {
                     sbases.push(...models.submodels);
@@ -104,6 +106,7 @@ export default {
 
             // collecting ports
             if (models.ports) {
+                console.log("found models");
                 counts.Ports = models.ports.length;
                 if (this.visibility.Ports) {
                     sbases.push(...models.ports);
@@ -112,6 +115,7 @@ export default {
 
             // collecting function definitions
             if (models.functionDefinitions) {
+                console.log("found models");
                 counts.FunctionDefinitions = models.functionDefinitions.length;
                 if (this.visibility.FunctionDefinitions) {
                     sbases.push(...models.functionDefinitions);
@@ -120,6 +124,7 @@ export default {
 
             // collecting unit definitions
             if (models.unitDefinitions) {
+                console.log("found models");
                 counts.UnitDefinitions = models.unitDefinitions.length;
                 if (this.visibility.UnitDefinitions) {
                     sbases.push(...models.unitDefinitions);
@@ -128,6 +133,7 @@ export default {
 
             // collecting compartments
             if (models.compartments) {
+                console.log("found models");
                 counts.Compartments = models.compartments.length;
                 if (this.visibility.Compartments) {
                     sbases.push(...models.compartments);
@@ -136,6 +142,7 @@ export default {
 
             // collecting species
             if (models.species) {
+                console.log("found models");
                 counts.Species = models.species.length;
                 if (this.visibility.Species) {
                     sbases.push(...models.species);
@@ -144,6 +151,7 @@ export default {
 
             // collecting parameters
             if (models.parameters) {
+                console.log("found models");
                 counts.Parameters = models.parameters.length;
                 if (this.visibility.Parameters) {
                     sbases.push(...models.parameters);
@@ -152,6 +160,7 @@ export default {
 
             // collecting intial assignments
             if (models.initialAssignments) {
+                console.log("found models");
                 counts.InitialAssignments = models.initialAssignments.length;
                 if (this.visibility.InitialAssignments) {
                     sbases.push(...models.initialAssignments);
@@ -160,6 +169,7 @@ export default {
 
             // collecting rules
             if (models.rules) {
+                console.log("found models");
                 counts.Rules = models.rules.length;
                 if (this.visibility.Rules) {
                     sbases.push(...models.rules);
@@ -168,6 +178,7 @@ export default {
 
             // collecting contraints
             if (models.contraints) {
+                console.log("found models");
                 counts.Constraints = models.constraints.length;
                 if (this.visibility.Constraints) {
                     sbases.push(...models.constraints);
@@ -176,6 +187,7 @@ export default {
 
             // collecting reactions
             if (models.reactions) {
+                console.log("found models");
                 counts.Reactions = models.reactions.length;
                 if (this.visibility.Reactions) {
                     sbases.push(...models.reactions);
@@ -184,6 +196,7 @@ export default {
 
             // collecting objectives
             if (models.objectives) {
+                console.log("found models");
                 counts.Objectives = models.objectives.length;
                 if (this.visibility.Objectives) {
                     sbases.push(...models.objectives);
@@ -192,6 +205,7 @@ export default {
 
             // collecting events
             if (models.events) {
+                console.log("found models");
                 counts.Events = models.events.length;
                 if (this.visibility.Events) {
                     sbases.push(...models.events);
@@ -200,6 +214,7 @@ export default {
 
             // collecting gene products
             if (models.geneProducts) {
+                console.log("found models");
                 counts.GeneProducts = models.geneProducts.length;
                 if (this.visibility.GeneProducts) {
                     sbases.push(...models.geneProducts);
