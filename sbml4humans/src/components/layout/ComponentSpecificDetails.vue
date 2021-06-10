@@ -27,6 +27,10 @@
         <reaction v-bind:info="info"></reaction>
     </div>
 
+    <div id="ruleDiv" v-if="sbmlType === 'AssignmentRule'">
+        <rule v-bind:info="info"></rule>
+    </div>
+
     <div id="constraintDiv" v-if="sbmlType === 'Constraint'">
         <constraint v-bind:info="info"></constraint>
     </div>
@@ -40,6 +44,7 @@ import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
 import Parameter from "@/components/sbml/Parameter.vue";
 import Reaction from "@/components/sbml/Reaction.vue";
+import Rule from "@/components/sbml/Rule.vue";
 import Constraint from "@/components/sbml/Constraint.vue";
 
 export default {
@@ -56,6 +61,7 @@ export default {
         species: Species,
         parameter: Parameter,
         reaction: Reaction,
+        rule: Rule,
         constraint: Constraint,
     },
 };
