@@ -82,7 +82,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <xml-container v-bind:rawXML="info.xml"></xml-container>
+                    <xml-container v-bind:xml="info.xml"></xml-container>
                 </div>
             </div>
         </div>
@@ -90,6 +90,8 @@
 </template>
 
 <script>
+import store from "@/store/index";
+
 import TYPES from "@/sbmlComponents";
 
 /* Compartments */
@@ -117,6 +119,10 @@ export default {
 
         handleOk() {
             this.visible = false;
+        },
+
+        updateModalXML() {
+            store.dispatch("updateXML", this.info.xml);
         },
     },
 };

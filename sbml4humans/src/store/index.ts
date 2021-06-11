@@ -73,6 +73,9 @@ export default createStore({
         },
 
         searchQuery: null,
+
+        // current XML to be rendered
+        xml: null,
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -106,6 +109,9 @@ export default createStore({
         },
         SET_SEARCH_QUERY(state, payload) {
             state.searchQuery = payload;
+        },
+        SET_XML(state, payload) {
+            state.xml = payload;
         },
     },
     actions: {
@@ -173,6 +179,9 @@ export default createStore({
                 // set the detail view to show Doc information by default
                 context.commit("SET_DETAIL_INFO", res.data.report.doc);
 
+                // set the xml to have XML of Doc component
+                context.commit("SET_XML", res.data.report.doc.xml);
+
                 // redirect to report view
                 router.push("/report");
             } else {
@@ -210,6 +219,9 @@ export default createStore({
                 // set the detail view to show Doc information by default
                 context.commit("SET_DETAIL_INFO", res.data.report.doc);
 
+                // set the xml to have XML of Doc component
+                context.commit("SET_XML", res.data.report.doc.xml);
+
                 // redirect to report view
                 router.push("/report");
             } else {
@@ -233,6 +245,9 @@ export default createStore({
         },
         updateSearchQuery(context, payload) {
             context.commit("SET_SEARCH_QUERY", payload);
+        },
+        updateXML(context, payload) {
+            context.commit("SET_XML", payload);
         },
     },
     modules: {},
