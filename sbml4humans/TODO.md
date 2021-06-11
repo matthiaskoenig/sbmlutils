@@ -15,5 +15,22 @@
 - Detail view 
   - [x] => just provide a list of all information
   - [x] only show XML; on click
+
+List of existing problems:
+ - [] ICG_BODY and ICG_BODY_FLAT doesn't load
+        - Reason: Somehow the JSON response has been over stringified and is full of escape     characters. Removing the escape characters on the frontend doesn't help because then it cannot be JSON parsed again. 
+        
+        - Solution: ??
+
+ - [] XML container doesn't let the report to load if the XML is too large (e.g. for Recon3D)
+        - Reason: Most probably the time it takes to render the huge XML in the container is what causing the problem. 
+
+        - Solution: ?? (maybe rendering the XML only when the button for View XML is clicked)
+
+ - [] Search and Filter are slow (5-6 secs) on large models (e.g. Recon3D)
+        - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases. 
+
+        - Solution: ??
+
     
 => intercomponent navigation
