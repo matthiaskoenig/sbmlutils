@@ -1,15 +1,14 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Label -->
+    <div class="data" v-if="info.label">
+        <div class="label"><strong>Label:</strong> {{ info.label }}</div>
+    </div>
+
+    <!-- Associated Species -->
+    <div class="data" v-if="info.associatedSpecies">
+        <div class="label">
+            <strong>Associated Species:</strong> {{ info.associatedSpecies }}
+        </div>
     </div>
 </template>
 
@@ -18,7 +17,7 @@ import TYPES from "@/sbmlComponents";
 
 export default {
     props: {
-        info: TYPES.Reaction,
+        info: TYPES.GeneProduct,
     },
 
     data() {
