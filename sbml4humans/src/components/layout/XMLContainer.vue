@@ -4,30 +4,28 @@
     </div>
 </template>
 
-<script>
-import store from "@/store/index";
+<script lang="ts">
 import xmlFormatter from "xml-formatter";
+import { defineComponent } from "vue";
 
-export default {
+/**
+ * Component for rendering XML/SBML
+ */
+export default defineComponent({
     props: {
-        xml: String,
-    },
-
-    computed: {
-        rawXML() {
-            return store.state.xml;
+        xml: {
+            type: String,
+            required: true,
         },
-
-        formattedXML() {
-            // const xml =
-            //     this.rawXML === "" || this.rawXML === null
-            //         ? "<xml></xml>"
-            //         : this.rawXML;
-            var formattedXML = xmlFormatter(this.xml);
+    },
+    computed: {
+        formattedXML(): string {
+            let formattedXML: string;
+            formattedXML = this.xml != null ? xmlFormatter(this.xml) : "";
             return formattedXML;
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

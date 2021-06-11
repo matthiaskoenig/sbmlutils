@@ -1,36 +1,45 @@
-- [x] cleanup state variables (naming variables, ...); see store
-- [x] document in the README what technology/frameworks are used with links
-- [x] static switch
-- [x] load examples from backend
-- [x] add medium size examples (ICG)
-- [x] use better color schemes: https://colorbrewer2.org
-  https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9
-  to color components; just small color patch at begining
-- [x] remove "View Details" -> just make work on click  
-- [x] SBases instead of "List of SBases", Compartments
-- [x] Add all SBases to the Lists; make a scrollable list with fixed max length
-- [x] make list much more compact; single list
-- [x] make a filter option for the ListOfSbases -> Multiple [Type] selection
-- [x] make a search option on the list;
-- Detail view 
-  - [x] => just provide a list of all information
-  - [x] only show XML; on click
+## TODO
+- [ ] `about` component providing information on the project (see https://pk-db.com/)
+  - [ ] project, team, license, funding, how to cite (link to repository)
+- [ ] remove file format and math rendering from landing page;
+- [ ] add tool tips for landing page
+- [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
+- [ ] remove examples & Upload SBML from navigation menu
+- [ ] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
+- [ ] add tooltips to links (navigation and other linking, e.g. `Show details`)
+- [ ] update XML: make visible/invisible, do not use modal; don't show/load XML for model/SBMLDocument
+- [ ] start frontend on different port: > 3000; 3245
+- [ ] figure out how to document components & document them (https://vue-styleguidist.github.io/docs/Documenting.html)
+- [ ] use typescript; required tags on properties; (see XMLContainer for example), type annotations
+- [ ] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style)
+- [ ] in detailView use attribute names (no whitespaces)
+Math rendering
+- [ ] implement MathRendering using Katex; https://katex.org/ (npm install katex) -> send Latex
+  
+Filter
+- [ ] more robust handling of state
+- [ ] select/deselct in filter should be button; all buttons should have same style in frontent (see submit)
+- [ ] indicate on filter how much is filtered; `Filter`; `Filter (10/123)`
+- [ ] filter buttons without linestyle/or linestyle black
+- [ ] create component for filter object and create all filter objects via a `v-for` from
+      list
+- [ ] name fields in `visibility` identical to SBMLType
+- [ ] simplify filter by just iterating over list of SBases
+- [ ] use a global set to track filtered/searched SBases via `pk`: What is currently selected!
+Backend JSON:
+- [ ]  add pk in JSON -> use metaId/SId/uuid)
+Frontend:
+- [ ] List of SBMLTypes: ["SBMLDocument", "Model", "UnitDefinition", ...]  
+- [ ] use a global HashMap of all objects: <pk: SBaseJSON>: This allows to lookup Details very fast for pk
+- [ ] use a global for component: <'reaction': List[pk]> --> pks['Reaction']: This allows to get pks for a certain component type
 
-List of existing problems:
- - [] ICG_BODY and ICG_BODY_FLAT doesn't load
-        - Reason: Somehow the JSON response has been over stringified and is full of escape     characters. Removing the escape characters on the frontend doesn't help because then it cannot be JSON parsed again. 
-        
-        - Solution: ??
-
- - [] XML container doesn't let the report to load if the XML is too large (e.g. for Recon3D)
-        - Reason: Most probably the time it takes to render the huge XML in the container is what causing the problem. 
-
-        - Solution: ?? (maybe rendering the XML only when the button for View XML is clicked)
-
- - [] Search and Filter are slow (5-6 secs) on large models (e.g. Recon3D)
-        - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases. 
-
-        - Solution: ??
-
+## List of existing problems:
+ - [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)
+        - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
+        - Solution: => refactor filter (see TODOs above)
+   
+- [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
+    - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
+    - no solution for now -> switching to elasticsearch based on JSON in future
     
 => intercomponent navigation

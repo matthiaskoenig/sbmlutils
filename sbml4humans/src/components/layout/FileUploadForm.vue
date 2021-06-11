@@ -13,7 +13,7 @@
                         v-on:change="handleFileUpload()"
                         required
                     />
-                    <div class="invalid-tooltip">Please upload a valid SBML File.</div>
+                    <div class="invalid-tooltip">Upload a valid SBML file or COMBINE archive containing SBML</div>
                 </div>
             </div>
             <div class="form-row">
@@ -29,7 +29,7 @@
                         <option value="combine">COMBINE Archive</option>
                     </select>
                     <div class="invalid-tooltip">
-                        Please select a valid math rendering format.
+                        Select a valid math rendering format
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -45,14 +45,14 @@
                         <option value="pmathml">PMathML</option>
                     </select>
                     <div class="invalid-tooltip">
-                        Please select a valid math rendering format.
+                        Select a valid math rendering format
                     </div>
                 </div>
             </div>
             <button class="btn btn-info w-25" type="submit" style="border-radius: 25px">Submit</button>
         </form>
         <div class="loader" v-if="loading">
-            <h6>Please wait...</h6>
+            <h6>Report is generated ...</h6>
             <span class="loading"><a-spin size="large" /></span>
         </div>
     </div>

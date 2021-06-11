@@ -11,6 +11,7 @@ import pprint
 from typing import Any, Dict, Union, List, Optional
 
 import libsbml
+import numpy as np
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
@@ -51,7 +52,7 @@ class SBMLDocumentInfo:
     def from_sbml(source: Union[Path, str], math_render: str = "cmathml") -> 'SBMLDocumentInfo':
         """Read model info from SBML."""
         doc: libsbml.SBMLDocument = read_sbml(source)
-        model: libsbml.Model = doc.getModel() # FIXME: support multiple models (comp)
+        model: libsbml.Model = doc.getModel()  # FIXME: support multiple models (comp)
         return SBMLDocumentInfo(doc=doc, model=model, math_render=math_render)
 
     def __repr__(self) -> str:
@@ -258,12 +259,16 @@ class SBMLDocumentInfo:
             "cvterms": cls.cvterms(sbase),
             "history": cls.model_history(sbase),
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
-            "xml": sbase.toSBML(),
             "displaySId": f"d{sbase.getVariable()}/dt" if (
                 isinstance(sbase, libsbml.RateRule) and sbase.isSetVariable()
             ) else sbase.getId(),    # --- should we add the displaySId?
             "sbmlType": cls._sbml_type(sbase)
         }
+
+        if sbase.getTypeCode() not in {libsbml.SBML_DOCUMENT, libsbml.SBML_MODEL}:
+            d['xml'] = sbase.toSBML()
+        else:
+            d['xml'] = None
 
         # comp
         item_comp = sbase.getPlugin("comp")
@@ -688,6 +693,8 @@ class SBMLDocumentInfo:
 
             if p.isSetValue():
                 value = p.getValue()
+                if np.isnan(value):
+                    value = None
             else:
                 # FIXME: get assignment information in report
                 # value_formula = assignment_map.get(p.getId(), None)
