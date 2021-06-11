@@ -8,6 +8,12 @@
     - Vue Router
 3. Frontend UI/UX Package: Ant Design Vue [https://www.antdv.com/docs/vue/introduce/]
 
+## Vue.js devtools
+Vue 3 is only working with the beta version of the devtools available from
+https://github.com/vuejs/vue-devtools/releases
+
+- download xpi file
+
 ## Project setup
 
 ### Install all dependencies

@@ -127,7 +127,7 @@ export default createStore({
 
             context.commit("SET_EXAMPLE_LOADING", true);
 
-            const url = BASE_URLS.API_BASE_URL + "/examples/list";
+            const url = BASE_URLS.API_BASE_URL + "/examples/";
 
             const res = await axios.get(url);
 

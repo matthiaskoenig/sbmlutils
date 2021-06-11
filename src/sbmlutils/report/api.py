@@ -15,12 +15,11 @@ from datetime import datetime
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 
-import libsbml
-from sbmlutils.test import (
-    REPRESSILATOR_SBML, RECON3D_SBML, ICG_LIVER, ICG_BODY_FLAT, ICG_BODY,
-)
+from sbmlutils.report.examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 logger = logging.getLogger(__name__)
@@ -54,9 +53,11 @@ def read_root():
 
 
 @app.post("/sbml")
-async def send_sbml_file(request: Request):
+async def upload_sbml(request: Request):
     """
     Upload SBML file and return JSON report.
+
+    FIXME: support COMBINE archives
     """
     content = {}
     try:
@@ -93,108 +94,37 @@ async def send_sbml_file(request: Request):
     content["debug"] = {
         "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
     }
-
-    res = Response(content=json.dumps(content, indent=2), media_type="application/json")
-
-    return res
+    return _render_json_content(content)
 
 
-# post COMBINE archive and returns JSON sbmlinfo
-# @app.post("/combine")
-
-
-# Data and Endpoints for Example Models
-examples = {
-    "repressilator": {
-        "file": REPRESSILATOR_SBML,
-        "model": {
-            "fetchId": "repressilator",
-            "name": "Elowitz2000 - Repressilator",
-            "id": "BIOMD0000000012",
-            "sbo": None,
-            "metaId": "_000001",
-        },
-    },
-
-
-    "recon3d": {
-        "file": RECON3D_SBML,
-        "model": {
-            "fetchId": "recon3d",
-            "name": None,
-            "id": "Recon3D",
-            "sbo": None,
-            "metaId": None,
-        }
-    },
-
-    "icg_liver": {
-        "file": ICG_LIVER,
-        "model": {
-            "fetchId": "icg_liver",
-            "name": "icg_liver",
-            "id": "icg_liver",
-            "sbo": None,
-            "metaId": "meta_icg_liver",
-        }
-    },
-
-    "icg_body_flat": {
-        "file": ICG_BODY_FLAT,
-        "model": {
-            "fetchId": "icg_body_flat",
-            "name": "icg_body",
-            "id": "icg_body",
-            "sbo": None,
-            "metaId": "meta_icg_body",
-        }
-    },
-
-    "icg_body": {
-        "file": ICG_BODY,
-        "model": {
-            "fetchId": "icg_body",
-            "name": "icg_body",
-            "id": "icg_body",
-            "sbo": None,
-            "metaId": "meta_icg_body",
-        }
-    },
-}
-
-
-@app.get("/examples/list")
-async def list_of_examples():
-    """
-    Endpoint to fetch all available examples in the API
-    """
-    list_of_examples = []
-    for key in examples:
-        list_of_examples.append(examples[key]["model"])
+@app.get("/examples")
+def examples() -> JSONResponse:
+    """Endpoint to fetch available examples."""
+    api_examples = []
+    for key in examples_info:
+        api_examples.append(examples_info[key]["model"])
 
     content = {
-        "examples": list_of_examples
+        "examples": api_examples
     }
-    res = Response(content=json.dumps(content, indent=2), media_type="application/json")
-
-    return res
+    return _render_json_content(content)
 
 
 @app.get("/examples/{example_id}")
-def read_item(example_id: str) -> Dict:
-    """
-    example endpoint for testing
+def example(example_id: str) -> Response:
+    """Endpoint to fetch specific example.
+
+    see `examples_info`
 
     E.g. http://127.0.0.1:1444/examples/repressilator -> JSON for repressilator
     :param example_id:
     :return:
     """
-    example = examples.get(example_id, None)
+    example = examples_info.get(example_id, None)
     if example is not None:
         source = example["file"]
     else:
         source = None
-    print(source)
     content: Dict = {}
 
     try:
@@ -202,8 +132,13 @@ def read_item(example_id: str) -> Dict:
         info = SBMLDocumentInfo.from_sbml(source=source, math_render="latex")
         fetch_end = datetime.now()      # debug information
         content["report"] = info.info
-
         time_elapsed = (fetch_end - fetch_start).total_seconds()
+        logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
+
+        # check JSON encoding/decoding
+        json_str = info.to_json()
+        json_dict = json.loads(json_str)
+
     except IOError as err:
         logger.error(err)
         content = {
@@ -214,16 +149,32 @@ def read_item(example_id: str) -> Dict:
     content["debug"] = {
         "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
     }
+    return _render_json_content(content)
 
-    res = Response(content=json.dumps(content, indent=4), media_type="application/json")
-    print(res.__dict__)
-    with open("res.json", "w+") as f:
-        f.write(str(res.__dict__))
 
-    return res
+def _render_json_content(content: Dict) -> Response:
+    """Render content to JSON."""
+    json_bytes = json.dumps(
+        content,
+        ensure_ascii=False,
+        allow_nan=True,
+        indent=0,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+    # with open(Path(__file__).parent / "test" / "test.json", "wb") as f_json:
+    #     f_json.write(json_bytes)
+
+    return Response(content=json_bytes, media_type="application/json")
 
 
 if __name__ == "__main__":
     # shell command: uvicorn sbmlutils.report.api:app --reload --port 1444
-    uvicorn.run("sbmlutils.report.api:app", host="localhost", port=1444, log_level="info")
+    uvicorn.run(
+        "sbmlutils.report.api:app",
+        host="localhost",
+        port=1444,
+        log_level="info",
+        reload=True,
+    )
 

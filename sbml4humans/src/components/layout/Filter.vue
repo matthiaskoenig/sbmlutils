@@ -304,41 +304,44 @@ export default {
             }
         },
 
+        /**
+         * Update the visibility of a specific component button.
+         * @param component
+         */
         alterVisibility(component) {
-            var currVisibility = this.visibility;
-            // update the visibility of the specific component
-            currVisibility[String(component)] = !currVisibility[String(component)];
+            let visibility = this.visibility;
+            visibility[String(component)] = !visibility[String(component)];
 
-            store.dispatch("updateVisibility", currVisibility);
+            store.dispatch("updateVisibility", visibility);
+            this.changeButtonShade(
+                String(component),
+                this.visibility[String(component)] === true
+            );
 
-            if (this.visibility[String(component)] === true) {
-                this.changeButtonShade(String(component), true);
-            } else {
-                this.changeButtonShade(String(component), false);
-            }
         },
 
+        /**
+         * Change visibility and update state.
+         */
         selectAll() {
-            var deSelect = this.$refs["de-select"];
-
-            var currVisibility = this.visibility;
+            let deSelect = this.$refs["de-select"];
+            let visibility = this.visibility;
             // make visibility of all SBML components "true"
-            for (let component in currVisibility) {
-                currVisibility[String(component)] = true;
+            for (let component in visibility) {
+                visibility[String(component)] = true;
                 if (this.counts[String(component)] > 0) {
                     this.changeButtonShade(String(component), true);
                 }
             }
-
-            store.dispatch("updateVisibility", currVisibility);
+            store.dispatch("updateVisibility", visibility);
 
             deSelect.checked = false;
         },
 
         deSelectAll() {
-            var select = this.$refs["select"];
+            let select = this.$refs["select"];
 
-            var currVisibility = this.visibility;
+            let currVisibility = this.visibility;
             // make visibility of all SBML components "false"
             for (let component in currVisibility) {
                 currVisibility[String(component)] = false;
