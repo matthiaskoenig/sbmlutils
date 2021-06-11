@@ -35,6 +35,10 @@
         <constraint v-bind:info="info"></constraint>
     </div>
 
+    <div id="eventDiv" v-if="sbmlType === 'Event'">
+        <event v-bind:info="info"></event>
+    </div>
+
     <div id="objectiveDiv" v-if="sbmlType === 'Objective'">
         <objective v-bind:info="info"></objective>
     </div>
@@ -54,6 +58,7 @@ import Parameter from "@/components/sbml/Parameter.vue";
 import Reaction from "@/components/sbml/Reaction.vue";
 import Rule from "@/components/sbml/Rule.vue";
 import Constraint from "@/components/sbml/Constraint.vue";
+import Event from "@/components/sbml/Event.vue";
 import Objective from "@/components/sbml/Objective.vue";
 import GeneProduct from "@/components/sbml/GeneProduct.vue";
 
@@ -73,6 +78,7 @@ export default {
         reaction: Reaction,
         rule: Rule,
         constraint: Constraint,
+        event: Event,
         objective: Objective,
         "gene-product": GeneProduct,
     },
