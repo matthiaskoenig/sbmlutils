@@ -12,6 +12,7 @@
                         class="form-control"
                         v-on:change="handleFileUpload()"
                         required
+                        title="Click to browse and upload a file from your device"
                     />
                     <div class="invalid-tooltip">
                         Upload a valid SBML file or COMBINE archive containing SBML
@@ -23,7 +24,7 @@
             </button>
         </form>
         <div class="loader" v-if="loading">
-            <h6>Report is generated ...</h6>
+            <h6>Report is being generated ...</h6>
             <span class="loading"><a-spin size="large" /></span>
         </div>
     </div>

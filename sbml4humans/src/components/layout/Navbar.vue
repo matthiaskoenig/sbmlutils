@@ -1,6 +1,6 @@
 <template>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <router-link class="navbar-brand" to="/">SBML4Humans</router-link>
+        <router-link class="navbar-brand" to="/"> SBML4Humans </router-link>
 
         <button
             class="navbar-toggler"
@@ -19,15 +19,26 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ml-auto mr-20">
                 <li class="nav-item" v-if="!staticStatus">
-                    <router-link class="nav-link" to="/examples">Examples</router-link>
+                    <router-link
+                        class="nav-link"
+                        to="/examples"
+                        title="List of Example Models"
+                        >Examples</router-link
+                    >
                 </li>
                 <li class="nav-item" v-if="!staticStatus">
-                    <router-link class="nav-link" to="/uploadSBML"
+                    <router-link
+                        class="nav-link"
+                        to="/uploadSBML"
+                        title="Upload SBML File to generate report"
                         >Upload SBML</router-link
                     >
                 </li>
                 <li class="nav-item">
-                    <div class="nav-link">
+                    <div
+                        class="nav-link"
+                        title="Turn ON Static to disconnect from the API"
+                    >
                         <p class="label">Static</p>
                         <label class="switch">
                             <input
@@ -46,6 +57,9 @@
 </template>
 
 <script>
+/**
+ * Navbar component for providing main links in the application
+ */
 import store from "@/store/index";
 
 export default {

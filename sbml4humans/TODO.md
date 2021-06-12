@@ -1,8 +1,8 @@
 ## TODO
 - [x] `about` component providing information on the project (see https://pk-db.com/)
   - [x] project, team, license, funding, how to cite (link to repository)
-- [ ] remove file format and math rendering from landing page;
-- [ ] add tool tips for landing page
+- [x] remove file format and math rendering from landing page;
+- [x] add tool tips for landing page
 - [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
 - [ ] remove examples & Upload SBML from navigation menu
 - [ ] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png

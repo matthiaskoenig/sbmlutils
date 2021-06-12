@@ -53,7 +53,7 @@
             <div class="ml-auto">
                 <div class="content">
                     <h6 style="display: inline">Citation</h6>
-                    <ul>
+                    <ul title="Citations">
                         <li>
                             Project Repository:
                             <a href="https://github.com/matthiaskoenig/sbmlutils"

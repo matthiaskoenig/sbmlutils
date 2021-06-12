@@ -53,7 +53,7 @@
     <!-- XML -->
     <button
         type="button"
-        class="btn outline btn-info"
+        class="btn btn-info px-5"
         data-toggle="modal"
         data-target="#exampleModalScrollable"
     >
