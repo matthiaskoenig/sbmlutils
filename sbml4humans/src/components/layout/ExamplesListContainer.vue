@@ -7,10 +7,11 @@
                 v-bind:key="ex.fetchId"
                 v-bind:info="ex"
                 sbmlType="Model"
+                title="Click to generate report for this model"
             ></example>
         </a-list>
         <div class="loader" v-if="loading">
-            <h6>Please wait...</h6>
+            <h6>Report is being generated...</h6>
             <span class="loading"><a-spin size="large" /></span>
         </div>
     </div>
