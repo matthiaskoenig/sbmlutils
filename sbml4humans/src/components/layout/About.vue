@@ -37,16 +37,31 @@
         </div>
 
         <!-- Funding -->
-        <div class="section ml-4">
-            <h6>Funding</h6>
-            <div class="content">
-                <ul title="Funding">
-                    <li>
-                        <a href="https://summerofcode.withgoogle.com/"
-                            >Google Summer of Code 2021</a
-                        >
-                    </li>
-                </ul>
+        <div class="section ml-4 d-flex justify-content">
+            <div class="mr-auto">
+                <h6>Funding</h6>
+                <div class="content">
+                    <ul title="Funding">
+                        <li>
+                            <a href="https://summerofcode.withgoogle.com/"
+                                >Google Summer of Code 2021</a
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="ml-auto">
+                <div class="content">
+                    <h6 style="display: inline">Citation</h6>
+                    <ul>
+                        <li>
+                            Project Repository:
+                            <a href="https://github.com/matthiaskoenig/sbmlutils"
+                                >sbmlutils</a
+                            >
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
