@@ -13,43 +13,14 @@
                         v-on:change="handleFileUpload()"
                         required
                     />
-                    <div class="invalid-tooltip">Upload a valid SBML file or COMBINE archive containing SBML</div>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="col-md-6 mb-6">
-                    <label for="validationTooltip04">File Format</label>
-                    <select
-                        ref="format"
-                        class="custom-select"
-                        id="validationTooltip04"
-                        required
-                    >
-                        <option selected value="sbml">SBML File</option>
-                        <option value="combine">COMBINE Archive</option>
-                    </select>
                     <div class="invalid-tooltip">
-                        Select a valid math rendering format
-                    </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="validationTooltip05">Math Rendering Format</label>
-                    <select
-                        ref="math"
-                        class="custom-select"
-                        id="validationTooltip05"
-                        required
-                    >
-                        <option selected value="latex">LaTex</option>
-                        <option value="cmathml">CMathML</option>
-                        <option value="pmathml">PMathML</option>
-                    </select>
-                    <div class="invalid-tooltip">
-                        Select a valid math rendering format
+                        Upload a valid SBML file or COMBINE archive containing SBML
                     </div>
                 </div>
             </div>
-            <button class="btn btn-info w-25" type="submit" style="border-radius: 25px">Submit</button>
+            <button class="btn btn-info w-25" type="submit" style="border-radius: 25px">
+                Submit
+            </button>
         </form>
         <div class="loader" v-if="loading">
             <h6>Report is generated ...</h6>
@@ -103,7 +74,7 @@ export default {
         loading() {
             return store.state.fileLoading;
         },
-    }
+    },
 };
 </script>
 
