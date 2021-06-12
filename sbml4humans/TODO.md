@@ -1,6 +1,6 @@
 ## TODO
-- [ ] `about` component providing information on the project (see https://pk-db.com/)
-  - [ ] project, team, license, funding, how to cite (link to repository)
+- [x] `about` component providing information on the project (see https://pk-db.com/)
+  - [x] project, team, license, funding, how to cite (link to repository)
 - [ ] remove file format and math rendering from landing page;
 - [ ] add tool tips for landing page
 - [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
