@@ -162,9 +162,6 @@ def _render_json_content(content: Dict) -> Response:
         separators=(",", ":"),
     ).encode("utf-8")
 
-    # with open(Path(__file__).parent / "test" / "test.json", "wb") as f_json:
-    #     f_json.write(json_bytes)
-
     return Response(content=json_bytes, media_type="application/json")
 
 
