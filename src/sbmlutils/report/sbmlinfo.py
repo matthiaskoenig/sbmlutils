@@ -96,8 +96,8 @@ class SBMLDocumentInfo:
             "ports": self.ports_list(),
 
             # fbc
-            "geneProducts": self.gene_products_dict(),
-            "objectives": self.objectives_list(),
+            "geneProduct": self.gene_products_dict(),
+            "objective": self.objectives_list(),
         }
         d = {
             # core
@@ -1051,7 +1051,7 @@ if __name__ == "__main__":
 
     print("-" * 80)
     from src.sbmlutils.test import ICG_BODY, REPRESSILATOR_SBML, RECON3D_SBML, ICG_LIVER, ICG_BODY_FLAT
-    info = SBMLDocumentInfo.from_sbml(RECON3D_SBML, "latex")
+    info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML, "latex")
     json_str = info.to_json()
     print(info)
     print("-" * 80)

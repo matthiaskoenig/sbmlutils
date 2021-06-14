@@ -64,8 +64,13 @@ import GeneProduct from "@/components/sbml/GeneProduct.vue";
 
 export default {
     props: {
-        sbmlType: String,
-        info: {},
+        sbmlType: {
+            type: String,
+            default: "",
+        },
+        info: {
+            type: Object,
+        },
     },
 
     components: {

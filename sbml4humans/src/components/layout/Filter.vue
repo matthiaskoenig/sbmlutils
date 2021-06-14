@@ -1,275 +1,51 @@
 <template>
     <div class="filter">
         <div class="tag-list">
-            <div class="selector">
-                <button
-                    ref="SBMLDocument"
-                    v-if="counts.SBMLDocument > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('SBMLDocument')"
-                    :style="`background-color: ${colors.SBMLDocument}`"
-                >
-                    SBMLDocument
-                </button>
+            <!-- Selectively Displaying Filter buttons for all SBML Types  -->
+            <div class="d-flex" v-for="sbmlType in sbmlTypes" v-bind:key="sbmlType">
+                <div class="selector" v-if="counts[sbmlType] > 0">
+                    <div
+                        class="tag"
+                        v-bind:ref="sbmlType"
+                        v-bind:style="`background-color: ${
+                            visibility[sbmlType] ? colors[sbmlType] : '#f5f5f5'
+                        }; color: ${visibility[sbmlType] ? '#000000' : '#d3d3d3'}`"
+                        v-on:click="alterVisibility(sbmlType)"
+                    >
+                        {{ sbmlType }}
+                    </div>
+                </div>
+                <sup v-if="counts[sbmlType] > 0">
+                    <div
+                        v-bind:ref="`${sbmlType}Badge`"
+                        class="badge"
+                        v-bind:style="`background-color: ${
+                            visibility[sbmlType] ? '#000000' : '#f5f5f5'
+                        }; color: ${visibility[sbmlType] ? '#ffffff' : '#a9a9a9'}`"
+                    >
+                        {{ counts[sbmlType] }}
+                    </div>
+                </sup>
             </div>
-            <sup v-if="counts.SBMLDocument > 0">
-                <div ref="SBMLDocumentBadge" class="badge">{{
-                    counts.SBMLDocument
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Ports"
-                    v-if="counts.Ports > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Ports')"
-                    :style="`background-color: ${colors.Ports}`"
-                >
-                    Ports
-                </button>
-            </div>
-            <sup v-if="counts.Ports > 0">
-                <div ref="PortsBadge" class="badge">{{ counts.Ports }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Model"
-                    v-if="counts.Model > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Model')"
-                    :style="`background-color: ${colors.Model}`"
-                >
-                    Models
-                </button>
-            </div>
-            <sup v-if="counts.Model > 0">
-                <div ref="ModelBadge" class="badge">{{ counts.Model }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="FunctionDefinitions"
-                    v-if="counts.FunctionDefinitions > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('FunctionDefinitions')"
-                    :style="`background-color: ${colors.FunctionDefinitions}`"
-                >
-                    FunctionDefinitions
-                </button>
-            </div>
-            <sup v-if="counts.FunctionDefinitions > 0">
-                <div ref="FunctionDefinitionsBadge" class="badge">{{
-                    counts.FunctionDefinitions
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="UnitDefinitions"
-                    v-if="counts.UnitDefinitions > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('UnitDefinitions')"
-                    :style="`background-color: ${colors.UnitDefinitions}`"
-                >
-                    UnitDefinitions
-                </button>
-            </div>
-            <sup v-if="counts.UnitDefinitions > 0">
-                <div ref="UnitDefinitionsBadge" class="badge">{{
-                    counts.UnitDefinitions
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Compartments"
-                    v-if="counts.Compartments > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Compartments')"
-                    :style="`background-color: ${colors.Compartments}`"
-                >
-                    Compartments
-                </button>
-            </div>
-            <sup v-if="counts.Compartments > 0">
-                <div ref="CompartmentsBadge" class="badge">{{
-                    counts.Compartments
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Species"
-                    v-if="counts.Species > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Species')"
-                    :style="`background-color: ${colors.Species}`"
-                >
-                    Species
-                </button>
-            </div>
-            <sup v-if="counts.Species > 0">
-                <div ref="SpeciesBadge" class="badge">{{ counts.Species }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Parameters"
-                    v-if="counts.Parameters > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Parameters')"
-                    :style="`background-color: ${colors.Parameters}`"
-                >
-                    Parameters
-                </button>
-            </div>
-            <sup v-if="counts.Parameters > 0">
-                <div ref="ParametersBadge" class="badge">{{
-                    counts.Parameters
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Reactions"
-                    v-if="counts.Reactions > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Reactions')"
-                    :style="`background-color: ${colors.Reactions}`"
-                >
-                    Reactions
-                </button>
-            </div>
-            <sup v-if="counts.Reactions > 0">
-                <div ref="ReactionsBadge" class="badge">{{ counts.Reactions }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Rules"
-                    v-if="counts.Rules > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Rules')"
-                    :style="`background-color: ${colors.Rules}`"
-                >
-                    AssignmentRules
-                </button>
-            </div>
-            <sup v-if="counts.Rules > 0">
-                <div ref="RulesBadge" class="badge">{{ counts.Rules }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Constraints"
-                    v-if="counts.Constraints > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Constraints')"
-                    :style="`background-color: ${colors.Constraints}`"
-                >
-                    Constraints
-                </button>
-            </div>
-            <sup v-if="counts.Constraints > 0">
-                <div ref="ConstraintsBadge" class="badge">{{
-                    counts.Constraints
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="InitialAssignments"
-                    v-if="counts.InitialAssignments > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('InitialAssignments')"
-                    :style="`background-color: ${colors.InitialAssignments}`"
-                >
-                    InitialAssignments
-                </button>
-            </div>
-            <sup v-if="counts.InitialAssignments > 0">
-                <div ref="InitialAssignmentsBadge" class="badge">{{
-                    counts.InitialAssignments
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Events"
-                    v-if="counts.Events > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Events')"
-                    :style="`background-color: ${colors.Events}`"
-                >
-                    Events
-                </button>
-            </div>
-            <sup v-if="counts.Events > 0">
-                <div ref="EventsBadge" class="badge">{{ counts.Events }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Objectives"
-                    v-if="counts.Objectives > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Objectives')"
-                    :style="`background-color: ${colors.Objectives}`"
-                >
-                    Objectives
-                </button>
-            </div>
-            <sup v-if="counts.Objectives > 0">
-                <div ref="ObjectivesBadge" class="badge">{{
-                    counts.Objectives
-                }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="Submodels"
-                    v-if="counts.Submodels > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('Submodels')"
-                    :style="`background-color: ${colors.Submodels}`"
-                >
-                    Submodels
-                </button>
-            </div>
-            <sup v-if="counts.Submodels > 0">
-                <div ref="SubmodelsBadge" class="badge">{{ counts.Submodels }}</div>
-            </sup>
-
-            <div class="selector">
-                <button
-                    ref="GeneProducts"
-                    v-if="counts.GeneProducts > 0"
-                    class="tag btn btn-outline"
-                    @click="alterVisibility('GeneProducts')"
-                    :style="`background-color: ${colors.GeneProducts}`"
-                >
-                    GeneProducts
-                </button>
-            </div>
-            <sup v-if="counts.GeneProducts > 0">
-                <div ref="GeneProductsBadge" class="badge">{{
-                    counts.GeneProducts
-                }}</div>
-            </sup>
 
             <div class="master-select">
-                <input ref="select" class="tick" type="radio" @click="selectAll()" />
-                <div class="label">Select All</div>
+                <!-- Select All -->
+                <button
+                    ref="select"
+                    class="tick btn btn-info px-5"
+                    v-on:click="selectAll()"
+                >
+                    <div class="label">Select All</div>
+                </button>
 
-                <input
+                <!-- De-select All -->
+                <button
                     ref="de-select"
-                    class="tick ml-4"
-                    type="radio"
-                    @click="deSelectAll()"
-                />
-                <div class="label">De-Select All</div>
+                    class="tick btn btn-info px-5 ml-4"
+                    v-on:click="deSelectAll()"
+                >
+                    <div class="label">De-Select All</div>
+                </button>
             </div>
         </div>
     </div>
@@ -277,13 +53,15 @@
 
 <script>
 import store from "@/store/index";
+import listOfSBMLTypes from "@/data/listOfSBMLTypes";
+import colorScheme from "@/data/colorScheme";
 
 export default {
     methods: {
         changeButtonShade(component, active) {
-            console.log(component);
-            var button = this.$refs[component];
-            var badge = this.$refs[String(component) + "Badge"];
+            let button = this.$refs[component];
+            console.log(button);
+            let badge = this.$refs[component + "Badge"];
 
             if (active === true) {
                 button.style.backgroundColor = this.colors[component];
@@ -310,73 +88,44 @@ export default {
          */
         alterVisibility(component) {
             let visibility = this.visibility;
-            visibility[String(component)] = !visibility[String(component)];
+            visibility[component] = !visibility[component];
 
             store.dispatch("updateVisibility", visibility);
-            this.changeButtonShade(
-                String(component),
-                this.visibility[String(component)] === true
-            );
-
+            this.changeButtonShade(component, this.visibility[component] === true);
         },
 
         /**
          * Change visibility and update state.
          */
         selectAll() {
-            let deSelect = this.$refs["de-select"];
             let visibility = this.visibility;
             // make visibility of all SBML components "true"
             for (let component in visibility) {
-                visibility[String(component)] = true;
-                if (this.counts[String(component)] > 0) {
-                    this.changeButtonShade(String(component), true);
-                }
+                visibility[component] = true;
+                // if (this.counts.component > 0) {
+                //     this.changeButtonShade(component, true);
+                // }
             }
-            store.dispatch("updateVisibility", visibility);
 
-            deSelect.checked = false;
+            store.dispatch("updateVisibility", visibility);
         },
 
         deSelectAll() {
-            let select = this.$refs["select"];
-
-            let currVisibility = this.visibility;
+            let visibility = this.visibility;
             // make visibility of all SBML components "false"
-            for (let component in currVisibility) {
-                currVisibility[String(component)] = false;
-                if (this.counts[String(component)] > 0) {
-                    this.changeButtonShade(String(component), false);
-                }
+            for (let component in visibility) {
+                visibility[component] = false;
+                // if (this.counts.component > 0) {
+                //     this.changeButtonShade(component, false);
+                // }
             }
 
-            store.dispatch("updateVisibility", currVisibility);
-
-            select.checked = false;
+            store.dispatch("updateVisibility", visibility);
         },
     },
 
     data() {
-        return {
-            colors: {
-                SBMLDocument: "#fee090",
-                Ports: "#fed9a6",
-                FunctionDefinitions: "#e6f598",
-                UnitDefinitions: "#f1b6da",
-                Model: "#66c2a5",
-                Parameters: "#fdae61",
-                InitialAssignments: "#fb9a99",
-                Rules: "#fb9a99",
-                Compartments: "#92c5de",
-                Species: "#abdda4",
-                Reactions: "#a6cee3",
-                Constraints: "#a6cee3",
-                Events: "#fee08b",
-                Objectives: "#f46d43",
-                Submodels: "#d53e4f",
-                GeneProducts: "#f46d43",
-            },
-        };
+        return {};
     },
 
     computed: {
@@ -386,6 +135,14 @@ export default {
 
         visibility() {
             return store.state.visibility;
+        },
+
+        sbmlTypes() {
+            return listOfSBMLTypes.listOfSBMLTypes;
+        },
+
+        colors() {
+            return colorScheme.componentColor;
         },
     },
 };

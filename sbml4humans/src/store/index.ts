@@ -4,6 +4,7 @@ import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
 import TYPES from "@/sbmlComponents";
+import colorScheme from "@/data/colorScheme";
 
 export default createStore({
     state: {
@@ -34,48 +35,50 @@ export default createStore({
         // UPDATE: static has been migrated to localStorage
 
         /* For Search and Filter feature */
+
         visibility: {
             SBMLDocument: true,
+            SubModel: true,
+            Port: true,
             Model: true,
-            FunctionDefinitions: true,
-            UnitDefinitions: true,
-            Compartments: true,
+            FunctionDefinition: true,
+            UnitDefinition: true,
+            Compartment: true,
             Species: true,
-            Parameters: true,
-            InitialAssignments: true,
-            Rules: true,
-            Constraints: true,
-            Reactions: true,
-            Objectives: true,
-            Events: true,
-            GeneProducts: true,
-            SubModels: true,
-            Ports: true,
+            Reaction: true,
+            Parameter: true,
+            InitialAssignment: true,
+            AssignmentRule: true,
+            RateRule: true,
+            Rule: true,
+            Objective: true,
+            Constraint: true,
+            Event: true,
+            GeneProduct: true,
         },
 
         counts: {
             SBMLDocument: 0,
+            SubModel: 0,
+            Port: 0,
             Model: 0,
-            FunctionDefinitions: 0,
-            UnitDefinitions: 0,
-            Compartments: 0,
+            FunctionDefinition: 0,
+            UnitDefinition: 0,
+            Compartment: 0,
             Species: 0,
-            Parameters: 0,
-            InitialAssignments: 0,
-            Rules: 0,
-            Constraints: 0,
-            Reactions: 0,
-            Objectives: 0,
-            Events: 0,
-            GeneProducts: 0,
-            SubModels: 0,
-            Ports: 0,
+            Reaction: 0,
+            Parameter: 0,
+            InitialAssignment: 0,
+            AssignmentRule: 0,
+            RateRule: 0,
+            Rule: 0,
+            Objective: 0,
+            Constraint: 0,
+            Event: 0,
+            GeneProduct: 0,
         },
 
         searchQuery: null,
-
-        // current XML to be rendered
-        xml: null,
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -109,9 +112,6 @@ export default createStore({
         },
         SET_SEARCH_QUERY(state, payload) {
             state.searchQuery = payload;
-        },
-        SET_XML(state, payload) {
-            state.xml = payload;
         },
     },
     actions: {
@@ -179,9 +179,6 @@ export default createStore({
                 // set the detail view to show Doc information by default
                 context.commit("SET_DETAIL_INFO", res.data.report.doc);
 
-                // set the xml to have XML of Doc component
-                context.commit("SET_XML", res.data.report.doc.xml);
-
                 // redirect to report view
                 router.push("/report");
             } else {
@@ -219,9 +216,6 @@ export default createStore({
                 // set the detail view to show Doc information by default
                 context.commit("SET_DETAIL_INFO", res.data.report.doc);
 
-                // set the xml to have XML of Doc component
-                context.commit("SET_XML", res.data.report.doc.xml);
-
                 // redirect to report view
                 router.push("/report");
             } else {
@@ -245,9 +239,6 @@ export default createStore({
         },
         updateSearchQuery(context, payload) {
             context.commit("SET_SEARCH_QUERY", payload);
-        },
-        updateXML(context, payload) {
-            context.commit("SET_XML", payload);
         },
     },
     modules: {},

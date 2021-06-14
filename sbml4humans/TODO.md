@@ -4,23 +4,26 @@
 - [x] remove file format and math rendering from landing page;
 - [x] add tool tips for landing page
 - [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
-- [ ] remove examples & Upload SBML from navigation menu
+- [x] remove examples & Upload SBML from navigation menu
 - [ ] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
 - [ ] add tooltips to links (navigation and other linking, e.g. `Show details`)
 - [ ] update XML: make visible/invisible, do not use modal; don't show/load XML for model/SBMLDocument
-- [ ] start frontend on different port: > 3000; 3245
+- [x] start frontend on different port: > 3000; 3245
 - [ ] figure out how to document components & document them (https://vue-styleguidist.github.io/docs/Documenting.html)
 - [ ] use typescript; required tags on properties; (see XMLContainer for example), type annotations
 - [ ] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style)
 - [ ] in detailView use attribute names (no whitespaces)
 Math rendering
 - [ ] implement MathRendering using Katex; https://katex.org/ (npm install katex) -> send Latex
-  
+
+
+
+
 Filter
 - [ ] more robust handling of state
 - [ ] select/deselct in filter should be button; all buttons should have same style in frontent (see submit)
 - [ ] indicate on filter how much is filtered; `Filter`; `Filter (10/123)`
-- [ ] filter buttons without linestyle/or linestyle black
+- [x] filter buttons without linestyle/or linestyle black
 - [ ] create component for filter object and create all filter objects via a `v-for` from
       list
 - [ ] name fields in `visibility` identical to SBMLType
@@ -29,7 +32,7 @@ Filter
 Backend JSON:
 - [ ]  add pk in JSON -> use metaId/SId/uuid)
 Frontend:
-- [ ] List of SBMLTypes: ["SBMLDocument", "Model", "UnitDefinition", ...]  
+- [x] List of SBMLTypes: ["SBMLDocument", "Model", "UnitDefinition", ...]  
 - [ ] use a global HashMap of all objects: <pk: SBaseJSON>: This allows to lookup Details very fast for pk
 - [ ] use a global for component: <'reaction': List[pk]> --> pks['Reaction']: This allows to get pks for a certain component type
 
