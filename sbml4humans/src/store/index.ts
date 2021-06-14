@@ -4,7 +4,6 @@ import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
 import TYPES from "@/sbmlComponents";
-import colorScheme from "@/data/colorScheme";
 
 export default createStore({
     state: {
@@ -16,7 +15,6 @@ export default createStore({
         rawData: TYPES.RawData,
 
         // final report
-        // FIXME: call in "report"
         jsonReport: TYPES.Report,
 
         // detail view info (for access from every where)
@@ -28,14 +26,7 @@ export default createStore({
         // describe if the file report is still loading (REST endpoint)
         exampleLoading: false,
 
-        // FIXME: add a static flag/switch
-        //e.g. do not show/query examples & upload SBML in static mode
-        // if static is activated: => no queries to the endpoint;
-        // no debug information in static;
-        // UPDATE: static has been migrated to localStorage
-
         /* For Search and Filter feature */
-
         visibility: {
             SBMLDocument: true,
             SubModel: true,
@@ -78,7 +69,11 @@ export default createStore({
             GeneProduct: 0,
         },
 
-        searchQuery: null,
+        searchQuery: "",
+
+        allObjectsMap: {},
+
+        componentPKsMap: {},
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -100,8 +95,6 @@ export default createStore({
             state.exampleLoading = payload;
         },
         SET_STATIC(state, payload) {
-            /* the localStorage stores selected static state to maintain it accross
-               page refreshes. We can plan on extending this feature to jsonReport and detailInfo too perhaps. */
             window.localStorage.setItem("static", payload);
         },
         SET_VISIBILITY(state, payload) {
@@ -112,6 +105,12 @@ export default createStore({
         },
         SET_SEARCH_QUERY(state, payload) {
             state.searchQuery = payload;
+        },
+        SET_ALL_OBJECTS_MAP(state, payload) {
+            state.allObjectsMap = payload;
+        },
+        SET_COMPONENT_PKS_MAP(state, payload) {
+            state.componentPKsMap = payload;
         },
     },
     actions: {
@@ -158,18 +157,6 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
-                // DEBUGGING ATTEMPTS FOR ICG_BODY AND ICG_BODY_FLAT
-                //console.log(res.data);
-                // let strRes = JSON.stringify(res.data);
-                // strRes = strRes.replace(/\\n/g, "\n").replace(/\\/g, "");
-
-                // strRes = String(strRes);
-                // console.log(strRes);
-
-                // const stRes = JSON.parse(strRes);
-                // console.log(stRes);
-                // // console.log(Object.keys(stRes));
-
                 // dump the raw data fetched from the backend
                 context.commit("SET_RAW_DATA", res.data);
 
@@ -239,6 +226,12 @@ export default createStore({
         },
         updateSearchQuery(context, payload) {
             context.commit("SET_SEARCH_QUERY", payload);
+        },
+        updateAllObjectsMap(context, payload) {
+            context.commit("SET_ALL_OBJECTS_MAP", payload);
+        },
+        updateComponentPKsMap(context, payload) {
+            context.commit("SET_COMPONENT_PKS_MAP", payload);
         },
     },
     modules: {},
