@@ -12,30 +12,57 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
+import listOfSBMLTypes from "@/data/listOfSBMLTypes";
+import allSBML from "@/data/allSBMLMap";
 
 /* Components */
-import SBMLToaster from "@/components/layout/SBMLToaster";
-import listOfSBMLTypes from '@/data/listOfSBMLTypes';
+import SBMLToaster from "@/components/layout/SBMLToaster.vue";
 
 export default {
     components: {
         toaster: SBMLToaster,
     },
 
-    data() {
+    data(): Record<string, unknown> {
         return {
             listOfSBases: [TYPES.SBase],
         };
     },
 
     computed: {
-        collectSBases() {
+        collectSBases(): Array<Record<string, unknown>> {
             const report = store.state.jsonReport;
-            let sbases = [];
-            let counts = {
+            let sbases = this.assembleSBasesInModels(report);
+
+            if (!(this.searchQuery === null || this.searchQuery === "")) {
+                sbases = this.filterForSearchResults(sbases, this.searchQuery);
+            }
+
+            return sbases;
+        },
+
+        visibility(): Record<string, unknown> {
+            return store.state.visibility;
+        },
+
+        searchQuery(): string {
+            return store.state.searchQuery;
+        },
+    },
+
+    methods: {
+        assembleSBasesInModels(
+            report: Record<string, Record<string, unknown>> = TYPES.Report
+        ): Array<Record<string, unknown>> {
+            if (report === null) {
+                return [];
+            }
+
+            let sbases: Array<Record<string, unknown>> = [];
+            let counts: Record<string, number> = {
                 SBMLDocument: 0,
                 SubModel: 0,
                 Port: 0,
@@ -54,74 +81,90 @@ export default {
                 Event: 0,
                 GeneProduct: 0,
             };
+            let allObjectsMap: Record<string, unknown> = {};
+            let componentPKsMap: Record<string, Array<unknown>> = allSBML.componentsMap;
 
             // collecting doc
             if (report.doc) {
-                counts.SBMLDocument = 1;
-                //this.visibility.SBMLDocument = true;
-                sbases.push(report.doc);
                 counts["SBMLDocument"] = 1;
+                sbases.push(report.doc as Record<string, unknown>);
+
+                allObjectsMap[report.doc.pk as string] = report.doc;
             }
 
-            if (report.models) {
-                sbases.push(...this.assembleSBasesInModels(report.models, counts));
-            }
+            const models: Record<string, unknown> = report.models;
 
-            if (!(this.searchQuery === null || this.searchQuery === "")) {
-                sbases = this.filterForSearchResults(sbases, this.searchQuery);
-            }
-
-            return sbases;
-        },
-
-        visibility() {
-            return store.state.visibility;
-        },
-
-        searchQuery() {
-            return store.state.searchQuery;
-        },
-    },
-
-    methods: {
-        assembleSBasesInModels(models = TYPES.Models, counts) {
-            let sbases = [];
-
+            // collecting model
             if (models.model) {
+                const model = models.model as Record<string, unknown>;
+
                 counts["Model"] = 1;
-                sbases.push(models.model);
+                sbases.push(model);
+
+                const pk = model.pk as string;
+                allObjectsMap[pk] = model;
+                componentPKsMap["Model"].push(pk);
             }
 
+            // collecting species
             if (models.species) {
-                counts["Species"] = models.species.length;
-                sbases.push(...models.species);
+                const species = models.species as Array<Record<string, unknown>>;
+
+                counts["Species"] = species.length as number;
+                species.forEach((sbase) => {
+                    sbases.push(sbase);
+
+                    const pk = sbase.pk as string;
+                    allObjectsMap[pk] = sbase;
+                    componentPKsMap["Species"].push(pk);
+                });
             }
 
             for (let i = 0; i < listOfSBMLTypes.listOfSBMLTypes.length; i++) {
                 const sbmlType = listOfSBMLTypes.listOfSBMLTypes[i];
 
                 // camel case keys, present in the API response E.g. unitDefinitions, compartments
-                let key = sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1) + "s";
+                let key: string =
+                    sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1) + "s";
 
                 if (models[key]) {
-                    console.log("found " + sbmlType);
-                    counts[sbmlType] = models[key].length;
-                    sbases.push(...models[key]);
+                    const component: Array<Record<string, unknown>> = models[
+                        key
+                    ] as Array<Record<string, unknown>>;
+
+                    counts[sbmlType] = component.length as number;
+                    component.forEach((sbase) => {
+                        sbases.push(sbase);
+
+                        const pk = sbase.pk as string;
+                        allObjectsMap[pk] = sbase;
+                        componentPKsMap[sbmlType].push(pk);
+                    });
                 }
             }
 
             store.dispatch("updateCounts", counts);
+            store.dispatch("updateAllObjectsMap", allObjectsMap);
+            store.dispatch("updateComponentPKsMap", componentPKsMap);
 
             return sbases;
         },
 
-        filterForSearchResults(sbases = [TYPES.SBase], searchQuery = "") {
+        filterForSearchResults(
+            sbases: Array<Record<string, unknown>> = [TYPES.SBase],
+            searchQuery = ""
+        ): Array<Record<string, unknown>> {
             return sbases.filter((sbase) => {
                 return searchQuery
                     .toLowerCase()
                     .split(" ")
                     .every((attr) =>
-                        (sbase.name + sbase.id + sbase.metaId + sbase.sbo)
+                        (
+                            (sbase.name as string) +
+                            (sbase.id as string) +
+                            (sbase.metaId as string) +
+                            (sbase.sbo as string)
+                        )
                             .toString()
                             .toLowerCase()
                             .includes(attr)
@@ -130,7 +173,7 @@ export default {
         },
     },
 
-    mounted() {
+    mounted(): void {
         this.listOfSBases = this.collectSBases;
     },
 };

@@ -1,0 +1,46 @@
+const objectsMap = {
+    SBMLDocument: null,
+    Submodel: null,
+    Port: null,
+    Model: null,
+    FunctionDefinition: null,
+    UnitDefinition: null,
+    Compartment: null,
+    Species: null,
+    Reaction: null,
+    Parameter: null,
+    InitialAssignment: null,
+    AssignmentRule: null,
+    RateRule: null,
+    Rule: null,
+    Objective: null,
+    Constraint: null,
+    Event: null,
+    GeneProduct: null,
+};
+
+const componentsMap = {
+    SBMLDocument: [],
+    Submodel: [],
+    Port: [],
+    Model: [],
+    FunctionDefinition: [],
+    UnitDefinition: [],
+    Compartment: [],
+    Species: [],
+    Reaction: [],
+    Parameter: [],
+    InitialAssignment: [],
+    AssignmentRule: [],
+    RateRule: [],
+    Rule: [],
+    Objective: [],
+    Constraint: [],
+    Event: [],
+    GeneProduct: [],
+};
+
+export default {
+    objectsMap: objectsMap,
+    componentsMap: componentsMap,
+};

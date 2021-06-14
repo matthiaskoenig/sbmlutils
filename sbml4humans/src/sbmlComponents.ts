@@ -35,6 +35,7 @@ const SBase = {
     xml: String,
     displaySId: String,
     sbmlType: String,
+    pk: String,
 };
 
 // doc

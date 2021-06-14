@@ -252,7 +252,7 @@ class SBMLDocumentInfo:
         :param identifier: Unique property of the base which is used to generate the
                             SHA256 digest. Mostly the xml is passed.
         """
-        return hashlib.sha256(identifier).digest()
+        return str(hashlib.sha1(identifier.encode('utf-8')).digest())
 
 
     @classmethod

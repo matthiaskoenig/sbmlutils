@@ -21,16 +21,16 @@ Math rendering
 
 Filter
 - [ ] more robust handling of state
-- [ ] select/deselct in filter should be button; all buttons should have same style in frontent (see submit)
+- [x] select/deselct in filter should be button; all buttons should have same style in frontent (see submit)
 - [ ] indicate on filter how much is filtered; `Filter`; `Filter (10/123)`
 - [x] filter buttons without linestyle/or linestyle black
-- [ ] create component for filter object and create all filter objects via a `v-for` from
+- [x] create component for filter object and create all filter objects via a `v-for` from
       list
-- [ ] name fields in `visibility` identical to SBMLType
-- [ ] simplify filter by just iterating over list of SBases
+- [x] name fields in `visibility` identical to SBMLType
+- [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
 - [ ] use a global set to track filtered/searched SBases via `pk`: What is currently selected!
 Backend JSON:
-- [ ]  add pk in JSON -> use metaId/SId/uuid)
+- [x]  add pk in JSON -> use metaId/SId/uuid)
 Frontend:
 - [x] List of SBMLTypes: ["SBMLDocument", "Model", "UnitDefinition", ...]  
 - [ ] use a global HashMap of all objects: <pk: SBaseJSON>: This allows to lookup Details very fast for pk
