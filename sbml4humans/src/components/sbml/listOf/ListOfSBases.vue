@@ -6,6 +6,7 @@
                 v-bind:key="sbase.id + sbase.sbo + sbase.name + sbase.metaId"
                 :sbmlType="sbase.sbmlType"
                 :info="sbase"
+                :visible="Boolean(visibility[sbase.sbmlType])"
             ></toaster>
         </a-list>
     </div>
@@ -17,6 +18,7 @@ import TYPES from "@/sbmlComponents";
 
 /* Components */
 import SBMLToaster from "@/components/layout/SBMLToaster";
+import listOfSBMLTypes from '@/data/listOfSBMLTypes';
 
 export default {
     components: {
@@ -32,33 +34,33 @@ export default {
     computed: {
         collectSBases() {
             const report = store.state.jsonReport;
-            var sbases = [];
-            var counts = {
+            let sbases = [];
+            let counts = {
                 SBMLDocument: 0,
+                SubModel: 0,
+                Port: 0,
                 Model: 0,
-                FunctionDefinitions: 0,
-                UnitDefinitions: 0,
-                Compartments: 0,
+                FunctionDefinition: 0,
+                UnitDefinition: 0,
+                Compartment: 0,
                 Species: 0,
-                Parameters: 0,
-                InitialAssignments: 0,
-                Rules: 0,
-                Constraints: 0,
-                Reactions: 0,
-                Objectives: 0,
-                Events: 0,
-                GeneProducts: 0,
-                SubModels: 0,
-                Ports: 0,
+                Reaction: 0,
+                Parameter: 0,
+                InitialAssignment: 0,
+                AssignmentRule: 0,
+                RateRule: 0,
+                Objective: 0,
+                Constraint: 0,
+                Event: 0,
+                GeneProduct: 0,
             };
 
             // collecting doc
             if (report.doc) {
                 counts.SBMLDocument = 1;
-                if (this.visibility.SBMLDocument) {
-                    sbases.push(report.doc);
-                    counts.SBMLDocument = 1;
-                }
+                //this.visibility.SBMLDocument = true;
+                sbases.push(report.doc);
+                counts["SBMLDocument"] = 1;
             }
 
             if (report.models) {
@@ -69,7 +71,6 @@ export default {
                 sbases = this.filterForSearchResults(sbases, this.searchQuery);
             }
 
-            store.dispatch("updateCounts", counts);
             return sbases;
         },
 
@@ -84,142 +85,32 @@ export default {
 
     methods: {
         assembleSBasesInModels(models = TYPES.Models, counts) {
-            var sbases = [];
+            let sbases = [];
 
-            // collecting model
             if (models.model) {
-                console.log("found models");
-                counts.Model = 1;
-                if (this.visibility.Model) {
-                    sbases.push(models.model);
-                }
+                counts["Model"] = 1;
+                sbases.push(models.model);
             }
 
-            // collecting submodels
-            if (models.submodels) {
-                console.log("found models");
-                counts.SubModels = models.submodels.length;
-                if (this.visibility.SubModels) {
-                    sbases.push(...models.submodels);
-                }
-            }
-
-            // collecting ports
-            if (models.ports) {
-                console.log("found models");
-                counts.Ports = models.ports.length;
-                if (this.visibility.Ports) {
-                    sbases.push(...models.ports);
-                }
-            }
-
-            // collecting function definitions
-            if (models.functionDefinitions) {
-                console.log("found models");
-                counts.FunctionDefinitions = models.functionDefinitions.length;
-                if (this.visibility.FunctionDefinitions) {
-                    sbases.push(...models.functionDefinitions);
-                }
-            }
-
-            // collecting unit definitions
-            if (models.unitDefinitions) {
-                console.log("found models");
-                counts.UnitDefinitions = models.unitDefinitions.length;
-                if (this.visibility.UnitDefinitions) {
-                    sbases.push(...models.unitDefinitions);
-                }
-            }
-
-            // collecting compartments
-            if (models.compartments) {
-                console.log("found models");
-                counts.Compartments = models.compartments.length;
-                if (this.visibility.Compartments) {
-                    sbases.push(...models.compartments);
-                }
-            }
-
-            // collecting species
             if (models.species) {
-                console.log("found models");
-                counts.Species = models.species.length;
-                if (this.visibility.Species) {
-                    sbases.push(...models.species);
+                counts["Species"] = models.species.length;
+                sbases.push(...models.species);
+            }
+
+            for (let i = 0; i < listOfSBMLTypes.listOfSBMLTypes.length; i++) {
+                const sbmlType = listOfSBMLTypes.listOfSBMLTypes[i];
+
+                // camel case keys, present in the API response E.g. unitDefinitions, compartments
+                let key = sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1) + "s";
+
+                if (models[key]) {
+                    console.log("found " + sbmlType);
+                    counts[sbmlType] = models[key].length;
+                    sbases.push(...models[key]);
                 }
             }
 
-            // collecting parameters
-            if (models.parameters) {
-                console.log("found models");
-                counts.Parameters = models.parameters.length;
-                if (this.visibility.Parameters) {
-                    sbases.push(...models.parameters);
-                }
-            }
-
-            // collecting intial assignments
-            if (models.initialAssignments) {
-                console.log("found models");
-                counts.InitialAssignments = models.initialAssignments.length;
-                if (this.visibility.InitialAssignments) {
-                    sbases.push(...models.initialAssignments);
-                }
-            }
-
-            // collecting rules
-            if (models.rules) {
-                console.log("found models");
-                counts.Rules = models.rules.length;
-                if (this.visibility.Rules) {
-                    sbases.push(...models.rules);
-                }
-            }
-
-            // collecting contraints
-            if (models.contraints) {
-                console.log("found models");
-                counts.Constraints = models.constraints.length;
-                if (this.visibility.Constraints) {
-                    sbases.push(...models.constraints);
-                }
-            }
-
-            // collecting reactions
-            if (models.reactions) {
-                console.log("found models");
-                counts.Reactions = models.reactions.length;
-                if (this.visibility.Reactions) {
-                    sbases.push(...models.reactions);
-                }
-            }
-
-            // collecting objectives
-            if (models.objectives) {
-                console.log("found models");
-                counts.Objectives = models.objectives.length;
-                if (this.visibility.Objectives) {
-                    sbases.push(...models.objectives);
-                }
-            }
-
-            // collecting events
-            if (models.events) {
-                console.log("found models");
-                counts.Events = models.events.length;
-                if (this.visibility.Events) {
-                    sbases.push(...models.events);
-                }
-            }
-
-            // collecting gene products
-            if (models.geneProducts) {
-                console.log("found models");
-                counts.GeneProducts = models.geneProducts.length;
-                if (this.visibility.GeneProducts) {
-                    sbases.push(...models.geneProducts);
-                }
-            }
+            store.dispatch("updateCounts", counts);
 
             return sbases;
         },

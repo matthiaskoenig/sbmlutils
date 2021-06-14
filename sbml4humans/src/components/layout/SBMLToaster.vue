@@ -1,5 +1,5 @@
 <template>
-    <div class="card shadow-sm" v-on:click="showDetail()">
+    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail()">
         <div
             class="tag d-flex justify-content-between"
             v-bind:style="`background-color: ${color}`"
@@ -50,6 +50,12 @@ export default {
         this.color = colors.componentColor[this.sbmlType]
             ? colors.componentColor[this.sbmlType]
             : colors.componentColor.Default;
+    },
+
+    computed: {
+        visibility() {
+            return store.state.visibility;
+        },
     },
 
     methods: {

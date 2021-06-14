@@ -52,6 +52,7 @@
 
     <!-- XML -->
     <button
+        v-if="info.xml"
         type="button"
         class="btn btn-info px-5"
         data-toggle="modal"
@@ -62,6 +63,7 @@
 
     <!-- Modal -->
     <div
+        v-if="info.xml"
         class="modal fade"
         id="exampleModalScrollable"
         tabindex="-1"

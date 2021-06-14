@@ -25,24 +25,16 @@ export default {
         "component-specific-details": ComponentSpecificDetails,
     },
 
-    data() {
-        return {
-            sbmlType: String,
-        };
-    },
-
     computed: {
         info: {
             get() {
                 return store.state.detailInfo;
             },
         },
-    },
-
-    watch: {
-        info() {
-            this.sbmlType = store.state.detailInfo.sbmlType;
-            this.infoData = store.state.detailInfo;
+        sbmlType: {
+            get() {
+                return store.state.detailInfo.sbmlType;
+            },
         },
     },
 };
