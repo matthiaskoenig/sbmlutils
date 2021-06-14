@@ -4,6 +4,11 @@
         <div class="label"><strong>Name:</strong> {{ info.name }}</div>
     </div>
 
+    <!-- PK -->
+    <div class="data" v-if="info.pk">
+        <div class="label"><strong>PK:</strong> {{ info.pk }}</div>
+    </div>
+
     <!-- SBML Type -->
     <div class="data" v-if="info.sbmlType">
         <div class="label"><strong>SBML Type:</strong> {{ info.sbmlType }}</div>

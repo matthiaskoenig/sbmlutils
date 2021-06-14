@@ -4,6 +4,7 @@ The model dictionary can be used for rendering the HTML report.
 The information can be serialized to JSON for later rendering in web app.
 """
 
+import hashlib
 import json
 import warnings
 from pathlib import Path
@@ -96,8 +97,8 @@ class SBMLDocumentInfo:
             "ports": self.ports_list(),
 
             # fbc
-            "geneProduct": self.gene_products_dict(),
-            "objective": self.objectives_list(),
+            "geneProducts": self.gene_products_dict(),
+            "objectives": self.objectives_list(),
         }
         d = {
             # core
@@ -243,6 +244,17 @@ class SBMLDocumentInfo:
         class_name = str(sbase.__class__)[16:-2]
         return class_name
 
+    @staticmethod
+    def _uuid(identifier: str) -> str:
+        """Generates SHA256 digest of the identifier (mostly the xml string) of the
+            sbase concerned.
+
+        :param identifier: Unique property of the base which is used to generate the
+                            SHA256 digest. Mostly the xml is passed.
+        """
+        return hashlib.sha256(identifier).digest()
+
+
     @classmethod
     def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:
         """Info dictionary for SBase.
@@ -269,6 +281,15 @@ class SBMLDocumentInfo:
             d['xml'] = sbase.toSBML()
         else:
             d['xml'] = None
+
+        # primary key
+        if d["metaId"] is not None:
+            d["pk"] = d["metaId"]
+        elif d["id"] is not None:
+            d["pk"] = d["id"]
+        else:
+            xml = sbase.toSBML()
+            d["pk"] = SBMLDocumentInfo._uuid(xml)
 
         # comp
         item_comp = sbase.getPlugin("comp")
