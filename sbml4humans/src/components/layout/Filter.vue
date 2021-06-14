@@ -58,30 +58,6 @@ import colorScheme from "@/data/colorScheme";
 
 export default {
     methods: {
-        changeButtonShade(component, active) {
-            let button = this.$refs[component];
-            console.log(button);
-            let badge = this.$refs[component + "Badge"];
-
-            if (active === true) {
-                button.style.backgroundColor = this.colors[component];
-                button.style.color = "#000000";
-                button.style.borderColor = "#000000";
-
-                badge.style.backgroundColor = "#000000";
-                badge.style.color = "#FFFFFF";
-                badge.style.borderColor = "#000000";
-            } else {
-                button.style.backgroundColor = "#F5F5F5";
-                button.style.color = "#D3D3D3";
-                button.style.borderColor = "#D3D3D3";
-
-                badge.style.backgroundColor = "#F5F5F5";
-                badge.style.color = "#A9A9A9";
-                badge.style.borderColor = "#A9A9A9";
-            }
-        },
-
         /**
          * Update the visibility of a specific component button.
          * @param component
@@ -91,7 +67,6 @@ export default {
             visibility[component] = !visibility[component];
 
             store.dispatch("updateVisibility", visibility);
-            this.changeButtonShade(component, this.visibility[component] === true);
         },
 
         /**
@@ -102,9 +77,6 @@ export default {
             // make visibility of all SBML components "true"
             for (let component in visibility) {
                 visibility[component] = true;
-                // if (this.counts.component > 0) {
-                //     this.changeButtonShade(component, true);
-                // }
             }
 
             store.dispatch("updateVisibility", visibility);
@@ -115,9 +87,6 @@ export default {
             // make visibility of all SBML components "false"
             for (let component in visibility) {
                 visibility[component] = false;
-                // if (this.counts.component > 0) {
-                //     this.changeButtonShade(component, false);
-                // }
             }
 
             store.dispatch("updateVisibility", visibility);
