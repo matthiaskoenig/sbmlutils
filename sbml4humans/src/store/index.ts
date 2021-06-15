@@ -74,6 +74,8 @@ export default createStore({
         allObjectsMap: {},
 
         componentPKsMap: {},
+
+        searchedSBasesPKs: new Set(),
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -111,6 +113,9 @@ export default createStore({
         },
         SET_COMPONENT_PKS_MAP(state, payload) {
             state.componentPKsMap = payload;
+        },
+        SET_SEARCHED_SBASES_PKS(state, payload) {
+            state.searchedSBasesPKs = payload;
         },
     },
     actions: {
@@ -232,6 +237,9 @@ export default createStore({
         },
         updateComponentPKsMap(context, payload) {
             context.commit("SET_COMPONENT_PKS_MAP", payload);
+        },
+        updateSearchedSBasesPKs(context, payload) {
+            context.commit("SET_SEARCHED_SBASES_PKS", payload);
         },
     },
     modules: {},

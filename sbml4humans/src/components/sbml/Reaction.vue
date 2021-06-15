@@ -1,17 +1,17 @@
 <template>
     <!-- Reversible -->
     <div class="data" v-if="info.reversible">
-        <div class="label"><strong>Reversible:</strong> {{ info.reversible }}</div>
+        <div class="label"><strong>reversible:</strong> {{ info.reversible }}</div>
     </div>
 
     <!-- Compartment -->
     <div class="data" v-if="info.compartment">
-        <div class="label"><strong>Compartment:</strong> {{ info.compartment }}</div>
+        <div class="label"><strong>compartment:</strong> {{ info.compartment }}</div>
     </div>
 
     <!-- List of Reactants -->
     <div class="data" v-if="info.listOfReactants.length > 0">
-        <div class="label"><strong>Reactants:</strong></div>
+        <div class="label"><strong>listOfReactants:</strong></div>
         <br />
         <div class="ml-4">
             <ul title="Reactants">
@@ -30,7 +30,7 @@
 
     <!-- List of Products -->
     <div class="data" v-if="info.listOfProducts.length > 0">
-        <div class="label"><strong>Products:</strong></div>
+        <div class="label"><strong>listOfProducts:</strong></div>
         <br />
         <div class="ml-4">
             <ul title="Products">
@@ -46,7 +46,7 @@
 
     <!-- List of Modifiers -->
     <div class="data" v-if="info.listOfModifiers.length > 0">
-        <div class="label"><strong>Modifiers:</strong></div>
+        <div class="label"><strong>listOfModifiers:</strong></div>
         <br />
         <div class="ml-4">
             <ul title="Modifiers">
@@ -60,14 +60,14 @@
     <!-- Equation -->
     <div class="data" v-if="info.equation">
         <div class="label">
-            <strong>Equation:</strong>
+            <strong>equation:</strong>
             <span v-html="info.equation"></span>
         </div>
     </div>
 
     <!-- Fast -->
     <div class="data" v-if="info.fast">
-        <div class="label"><strong>Fast:</strong> {{ info.fast }}</div>
+        <div class="label"><strong>fast:</strong> {{ info.fast }}</div>
     </div>
 
     <!-- Kinetic Law (To be added after fixing the sbmlutils implementation)  -->
@@ -77,7 +77,7 @@
         <div class="label"><strong>FBC:</strong> {{ info.fbc }}</div>
         <div class="ml-4">
             <div v-if="info.fbc.bounds">
-                Bounds: [<span v-if="info.fbc.bounds.lb_value">{{
+                bounds: [<span v-if="info.fbc.bounds.lb_value">{{
                     info.fbc.bounds.lb_value
                 }}</span
                 >,

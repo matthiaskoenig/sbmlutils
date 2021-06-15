@@ -1,7 +1,7 @@
 <template>
     <!-- Math -->
     <div class="data" v-if="info.math">
-        <div class="label"><strong>Math:</strong> <span v-html="info.math"></span></div>
+        <div class="label"><strong>math:</strong> <span v-html="info.math"></span></div>
     </div>
 </template>
 

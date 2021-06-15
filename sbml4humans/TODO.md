@@ -11,8 +11,8 @@
 - [x] start frontend on different port: > 3000; 3245
 - [ ] figure out how to document components & document them (https://vue-styleguidist.github.io/docs/Documenting.html)
 - [ ] use typescript; required tags on properties; (see XMLContainer for example), type annotations
-- [ ] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style)
-- [ ] in detailView use attribute names (no whitespaces)
+- [ ] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
+- [x] in detailView use attribute names (no whitespaces)
 Math rendering
 - [ ] implement MathRendering using Katex; https://katex.org/ (npm install katex) -> send Latex
 
@@ -28,13 +28,13 @@ Filter
       list
 - [x] name fields in `visibility` identical to SBMLType
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
-- [ ] use a global set to track filtered/searched SBases via `pk`: What is currently selected!
+- [x] use a global set to track filtered/searched SBases via `pk`: What is currently selected!
 Backend JSON:
 - [x]  add pk in JSON -> use metaId/SId/uuid)
 Frontend:
 - [x] List of SBMLTypes: ["SBMLDocument", "Model", "UnitDefinition", ...]  
-- [ ] use a global HashMap of all objects: <pk: SBaseJSON>: This allows to lookup Details very fast for pk
-- [ ] use a global for component: <'reaction': List[pk]> --> pks['Reaction']: This allows to get pks for a certain component type
+- [x] use a global HashMap of all objects: <pk: SBaseJSON>: This allows to lookup Details very fast for pk
+- [x] use a global for component: <'reaction': List[pk]> --> pks['Reaction']: This allows to get pks for a certain component type
 
 ## List of existing problems:
  - [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)

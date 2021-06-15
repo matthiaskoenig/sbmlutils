@@ -8,33 +8,33 @@
 
     <!-- Time Units -->
     <div class="data" v-if="info.timeUnits">
-        <div class="label"><strong>Time Units:</strong> {{ info.timeUnits }}</div>
+        <div class="label"><strong>timeUnits:</strong> {{ info.timeUnits }}</div>
     </div>
 
     <!-- Length Units -->
     <div class="data" v-if="info.lengthUnits">
-        <div class="label"><strong>Length Units:</strong> {{ info.lengthUnits }}</div>
+        <div class="label"><strong>lengthUnits:</strong> {{ info.lengthUnits }}</div>
     </div>
 
     <!-- Area Units -->
     <div class="data" v-if="info.areaUnits">
-        <div class="label"><strong>Area Units:</strong> {{ info.areaUnits }}</div>
+        <div class="label"><strong>areaUnits:</strong> {{ info.areaUnits }}</div>
     </div>
 
     <!-- Volume Units -->
     <div class="data" v-if="info.volumeUnits">
-        <div class="label"><strong>Volume Units:</strong> {{ info.volumeUnits }}</div>
+        <div class="label"><strong>volumeUnits:</strong> {{ info.volumeUnits }}</div>
     </div>
 
     <!-- Extent Units -->
     <div class="data" v-if="info.extentUnits">
-        <div class="label"><strong>Extent Units:</strong> {{ info.extentUnits }}</div>
+        <div class="label"><strong>extentUnits:</strong> {{ info.extentUnits }}</div>
     </div>
 
     <!-- Conversion Factor -->
     <div class="data" v-if="info.conversionFactor">
         <div class="label">
-            <strong>Conversion Factor:</strong> {{ info.conversionFactor }}
+            <strong>conversionFactor:</strong> {{ info.conversionFactor }}
         </div>
     </div>
 </template>

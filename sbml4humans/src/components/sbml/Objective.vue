@@ -1,12 +1,12 @@
 <template>
     <!-- Type -->
     <div class="data" v-if="info.type">
-        <div class="label"><strong>Type:</strong> {{ info.type }}</div>
+        <div class="label"><strong>type:</strong> {{ info.type }}</div>
     </div>
 
     <!-- Flux Objectives -->
     <div class="data" v-if="info.fluxObjectives.length > 0">
-        <div class="label"><strong>Flux Objectives:</strong></div>
+        <div class="label"><strong>fluxObjectives:</strong></div>
         <br />
         <div class="ml-4">
             <ul title="Flux Objectives">
@@ -19,10 +19,10 @@
                     </div>
                     <div v-if="fluxObjective.sign || fluxObjective.coefficient">
                         <span v-if="fluxObjective.sign"
-                            >Sign: {{ fluxObjective.sign }}</span
+                            >sign: {{ fluxObjective.sign }}</span
                         >
                         <span v-if="fluxObjective.coefficient"
-                            >, Coefficient: {{ fluxObjective.coefficient }}</span
+                            >, coefficient: {{ fluxObjective.coefficient }}</span
                         >
                     </div>
                 </li>
