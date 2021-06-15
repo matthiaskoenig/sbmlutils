@@ -1,42 +1,42 @@
 <template>
-    <!-- Name -->
-    <div class="data" v-if="info.name">
-        <div class="label"><strong>Name:</strong> {{ info.name }}</div>
+    <!-- KaTex -->
+    <div class="data">
+        <katex v-bind:mathStr="math"></katex>
     </div>
 
-    <!-- PK -->
-    <div class="data" v-if="info.pk">
-        <div class="label"><strong>PK:</strong> {{ info.pk }}</div>
+    <!-- Name -->
+    <div class="data" v-if="info.name">
+        <div class="label"><strong>name:</strong> {{ info.name }}</div>
     </div>
 
     <!-- SBML Type -->
     <div class="data" v-if="info.sbmlType">
-        <div class="label"><strong>SBML Type:</strong> {{ info.sbmlType }}</div>
+        <div class="label"><strong>sbmlType:</strong> {{ info.sbmlType }}</div>
     </div>
 
     <!-- SID -->
     <div class="data" v-if="info.id">
-        <div class="label"><strong>SID:</strong> {{ info.id }}</div>
+        <div class="label"><strong>id:</strong> {{ info.id }}</div>
     </div>
 
     <!-- SBO -->
     <div class="data" v-if="info.sbo">
-        <div class="label"><strong>SBO:</strong> {{ info.sbo }}</div>
+        <div class="label"><strong>sbo:</strong> {{ info.sbo }}</div>
     </div>
 
     <!-- Meta ID -->
     <div class="data" v-if="info.metaId">
-        <div class="label"><strong>Meta ID:</strong> {{ info.metaId }}</div>
+        <div class="label"><strong>metaId:</strong> {{ info.metaId }}</div>
     </div>
 
     <!-- History -->
     <div class="data" v-if="info.history">
-        <div class="label"><strong>History:</strong></div>
+        <div class="label"><strong>history:</strong></div>
         <br />
         <div class="ml-4">
-            <div class="label">Date Created: {{ info.history.createdDate }}</div>
+            <div class="label">createdDate: {{ info.history.createdDate }}</div>
             <br />
-            <div class="label">Creators:</div>
+            <div class="label">creators:</div>
             <ul title="Creators">
                 <li v-for="creator in info.history.creators" v-bind:key="creator.email">
                     {{ creator.givenName }} {{ creator.familyName }},
@@ -46,7 +46,7 @@
                     >)
                 </li>
             </ul>
-            <div class="label">Dates Modified:</div>
+            <div class="label">modifiedDates:</div>
             <ul title="Dates Modified">
                 <li v-for="date in info.history.modifiedDates" v-bind:key="date">
                     {{ date }}
@@ -98,19 +98,24 @@
 
 <script>
 import store from "@/store/index";
-
 import TYPES from "@/sbmlComponents";
 
 /* Compartments */
 import XMLContainer from "@/components/layout/XMLContainer.vue";
+import Katex from "@/components/layout/Katex.vue";
 
 export default {
     props: {
         info: TYPES.SBase,
+        math: {
+            type: String,
+            default: "\\sqrt{x}",
+        },
     },
 
     components: {
         "xml-container": XMLContainer,
+        katex: Katex,
     },
 
     data() {

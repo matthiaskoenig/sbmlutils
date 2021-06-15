@@ -1,32 +1,30 @@
 <template>
     <!-- Port Reference -->
     <div class="data" v-if="info.portRef">
-        <div class="label"><strong>Port Reference:</strong> {{ info.portRef }}</div>
+        <div class="label"><strong>portRef:</strong> {{ info.portRef }}</div>
     </div>
 
     <!-- ID Reference -->
     <div class="data" v-if="info.idRef">
-        <div class="label"><strong>ID Reference:</strong> {{ info.idRef }}</div>
+        <div class="label"><strong>idRef:</strong> {{ info.idRef }}</div>
     </div>
 
     <!-- Unit Reference -->
     <div class="data" v-if="info.unitRef">
-        <div class="label"><strong>Unit Reference:</strong> {{ info.unitRef }}</div>
+        <div class="label"><strong>unitRef:</strong> {{ info.unitRef }}</div>
     </div>
 
     <!-- Meta ID Reference -->
     <div class="data" v-if="info.metaIdRef">
-        <div class="label">
-            <strong>Meta ID Reference:</strong> {{ info.metaIdRef }}
-        </div>
+        <div class="label"><strong>metaIdRef:</strong> {{ info.metaIdRef }}</div>
     </div>
 
     <!-- Referenced Element -->
     <div class="data" v-if="info.referencedElement">
         <div class="label">
-            <strong>Referenced Element:</strong> {{ info.referencedElement.element }}
+            <strong>referencedElement:</strong> {{ info.referencedElement.element }}
             <span v-if="info.referencedElement.elementId"
-                >(ID: {{ info.referencedElement.elementId }})</span
+                >(elementId: {{ info.referencedElement.elementId }})</span
             >
         </div>
     </div>
