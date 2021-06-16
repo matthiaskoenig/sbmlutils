@@ -17,8 +17,6 @@ Math rendering
 - [ ] implement MathRendering using Katex; https://katex.org/ (npm install katex) -> send Latex
 
 
-
-
 Filter
 - [ ] more robust handling of state
 - [x] select/deselct in filter should be button; all buttons should have same style in frontent (see submit)

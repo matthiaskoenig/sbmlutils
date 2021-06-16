@@ -25,11 +25,12 @@
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
+import {defineComponent} from "vue";
 
 /**
  * Component to show meta information about an example Model in the list of examples.
  */
-export default {
+export default defineComponent({
     props: {
         sbmlType: {
             type: String,
@@ -63,7 +64,7 @@ export default {
             store.dispatch("fetchExampleReport", payload);
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>
