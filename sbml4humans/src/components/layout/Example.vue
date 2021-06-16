@@ -21,30 +21,41 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
+import TYPES from "@/sbmlComponents";
 
+/**
+ * Component to show meta information about an example Model in the list of examples.
+ */
 export default {
     props: {
-        sbmlType: String,
-        info: {},
+        sbmlType: {
+            type: String,
+            default: "Model",
+        },
+        info: {
+            type: Object,
+            default: TYPES.Model,
+        },
     },
 
-    data() {
+    data(): Record<string, unknown> {
         return {
-            color: String,
+            color: {
+                type: String,
+                default: "#FFFFFF",
+            },
         };
     },
 
-    mounted() {
-        this.color = colors.componentColor[this.sbmlType]
-            ? colors.componentColor[this.sbmlType]
-            : colors.componentColor.Default;
+    mounted(): void {
+        this.color = colors.componentColor[this.sbmlType];
     },
 
     methods: {
-        getExample() {
+        getExample(): void {
             const payload = {
                 exampleId: this.info.fetchId,
             };

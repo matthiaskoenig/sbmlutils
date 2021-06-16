@@ -63,7 +63,7 @@ async def upload_sbml(request: Request):
     try:
         file_data = await request.form()
 
-        math_render = file_data["math"]
+        math_render = "latex"
         filename = file_data["source"].filename
         file_content = await file_data["source"].read()
 

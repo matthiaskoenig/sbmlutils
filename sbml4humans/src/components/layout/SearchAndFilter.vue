@@ -18,12 +18,16 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 
+/* Components */
 import Search from "@/components/layout/Search.vue";
 import Filter from "@/components/layout/Filter.vue";
 
+/**
+ * Component to hold Search and Filter components.
+ */
 export default {
     components: {
         "search-component": Search,
@@ -31,21 +35,28 @@ export default {
     },
 
     computed: {
-        visibility() {
+        /**
+         * Reactively returns the visibility of each SBML component from Vuex state/localStorage.
+         */
+        visibility(): Record<string, boolean> {
             return store.state.visibility;
         },
 
-        counts() {
+        /**
+         * Reactively returns the count of each SBML component from Vuex state/localStorage.
+         */
+        counts(): Record<string, number> {
             return store.state.counts;
         },
 
-        allComponentsMap() {
-            return store.state.componentPKsMap;
-        },
-
-        filterFraction() {
+        /**
+         * Calculates and displays the fraction of SBML objects filtered in the report.
+         */
+        filterFraction(): string {
             let totalComponents = 0;
             let filteredComponents = 0;
+
+            // calulating the total SBML objects and the number of filtered objects.
             for (let component in this.counts) {
                 totalComponents += this.counts[component];
                 if (!this.visibility[component]) {
@@ -53,6 +64,7 @@ export default {
                 }
             }
 
+            // show the filter fraction only if some objects have been actually filtered
             if (filteredComponents > 0) {
                 return String("(" + filteredComponents + "/" + totalComponents + ")");
             }

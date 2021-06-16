@@ -1,25 +1,25 @@
-<!DOCTYPE html>
 <template>
-    <pre v-html="katexMath"></pre>
+    <span v-html="katexMath"></span>
 </template>
 
-<script>
+<script lang="ts">
 import katex from "katex";
 
+/**
+ * Component to render math using Katex.
+ */
 export default {
-    replace: true,
     props: {
-        mathStr: String, // comes from the SBase component as of now, hardcoded
-    },
-
-    data() {
-        return {
-            katexStr: String,
-        };
+        mathStr: {
+            type: String,
+        },
     },
 
     computed: {
-        katexMath() {
+        /**
+         * Renders the raw math string into Latex format using the Katex module.
+         */
+        katexMath(): string {
             return katex.renderToString(this.mathStr, {
                 throwOnError: false,
             });

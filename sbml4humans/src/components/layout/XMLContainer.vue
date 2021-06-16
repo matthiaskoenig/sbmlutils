@@ -9,7 +9,7 @@ import xmlFormatter from "xml-formatter";
 import { defineComponent } from "vue";
 
 /**
- * Component for rendering XML/SBML
+ * Component for rendering XML/SBML.
  */
 export default defineComponent({
     props: {
@@ -19,6 +19,10 @@ export default defineComponent({
         },
     },
     computed: {
+        /**
+         * Formats and returns the raw XML string passed from the parent into
+         * pretty-printed form.
+         */
         formattedXML(): string {
             let formattedXML: string;
             formattedXML = this.xml != null ? xmlFormatter(this.xml) : "";

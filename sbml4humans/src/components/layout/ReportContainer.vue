@@ -16,6 +16,9 @@ import SearchAndFilter from "@/components/layout/SearchAndFilter";
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
 import DetailContainer from "@/components/layout/DetailContainer";
 
+/**
+ * Component to hold all components to show the generated report.
+ */
 export default {
     components: {
         "search-and-filter": SearchAndFilter,

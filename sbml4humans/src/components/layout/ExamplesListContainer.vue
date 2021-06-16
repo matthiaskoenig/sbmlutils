@@ -23,6 +23,9 @@ import store from "@/store/index";
 /* Components */
 import Example from "@/components/layout/Example.vue";
 
+/**
+ * Component to display list of all example models fetched from API.
+ */
 export default {
     components: {
         example: Example,
@@ -47,9 +50,16 @@ export default {
     },
 
     computed: {
+        /**
+         * Reactively returns the list of examples from Vuex state/localStorage.
+         */
         examples(): Array<Record<string, unknown>> {
             return store.state.examples;
         },
+
+        /**
+         * Reactively returns the loading status of the example(s) from Vuex state/localStorage.
+         */
         loading(): boolean {
             return store.state.exampleLoading;
         },
