@@ -39,18 +39,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Model objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Model,
+        info: {
+            type: Object,
+            default: TYPES.Model,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

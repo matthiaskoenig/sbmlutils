@@ -91,18 +91,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Reaction objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Reaction,
+        info: {
+            type: Object,
+            default: TYPES.Reaction,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

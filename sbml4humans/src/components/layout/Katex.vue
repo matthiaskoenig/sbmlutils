@@ -1,13 +1,12 @@
 <template>
     <div>
-        Test KaTex
-        <div v-html="katexMathHTML"></div>
-        </div>
+        <div class="katex" v-html="katexMathHTML"></div>
+    </div>
 </template>
 
 <script lang="ts">
 import katex from "katex";
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 
 /**
  * Component to render math using Katex.
@@ -16,6 +15,7 @@ export default defineComponent({
     props: {
         mathStr: {
             type: String,
+            default: "",
         },
     },
 
@@ -24,14 +24,19 @@ export default defineComponent({
          * Renders the raw math string into Latex format using the Katex module.
          */
         katexMathHTML(): string {
-            return katex.renderToString("c = \\pm\\sqrt{a^2 + b^2}", {
+            return katex.renderToString(this.mathStr, {
                 throwOnError: false,
                 output: "mathml",
             });
-
         },
     },
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+/*@font-face {
+    font-family: "Open-Sans";
+    src: url("https://fonts.googleapis.com/css2?family=Roboto&display=swap")
+        format("woff2");
+}*/
+</style>

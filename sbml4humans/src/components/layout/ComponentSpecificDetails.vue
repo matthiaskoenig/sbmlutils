@@ -50,6 +50,7 @@
 
 <script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
 import Model from "@/components/sbml/Model.vue";
@@ -68,7 +69,7 @@ import GeneProduct from "@/components/sbml/GeneProduct.vue";
 /*
  * Component to inject a specific SBML component as required by in the parent component.
  */
-export default {
+export default defineComponent({
     props: {
         sbmlType: {
             type: String,
@@ -94,7 +95,7 @@ export default {
         objective: Objective,
         "gene-product": GeneProduct,
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

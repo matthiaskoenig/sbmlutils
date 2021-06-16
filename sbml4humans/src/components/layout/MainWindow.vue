@@ -3,8 +3,10 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from "@vue/runtime-core";
+
 /*
  * Master component which holds all the views.
  */
-export default {};
+export default defineComponent({});
 </script>

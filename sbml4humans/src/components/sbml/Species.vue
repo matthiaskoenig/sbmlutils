@@ -88,12 +88,19 @@
 
 <script>
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Species objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Species,
+        info: {
+            type: Object,
+            default: TYPES.Species,
+        },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

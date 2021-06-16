@@ -1,8 +1,4 @@
 <template>
-    <!-- KaTex -->
-    <katex mathStr="\\sqrt{x}"/>
-
-
     <!-- Name -->
     <div class="data" v-if="info.name">
         <div class="label"><strong>name:</strong> {{ info.name }}</div>
@@ -95,48 +91,42 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
 /* Compartments */
 import XMLContainer from "@/components/layout/XMLContainer.vue";
-import Katex from "@/components/layout/Katex.vue";
 
-export default {
+/**
+ * Component to define display of SBase information.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.SBase,
+        info: {
+            type: Object,
+            default: TYPES.SBase,
+        },
         math: {
             type: String,
-            default: "\\sqrt{x}",
+            default: "",
         },
     },
 
     components: {
         "xml-container": XMLContainer,
-        "katex": Katex,
-    },
-
-    data() {
-        return {
-            visible: false,
-        };
     },
 
     methods: {
-        showModal() {
-            this.visible = true;
-        },
-
-        handleOk() {
-            this.visible = false;
-        },
-
+        /**
+         * Update the current xml code to be displayed in the XML container.
+         */
         updateModalXML() {
             store.dispatch("updateXML", this.info.xml);
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

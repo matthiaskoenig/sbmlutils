@@ -11,6 +11,8 @@
 </template>
 
 <script>
+import { defineComponent } from "vue";
+
 /* Compartments */
 import SearchAndFilter from "@/components/layout/SearchAndFilter";
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
@@ -19,13 +21,13 @@ import DetailContainer from "@/components/layout/DetailContainer";
 /**
  * Component to hold all components to show the generated report.
  */
-export default {
+export default defineComponent({
     components: {
         "search-and-filter": SearchAndFilter,
         "list-of-sbases": ListOfSBases,
         "detail-container": DetailContainer,
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

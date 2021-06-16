@@ -60,18 +60,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Event objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Event,
+        info: {
+            type: Object,
+            default: TYPES.Event,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

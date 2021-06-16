@@ -15,16 +15,19 @@
 
 <script>
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of SBMLDocument objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Reaction,
+        info: {
+            type: Object,
+            default: TYPES.SBMLDocument,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

@@ -31,12 +31,12 @@
 
 <script lang="ts">
 import store from "@/store/index";
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 
 /**
  * Component to upload an SBML file to generate report.
  */
-export default  defineComponent({
+export default defineComponent({
     data(): Record<string, unknown> {
         return {
             file: {

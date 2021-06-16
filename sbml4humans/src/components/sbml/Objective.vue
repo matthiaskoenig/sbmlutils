@@ -31,18 +31,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Objective objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Objective,
+        info: {
+            type: Object,
+            default: TYPES.Objective,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>
