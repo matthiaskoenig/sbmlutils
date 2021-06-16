@@ -1,8 +1,7 @@
 <template>
     <!-- KaTex -->
-    <!-- <div class="data">
-        <katex v-bind:mathStr="math"></katex>
-    </div> -->
+    <katex mathStr="\\sqrt{x}"/>
+
 
     <!-- Name -->
     <div class="data" v-if="info.name">
@@ -115,7 +114,7 @@ export default {
 
     components: {
         "xml-container": XMLContainer,
-        // katex: Katex,
+        "katex": Katex,
     },
 
     data() {

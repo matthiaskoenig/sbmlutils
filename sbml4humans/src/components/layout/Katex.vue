@@ -1,5 +1,8 @@
 <template>
-    <span v-html="katexMath"></span>
+    <div>
+        Test KaTex
+        <div v-html="katexMathHTML"></div>
+        </div>
 </template>
 
 <script lang="ts">
@@ -20,10 +23,12 @@ export default defineComponent({
         /**
          * Renders the raw math string into Latex format using the Katex module.
          */
-        katexMath(): string {
-            return katex.renderToString(this.mathStr, {
+        katexMathHTML(): string {
+            return katex.renderToString("c = \\pm\\sqrt{a^2 + b^2}", {
                 throwOnError: false,
+                output: "mathml",
             });
+
         },
     },
 });
