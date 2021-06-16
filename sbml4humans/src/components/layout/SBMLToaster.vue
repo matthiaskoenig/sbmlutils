@@ -33,11 +33,12 @@
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "vue";
 
 /**
  * Component to display meta data about an SBML objects.
  */
-export default {
+export default defineComponent({
     props: {
         sbmlType: {
             type: String,
@@ -83,7 +84,7 @@ export default {
             store.dispatch("updateDetailInfo", this.info);
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

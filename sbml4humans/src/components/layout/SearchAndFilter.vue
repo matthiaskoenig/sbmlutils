@@ -20,6 +20,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import { defineComponent } from "vue";
 
 /* Components */
 import Search from "@/components/layout/Search.vue";
@@ -28,7 +29,7 @@ import Filter from "@/components/layout/Filter.vue";
 /**
  * Component to hold Search and Filter components.
  */
-export default {
+export default defineComponent({
     components: {
         "search-component": Search,
         "filter-component": Filter,
@@ -72,7 +73,7 @@ export default {
             return "";
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

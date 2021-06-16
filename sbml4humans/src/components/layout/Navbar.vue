@@ -42,11 +42,12 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import { defineComponent } from "vue";
 
 /**
  * Navbar component for providing main links in the application
  */
-export default {
+export default defineComponent({
     data(): Record<string, unknown> {
         return {
             // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
@@ -66,7 +67,7 @@ export default {
             }
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>
