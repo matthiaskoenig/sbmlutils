@@ -19,6 +19,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
 import Example from "@/components/layout/Example.vue";
@@ -26,7 +27,7 @@ import Example from "@/components/layout/Example.vue";
 /**
  * Component to display list of all example models fetched from API.
  */
-export default {
+export default defineComponent({
     components: {
         example: Example,
     },
@@ -64,7 +65,7 @@ export default {
             return store.state.exampleLoading;
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

@@ -15,18 +15,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Parameter objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Parameter,
+        info: {
+            type: Object,
+            default: TYPES.Parameter,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

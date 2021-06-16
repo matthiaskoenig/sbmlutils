@@ -25,7 +25,7 @@
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 
 /**
  * Component to show meta information about an example Model in the list of examples.

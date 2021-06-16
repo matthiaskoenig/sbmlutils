@@ -15,16 +15,19 @@
 
 <script>
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Submodel objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Reaction,
+        info: {
+            type: Object,
+            default: TYPES.SubModel,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

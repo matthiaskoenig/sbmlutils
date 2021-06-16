@@ -5,18 +5,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of FunctionDefinition objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.FunctionDefinition,
+        info: {
+            type: Object,
+            default: TYPES.FunctionDefinition,
+        },
     },
-
-    data() {
-        return {};
-    },
-};
+});
 </script>
 
 <style lang="scss" scoped>

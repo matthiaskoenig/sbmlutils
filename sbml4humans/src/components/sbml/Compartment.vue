@@ -22,14 +22,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Compartment objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.Compartment,
+        info: {
+            type: Object,
+            default: TYPES.Compartment,
+        },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>

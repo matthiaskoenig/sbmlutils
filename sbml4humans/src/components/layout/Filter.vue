@@ -55,7 +55,7 @@
 import store from "@/store/index";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 import colorScheme from "@/data/colorScheme";
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 
 /**
  * Component to display buttons to filter SBML components in the generated report.

@@ -15,6 +15,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
 import SBase from "@/components/sbml/SBase.vue";
@@ -23,7 +24,7 @@ import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetai
 /*
  * Component to display detailed information about the selected SBML Component.
  */
-export default {
+export default defineComponent({
     components: {
         sbase: SBase,
         "component-specific-details": ComponentSpecificDetails,
@@ -45,7 +46,7 @@ export default {
             return store.state.detailInfo.sbmlType;
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>
