@@ -4,11 +4,12 @@
 
 <script lang="ts">
 import katex from "katex";
+import {defineComponent} from "vue";
 
 /**
  * Component to render math using Katex.
  */
-export default {
+export default defineComponent({
     props: {
         mathStr: {
             type: String,
@@ -25,7 +26,7 @@ export default {
             });
         },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped></style>
