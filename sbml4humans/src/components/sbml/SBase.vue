@@ -1,8 +1,8 @@
 <template>
     <!-- KaTex -->
-    <div class="data">
+    <!-- <div class="data">
         <katex v-bind:mathStr="math"></katex>
-    </div>
+    </div> -->
 
     <!-- Name -->
     <div class="data" v-if="info.name">
@@ -115,7 +115,7 @@ export default {
 
     components: {
         "xml-container": XMLContainer,
-        katex: Katex,
+        // katex: Katex,
     },
 
     data() {
