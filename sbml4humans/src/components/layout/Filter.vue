@@ -51,18 +51,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 import colorScheme from "@/data/colorScheme";
 
+/**
+ * Component to display buttons to filter SBML components in the generated report.
+ */
 export default {
     methods: {
         /**
          * Update the visibility of a specific component button.
-         * @param component
+         * @param component the SBML component for which its button's visibility has to be updated
          */
-        alterVisibility(component) {
+        alterVisibility(component: string): void {
             let visibility = this.visibility;
             visibility[component] = !visibility[component];
 
@@ -70,11 +73,10 @@ export default {
         },
 
         /**
-         * Change visibility and update state.
+         * Change visibility of all components to true and update state.
          */
-        selectAll() {
+        selectAll(): void {
             let visibility = this.visibility;
-            // make visibility of all SBML components "true"
             for (let component in visibility) {
                 visibility[component] = true;
             }
@@ -82,9 +84,11 @@ export default {
             store.dispatch("updateVisibility", visibility);
         },
 
-        deSelectAll() {
+        /**
+         * Change visibility of all components to false and update state.
+         */
+        deSelectAll(): void {
             let visibility = this.visibility;
-            // make visibility of all SBML components "false"
             for (let component in visibility) {
                 visibility[component] = false;
             }
@@ -93,24 +97,32 @@ export default {
         },
     },
 
-    data() {
-        return {};
-    },
-
     computed: {
-        counts() {
+        /**
+         * Reactively returns the count of each SBML component from Vuex state/localStorage.
+         */
+        counts(): Record<string, number> {
             return store.state.counts;
         },
 
-        visibility() {
-            return store.state.visibility;
+        /**
+         * Reactively returns the visibility of each SBML component from Vuex state/localStorage.
+         */
+        visibility(): Record<string, boolean> {
+            return store.state.visibility as { [key: string]: boolean };
         },
 
-        sbmlTypes() {
+        /**
+         * Returns a list of all SBML types.
+         */
+        sbmlTypes(): Array<string> {
             return listOfSBMLTypes.listOfSBMLTypes;
         },
 
-        colors() {
+        /**
+         * Returns the color scheme defined for SBML components.
+         */
+        colors(): Record<string, string> {
             return colorScheme.componentColor;
         },
     },

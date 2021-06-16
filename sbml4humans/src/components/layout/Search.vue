@@ -9,13 +9,20 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 
+/**
+ * Component to make search queries on the SBML objectss present in the report.
+ */
 export default {
     methods: {
-        updateSearchQuery(e) {
-            store.dispatch("updateSearchQuery", e.target.value);
+        /**
+         * Updates the searchQuery in Vuex state/localStorage to the currently searched string
+         * in the search box.
+         */
+        updateSearchQuery(e: Event): void {
+            store.dispatch("updateSearchQuery", (e.target as HTMLInputElement).value);
         },
     },
 };

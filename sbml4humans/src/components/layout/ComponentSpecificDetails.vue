@@ -48,7 +48,10 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import TYPES from "@/sbmlComponents";
+
+/* Components */
 import Model from "@/components/sbml/Model.vue";
 import Port from "@/components/sbml/Port.vue";
 import FunctionDefinition from "@/components/sbml/FunctionDefinition.vue";
@@ -62,14 +65,18 @@ import Event from "@/components/sbml/Event.vue";
 import Objective from "@/components/sbml/Objective.vue";
 import GeneProduct from "@/components/sbml/GeneProduct.vue";
 
+/*
+ * Component to inject a specific SBML component as required by in the parent component.
+ */
 export default {
     props: {
         sbmlType: {
             type: String,
-            default: "",
+            default: "SBMLDocument",
         },
         info: {
             type: Object,
+            default: TYPES.SBMLDocument,
         },
     },
 

@@ -19,7 +19,7 @@ const componentColor = {
     Constraint: "#fdae61",
     Event: "#fee08b",
     GeneProduct: "#d53e4f",
-};
+} as { [key: string]: string };
 
 export default {
     componentColor: componentColor,

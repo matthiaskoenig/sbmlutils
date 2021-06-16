@@ -13,12 +13,16 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 
+/* Components */
 import SBase from "@/components/sbml/SBase.vue";
 import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetails.vue";
 
+/*
+ * Component to display detailed information about the selected SBML Component.
+ */
 export default {
     components: {
         sbase: SBase,
@@ -26,15 +30,19 @@ export default {
     },
 
     computed: {
-        info: {
-            get() {
-                return store.state.detailInfo;
-            },
+        /**
+         * Reactively returns the detailInfo from Vuex state/localStorage.
+         */
+        info(): Record<string, unknown> {
+            return store.state.detailInfo;
         },
-        sbmlType: {
-            get() {
-                return store.state.detailInfo.sbmlType;
-            },
+
+        /**
+         * Reactively returns the sbmlType of the currently selected SBML Component's
+         * details.
+         */
+        sbmlType(): StringConstructor {
+            return store.state.detailInfo.sbmlType;
         },
     },
 };

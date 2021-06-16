@@ -317,6 +317,8 @@ const Report = {
     models: Models,
 };
 
+const DetailInfo = SBase;
+
 const RawData = {
     report: Report,
     debug: {
@@ -346,4 +348,5 @@ export default {
     ModelDefinitions: ModelDefinitions,
     Report: Report,
     RawData: RawData,
+    DetailInfo: DetailInfo,
 };

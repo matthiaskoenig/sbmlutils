@@ -29,37 +29,57 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
+import TYPES from "@/sbmlComponents";
 
+/**
+ * Component to display meta data about an SBML objects.
+ */
 export default {
     props: {
-        sbmlType: String,
-        info: {},
-        visible: Boolean,
+        sbmlType: {
+            type: String,
+            default: "SBMLDocument",
+        },
+        info: {
+            type: Object,
+            default: TYPES.SBMLDocument,
+        },
+        visible: {
+            type: Boolean,
+            default: true,
+        },
     },
 
-    data() {
+    data(): Record<string, unknown> {
         return {
-            color: String,
+            color: {
+                type: String,
+                default: "#FFFFFF",
+            },
         };
     },
 
-    mounted() {
-        this.color = colors.componentColor[this.sbmlType]
-            ? colors.componentColor[this.sbmlType]
-            : colors.componentColor.Default;
+    mounted(): void {
+        this.color = colors.componentColor[this.sbmlType];
     },
 
     computed: {
-        visibility() {
+        /**
+         * Reactively returns the visibility of SBML components from Vuex state/localStorage.
+         */
+        visibility(): Record<string, unknown> {
             return store.state.visibility;
         },
     },
 
     methods: {
-        showDetail() {
+        /**
+         * Updates the detailInfo in Vuex state/localStorage to this SBML component's info.
+         */
+        showDetail(): void {
             store.dispatch("updateDetailInfo", this.info);
         },
     },

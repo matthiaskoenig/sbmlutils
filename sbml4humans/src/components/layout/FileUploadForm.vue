@@ -7,8 +7,7 @@
                     <label for="fileField">File</label>
                     <input
                         type="file"
-                        ref="file"
-                        id="fileField"
+                        ref="fileField"
                         class="form-control"
                         v-on:change="handleFileUpload()"
                         required
@@ -30,49 +29,51 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
 
+/**
+ * Component to upload an SBML file to generate report.
+ */
 export default {
-    data() {
+    data(): Record<string, unknown> {
         return {
-            file: null,
-            mathRender: "latex",
-            fileFormat: "sbml",
+            file: {
+                type: File,
+            },
         };
     },
 
     methods: {
-        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-        handleFileUpload() {
-            this.file = this.$refs.file.files[0]; // add latest file in FileList to file attribute of component
+        /**
+         * Sets the currently selected file to the latest uploaded file in the form.
+         */
+        handleFileUpload(): void {
+            const fileField = this.$refs.fileField as HTMLInputElement;
+            if (fileField.files != null) {
+                this.file = fileField.files[0];
+            }
         },
 
-        async submitForm() {
-            this.mathRender = this.$refs.math.value;
-            this.fileFormat = this.$refs.format.value;
-
+        async submitForm(): Promise<void> {
             let formData = new FormData();
-            formData.append("source", this.file);
-            formData.append("math", this.mathRender);
-            formData.append("format", this.fileFormat);
+            formData.append("source", this.file as File);
 
             const headers = {
                 "Content-Type": "multipart/form-data",
             };
 
-            var payload = {
+            const payload = {
                 formData: formData,
                 headers: headers,
             };
 
-            console.log("here at 99");
             store.dispatch("fetchReport", payload);
         },
     },
 
     computed: {
-        loading() {
+        loading(): boolean {
             return store.state.fileLoading;
         },
     },

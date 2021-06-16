@@ -18,12 +18,12 @@ export default createStore({
         jsonReport: TYPES.Report,
 
         // detail view info (for access from every where)
-        detailInfo: {},
+        detailInfo: TYPES.DetailInfo,
 
         // describe if the file report is still loading (REST endpoint)
         fileLoading: false,
 
-        // describe if the file report is still loading (REST endpoint)
+        // describe if the example report is still loading (REST endpoint)
         exampleLoading: false,
 
         /* For Search and Filter feature */

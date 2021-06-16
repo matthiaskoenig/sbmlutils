@@ -40,14 +40,14 @@
     </nav>
 </template>
 
-<script>
+<script lang="ts">
+import store from "@/store/index";
+
 /**
  * Navbar component for providing main links in the application
  */
-import store from "@/store/index";
-
 export default {
-    data() {
+    data(): Record<string, unknown> {
         return {
             // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
             staticStatus: window.localStorage.getItem("static") === "true",
@@ -55,8 +55,8 @@ export default {
     },
 
     methods: {
-        handleSwitchChange() {
-            const staticSwitch = this.$refs["static-switch"];
+        handleSwitchChange(): void {
+            const staticSwitch = this.$refs["static-switch"] as HTMLInputElement;
             if (staticSwitch.checked) {
                 store.dispatch("updateStatic", true);
                 this.staticStatus = window.localStorage.getItem("static") === "true";
