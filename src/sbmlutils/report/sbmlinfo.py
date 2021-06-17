@@ -76,6 +76,7 @@ class SBMLDocumentInfo:
     def create_info(self) -> Dict[str, Any]:
         """Create information dictionary for report rendering."""
         values = self._create_assignment_map()
+        rules = self.rules_dict()
         model_info = {
             # sbml model information
             "model": self.model_dict(model=self.model),
@@ -87,7 +88,9 @@ class SBMLDocumentInfo:
             "species": self.species_list(),
             "parameters": self.parameters_list(),
             "initialAssignments": self.initial_assignments_list(),
-            "rules": self.rules_list(),
+            "assignmentRules": rules["assignmentRules"],
+            "rateRules": rules["rateRules"],
+            "algebraicRules": rules["algebraicRules"],
             "constraints": self.constraints_dict(),
             "reactions": self.reactions_dict(),
             "events": self.events_dict(),
@@ -773,20 +776,28 @@ class SBMLDocumentInfo:
             raise TypeError(rule)
 
 
-    def rules_list(self) -> List:
+    def rules_dict(self) -> Dict:
         """Information dictionaries for Rules.
 
         :return: list of info dictionaries for Rules
         """
 
-        rules = []
+        rules = {
+            "assignmentRules": [],
+            "rateRules": [],
+            "algebraicRules": [],
+        }
         rule: libsbml.Rule
         for rule in self.model.getListOfRules():
             info = self.sbase_dict(rule)
             info["variable"] = self._rule_variable_to_string(rule)
             info["math"] = self._math(rule.getMath(), self.model, self.math_render)
             info["units"] = derived_units(rule)
-            rules.append(info)
+
+            type = info["sbmlType"]
+            key = f"{type[0].lower()}{type[1:]}s"
+
+            rules[key].append(info)
 
         return rules
 

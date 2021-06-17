@@ -27,8 +27,16 @@
         <reaction v-bind:info="info"></reaction>
     </div>
 
-    <div id="ruleDiv" v-if="sbmlType === 'AssignmentRule'">
-        <rule v-bind:info="info"></rule>
+    <div id="assignmentRuleDiv" v-if="sbmlType === 'AssignmentRule'">
+        <assignment-rule v-bind:info="info"></assignment-rule>
+    </div>
+
+    <div id="rateRuleDiv" v-if="sbmlType === 'RateRule'">
+        <rate-rule v-bind:info="info"></rate-rule>
+    </div>
+
+    <div id="algebraicRuleDiv" v-if="sbmlType === 'AlgebraicRule'">
+        <algebraic-rule v-bind:info="info"></algebraic-rule>
     </div>
 
     <div id="constraintDiv" v-if="sbmlType === 'Constraint'">
@@ -60,7 +68,9 @@ import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
 import Parameter from "@/components/sbml/Parameter.vue";
 import Reaction from "@/components/sbml/Reaction.vue";
-import Rule from "@/components/sbml/Rule.vue";
+import AssignmentRule from "@/components/sbml/AssignmentRule.vue";
+import RateRule from "@/components/sbml/RateRule.vue";
+import AlgebraicRule from "@/components/sbml/AlgebraicRule.vue";
 import Constraint from "@/components/sbml/Constraint.vue";
 import Event from "@/components/sbml/Event.vue";
 import Objective from "@/components/sbml/Objective.vue";
@@ -89,7 +99,9 @@ export default defineComponent({
         species: Species,
         parameter: Parameter,
         reaction: Reaction,
-        rule: Rule,
+        "assignment-rule": AssignmentRule,
+        "rate-rule": RateRule,
+        "algebraic-rule": AlgebraicRule,
         constraint: Constraint,
         event: Event,
         objective: Objective,

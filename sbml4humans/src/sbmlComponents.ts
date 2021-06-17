@@ -162,6 +162,10 @@ const Rule = {
     units: derivedUnits,
 };
 
+const AssignmentRule = Rule;
+const RateRule = Rule;
+const AlgebraicRule = Rule;
+
 const Constraint = {
     sbase: SBase,
     math: mathDict,
@@ -336,7 +340,9 @@ export default {
     Species: Species,
     Parameter: Parameter,
     InitialAssignment: InitialAssignment,
-    Rule: Rule,
+    AssignmentRule: AssignmentRule,
+    RateRule: RateRule,
+    AlgebraicRule: AlgebraicRule,
     Constraint: Constraint,
     Reaction: Reaction,
     Objective: Objective,
