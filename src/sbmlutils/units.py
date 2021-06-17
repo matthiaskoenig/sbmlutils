@@ -81,6 +81,7 @@ UNIT_hr = Unit("hr", [(UNIT_KIND_SECOND, 1.0, 0, 3600)], port=True)
 UNIT_per_s = Unit("per_s", [(UNIT_KIND_SECOND, -1.0)], port=True)
 UNIT_per_min = Unit("per_min", [(UNIT_KIND_SECOND, -1.0, 0, 60)], port=True)
 UNIT_per_hr = Unit("per_hr", [(UNIT_KIND_SECOND, -1.0, 0, 3600)], port=True)
+UNIT_per_kg = Unit("per_kg", [(UNIT_KIND_GRAM, -1.0, 0, 1000)], port=True)
 
 UNIT_mg = Unit("mg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0)], port=True)
 UNIT_mg_per_hr = Unit(
@@ -151,6 +152,7 @@ __all__ = [
     "UNIT_per_s",
     "UNIT_per_min",
     "UNIT_per_hr",
+    "UNIT_per_kg",
     "UNIT_mg",
     "UNIT_mg_per_hr",
     "UNIT_mg_per_day",
