@@ -4,9 +4,12 @@
         <div class="label"><strong>variable:</strong> {{ info.sid }}</div>
     </div>
 
-    <!-- Assignment -->
-    <div class="data" v-if="info.assignment">
-        <div class="label"><strong>assignment:</strong> {{ info.assignment }}</div>
+    <!-- Math -->
+    <div class="data" v-if="info.math">
+        <div class="label">
+            <strong>math:</strong>
+            <katex :mathStr="info.math"></katex>
+        </div>
     </div>
 
     <!-- Units -->

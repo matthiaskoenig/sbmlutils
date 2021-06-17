@@ -1,7 +1,5 @@
 <template>
-    <div>
-        <div class="katex" v-html="katexMathHTML"></div>
-    </div>
+    <div class="katex ml-4" v-html="katexMathHTML"></div>
 </template>
 
 <script lang="ts">

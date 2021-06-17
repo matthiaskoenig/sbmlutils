@@ -147,12 +147,13 @@ def derived_units(item: libsbml.SBase) -> Dict:
     """Create formatted string for Unit definition object.
 
     :param item: SBML object from which Unit Definition string is to be created
+    :param item: SBML object from which Unit Definition string is to be created
     :return: formatted string for Unit Definition derived from the item
     """
 
     ud: libsbml.UnitDefinition = item.getDerivedUnitDefinition()
     info = {
-        "math": formula_to_mathml(unitDefinitionToString(ud)),
+        "toString": unitDefinitionToString(ud),
         "unitTerms": units_dict(ud)
     } if item else None
 
