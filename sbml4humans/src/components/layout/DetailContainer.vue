@@ -10,6 +10,10 @@
             v-bind:sbmlType="sbmlType"
         ></component-specific-details>
         <!---- ==================== Component Specific Info Ends  =========================   --->
+
+        <!---- ==================== XML Container Starts ====================== -->
+        <xml-container v-if="info.xml" v-bind:xml="info.xml"></xml-container>
+        <!---- ==================== XML Container Ends ====================== -->
     </div>
 </template>
 
@@ -20,6 +24,7 @@ import { defineComponent } from "@vue/runtime-core";
 /* Components */
 import SBase from "@/components/sbml/SBase.vue";
 import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetails.vue";
+import XMLContainer from "@/components/layout/XMLContainer.vue";
 
 /*
  * Component to display detailed information about the selected SBML Component.
@@ -28,6 +33,7 @@ export default defineComponent({
     components: {
         sbase: SBase,
         "component-specific-details": ComponentSpecificDetails,
+        "xml-container": XMLContainer,
     },
 
     computed: {
