@@ -42,25 +42,7 @@ export default defineComponent({
             }
 
             let sbases: Array<Record<string, unknown>> = [];
-            let counts: Record<string, number> = {
-                SBMLDocument: 0,
-                SubModel: 0,
-                Port: 0,
-                Model: 0,
-                FunctionDefinition: 0,
-                UnitDefinition: 0,
-                Compartment: 0,
-                Species: 0,
-                Reaction: 0,
-                Parameter: 0,
-                InitialAssignment: 0,
-                AssignmentRule: 0,
-                RateRule: 0,
-                Objective: 0,
-                Constraint: 0,
-                Event: 0,
-                GeneProduct: 0,
-            };
+            let counts: Record<string, number> = store.state.counts;
             let allObjectsMap: Record<string, unknown> = {};
             let componentPKsMap: Record<string, Array<unknown>> = allSBML.componentsMap;
 
@@ -100,6 +82,7 @@ export default defineComponent({
                 });
             }
 
+            // collecting all other components
             for (let i = 0; i < listOfSBMLTypes.listOfSBMLTypes.length; i++) {
                 const sbmlType = listOfSBMLTypes.listOfSBMLTypes[i];
 

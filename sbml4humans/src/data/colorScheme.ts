@@ -14,7 +14,7 @@ const componentColor = {
     InitialAssignment: "#fee08b",
     AssignmentRule: "#fb9a99",
     RateRule: "#fb9a99",
-    Rule: "#fb9a99",
+    AlgebraicRule: "#fb9a99",
     Objective: "#f46d43",
     Constraint: "#fdae61",
     Event: "#fee08b",

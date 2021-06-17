@@ -28,6 +28,7 @@
                 </sup>
             </div>
 
+            <!-- Buttons for select all and de-select all -->
             <div class="master-select">
                 <!-- Select All -->
                 <button

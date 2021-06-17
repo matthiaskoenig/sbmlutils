@@ -30,10 +30,6 @@ export default {
     props: {
         info: TYPES.Rule,
     },
-
-    data() {
-        return {};
-    },
 };
 </script>
 

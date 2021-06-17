@@ -11,8 +11,8 @@ const listOfSBMLTypes = [
     "Parameter",
     "InitialAssignment",
     "AssignmentRule",
-    "RateRule", // not seen yet
-    "Rule", // parent of Assignment Rule and Rate Rule
+    "RateRule",
+    "AlgebraicRule",
     "Objective",
     "Constraint",
     "Event",
