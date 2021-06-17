@@ -5,7 +5,7 @@
 - [x] add tool tips for landing page
 - [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
 - [x] remove examples & Upload SBML from navigation menu
-- [ ] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
+- [x] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
 - [x] add tooltips to links (navigation and other linking, e.g. `Show details`)
 - [x] update XML: make visible/invisible, do not use modal; don't show/load XML for model/SBMLDocument
 - [x] start frontend on different port: > 3000; 3245 -- running on 3456

@@ -2,13 +2,13 @@
     <div class="xml-container">
         <button
             v-if="xml"
-            type="button"
+            ref="xmlButton"
             class="btn btn-info px-5"
             data-toggle="modal"
             data-target="#exampleModalScrollable"
             v-on:click="hideUnhideXML()"
         >
-            View XML
+            Show XML
         </button>
         <pre ref="xmlContent" class="xml-text" style="display: none">{{
             formattedXML
@@ -43,10 +43,14 @@ export default defineComponent({
         hideUnhideXML(): void {
             this.updateModalXML();
             let xmlContent: HTMLDivElement = this.$refs["xmlContent"] as HTMLDivElement;
+            let xmlButton: HTMLDivElement = this.$refs["xmlButton"] as HTMLDivElement;
+
             if (xmlContent.style.display === "none") {
                 xmlContent.style.display = "block";
+                xmlButton.innerHTML = "Hide XML";
             } else {
                 xmlContent.style.display = "none";
+                xmlButton.innerHTML = "Show XML";
             }
         },
     },
