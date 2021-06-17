@@ -32,6 +32,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.katex {
+    font-size: x-large;
+}
+
 /*@font-face {
     font-family: "Open-Sans";
     src: url("https://fonts.googleapis.com/css2?family=Roboto&display=swap")

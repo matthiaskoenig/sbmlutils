@@ -49,55 +49,11 @@
             </ul>
         </div>
     </div>
-
-    <!-- XML -->
-    <button
-        v-if="info.xml"
-        type="button"
-        class="btn btn-info px-5"
-        data-toggle="modal"
-        data-target="#exampleModalScrollable"
-    >
-        View XML
-    </button>
-
-    <!-- Modal -->
-    <div
-        v-if="info.xml"
-        class="modal fade"
-        id="exampleModalScrollable"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="exampleModalScrollableTitle"
-        aria-hidden="true"
-    >
-        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button
-                        type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="Close"
-                    >
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <xml-container v-bind:xml="info.xml"></xml-container>
-                </div>
-            </div>
-        </div>
-    </div>
 </template>
 
 <script lang="ts">
-import store from "@/store/index";
 import TYPES from "@/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
-
-/* Compartments */
-import XMLContainer from "@/components/layout/XMLContainer.vue";
 
 /**
  * Component to define display of SBase information.
@@ -111,19 +67,6 @@ export default defineComponent({
         math: {
             type: String,
             default: "",
-        },
-    },
-
-    components: {
-        "xml-container": XMLContainer,
-    },
-
-    methods: {
-        /**
-         * Update the current xml code to be displayed in the XML container.
-         */
-        updateModalXML() {
-            store.dispatch("updateXML", this.info.xml);
         },
     },
 });

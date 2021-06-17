@@ -122,8 +122,6 @@ export default defineComponent({
             sbases: Array<Record<string, unknown>> = [TYPES.SBase],
             searchQuery = ""
         ): Array<Record<string, unknown>> {
-            console.log("henlo");
-
             let searchedSet: Set<string> = new Set();
 
             let searchedSbases = sbases.filter((sbase) => {
@@ -143,11 +141,9 @@ export default defineComponent({
                     );
             });
 
-            console.log("henlo");
             searchedSbases.forEach((sbase) => {
                 const pk = sbase.pk as string;
                 searchedSet.add(pk);
-                console.log("searched " + pk);
             });
 
             store.dispatch("updateSearchedSBasesPKs", searchedSet);
