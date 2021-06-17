@@ -8,7 +8,7 @@
 - [ ] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
 - [x] add tooltips to links (navigation and other linking, e.g. `Show details`)
 - [ ] update XML: make visible/invisible, do not use modal; don't show/load XML for model/SBMLDocument
-- [x] start frontend on different port: > 3000; 3245
+- [x] start frontend on different port: > 3000; 3245 -- running on 3456
 - [x] figure out how to document components & document them (https://vue-styleguidist.github.io/docs/Documenting.html)
 - [x] use typescript; required tags on properties; (see XMLContainer for example), type annotations
 - [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/

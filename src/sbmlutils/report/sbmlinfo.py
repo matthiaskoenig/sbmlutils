@@ -185,24 +185,17 @@ class SBMLDocumentInfo:
         :return: formatted MathML content for the item
         """
 
-        info = {}
+        math = None
         if math_type == "cmathml":
-            info["type"] = "cmathml"
-            info["math"] = SBMLDocumentInfo._astnode_to_mathml(astnode)
+            math = SBMLDocumentInfo._astnode_to_mathml(astnode)
         elif math_type == "pmathml":
-            info["type"] = "pmathml"
             cmathml = SBMLDocumentInfo._astnode_to_mathml(astnode)
-            info["math"] = mathml.cmathml_to_pmathml(cmathml)
+            math = mathml.cmathml_to_pmathml(cmathml)
         elif math_type == "latex":
-            info["type"] = "latex"
-            # FIXME: not supported here ---- latex support added
             latex_str = mathml.astnode_to_latex(astnode, model=model)
-            info["math"] = f"$${latex_str}$$"
-        else:
-            info["type"] = None
-            info["math"] = None
+            math = latex_str
 
-        return info
+        return math
 
 
     def _create_assignment_map(self) -> Dict:

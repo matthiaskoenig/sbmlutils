@@ -4,20 +4,20 @@
         <div class="label"><strong>variable:</strong> {{ info.sid }}</div>
     </div>
 
-    <!-- Assignment -->
-    <div class="data" v-if="info.assignment">
-        <div class="label"><strong>assignment:</strong> {{ info.assignment }}</div>
+    <!-- Math -->
+    <div class="data" v-if="info.math">
+        <div class="label">
+            <strong>math:</strong>
+            <katex :mathStr="info.math"></katex>
+        </div>
     </div>
 
-    <!-- Units -->
-    <div class="data" v-if="info.units">
+    <!-- Units (not working for now) -->
+    <div class="data" v-if="info.units && info.units.toString">
         <div class="label">
             <strong>units:</strong>
             <div class="ml-4">
-                <div v-if="info.units.math">math: {{ info.units.math }}</div>
-                <div v-if="info.units.unitTerms">
-                    unitTerms: {{ info.units.unitTerms }}
-                </div>
+                <div v-if="info.units.toString">{{ info.units.toString }}</div>
             </div>
         </div>
     </div>
@@ -26,9 +26,15 @@
 <script>
 import TYPES from "@/sbmlComponents";
 
+import Katex from "@/components/layout/Katex.vue";
+
 export default {
     props: {
         info: TYPES.Rule,
+    },
+
+    components: {
+        katex: Katex,
     },
 };
 </script>
