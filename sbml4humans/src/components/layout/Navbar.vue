@@ -1,5 +1,9 @@
 <template>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <img
+            class="logo"
+            src="https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png"
+        />
         <router-link class="navbar-brand" to="/"> SBML4Humans </router-link>
 
         <button
