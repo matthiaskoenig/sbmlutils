@@ -1,18 +1,10 @@
 <template>
     <div class="xml-container">
-        <button
-            v-if="xml"
-            ref="xmlButton"
-            class="btn btn-info px-5"
-            data-toggle="modal"
-            data-target="#exampleModalScrollable"
-            v-on:click="hideUnhideXML()"
-        >
-            Show XML
-        </button>
-        <pre ref="xmlContent" class="xml-text" style="display: none">{{
-            formattedXML
-        }}</pre>
+        <!-- FIXME ICON -->
+        <pre v-if="visible" ref="xmlContent" class="xml-text">
+            {{formattedXML}}
+        </pre>
+        <span v-on:click="visible = !visible" :title="visible ? 'Hide SBML': 'Show SBML'"> {{visible ? "[-]": "[+]"}}</span>
     </div>
 </template>
 
@@ -31,33 +23,19 @@ export default defineComponent({
             required: true,
         },
     },
-
+    data(): Record<string, unknown> {
+        return {
+            visible: true,
+        };
+    },
     methods: {
         /**
-         * Update the current xml code to be displayed in the XML container.
+         * Update the current xml displayed
          */
         updateModalXML() {
             store.dispatch("updateXML", this.xml);
         },
-
-        /**
-         * Shows/hides the XML content of the SBML object.
-         */
-        hideUnhideXML(): void {
-            this.updateModalXML();
-            let xmlContent: HTMLDivElement = this.$refs["xmlContent"] as HTMLDivElement;
-            let xmlButton: HTMLDivElement = this.$refs["xmlButton"] as HTMLDivElement;
-
-            if (xmlContent.style.display === "none") {
-                xmlContent.style.display = "block";
-                xmlButton.innerHTML = "Hide XML";
-            } else {
-                xmlContent.style.display = "none";
-                xmlButton.innerHTML = "Show XML";
-            }
-        },
     },
-
     computed: {
         /**
          * Formats and returns the raw XML string passed from the parent into

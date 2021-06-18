@@ -1,19 +1,12 @@
 <template>
     <div class="detail-container">
-        <!---- ============================== SBase Info Starts ============================= --->
         <sbase v-bind:info="info"></sbase>
-        <!---- ============================== SBase Info Ends =============================   --->
-
-        <!---- ==================== Component Specific Info Starts ========================   --->
         <component-specific-details
             v-bind:info="info"
             v-bind:sbmlType="sbmlType"
         ></component-specific-details>
-        <!---- ==================== Component Specific Info Ends  =========================   --->
-
-        <!---- ==================== XML Container Starts ====================== -->
+        <!-- XML container -->
         <xml-container v-if="info.xml" v-bind:xml="info.xml"></xml-container>
-        <!---- ==================== XML Container Ends ====================== -->
     </div>
 </template>
 

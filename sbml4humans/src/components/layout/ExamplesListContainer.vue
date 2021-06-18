@@ -1,6 +1,9 @@
 <template>
     <div class="container">
-        <h5>Choose from the below list of example SBML models to generate a report</h5>
+        <h1>Examples</h1>
+        <p>
+            Choose from the below list of example SBML models to generate a report.
+        </p>
         <a-list class="list-container">
             <example
                 v-for="ex in examples"
