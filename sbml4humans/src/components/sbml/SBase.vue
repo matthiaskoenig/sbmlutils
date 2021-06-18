@@ -1,30 +1,20 @@
 <template>
-    <!-- Name -->
-    <div class="data" v-if="info.name">
-        <div class="label"><strong>name:</strong> {{ info.name }}</div>
-    </div>
 
-    <!-- SBML Type -->
-    <div class="data" v-if="info.sbmlType">
-        <div class="label"><strong>sbmlType:</strong> {{ info.sbmlType }}</div>
-    </div>
+    <h1>{{ info.sbmlType }}</h1>
+    <h2>{{info.id}} {{info.name ? '('+info.name+')' : ""}}</h2>
 
-    <!-- SID -->
     <div class="data" v-if="info.id">
         <div class="label"><strong>id:</strong> {{ info.id }}</div>
     </div>
-
-    <!-- SBO -->
-    <div class="data" v-if="info.sbo">
-        <div class="label"><strong>sbo:</strong> {{ info.sbo }}</div>
-    </div>
-
-    <!-- Meta ID -->
     <div class="data" v-if="info.metaId">
         <div class="label"><strong>metaId:</strong> {{ info.metaId }}</div>
     </div>
-
-    <!-- History -->
+    <div class="data" v-if="info.name">
+        <div class="label"><strong>name:</strong> {{ info.name }}</div>
+    </div>
+    <div class="data" v-if="info.sbo">
+        <div class="label"><strong>sbo:</strong> {{ info.sbo }}</div>
+    </div>
     <div class="data" v-if="info.history">
         <div class="label"><strong>history:</strong></div>
         <br />

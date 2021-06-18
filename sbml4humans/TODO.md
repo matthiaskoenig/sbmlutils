@@ -1,13 +1,12 @@
 ## TODO
-- [x] `about` component providing information on the project (see https://pk-db.com/)
-  - [x] project, team, license, funding, how to cite (link to repository)
-- [x] remove file format and math rendering from landing page;
-- [x] add tool tips for landing page
+ 
+- [ ] make loading report component (modal); use in Upload & Examples
+- [ ] define global styles for components to make large containers look consistent 
+     (heading sizes, color scheme used for page)
+- [ ] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
+  
 - [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
-- [x] remove examples & Upload SBML from navigation menu
-- [x] add logo: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
-- [x] add tooltips to links (navigation and other linking, e.g. `Show details`)
-- [x] update XML: make visible/invisible, do not use modal; don't show/load XML for model/SBMLDocument
+
 - [x] start frontend on different port: > 3000; 3245 -- running on 3456
 - [x] figure out how to document components & document them (https://vue-styleguidist.github.io/docs/Documenting.html)
 - [x] use typescript; required tags on properties; (see XMLContainer for example), type annotations

@@ -1,10 +1,9 @@
 <template>
     <div class="container">
+        <h1>Upload SBML</h1>
         <form class="needs-validation" @submit.prevent="submitForm">
-            <h5>Upload an SBML file to generate report</h5>
             <div class="form-row">
                 <div class="col-md-12 mb-3">
-                    <label for="fileField">File</label>
                     <input
                         type="file"
                         ref="fileField"
@@ -23,8 +22,7 @@
             </button>
         </form>
         <div class="loader" v-if="loading">
-            <h6>Report is being generated ...</h6>
-            <span class="loading"><a-spin size="large" /></span>
+            <span class="loading"><a-spin size="large" /></span>&nbsp;&nbsp;Generating report
         </div>
     </div>
 </template>
