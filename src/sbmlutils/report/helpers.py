@@ -143,18 +143,15 @@ def formula_to_mathml(string: str) -> str:
     mathml = libsbml.writeMathMLToString(astnode)
     return str(mathml)
 
-def derived_units(item: libsbml.SBase) -> Dict:
+def derived_units(item: libsbml.SBase) -> str:
     """Create formatted string for Unit definition object.
 
     :param item: SBML object from which Unit Definition string is to be created
     :param item: SBML object from which Unit Definition string is to be created
     :return: formatted string for Unit Definition derived from the item
     """
-
-    ud: libsbml.UnitDefinition = item.getDerivedUnitDefinition()
-    info = {
-        "toString": unitDefinitionToString(ud),
-        "unitTerms": units_dict(ud)
-    } if item else None
-
-    return info
+    if item:
+        return formula_to_mathml(
+            unitDefinitionToString(item.getDerivedUnitDefinition())
+        )
+    return ""

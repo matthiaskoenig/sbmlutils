@@ -7,8 +7,12 @@
         <port v-bind:info="info"></port>
     </div>
 
-    <div id="functionDefinitionDiv" v-if="sbmlType === 'Function Definition'">
+    <div id="functionDefinitionDiv" v-if="sbmlType === 'FunctionDefinition'">
         <function-definition v-bind:info="info"></function-definition>
+    </div>
+
+    <div id="unitDefinitionDiv" v-if="sbmlType === 'UnitDefinition'">
+        <unit-definition v-bind:info="info"></unit-definition>
     </div>
 
     <div id="compartmentDiv" v-if="sbmlType === 'Compartment'">
@@ -64,6 +68,7 @@ import { defineComponent } from "@vue/runtime-core";
 import Model from "@/components/sbml/Model.vue";
 import Port from "@/components/sbml/Port.vue";
 import FunctionDefinition from "@/components/sbml/FunctionDefinition.vue";
+import UnitDefinition from "@/components/sbml/UnitDefinition.vue";
 import Compartment from "@/components/sbml/Compartment.vue";
 import Species from "@/components/sbml/Species.vue";
 import Parameter from "@/components/sbml/Parameter.vue";
@@ -95,6 +100,7 @@ export default defineComponent({
         model: Model,
         port: Port,
         "function-definition": FunctionDefinition,
+        "unit-definition": UnitDefinition,
         compartment: Compartment,
         species: Species,
         parameter: Parameter,

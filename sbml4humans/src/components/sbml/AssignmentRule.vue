@@ -13,11 +13,11 @@
     </div>
 
     <!-- Units (not working for now) -->
-    <div class="data" v-if="info.units && info.units.toString">
+    <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
             <div class="ml-4">
-                <div v-if="info.units.toString">{{ info.units.toString }}</div>
+                <div v-if="info.units">{{ info.units }}</div>
             </div>
         </div>
     </div>

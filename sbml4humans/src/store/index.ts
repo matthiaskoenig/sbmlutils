@@ -29,7 +29,7 @@ export default createStore({
         /* For Search and Filter feature */
         visibility: {
             SBMLDocument: true,
-            SubModel: true,
+            Submodel: true,
             Port: true,
             Model: true,
             FunctionDefinition: true,
@@ -50,7 +50,7 @@ export default createStore({
 
         counts: {
             SBMLDocument: 0,
-            SubModel: 0,
+            Submodel: 0,
             Port: 0,
             Model: 0,
             FunctionDefinition: 0,

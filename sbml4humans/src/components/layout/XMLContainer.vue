@@ -40,6 +40,9 @@ export default defineComponent({
             store.dispatch("updateXML", this.xml);
         },
 
+        /**
+         * Shows/hides the XML content of the SBML object.
+         */
         hideUnhideXML(): void {
             this.updateModalXML();
             let xmlContent: HTMLDivElement = this.$refs["xmlContent"] as HTMLDivElement;

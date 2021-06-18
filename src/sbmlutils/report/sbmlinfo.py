@@ -572,6 +572,9 @@ class SBMLDocumentInfo:
 
         return func_defs
 
+    def _unit_def_to_mathml(self, ud: libsbml.UnitDefinition):
+        return self._formula_to_mathml(helpers.unitDefinitionToString(ud))
+
     def unit_definitions_list(self) -> List:
         """Information dictionaries for UnitDefinitions.
 
@@ -581,7 +584,8 @@ class SBMLDocumentInfo:
         ud: libsbml.UnitDefinition
         for ud in self.model.getListOfUnitDefinitions():
             info = self.sbase_dict(ud)
-            info["listOfUnits"] = helpers.units_dict(ud)
+            info["units"] = mathml.cmathml_to_latex(self._unit_def_to_mathml(ud))
+
             unit_defs.append(info)
 
         return unit_defs
@@ -602,7 +606,6 @@ class SBMLDocumentInfo:
             for key in [
                 "spatialDimensions",
                 "size",
-                "units",
                 "constant"
             ]:
                 field = f"{key[0].upper()}{key[1:]}"
@@ -612,6 +615,7 @@ class SBMLDocumentInfo:
                     info[key] = None
 
                 # FIXME: get assignment information into report (see assignment_map)
+            info["units"] = mathml.cmathml_to_latex(derived_units(c))
 
             compartments.append(info)
 
