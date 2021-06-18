@@ -4,26 +4,22 @@
             class="tag d-flex justify-content-between"
             v-bind:style="`background-color: ${color}`"
         >
-            <div class="left-text">
+            <div class="right-left">
+                <strong>{{info.id}}</strong> {{info.name ? '('+info.name+')' : ""}}
+            </div>
+            <div class="left-right">
                 <strong>{{ sbmlType }}</strong>
             </div>
+
         </div>
-        <div class="card-body">
-            <h6 class="card-subtitle d-flex justify-content-between">
-                <div class="name" v-if="info.name">Name: {{ info.name }}</div>
-                <div class="sbo" v-if="info.sbo">{{ info.sbo }}</div>
-            </h6>
-            <div class="meta d-flex justify-content-between text-primary">
-                <div v-if="info.metaId">
-                    Meta ID:
+        <div v-if="info.metaId || info.sbo" class="card-body">
+            <div class="d-flex justify-content-between">
+                <span class="text-primary" v-if="info.metaId">
+                    metaId:
                     <span v-if="info.metaId.length < 20">{{ info.metaId }}</span>
                     <span v-else>{{ info.metaId.substring(0, 20) + "..." }}</span>
-                </div>
-                <div v-if="info.id">
-                    SID:
-                    <span v-if="info.id.length < 20">{{ info.id }}</span>
-                    <span v-else>{{ info.id.substring(0, 20) + "..." }}</span>
-                </div>
+                </span>
+                <span class="sbo" v-if="info.sbo">{{ info.sbo }}</span>
             </div>
         </div>
     </div>
