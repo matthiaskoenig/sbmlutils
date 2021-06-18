@@ -61,7 +61,7 @@
     <div class="data" v-if="info.equation">
         <div class="label">
             <strong>equation:</strong>
-            <span v-html="info.equation"></span>
+            <span class="ml-2" v-html="info.equation"></span>
         </div>
     </div>
 

@@ -1,15 +1,34 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Model Reference -->
+    <div class="data" v-if="info.modelRef">
+        <div class="label"><strong>modelRef:</strong> {{ info.modelRef }}</div>
+    </div>
+
+    <!-- Deletions -->
+    <div class="data" v-if="info.deletions && info.deletions[0].type">
+        <div class="label"><strong>deletions:</strong></div>
+        <br />
+        <div class="ml-4">
+            <ul title="Deletions">
+                <li v-for="deletion in info.deletions" v-bind:key="deletion.value">
+                    type: {{ deletion.type }}, value: {{ deletion.value }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Time Conversion -->
+    <div class="data" v-if="info.timeConversion">
+        <div class="label">
+            <strong>timeConversion:</strong> {{ info.timeConversion }}
+        </div>
+    </div>
+
+    <!-- Extent Conversion -->
+    <div class="data" v-if="info.extentConversion">
+        <div class="label">
+            <strong>extentConversion:</strong> {{ info.extentConversion }}
+        </div>
     </div>
 </template>
 
@@ -24,7 +43,7 @@ export default defineComponent({
     props: {
         info: {
             type: Object,
-            default: TYPES.SubModel,
+            default: TYPES.Submodel,
         },
     },
 });

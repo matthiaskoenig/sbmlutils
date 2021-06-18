@@ -254,7 +254,7 @@ const sbaseRef = {
     },
 };
 
-const SubModel = {
+const Submodel = {
     sbase: SBase,
     modelRef: String,
     deletions: [
@@ -273,7 +273,7 @@ const Port = {
 
 const Models = {
     model: Model,
-    submodels: [SubModel],
+    Submodels: [Submodel],
     ports: [Port],
     functionDefinitions: [FunctionDefinition],
     unitDefinitions: [UnitDefinition],
@@ -300,7 +300,7 @@ const ModelDefinitions = {
             },
             replaced_elements: [
                 {
-                    submodelRef: String,
+                    SubmodelRef: String,
                     replacedBySbaseref: {
                         class: String,
                         source_code: String,
@@ -348,7 +348,7 @@ export default {
     Objective: Objective,
     Event: Event,
     GeneProduct: GeneProduct,
-    SubModel: SubModel,
+    Submodel: Submodel,
     Port: Port,
     Models: Models,
     ModelDefinitions: ModelDefinitions,

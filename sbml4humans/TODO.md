@@ -42,5 +42,8 @@ Frontend:
 - [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
     - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
     - no solution for now -> switching to elasticsearch based on JSON in future
-    
+
+- [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex     conversion is facing problems in the backend.
+    - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
+
 => intercomponent navigation

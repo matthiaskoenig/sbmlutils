@@ -1,21 +1,18 @@
 <template>
-    <div class="container">
-        <a-descriptions bordered :size="size">
-            <a-descriptions-item label="Spatial Dimensions">{{
-                info.spatialDimensions
-            }}</a-descriptions-item>
-            <a-descriptions-item label="Size">{{ info.size }}</a-descriptions-item>
-            <a-descriptions-item label="Units">{{ info.units }}</a-descriptions-item>
-            <a-descriptions-item label="Constant">{{
-                info.constant
-            }}</a-descriptions-item>
-        </a-descriptions>
+    <!-- Unit String -->
+    <div class="data" v-if="info.units">
+        <div class="label">
+            <strong>units:</strong>
+            <katex v-bind:mathStr="info.units"></katex>
+        </div>
     </div>
 </template>
 
 <script>
 import TYPES from "@/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
+
+import Katex from "@/components/layout/Katex.vue";
 
 /**
  * Component to define display of UnitDefinition objects.
@@ -26,6 +23,10 @@ export default defineComponent({
             type: Object,
             default: TYPES.UnitDefinition,
         },
+    },
+
+    components: {
+        katex: Katex,
     },
 });
 </script>
