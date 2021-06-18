@@ -132,26 +132,3 @@ def units_dict(udef: libsbml.UnitDefinition) -> Dict:
         "denom_terms": denom_terms
     }
     return res
-
-def formula_to_mathml(string: str) -> str:
-    """Parse formula string.
-
-    :param string: formula string
-    :return string rendering of parsed formula in the formula string
-    """
-    astnode = libsbml.parseL3Formula(str(string))
-    mathml = libsbml.writeMathMLToString(astnode)
-    return str(mathml)
-
-def derived_units(item: libsbml.SBase) -> str:
-    """Create formatted string for Unit definition object.
-
-    :param item: SBML object from which Unit Definition string is to be created
-    :param item: SBML object from which Unit Definition string is to be created
-    :return: formatted string for Unit Definition derived from the item
-    """
-    if item:
-        return formula_to_mathml(
-            unitDefinitionToString(item.getDerivedUnitDefinition())
-        )
-    return ""

@@ -4,16 +4,10 @@ Create an SBML report from given SBML file or set of SBML files (for instance fo
 models). The model report is implemented based on a standard template language,
 which uses the SBML information to render the final document.
 
-The basic steps of template creation are
-- configure the engine (jinja2)
-- compile template
-- render with SBML context
-
 The final report is returned as a variable containing the HTML file content with an
 overview over the SBML elements in the model.
 """
 import logging
-import ntpath
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -25,22 +19,12 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 logger = logging.getLogger(__name__)
 
-def _check_report_math_type(math_type: str) -> None:
-    """Check the math type in the report."""
-    math_types = ["cmathml", "pmathml", "latex"]
-    if math_type not in math_types:
-        raise ValueError(
-            f"math_type '{math_type}' not in supported types: '{math_types}'"
-        )
-
 
 def create_reports(
     sbml_paths: List[Path],
     output_dir: Path,
-    template: str = "report.html",
     promote: bool = False,
     validate: bool = True,
-    math_type: str = "cmathml",
 ) -> List[str]:
     """Create model reports and return a list of HTML content for each model.
 
@@ -51,7 +35,6 @@ def create_reports(
 
     :param sbml_paths: paths to SBML files
     :param output_dir: target directory where the SBML file is written
-    :param template: which template file to use for rendering
     :param promote: boolean flag to promote local parameters
     :param validate: boolean flag if SBML file should be validated
                      (warnings and errors are logged)
@@ -67,10 +50,8 @@ def create_reports(
         html_report = create_report(
             sbml_path=sbml_path,
             output_dir=output_dir,
-            template=template,
             promote=promote,
             validate=validate,
-            math_type=math_type,
         )
 
         if html_report is not None:
@@ -83,7 +64,6 @@ def create_report(
     sbml_path: Path,
     output_dir: Path,
     promote: bool = False,
-    math_type: str = "cmathml",
     validate: bool = True,
     log_errors: bool = True,
     units_consistency: bool = True,
@@ -97,8 +77,6 @@ def create_report(
     :param sbml_path: path to SBML file
     :param output_dir: target directory where the SBML file is written
     :param promote: boolean flag to promote local parameters
-    :param template: which template file to use for rendering
-    :param math_type: specifies the math rendering mode for the report
     :param validate: boolean flag if SBML file be validated (warnings and errors
                      are logged)
     :param log_errors: boolean flag of errors should be logged
@@ -109,7 +87,6 @@ def create_report(
     """
 
     # validate and check arguments
-    _check_report_math_type(math_type)
 
     if not isinstance(sbml_path, Path):
         logger.warning(
@@ -148,7 +125,7 @@ def create_report(
     logging.error(f"No model in SBML file when creating model report: {doc}")
 
     # return JSON serialized model info
-    return _get_serialized_model_info(doc, math_type=math_type)
+    return _get_serialized_model_info(doc)
 
 
 def _get_serialized_model_info(
