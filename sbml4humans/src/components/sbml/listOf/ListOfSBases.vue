@@ -50,7 +50,6 @@ export default defineComponent({
             if (report.doc) {
                 counts["SBMLDocument"] = 1;
                 sbases.push(report.doc as Record<string, unknown>);
-
                 allObjectsMap[report.doc.pk as string] = report.doc;
             }
 
@@ -68,28 +67,15 @@ export default defineComponent({
                 componentPKsMap["Model"].push(pk);
             }
 
-            // collecting species
-            if (models.species) {
-                const species = models.species as Array<Record<string, unknown>>;
-
-                counts["Species"] = species.length as number;
-                species.forEach((sbase) => {
-                    sbases.push(sbase);
-
-                    const pk = sbase.pk as string;
-                    allObjectsMap[pk] = sbase;
-                    componentPKsMap["Species"].push(pk);
-                });
-            }
-
             // collecting all other components
             for (let i = 0; i < listOfSBMLTypes.listOfSBMLTypes.length; i++) {
                 const sbmlType = listOfSBMLTypes.listOfSBMLTypes[i];
 
                 // camel case keys, present in the API response E.g. unitDefinitions, compartments
-                let key: string =
-                    sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1) + "s";
-
+                let key: string = sbmlType;
+                if (sbmlType != "Species") {
+                    key = sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1) + "s";
+                }
                 if (models[key]) {
                     const component: Array<Record<string, unknown>> = models[
                         key

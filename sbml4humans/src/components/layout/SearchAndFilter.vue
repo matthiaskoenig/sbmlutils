@@ -60,7 +60,7 @@ export default defineComponent({
             // calulating the total SBML objects and the number of filtered objects.
             for (let component in this.counts) {
                 totalComponents += this.counts[component];
-                if (!this.visibility[component]) {
+                if (this.visibility[component]) {
                     filteredComponents += this.counts[component];
                 }
             }

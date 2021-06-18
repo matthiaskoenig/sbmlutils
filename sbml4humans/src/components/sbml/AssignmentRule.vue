@@ -7,8 +7,8 @@
     <!-- Math -->
     <div class="data" v-if="info.math">
         <div class="label">
-            <strong>math:</strong>
-            <katex :mathStr="info.math"></katex>
+            <strong>math: </strong><!-- ({{info.math}})-->
+            <katex :mathStr="info.id + '=' + info.math"></katex>
         </div>
     </div>
 

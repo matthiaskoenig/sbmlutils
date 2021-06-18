@@ -1,48 +1,42 @@
-## TODO
- 
+## TODO 
 - [ ] make loading report component (modal); use in Upload & Examples
 - [ ] define global styles for components to make large containers look consistent 
      (heading sizes, color scheme used for page)
 - [ ] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
-  
+- [ ] color code DetailView with sbmlType color (mapping: sbmlType: color)  
 - [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
-
-- [x] start frontend on different port: > 3000; 3245 -- running on 3456
-- [x] figure out how to document components & document them (https://vue-styleguidist.github.io/docs/Documenting.html)
-- [x] use typescript; required tags on properties; (see XMLContainer for example), type annotations
 - [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
-- [x] in detailView use attribute names (no whitespaces)
-Math rendering
-- [x] implement MathRendering using Katex; https://katex.org/ (npm install katex) -> send Latex
+- [ ] hide scrollbars if not needed
+- [ ] add cvterms & annotations to SBase Detail view
+- [ ] Fix Species in for loop
 
+Math rendering
+- [ ] issues with google chrome
+- [ ] reactions: kineticLaw Math
+
+Intercomponent navigation
+- [ ] intercomponent links: Species -> compartments; Reaction: -> Species
+- [ ] back/forward navigation for via stack of ids;
+- [ ] add models on SBMLDocument Details views for easy access/entry point (just links not green boxes)
 
 Filter
+- [ ] move search (always visible) & filter to navigation bar (collapsable)
 - [.] more robust handling of state --- not migrating to localStorage for testing purposes
-- [x] select/deselct in filter should be button; all buttons should have same style in frontent (see submit)
-- [x] indicate on filter how much is filtered; `Filter`; `Filter (10/123)`
-- [x] filter buttons without linestyle/or linestyle black
-- [x] create component for filter object and create all filter objects via a `v-for` from
-      list
-- [x] name fields in `visibility` identical to SBMLType
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
-- [x] use a global set to track filtered/searched SBases via `pk`: What is currently selected!
-Backend JSON:
-- [x]  add pk in JSON -> use metaId/SId/uuid)
-Frontend:
-- [x] List of SBMLTypes: ["SBMLDocument", "Model", "UnitDefinition", ...]  
-- [x] use a global HashMap of all objects: <pk: SBaseJSON>: This allows to lookup Details very fast for pk
-- [x] use a global for component: <'reaction': List[pk]> --> pks['Reaction']: This allows to get pks for a certain component type
+
+Improve generated latex (backend, MK)
+- [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
+    - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
+- [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
+
+Add intercomponent-links in JSON (MK):
+- [ ] in processing JSON links have to be generated (backend); `links`: {'reactants': [pk1, pk2, ..], ..., parameters: [pk10, pk12], ...} 
 
 ## List of existing problems:
- - [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)
+- [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)
         - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
         - Solution: => refactor filter (see TODOs above)
    
 - [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
     - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
     - no solution for now -> switching to elasticsearch based on JSON in future
-
-- [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex     conversion is facing problems in the backend.
-    - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
-
-=> intercomponent navigation
