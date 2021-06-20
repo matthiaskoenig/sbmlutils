@@ -1,5 +1,12 @@
 <template>
-    <div class="filter">
+    <button
+        class="btn btn-info filter-button ml-2"
+        v-on:click="menuVisible = !menuVisible"
+    >
+        Filter {{ filterFraction }}
+    </button>
+
+    <div class="filter" v-if="menuVisible">
         <div class="tag-list">
             <!-- Selectively Displaying Filter buttons for all SBML Types  -->
             <div class="d-flex" v-for="sbmlType in sbmlTypes" v-bind:key="sbmlType">
@@ -27,27 +34,23 @@
                     </div>
                 </sup>
             </div>
+        </div>
 
-            <!-- Buttons for select all and de-select all -->
-            <div class="master-select">
-                <!-- Select All -->
-                <button
-                    ref="select"
-                    class="tick btn btn-info px-5"
-                    v-on:click="selectAll()"
-                >
-                    <div class="label">Select All</div>
-                </button>
+        <!-- Buttons for select all and de-select all -->
+        <div class="master-select">
+            <!-- Select All -->
+            <button ref="select" class="tick btn btn-info" v-on:click="selectAll()">
+                <div class="label">Select All</div>
+            </button>
 
-                <!-- De-select All -->
-                <button
-                    ref="de-select"
-                    class="tick btn btn-info px-5 ml-4"
-                    v-on:click="deSelectAll()"
-                >
-                    <div class="label">De-Select All</div>
-                </button>
-            </div>
+            <!-- De-select All -->
+            <button
+                ref="de-select"
+                class="tick btn btn-info"
+                v-on:click="deSelectAll()"
+            >
+                <div class="label">De-Select All</div>
+            </button>
         </div>
     </div>
 </template>
@@ -62,6 +65,19 @@ import { defineComponent } from "vue";
  * Component to display buttons to filter SBML components in the generated report.
  */
 export default defineComponent({
+    data(): Record<string, unknown> {
+        return {
+            menuVisible: {
+                type: Boolean,
+                default: false,
+            },
+        };
+    },
+
+    mounted(): void {
+        this.$data["menuVisible"] = false;
+    },
+
     methods: {
         /**
          * Update the visibility of a specific component button.
@@ -126,6 +142,29 @@ export default defineComponent({
          */
         colors(): Record<string, string> {
             return colorScheme.componentColor;
+        },
+
+        /**
+         * Calculates and displays the fraction of SBML objects filtered in the report.
+         */
+        filterFraction(): string {
+            let totalComponents = 0;
+            let filteredComponents = 0;
+
+            // calulating the total SBML objects and the number of filtered objects.
+            for (let component in this.counts) {
+                totalComponents += this.counts[component];
+                if (this.visibility[component]) {
+                    filteredComponents += this.counts[component];
+                }
+            }
+
+            // show the filter fraction only if some objects have been actually filtered
+            if (filteredComponents > 0) {
+                return String("(" + filteredComponents + "/" + totalComponents + ")");
+            }
+
+            return "";
         },
     },
 });
