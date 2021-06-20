@@ -21,9 +21,7 @@
                 Submit
             </button>
         </form>
-        <div class="loader" v-if="loading">
-            <span class="loading"><a-spin size="large" /></span>&nbsp;&nbsp;Generating report
-        </div>
+        <loading parent="file"></loading>
     </div>
 </template>
 
@@ -31,10 +29,16 @@
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
+import Loading from "@/components/layout/Loading.vue";
+
 /**
  * Component to upload an SBML file to generate report.
  */
 export default defineComponent({
+    components: {
+        loading: Loading,
+    },
+
     data(): Record<string, unknown> {
         return {
             file: {
