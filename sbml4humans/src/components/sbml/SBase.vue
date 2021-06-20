@@ -1,7 +1,6 @@
 <template>
-
-    <h1>{{ info.sbmlType }}</h1>
-    <h2>{{info.id}} {{info.name ? '('+info.name+')' : ""}}</h2>
+    <h1 v-bind:style="`color: ${color}`">{{ info.sbmlType }}</h1>
+    <h2>{{ info.id }} {{ info.name ? "(" + info.name + ")" : "" }}</h2>
 
     <div class="data" v-if="info.id">
         <div class="label"><strong>id:</strong> {{ info.id }}</div>
@@ -42,6 +41,7 @@
 </template>
 
 <script lang="ts">
+import colorScheme from "@/data/colorScheme";
 import TYPES from "@/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
@@ -57,6 +57,12 @@ export default defineComponent({
         math: {
             type: String,
             default: "",
+        },
+    },
+
+    computed: {
+        color(): string {
+            return colorScheme.componentColor[this.info.sbmlType];
         },
     },
 });
