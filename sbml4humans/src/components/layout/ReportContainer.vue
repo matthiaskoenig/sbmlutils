@@ -1,7 +1,6 @@
 <template>
     <div class="row">
         <div class="left-container">
-            <search-and-filter ref="customization"></search-and-filter>
             <list-of-sbases ref="list"></list-of-sbases>
         </div>
         <div class="right-container">
@@ -14,7 +13,6 @@
 import { defineComponent } from "vue";
 
 /* Compartments */
-import SearchAndFilter from "@/components/layout/SearchAndFilter";
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
 import DetailContainer from "@/components/layout/DetailContainer";
 
@@ -23,7 +21,6 @@ import DetailContainer from "@/components/layout/DetailContainer";
  */
 export default defineComponent({
     components: {
-        "search-and-filter": SearchAndFilter,
         "list-of-sbases": ListOfSBases,
         "detail-container": DetailContainer,
     },
