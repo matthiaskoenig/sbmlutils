@@ -1,5 +1,5 @@
 <template>
-    <router-view />
+    <router-view class="main-view" />
 </template>
 
 <script lang="ts">
@@ -10,3 +10,9 @@ import { defineComponent } from "@vue/runtime-core";
  */
 export default defineComponent({});
 </script>
+
+<style lang="scss" scoped>
+.main-view {
+    padding-bottom: 20px;
+}
+</style>

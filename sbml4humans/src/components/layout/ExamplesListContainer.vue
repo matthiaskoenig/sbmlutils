@@ -1,9 +1,7 @@
 <template>
     <div class="container">
         <h1>Examples</h1>
-        <p>
-            Choose from the below list of example SBML models to generate a report.
-        </p>
+        <p>Choose from the below list of example SBML models to generate a report.</p>
         <a-list class="list-container">
             <example
                 v-for="ex in examples"
@@ -13,10 +11,7 @@
                 title="Click to generate report for this model"
             ></example>
         </a-list>
-        <div class="loader" v-if="loading">
-            <h6>Report is being generated...</h6>
-            <span class="loading"><a-spin size="large" /></span>
-        </div>
+        <loading parent="example"></loading>
     </div>
 </template>
 
@@ -26,6 +21,7 @@ import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
 import Example from "@/components/layout/Example.vue";
+import Loading from "@/components/layout/Loading.vue";
 
 /**
  * Component to display list of all example models fetched from API.
@@ -33,6 +29,7 @@ import Example from "@/components/layout/Example.vue";
 export default defineComponent({
     components: {
         example: Example,
+        loading: Loading,
     },
 
     data(): Record<string, unknown> {
@@ -46,6 +43,10 @@ export default defineComponent({
                     metaId: String,
                 },
             ],
+            msg: {
+                type: String,
+                default: "Loading Examples ...",
+            },
         };
     },
 

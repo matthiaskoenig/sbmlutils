@@ -26,6 +26,9 @@ export default createStore({
         // describe if the example report is still loading (REST endpoint)
         exampleLoading: false,
 
+        // message to show in loading container
+        loadingMessage: "",
+
         /* For Search and Filter feature */
         visibility: {
             SBMLDocument: true,
@@ -96,6 +99,9 @@ export default createStore({
         SET_EXAMPLE_LOADING(state, payload) {
             state.exampleLoading = payload;
         },
+        SET_LOADING_MESSAGE(state, payload) {
+            state.loadingMessage = payload;
+        },
         SET_STATIC(state, payload) {
             window.localStorage.setItem("static", payload);
         },
@@ -121,6 +127,8 @@ export default createStore({
     actions: {
         // get list of all available examples from backend API
         async fetchExamples(context) {
+            context.commit("SET_LOADING_MESSAGE", "Loading Examples ...");
+
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(
@@ -145,6 +153,8 @@ export default createStore({
         },
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
+            context.commit("SET_LOADING_MESSAGE", "Report is being generated ...");
+
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(
@@ -179,6 +189,8 @@ export default createStore({
         },
         // generate report for uploaded SBML file
         async fetchReport(context, payload) {
+            context.commit("SET_LOADING_MESSAGE", "Report is being generated ...");
+
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(

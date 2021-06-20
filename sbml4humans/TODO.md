@@ -1,6 +1,6 @@
 ## TODO 
-- [ ] make loading report component (modal); use in Upload & Examples
-- [ ] define global styles for components to make large containers look consistent 
+- [x] make loading report component (modal); use in Upload & Examples
+- [x] define global styles for components to make large containers look consistent 
      (heading sizes, color scheme used for page)
 - [ ] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
 - [ ] color code DetailView with sbmlType color (mapping: sbmlType: color)  
