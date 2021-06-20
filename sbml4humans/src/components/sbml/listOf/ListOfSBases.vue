@@ -72,10 +72,11 @@ export default defineComponent({
                 const sbmlType = listOfSBMLTypes.listOfSBMLTypes[i];
 
                 // camel case keys, present in the API response E.g. unitDefinitions, compartments
-                let key: string = sbmlType;
+                let key: string = sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1);
                 if (sbmlType != "Species") {
-                    key = sbmlType.charAt(0).toLowerCase() + sbmlType.slice(1) + "s";
+                    key = key + "s";
                 }
+
                 if (models[key]) {
                     const component: Array<Record<string, unknown>> = models[
                         key

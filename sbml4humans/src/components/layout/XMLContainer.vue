@@ -1,15 +1,14 @@
 <template>
     <div class="xml-container">
-        <!-- FIXME ICON -->
+        <div
+            v-on:click="visible = !visible"
+            :title="!visible ? 'Hide SBML' : 'Show SBML'"
+        >
+            <i v-bind:class="`fa fa-${!visible ? 'minus' : 'plus'}-circle`"></i>
+        </div>
         <pre v-if="!visible" ref="xmlContent" class="xml-text">
             {{ formattedXML }}
         </pre>
-        <div
-            v-on:click="visible = !visible"
-            :title="visible ? 'Hide SBML' : 'Show SBML'"
-        >
-            Hide
-        </div>
     </div>
 </template>
 
@@ -63,4 +62,5 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/assets/styles/scss/components/layout/XMLContainer.scss";
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
 </style>

@@ -2,13 +2,13 @@
 - [x] make loading report component (modal); use in Upload & Examples
 - [x] define global styles for components to make large containers look consistent 
      (heading sizes, color scheme used for page)
-- [ ] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
-- [ ] color code DetailView with sbmlType color (mapping: sbmlType: color)  
-- [ ] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
+- [x] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
+- [x] color code DetailView with sbmlType color (mapping: sbmlType: color)  
+- [x] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
 - [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
-- [ ] hide scrollbars if not needed
+- [x] hide scrollbars if not needed
 - [ ] add cvterms & annotations to SBase Detail view
-- [ ] Fix Species in for loop
+- [x] Fix Species in for loop
 
 Math rendering
 - [ ] issues with google chrome
