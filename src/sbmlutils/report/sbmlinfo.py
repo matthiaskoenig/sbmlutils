@@ -15,13 +15,13 @@ import numpy as np
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
 from src.sbmlutils.report import units
-from src.sbmlutils.report import mathml
+from src.sbmlutils.report.mathml import astnode_to_latex
 
 # FIXME: support multiple model definitions in comp
 
 
-def _get_sbase_attribute(sbase: libsbml.Sbase, key: str):
-    """Get SBase attribute"""
+def _get_sbase_attribute(sbase: libsbml.Sbase, key: str) -> Optional[Any]:
+    """Get SBase attribute."""
     key = f"{key[0].upper()}{key[1:]}"
     if getattr(sbase, f"isSet{key}")():
         return getattr(sbase, f"get{key}")()
@@ -30,7 +30,7 @@ def _get_sbase_attribute(sbase: libsbml.Sbase, key: str):
 
 
 class SBMLDocumentInfo:
-    """Class for collecting information on an SBMLDocument for report.
+    """Class for collecting information in JSON on an SBMLDocument to create reports.
 
     A single document can contain multiple models or be a hierarchical
     model (comp package).
@@ -40,13 +40,8 @@ class SBMLDocumentInfo:
         self,
         doc: libsbml.SBMLDocument,
     ):
-        """Initialize SBMLDocumentInfo.
-
-        :param doc:
-        :param model:
-        :param math_render: type of MathML rendering
-        """
-        self.doc = doc
+        """Initialize SBMLDocumentInfo."""
+        self.doc: libsbml.SBMLDocument = doc
         self.info = self.create_info()
 
     @staticmethod
@@ -86,7 +81,7 @@ class SBMLDocumentInfo:
     def model_dict(self, model: libsbml.Model):
         """Creates information for a given model."""
         assignments = self._create_assignment_map()
-        rules = self.rules_dict()
+        rules = self.rules()
         d = {
             # sbml model information
             "model": self.model(model=model),
@@ -97,7 +92,7 @@ class SBMLDocumentInfo:
             "compartments": self.compartments(model=model),
             "species": self.species(model=model),
             "parameters": self.parameters(),
-            "initialAssignments": self.initial_assignments_list(),
+            "initialAssignments": self.initial_assignments(),
             "assignmentRules": rules["assignmentRules"],
             "rateRules": rules["rateRules"],
             "algebraicRules": rules["algebraicRules"],
@@ -158,12 +153,12 @@ class SBMLDocumentInfo:
         initial_assignments = {}
         assignment: libsbml.InitialAssignment
         for assignment in model.getListOfInitialAssignments():
-            info = self.sbase_dict(assignment)
+            d = self.sbase_dict(assignment)
             pk_symbol = assignment.getSymbol() if assignment.isSetSymbol() else None
             if pk_symbol:
-                info["assignment"] = assignment.getMath() if assignment.isSetMath() else None
-                info["derivedUnits"] = assignment.getDerivedUnitDefinition()
-                initial_assignments[pk_symbol] = info
+                d["assignment"] = astnode_to_latex(assignment.getMath()) if assignment.isSetMath() else None
+                d["derivedUnits"] = self.ud_to_latex(assignment.getDerivedUnitDefinition())
+                initial_assignments[pk_symbol] = d
 
         assignments["initialAssignments"] = initial_assignments
 
@@ -171,13 +166,13 @@ class SBMLDocumentInfo:
         rules = {}
         rule: libsbml.Rule
         for rule in model.getListOfRules():
-            info = self.sbase_dict(rule)
+            d = self.sbase_dict(rule)
 
             pk_symbol = rule.getVariable() if rule.isSetVariable() else None
             if pk_symbol:
-                info["assignment"] = rule.getMath() if assignment.isSetMath() else None
-                info["units"] = rule.getDerivedUnitDefinition()
-                rules[pk_symbol] = info
+                d["assignment"] = rule.getMath() if assignment.isSetMath() else None
+                d["units"] = rule.getDerivedUnitDefinition()
+                rules[pk_symbol] = d
 
         assignments["rules"] = rules
 
@@ -458,12 +453,14 @@ class SBMLDocumentInfo:
         return unit_defs
 
     @staticmethod
-    def ud_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model):
+    def ud_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[str]:
         """Convert unit definition to latex."""
+        if ud is None:
+            return None
         ud_str: str = units.unitDefinitionToString(ud)
         astnode = libsbml.parseL3FormulaWithModel(ud_str, model=model)
-        mathml = libsbml.writeMathMLToString(astnode)
-        return mathml.cmathml_to_latex(mathml, model=model)
+        mathml_str = libsbml.writeMathMLToString(astnode)
+        return mathml.cmathml_to_latex(mathml_str, model=model)
 
     def compartments(self, model: libsbml.Model) -> List:
         """Information for Compartments.
@@ -539,24 +536,23 @@ class SBMLDocumentInfo:
         return species
 
     def parameters(self, model: libsbml.Model) -> List:
-        """Information dictionaries for Parameters.
+        """Information for SBML Parameters.
 
-        :param assignment_map: map of assignments for symbols
         :return: list of info dictionaries for Reactions
-
-        -- take a look at units
         """
 
         parameters = []
         p: libsbml.Parameter
-        for p in self.model.getListOfParameters():
+        for p in model.getListOfParameters():
             info = self.sbase_dict(p)
 
             if p.isSetValue():
                 value = p.getValue()
                 if np.isnan(value):
                     value = None
+
             else:
+                value = None
                 # FIXME: get assignment information in report
                 # value_formula = assignment_map.get(p.getId(), None)
                 # if value_formula is None:
@@ -567,21 +563,19 @@ class SBMLDocumentInfo:
                 #     value = None
                 # else:
                 #     value = math(value_formula, self.math_render)
-                value = None
 
             info["value"] = value
-            info["units"] = derived_units(p)
+            info["units"] = self.ud_to_latex(p.getUnits() if p.isSetUnits() else None)
+            info["derivedUnits"] = self.ud_to_latex(p.getDerivedUnitDefinition())
             info["constant"] = p.getConstant() if p.isSetConstant() else None
             parameters.append(info)
 
         return parameters
 
-    def initial_assignments_list(self) -> List:
-        """Information dictionaries for InitialAssignments.
+    def initial_assignments(self) -> List:
+        """Information for InitialAssignments.
 
         :return: list of info dictionaries for InitialAssignments
-
-        -- look at units once
         """
 
         assignments = []
@@ -589,12 +583,36 @@ class SBMLDocumentInfo:
         for assignment in self.model.getListOfInitialAssignments():
             info = self.sbase_dict(assignment)
             info["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            info["math"] = self._math(assignment.getMath(), self.model, self.math_render)
-            info["units"] = derived_units(assignment)
+            info["math"] = mathml.cmathml_to_latex(assignment.getMath(), self.model, self.math_render)
+            info["derivedUnits"] = self.ud_to_latex(assignment.getDerivedUnitDefinition())
             assignments.append(info)
 
         return assignments
 
+    def rules(self, model: libsbml.Model) -> Dict:
+        """Information for Rules.
+
+        :return: list of info dictionaries for Rules
+        """
+
+        rules = {
+            "assignmentRules": [],
+            "rateRules": [],
+            "algebraicRules": [],
+        }
+        rule: libsbml.Rule
+        for rule in model.getListOfRules():
+            info = self.sbase_dict(rule)
+            info["variable"] = self._rule_variable_to_string(rule)
+            info["math"] = rule.getMath()  # FIXME
+            info["derivedUnits"] = self.ud_to_latex(rule.getDerivedUnitDefinition(), model=model)
+
+            type = info["sbmlType"]
+            key = f"{type[0].lower()}{type[1:]}s"
+
+            rules[key].append(info)
+
+        return rules
 
     @staticmethod
     def _rule_variable_to_string(rule: libsbml.Rule) -> str:
@@ -612,31 +630,6 @@ class SBMLDocumentInfo:
         else:
             raise TypeError(rule)
 
-
-    def rules_dict(self) -> Dict:
-        """Information dictionaries for Rules.
-
-        :return: list of info dictionaries for Rules
-        """
-
-        rules = {
-            "assignmentRules": [],
-            "rateRules": [],
-            "algebraicRules": [],
-        }
-        rule: libsbml.Rule
-        for rule in self.model.getListOfRules():
-            info = self.sbase_dict(rule)
-            info["variable"] = self._rule_variable_to_string(rule)
-            info["math"] = self._math(rule.getMath(), self.model, self.math_render)
-            info["units"] = derived_units(rule)
-
-            type = info["sbmlType"]
-            key = f"{type[0].lower()}{type[1:]}s"
-
-            rules[key].append(info)
-
-        return rules
 
     def constraints_dict(self, model: libsbml.Model) -> List:
         """Information for Constraints.
@@ -656,7 +649,7 @@ class SBMLDocumentInfo:
 
         return constraints
 
-    def reactions(self) -> List:
+    def reactions(self, model: libsbml.Model) -> List:
         """Information dictionaries for ListOfReactions.
 
         :return: list of info dictionaries for Reactions
@@ -667,54 +660,51 @@ class SBMLDocumentInfo:
 
         reactions = []
         r: libsbml.Reaction
-        for r in self.model.getListOfReactions():
-            info = self.sbase_dict(r)
-            info["reversible"] = r.getReversible() if r.isSetReversible() else None
-            info["compartment"] = r.getCompartment() if r.isSetCompartment() else None
-            info["listOfReactants"] = [
+        for r in model.getListOfReactions():
+            d = self.sbase_dict(r)
+            d["reversible"] = r.getReversible() if r.isSetReversible() else None
+            d["compartment"] = r.getCompartment() if r.isSetCompartment() else None
+            d["listOfReactants"] = [
                 self._species_reference(reac) for reac in r.getListOfReactants()
             ]
-            info["listOfProducts"] = [
+            d["listOfProducts"] = [
                 self._species_reference(prod) for prod in r.getListOfProducts()
             ]
-            info["listOfModifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
-            info["fast"] = r.getFast() if r.isSetFast() else None
-            info["equation"] = self._equation_from_reaction(r)
+            d["listOfModifiers"] = [mod.getSpecies() for mod in r.getListOfModifiers()]
+            d["fast"] = r.getFast() if r.isSetFast() else None
+            d["equation"] = self._equation_from_reaction(r)
 
             klaw: libsbml.KineticLaw = r.getKineticLaw() if r.isSetKineticLaw() else None
             if klaw:
-                info["kineticLaw"] = {
-                    "math": self._math(klaw.getMath(), self.model, self.math_render),  # FIXME:
-                    "units": derived_units(r.getKineticLaw())
+                d["math"]: (klaw.getMath() if klaw.isSetMath() else None)
+                    "derivedUnits": self.ud_to_latex(klaw.getDerivedUnitDefinition())
                 }
 
-                local_params = []
+                local_parameters = []
                 for i in range(len(klaw.getListOfLocalParameters())):
-                    lpar = klaw.getLocalParameter(i)
+                    lp: libsbml.LocalParameter = klaw.getLocalParameter(i)
                     lpar_info = {
-                        "id": lpar.getId() if lpar.isSetId() else None,
-                        "value": lpar.getValue() if lpar.isSetValue() else None,
-                        "units": derived_units(lpar)
+                        "id": lp.getId() if lp.isSetId() else None,
+                        "value": lp.getValue() if lp.isSetValue() else None,
+                        "units": self.ud_to_latex(lp.getUnits() if lp.isSetUnits() else None),
+                        "derivedUnits": self.ud_to_latex(lp.getDerivedUnitDefinition()),
                     }
-                    local_params.append(lpar_info)
-                info["kineticLaw"]["listOfLocalParameters"] = local_params
-
+                    local_parameters.append(lpar_info)
+                d["kineticLaw"]["localParameters"] = local_parameters
             else:
-                info["kineticLaw"] = None
+                d["kineticLaw"] = None
 
             # fbc
             rfbc = r.getPlugin("fbc")
-            info["fbc"] = {
-                "bounds": self._bounds_dict_from_reaction(r, self.model),
+            d["fbc"] = {
+                "bounds": self._bounds_dict_from_reaction(r, model),
                 "gpa": self._gene_product_association_dict_from_reaction(r)
             } if rfbc else None
 
-            reactions.append(info)
+            reactions.append(d)
 
         return reactions
 
-
-    # Utility Methods for Reactions
     @staticmethod
     def _species_reference(species: libsbml.SpeciesReference):
         return {
