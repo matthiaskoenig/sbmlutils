@@ -4,7 +4,8 @@ Tests for the comp module.
 import libsbml
 
 from sbmlutils import comp
-from sbmlutils import factory as fac
+from sbmlutils.factory import *
+from sbmlutils.factory import PORT_TYPE_PORT, create_objects
 from sbmlutils.metadata.sbo import SBO_CONTINOUS_FRAMEWORK
 
 
@@ -18,31 +19,31 @@ def create_port_doc() -> libsbml.SBMLDocument:
     model.setSBOTerm(SBO_CONTINOUS_FRAMEWORK)
 
     objects = [
-        fac.Compartment(
+        Compartment(
             sid="extern",
             value=1.0,
             unit="m3",
             constant=True,
             name="external compartment",
         ),
-        fac.Species(
+        Species(
             sid="A",
             name="A",
             initialConcentration=10.0,
             hasOnlySubstanceUnits=True,
             compartment="extern",
         ),
-        fac.Species(
+        Species(
             sid="C",
             name="C",
             initialConcentration=0,
             hasOnlySubstanceUnits=True,
             compartment="extern",
         ),
-        fac.Parameter(sid="EX_A", value=1.0, constant=False, sboTerm="SBO:0000613"),
-        fac.Parameter(sid="EX_C", value=1.0, constant=False, sboTerm="SBO:0000613"),
+        Parameter(sid="EX_A", value=1.0, constant=False, sboTerm="SBO:0000613"),
+        Parameter(sid="EX_C", value=1.0, constant=False, sboTerm="SBO:0000613"),
     ]
-    fac.create_objects(model, obj_iter=objects)
+    create_objects(model, obj_iter=objects)
     return doc
 
 
@@ -52,7 +53,7 @@ def test_create_ports_dict() -> None:
 
     comp.create_ports(
         model,
-        portType=comp.PORT_TYPE_PORT,
+        portType=PORT_TYPE_PORT,
         idRefs={
             "extern_port": "extern",
             "A_port": "A",
@@ -79,7 +80,7 @@ def test_create_ports_list() -> None:
     model = doc.getModel()
 
     comp.create_ports(
-        model, portType=comp.PORT_TYPE_PORT, idRefs=["extern", "A", "C", "EX_A", "EX_C"]
+        model, portType=PORT_TYPE_PORT, idRefs=["extern", "A", "C", "EX_A", "EX_C"]
     )
 
     comp_model = model.getPlugin("comp")

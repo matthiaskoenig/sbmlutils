@@ -5,7 +5,7 @@ import json
 import pytest
 
 from sbmlutils.report import sbmlreport
-from sbmlutils.test import ALL_SBML_PATHS, GZ_SBML, sbml_paths_idfn
+from sbmlutils.test import ALL_SBML_PATHS, GZ_SBML, sbml_paths_idfn, GLUCOSE_SBML
 
 
 @pytest.mark.parametrize("sbml_path", [GZ_SBML], ids=sbml_paths_idfn)
@@ -45,7 +45,6 @@ def check_report_math_type(
     assert isinstance(html, str)
 
 
-#### not working
 @pytest.mark.parametrize("sbml_path", [GLUCOSE_SBML], ids=sbml_paths_idfn)
 def test_serialization(sbml_path: Path, tmp_path: Path) -> None:
     """Test report generation for compressed models."""

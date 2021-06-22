@@ -1098,5 +1098,5 @@ if __name__ == "__main__":
         print(json_str)
         print("-" * 80)
 
-    with open(output_dir / "test.json", "w") as fout:
-        fout.write(json_str)
+    # with open(output_dir / "test.json", "w") as fout:
+    #     fout.write(json_str)

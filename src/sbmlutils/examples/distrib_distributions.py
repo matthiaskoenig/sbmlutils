@@ -36,7 +36,7 @@ assignments = [
     InitialAssignment("p_normal_1", "normal(0, 1)"),
     InitialAssignment("p_normal_2", "normal(0, 1, 0, 10)"),
     InitialAssignment("p_uniform", "uniform(5, 10)"),
-    InitialAssignment("p_bernoulli", "bernoulli(0.4)"),
+    InitialAssignment("p_bernoulli", "bernoulli(10)"),
     InitialAssignment("p_binomial_1", "binomial(100, 0.3)"),
     InitialAssignment("p_binomial_2", "binomial(100, 0.3, 0, 2)"),
     InitialAssignment("p_cauchy_1", "cauchy(0, 1)"),
