@@ -24,13 +24,15 @@
     <!-- List of Models -->
     <div class="data" v-if="listOfModels.length > 0">
         <div class="label">Models:</div>
-        <ul title="List of Models">
-            <li v-for="model in listOfModels" v-bind:key="model.pk">
-                <span v-on:click="openComponent(model.pk)"
-                    >{{ model.id }} ({{ model.name }})</span
-                >
-            </li>
-        </ul>
+        <div class="links">
+            <ul title="List of Models">
+                <li v-for="model in listOfModels" v-bind:key="model.pk">
+                    <span v-on:click="openComponent(model.pk)"
+                        >{{ model.id }} ({{ model.name }})</span
+                    >
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -52,7 +54,7 @@ export default defineComponent({
 
     methods: {
         openComponent(pk: string): void {
-            store.dispatch("updateDetailInfo", store.state.allObjectsMap[pk]);
+            store.dispatch("pushToHistoryStack", pk);
         },
     },
 
