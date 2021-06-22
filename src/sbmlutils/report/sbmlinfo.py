@@ -67,20 +67,21 @@ class SBMLDocumentInfo:
     def create_info(self) -> Dict[str, Any]:
         """Create information dictionary for report rendering."""
 
-        # FIXME: support multiple models with comp
         d = {
             "doc": self.document(doc=self.doc),
+            **self.model_definitions(),
         }
+
         if self.doc.isSetModel():
             d["model"] = self.model_dict(self.doc.getModel())
         else:
             d["model"] = None
 
-        d["modelDefinitions"] = self.model_definitions()
+
 
         return d
 
-    def model_dict(self, model: libsbml.Model):
+    def model_dict(self, model: Union[libsbml.Model, libsbml.ModelDefinition]):
         """Creates information for a given model."""
         assignments = self._create_assignment_map(model=model)
 
@@ -888,19 +889,19 @@ class SBMLDocumentInfo:
 
         :return: list of info dictionaries for comp:ModelDefinitions
         """
-        d = {}
+        d = {
+            'externalModelDefinitions': None,
+            'modelDefinitions': None,
+        }
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
             model_defs = []
             md: libsbml.ModelDefinition
             for md in doc_comp.getListOfModelDefinitions():
-                d = self.sbase_dict(md)
-                d["type"] = {
-                    "class": type(md).__name__
-                }
-                model_defs.append(d)
-            # FIXME: parse the model definitions
-            d["modelDefs"] = model_defs
+                model_defs.append(
+                    self.model_dict(model=md)
+                )
+            d["modelDefinitions"] = model_defs
 
             external_model_defs = []
             emd: libsbml.ExternalModelDefinition
@@ -911,9 +912,7 @@ class SBMLDocumentInfo:
                     "source_code": emd.getSource()
                 }
                 external_model_defs.append(d)
-            d["externalModelDefs"] = external_model_defs
-        else:
-            d = None
+            d["externalModelDefinitions"] = external_model_defs
 
         return d
 
@@ -1024,13 +1023,28 @@ if __name__ == "__main__":
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from src.sbmlutils.test import ICG_BODY, REPRESSILATOR_SBML, RECON3D_SBML, ICG_LIVER, ICG_BODY_FLAT
-    info = SBMLDocumentInfo.from_sbml(REPRESSILATOR_SBML)
-    json_str = info.to_json()
-    print(info)
-    print("-" * 80)
-    print(json_str)
-    print("-" * 80)
+    from src.sbmlutils.test import (
+        ICG_BODY,
+        REPRESSILATOR_SBML,
+        RECON3D_SBML,
+        ICG_LIVER,
+        ICG_BODY_FLAT,
+        MODEL_DEFINITIONS_SBML,
+    )
+    for source in [
+        # ICG_BODY,
+        REPRESSILATOR_SBML,
+        # RECON3D_SBML,
+        # ICG_LIVER,
+        # ICG_BODY_FLAT,
+        # MODEL_DEFINITIONS_SBML,
+    ]:
+        info = SBMLDocumentInfo.from_sbml(source)
+        json_str = info.to_json()
+        print(info)
+        print("-" * 80)
+        print(json_str)
+        print("-" * 80)
 
     with open(output_dir / "test.json", "w") as fout:
         fout.write(json_str)

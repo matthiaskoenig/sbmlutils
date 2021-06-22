@@ -31,6 +31,7 @@ FBC_SBML = MODELS_DIR / "fbc" / "diauxic_fba.xml"
 GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
 REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
+MODEL_DEFINITIONS_SBML = MODELS_DIR / "comp" / "model_definitions_example.xml"
 
 RECON3D_SBML = MODELS_DIR / "bigg" / "Recon3D.xml.gz"
 
