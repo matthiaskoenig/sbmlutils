@@ -84,12 +84,13 @@ class SBMLDocumentInfo:
 
         d = {
             "doc": self.document(doc=self.doc),
-            **self.model_definitions(),
         }
         if self.doc.isSetModel():
             d["model"] = self.model_dict(self.doc.getModel())
         else:
             d["model"] = None
+
+        d.update(self.model_definitions())
 
         return d
 
@@ -100,7 +101,7 @@ class SBMLDocumentInfo:
         rules = self.rules(model=model)
         d = {
             # sbml model information
-            "model": self.model(model=model),
+            **self.model(model=model),
 
             # core
             "functionDefinitions": self.function_definitions(model=model),
