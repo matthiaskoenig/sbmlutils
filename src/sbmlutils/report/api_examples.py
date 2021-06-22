@@ -1,5 +1,6 @@
 from sbmlutils.test import (
     REPRESSILATOR_SBML, RECON3D_SBML, ICG_LIVER, ICG_BODY_FLAT, ICG_BODY,
+    MODEL_DEFINITIONS_SBML,
 )
 
 # Data and Endpoints for Example Models
@@ -12,6 +13,16 @@ examples_info = {
             "id": "BIOMD0000000012",
             "sbo": None,
             "metaId": "_000001",
+        },
+    },
+    "model_definitions": {
+        "file": MODEL_DEFINITIONS_SBML,
+        "model": {
+            "fetchId": "model_definitions",
+            "name": "",
+            "id": "model_definitions_example",
+            "sbo": None,
+            "metaId": None,
         },
     },
     "recon3d": {
