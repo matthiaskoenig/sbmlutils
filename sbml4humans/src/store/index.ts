@@ -127,6 +127,9 @@ export default createStore({
         SET_SEARCHED_SBASES_PKS(state, payload) {
             state.searchedSBasesPKs = payload;
         },
+        PUSH_TO_HISTORY_STACK(state, payload) {
+            (state.historyStack as Array<string>).push(payload);
+        },
     },
     actions: {
         // get list of all available examples from backend API
@@ -256,6 +259,17 @@ export default createStore({
         },
         updateSearchedSBasesPKs(context, payload) {
             context.commit("SET_SEARCHED_SBASES_PKS", payload);
+        },
+        pushToHistoryStack(context, payload) {
+            context.commit("PUSH_TO_HISTORY_STACK", payload);
+
+            const currentPK =
+                context.state.historyStack[
+                    (context.state.historyStack.length as number) - 1
+                ];
+            const newDetailInfo = context.state.allObjectsMap[currentPK];
+
+            context.commit("SET_DETAIL_INFO", newDetailInfo);
         },
     },
     modules: {},

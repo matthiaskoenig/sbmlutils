@@ -62,5 +62,4 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/assets/styles/scss/components/layout/XMLContainer.scss";
-@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
 </style>
