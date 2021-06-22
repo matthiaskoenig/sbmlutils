@@ -848,7 +848,8 @@ class Species(Sbase):
                 f"Either initialAmount or initialConcentration can be set on "
                 f"species, but not both: {sid}"
             )
-        self.substanceUnit = Unit.get_unit_string(substanceUnit)  # type: ignore
+        self._substanceUnit = None  # type: ignore
+        self.substanceUnit = substanceUnit
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment
@@ -858,6 +859,14 @@ class Species(Sbase):
         self.charge = charge
         self.chemicalFormula = chemicalFormula
         self.conversionFactor = conversionFactor
+
+    @property
+    def substanceUnit(self):
+        return self._substanceUnit
+
+    @substanceUnit.setter
+    def substanceUnit(self, value: Optional[UnitType]):
+        self._substanceUnit = Unit.get_unit_string(value)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Species:
         """Create Species SBML in model."""
