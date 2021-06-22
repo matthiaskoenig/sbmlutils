@@ -13,6 +13,5 @@ if __name__ == "__main__":
         sbmlreport.create_report(
             sbml_path=p,
             output_dir=Path(__file__).parent / "_results",
-            math_type="latex",
             validate=True,
         )

@@ -370,7 +370,7 @@ class Sbase:
     def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
         """Create port if existing."""
         if self.port is None:
-            return
+            return None
 
         p: libsbml.Port = None
         if isinstance(self.port, bool):
@@ -865,7 +865,7 @@ class Species(Sbase):
         self.conversionFactor = conversionFactor
 
     @property
-    def substanceUnit(self):
+    def substanceUnit(self) -> Optional[UnitType]:
         """Get substanceUnit."""
         return self._substanceUnit
 
