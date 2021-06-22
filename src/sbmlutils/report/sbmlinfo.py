@@ -14,8 +14,8 @@ import numpy as np
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
-from src.sbmlutils.report import units
-from src.sbmlutils.report.mathml import astnode_to_latex
+from sbmlutils.report import units
+from sbmlutils.report.mathml import astnode_to_latex
 
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
@@ -1153,7 +1153,7 @@ if __name__ == "__main__":
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from src.sbmlutils.test import (
+    from sbmlutils.test import (
         ICG_BODY,
         ICG_BODY_FLAT,
         ICG_LIVER,

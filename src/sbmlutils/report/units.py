@@ -1,10 +1,8 @@
 """Helper functions for formating SBML elements."""
-from typing import Dict, Optional
+from typing import Dict
 
 import libsbml
 import numpy as np
-
-from src.sbmlutils.report import mathml
 
 
 # TODO: remove everything besides units from here   ---- done
