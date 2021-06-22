@@ -3,7 +3,6 @@ from typing import Any
 
 import pytest
 
-from sbmlutils.creator import CoreModel, Preprocess
 from sbmlutils.examples import (
     amount_species,
     annotation,
@@ -21,6 +20,7 @@ from sbmlutils.examples import (
     initial_assignment,
     reaction,
     simple_reaction,
+    model_definitions,
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory
@@ -47,6 +47,7 @@ testdata = [
     reaction,
     simple_reaction,
     tiny_factory,
+    model_definitions,
 ]
 
 
