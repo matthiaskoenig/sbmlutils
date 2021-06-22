@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from sbmlutils.report.api_examples import examples_info
-from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
+from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
@@ -152,6 +152,8 @@ def example(example_id: str) -> Response:
 
 def _render_json_content(content: Dict) -> Response:
     """Render content to JSON."""
+    # FIXME: use the minimal dict
+    # content = clean_empty(content)
     json_bytes = json.dumps(
         content,
         ensure_ascii=False,

@@ -17,7 +17,6 @@ from sbmlutils.metadata import miriam
 from src.sbmlutils.report import units
 from src.sbmlutils.report.mathml import astnode_to_latex
 
-# FIXME: support multiple model definitions in comp; test with comp model;
 # TODO: inject links
 # FIXME: cleanup mypy & other issues
 
@@ -29,6 +28,18 @@ def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
         return getattr(sbase, f"get{key}")()
     else:
         return None
+
+
+def clean_empty(d):
+    if isinstance(d, dict):
+        return {
+            k: v
+            for k, v in ((k, clean_empty(v)) for k, v in d.items())
+            if v
+        }
+    if isinstance(d, list):
+        return [v for v in map(clean_empty, d) if v]
+    return d
 
 
 class SBMLDocumentInfo:
@@ -60,9 +71,12 @@ class SBMLDocumentInfo:
         """Get string."""
         return pprint.pformat(self.info, indent=2)
 
-    def to_json(self) -> str:
+    def to_json(self, strip: bool = True, indent=2) -> str:
         """Serialize to JSON representation."""
-        return json.dumps(self.info, indent=2)
+        d = self.info
+        if strip:
+            d = clean_empty(d)
+        return json.dumps(d, indent=indent)
 
     def create_info(self) -> Dict[str, Any]:
         """Create information dictionary for report rendering."""
@@ -71,13 +85,10 @@ class SBMLDocumentInfo:
             "doc": self.document(doc=self.doc),
             **self.model_definitions(),
         }
-
         if self.doc.isSetModel():
             d["model"] = self.model_dict(self.doc.getModel())
         else:
             d["model"] = None
-
-
 
         return d
 
@@ -890,29 +901,27 @@ class SBMLDocumentInfo:
         :return: list of info dictionaries for comp:ModelDefinitions
         """
         d = {
-            'externalModelDefinitions': None,
             'modelDefinitions': None,
+            'externalModelDefinitions': None,
         }
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
-            model_defs = []
+            mds = []
             md: libsbml.ModelDefinition
             for md in doc_comp.getListOfModelDefinitions():
-                model_defs.append(
+                mds.append(
                     self.model_dict(model=md)
                 )
-            d["modelDefinitions"] = model_defs
+            d["modelDefinitions"] = mds
 
-            external_model_defs = []
+            emds = []
             emd: libsbml.ExternalModelDefinition
             for emd in doc_comp.getListOfExternalModelDefinitions():
-                d = self.sbase_dict(emd)
-                d["type"] = {
-                    "class": type(emd).__name__,
-                    "source_code": emd.getSource()
-                }
-                external_model_defs.append(d)
-            d["externalModelDefinitions"] = external_model_defs
+                d_emd = self.sbase_dict(emd)
+                d_emd["modelRef"] = emd.getModelRef() if emd.isSetModelRef() else None
+                d_emd["source"] = emd.getSource() if emd.isSetSource() else None
+                emds.append(d_emd)
+            d["externalModelDefinitions"] = emds
 
         return d
 
@@ -1040,9 +1049,9 @@ if __name__ == "__main__":
         # MODEL_DEFINITIONS_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)
-        json_str = info.to_json()
-        print(info)
+        # print(info)
         print("-" * 80)
+        json_str = info.to_json()
         print(json_str)
         print("-" * 80)
 
