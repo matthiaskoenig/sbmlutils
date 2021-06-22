@@ -7,7 +7,7 @@ from sbmlutils.report import sbmlreport
 from sbmlutils.test import ALL_SBML_PATHS, GLUCOSE_SBML, GZ_SBML, sbml_paths_idfn
 
 
-def check_report(sbml_path: Path, tmp_path: Path, validate: bool):
+def check_report(sbml_path: Path, tmp_path: Path, validate: bool) -> None:
     """Check report creation for given SBML."""
     d = sbmlreport.create_report(
         sbml_path=sbml_path, output_dir=tmp_path, validate=validate

@@ -6,14 +6,14 @@ parsing the model and returning the JSON representation based on fastAPI.
 import json
 import logging
 import os
-from datetime import datetime
+import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+import tempfile
 
 from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
@@ -39,53 +39,37 @@ app.add_middleware(
 
 
 @app.get("/")
-def read_root():
+def read_root() -> Dict:
     """Information to be returned by root path of the API."""
     return {"sbmlutils": "sbml4humans"}
 
 
 @app.post("/sbml")
-async def upload_sbml(request: Request):
+async def upload_sbml(request: Request) -> Response:
     """Upload SBML file and return JSON report.
 
     FIXME: support COMBINE archives
     """
-    content = {}
     try:
         file_data = await request.form()
 
-        math_render = "latex"
         filename = file_data["source"].filename
         file_content = await file_data["source"].read()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / filename
+            with open(path, "wb") as sbml_file:
+                sbml_file.write(file_content)
+                content = _content_for_source(source=path)
 
-        files_dir = Path(__file__).parent / "file_uploads"
-        if not files_dir.exists():
-            files_dir.mkdir(parents=True, exist_ok=True)
-
-        with open(files_dir / filename, "wb") as sbml_file:
-            sbml_file.write(file_content)
-        source = files_dir / filename
-
-        fetch_start = datetime.now()  # debug information
-        info = SBMLDocumentInfo.from_sbml(source=source, math_render=math_render)
-        fetch_end = datetime.now()  # debug information
-        content["report"] = info.info
-
-        time_elapsed = (fetch_end - fetch_start).total_seconds()
-
-        os.remove(files_dir / filename)
     except IOError as err:
         logger.error(err)
         content = {"error": "SBML Document could not be parsed."}
 
-        time_elapsed = 0
-
-    content["debug"] = {"jsonReportTime": f"{round(time_elapsed, 3)} seconds"}
     return _render_json_content(content)
 
 
 @app.get("/examples")
-def examples() -> JSONResponse:
+def examples() -> Response:
     """Get sbml4humans example SBML models."""
     api_examples = []
     for key in examples_info:
@@ -106,31 +90,33 @@ def example(example_id: str) -> Response:
     :return:
     """
     example = examples_info.get(example_id, None)
-    if example is not None:
+
+    if example:
         source = example["file"]
+        content = _content_for_source(source=source)
     else:
-        source = None
-    content: Dict = {}
+        content = {"error": f"example for id does not exist '{example_id}'"}
 
+    return _render_json_content(content)
+
+
+def _content_for_source(source: Path) -> Dict:
+    """Create content for given source."""
+    content = {}
     try:
-        fetch_start = datetime.now()  # debug information
+        time_start = time.time()
         info = SBMLDocumentInfo.from_sbml(source=source)
-        fetch_end = datetime.now()  # debug information
         content["report"] = info.info
-        time_elapsed = (fetch_end - fetch_start).total_seconds()
+        time_elapsed = round(time.time() - time_start, 3)
         logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
-
-        # check JSON encoding/decoding
-        json_str = info.to_json()
-        json.loads(json_str)
+        content["debug"] = {
+            "jsonReportTime": f"{time_elapsed} [s]"
+        }
 
     except IOError as err:
         logger.error(err)
-        content = {"error": f"example for id does not exist '{example_id}'"}
-        time_elapsed = 0
-
-    content["debug"] = {"jsonReportTime": f"{round(time_elapsed, 3)} seconds"}
-    return _render_json_content(content)
+        content = {"error": f"Error creating JSON for '{source}'"}
+    return content
 
 
 def _render_json_content(content: Dict) -> Response:
