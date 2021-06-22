@@ -68,7 +68,7 @@ def create_report(
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
-) -> str:
+) -> Dict:
     """Create HTML report and return the content as a variable.
 
     The SBML file can be validated during report generation.
@@ -125,33 +125,11 @@ def create_report(
     logging.error(f"No model in SBML file when creating model report: {doc}")
 
     # return JSON serialized model info
-    return _get_serialized_model_info(doc)
-
-
-def _get_serialized_model_info(
-    doc: libsbml.SBMLDocument,
-    math_type: str = "cmathml",
-) -> str:
-    """Create HTML from SBML.
-
-    :param doc: SBML document for creating HTML report
-    :param basename: basename of SBML file path
-    :param html_template: which template file to use for rendering
-    :param math_type: specifies the math rendering mode for the report
-    :param offline: to specify offline report generation for appropriate linking of
-                    stylesheet and script files
-
-    :return: rendered HTML report template for the SBML document
-    """
-
     model = doc.getModel()
-
     if model is not None:
         model_info = SBMLDocumentInfo(doc=doc)
-
-        serialized_model_info = model_info.info
-
-        return serialized_model_info
+        return model_info.info
     else:
         # no model exists
         logging.error(f"No model in SBML file when creating model report: {doc}")
+        return {}
