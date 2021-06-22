@@ -16,7 +16,7 @@ data1 = pd.DataFrame({"x": x, "y": y, "z": z})
 
 
 def f_interpolation(method: str, tmp_path: Path) -> None:
-    """ Helper function to test the various interpolations. """
+    """Helper function to test the various interpolations."""
 
     tmp_f = tmp_path / "test.xml"
     interpolation = ip.Interpolation(data=data1, method=method)
@@ -38,7 +38,7 @@ def f_interpolation(method: str, tmp_path: Path) -> None:
     [ip.INTERPOLATION_CONSTANT, ip.INTERPOLATION_LINEAR, ip.INTERPOLATION_CUBIC_SPLINE],
 )
 def test_interpolation(method: str, tmp_path: Path) -> None:
-    """ Constant interpolation of data points. """
+    """Constant interpolation of data points."""
     f_interpolation(method=method, tmp_path=tmp_path)
 
 
