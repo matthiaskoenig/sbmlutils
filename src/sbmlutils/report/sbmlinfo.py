@@ -17,9 +17,6 @@ from sbmlutils.metadata import miriam
 from src.sbmlutils.report import units
 from src.sbmlutils.report.mathml import astnode_to_latex
 
-# TODO: inject links
-# FIXME: cleanup mypy & other issues
-
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
     """Get SBase attribute."""
@@ -30,7 +27,11 @@ def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
         return None
 
 
-def clean_empty(d):
+def clean_empty(d: Dict) -> Dict:
+    """Remove empty fields from JSON.
+
+    Reducing to core information.
+    """
     if isinstance(d, dict):
         return {
             k: v
@@ -123,7 +124,48 @@ class SBMLDocumentInfo:
             "geneProducts": self.gene_products(model=model),
             "objectives": self.objectives(model=model),
         }
+        # add crosslinks
+        self.add_compartment_links(d['compartments'], d['species'], d['reactions'])
+        self.add_species_links(d["species"], d["reactions"])
+        # TODO: add symbols to math crosslinks
+
         return d
+
+    def add_compartment_links(self, compartments, species, reactions):
+        """Add species and reaction links to compartment."""
+        c_map = {c['id']: c for c in compartments}
+        for c in compartments:
+            c['species'] = []
+            c['reactions'] = []
+        for s in species:
+            cid = s['compartment']
+            if cid:
+                c_map[cid]['species'].append(s['pk'])
+        for r in reactions:
+            cid = r['compartment']
+            if cid:
+                c_map[cid]['reactions'].append(r['pk'])
+
+    def add_species_links(self, species, reactions):
+        """Add reaction links to species."""
+        s_map = {s['id']: s for s in species}
+        for s in species:
+            s['reactant'] = []
+            s['product'] = []
+            s['modifier'] = []
+
+        for r in reactions:
+            for item in r["listOfReactants"]:
+                sid = item['species']
+                if sid:
+                    s_map[sid]['reactant'].append(r['pk'])
+            for item in r["listOfProducts"]:
+                sid = item['species']
+                if sid:
+                    s_map[sid]['product'].append(r['pk'])
+            for sid in r["listOfModifiers"]:
+                if sid:
+                    s_map[sid]['modifier'].append(r['pk'])
 
     @staticmethod
     def _sbaseref(sbaseref: libsbml.SBaseRef) -> Optional[Dict]:
