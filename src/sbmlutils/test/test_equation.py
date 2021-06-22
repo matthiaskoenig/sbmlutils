@@ -21,14 +21,14 @@ def test_equation_examples() -> None:
 
 
 def test_equation_1() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = "c__gal1p => c__gal + c__phos"
     eq = Equation(eq_string)
     assert eq.to_string() == eq_string
 
 
 def test_equation_2() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = "e__h2oM <-> c__h2oM"
     eq = Equation(eq_string)
     assert eq.reversible
@@ -38,7 +38,7 @@ def test_equation_2() -> None:
 
 
 def test_equation_double_stoichiometry() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = "3.0 atp + 2.0 phos + ki <-> 16.98 tet"
     eq = Equation(eq_string)
     assert eq.reversible
@@ -48,21 +48,21 @@ def test_equation_double_stoichiometry() -> None:
 
 
 def test_equation_modifier() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = "c__gal1p => c__gal + c__phos [c__udp, c__utp]"
     eq = Equation(eq_string)
     assert eq.to_string(modifiers=True) == eq_string
 
 
 def test_equation_empty_modifier() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = "A_ext => A []"
     eq = Equation(eq_string)
     assert len(eq.modifiers) == 0
 
 
 def test_equation_no_reactants() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = " => A"
     eq = Equation(eq_string)
     test_res = eq_string.replace("=>", IRREV_SEP)
@@ -70,7 +70,7 @@ def test_equation_no_reactants() -> None:
 
 
 def test_equation_no_products() -> None:
-    """ Test Equation. """
+    """Test Equation."""
     eq_string = "B => "
     eq = Equation(eq_string)
     test_res = eq_string.replace("=>", IRREV_SEP)
