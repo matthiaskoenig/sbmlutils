@@ -18,9 +18,9 @@ from sbmlutils.examples import (
     fbc2,
     fbc_mass_charge,
     initial_assignment,
+    model_definitions,
     reaction,
     simple_reaction,
-    model_definitions,
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory

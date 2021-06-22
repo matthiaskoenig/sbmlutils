@@ -1,10 +1,11 @@
 """Helper functions for formating SBML elements."""
+from typing import Dict, Optional
+
 import libsbml
 import numpy as np
 
 from src.sbmlutils.report import mathml
 
-from typing import Dict, Optional
 
 # TODO: remove everything besides units from here   ---- done
 # TODO: rename to 'helpers.py'  ---- done
@@ -109,9 +110,7 @@ def units_dict(udef: libsbml.UnitDefinition) -> Dict:
         k = libsbml.UnitKind_toString(u.getKind())
 
         # get better name for unit
-        kind = {
-            "name": UNIT_ABBREVIATIONS.get(k, k)
-        }
+        kind = {"name": UNIT_ABBREVIATIONS.get(k, k)}
 
         # (m * 10^s *k)^e
         unit = {
@@ -127,8 +126,5 @@ def units_dict(udef: libsbml.UnitDefinition) -> Dict:
         else:
             denom_terms.append(unit)
 
-    res = {
-        "nom_terms": nom_terms,
-        "denom_terms": denom_terms
-    }
+    res = {"nom_terms": nom_terms, "denom_terms": denom_terms}
     return res
