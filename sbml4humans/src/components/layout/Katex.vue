@@ -1,5 +1,5 @@
 <template>
-    <div ref="katexEl" class="katex ml-4"></div>
+    <span ref="katexEl" class="katex ml-4" v-html="katexMath"></span>
 </template>
 
 <script lang="ts">
@@ -20,12 +20,13 @@ export default defineComponent({
     /**
      * Renders the raw math string into Latex format using the Katex module.
      */
-    mounted() {
-        let katexEl = this.$refs["katexEl"] as HTMLDivElement;
-        return katex.render(this.mathStr, katexEl, {
-            throwOnError: false,
-            output: "mathml",
-        });
+    computed: {
+        katexMath(): string {
+            return katex.renderToString(this.mathStr, {
+                throwOnError: false,
+                output: "mathml",
+            });
+        },
     },
 });
 </script>

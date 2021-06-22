@@ -70,7 +70,35 @@
         <div class="label"><strong>fast:</strong> {{ info.fast }}</div>
     </div>
 
-    <!-- Kinetic Law (To be added after fixing the sbmlutils implementation)  -->
+    <!-- Kinetic Law -->
+    <div class="data" v-if="info.kineticLaw">
+        <div class="label">
+            <strong>kineticLaw:</strong>
+        </div>
+        <div class="ml-4">
+            <div v-if="info.kineticLaw.math">
+                math: <Katex v-bind:mathStr="info.kineticLaw.math" />
+            </div>
+            <div v-if="info.kineticLaw.units">
+                units: <Katex v-bind:mathStr="info.kineticLaw.units" />
+            </div>
+            <div v-if="info.kineticLaw.listOfLocalParameters.length > 0">
+                listOfLocalParameters:
+                <ul title="listOfLocalParameters">
+                    <li
+                        v-for="lpar in info.kineticLaw.listOfLocalParameters"
+                        v-bind:key="lpar.id"
+                    >
+                        <div v-if="lpar.id">id: {{ lpar.id }}</div>
+                        <div v-if="lpar.value">value: {{ lpar.value }}</div>
+                        <div v-if="lpar.units">
+                            units: <katex v-bind:mathStr="lpar.units"></katex>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <!-- FBC -->
     <div class="data" v-if="info.fbc">
@@ -95,10 +123,16 @@
 import TYPES from "@/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
+import Katex from "@/components/layout/Katex.vue";
+
 /**
  * Component to define display of Reaction objects.
  */
 export default defineComponent({
+    components: {
+        Katex,
+    },
+
     props: {
         info: {
             type: Object,

@@ -4,6 +4,7 @@ import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
 import TYPES from "@/sbmlComponents";
+import MAPS from "@/data/allSBMLMap";
 
 export default createStore({
     state: {
@@ -74,11 +75,14 @@ export default createStore({
 
         searchQuery: "",
 
-        allObjectsMap: {},
-
-        componentPKsMap: {},
-
         searchedSBasesPKs: new Set(),
+
+        /* For Intercomponent Navigation */
+        allObjectsMap: MAPS.objectsMap,
+
+        componentPKsMap: MAPS.componentsMap,
+
+        historyStack: [],
     },
     mutations: {
         SET_EXAMPLES(state, payload) {

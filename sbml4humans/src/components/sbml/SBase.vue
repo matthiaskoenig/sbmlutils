@@ -38,6 +38,22 @@
             </ul>
         </div>
     </div>
+    <div class="data" v-if="info.cvterms">
+        <div class="label"><strong>cvterms:</strong></div>
+        <div class="ml-4">
+            <ul title="CVTerms">
+                <li v-for="cvterm in info.cvterms" v-bind:key="cvterm.qualifier">
+                    <div>qualifier: {{ cvterm.qualifier }}</div>
+                    <div>resources:</div>
+                    <ul class="ml-4">
+                        <li v-for="resource in cvterm.resources" v-bind:key="resource">
+                            {{ resource }}
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
