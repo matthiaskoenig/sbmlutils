@@ -866,10 +866,12 @@ class Species(Sbase):
 
     @property
     def substanceUnit(self):
+        """Get substanceUnit."""
         return self._substanceUnit
 
     @substanceUnit.setter
     def substanceUnit(self, value: Optional[UnitType]):
+        """Set substanceUnit."""
         self._substanceUnit = Unit.get_unit_string(value)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Species:

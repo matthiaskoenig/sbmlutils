@@ -23,7 +23,7 @@ UNIT_ABBREVIATIONS = {
     "gram": "g",
 }
 
-# still being used in convering derived units
+
 def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     """Render formatted string for units.
 
