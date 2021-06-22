@@ -1,4 +1,8 @@
 <template>
+    <div id="documentDiv" v-if="sbmlType === 'SBMLDocument'">
+        <sbml-document v-bind:info="info"></sbml-document>
+    </div>
+
     <div id="modelDiv" v-if="sbmlType === 'Model'">
         <model v-bind:info="info"></model>
     </div>
@@ -65,6 +69,7 @@ import TYPES from "@/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
+import SBMLDocument from "@/components/sbml/SBMLDocument.vue";
 import Model from "@/components/sbml/Model.vue";
 import Port from "@/components/sbml/Port.vue";
 import FunctionDefinition from "@/components/sbml/FunctionDefinition.vue";
@@ -97,6 +102,7 @@ export default defineComponent({
     },
 
     components: {
+        "sbml-document": SBMLDocument,
         model: Model,
         port: Port,
         "function-definition": FunctionDefinition,

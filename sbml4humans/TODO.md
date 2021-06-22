@@ -7,12 +7,12 @@
 - [x] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
 - [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
 - [x] hide scrollbars if not needed
-- [ ] add cvterms & annotations to SBase Detail view
+- [.] add cvterms & annotations to SBase Detail view --- annotation left
 - [x] Fix Species in for loop
 
 Math rendering
 - [ ] issues with google chrome
-- [ ] reactions: kineticLaw Math
+- [x] reactions: kineticLaw Math
 
 Intercomponent navigation
 - [ ] intercomponent links: Species -> compartments; Reaction: -> Species
@@ -20,7 +20,7 @@ Intercomponent navigation
 - [ ] add models on SBMLDocument Details views for easy access/entry point (just links not green boxes)
 
 Filter
-- [ ] move search (always visible) & filter to navigation bar (collapsable)
+- [x] move search (always visible) & filter to navigation bar (collapsable)
 - [.] more robust handling of state --- not migrating to localStorage for testing purposes
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
 
