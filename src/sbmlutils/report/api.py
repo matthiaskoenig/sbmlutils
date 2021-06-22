@@ -17,9 +17,8 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.encoders import jsonable_encoder
 
-from sbmlutils.report.examples import examples_info
+from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 logger = logging.getLogger(__name__)
@@ -54,8 +53,7 @@ def read_root():
 
 @app.post("/sbml")
 async def upload_sbml(request: Request):
-    """
-    Upload SBML file and return JSON report.
+    """Upload SBML file and return JSON report.
 
     FIXME: support COMBINE archives
     """
@@ -99,7 +97,7 @@ async def upload_sbml(request: Request):
 
 @app.get("/examples")
 def examples() -> JSONResponse:
-    """Endpoint to fetch available examples."""
+    """Get sbml4humans example SBML models."""
     api_examples = []
     for key in examples_info:
         api_examples.append(examples_info[key]["model"])
@@ -112,9 +110,9 @@ def examples() -> JSONResponse:
 
 @app.get("/examples/{example_id}")
 def example(example_id: str) -> Response:
-    """Endpoint to fetch specific example.
+    """Endpoint to get specific example.
 
-    see `examples_info`
+    see `examples`
 
     E.g. http://127.0.0.1:1444/examples/repressilator -> JSON for repressilator
     :param example_id:
@@ -129,7 +127,7 @@ def example(example_id: str) -> Response:
 
     try:
         fetch_start = datetime.now()    # debug information
-        info = SBMLDocumentInfo.from_sbml(source=source, math_render="latex")
+        info = SBMLDocumentInfo.from_sbml(source=source)
         fetch_end = datetime.now()      # debug information
         content["report"] = info.info
         time_elapsed = (fetch_end - fetch_start).total_seconds()

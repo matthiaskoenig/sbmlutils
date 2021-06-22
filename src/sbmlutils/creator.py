@@ -122,6 +122,7 @@ class CoreModel(object):
         "model_units": None,
         "main_units": None,
         "externalModelDefinitions": list,
+        "modelDefinitions": list,
         "submodels": list,
         "units": list,
         "functions": list,
@@ -278,6 +279,7 @@ class CoreModel(object):
         # lists ofs
         for attr in [
             "externalModelDefinitions",
+            "modelDefinitions",
             "submodels",
             "units",
             "functions",
