@@ -1,3 +1,4 @@
+"""Example models for the sbml4humans API."""
 from sbmlutils.test import (
     ICG_BODY,
     ICG_BODY_FLAT,

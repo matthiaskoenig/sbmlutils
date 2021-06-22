@@ -91,7 +91,7 @@ class SBMLDocumentInfo:
         return d
 
     def model_dict(self, model: Union[libsbml.Model, libsbml.ModelDefinition]):
-        """Creates information for a given model."""
+        """Create information for a given model."""
         assignments = self._create_assignment_map(model=model)
 
         rules = self.rules(model=model)

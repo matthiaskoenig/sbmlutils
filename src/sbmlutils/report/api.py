@@ -1,9 +1,7 @@
-"""
-API for the sbmlreport web service. This provides basic functionality of
-parsing the model and returning the JSON representation.
+"""API for the sbmlreport web service.
 
-fastapi
-
+This provides basic functionality of
+parsing the model and returning the JSON representation based on fastAPI.
 """
 import json
 import logging
@@ -42,9 +40,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    """
-    Information to be returned by root path of the API.
-    """
+    """Information to be returned by root path of the API."""
     return {"sbmlutils": "sbml4humans"}
 
 
@@ -126,7 +122,7 @@ def example(example_id: str) -> Response:
 
         # check JSON encoding/decoding
         json_str = info.to_json()
-        json_dict = json.loads(json_str)
+        json.loads(json_str)
 
     except IOError as err:
         logger.error(err)
