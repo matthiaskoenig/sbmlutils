@@ -909,7 +909,7 @@ class SBMLDocumentInfo:
 
             d["useValuesFromTriggerTime"] = event.getUseValuesFromTriggerTime() if event.isSetUseValuesFromTriggerTime() else None
 
-            trigger: libsbml.Trigger = event.getTrigger()
+            trigger: libsbml.Trigger = event.getTrigger() if event.isSetTrigger() else None
             if trigger:
                 d["trigger"] = {
                     "math": astnode_to_latex(trigger.getMath(), model=model) if trigger.isSetMath() else None,
@@ -920,7 +920,11 @@ class SBMLDocumentInfo:
                 d["trigger"] = None
 
             d["priority"] = astnode_to_latex(event.getPriority(), model=model) if event.isSetPriority() else None
-            d["delay"] = astnode_to_latex(event.getDelay(), model=model) if event.isSetDelay() else None
+            delay: libsbml.Delay = event.getDelay() if event.isSetDelay() else None
+            if delay:
+                d["delay"] = {
+                    "math": astnode_to_latex(delay.getMath(), model=model) if delay.isSetMath() else None
+                }
 
             assignments = []
             eva: libsbml.EventAssignment
