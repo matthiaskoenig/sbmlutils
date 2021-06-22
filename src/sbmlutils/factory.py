@@ -367,12 +367,12 @@ class Sbase:
         self.create_uncertainties(obj, model)
         self.create_replaced_by(obj, model)
 
-    def create_port(self, model: libsbml.Model) -> libsbml.Port:
+    def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
         """Create port if existing."""
         if self.port is None:
             return
 
-        p: libsbml.Port
+        p: libsbml.Port = None
         if isinstance(self.port, bool):
             if self.port is True:
                 # manually create port for the id
@@ -1808,7 +1808,34 @@ class ModelDefinition(Sbase):
     ) -> None:
         """Set fields on ModelDefinition."""
         super(ModelDefinition, self)._set_fields(obj, model)
-        # TODO: handle this like a model
+        for attr in [
+            "externalModelDefinitions",
+            "modelDefinitions",
+            "submodels",
+            "units",
+            "functions",
+            "parameters",
+            "compartments",
+            "species",
+            "assignments",
+            "rules",
+            "rate_rules",
+            "reactions",
+            "events",
+            "constraints",
+            "ports",
+            "replacedElements",
+            "deletions",
+            "objectives",
+            "layouts",
+        ]:
+            # create the respective objects
+            if hasattr(self, attr):
+                objects = getattr(self, attr)
+                if objects:
+                    create_objects(obj, obj_iter=objects, key=attr)
+                else:
+                    logger.debug(f"Not defined: <{attr}>")
 
 
 class ExternalModelDefinition(Sbase):

@@ -15,6 +15,7 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
+
 model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
@@ -29,6 +30,9 @@ units = [
     UNIT_m,
     UNIT_m2,
 ]
+for unit in units:
+    unit.port = False
+
 compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
 species = [
     Species(
