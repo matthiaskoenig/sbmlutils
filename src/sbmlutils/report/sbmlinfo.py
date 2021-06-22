@@ -19,7 +19,7 @@ from src.sbmlutils.report.mathml import astnode_to_latex
 
 # FIXME: support multiple model definitions in comp; test with comp model;
 # TODO: inject links
-# FIXME: cleanup
+# FIXME: cleanup mypy & other issues
 
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
@@ -209,7 +209,7 @@ class SBMLDocumentInfo:
 
         Sha256 digest of the identifier (mostly the xml string).
         """
-        return hashlib.sha256(xml).hexdigest()
+        return str(hashlib.sha256(xml.encode('utf-8')).digest())
 
     @classmethod
     def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:

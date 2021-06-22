@@ -147,7 +147,7 @@ def _get_serialized_model_info(
     model = doc.getModel()
 
     if model is not None:
-        model_info = SBMLDocumentInfo(doc=doc, model=model, math_render=math_type)
+        model_info = SBMLDocumentInfo(doc=doc)
 
         serialized_model_info = model_info.info
 
