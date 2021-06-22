@@ -1,10 +1,10 @@
 <template>
     <div class="row">
         <div class="left-container">
-            <search-and-filter ref="customization"></search-and-filter>
             <list-of-sbases ref="list"></list-of-sbases>
         </div>
         <div class="right-container">
+            <detail-view-nav></detail-view-nav>
             <detail-container></detail-container>
         </div>
     </div>
@@ -14,18 +14,19 @@
 import { defineComponent } from "vue";
 
 /* Compartments */
-import SearchAndFilter from "@/components/layout/SearchAndFilter";
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
 import DetailContainer from "@/components/layout/DetailContainer";
+import DetailViewNav from "@/components/layout/DetailViewNav.vue";
+import DetailViewNavVue from "@/components/layout/DetailViewNav.vue";
 
 /**
  * Component to hold all components to show the generated report.
  */
 export default defineComponent({
     components: {
-        "search-and-filter": SearchAndFilter,
         "list-of-sbases": ListOfSBases,
         "detail-container": DetailContainer,
+        "detail-view-nav": DetailViewNav,
     },
 });
 </script>

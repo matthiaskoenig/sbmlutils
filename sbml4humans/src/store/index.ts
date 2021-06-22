@@ -4,6 +4,7 @@ import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
 import TYPES from "@/sbmlComponents";
+import MAPS from "@/data/allSBMLMap";
 
 export default createStore({
     state: {
@@ -25,6 +26,9 @@ export default createStore({
 
         // describe if the example report is still loading (REST endpoint)
         exampleLoading: false,
+
+        // message to show in loading container
+        loadingMessage: "",
 
         /* For Search and Filter feature */
         visibility: {
@@ -71,11 +75,14 @@ export default createStore({
 
         searchQuery: "",
 
-        allObjectsMap: {},
-
-        componentPKsMap: {},
-
         searchedSBasesPKs: new Set(),
+
+        /* For Intercomponent Navigation */
+        allObjectsMap: MAPS.objectsMap,
+
+        componentPKsMap: MAPS.componentsMap,
+
+        historyStack: [],
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -95,6 +102,9 @@ export default createStore({
         },
         SET_EXAMPLE_LOADING(state, payload) {
             state.exampleLoading = payload;
+        },
+        SET_LOADING_MESSAGE(state, payload) {
+            state.loadingMessage = payload;
         },
         SET_STATIC(state, payload) {
             window.localStorage.setItem("static", payload);
@@ -117,10 +127,15 @@ export default createStore({
         SET_SEARCHED_SBASES_PKS(state, payload) {
             state.searchedSBasesPKs = payload;
         },
+        PUSH_TO_HISTORY_STACK(state, payload) {
+            (state.historyStack as Array<string>).push(payload);
+        },
     },
     actions: {
         // get list of all available examples from backend API
         async fetchExamples(context) {
+            context.commit("SET_LOADING_MESSAGE", "Loading Examples ...");
+
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(
@@ -145,6 +160,8 @@ export default createStore({
         },
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
+            context.commit("SET_LOADING_MESSAGE", "Report is being generated ...");
+
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(
@@ -179,6 +196,8 @@ export default createStore({
         },
         // generate report for uploaded SBML file
         async fetchReport(context, payload) {
+            context.commit("SET_LOADING_MESSAGE", "Report is being generated ...");
+
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(
@@ -240,6 +259,17 @@ export default createStore({
         },
         updateSearchedSBasesPKs(context, payload) {
             context.commit("SET_SEARCHED_SBASES_PKS", payload);
+        },
+        pushToHistoryStack(context, payload) {
+            context.commit("PUSH_TO_HISTORY_STACK", payload);
+
+            const currentPK =
+                context.state.historyStack[
+                    (context.state.historyStack.length as number) - 1
+                ];
+            const newDetailInfo = context.state.allObjectsMap[currentPK];
+
+            context.commit("SET_DETAIL_INFO", newDetailInfo);
         },
     },
     modules: {},

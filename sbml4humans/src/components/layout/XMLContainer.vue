@@ -1,10 +1,14 @@
 <template>
     <div class="xml-container">
-        <!-- FIXME ICON -->
-        <pre v-if="visible" ref="xmlContent" class="xml-text">
-            {{formattedXML}}
+        <div
+            v-on:click="visible = !visible"
+            :title="!visible ? 'Hide SBML' : 'Show SBML'"
+        >
+            <i v-bind:class="`fa fa-${!visible ? 'minus' : 'plus'}-circle`"></i>
+        </div>
+        <pre v-if="!visible" ref="xmlContent" class="xml-text">
+            {{ formattedXML }}
         </pre>
-        <span v-on:click="visible = !visible" :title="visible ? 'Hide SBML': 'Show SBML'"> {{visible ? "[-]": "[+]"}}</span>
     </div>
 </template>
 
@@ -23,11 +27,16 @@ export default defineComponent({
             required: true,
         },
     },
+
     data(): Record<string, unknown> {
         return {
-            visible: true,
+            visible: {
+                type: Boolean,
+                default: false,
+            },
         };
     },
+
     methods: {
         /**
          * Update the current xml displayed
@@ -36,6 +45,7 @@ export default defineComponent({
             store.dispatch("updateXML", this.xml);
         },
     },
+
     computed: {
         /**
          * Formats and returns the raw XML string passed from the parent into

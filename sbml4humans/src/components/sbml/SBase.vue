@@ -1,7 +1,6 @@
 <template>
-
-    <h1>{{ info.sbmlType }}</h1>
-    <h2>{{info.id}} {{info.name ? '('+info.name+')' : ""}}</h2>
+    <h1 v-bind:style="`color: ${color}`">{{ info.sbmlType }}</h1>
+    <h2>{{ info.id }} {{ info.name ? "(" + info.name + ")" : "" }}</h2>
 
     <div class="data" v-if="info.id">
         <div class="label"><strong>id:</strong> {{ info.id }}</div>
@@ -39,9 +38,26 @@
             </ul>
         </div>
     </div>
+    <div class="data" v-if="info.cvterms">
+        <div class="label"><strong>cvterms:</strong></div>
+        <div class="ml-4">
+            <ul title="CVTerms">
+                <li v-for="cvterm in info.cvterms" v-bind:key="cvterm.qualifier">
+                    <div>qualifier: {{ cvterm.qualifier }}</div>
+                    <div>resources:</div>
+                    <ul class="ml-4">
+                        <li v-for="resource in cvterm.resources" v-bind:key="resource">
+                            {{ resource }}
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
+import colorScheme from "@/data/colorScheme";
 import TYPES from "@/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
@@ -57,6 +73,12 @@ export default defineComponent({
         math: {
             type: String,
             default: "",
+        },
+    },
+
+    computed: {
+        color(): string {
+            return colorScheme.componentColor[this.info.sbmlType];
         },
     },
 });

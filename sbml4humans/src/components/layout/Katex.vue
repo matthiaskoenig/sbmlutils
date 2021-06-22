@@ -1,5 +1,5 @@
 <template>
-    <div class="katex ml-4" v-html="katexMathHTML"></div>
+    <span ref="katexEl" class="katex ml-4" v-html="katexMath"></span>
 </template>
 
 <script lang="ts">
@@ -17,11 +17,11 @@ export default defineComponent({
         },
     },
 
+    /**
+     * Renders the raw math string into Latex format using the Katex module.
+     */
     computed: {
-        /**
-         * Renders the raw math string into Latex format using the Katex module.
-         */
-        katexMathHTML(): string {
+        katexMath(): string {
             return katex.renderToString(this.mathStr, {
                 throwOnError: false,
                 output: "mathml",
@@ -32,13 +32,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.katex {
-    font-size: x-large;
-}
+@import url("https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.css");
 
-/*@font-face {
-    font-family: "Open-Sans";
-    src: url("https://fonts.googleapis.com/css2?family=Roboto&display=swap")
-        format("woff2");
-}*/
+.katex {
+    font-size: 1em;
+}
 </style>

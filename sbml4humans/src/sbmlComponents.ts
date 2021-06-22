@@ -18,10 +18,7 @@ const History = {
     modifiedDates: [String],
 };
 
-const mathDict = {
-    type: String,
-    math: String,
-};
+const mathDict = "";
 
 // sbase
 const SBase = {
@@ -194,8 +191,8 @@ const Reaction = {
     fast: Boolean,
     equation: String,
     kineticLaw: {
-        math: mathDict,
-        units: derivedUnits,
+        math: String,
+        units: String,
         listOfLocalParameters: [
             {
                 id: String,
@@ -321,7 +318,7 @@ const Report = {
     models: Models,
 };
 
-const DetailInfo = SBase;
+const DetailInfo = { ...SBase, ...Reaction, ...AssignmentRule };
 
 const RawData = {
     report: Report,
