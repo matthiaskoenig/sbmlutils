@@ -78,7 +78,7 @@ __all__ = [
     "ExternalModelDefinition",
     "ModelDefinition",
     "Submodel",
-    "Port"
+    "Port",
 ]
 
 
@@ -1803,9 +1803,7 @@ class ModelDefinition(Sbase):
         self._set_fields(model_definition, model)
         return model_definition
 
-    def _set_fields(
-        self, obj: libsbml.ModelDefinition, model: libsbml.Model
-    ) -> None:
+    def _set_fields(self, obj: libsbml.ModelDefinition, model: libsbml.Model) -> None:
         """Set fields on ModelDefinition."""
         super(ModelDefinition, self)._set_fields(obj, model)
         for attr in [
@@ -2168,4 +2166,3 @@ class Port(SbaseRef):
     def _set_fields(self, obj: libsbml.Port, model: libsbml.Model) -> None:
         """Set fields on Port."""
         super(Port, self)._set_fields(obj, model)
-

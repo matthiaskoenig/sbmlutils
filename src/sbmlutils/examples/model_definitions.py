@@ -47,21 +47,20 @@ species = [
 
 modelDefinitions: List[ModelDefinition] = [
     ModelDefinition(
-        sid="m1", name="Model Definition 1",
+        sid="m1",
+        name="Model Definition 1",
         units=units,
-        compartments=[
-            Compartment("d", value=1.0, unit=UNIT_KIND_LITRE)
-        ],
+        compartments=[Compartment("d", value=1.0, unit=UNIT_KIND_LITRE)],
         species=[
             Species(
-                    "A",
-                    initialAmount=1.0,
-                    constant=False,
-                    substanceUnit=UNIT_mmole,
-                    compartment="d",
-                    hasOnlySubstanceUnits=True,
-                )
-        ]
+                "A",
+                initialAmount=1.0,
+                constant=False,
+                substanceUnit=UNIT_mmole,
+                compartment="d",
+                hasOnlySubstanceUnits=True,
+            )
+        ],
     )
 ]
 

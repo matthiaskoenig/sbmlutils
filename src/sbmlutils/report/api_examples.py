@@ -1,7 +1,12 @@
 from sbmlutils.test import (
-    REPRESSILATOR_SBML, RECON3D_SBML, ICG_LIVER, ICG_BODY_FLAT, ICG_BODY,
+    ICG_BODY,
+    ICG_BODY_FLAT,
+    ICG_LIVER,
     MODEL_DEFINITIONS_SBML,
+    RECON3D_SBML,
+    REPRESSILATOR_SBML,
 )
+
 
 # Data and Endpoints for Example Models
 examples_info = {
@@ -33,9 +38,8 @@ examples_info = {
             "id": "Recon3D",
             "sbo": None,
             "metaId": None,
-        }
+        },
     },
-
     "icg_liver": {
         "file": ICG_LIVER,
         "model": {
@@ -44,9 +48,8 @@ examples_info = {
             "id": "icg_liver",
             "sbo": None,
             "metaId": "meta_icg_liver",
-        }
+        },
     },
-
     "icg_body_flat": {
         "file": ICG_BODY_FLAT,
         "model": {
@@ -55,7 +58,7 @@ examples_info = {
             "id": "icg_body",
             "sbo": None,
             "metaId": "meta_icg_body",
-        }
+        },
     },
     "icg_body": {
         "file": ICG_BODY,
@@ -65,6 +68,6 @@ examples_info = {
             "id": "icg_body",
             "sbo": None,
             "metaId": "meta_icg_body",
-        }
+        },
     },
 }

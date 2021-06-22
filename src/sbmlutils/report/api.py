@@ -5,30 +5,27 @@ parsing the model and returning the JSON representation.
 fastapi
 
 """
-import os
-import logging
 import json
-
-from pathlib import Path
-from typing import Optional, Dict
+import logging
+import os
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
+
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # API Permissions Data
-origins = [
-    "127.0.0.1",
-    "*"
-]
+origins = ["127.0.0.1", "*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,9 +70,9 @@ async def upload_sbml(request: Request):
             sbml_file.write(file_content)
         source = files_dir / filename
 
-        fetch_start = datetime.now()    # debug information
+        fetch_start = datetime.now()  # debug information
         info = SBMLDocumentInfo.from_sbml(source=source, math_render=math_render)
-        fetch_end = datetime.now()    # debug information
+        fetch_end = datetime.now()  # debug information
         content["report"] = info.info
 
         time_elapsed = (fetch_end - fetch_start).total_seconds()
@@ -83,15 +80,11 @@ async def upload_sbml(request: Request):
         os.remove(files_dir / filename)
     except IOError as err:
         logger.error(err)
-        content = {
-            "error": "SBML Document could not be parsed."
-        }
+        content = {"error": "SBML Document could not be parsed."}
 
         time_elapsed = 0
 
-    content["debug"] = {
-        "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
-    }
+    content["debug"] = {"jsonReportTime": f"{round(time_elapsed, 3)} seconds"}
     return _render_json_content(content)
 
 
@@ -102,9 +95,7 @@ def examples() -> JSONResponse:
     for key in examples_info:
         api_examples.append(examples_info[key]["model"])
 
-    content = {
-        "examples": api_examples
-    }
+    content = {"examples": api_examples}
     return _render_json_content(content)
 
 
@@ -126,9 +117,9 @@ def example(example_id: str) -> Response:
     content: Dict = {}
 
     try:
-        fetch_start = datetime.now()    # debug information
+        fetch_start = datetime.now()  # debug information
         info = SBMLDocumentInfo.from_sbml(source=source)
-        fetch_end = datetime.now()      # debug information
+        fetch_end = datetime.now()  # debug information
         content["report"] = info.info
         time_elapsed = (fetch_end - fetch_start).total_seconds()
         logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
@@ -139,14 +130,10 @@ def example(example_id: str) -> Response:
 
     except IOError as err:
         logger.error(err)
-        content = {
-            "error": f"example for id does not exist '{example_id}'"
-        }
+        content = {"error": f"example for id does not exist '{example_id}'"}
         time_elapsed = 0
 
-    content["debug"] = {
-        "jsonReportTime": f"{round(time_elapsed, 3)} seconds"
-    }
+    content["debug"] = {"jsonReportTime": f"{round(time_elapsed, 3)} seconds"}
     return _render_json_content(content)
 
 
@@ -174,4 +161,3 @@ if __name__ == "__main__":
         log_level="info",
         reload=True,
     )
-

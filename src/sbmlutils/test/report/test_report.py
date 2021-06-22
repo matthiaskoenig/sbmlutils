@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from sbmlutils.report import sbmlreport
-from sbmlutils.test import ALL_SBML_PATHS, GZ_SBML, sbml_paths_idfn, GLUCOSE_SBML
+from sbmlutils.test import ALL_SBML_PATHS, GLUCOSE_SBML, GZ_SBML, sbml_paths_idfn
 
 
 def check_report(sbml_path: Path, tmp_path: Path, validate: bool):
@@ -26,7 +26,9 @@ def test_report_gz(sbml_path: Path, tmp_path: Path) -> None:
 @pytest.mark.parametrize("sbml_path", [GLUCOSE_SBML], ids=sbml_paths_idfn)
 def test_serialization(sbml_path: Path, tmp_path: Path) -> None:
     """Test report generation for compressed models."""
-    d = sbmlreport.create_report(sbml_path=sbml_path, output_dir=tmp_path, validate=False)
+    d = sbmlreport.create_report(
+        sbml_path=sbml_path, output_dir=tmp_path, validate=False
+    )
     assert d
 
 
