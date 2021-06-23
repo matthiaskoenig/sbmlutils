@@ -27,7 +27,7 @@ def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
         return None
 
 
-def clean_empty(d: Dict) -> Dict:
+def clean_empty(d: Union[Dict, List, str]) -> Union[Dict, List, str]:
     """Remove empty fields from JSON.
 
     Reducing to core information.
@@ -195,30 +195,21 @@ class SBMLDocumentInfo:
                 if initial_assignment.isSetSymbol()
                 else None
             )
-            pk = self._set_pk(initial_assignment)
+            pk = self._get_pk(initial_assignment)
             if pk_symbol:
                 assignments[pk_symbol] = {
                     "pk": pk,
-                    "type": "initialAssignment",
+                    "sbmlType": self._sbml_type(initial_assignment),
                 }
 
         rule: libsbml.Rule
         for rule in model.getListOfRules():
             pk_symbol = rule.getVariable() if rule.isSetVariable() else None
-            pk = self._set_pk(rule)
+            pk = self._get_pk(rule)
             if pk_symbol:
-                typecode = rule.getTypeCode()
-                if typecode == libsbml.SBML_ASSIGNMENT_RULE:
-                    sbml_type = "assignmentRule"
-                elif typecode == libsbml.SBML_RATE_RULE:
-                    sbml_type = "rateRule"
-                elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
-                    sbml_type = "algebraicRule"
-                else:
-                    raise ValueError(f"Unsupported rule type: {typecode}")
                 assignments[pk_symbol] = {
                     "pk": pk,
-                    "type": sbml_type,
+                    "sbmlType": self._sbml_type(rule),
                 }
 
         return assignments
@@ -229,8 +220,9 @@ class SBMLDocumentInfo:
         return class_name
 
     @staticmethod
-    def _set_pk(sbase: libsbml.SBase) -> str:
+    def _get_pk(sbase: libsbml.SBase) -> str:
         """Calculate primary key."""
+
         if not hasattr(sbase, "pk"):
             pk: str
             if sbase.isSetId():
@@ -241,7 +233,8 @@ class SBMLDocumentInfo:
                 xml = sbase.toSBML()
                 pk = SBMLDocumentInfo._uuid(xml)
             sbase.pk = pk
-        return sbase.pk
+
+        return pk
 
     @staticmethod
     def _uuid(xml: str) -> str:
@@ -258,7 +251,7 @@ class SBMLDocumentInfo:
         :param sbase: SBase instance for which info dictionary is to be created
         :return info dictionary for item
         """
-        pk = cls._set_pk(sbase)
+        pk = cls._get_pk(sbase)
         d = {
             "pk": pk,
             "sbmlType": cls._sbml_type(sbase),
@@ -1163,8 +1156,8 @@ if __name__ == "__main__":
     )
 
     for source in [
-        # ICG_BODY,
-        REPRESSILATOR_SBML,
+        ICG_BODY,
+        # REPRESSILATOR_SBML,
         # RECON3D_SBML,
         # ICG_LIVER,
         # ICG_BODY_FLAT,
