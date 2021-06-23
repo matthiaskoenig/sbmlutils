@@ -27,7 +27,7 @@ def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
         return None
 
 
-def clean_empty(d: Dict) -> Dict:
+def clean_empty(d: Any) -> Any:
     """Remove empty fields from JSON.
 
     Reducing to core information.
@@ -209,11 +209,11 @@ class SBMLDocumentInfo:
             if pk_symbol:
                 typecode = rule.getTypeCode()
                 if typecode == libsbml.SBML_ASSIGNMENT_RULE:
-                    sbml_type = "assignmentRule"
+                    sbml_type = "AssignmentRule"
                 elif typecode == libsbml.SBML_RATE_RULE:
-                    sbml_type = "rateRule"
+                    sbml_type = "RateRule"
                 elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
-                    sbml_type = "algebraicRule"
+                    sbml_type = "AlgebraicRule"
                 else:
                     raise ValueError(f"Unsupported rule type: {typecode}")
                 assignments[pk_symbol] = {
@@ -1164,11 +1164,11 @@ if __name__ == "__main__":
 
     for source in [
         # ICG_BODY,
-        REPRESSILATOR_SBML,
+        # REPRESSILATOR_SBML,
         # RECON3D_SBML,
         # ICG_LIVER,
         # ICG_BODY_FLAT,
-        # MODEL_DEFINITIONS_SBML,
+        MODEL_DEFINITIONS_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)
         # print(info)
@@ -1177,5 +1177,5 @@ if __name__ == "__main__":
         print(json_str)
         print("-" * 80)
 
-    # with open(output_dir / "test.json", "w") as fout:
-    #     fout.write(json_str)
+    with open(output_dir / "test.json", "w") as fout:
+         fout.write(json_str)
