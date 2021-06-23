@@ -5,10 +5,9 @@ parsing the model and returning the JSON representation based on fastAPI.
 """
 import json
 import logging
-import os
 import time
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Dict
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
@@ -32,10 +31,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# TODO: create prototype of vue-report in sbml4humans branch;
-# TODO: remove the feature vue-prototype branch;
-# TODO: close issue #226 https://github.com/matthiaskoenig/sbmlutils/issues/226
 
 
 @app.get("/")
@@ -121,8 +116,7 @@ def _content_for_source(source: Path) -> Dict:
 
 def _render_json_content(content: Dict) -> Response:
     """Render content to JSON."""
-    # FIXME: use the minimal dict
-    # content = clean_empty(content)
+    # content = clean_empty(content)  # FIXME: use minimal dict
     json_bytes = json.dumps(
         content,
         ensure_ascii=False,
