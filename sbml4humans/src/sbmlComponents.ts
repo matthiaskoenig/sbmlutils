@@ -1,4 +1,4 @@
-/* SBML Component Model Representations */
+/* SBML Component Representations */
 
 const CVTerm = {
     url: String,
@@ -18,26 +18,80 @@ const History = {
     modifiedDates: [String],
 };
 
-const mathDict = "";
+const UncertaintyParameter = {
+    var: String,
+    value: Number,
+    units: String,
+    type: String,
+    definitionURL: String,
+    math: String,
+};
 
-// sbase
-const SBase = {
+const Uncertainty = {
+    pk: String,
     id: String,
     metaId: String,
     name: String,
     sbo: String,
     cvTerms: [CVTerm],
-    history: [History],
+    history: History,
     notes: String,
     xml: String,
-    displaySId: String,
     sbmlType: String,
-    pk: String,
+    uncertaintyParameters: [UncertaintyParameter],
 };
 
-// doc
+/**
+ * SBase: The parent class of (almost) all SBML objects
+ */
+const SBase = {
+    pk: String,
+    id: String,
+    metaId: String,
+    name: String,
+    sbo: String,
+    cvTerms: [CVTerm],
+    history: History,
+    notes: String,
+    xml: String,
+    sbmlType: String,
+
+    // comp
+    replacedBy: {
+        submodelRef: String,
+        replacedBySbaseref: String,
+    },
+    replacedElements: {
+        submodelRef: String,
+        replacedElementSbaseref: String,
+    },
+
+    // distrib
+    uncertainties: [Uncertainty],
+};
+
+const sbaseRef = {
+    ...SBase,
+    portRef: String,
+    idRef: String,
+    unitRef: String,
+    metaIdRef: String,
+    referencedElement: {
+        element: String,
+        elementId: String,
+    },
+};
+
+const Assignment = {
+    pk: String,
+    sbmlType: String,
+};
+
+/**
+ * SBML Document definition from which the report is to be generated
+ */
 const SBMLDocument = {
-    sbase: SBase,
+    ...SBase,
     packages: {
         document: {
             level: Number,
@@ -52,9 +106,8 @@ const SBMLDocument = {
     },
 };
 
-// model
-const Model = {
-    sbase: SBase,
+const ModelBase = {
+    ...SBase,
     substanceUnits: String,
     timeUnits: String,
     volumeUnits: String,
@@ -64,69 +117,42 @@ const Model = {
     conversionFactor: String,
 };
 
-// function definition
 const FunctionDefinition = {
-    sbase: SBase,
-    math: mathDict,
-};
-
-// unit definition
-const UnitDefinition = {
-    sbase: SBase,
-    listOfUnits: [
-        {
-            nomTerms: [
-                {
-                    scale: Number,
-                    multiplier: Number,
-                    exponent: Number,
-                    kind: {
-                        name: String,
-                    },
-                },
-            ],
-            denomTerms: [
-                {
-                    scale: Number,
-                    multiplier: Number,
-                    exponent: Number,
-                    kind: String,
-                },
-            ],
-        },
-    ],
-};
-
-const derivedUnits = {
+    ...SBase,
     math: String,
-    unitTerms: [
-        {
-            scale: Number,
-            multiplier: Number,
-            exponent: Number,
-            kind: String,
-        },
-    ],
 };
 
-// compartment
+const UnitDefinition = {
+    ...SBase,
+    units: String,
+};
+
 const Compartment = {
     sbase: SBase,
     spatialDimensions: Number,
     size: Number,
-    units: UnitDefinition, // add unit
     constant: Boolean,
+    units: String,
+    derivedUnits: String,
+    assignment: Assignment,
+
+    // cross links
+    species: [String], // list of pks of related species
+    reactions: [String], // list of pks of related reactions
 };
 
 const Species = {
-    sbase: SBase,
-    compartment: Compartment,
+    ...SBase,
+    compartment: String,
     initialAmount: Number,
     initialConcentration: Number,
     substanceUnits: String,
     hasOnlySubstanceUnits: Boolean,
     boundaryCondition: Boolean,
     constant: Boolean,
+    units: String,
+    derivedUnits: String,
+    assignment: Assignment,
     conversionFactor: {
         sid: String,
         value: Number,
@@ -136,27 +162,35 @@ const Species = {
         formula: String,
         charge: Number,
     },
+
+    // cross links
+    reactant: String,
+    product: String,
+    modifier: String,
 };
 
 const Parameter = {
-    sbase: SBase,
+    ...SBase,
     value: Number,
-    units: derivedUnits,
     constant: Boolean,
+    units: String,
+    derivedUnits: String,
+    assignment: Assignment,
 };
 
 const InitialAssignment = {
-    sbase: SBase,
+    ...SBase,
     symbol: String,
-    math: mathDict,
-    units: derivedUnits,
+    math: String,
+    derivedUnits: String,
 };
 
+// Rule [parent for AssignmentRule, RateRule and AlgebraicRule]
 const Rule = {
-    sbase: SBase,
+    ...SBase,
     variable: String,
-    math: mathDict,
-    units: derivedUnits,
+    math: String,
+    derivedUnits: String,
 };
 
 const AssignmentRule = Rule;
@@ -164,15 +198,15 @@ const RateRule = Rule;
 const AlgebraicRule = Rule;
 
 const Constraint = {
-    sbase: SBase,
-    math: mathDict,
+    ...SBase,
+    math: String,
     message: String,
 };
 
 const Reaction = {
-    sbase: SBase,
+    ...SBase,
     reversible: Boolean,
-    compartment: Compartment,
+    compartment: String,
     listOfReactants: [
         {
             species: String,
@@ -192,67 +226,77 @@ const Reaction = {
     equation: String,
     kineticLaw: {
         math: String,
-        units: String,
+        derivedUnits: String,
         listOfLocalParameters: [
             {
                 id: String,
                 value: Number,
-                units: derivedUnits,
+                units: String,
+                derivedUnits: String,
             },
         ],
     },
+    fbc: {
+        bounds: {
+            lowerFluxBound: {
+                id: String,
+                value: Number,
+            },
+            upperFluxBound: {
+                id: String,
+                value: Number,
+            },
+        },
+        gpa: String,
+    },
+};
+
+const Event = {
+    ...SBase,
+    useValuesFromTriggerTime: Boolean,
+    trigger: {
+        math: String,
+        initialValue: Number,
+        persistent: Boolean,
+    },
+    priority: String,
+    delay: String,
+    listOfEventAssignments: [
+        {
+            variable: String,
+            math: String,
+        },
+    ],
+};
+
+/**
+ * FBC components
+ */
+
+const GeneProduct = {
+    ...SBase,
+    label: String,
+    associatedSpecies: String,
 };
 
 const Objective = {
-    sbase: SBase,
+    ...SBase,
     type: String,
     fluxObjectives: [
         {
             sign: String,
             coefficient: Number,
-            reaction: Reaction,
+            reaction: String,
         },
     ],
 };
 
-const Event = {
-    sbase: SBase,
-    useValuesFromTriggerTime: Boolean,
-    trigger: {
-        math: mathDict,
-        initialValue: Number,
-        persistent: Boolean,
-    },
-    priority: mathDict,
-    delay: mathDict,
-    listOfEventAssignments: [
-        {
-            variable: String,
-            math: mathDict,
-        },
-    ],
-};
-
-const GeneProduct = {
-    sbase: SBase,
-    label: String,
-    associatedSpecies: Species,
-};
-
-const sbaseRef = {
-    sbase: SBase,
-    portRef: String,
-    idRef: String,
-    unitRef: String,
-    metaIdRef: String,
-    referencedElement: {
-        element: String,
-        elementId: String,
-    },
-};
+/**
+ * Comp Components
+ */
 
 const Submodel = {
-    sbase: SBase,
+    ...SBase,
     modelRef: String,
     deletions: [
         {
@@ -265,60 +309,60 @@ const Submodel = {
 };
 
 const Port = {
-    sbaseRef: sbaseRef,
+    ...sbaseRef,
 };
 
-const Models = {
-    model: Model,
-    Submodels: [Submodel],
-    ports: [Port],
+/**
+ * Definition of SBML Model
+ */
+const Model = {
+    // model's own attributes
+    ...ModelBase,
+
+    // core
     functionDefinitions: [FunctionDefinition],
     unitDefinitions: [UnitDefinition],
     compartments: [Compartment],
     species: [Species],
     parameters: [Parameter],
     initialAssignments: [InitialAssignment],
-    rules: [Rule],
+    assignmentRules: [AssignmentRule],
+    rateRules: [RateRule],
+    algebraicRules: [AlgebraicRule],
     constraints: [Constraint],
     reactions: [Reaction],
-    objectives: [Objective],
     events: [Event],
+
+    // comp
+    submodels: [Submodel],
+    ports: [Port],
+
+    // fbc
     geneProducts: [GeneProduct],
+    objectives: [Objective],
 };
 
-const ModelDefinitions = {
-    modelDefs: [],
-    externalModelDefs: [
-        {
-            sbase: SBase,
-            replaced_by: {
-                class: String,
-                source_code: String,
-            },
-            replaced_elements: [
-                {
-                    SubmodelRef: String,
-                    replacedBySbaseref: {
-                        class: String,
-                        source_code: String,
-                    },
-                },
-            ],
-            type: {
-                class: String,
-                source_code: String,
-            },
-        },
-    ],
-}; // refactor
+const ModelDefinition = {
+    ...Model,
+};
 
+const ExternalModelDefinition = {
+    ...SBase,
+    modelRef: String,
+    source: String,
+};
+
+/**
+ * Definitions of commonly used data structures
+ */
 const Report = {
     doc: SBMLDocument,
-    modelDefinitions: ModelDefinitions,
-    models: Models,
+    model: Model,
+    modelDefinitions: [ModelDefinition],
+    externalModelDefinitions: [ExternalModelDefinition],
 };
 
-const DetailInfo = { ...SBase, ...Reaction, ...AssignmentRule };
+const DetailInfo = { ...SBase, ...Reaction, ...Rule };
 
 const RawData = {
     report: Report,
@@ -342,13 +386,11 @@ export default {
     AlgebraicRule: AlgebraicRule,
     Constraint: Constraint,
     Reaction: Reaction,
-    Objective: Objective,
     Event: Event,
-    GeneProduct: GeneProduct,
     Submodel: Submodel,
     Port: Port,
-    Models: Models,
-    ModelDefinitions: ModelDefinitions,
+    GeneProduct: GeneProduct,
+    Objective: Objective,
     Report: Report,
     RawData: RawData,
     DetailInfo: DetailInfo,

@@ -316,7 +316,7 @@ class SBMLDocumentInfo:
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLDocumentInfo.sbase_dict(uncertainty)
 
-                u_dict["uncert_parameters"] = []
+                u_dict["uncertaintyParameters"] = []
                 upar: libsbml.UncertParameter
                 for upar in uncertainty.getListOfUncertParameters():
                     param_dict = {
@@ -324,7 +324,7 @@ class SBMLDocumentInfo:
                         "value": upar.getValue() if upar.isSetValue() else None,
                         "units": upar.getUnits() if upar.isSetUnits() else None,
                         "type": upar.getTypeAsString() if upar.isSetType() else None,
-                        "definition_url": upar.getDefinitionURL()
+                        "definitionURL": upar.getDefinitionURL()
                         if upar.isSetDefinitionURL()
                         else None,
                         "math": astnode_to_latex(upar.getMath(), model=sbase.getModel())
@@ -332,7 +332,7 @@ class SBMLDocumentInfo:
                         else None,
                     }
 
-                    u_dict["uncert_parameters"].append(param_dict)
+                    u_dict["uncertaintyParameters"].append(param_dict)
 
                 d["uncertainties"].append(u_dict)
 
@@ -451,6 +451,7 @@ class SBMLDocumentInfo:
 
         d["packages"] = packages
         return d
+
 
     def model(self, model: libsbml.Model) -> Dict[str, str]:
         """Info for SBML Model.
@@ -665,6 +666,7 @@ class SBMLDocumentInfo:
 
         return assignments
 
+
     def rules(self, model: libsbml.Model) -> Dict:
         """Information for Rules.
 
@@ -712,6 +714,7 @@ class SBMLDocumentInfo:
         else:
             raise TypeError(rule)
 
+
     def constraints(self, model: libsbml.Model) -> List[Dict[str, Any]]:
         """Information for Constraints.
 
@@ -734,13 +737,13 @@ class SBMLDocumentInfo:
 
         return constraints
 
+
     def reactions(self, model: libsbml.Model) -> List[Dict[str, Any]]:
         """Information dictionaries for ListOfReactions.
 
         :return: list of info dictionaries for Reactions
 
         -- take a look at local parameter once
-        -- also made additions for products and reactions
         """
 
         reactions = []
@@ -796,7 +799,7 @@ class SBMLDocumentInfo:
             d["fbc"] = (
                 {
                     "bounds": self._bounds_dict_from_reaction(r, model),
-                    "gpa": self._gene_product_association_dict_from_reaction(r),
+                    "gpa": self._gene_product_association_from_reaction(r),
                 }
                 if rfbc
                 else None
@@ -857,9 +860,9 @@ class SBMLDocumentInfo:
         return bounds
 
     @staticmethod
-    def _gene_product_association_dict_from_reaction(
+    def _gene_product_association_from_reaction(
         reaction: libsbml.Reaction,
-    ) -> Dict:
+    ) -> str:
         """Render string representation of the GeneProductAssociation for given reaction.
 
         :param reaction: SBML reaction instance
@@ -981,11 +984,11 @@ class SBMLDocumentInfo:
             )
             delay: libsbml.Delay = event.getDelay() if event.isSetDelay() else None
             if delay:
-                d["delay"] = {
-                    "math": astnode_to_latex(delay.getMath(), model=model)
+                d["delay"] = (
+                    astnode_to_latex(delay.getMath(), model=model)
                     if delay.isSetMath()
                     else None
-                }
+                )
 
             assignments = []
             eva: libsbml.EventAssignment
@@ -1174,7 +1177,6 @@ if __name__ == "__main__":
         MODEL_DEFINITIONS_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)
-        # print(info)
         print("-" * 80)
         json_str = info.to_json()
         print(json_str)
