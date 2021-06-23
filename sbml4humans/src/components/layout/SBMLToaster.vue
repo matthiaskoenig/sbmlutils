@@ -5,12 +5,12 @@
             v-bind:style="`background-color: ${color}`"
         >
             <div class="right-left">
-                <strong>{{info.id}}</strong> {{info.name ? '('+info.name+')' : ""}}
+                <strong>{{ info.id }}</strong>
+                {{ info.name ? "(" + info.name + ")" : "" }}
             </div>
             <div class="left-right">
                 <strong>{{ sbmlType }}</strong>
             </div>
-
         </div>
         <div v-if="info.metaId || info.sbo" class="card-body">
             <div class="d-flex justify-content-between">
@@ -28,7 +28,7 @@
 <script lang="ts">
 import colors from "@/data/colorScheme";
 import store from "@/store/index";
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "vue";
 
 /**

@@ -44,6 +44,30 @@
         <div class="label"><strong>constant:</strong> {{ info.constant }}</div>
     </div>
 
+    <!-- Units -->
+    <div class="data" v-if="info.units">
+        <div class="label">
+            <strong>units:</strong>
+            <katex v-bind:mathStr="info.units"></katex>
+        </div>
+    </div>
+
+    <!-- Derived Units -->
+    <div class="data" v-if="info.derivedUnits">
+        <div class="label">
+            <strong>derivedUnits:</strong>
+            <katex v-bind:mathStr="info.derivedUnits"></katex>
+        </div>
+    </div>
+
+    <!-- Assignment -->
+    <div class="data" v-if="info.assignment">
+        <div class="label">
+            <strong>assignment:</strong>
+            <span>{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span>
+        </div>
+    </div>
+
     <!-- Conversion Factor -->
     <div
         class="data"
@@ -84,10 +108,52 @@
             </div>
         </div>
     </div>
+
+    <!-- List of Reactant Reactions -->
+    <div class="data" v-if="info.reactant">
+        <div class="label">
+            <strong>reactantIn:</strong>
+        </div>
+        <div class="ml-4">
+            <ul title="List of Reactions in which species is Reactant">
+                <li v-for="reactant in info.reactant" v-bind:key="reactant">
+                    {{ reactant }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- List of Product Reactions -->
+    <div class="data" v-if="info.product">
+        <div class="label">
+            <strong>productIn:</strong>
+        </div>
+        <div class="ml-4">
+            <ul title="List of Reactions in which species is Product">
+                <li v-for="product in info.product" v-bind:key="product">
+                    {{ product }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- List of Modifier Reactions -->
+    <div class="data" v-if="info.modifier">
+        <div class="label">
+            <strong>modifierIn:</strong>
+        </div>
+        <div class="ml-4">
+            <ul title="List of Reactions in which species is Modifier">
+                <li v-for="modifier in info.modifier" v-bind:key="modifier">
+                    {{ modifier }}
+                </li>
+            </ul>
+        </div>
+    </div>
 </template>
 
 <script>
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 /**

@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 import allSBML from "@/data/allSBMLMap";
 import { defineComponent } from "@vue/runtime-core";
@@ -35,7 +35,7 @@ export default defineComponent({
          * @param report The generated SBML report sent in the API response.
          */
         assembleSBasesInModels(
-            report: Record<string, Record<string, unknown>> = TYPES.Report
+            report: Record<string, unknown>
         ): Array<Record<string, unknown>> {
             if (report === null) {
                 return [];
@@ -50,10 +50,14 @@ export default defineComponent({
             if (report.doc) {
                 counts["SBMLDocument"] = 1;
                 sbases.push(report.doc as Record<string, unknown>);
-                allObjectsMap[report.doc.pk as string] = report.doc;
+                allObjectsMap[(report.doc as Record<string, unknown>).pk as string] =
+                    report.doc;
             }
 
-            const models: Record<string, unknown> = report.models;
+            const models: Record<string, unknown> = report.models as Record<
+                string,
+                unknown
+            >;
 
             // collecting model
             if (models.model) {

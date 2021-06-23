@@ -3,7 +3,7 @@ import axios from "axios";
 import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import MAPS from "@/data/allSBMLMap";
 
 export default createStore({

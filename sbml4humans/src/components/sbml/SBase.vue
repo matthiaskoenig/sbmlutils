@@ -58,7 +58,7 @@
 
 <script lang="ts">
 import colorScheme from "@/data/colorScheme";
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 /**
