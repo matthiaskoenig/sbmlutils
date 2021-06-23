@@ -1,5 +1,5 @@
 """Helper functions for formating SBML elements."""
-from typing import Dict
+from typing import Dict, Optional
 
 import libsbml
 import numpy as np
@@ -85,7 +85,7 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
     return ""
 
 
-def units_dict(udef: libsbml.UnitDefinition) -> Dict:
+def units_dict(udef: libsbml.UnitDefinition) -> Optional[Dict]:
     """Render dictionary for units.
 
     Units have the general format
