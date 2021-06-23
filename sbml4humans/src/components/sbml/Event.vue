@@ -13,7 +13,8 @@
             <strong>trigger:</strong>
             <div class="ml-4">
                 <div v-if="info.trigger.math">
-                    math: <span v-html="info.trigger.math"></span>
+                    math:
+                    <katex v-bind:mathStr="info.trigger.math"></katex>
                 </div>
                 <div v-if="info.trigger.initialValue">
                     initialValue: {{ info.trigger.initialValue }}
@@ -29,7 +30,7 @@
     <div class="data" v-if="info.priority">
         <div class="label">
             <strong>priority:</strong>
-            {{ info.priority }}
+            <katex v-bind:mathStr="info.priority"></katex>
         </div>
     </div>
 
@@ -37,7 +38,7 @@
     <div class="data" v-if="info.delay">
         <div class="label">
             <strong>delay:</strong>
-            {{ info.delay }}
+            <katex v-bind:mathStr="info.delay"></katex>
         </div>
     </div>
 
@@ -52,7 +53,10 @@
                         v-bind:key="eva.variable"
                     >
                         <div v-if="eva.variable">variable: {{ eva.variable }}</div>
-                        <div v-if="eva.math">math: <span v-html="eva.math"></span></div>
+                        <div v-if="eva.math">
+                            math:
+                            <katex v-bind:mathStr="eva.math"></katex>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -61,13 +65,19 @@
 </template>
 
 <script lang="ts">
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
+
+import Katex from "@/components/layout/Katex.vue";
 
 /**
  * Component to define display of Event objects.
  */
 export default defineComponent({
+    components: {
+        katex: Katex,
+    },
+
     props: {
         info: {
             type: Object,

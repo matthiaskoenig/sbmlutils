@@ -1,7 +1,10 @@
 <template>
     <!-- Math -->
     <div class="data" v-if="info.math">
-        <div class="label"><strong>math:</strong> <span v-html="info.math"></span></div>
+        <div class="label">
+            <strong>math:</strong>
+            <katex v-bind:mathStr="info.math"></katex>
+        </div>
     </div>
 
     <!-- Message -->
@@ -11,13 +14,19 @@
 </template>
 
 <script lang="ts">
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
+
+import Katex from "@/components/layout/Katex.vue";
 
 /**
  * Component to define display of Constraint objects.
  */
 export default defineComponent({
+    components: {
+        katex: Katex,
+    },
+
     props: {
         info: {
             type: Object,

@@ -38,7 +38,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 /**

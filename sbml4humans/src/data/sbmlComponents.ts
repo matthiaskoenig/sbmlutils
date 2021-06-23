@@ -164,9 +164,9 @@ const Species = {
     },
 
     // cross links
-    reactant: String,
-    product: String,
-    modifier: String,
+    reactant: [String],
+    product: [String],
+    modifier: [String],
 };
 
 const Parameter = {

@@ -7,30 +7,29 @@
     <!-- Math -->
     <div class="data" v-if="info.math">
         <div class="label">
-            <strong>math: </strong><!-- ({{info.math}})-->
+            <strong>math: </strong
+            ><!-- ({{info.math}})-->
             <katex :mathStr="info.id + '=' + info.math"></katex>
         </div>
     </div>
 
-    <!-- Units (not working for now) -->
-    <div class="data" v-if="info.units">
+    <!-- Derived Units -->
+    <div class="data" v-if="info.derivedUnits">
         <div class="label">
-            <strong>units:</strong>
-            <div class="ml-4">
-                <div v-if="info.units">{{ info.units }}</div>
-            </div>
+            <strong>derivedUnits:</strong>
+            <katex v-bind:mathStr="info.derivedUnits"></katex>
         </div>
     </div>
 </template>
 
 <script>
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 
 import Katex from "@/components/layout/Katex.vue";
 
 export default {
     props: {
-        info: TYPES.Rule,
+        info: TYPES.AssignmentRule,
     },
 
     components: {

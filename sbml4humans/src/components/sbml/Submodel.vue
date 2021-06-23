@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 /**

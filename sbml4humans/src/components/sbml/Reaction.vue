@@ -79,8 +79,8 @@
             <div v-if="info.kineticLaw.math">
                 math: <Katex v-bind:mathStr="info.kineticLaw.math" />
             </div>
-            <div v-if="info.kineticLaw.units">
-                units: <Katex v-bind:mathStr="info.kineticLaw.units" />
+            <div v-if="info.kineticLaw.derivedUnits">
+                derivedUnits: <Katex v-bind:mathStr="info.kineticLaw.derivedUnits" />
             </div>
             <div v-if="info.kineticLaw.listOfLocalParameters.length > 0">
                 listOfLocalParameters:
@@ -94,6 +94,10 @@
                         <div v-if="lpar.units">
                             units: <katex v-bind:mathStr="lpar.units"></katex>
                         </div>
+                        <div v-if="lpar.derivedUnits">
+                            derivedUnits:
+                            <katex v-bind:mathStr="lpar.derivedUnits"></katex>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -105,14 +109,20 @@
         <div class="label"><strong>FBC:</strong> {{ info.fbc }}</div>
         <div class="ml-4">
             <div v-if="info.fbc.bounds">
-                bounds: [<span v-if="info.fbc.bounds.lb_value">{{
-                    info.fbc.bounds.lb_value
-                }}</span
-                >,
-                <span v-if="info.fbc.bounds.ub_value">{{
-                    info.fbc.bounds.ub_value
-                }}</span
-                >]
+                <div v-if="info.fbc.bounds.lowerFluxBound">
+                    lowerFluxBound:
+                    <span>
+                        id: {{ info.fbc.bounds.lowerFluxBound.id }}, value:
+                        {{ info.fbc.bounds.lowerFluxBound.value }}</span
+                    >
+                </div>
+                <div v-if="info.fbc.bounds.upperFluxBound">
+                    upperFluxBound:
+                    <span>
+                        id: {{ info.fbc.bounds.upperFluxBound.id }}, value:
+                        {{ info.fbc.bounds.upperFluxBound.value }}</span
+                    >
+                </div>
             </div>
             <div v-if="info.fbc.gpa">{{ info.fbc.gpa }}</div>
         </div>
@@ -120,7 +130,7 @@
 </template>
 
 <script lang="ts">
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";

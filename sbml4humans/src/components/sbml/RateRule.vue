@@ -12,26 +12,21 @@
         </div>
     </div>
 
-    <!-- Units -->
-    <div class="data" v-if="info.units">
+    <!-- Derived Units -->
+    <div class="data" v-if="info.derivedUnits">
         <div class="label">
-            <strong>units:</strong>
-            <div class="ml-4">
-                <div v-if="info.units.math">math: {{ info.units.math }}</div>
-                <div v-if="info.units.unitTerms">
-                    unitTerms: {{ info.units.unitTerms }}
-                </div>
-            </div>
+            <strong>derivedUnits:</strong>
+            <katex v-bind:mathStr="info.derivedUnits"></katex>
         </div>
     </div>
 </template>
 
 <script>
-import TYPES from "@/sbmlComponents";
+import TYPES from "@/data/sbmlComponents";
 
 export default {
     props: {
-        info: TYPES.Rule,
+        info: TYPES.RateRule,
     },
 };
 </script>

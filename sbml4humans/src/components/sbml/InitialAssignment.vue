@@ -1,15 +1,12 @@
 <template>
-    <!-- Variable -->
-    <div class="data" v-if="info.sid">
-        <div class="label"><strong>variable:</strong> {{ info.sid }}</div>
+    <!-- Symbol -->
+    <div class="data" v-if="info.symbol">
+        <div class="label"><strong>symbol:</strong> {{ info.symbol }}</div>
     </div>
 
     <!-- Math -->
     <div class="data" v-if="info.math">
-        <div class="label">
-            <strong>math:</strong>
-            <katex :mathStr="info.math"></katex>
-        </div>
+        <div class="label"><strong>math:</strong> {{ info.math }}</div>
     </div>
 
     <!-- Derived Units -->
@@ -21,14 +18,21 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import TYPES from "@/data/sbmlComponents";
+import { defineComponent } from "@vue/runtime-core";
 
-export default {
+/**
+ * Component to define display of Parameter objects.
+ */
+export default defineComponent({
     props: {
-        info: TYPES.AlgebraicRule,
+        info: {
+            type: Object,
+            default: TYPES.InitialAssignment,
+        },
     },
-};
+});
 </script>
 
 <style lang="scss" scoped>
