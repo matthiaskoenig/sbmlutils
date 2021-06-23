@@ -870,7 +870,7 @@ class Species(Sbase):
         return self._substanceUnit
 
     @substanceUnit.setter
-    def substanceUnit(self, value: Optional[UnitType]):
+    def substanceUnit(self, value: Optional[UnitType]) -> None:
         """Set substanceUnit."""
         self._substanceUnit = Unit.get_unit_string(value)
 
