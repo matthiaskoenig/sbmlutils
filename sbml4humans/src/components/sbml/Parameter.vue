@@ -13,7 +13,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <katex v-bind:mathStr="info.units"></katex>
+            <Katex v-bind:mathStr="info.units" />
         </div>
     </div>
 
@@ -21,7 +21,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex v-bind:mathStr="info.derivedUnits"></katex>
+            <Katex v-bind:mathStr="info.derivedUnits" />
         </div>
     </div>
 
@@ -38,10 +38,16 @@
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
+import Katex from "@/components/layout/Katex.vue";
+
 /**
  * Component to define display of Parameter objects.
  */
 export default defineComponent({
+    components: {
+        Katex,
+    },
+
     props: {
         info: {
             type: Object,

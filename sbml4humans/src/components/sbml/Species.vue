@@ -48,7 +48,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <katex v-bind:mathStr="info.units"></katex>
+            <Katex v-bind:mathStr="info.units" />
         </div>
     </div>
 
@@ -56,7 +56,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex v-bind:mathStr="info.derivedUnits"></katex>
+            <Katex v-bind:mathStr="info.derivedUnits" />
         </div>
     </div>
 
@@ -116,7 +116,12 @@
         </div>
         <div class="ml-4">
             <ul title="List of Reactions in which species is Reactant">
-                <li v-for="reactant in info.reactant" v-bind:key="reactant">
+                <li
+                    v-for="reactant in info.reactant"
+                    v-bind:key="reactant"
+                    class="links"
+                    v-on:click="openComponent(reactant)"
+                >
                     {{ reactant }}
                 </li>
             </ul>
@@ -130,7 +135,12 @@
         </div>
         <div class="ml-4">
             <ul title="List of Reactions in which species is Product">
-                <li v-for="product in info.product" v-bind:key="product">
+                <li
+                    v-for="product in info.product"
+                    v-bind:key="product"
+                    class="links"
+                    v-on:click="openComponent(product)"
+                >
                     {{ product }}
                 </li>
             </ul>
@@ -144,7 +154,12 @@
         </div>
         <div class="ml-4">
             <ul title="List of Reactions in which species is Modifier">
-                <li v-for="modifier in info.modifier" v-bind:key="modifier">
+                <li
+                    v-for="modifier in info.modifier"
+                    v-bind:key="modifier"
+                    class="links"
+                    v-on:click="openComponent(modifier)"
+                >
                     {{ modifier }}
                 </li>
             </ul>
@@ -152,18 +167,31 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
+
+import Katex from "@/components/layout/Katex.vue";
 
 /**
  * Component to define display of Species objects.
  */
 export default defineComponent({
+    components: {
+        Katex,
+    },
+
     props: {
         info: {
             type: Object,
             default: TYPES.Species,
+        },
+    },
+
+    methods: {
+        openComponent(pk: string): void {
+            store.dispatch("pushToHistoryStack", pk);
         },
     },
 });

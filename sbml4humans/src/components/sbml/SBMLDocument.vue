@@ -60,7 +60,7 @@ export default defineComponent({
 
     computed: {
         listOfModels(): Array<Record<string, string>> {
-            const modelPKs = store.state.componentPKsMap.Model;
+            const modelPKs = store.state.componentPKsMap.Model as Array<string>;
 
             let modelAnnotations: Array<Record<string, string>> = [];
             modelPKs.forEach((pk) => {

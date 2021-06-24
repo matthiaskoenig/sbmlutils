@@ -1,5 +1,5 @@
 <template>
-    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail()">
+    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail">
         <div
             class="tag d-flex justify-content-between"
             v-bind:style="`background-color: ${color}`"
@@ -77,6 +77,7 @@ export default defineComponent({
          * Updates the detailInfo in Vuex state/localStorage to this SBML component's info.
          */
         showDetail(): void {
+            store.dispatch("initializeHistoryStack", this.info.pk);
             store.dispatch("updateDetailInfo", this.info);
         },
     },
