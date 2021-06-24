@@ -29,12 +29,12 @@ export default defineComponent({
 
     methods: {
         /**
-         * Collects all SBML components from the backend API response and classifies
-         * them on the basis of SBML Type. Also updates the count of SBML components
-         * and initializes global component maps.
+         * Collects the SBML Document and all model definitions from the backend API
+         * response. It then collects other SBML objects in these definitions. Also
+         * updates the count of SBML components and initializes global component maps.
          * @param report The generated SBML report sent in the API response.
          */
-        assembleSBasesInModels(
+        assembleSBasesInReport(
             report: Record<string, unknown>
         ): Array<Record<string, unknown>> {
             if (report === null) {
@@ -44,7 +44,7 @@ export default defineComponent({
             let sbases: Array<Record<string, unknown>> = [];
             let counts: Record<string, number> = store.state.counts;
             let allObjectsMap: Record<string, unknown> = {};
-            let componentPKsMap: Record<string, Array<unknown>> = allSBML.componentsMap;
+            let componentPKsMap: Record<string, Array<string>> = allSBML.componentsMap;
 
             // collecting doc
             if (report.doc) {
@@ -54,24 +54,54 @@ export default defineComponent({
                     report.doc;
             }
 
-            const models: Record<string, unknown> = report.models as Record<
+            let model: Record<string, unknown> = report.model as Record<
                 string,
                 unknown
             >;
 
-            // collecting model
-            if (models.model) {
-                const model = models.model as Record<string, unknown>;
-
+            if (model) {
                 counts["Model"] = 1;
                 sbases.push(model);
+
+                componentPKsMap["Model"] = [];
 
                 const pk = model.pk as string;
                 allObjectsMap[pk] = model;
                 componentPKsMap["Model"].push(pk);
+
+                // collecting all other components
+                sbases.push(
+                    ...this.collectSBasesInModel(
+                        model,
+                        counts,
+                        allObjectsMap,
+                        componentPKsMap
+                    )
+                );
             }
 
-            // collecting all other components
+            store.dispatch("updateCounts", counts);
+            store.dispatch("updateAllObjectsMap", allObjectsMap);
+            store.dispatch("updateComponentPKsMap", componentPKsMap);
+
+            return sbases;
+        },
+
+        /**
+         * Collects SBML objects inside a particular model definition.
+         * @param model The SBML model
+         * @param counts Global counts map
+         * @param allObjectsMap Global map for all SBML objects
+         * @param componentPKsMap Global map for component-wise SBML objects
+         */
+        collectSBasesInModel(
+            model: Record<string, unknown>,
+            counts: Record<string, number>,
+            allObjectsMap: Record<string, unknown>,
+            componentPKsMap: Record<string, Array<unknown>>
+        ): Array<Record<string, unknown>> {
+            let sbasesInModel: Array<Record<string, unknown>> = [];
+
             for (let i = 0; i < listOfSBMLTypes.listOfSBMLTypes.length; i++) {
                 const sbmlType = listOfSBMLTypes.listOfSBMLTypes[i];
 
@@ -81,14 +111,16 @@ export default defineComponent({
                     key = key + "s";
                 }
 
-                if (models[key]) {
-                    const component: Array<Record<string, unknown>> = models[
+                if (model[key]) {
+                    const component: Array<Record<string, unknown>> = model[
                         key
                     ] as Array<Record<string, unknown>>;
 
+                    componentPKsMap[sbmlType] = [];
+
                     counts[sbmlType] = component.length as number;
                     component.forEach((sbase) => {
-                        sbases.push(sbase);
+                        sbasesInModel.push(sbase);
 
                         const pk = sbase.pk as string;
                         allObjectsMap[pk] = sbase;
@@ -97,11 +129,7 @@ export default defineComponent({
                 }
             }
 
-            store.dispatch("updateCounts", counts);
-            store.dispatch("updateAllObjectsMap", allObjectsMap);
-            store.dispatch("updateComponentPKsMap", componentPKsMap);
-
-            return sbases;
+            return sbasesInModel;
         },
 
         /**
@@ -151,7 +179,7 @@ export default defineComponent({
         collectSBases(): Array<Record<string, unknown>> {
             const report = store.state.jsonReport;
             let sbases: Array<Record<string, unknown>> =
-                this.assembleSBasesInModels(report);
+                this.assembleSBasesInReport(report);
 
             sbases = this.filterForSearchResults(sbases, this.searchQuery);
 

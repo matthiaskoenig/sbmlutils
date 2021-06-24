@@ -18,9 +18,6 @@ export default createStore({
         // final report
         jsonReport: TYPES.Report,
 
-        // detail view info (for access from every where)
-        detailInfo: TYPES.DetailInfo,
-
         // describe if the file report is still loading (REST endpoint)
         fileLoading: false,
 
@@ -94,9 +91,6 @@ export default createStore({
         SET_JSON_REPORT(state, payload) {
             state.jsonReport = payload;
         },
-        SET_DETAIL_INFO(state, payload) {
-            state.detailInfo = payload;
-        },
         SET_FILE_LOADING(state, payload) {
             state.fileLoading = payload;
         },
@@ -130,8 +124,39 @@ export default createStore({
         PUSH_TO_HISTORY_STACK(state, payload) {
             (state.historyStack as Array<string>).push(payload);
         },
+        POP_FROM_HISTORY_STACK(state) {
+            state.historyStack.pop();
+        },
+        CLEAR_HISTORY_STACK(state) {
+            state.historyStack = [];
+        },
     },
     actions: {
+        initializeReportView(context, payload) {
+            // dump the raw data fetched from the backend
+            context.commit("SET_RAW_DATA", payload.data);
+
+            // update the SBML report to be rendered in the frontend
+            context.commit("SET_JSON_REPORT", payload.data.report);
+
+            // set the history stack to contain Doc pk by default
+            context.commit("CLEAR_HISTORY_STACK");
+            context.commit("PUSH_TO_HISTORY_STACK", payload.data.report.doc.pk);
+
+            // redirect to report view
+            router.push("/report");
+        },
+        pushToHistoryStack(context, payload) {
+            context.commit("PUSH_TO_HISTORY_STACK", payload);
+        },
+        popFromHistoryStack(context) {
+            context.commit("POP_FROM_HISTORY_STACK");
+        },
+        initializeHistoryStack(context, payload) {
+            context.commit("CLEAR_HISTORY_STACK");
+
+            this.dispatch("pushToHistoryStack", payload);
+        },
         // get list of all available examples from backend API
         async fetchExamples(context) {
             context.commit("SET_LOADING_MESSAGE", "Loading Examples ...");
@@ -179,17 +204,7 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
-                // dump the raw data fetched from the backend
-                context.commit("SET_RAW_DATA", res.data);
-
-                // update the SBML report to be rendered in the frontend
-                context.commit("SET_JSON_REPORT", res.data.report);
-
-                // set the detail view to show Doc information by default
-                context.commit("SET_DETAIL_INFO", res.data.report.doc);
-
-                // redirect to report view
-                router.push("/report");
+                this.dispatch("initializeReportView", res);
             } else {
                 alert("Failed to fetch example report from API");
             }
@@ -218,17 +233,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", false);
 
             if (res.status === 200) {
-                // dump the raw data fetched from the backend
-                context.commit("SET_RAW_DATA", res.data);
-
-                // update the SBML report to be rendered in the frontend
-                context.commit("SET_JSON_REPORT", res.data.report);
-
-                // set the detail view to show Doc information by default
-                context.commit("SET_DETAIL_INFO", res.data.report.doc);
-
-                // redirect to report view
-                router.push("/report");
+                this.dispatch("initializeReportView", res);
             } else {
                 alert("Failed to fetch report from API.");
             }
@@ -259,17 +264,6 @@ export default createStore({
         },
         updateSearchedSBasesPKs(context, payload) {
             context.commit("SET_SEARCHED_SBASES_PKS", payload);
-        },
-        pushToHistoryStack(context, payload) {
-            context.commit("PUSH_TO_HISTORY_STACK", payload);
-
-            const currentPK =
-                context.state.historyStack[
-                    (context.state.historyStack.length as number) - 1
-                ];
-            const newDetailInfo = context.state.allObjectsMap[currentPK];
-
-            context.commit("SET_DETAIL_INFO", newDetailInfo);
         },
     },
     modules: {},

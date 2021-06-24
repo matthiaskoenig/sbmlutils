@@ -17,7 +17,6 @@ import { defineComponent } from "vue";
 import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
 import DetailContainer from "@/components/layout/DetailContainer";
 import DetailViewNav from "@/components/layout/DetailViewNav.vue";
-import DetailViewNavVue from "@/components/layout/DetailViewNav.vue";
 
 /**
  * Component to hold all components to show the generated report.

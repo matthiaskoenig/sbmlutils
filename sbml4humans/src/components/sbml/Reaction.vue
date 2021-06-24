@@ -10,7 +10,7 @@
     </div>
 
     <!-- List of Reactants -->
-    <div class="data" v-if="info.listOfReactants.length > 0">
+    <div class="data" v-if="info.listOfReactants && info.listOfReactants.length > 0">
         <div class="label"><strong>listOfReactants:</strong></div>
         <br />
         <div class="ml-4">
@@ -19,7 +19,10 @@
                     v-for="reactant in info.listOfReactants"
                     v-bind:key="reactant.species"
                 >
-                    {{ reactant.species }} [<span v-if="reactant.stoichiometry"
+                    <span class="links" v-on:click="openComponent(reactant.species)">{{
+                        reactant.species
+                    }}</span>
+                    [<span v-if="reactant.stoichiometry"
                         >stoichiometry: {{ reactant.stoichiometry }}</span
                     >
                     <span v-if="reactant.constant">, constant</span>]
@@ -29,13 +32,16 @@
     </div>
 
     <!-- List of Products -->
-    <div class="data" v-if="info.listOfProducts.length > 0">
+    <div class="data" v-if="info.listOfProducts && info.listOfProducts.length > 0">
         <div class="label"><strong>listOfProducts:</strong></div>
         <br />
         <div class="ml-4">
             <ul title="Products">
                 <li v-for="product in info.listOfProducts" v-bind:key="product.species">
-                    {{ product.species }} [<span v-if="product.stoichiometry"
+                    <span class="links" v-on:click="openComponent(product.species)">{{
+                        product.species
+                    }}</span>
+                    [<span v-if="product.stoichiometry"
                         >stoichiometry: {{ product.stoichiometry }}</span
                     >
                     <span v-if="product.constant">, constant</span>]
@@ -45,13 +51,15 @@
     </div>
 
     <!-- List of Modifiers -->
-    <div class="data" v-if="info.listOfModifiers.length > 0">
+    <div class="data" v-if="info.listOfModifiers && info.listOfModifiers.length > 0">
         <div class="label"><strong>listOfModifiers:</strong></div>
         <br />
         <div class="ml-4">
             <ul title="Modifiers">
                 <li v-for="modifier in info.listOfModifiers" v-bind:key="modifier">
-                    {{ modifier }}
+                    <span class="links" v-on:click="openComponent(modifier)">{{
+                        modifier
+                    }}</span>
                 </li>
             </ul>
         </div>
@@ -82,7 +90,7 @@
             <div v-if="info.kineticLaw.derivedUnits">
                 derivedUnits: <Katex v-bind:mathStr="info.kineticLaw.derivedUnits" />
             </div>
-            <div v-if="info.kineticLaw.listOfLocalParameters.length > 0">
+            <div v-if="info.kineticLaw.listOfLocalParameters">
                 listOfLocalParameters:
                 <ul title="listOfLocalParameters">
                     <li
@@ -130,6 +138,7 @@
 </template>
 
 <script lang="ts">
+import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
@@ -147,6 +156,12 @@ export default defineComponent({
         info: {
             type: Object,
             default: TYPES.Reaction,
+        },
+    },
+
+    methods: {
+        openComponent(pk: string): void {
+            store.dispatch("pushToHistoryStack", pk);
         },
     },
 });

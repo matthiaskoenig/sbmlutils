@@ -3,7 +3,7 @@
         <sbase v-bind:info="info"></sbase>
         <component-specific-details
             v-bind:info="info"
-            v-bind:sbmlType="sbmlType"
+            v-bind:sbmlType="info.sbmlType"
         ></component-specific-details>
         <!-- XML container -->
         <xml-container v-if="info.xml" v-bind:xml="info.xml"></xml-container>
@@ -34,15 +34,11 @@ export default defineComponent({
          * Reactively returns the detailInfo from Vuex state/localStorage.
          */
         info(): Record<string, unknown> {
-            return store.state.detailInfo;
-        },
+            const currentStackTopPK = store.state.historyStack[store.state.historyStack.length - 1];
 
-        /**
-         * Reactively returns the sbmlType of the currently selected SBML Component's
-         * details.
-         */
-        sbmlType(): StringConstructor {
-            return store.state.detailInfo.sbmlType;
+            const detailInfo = store.state.allObjectsMap[currentStackTopPK];
+
+            return detailInfo;
         },
     },
 });

@@ -47,7 +47,12 @@
         </div>
         <div class="ml-4">
             <ul title="List of Related Species">
-                <li v-for="species in info.species" v-bind:key="species">
+                <li
+                    v-for="species in info.species"
+                    v-bind:key="species"
+                    class="links"
+                    v-on:click="openComponent(species)"
+                >
                     {{ species }}
                 </li>
             </ul>
@@ -61,7 +66,12 @@
         </div>
         <div class="ml-4">
             <ul title="List of Related Reactions">
-                <li v-for="reaction in info.reactions" v-bind:key="reaction">
+                <li
+                    v-for="reaction in info.reactions"
+                    v-bind:key="reaction"
+                    class="links"
+                    v-on:click="openComponent(reaction)"
+                >
                     {{ reaction }}
                 </li>
             </ul>
@@ -70,6 +80,7 @@
 </template>
 
 <script lang="ts">
+import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
@@ -87,6 +98,12 @@ export default defineComponent({
         info: {
             type: Object,
             default: TYPES.Compartment,
+        },
+    },
+
+    methods: {
+        openComponent(pk: string): void {
+            store.dispatch("pushToHistoryStack", pk);
         },
     },
 });

@@ -3,7 +3,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <katex v-bind:mathStr="info.units"></katex>
+            <Katex v-bind:mathStr="info.units" />
         </div>
     </div>
 </template>
@@ -26,7 +26,7 @@ export default defineComponent({
     },
 
     components: {
-        katex: Katex,
+        Katex,
     },
 });
 </script>
