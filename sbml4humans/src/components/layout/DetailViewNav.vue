@@ -7,11 +7,12 @@
                 v-bind:style="style"
             ></i>
             <li
-                v-for="id in componentBrowseHistory"
-                v-bind:key="id"
                 class="breadcrumb-item links"
+                v-for="pk in componentBrowseHistory"
+                v-bind:key="pk"
+                v-on:click="showDetail(pk)"
             >
-                {{ id.substring(0, 20) }}
+                {{ pk.substring(0, 20) }}
             </li>
         </ol>
     </nav>
@@ -37,6 +38,14 @@ export default defineComponent({
             }
             store.dispatch("popFromHistoryStack");
         },
+
+        showDetail(pk: string): void {
+            while (
+                store.state.historyStack[store.state.historyStack.length - 1] != pk
+            ) {
+                store.dispatch("popFromHistoryStack");
+            }
+        },
     },
 
     computed: {
@@ -60,7 +69,7 @@ export default defineComponent({
 
             style =
                 "color: " +
-                (this.componentBrowseHistory.length > 1 ? "#000080" : "#A9A9A9") +
+                (this.componentBrowseHistory.length > 1 ? "#000000" : "#A9A9A9") +
                 ";";
 
             style =
@@ -74,3 +83,7 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+@import "@/assets/styles/scss/components/layout/DetailViewNav.scss";
+</style>

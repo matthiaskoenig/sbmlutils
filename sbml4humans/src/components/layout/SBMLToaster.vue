@@ -78,7 +78,7 @@ export default defineComponent({
          */
         showDetail(): void {
             store.dispatch("initializeHistoryStack", this.info.pk);
-            store.dispatch("updateDetailInfo", this.info);
+            // .dispatch("updateDetailInfo", this.info);
         },
     },
 });

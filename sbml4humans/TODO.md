@@ -33,6 +33,7 @@ Add intercomponent-links in JSON (MK):
 - [ ] in processing JSON links have to be generated (backend); `links`: {'reactants': [pk1, pk2, ..], ..., parameters: [pk10, pk12], ...} 
 
 ## List of existing problems:
+- [] Unit math strings are not longer coming from backend
 - [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)
         - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
         - Solution: => refactor filter (see TODOs above)
@@ -42,5 +43,6 @@ Add intercomponent-links in JSON (MK):
     - no solution for now -> switching to elasticsearch based on JSON in future
 
 ## Things to ask:
-- [ ] how to display the components for model defintions and external model definitions
+- [ ] how to store and display the components for model defintions and external model definitions
 - [ ] do we need a forward button as well in the detail nav bar 
+- [ ] how to handle multiple occurences of the same component in the detail nav bar

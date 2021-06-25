@@ -4,9 +4,9 @@
             <toaster
                 v-for="sbase in collectSBases"
                 v-bind:key="sbase.id + sbase.sbo + sbase.name + sbase.metaId"
-                :sbmlType="sbase.sbmlType"
-                :info="sbase"
-                :visible="Boolean(visibility[sbase.sbmlType])"
+                v-bind:sbmlType="sbase.sbmlType"
+                v-bind:info="sbase"
+                v-bind:visible="Boolean(visibility[sbase.sbmlType])"
             ></toaster>
         </a-list>
     </div>
@@ -79,6 +79,8 @@ export default defineComponent({
                     )
                 );
             }
+
+            // TODO: collect and store external model definitions and model definitions
 
             store.dispatch("updateCounts", counts);
             store.dispatch("updateAllObjectsMap", allObjectsMap);
