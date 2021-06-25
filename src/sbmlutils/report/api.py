@@ -5,14 +5,14 @@ parsing the model and returning the JSON representation based on fastAPI.
 """
 import json
 import logging
+import tempfile
 import time
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-import tempfile
 
 from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
@@ -85,9 +85,9 @@ def example(example_id: str) -> Response:
     :return:
     """
     example = examples_info.get(example_id, None)
-
+    content: Dict
     if example:
-        source = example["file"]
+        source: Path = example["file"]  # type: ignore
         content = _content_for_source(source=source)
     else:
         content = {"error": f"example for id does not exist '{example_id}'"}
@@ -97,16 +97,14 @@ def example(example_id: str) -> Response:
 
 def _content_for_source(source: Path) -> Dict:
     """Create content for given source."""
-    content = {}
+    content: Dict[str, Any] = {}
     try:
         time_start = time.time()
         info = SBMLDocumentInfo.from_sbml(source=source)
         content["report"] = info.info
         time_elapsed = round(time.time() - time_start, 3)
         logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
-        content["debug"] = {
-            "jsonReportTime": f"{time_elapsed} [s]"
-        }
+        content["debug"] = {"jsonReportTime": f"{time_elapsed} [s]"}
 
     except IOError as err:
         logger.error(err)

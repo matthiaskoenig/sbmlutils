@@ -25,7 +25,7 @@ def create_reports(
     output_dir: Path,
     promote: bool = False,
     validate: bool = True,
-) -> List[str]:
+) -> List[Dict]:
     """Create model reports and return a list of HTML content for each model.
 
     Models are provided as a list of paths. By default math in the report is rendered
@@ -44,7 +44,7 @@ def create_reports(
 
     :return: List of HTML content of reports
     """
-    html_reports = []
+    html_reports: List[Dict] = []
     for sbml_path in sbml_paths:
         logger.info(f"\tab create report '{sbml_path}")
         html_report = create_report(
