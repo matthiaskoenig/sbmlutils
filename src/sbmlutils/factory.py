@@ -75,6 +75,11 @@ __all__ = [
     "UncertParameter",
     "UncertSpan",
     "Objective",
+    "ExternalModelDefinition",
+    "ModelDefinition",
+    "Submodel",
+    "ReplacedElement",
+    "Port",
 ]
 
 
@@ -294,7 +299,7 @@ class Sbase:
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -363,12 +368,12 @@ class Sbase:
         self.create_uncertainties(obj, model)
         self.create_replaced_by(obj, model)
 
-    def create_port(self, model: libsbml.Model) -> libsbml.Port:
+    def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
         """Create port if existing."""
         if self.port is None:
-            return
+            return None
 
-        p: libsbml.Port
+        p: libsbml.Port = None
         if isinstance(self.port, bool):
             if self.port is True:
                 # manually create port for the id
@@ -435,7 +440,7 @@ class Value(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -477,7 +482,7 @@ class ValueWithUnit(Value):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -521,7 +526,7 @@ class Unit(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -633,7 +638,7 @@ class Function(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -680,7 +685,7 @@ class Parameter(ValueWithUnit):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -747,7 +752,7 @@ class Compartment(ValueWithUnit):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -821,7 +826,7 @@ class Species(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -861,11 +866,13 @@ class Species(Sbase):
         self.conversionFactor = conversionFactor
 
     @property
-    def substanceUnit(self):
+    def substanceUnit(self) -> Optional[UnitType]:
+        """Get substanceUnit."""
         return self._substanceUnit
 
     @substanceUnit.setter
-    def substanceUnit(self, value: Optional[UnitType]):
+    def substanceUnit(self, value: Optional[UnitType]) -> None:
+        """Set substanceUnit."""
         self._substanceUnit = Unit.get_unit_string(value)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Species:
@@ -930,7 +937,7 @@ class InitialAssignment(Value):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1131,7 +1138,7 @@ class Reaction(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1270,7 +1277,7 @@ class Event(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1427,7 +1434,7 @@ class Uncertainty(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         replacedBy: Optional[Any] = None,
     ):
@@ -1585,7 +1592,7 @@ class ExchangeReaction(Reaction):
         name: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1628,7 +1635,7 @@ class Constraint(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1689,7 +1696,7 @@ class Objective(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
+        notes: Optional[Union[str, Notes]] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1768,3 +1775,397 @@ def create_objective(
         flux_objective.setCoefficient(coefficient)
 
     return objective
+
+
+class ModelDefinition(Sbase):
+    """ModelDefinition."""
+
+    def __init__(
+        self,
+        sid: str,
+        name: str = None,
+        sboTerm: str = None,
+        metaId: str = None,
+        units: List[Unit] = None,
+        compartments: List[Compartment] = None,
+        species: List[Species] = None,
+    ):
+        """Create a ModelDefinition."""
+        super(ModelDefinition, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
+        self.units = units
+        self.compartments = compartments
+        self.species = species
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.ModelDefinition:
+        """Create ModelDefinition."""
+        doc: libsbml.SBMLDocument = model.getSBMLDocument()
+        doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+        model_definition: libsbml.ModelDefinition = doc_comp.createModelDefinition()
+        self._set_fields(model_definition, model)
+        return model_definition
+
+    def _set_fields(self, obj: libsbml.ModelDefinition, model: libsbml.Model) -> None:
+        """Set fields on ModelDefinition."""
+        super(ModelDefinition, self)._set_fields(obj, model)
+        for attr in [
+            "externalModelDefinitions",
+            "modelDefinitions",
+            "submodels",
+            "units",
+            "functions",
+            "parameters",
+            "compartments",
+            "species",
+            "assignments",
+            "rules",
+            "rate_rules",
+            "reactions",
+            "events",
+            "constraints",
+            "ports",
+            "replacedElements",
+            "deletions",
+            "objectives",
+            "layouts",
+        ]:
+            # create the respective objects
+            if hasattr(self, attr):
+                objects = getattr(self, attr)
+                if objects:
+                    create_objects(obj, obj_iter=objects, key=attr)
+                else:
+                    logger.debug(f"Not defined: <{attr}>")
+
+
+class ExternalModelDefinition(Sbase):
+    """ExternalModelDefinition."""
+
+    def __init__(
+        self,
+        sid: str,
+        source: str,
+        modelRef: str,
+        md5: str = None,
+        name: str = None,
+        sboTerm: str = None,
+        metaId: str = None,
+    ):
+        """Create an ExternalModelDefinition."""
+        super(ExternalModelDefinition, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
+        self.source = source
+        self.modelRef = modelRef
+        self.md5 = md5
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.ExternalModelDefinition:
+        """Create ExternalModelDefinition."""
+        doc = model.getSBMLDocument()
+        cdoc = doc.getPlugin("comp")
+        extdef = cdoc.createExternalModelDefinition()
+        self._set_fields(extdef, model)
+        return extdef
+
+    def _set_fields(
+        self, obj: libsbml.ExternalModelDefinition, model: libsbml.Model
+    ) -> None:
+        """Set fields on ExternalModelDefinition."""
+        super(ExternalModelDefinition, self)._set_fields(obj, model)
+        obj.setModelRef(self.modelRef)
+        obj.setSource(self.source)
+        if self.md5 is not None:
+            obj.setMd5(self.md5)
+
+
+class Submodel(Sbase):
+    """Submodel."""
+
+    def __init__(
+        self,
+        sid: str,
+        modelRef: str = None,
+        timeConversionFactor: str = None,
+        extentConversionFactor: str = None,
+        name: str = None,
+        sboTerm: str = None,
+        metaId: str = None,
+    ):
+        """Create a Submodel."""
+        super(Submodel, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
+        self.modelRef = modelRef
+        self.timeConversionFactor = timeConversionFactor
+        self.extentConversionFactor = extentConversionFactor
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Submodel:
+        """Create SBML Submodel."""
+        cmodel = model.getPlugin("comp")
+        submodel = cmodel.createSubmodel()
+        self._set_fields(submodel, model)
+
+        submodel.setModelRef(self.modelRef)
+        if self.timeConversionFactor:
+            submodel.setTimeConversionFactor(self.timeConversionFactor)
+        if self.extentConversionFactor:
+            submodel.setExtentConversionFactor(self.extentConversionFactor)
+
+        return submodel
+
+    def _set_fields(self, obj: libsbml.Submodel, model: libsbml.Model) -> None:
+        super(Submodel, self)._set_fields(obj, model)
+
+
+class SbaseRef(Sbase):
+    """SBaseRef."""
+
+    def __init__(
+        self,
+        sid: str,
+        portRef: Optional[str] = None,
+        idRef: Optional[str] = None,
+        unitRef: Optional[str] = None,
+        metaIdRef: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+    ):
+        """Create an SBaseRef."""
+        super(SbaseRef, self).__init__(
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+        )
+        self.portRef = portRef
+        self.idRef = idRef
+        self.unitRef = unitRef
+        self.metaIdRef = metaIdRef
+
+    def _set_fields(self, obj: libsbml.SBaseRef, model: libsbml.Model) -> None:
+        super(SbaseRef, self)._set_fields(obj, model)
+
+        obj.setId(self.sid)
+        if self.portRef is not None:
+            obj.setPortRef(self.portRef)
+        if self.idRef is not None:
+            obj.setIdRef(self.idRef)
+        if self.unitRef is not None:
+            unit_str = Unit.get_unit_string(self.unitRef)
+            obj.setUnitRef(unit_str)
+        if self.metaIdRef is not None:
+            obj.setMetaIdRef(self.metaIdRef)
+
+
+class ReplacedElement(SbaseRef):
+    """ReplacedElement."""
+
+    def __init__(
+        self,
+        sid: str,
+        elementRef: str,
+        submodelRef: str,
+        deletion: Optional[str] = None,
+        conversionFactor: Optional[str] = None,
+        portRef: Optional[str] = None,
+        idRef: Optional[str] = None,
+        unitRef: Optional[str] = None,
+        metaIdRef: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+    ):
+        """Create a ReplacedElement."""
+        super(ReplacedElement, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
+        self.elementRef = elementRef
+        self.submodelRef = submodelRef
+        self.deletion = deletion
+        self.conversionFactor = conversionFactor
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.ReplacedElement:
+        """Create SBML ReplacedElement."""
+        # resolve port element
+        e = model.getElementBySId(self.elementRef)
+        if not e:
+            # fallback to units (only working if no name shadowing)
+            e = model.getUnitDefinition(self.elementRef)
+            if not e:
+                raise ValueError(
+                    f"Neither SBML element nor UnitDefinition found for elementRef: "
+                    f"'{self.elementRef}' in '{self}'"
+                )
+
+        eplugin = e.getPlugin("comp")
+        obj = eplugin.createReplacedElement()
+        self._set_fields(obj, model)
+
+        return obj
+
+    def _set_fields(self, obj: libsbml.ReplacedElement, model: libsbml.Model) -> None:
+        super(ReplacedElement, self)._set_fields(obj, model)
+        obj.setSubmodelRef(self.submodelRef)
+        if self.deletion:
+            obj.setDeletion(self.deletion)
+        if self.conversionFactor:
+            obj.setConversionFactor(self.conversionFactor)
+
+
+class ReplacedBy(SbaseRef):
+    """ReplacedBy."""
+
+    def __init__(
+        self,
+        sid: str,
+        elementRef: str,
+        submodelRef: str,
+        portRef: Optional[str] = None,
+        idRef: Optional[str] = None,
+        unitRef: Optional[str] = None,
+        metaIdRef: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+    ):
+        """Create a ReplacedElement."""
+        super(ReplacedBy, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
+        self.elementRef = elementRef
+        self.submodelRef = submodelRef
+
+    def create_sbml(
+        self, sbase: libsbml.SBase, model: libsbml.Model
+    ) -> libsbml.ReplacedBy:
+        """Create SBML ReplacedBy."""
+        sbase_comp: libsbml.CompSBasePlugin = sbase.getPlugin("comp")
+        rby: libsbml.ReplacedBy = sbase_comp.createReplacedBy()
+        self._set_fields(rby, model)
+
+        return rby
+
+    def _set_fields(self, rby: libsbml.ReplacedBy, model: libsbml.Model) -> None:
+        """Set fields in ReplacedBy."""
+        super(ReplacedBy, self)._set_fields(rby, model)
+        rby.setSubmodelRef(self.submodelRef)
+
+
+class Deletion(SbaseRef):
+    """Deletion."""
+
+    def __init__(
+        self,
+        sid: str,
+        submodelRef: str,
+        portRef: Optional[str] = None,
+        idRef: Optional[str] = None,
+        unitRef: Optional[str] = None,
+        metaIdRef: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+    ):
+        """Initialize Deletion."""
+        super(Deletion, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
+        self.submodelRef = submodelRef
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Deletion:
+        """Create SBML Deletion."""
+        cmodel: libsbml.CompModelPlugin = model.getPlugin("comp")
+        submodel: libsbml.Submodel = cmodel.getSubmodel(self.submodelRef)
+        deletion: libsbml.Deletion = submodel.createDeletion()
+        self._set_fields(deletion, model)
+
+        return deletion
+
+    def _set_fields(self, obj: libsbml.Deletion, model: libsbml.Model) -> None:
+        """Set fields on Deletion."""
+        super(Deletion, self)._set_fields(obj, model)
+
+
+##########################################################################
+# Ports
+##########################################################################
+# Ports are stored in an optional child ListOfPorts object, which, if
+# present, must contain one or more Port objects.  All of the Ports
+# present in the ListOfPorts collectively define the 'port interface' of
+# the Model.
+PORT_TYPE_PORT = "port"
+PORT_TYPE_INPUT = "input port"
+PORT_TYPE_OUTPUT = "output port"
+
+
+class Port(SbaseRef):
+    """Port."""
+
+    def __init__(
+        self,
+        sid: str,
+        portRef: Optional[str] = None,
+        idRef: Optional[str] = None,
+        unitRef: Optional[str] = None,
+        metaIdRef: Optional[str] = None,
+        portType: Optional[str] = PORT_TYPE_PORT,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+    ):
+        """Create a Port."""
+        super(Port, self).__init__(
+            sid=sid,
+            portRef=portRef,
+            idRef=idRef,
+            unitRef=unitRef,
+            metaIdRef=metaIdRef,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+        )
+        self.portType = portType
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Port:
+        """Create SBML for Port."""
+        cmodel = model.getPlugin("comp")
+        p = cmodel.createPort()
+        self._set_fields(p, model)
+
+        if self.sboTerm is None:
+            if self.portType == PORT_TYPE_PORT:
+                # SBO:0000599 - port
+                sbo = 599
+            elif self.portType == PORT_TYPE_INPUT:
+                # SBO:0000600 - input port
+                sbo = 600
+            elif self.portType == PORT_TYPE_OUTPUT:
+                # SBO:0000601 - output port
+                sbo = 601
+            p.setSBOTerm(sbo)
+
+        return p
+
+    def _set_fields(self, obj: libsbml.Port, model: libsbml.Model) -> None:
+        """Set fields on Port."""
+        super(Port, self)._set_fields(obj, model)

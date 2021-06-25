@@ -3,7 +3,6 @@ from typing import Any
 
 import pytest
 
-from sbmlutils.creator import CoreModel, Preprocess
 from sbmlutils.examples import (
     amount_species,
     annotation,
@@ -19,6 +18,7 @@ from sbmlutils.examples import (
     fbc2,
     fbc_mass_charge,
     initial_assignment,
+    model_definitions,
     reaction,
     simple_reaction,
 )
@@ -47,6 +47,7 @@ testdata = [
     reaction,
     simple_reaction,
     tiny_factory,
+    model_definitions,
 ]
 
 

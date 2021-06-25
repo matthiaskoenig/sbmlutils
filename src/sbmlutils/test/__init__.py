@@ -31,12 +31,20 @@ FBC_SBML = MODELS_DIR / "fbc" / "diauxic_fba.xml"
 GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
 REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
+MODEL_DEFINITIONS_SBML = MODELS_DIR / "comp" / "model_definitions_example.xml"
+
+RECON3D_SBML = MODELS_DIR / "bigg" / "Recon3D.xml.gz"
+
+# Medium Sized Models
+ICG_LIVER = MODELS_DIR / "icg" / "icg_liver.xml"
+ICG_BODY_FLAT = MODELS_DIR / "icg" / "icg_body_flat.xml"
+ICG_BODY = MODELS_DIR / "icg" / "icg_body.xml"  # comp example model
+
 
 TESTSUITE_PATH = DATA_DIR / "testsuite"
 
 # --- Combine Archives ---
 OMEX_SHOWCASE = DATA_DIR / "omex" / "CombineArchiveShowCase.omex"
-
 
 # --- Data ---
 csv_filepath = DATA_DIR / "data" / "test.csv"

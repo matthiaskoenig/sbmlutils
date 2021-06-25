@@ -1,0 +1,76 @@
+<template>
+    <div v-if="loading" class="overlay">
+        <div class="overlay-content">
+            <div class="loader">
+                <div>
+                    <h6>{{ loadingMsg }}</h6>
+                    <a-spin size="large" />
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script lang="ts">
+import store from "@/store/index";
+import { defineComponent } from "@vue/runtime-core";
+
+export default defineComponent({
+    props: {
+        parent: {
+            type: String,
+        },
+        msg: {
+            type: String,
+        }
+    },
+
+    computed: {
+        loading(): boolean {
+            let key: string = this.parent + "Loading"; // key is either "exampleLoading" or "fileLoading"
+
+            return store.state[key];
+        },
+
+        loadingMsg(): string {
+            return store.state.loadingMessage;
+        },
+    },
+});
+</script>
+
+<style lang="scss" scoped>
+.overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    cursor: pointer;
+}
+
+.overlay-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 50px;
+    color: white;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+}
+
+.loader {
+    height: 30vh;
+    width: 30vw;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: white;
+}
+</style>
