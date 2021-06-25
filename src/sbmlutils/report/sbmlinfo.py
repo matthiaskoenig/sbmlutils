@@ -68,29 +68,33 @@ class SBMLDocumentInfo:
         """Get string."""
         return pprint.pformat(self.info, indent=2)
 
-    def to_json(self, strip: bool = True, indent=2) -> str:
+    def to_json(self, strip: bool = True, indent: int = 2) -> str:
         """Serialize to JSON representation."""
         d = self.info
         if strip:
-            d = clean_empty(d)
+            d = clean_empty(d)  # type: ignore
         return json.dumps(d, indent=indent)
 
     def create_info(self) -> Dict[str, Any]:
         """Create information dictionary for report rendering."""
 
+        model: Optional[Dict[str, Any]]
+        if self.doc.isSetModel():
+            model = self.model_dict(self.doc.getModel())
+        else:
+            model = None
+
         d = {
             "doc": self.document(doc=self.doc),
+            "model": model,
+            **self.model_definitions(),
         }
-        if self.doc.isSetModel():
-            d["model"] = self.model_dict(self.doc.getModel())
-        else:
-            d["model"] = None
-
-        d.update(self.model_definitions())
 
         return d
 
-    def model_dict(self, model: Union[libsbml.Model, libsbml.ModelDefinition]):
+    def model_dict(
+        self, model: Union[libsbml.Model, libsbml.ModelDefinition]
+    ) -> Dict[str, Any]:
         """Create information for a given model."""
         assignments = self._create_assignment_map(model=model)
 
@@ -125,7 +129,12 @@ class SBMLDocumentInfo:
 
         return d
 
-    def add_compartment_links(self, compartments, species, reactions):
+    def add_compartment_links(
+        self,
+        compartments: List[Dict[str, Any]],
+        species: List[Dict[str, Any]],
+        reactions: List[Dict[str, Any]],
+    ) -> None:
         """Add species and reaction links to compartment."""
         c_map = {c["id"]: c for c in compartments}
         for c in compartments:
@@ -140,7 +149,9 @@ class SBMLDocumentInfo:
             if cid:
                 c_map[cid]["reactions"].append(r["pk"])
 
-    def add_species_links(self, species, reactions):
+    def add_species_links(
+        self, species: List[Dict[str, Any]], reactions: List[Dict[str, Any]]
+    ) -> None:
         """Add reaction links to species."""
         s_map = {s["id"]: s for s in species}
         for s in species:
@@ -207,16 +218,6 @@ class SBMLDocumentInfo:
             pk_symbol = rule.getVariable() if rule.isSetVariable() else None
             pk = self._get_pk(rule)
             if pk_symbol:
-                typecode = rule.getTypeCode()
-                if typecode == libsbml.SBML_ASSIGNMENT_RULE:
-                    sbml_type = "AssignmentRule"
-                elif typecode == libsbml.SBML_RATE_RULE:
-                    sbml_type = "RateRule"
-                elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
-                    sbml_type = "AlgebraicRule"
-                else:
-                    raise ValueError(f"Unsupported rule type: {typecode}")
-
                 assignments[pk_symbol] = {
                     "pk": pk,
                     "sbmlType": self._sbml_type(rule),
@@ -438,20 +439,20 @@ class SBMLDocumentInfo:
         """
         d = self.sbase_dict(doc)
 
-        packages = {}
+        packages: Dict[str, Any] = {}
         packages["document"] = {"level": doc.getLevel(), "version": doc.getVersion()}
 
-        plugins = []
+        plugins: List[Dict[str, Any]] = []
         for k in range(doc.getNumPlugins()):
-            plugin = doc.getPlugin(k)
-            prefix = plugin.getPrefix()
-            version = plugin.getPackageVersion()
+            plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
+            prefix: str = plugin.getPrefix()
+            version: int = plugin.getPackageVersion()
             plugins.append({"prefix": prefix, "version": version})
+
         packages["plugins"] = plugins
 
         d["packages"] = packages
         return d
-
 
     def model(self, model: libsbml.Model) -> Dict[str, str]:
         """Info for SBML Model.
@@ -666,14 +667,13 @@ class SBMLDocumentInfo:
 
         return assignments
 
-
     def rules(self, model: libsbml.Model) -> Dict:
         """Information for Rules.
 
         :return: list of info dictionaries for Rules
         """
 
-        rules = {
+        rules: Dict[str, List] = {
             "assignmentRules": [],
             "rateRules": [],
             "algebraicRules": [],
@@ -714,7 +714,6 @@ class SBMLDocumentInfo:
         else:
             raise TypeError(rule)
 
-
     def constraints(self, model: libsbml.Model) -> List[Dict[str, Any]]:
         """Information for Constraints.
 
@@ -736,7 +735,6 @@ class SBMLDocumentInfo:
             constraints.append(d)
 
         return constraints
-
 
     def reactions(self, model: libsbml.Model) -> List[Dict[str, Any]]:
         """Information dictionaries for ListOfReactions.
@@ -766,7 +764,7 @@ class SBMLDocumentInfo:
                 r.getKineticLaw() if r.isSetKineticLaw() else None
             )
             if klaw:
-                d_law = {}
+                d_law: Dict[str, Any] = {}
                 d_law["math"] = (
                     astnode_to_latex(klaw.getMath(), model=model)
                     if klaw.isSetMath()
@@ -810,7 +808,8 @@ class SBMLDocumentInfo:
         return reactions
 
     @staticmethod
-    def _species_reference(species: libsbml.SpeciesReference):
+    def _species_reference(species: libsbml.SpeciesReference) -> Dict[str, Any]:
+        """Resolve species reference."""
         return {
             "species": species.getSpecies() if species.isSetSpecies() else None,
             "stoichiometry": species.getStoichiometry()
@@ -822,38 +821,43 @@ class SBMLDocumentInfo:
     @staticmethod
     def _bounds_dict_from_reaction(
         reaction: libsbml.Reaction, model: libsbml.Model
-    ) -> Dict:
+    ) -> Optional[Dict]:
         """Render string of bounds from the reaction.
 
         :param reaction: SBML reaction instance
         :param model: SBML model instance
         :return: String of bounds extracted from the reaction
         """
-        bounds = {}
+        bounds: Optional[Dict]
         rfbc = reaction.getPlugin("fbc")
         if rfbc is not None:
             # get values for bounds
-            lb_id, ub_id = None, None
-            lb_value, ub_value = None, None
+            lb_id: Optional[str] = None
+            ub_id: Optional[str] = None
+            lb_value: Optional[float] = None
+            ub_value: Optional[float] = None
             if rfbc.isSetLowerFluxBound():
                 lb_id = rfbc.getLowerFluxBound()
-                lb_p = model.getParameter(lb_id)
+                lb_p: libsbml.Parameter = model.getParameter(lb_id)
                 if lb_p.isSetValue():
                     lb_value = lb_p.getValue()
             if rfbc.isSetUpperFluxBound():
                 ub_id = rfbc.getUpperFluxBound()
-                ub_p = model.getParameter(ub_id)
+                ub_p: libsbml.Parameter = model.getParameter(ub_id)
                 if ub_p.isSetValue():
                     ub_value = ub_p.getValue()
 
-            bounds["lowerFluxBound"] = {
-                "id": lb_id,
-                "value": lb_value,
+            bounds = {
+                "lowerFluxBound": {
+                    "id": lb_id,
+                    "value": lb_value,
+                },
+                "upperFluxBound": {
+                    "id": ub_id,
+                    "value": ub_value,
+                },
             }
-            bounds["upperFluxBound"] = {
-                "id": ub_id,
-                "value": ub_value,
-            }
+
         else:
             bounds = None
 
@@ -862,7 +866,7 @@ class SBMLDocumentInfo:
     @staticmethod
     def _gene_product_association_from_reaction(
         reaction: libsbml.Reaction,
-    ) -> str:
+    ) -> Optional[str]:
         """Render string representation of the GeneProductAssociation for given reaction.
 
         :param reaction: SBML reaction instance
@@ -870,13 +874,13 @@ class SBMLDocumentInfo:
         """
 
         rfbc = reaction.getPlugin("fbc")
-        d = (
-            rfbc.getGeneProductAssociation().getAssociation().toInfix()
+        gpa = (
+            str(rfbc.getGeneProductAssociation().getAssociation().toInfix())
             if (rfbc and rfbc.isSetGeneProductAssociation())
             else None
         )
 
-        return d
+        return gpa
 
     @staticmethod
     def _equation_from_reaction(
@@ -1015,26 +1019,27 @@ class SBMLDocumentInfo:
 
         :return: list of info dictionaries for comp:ModelDefinitions
         """
-        d = {
-            "modelDefinitions": None,
-            "externalModelDefinitions": None,
-        }
+        mds: List[Dict[str, Any]] = []
+        emds: List[Dict[str, Any]] = []
+
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
-            mds = []
+
             md: libsbml.ModelDefinition
             for md in doc_comp.getListOfModelDefinitions():
                 mds.append(self.model_dict(model=md))
-            d["modelDefinitions"] = mds
 
-            emds = []
             emd: libsbml.ExternalModelDefinition
             for emd in doc_comp.getListOfExternalModelDefinitions():
                 d_emd = self.sbase_dict(emd)
                 d_emd["modelRef"] = emd.getModelRef() if emd.isSetModelRef() else None
                 d_emd["source"] = emd.getSource() if emd.isSetSource() else None
                 emds.append(d_emd)
-            d["externalModelDefinitions"] = emds
+
+        d: Dict[str, List] = {
+            "modelDefinitions": mds,
+            "externalModelDefinitions": emds,
+        }
 
         return d
 
@@ -1043,15 +1048,14 @@ class SBMLDocumentInfo:
 
         :return: list of info dictionaries for comp:Submodels
         """
-        d = []
+        submodels: List[Dict[str, Any]] = []
         model_comp = model.getPlugin("comp")
         if model_comp:
-            submodels = []
             submodel: libsbml.Submodel
             for submodel in model_comp.getListOfSubmodels():
                 d = self.sbase_dict(submodel)
                 d["modelRef"] = (
-                    submodel.getModelRef() if submodel.isSetModelRef() else None
+                    submodel.getModelRef() if submodel.isSetModelRef() else None  #
                 )
 
                 deletions = []
@@ -1071,9 +1075,8 @@ class SBMLDocumentInfo:
                 )
 
                 submodels.append(d)
-            d = submodels
 
-        return d
+        return submodels
 
     def ports(self, model: libsbml.Model) -> List:
         """Information for comp:Ports.
@@ -1183,4 +1186,4 @@ if __name__ == "__main__":
         print("-" * 80)
 
     with open(output_dir / "test.json", "w") as fout:
-         fout.write(json_str)
+        fout.write(json_str)
