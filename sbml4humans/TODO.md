@@ -15,9 +15,9 @@ Math rendering
 - [x] reactions: kineticLaw Math
 
 Intercomponent navigation
-- [ ] intercomponent links: Species -> compartments; Reaction: -> Species
-- [ ] back/forward navigation for via stack of ids;
-- [ ] add models on SBMLDocument Details views for easy access/entry point (just links not green boxes)
+- [x] intercomponent links: Species -> compartments; Reaction: -> Species
+- [x] back/forward navigation for via stack of ids;
+- [x] add models on SBMLDocument Details views for easy access/entry point (just links not green boxes)
 
 Filter
 - [x] move search (always visible) & filter to navigation bar (collapsable)
@@ -40,3 +40,7 @@ Add intercomponent-links in JSON (MK):
 - [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
     - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
     - no solution for now -> switching to elasticsearch based on JSON in future
+
+## Things to ask:
+- [ ] how to display the components for model defintions and external model definitions
+- [ ] do we need a forward button as well in the detail nav bar 
