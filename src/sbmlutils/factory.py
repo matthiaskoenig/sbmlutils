@@ -78,6 +78,7 @@ __all__ = [
     "ExternalModelDefinition",
     "ModelDefinition",
     "Submodel",
+    "ReplacedElement",
     "Port",
 ]
 
