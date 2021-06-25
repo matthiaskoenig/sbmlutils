@@ -506,6 +506,7 @@ class SBMLDocumentInfo:
     @staticmethod
     def ud_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[str]:
         """Convert unit definition to latex."""
+
         if ud is None or "None":
             return None
 
@@ -520,6 +521,7 @@ class SBMLDocumentInfo:
 
         :return: list of info dictionaries for Compartments
         """
+
         compartments = []
         c: libsbml.Compartment
         for c in model.getListOfCompartments():
