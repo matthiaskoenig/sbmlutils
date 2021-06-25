@@ -6,8 +6,9 @@ The information can be serialized to JSON for later rendering in web app.
 import hashlib
 import json
 import pprint
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
 import libsbml
 import numpy as np
 
