@@ -1,9 +1,11 @@
 <template>
+
     <div class="search">
+        <i class="fa fa-search px-2" style="color: black;"></i>
         <input
             class="form-control"
             type="text"
-            placeholder="&nbsp; &#128270; &nbsp; Search for an SBML Component"
+            placeholder="Search in SBML"
             @input="updateSearchQuery"
         />
     </div>

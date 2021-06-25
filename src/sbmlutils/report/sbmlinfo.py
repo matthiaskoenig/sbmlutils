@@ -251,7 +251,7 @@ class SBMLDocumentInfo:
 
         Sha256 digest of the identifier (mostly the xml string).
         """
-        return str(hashlib.sha256(xml.encode("utf-8")).digest())
+        return str(hashlib.sha256(xml.encode("utf-8")).hexdigest())
 
     @classmethod
     def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:

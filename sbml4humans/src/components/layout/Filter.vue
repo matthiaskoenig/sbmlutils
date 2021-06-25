@@ -1,9 +1,10 @@
 <template>
+    <span class="fa fa-filter px-2" style="color: black;"/>
     <button
-        class="btn btn-info filter-button ml-2"
+        class="btn btn-info ml-2"
         v-on:click="menuVisible = !menuVisible"
     >
-        Filter {{ filterFraction }}
+        Filter&nbsp;{{ filterFraction }}
     </button>
 
     <div class="filter" v-if="menuVisible">
@@ -39,14 +40,14 @@
         <!-- Buttons for select all and de-select all -->
         <div class="master-select">
             <!-- Select All -->
-            <button ref="select" class="tick btn btn-info" v-on:click="selectAll()">
+            <button ref="select" class="tick btn btn-info mx-1" v-on:click="selectAll()">
                 <div class="label">Select All</div>
             </button>
 
             <!-- De-select All -->
             <button
                 ref="de-select"
-                class="tick btn btn-info"
+                class="tick btn btn-info mx-1"
                 v-on:click="deSelectAll()"
             >
                 <div class="label">De-Select All</div>
