@@ -3,8 +3,8 @@
         <div class="overlay-content">
             <div class="loader">
                 <div>
-                    <h6>{{ loadingMsg }}</h6>
-                    <a-spin size="large" />
+                    <a-spin class="px-3" size="large" />
+                    <strong>{{ loadingMsg }}</strong>
                 </div>
             </div>
         </div>
@@ -57,20 +57,16 @@ export default defineComponent({
     position: absolute;
     top: 50%;
     left: 50%;
-    font-size: 50px;
-    color: white;
+    width: 80%;
+    height: 80%;
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
 }
 
 .loader {
-    height: 30vh;
-    width: 30vw;
-
     display: flex;
     justify-content: center;
     align-items: center;
-
     background-color: white;
 }
 </style>

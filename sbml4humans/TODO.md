@@ -1,26 +1,38 @@
 ## TODO 
-- [x] make loading report component (modal); use in Upload & Examples
-- [x] define global styles for components to make large containers look consistent 
-     (heading sizes, color scheme used for page)
-- [x] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
-- [x] color code DetailView with sbmlType color (mapping: sbmlType: color)  
-- [x] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
+- [ ] switch examples and about
+- [ ] fix modal to 80%
+- [ ] Detail View use background color instead of coloring the title
 - [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
-- [x] hide scrollbars if not needed
-- [.] add cvterms & annotations to SBase Detail view --- annotation left
-- [x] Fix Species in for loop
+- [ ] hide scrollbars if not needed!
+- [.] annotations/notes to SBase detail view
+- [ ] close filter menu on click
+- [ ] add icons in search field and button;
+- [ ] no horizontal scrollbar for detail view
+- [ ] fix corners in SBMLToaster
+- [ ] maxwidth for components
+- [ ] use available space better on report page
+- [ ] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
+- [ ] constant/initialConcentration attribute missing on species
+- [ ] compartment must be link on species
+- [ ] render null information;
+- [ ] add boxes headers for inter-component navigation
+- [ ] drop "In" from reactantIn, productIn, speciesIn, ...; relatedSpecies -> Species
+- [ ] in species: make reactant, product, modifier list next to each other
+
+- [ ] Create ListOf Table Component for navigation;
 
 Math rendering
 - [ ] issues with google chrome
-- [x] reactions: kineticLaw Math
+
+ModelDefinitions/comp
+- [ ] check all comp components (specification)
+- [ ] handle modeldefinitions; split component list in SBMLDocument/Model & Rest
+- [ ] use ICG model for Ports, replacedElements, Submodels
 
 Intercomponent navigation
-- [x] intercomponent links: Species -> compartments; Reaction: -> Species
-- [x] back/forward navigation for via stack of ids;
-- [x] add models on SBMLDocument Details views for easy access/entry point (just links not green boxes)
+- [ ] keep a stack for the detail view (only show previous & next)
 
 Filter
-- [x] move search (always visible) & filter to navigation bar (collapsable)
 - [.] more robust handling of state --- not migrating to localStorage for testing purposes
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
 
@@ -28,9 +40,6 @@ Improve generated latex (backend, MK)
 - [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
     - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
-
-Add intercomponent-links in JSON (MK):
-- [ ] in processing JSON links have to be generated (backend); `links`: {'reactants': [pk1, pk2, ..], ..., parameters: [pk10, pk12], ...} 
 
 ## List of existing problems:
 - [] Unit math strings are not longer coming from backend
@@ -43,6 +52,5 @@ Add intercomponent-links in JSON (MK):
     - no solution for now -> switching to elasticsearch based on JSON in future
 
 ## Things to ask:
-- [ ] how to store and display the components for model defintions and external model definitions
 - [ ] do we need a forward button as well in the detail nav bar 
 - [ ] how to handle multiple occurences of the same component in the detail nav bar
