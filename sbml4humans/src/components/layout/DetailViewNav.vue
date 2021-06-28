@@ -1,19 +1,16 @@
 <template>
-    <nav class="detail-nav" aria-label="breadcrumb">
+    <nav class="ml-auto" aria-label="breadcrumb">
         <ol class="breadcrumb">
             <i
                 class="fa fa-arrow-circle-left mr-3"
                 v-on:click="goBack()"
-                v-bind:style="style"
+                v-bind:style="styleBack"
             ></i>
-            <li
-                class="breadcrumb-item links"
-                v-for="pk in componentBrowseHistory"
-                v-bind:key="pk"
-                v-on:click="showDetail(pk)"
-            >
-                {{ pk.substring(0, 20) }}
-            </li>
+            <i
+                class="fa fa-arrow-circle-right"
+                v-on:click="goForward()"
+                v-bind:style="styleForward"
+            ></i>
         </ol>
     </nav>
 </template>
@@ -33,18 +30,11 @@ export default defineComponent({
 
     methods: {
         goBack(): void {
-            if (store.state.historyStack.length <= 1) {
-                return;
-            }
-            store.dispatch("popFromHistoryStack");
+            store.dispatch("moveStackPointerBack");
         },
 
-        showDetail(pk: string): void {
-            while (
-                store.state.historyStack[store.state.historyStack.length - 1] != pk
-            ) {
-                store.dispatch("popFromHistoryStack");
-            }
+        goForward(): void {
+            store.dispatch("moveStackPointerForward");
         },
     },
 
@@ -64,19 +54,23 @@ export default defineComponent({
             return listOfIDs;
         },
 
-        style(): string {
-            let style = "";
+        styleBack(): string {
+            let style = "color: ";
 
-            style =
-                "color: " +
-                (this.componentBrowseHistory.length > 1 ? "#000000" : "#A9A9A9") +
-                ";";
+            style +=
+                store.state.stackPointer === 0
+                    ? "#A9A9A9;"
+                    : "#000000; cursor: pointer;";
 
-            style =
-                style +
-                "cursor: " +
-                (this.componentBrowseHistory.length > 1 ? "pointer" : "arrow") +
-                ";";
+            return style;
+        },
+
+        styleForward(): string {
+            let style = "color: ";
+            style +=
+                store.state.stackPointer === store.state.historyStack.length - 1
+                    ? "#A9A9A9"
+                    : "#000000; cursor: pointer;";
 
             return style;
         },

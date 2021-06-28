@@ -1,5 +1,10 @@
 <template>
-    <h1 v-bind:style="`color: ${color}`">{{ info.sbmlType }}</h1>
+    <div class="d-flex justify-content-between w-100">
+        <h1 class="sbmlType px-2 py-1" v-bind:style="`background-color: ${color}`">
+            {{ info.sbmlType }}
+        </h1>
+        <detail-view-nav></detail-view-nav>
+    </div>
     <h2>{{ info.id }} {{ info.name ? "(" + info.name + ")" : "" }}</h2>
 
     <div class="data" v-if="info.id">
@@ -61,10 +66,16 @@ import colorScheme from "@/data/colorScheme";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
+import DetailViewNav from "@/components/layout/DetailViewNav.vue";
+
 /**
  * Component to define display of SBase information.
  */
 export default defineComponent({
+    components: {
+        "detail-view-nav": DetailViewNav,
+    },
+
     props: {
         info: {
             type: Object,

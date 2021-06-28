@@ -249,9 +249,9 @@ class SBMLDocumentInfo:
     def _uuid(xml: str) -> str:
         """Generate unique identifier.
 
-        Sha256 digest of the identifier (mostly the xml string).
+        SHA1 digest of the identifier (mostly the xml string).
         """
-        return str(hashlib.sha256(xml.encode("utf-8")).hexdigest())
+        return str(hashlib.sha1(xml.encode("utf-8")).hexdigest())
 
     @classmethod
     def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:

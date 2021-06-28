@@ -5,11 +5,11 @@
                 <upload-sbml></upload-sbml>
             </div>
             <div class="about">
-                <about></about>
+                <examples-list></examples-list>
             </div>
         </div>
         <div class="right-container">
-            <examples-list></examples-list>
+            <about></about>
         </div>
     </div>
 </template>

@@ -80,6 +80,8 @@ export default createStore({
         componentPKsMap: MAPS.componentsMap,
 
         historyStack: [],
+
+        stackPointer: 0,
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -124,11 +126,19 @@ export default createStore({
         PUSH_TO_HISTORY_STACK(state, payload) {
             (state.historyStack as Array<string>).push(payload);
         },
-        POP_FROM_HISTORY_STACK(state) {
-            state.historyStack.pop();
+        MOVE_STACK_POINTER_BACK(state) {
+            if (state.stackPointer > 0) {
+                state.stackPointer--;
+            }
+        },
+        MOVE_STACK_POINTER_FORWARD(state) {
+            if (state.stackPointer < state.historyStack.length - 1) {
+                state.stackPointer++;
+            }
         },
         CLEAR_HISTORY_STACK(state) {
             state.historyStack = [];
+            state.stackPointer = 0;
         },
     },
     actions: {
@@ -140,22 +150,24 @@ export default createStore({
             context.commit("SET_JSON_REPORT", payload.data.report);
 
             // set the history stack to contain Doc pk by default
-            context.commit("CLEAR_HISTORY_STACK");
-            context.commit("PUSH_TO_HISTORY_STACK", payload.data.report.doc.pk);
+            this.dispatch("initializeHistoryStack", payload.data.report.doc.pk);
 
             // redirect to report view
             router.push("/report");
         },
         pushToHistoryStack(context, payload) {
             context.commit("PUSH_TO_HISTORY_STACK", payload);
-        },
-        popFromHistoryStack(context) {
-            context.commit("POP_FROM_HISTORY_STACK");
+            context.commit("MOVE_STACK_POINTER_FORWARD");
         },
         initializeHistoryStack(context, payload) {
             context.commit("CLEAR_HISTORY_STACK");
-
             this.dispatch("pushToHistoryStack", payload);
+        },
+        moveStackPointerBack(context) {
+            context.commit("MOVE_STACK_POINTER_BACK");
+        },
+        moveStackPointerForward(context) {
+            context.commit("MOVE_STACK_POINTER_FORWARD");
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
