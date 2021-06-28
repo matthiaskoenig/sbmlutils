@@ -34,9 +34,10 @@ export default defineComponent({
          * Reactively returns the detailInfo from Vuex state/localStorage.
          */
         info(): Record<string, unknown> {
-            const currentStackTopPK = store.state.historyStack[store.state.historyStack.length - 1];
-
-            const detailInfo = store.state.allObjectsMap[currentStackTopPK];
+            const detailInfo =
+                store.state.allObjectsMap[
+                    store.state.historyStack[store.state.stackPointer]
+                ];
 
             return detailInfo;
         },

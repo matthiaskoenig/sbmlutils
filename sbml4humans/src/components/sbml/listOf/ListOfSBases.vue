@@ -1,15 +1,13 @@
 <template>
-    <div class="container">
-        <a-list class="list-container">
-            <toaster
-                v-for="sbase in collectSBases"
-                v-bind:key="sbase.id + sbase.sbo + sbase.name + sbase.metaId"
-                v-bind:sbmlType="sbase.sbmlType"
-                v-bind:info="sbase"
-                v-bind:visible="Boolean(visibility[sbase.sbmlType])"
-            ></toaster>
-        </a-list>
-    </div>
+    <a-list class="list-container">
+        <toaster
+            v-for="sbase in collectSBases"
+            v-bind:key="sbase.id + sbase.sbo + sbase.name + sbase.metaId"
+            v-bind:sbmlType="sbase.sbmlType"
+            v-bind:info="sbase"
+            v-bind:visible="Boolean(visibility[sbase.sbmlType])"
+        ></toaster>
+    </a-list>
 </template>
 
 <script lang="ts">

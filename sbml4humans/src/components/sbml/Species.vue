@@ -1,7 +1,10 @@
 <template>
     <!-- Compartment -->
     <div class="data" v-if="info.compartment">
-        <div class="label"><strong>compartment:</strong> {{ info.compartment }}</div>
+        <div class="label"><strong>compartment: </strong></div>
+        <span class="links" v-on:click="openComponent(reactant)">{{
+            info.compartment
+        }}</span>
     </div>
 
     <!-- Initial Amount -->
@@ -112,7 +115,7 @@
     <!-- List of Reactant Reactions -->
     <div class="data" v-if="info.reactant">
         <div class="label">
-            <strong>reactantIn:</strong>
+            <strong>reactant:</strong>
         </div>
         <div class="ml-4">
             <ul title="List of Reactions in which species is Reactant">
@@ -131,7 +134,7 @@
     <!-- List of Product Reactions -->
     <div class="data" v-if="info.product">
         <div class="label">
-            <strong>productIn:</strong>
+            <strong>product:</strong>
         </div>
         <div class="ml-4">
             <ul title="List of Reactions in which species is Product">
@@ -150,7 +153,7 @@
     <!-- List of Modifier Reactions -->
     <div class="data" v-if="info.modifier">
         <div class="label">
-            <strong>modifierIn:</strong>
+            <strong>modifier:</strong>
         </div>
         <div class="ml-4">
             <ul title="List of Reactions in which species is Modifier">

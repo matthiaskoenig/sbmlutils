@@ -1,16 +1,19 @@
 <template>
-    <span class="fa fa-filter px-2" style="color: black;"/>
-    <button
-        class="btn btn-info ml-2"
-        v-on:click="menuVisible = !menuVisible"
-    >
-        Filter&nbsp;{{ filterFraction }}
+    <button class="btn btn-info mx-2 d-flex" v-on:click="menuVisible = !menuVisible">
+        <i class="fa fa-filter mr-2" style="color: black" />
+        <span class="filter-label">Filter&nbsp;{{ filterFraction }}</span>
     </button>
 
-    <div class="filter" v-if="menuVisible">
+    <div class="filter" v-if="menuVisible" v-on:click="menuVisible = !menuVisible">
+        <p class="ml-4 .text-dark">Click on a tag to hide that SBML component</p>
         <div class="tag-list">
             <!-- Selectively Displaying Filter buttons for all SBML Types  -->
-            <div class="d-flex" v-for="sbmlType in sbmlTypes" v-bind:key="sbmlType">
+            <div
+                class="d-flex"
+                v-for="sbmlType in sbmlTypes"
+                v-bind:key="sbmlType"
+                v-on:click="menuVisible = !menuVisible"
+            >
                 <div class="selector" v-if="counts[sbmlType] > 0">
                     <div
                         class="tag"
@@ -40,14 +43,14 @@
         <!-- Buttons for select all and de-select all -->
         <div class="master-select">
             <!-- Select All -->
-            <button ref="select" class="tick btn btn-info mx-1" v-on:click="selectAll()">
+            <button ref="select" class="btn btn-info mx-1" v-on:click="selectAll()">
                 <div class="label">Select All</div>
             </button>
 
             <!-- De-select All -->
             <button
                 ref="de-select"
-                class="tick btn btn-info mx-1"
+                class="btn btn-info mx-1"
                 v-on:click="deSelectAll()"
             >
                 <div class="label">De-Select All</div>

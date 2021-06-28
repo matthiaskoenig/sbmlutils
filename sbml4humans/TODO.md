@@ -1,22 +1,22 @@
 ## TODO 
-- [ ] switch examples and about
-- [ ] fix modal to 80%
-- [ ] Detail View use background color instead of coloring the title
+- [x] switch examples and about
+- [x] fix modal to 80%  --- did to 40%, please take a look on how it looks
+- [x] Detail View use background color instead of coloring the title
 - [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
-- [ ] hide scrollbars if not needed!
+- [x] hide scrollbars if not needed!
 - [.] annotations/notes to SBase detail view
-- [ ] close filter menu on click
-- [ ] add icons in search field and button;
-- [ ] no horizontal scrollbar for detail view
-- [ ] fix corners in SBMLToaster
-- [ ] maxwidth for components
-- [ ] use available space better on report page
+- [x] close filter menu on click
+- [x] add icons in search field and button;
+- [x] no horizontal scrollbar for detail view
+- [x] fix corners in SBMLToaster
+- [x] maxwidth for components
+- [x] use available space better on report page
 - [ ] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
 - [ ] constant/initialConcentration attribute missing on species
-- [ ] compartment must be link on species
+- [x] compartment must be link on species
 - [ ] render null information;
 - [ ] add boxes headers for inter-component navigation
-- [ ] drop "In" from reactantIn, productIn, speciesIn, ...; relatedSpecies -> Species
+- [x] drop "In" from reactantIn, productIn, speciesIn, ...; relatedSpecies -> Species
 - [ ] in species: make reactant, product, modifier list next to each other
 
 - [ ] Create ListOf Table Component for navigation;
