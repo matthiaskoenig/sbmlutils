@@ -3,8 +3,8 @@ import axios from "axios";
 import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
-import TYPES from "@/data/sbmlComponents";
-import MAPS from "@/data/allSBMLMap";
+import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
+import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 
 export default createStore({
     state: {
@@ -13,10 +13,10 @@ export default createStore({
 
         // raw report (complete backend response)
         // contains both SBML report and Debug information
-        rawData: TYPES.RawData,
+        rawData: {},
 
         // final report
-        jsonReport: TYPES.Report,
+        jsonReport: {},
 
         // describe if the file report is still loading (REST endpoint)
         fileLoading: false,
@@ -26,6 +26,9 @@ export default createStore({
 
         // message to show in loading container
         loadingMessage: "",
+
+        /* For core and comp functionality */
+        currentModel: "",
 
         /* For Search and Filter feature */
         visibility: {
@@ -49,35 +52,16 @@ export default createStore({
             GeneProduct: true,
         },
 
-        counts: {
-            SBMLDocument: 0,
-            Submodel: 0,
-            Port: 0,
-            Model: 0,
-            FunctionDefinition: 0,
-            UnitDefinition: 0,
-            Compartment: 0,
-            Species: 0,
-            Reaction: 0,
-            Parameter: 0,
-            InitialAssignment: 0,
-            AssignmentRule: 0,
-            RateRule: 0,
-            AlgebraicRule: 0,
-            Objective: 0,
-            Constraint: 0,
-            Event: 0,
-            GeneProduct: 0,
-        },
+        counts: {},
 
         searchQuery: "",
 
         searchedSBasesPKs: new Set(),
 
         /* For Intercomponent Navigation */
-        allObjectsMap: MAPS.objectsMap,
+        allObjectsMap: {},
 
-        componentPKsMap: MAPS.componentsMap,
+        componentPKsMap: {},
 
         historyStack: [],
 
@@ -104,6 +88,9 @@ export default createStore({
         },
         SET_STATIC(state, payload) {
             window.localStorage.setItem("static", payload);
+        },
+        SET_CURRENT_MODEL(state, payload) {
+            state.currentModel = payload;
         },
         SET_VISIBILITY(state, payload) {
             state.visibility = payload;
@@ -142,12 +129,20 @@ export default createStore({
         },
     },
     actions: {
-        initializeReportView(context, payload) {
+        updateCurrentModel(context, payload) {
+            context.commit("SET_CURRENT_MODEL", payload);
+        },
+        initializeReport(context, payload) {
             // dump the raw data fetched from the backend
             context.commit("SET_RAW_DATA", payload.data);
 
             // update the SBML report to be rendered in the frontend
             context.commit("SET_JSON_REPORT", payload.data.report);
+
+            // set the current model to main model in the report by default
+            this.dispatch("updateCurrentModel", payload.data.report.model.pk);
+
+            INITIALIZATION_HELPERS.assembleSBasesInReport(payload.data.report);
 
             // set the history stack to contain Doc pk by default
             this.dispatch("initializeHistoryStack", payload.data.report.doc.pk);
@@ -216,7 +211,7 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
-                this.dispatch("initializeReportView", res);
+                this.dispatch("initializeReport", res);
             } else {
                 alert("Failed to fetch example report from API");
             }
@@ -245,7 +240,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", false);
 
             if (res.status === 200) {
-                this.dispatch("initializeReportView", res);
+                this.dispatch("initializeReport", res);
             } else {
                 alert("Failed to fetch report from API.");
             }
@@ -279,4 +274,29 @@ export default createStore({
         },
     },
     modules: {},
+    getters: {
+        componentPKsMap(state) {
+            return state.componentPKsMap[state.currentModel];
+        },
+        counts(state) {
+            return state.counts[state.currentModel];
+        },
+        sbases(state) {
+            const modelComponentsMap = state.componentPKsMap[
+                state.currentModel
+            ] as Record<string, Array<string>>;
+
+            const sbases: Array<Record<string, unknown>> = [];
+            listOfSBMLTypes.listOfSBMLTypes.forEach((key) => {
+                const componentPKs = modelComponentsMap[key];
+                console.log(key);
+                componentPKs.forEach((pk) => {
+                    sbases.push(state.allObjectsMap[pk]);
+                    console.log(pk);
+                });
+                console.log("\n");
+            });
+            return sbases;
+        },
+    },
 });

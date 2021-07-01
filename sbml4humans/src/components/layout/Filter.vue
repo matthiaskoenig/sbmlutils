@@ -120,11 +120,15 @@ export default defineComponent({
     },
 
     computed: {
+        currentModel(): string {
+            return store.state.currentModel;
+        },
+
         /**
          * Reactively returns the count of each SBML component from Vuex state/localStorage.
          */
         counts(): Record<string, number> {
-            return store.state.counts;
+            return store.getters.counts;
         },
 
         /**
