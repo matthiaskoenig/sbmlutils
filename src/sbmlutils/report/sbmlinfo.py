@@ -233,14 +233,14 @@ class SBMLDocumentInfo:
         """Calculate primary key."""
 
         if not hasattr(sbase, "pk"):
-            pk: str
+            pk: str = f"{SBMLDocumentInfo._sbml_type(sbase)}:"
             if sbase.isSetId():
-                pk = sbase.getId()
+                pk += sbase.getId()
             elif sbase.isSetMetaId():
-                pk = sbase.getMetaId()
+                pk += sbase.getMetaId()
             else:
                 xml = sbase.toSBML()
-                pk = SBMLDocumentInfo._uuid(xml)
+                pk += SBMLDocumentInfo._uuid(xml)
             sbase.pk = pk
 
         return pk
