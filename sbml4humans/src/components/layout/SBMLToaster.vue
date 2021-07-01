@@ -48,6 +48,10 @@ export default defineComponent({
             type: Boolean,
             default: true,
         },
+        isModel: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data(): Record<string, unknown> {
@@ -77,8 +81,10 @@ export default defineComponent({
          * Updates the detailInfo in Vuex state/localStorage to this SBML component's info.
          */
         showDetail(): void {
+            if (this.isModel) {
+                store.dispatch("updateCurrentModel", this.info.pk);
+            }
             store.dispatch("initializeHistoryStack", this.info.pk);
-            // .dispatch("updateDetailInfo", this.info);
         },
     },
 });

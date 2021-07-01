@@ -36,6 +36,8 @@ export default createStore({
             Submodel: true,
             Port: true,
             Model: true,
+            ModelDefinition: true,
+            ExternalModelDefinition: true,
             FunctionDefinition: true,
             UnitDefinition: true,
             Compartment: true,
@@ -281,20 +283,30 @@ export default createStore({
         counts(state) {
             return state.counts[state.currentModel];
         },
-        sbases(state) {
-            const modelComponentsMap = state.componentPKsMap[
-                state.currentModel
-            ] as Record<string, Array<string>>;
+        reportBasics(state) {
+            const basicComponents: Array<Record<string, unknown>> = [];
+
+            const componentPKsMap = state.componentPKsMap;
+            for (const modelPK in componentPKsMap) {
+                basicComponents.push(state.allObjectsMap[modelPK]);
+            }
+
+            return basicComponents;
+        },
+        sbases(state, getters) {
+            const modelComponentsMap = getters.componentPKsMap as Record<
+                string,
+                Array<string>
+            >;
 
             const sbases: Array<Record<string, unknown>> = [];
             listOfSBMLTypes.listOfSBMLTypes.forEach((key) => {
                 const componentPKs = modelComponentsMap[key];
-                console.log(key);
-                componentPKs.forEach((pk) => {
-                    sbases.push(state.allObjectsMap[pk]);
-                    console.log(pk);
-                });
-                console.log("\n");
+                if (componentPKs) {
+                    componentPKs.forEach((pk) => {
+                        sbases.push(state.allObjectsMap[pk]);
+                    });
+                }
             });
             return sbases;
         },

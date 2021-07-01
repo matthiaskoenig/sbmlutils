@@ -25,12 +25,12 @@ Math rendering
 - [ ] issues with google chrome
 
 ModelDefinitions/comp
-- [ ] check all comp components (specification)
-- [ ] handle modeldefinitions; split component list in SBMLDocument/Model & Rest
-- [ ] use ICG model for Ports, replacedElements, Submodels
+- [x] check all comp components (specification)
+- [x] handle modeldefinitions; split component list in SBMLDocument/Model & Rest
+- [x] use ICG model for Ports, replacedElements, Submodels
 
 Intercomponent navigation
-- [ ] keep a stack for the detail view (only show previous & next)
+- [x] keep a stack for the detail view (only show previous & next)
 
 Filter
 - [.] more robust handling of state --- not migrating to localStorage for testing purposes

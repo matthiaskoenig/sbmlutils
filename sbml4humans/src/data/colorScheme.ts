@@ -5,6 +5,8 @@ const componentColor = {
     Submodel: "#00ccff",
     Port: "#fed9a6",
     Model: "#66c2a5",
+    ModelDefinition: "#66c2a5",
+    ExternalModelDefinition: "#66c2a5",
     FunctionDefinition: "#e6f598",
     UnitDefinition: "#f1b6da",
     Compartment: "#92c5de",

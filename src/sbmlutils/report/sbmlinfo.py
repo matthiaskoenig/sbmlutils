@@ -1172,7 +1172,7 @@ if __name__ == "__main__":
     )
 
     for source in [
-        ICG_BODY,
+        # ICG_BODY,
         # ICG_LIVER,
         # ICG_BODY_FLAT,
         MODEL_DEFINITIONS_SBML,

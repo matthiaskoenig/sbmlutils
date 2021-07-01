@@ -1,8 +1,21 @@
 <template>
-    <a-list class="list-container">
+    <span>Models</span>
+    <a-list class="basics-container">
+        <toaster
+            v-for="component in collectReportBasics"
+            v-bind:key="component.pk"
+            v-bind:sbmlType="component.sbmlType"
+            v-bind:info="component"
+            v-bind:visible="Boolean(visibility[component.sbmlType])"
+            v-bind:isModel="Boolean(true)"
+        ></toaster>
+    </a-list>
+
+    <span class="mt-2">SBML Components</span>
+    <a-list class="sbase-container">
         <toaster
             v-for="sbase in collectSBases"
-            v-bind:key="sbase.id + sbase.sbo + sbase.name + sbase.metaId"
+            v-bind:key="sbase.pk"
             v-bind:sbmlType="sbase.sbmlType"
             v-bind:info="sbase"
             v-bind:visible="Boolean(visibility[sbase.sbmlType])"
@@ -13,8 +26,6 @@
 <script lang="ts">
 import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
-import listOfSBMLTypes from "@/data/listOfSBMLTypes";
-import allSBML from "@/data/allSBMLMap";
 import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
@@ -66,15 +77,17 @@ export default defineComponent({
     },
 
     computed: {
+        collectReportBasics(): Array<Record<string, unknown>> {
+            return store.getters.reportBasics;
+        },
+
         /**
          * Collects and returns SBML objects present in the report and
          * applies search filtering on the response set.
          */
         collectSBases(): Array<Record<string, unknown>> {
             let sbases: Array<Record<string, unknown>> = store.getters.sbases;
-            console.log(sbases);
             sbases = this.filterForSearchResults(sbases, this.searchQuery);
-
             return sbases;
         },
 
