@@ -60,7 +60,9 @@ export default defineComponent({
 
     computed: {
         listOfModels(): Array<Record<string, string>> {
-            const modelPKs = store.state.componentPKsMap.Model as Array<string>;
+            console.log("SBMLDoc 63");
+            console.log(store.getters.componentPKsMap);
+            const modelPKs = store.getters.componentPKsMap["Model"] as Array<string>;
 
             let modelAnnotations: Array<Record<string, string>> = [];
             modelPKs.forEach((pk) => {
