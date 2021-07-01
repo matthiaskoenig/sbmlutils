@@ -43,6 +43,44 @@
             </ul>
         </div>
     </div>
+    <div class="data" v-if="info.replacedBy">
+        <div class="label"><strong>replacedBy:</strong></div>
+        <div class="ml-4">
+            <div>submodelRef: {{ info.replacedBy.submodelRef }}</div>
+            <div>
+                replacedBySbaseref:
+                {{ info.replacedBy.replacedBySbaseref.value }}
+                (type: {{ info.replacedBy.replacedBySbaseref.type }})
+            </div>
+        </div>
+    </div>
+    <div class="data" v-if="info.replacedElements">
+        <div class="label"><strong>replacedElements:</strong></div>
+        <div class="ml-4">
+            <ul title="Replaced Elements">
+                <li
+                    v-for="replacedElement in info.replacedElements"
+                    v-bind:key="replacedElement.submodelRef"
+                >
+                    <div>
+                        submodelRef:
+                        <span
+                            class="links"
+                            v-on:click="
+                                openComponent('Submodel:' + replacedElement.submodelRef)
+                            "
+                            >{{ replacedElement.submodelRef }}</span
+                        >
+                    </div>
+                    <div>
+                        replacedElementSbaseref:
+                        {{ replacedElement.replacedElementSbaseref.value }}
+                        (type: {{ replacedElement.replacedElementSbaseref.type }})
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
     <div class="data" v-if="info.cvterms">
         <div class="label"><strong>cvterms:</strong></div>
         <div class="ml-4">
@@ -62,6 +100,7 @@
 </template>
 
 <script lang="ts">
+import store from "@/store/index";
 import colorScheme from "@/data/colorScheme";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
@@ -84,6 +123,12 @@ export default defineComponent({
         math: {
             type: String,
             default: "",
+        },
+    },
+
+    methods: {
+        openComponent(pk: string): void {
+            store.dispatch("pushToHistoryStack", pk);
         },
     },
 

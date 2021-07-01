@@ -23,7 +23,7 @@
 
     <!-- List of Models -->
     <div class="data" v-if="listOfModels.length > 0">
-        <div class="label">Models:</div>
+        <div class="label"><strong>models:</strong></div>
         <div class="links">
             <ul title="List of Models">
                 <li v-for="model in listOfModels" v-bind:key="model.pk">
@@ -60,18 +60,7 @@ export default defineComponent({
 
     computed: {
         listOfModels(): Array<Record<string, string>> {
-            console.log("SBMLDoc 63");
-            console.log(store.getters.componentPKsMap);
-            const modelPKs = store.getters.componentPKsMap["Model"] as Array<string>;
-
-            let modelAnnotations: Array<Record<string, string>> = [];
-            modelPKs.forEach((pk) => {
-                modelAnnotations.push(
-                    store.state.allObjectsMap[pk] as Record<string, string>
-                );
-            });
-
-            return modelAnnotations;
+            return store.getters.reportBasics;
         },
     },
 });

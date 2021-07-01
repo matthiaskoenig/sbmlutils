@@ -40,8 +40,8 @@ function assembleSBasesInReport(
         sbases.push(model);
 
         allObjectsMap[pk] = model;
+        componentPKsMap[pk] = {};
 
-        componentPKsMap[pk] = allSBML.listOfComponentsByModel;
         componentPKsMap[pk]["SBMLDocument"] = [
             (report.doc as Record<string, unknown>).pk as string,
         ];
@@ -53,33 +53,31 @@ function assembleSBasesInReport(
         );
     }
 
-    // TODO: collect and store external model definitions
-    if (report.modelDefinitions) {
-        const modelDefinitions = report.modelDefinitions as Array<
-            Record<string, unknown>
-        >;
-        for (let i = 0; i < modelDefinitions.length; i++) {
-            const md = modelDefinitions[i];
-            const pk = md.pk as string;
+    const modelTypes = ["modelDefinitions", "externalModelDefinitions"];
+    modelTypes.forEach((modelType) => {
+        if (report[modelType]) {
+            const modelDefinitions = report[modelType] as Array<
+                Record<string, unknown>
+            >;
+            for (let i = 0; i < modelDefinitions.length; i++) {
+                const md = modelDefinitions[i];
+                const pk = md.pk as string;
 
-            counts[pk] = allSBML.counts;
+                counts[pk] = {};
+                componentPKsMap[pk] = {};
 
-            counts[pk]["SBMLDocument"] = 1;
-            counts[pk]["Model"] = 1;
+                counts[pk]["Model"] = 1;
 
-            allObjectsMap[pk] = md;
-            componentPKsMap[pk] = allSBML.listOfComponentsByModel;
-            componentPKsMap[pk]["SBMLDocument"] = [
-                (report.doc as Record<string, unknown>).pk as string,
-            ];
-            componentPKsMap[pk]["Model"] = [pk];
+                allObjectsMap[pk] = md;
+                componentPKsMap[pk]["Model"] = [pk];
 
-            // collecting all other components
-            sbases.push(
-                ...collectSBasesInModel(md, counts, allObjectsMap, componentPKsMap)
-            );
+                // collecting all other components
+                sbases.push(
+                    ...collectSBasesInModel(md, counts, allObjectsMap, componentPKsMap)
+                );
+            }
         }
-    }
+    });
 
     store.dispatch("updateCounts", counts);
     store.dispatch("updateAllObjectsMap", allObjectsMap);

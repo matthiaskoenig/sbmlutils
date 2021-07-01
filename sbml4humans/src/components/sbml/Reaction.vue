@@ -19,7 +19,7 @@
                     v-for="reactant in info.listOfReactants"
                     v-bind:key="reactant.species"
                 >
-                    <span class="links" v-on:click="openComponent(reactant.species)">{{
+                    <span class="links" v-on:click="openComponent('Species:' + reactant.species)">{{
                         reactant.species
                     }}</span>
                     [<span v-if="reactant.stoichiometry"
@@ -38,7 +38,7 @@
         <div class="ml-4">
             <ul title="Products">
                 <li v-for="product in info.listOfProducts" v-bind:key="product.species">
-                    <span class="links" v-on:click="openComponent(product.species)">{{
+                    <span class="links" v-on:click="openComponent('Species:' + product.species)">{{
                         product.species
                     }}</span>
                     [<span v-if="product.stoichiometry"
@@ -57,7 +57,7 @@
         <div class="ml-4">
             <ul title="Modifiers">
                 <li v-for="modifier in info.listOfModifiers" v-bind:key="modifier">
-                    <span class="links" v-on:click="openComponent(modifier)">{{
+                    <span class="links" v-on:click="openComponent('Species:' + modifier)">{{
                         modifier
                     }}</span>
                 </li>

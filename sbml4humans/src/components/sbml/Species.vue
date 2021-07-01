@@ -2,9 +2,11 @@
     <!-- Compartment -->
     <div class="data" v-if="info.compartment">
         <div class="label"><strong>compartment: </strong></div>
-        <span class="links" v-on:click="openComponent(reactant)">{{
-            info.compartment
-        }}</span>
+        <span
+            class="links"
+            v-on:click="openComponent('Compartment:' + info.compartment)"
+            >{{ info.compartment }}</span
+        >
     </div>
 
     <!-- Initial Amount -->
