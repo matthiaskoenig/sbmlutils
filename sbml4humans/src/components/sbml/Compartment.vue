@@ -46,16 +46,16 @@
             <strong>relatedSpecies:</strong>
         </div>
         <div class="ml-4">
-            <ul title="List of Related Species">
-                <li
-                    v-for="species in info.species"
-                    v-bind:key="species"
-                    class="links"
-                    v-on:click="openComponent(species)"
-                >
-                    {{ species }}
-                </li>
-            </ul>
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="species in info.species"
+                v-bind:key="species"
+            >
+                <SBMLLink
+                    v-bind:pk="species"
+                    v-bind:sbmlType="String('Species')"
+                ></SBMLLink>
+            </div>
         </div>
     </div>
 
@@ -65,16 +65,16 @@
             <strong>relatedReactions:</strong>
         </div>
         <div class="ml-4">
-            <ul title="List of Related Reactions">
-                <li
-                    v-for="reaction in info.reactions"
-                    v-bind:key="reaction"
-                    class="links"
-                    v-on:click="openComponent(reaction)"
-                >
-                    {{ reaction }}
-                </li>
-            </ul>
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="reaction in info.reaction"
+                v-bind:key="reaction"
+            >
+                <SBMLLink
+                    v-bind:pk="reaction"
+                    v-bind:sbmlType="String('Reaction')"
+                ></SBMLLink>
+            </div>
         </div>
     </div>
 </template>
@@ -85,6 +85,7 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
+import SBMLLink from "@/components/layout/SBMLLink.vue";
 
 /**
  * Component to define display of Compartment objects.
@@ -92,6 +93,7 @@ import Katex from "@/components/layout/Katex.vue";
 export default defineComponent({
     components: {
         katex: Katex,
+        SBMLLink: SBMLLink,
     },
 
     props: {

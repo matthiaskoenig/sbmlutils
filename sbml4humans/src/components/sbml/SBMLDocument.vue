@@ -24,14 +24,17 @@
     <!-- List of Models -->
     <div class="data" v-if="listOfModels.length > 0">
         <div class="label"><strong>models:</strong></div>
-        <div class="links">
-            <ul title="List of Models">
-                <li v-for="model in listOfModels" v-bind:key="model.pk">
-                    <span v-on:click="openComponent(model.pk)"
-                        >{{ model.id }} ({{ model.name }})</span
-                    >
-                </li>
-            </ul>
+        <div class="ml-4">
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="model in listOfModels"
+                v-bind:key="model"
+            >
+                <SBMLLink
+                    v-bind:pk="model.pk"
+                    v-bind:sbmlType="String('Model')"
+                ></SBMLLink>
+            </div>
         </div>
     </div>
 </template>
@@ -41,10 +44,16 @@ import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
+import SBMLLink from "@/components/layout/SBMLLink.vue";
+
 /**
  * Component to define display of SBMLDocument objects.
  */
 export default defineComponent({
+    components: {
+        SBMLLink,
+    },
+
     props: {
         info: {
             type: Object,

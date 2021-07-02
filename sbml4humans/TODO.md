@@ -12,14 +12,14 @@
 - [x] maxwidth for components
 - [x] use available space better on report page
 - [ ] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
-- [ ] constant/initialConcentration attribute missing on species
+- [.] constant/initialConcentration attribute missing on species
 - [x] compartment must be link on species
-- [ ] render null information;
-- [ ] add boxes headers for inter-component navigation
+- [.] render null information;
+- [x] add boxes headers for inter-component navigation
 - [x] drop "In" from reactantIn, productIn, speciesIn, ...; relatedSpecies -> Species
-- [ ] in species: make reactant, product, modifier list next to each other
+- [x] in species: make reactant, product, modifier list next to each other
 
-- [ ] Create ListOf Table Component for navigation;
+- [x] Create ListOf Table Component for navigation;
 
 Math rendering
 - [ ] issues with google chrome
@@ -51,6 +51,6 @@ Improve generated latex (backend, MK)
     - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
     - no solution for now -> switching to elasticsearch based on JSON in future
 
-## Things to ask:
-- [ ] do we need a forward button as well in the detail nav bar 
-- [ ] how to handle multiple occurences of the same component in the detail nav bar
+
+## List of New Changes in the Backend:
+- [] Changed the PK to the form "{sbmlType}:{_uuid}". This was required as the change introducing the model specific components list was not working without it.

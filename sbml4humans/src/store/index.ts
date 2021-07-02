@@ -310,5 +310,19 @@ export default createStore({
             });
             return sbases;
         },
+        tables(state) {
+            const componentPKsList = {} as Record<string, Array<string>>;
+            listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
+                componentPKsList[sbmlType] = [];
+                for (const modelPK in state.componentPKsMap) {
+                    if (state.componentPKsMap[modelPK][sbmlType]) {
+                        componentPKsList[sbmlType].push(
+                            ...state.componentPKsMap[modelPK][sbmlType]
+                        );
+                    }
+                }
+            });
+            return componentPKsList;
+        },
     },
 });

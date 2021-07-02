@@ -17,7 +17,7 @@ function assembleSBasesInReport(
 
     const sbases: Array<Record<string, unknown>> = [];
     const counts: Record<string, Record<string, number>> = {};
-    const allObjectsMap: Record<string, unknown> = {};
+    let allObjectsMap: Record<string, unknown> = {};
     const componentPKsMap: Record<string, Record<string, Array<string>>> = {};
 
     // collecting doc
@@ -79,6 +79,8 @@ function assembleSBasesInReport(
         }
     });
 
+    allObjectsMap = createComponentLists(allObjectsMap);
+
     store.dispatch("updateCounts", counts);
     store.dispatch("updateAllObjectsMap", allObjectsMap);
     store.dispatch("updateComponentPKsMap", componentPKsMap);
@@ -129,6 +131,26 @@ function collectSBasesInModel(
     }
 
     return sbasesInModel;
+}
+
+function createComponentLists(allObjectsMap: Record<string, unknown>) {
+    console.log("Here at 137");
+    const listsMap: Record<string, Record<string, Array<string>>> = {};
+    listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
+        listsMap["ListOf" + sbmlType] = {
+            table: ["True"],
+            sbmlType: [sbmlType],
+            objects: [],
+        };
+        for (const pk in allObjectsMap) {
+            if ((allObjectsMap[pk] as Record<string, unknown>).sbmlType === sbmlType) {
+                listsMap["ListOf" + sbmlType]["objects"].push(pk);
+            }
+        }
+    });
+
+    allObjectsMap = { ...allObjectsMap, ...listsMap };
+    return allObjectsMap;
 }
 
 export default {
