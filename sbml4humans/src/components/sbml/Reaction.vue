@@ -14,20 +14,20 @@
         <div class="label"><strong>listOfReactants:</strong></div>
         <br />
         <div class="ml-4">
-            <ul title="Reactants">
-                <li
-                    v-for="reactant in info.listOfReactants"
-                    v-bind:key="reactant.species"
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="reactant in info.listOfReactants"
+                v-bind:key="reactant.species"
+            >
+                <SBMLLink
+                    v-bind:pk="reactant.species"
+                    v-bind:sbmlType="String('Species')"
+                ></SBMLLink>
+                [<span v-if="reactant.stoichiometry"
+                    >stoichiometry: {{ reactant.stoichiometry }}</span
                 >
-                    <span class="links" v-on:click="openComponent('Species:' + reactant.species)">{{
-                        reactant.species
-                    }}</span>
-                    [<span v-if="reactant.stoichiometry"
-                        >stoichiometry: {{ reactant.stoichiometry }}</span
-                    >
-                    <span v-if="reactant.constant">, constant</span>]
-                </li>
-            </ul>
+                <span v-if="reactant.constant">, constant</span>]
+            </div>
         </div>
     </div>
 
@@ -36,17 +36,20 @@
         <div class="label"><strong>listOfProducts:</strong></div>
         <br />
         <div class="ml-4">
-            <ul title="Products">
-                <li v-for="product in info.listOfProducts" v-bind:key="product.species">
-                    <span class="links" v-on:click="openComponent('Species:' + product.species)">{{
-                        product.species
-                    }}</span>
-                    [<span v-if="product.stoichiometry"
-                        >stoichiometry: {{ product.stoichiometry }}</span
-                    >
-                    <span v-if="product.constant">, constant</span>]
-                </li>
-            </ul>
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="product in info.listOfProducts"
+                v-bind:key="product.species"
+            >
+                <SBMLLink
+                    v-bind:pk="product.species"
+                    v-bind:sbmlType="String('Species')"
+                ></SBMLLink>
+                [<span v-if="product.stoichiometry"
+                    >stoichiometry: {{ product.stoichiometry }}</span
+                >
+                <span v-if="product.constant">, constant</span>]
+            </div>
         </div>
     </div>
 
@@ -55,13 +58,16 @@
         <div class="label"><strong>listOfModifiers:</strong></div>
         <br />
         <div class="ml-4">
-            <ul title="Modifiers">
-                <li v-for="modifier in info.listOfModifiers" v-bind:key="modifier">
-                    <span class="links" v-on:click="openComponent('Species:' + modifier)">{{
-                        modifier
-                    }}</span>
-                </li>
-            </ul>
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="modifier in info.listOfModifiers"
+                v-bind:key="modifier"
+            >
+                <SBMLLink
+                    v-bind:pk="modifier"
+                    v-bind:sbmlType="String('Species')"
+                ></SBMLLink>
+            </div>
         </div>
     </div>
 
@@ -143,6 +149,7 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
+import SBMLLink from "@/components/layout/SBMLLink.vue";
 
 /**
  * Component to define display of Reaction objects.
@@ -150,6 +157,7 @@ import Katex from "@/components/layout/Katex.vue";
 export default defineComponent({
     components: {
         Katex,
+        SBMLLink,
     },
 
     props: {
