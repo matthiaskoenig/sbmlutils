@@ -20,7 +20,7 @@
                 v-bind:key="reactant.species"
             >
                 <SBMLLink
-                    v-bind:pk="reactant.species"
+                    v-bind:pk="'Species:' + reactant.species"
                     v-bind:sbmlType="String('Species')"
                 ></SBMLLink>
                 [<span v-if="reactant.stoichiometry"
@@ -42,7 +42,7 @@
                 v-bind:key="product.species"
             >
                 <SBMLLink
-                    v-bind:pk="product.species"
+                    v-bind:pk="'Species:' + product.species"
                     v-bind:sbmlType="String('Species')"
                 ></SBMLLink>
                 [<span v-if="product.stoichiometry"
@@ -64,7 +64,7 @@
                 v-bind:key="modifier"
             >
                 <SBMLLink
-                    v-bind:pk="modifier"
+                    v-bind:pk="'Species:' + modifier"
                     v-bind:sbmlType="String('Species')"
                 ></SBMLLink>
             </div>
