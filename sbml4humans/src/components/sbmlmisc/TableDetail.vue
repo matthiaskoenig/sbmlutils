@@ -63,4 +63,6 @@ export default defineComponent({
 .table {
     text-align: center;
 }
+
+
 </style>
