@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div>
         <h1>Upload SBML</h1>
         <form class="needs-validation" @submit.prevent="submitForm">
             <div class="mb-3">
@@ -13,8 +13,8 @@
                 />
             </div>
             <button class="btn btn-primary" type="submit">
-                    Submit
-                </button>
+                Submit
+            </button>
             <div class="invalid-tooltip">
                 Upload a valid SBML file or COMBINE archive containing SBML
             </div>

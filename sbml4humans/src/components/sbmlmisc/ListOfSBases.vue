@@ -120,7 +120,6 @@ export default defineComponent({
 .sbase-container{
     padding: 1% 0%;
     height: auto;
-
     overflow-y: scroll;
 }
 

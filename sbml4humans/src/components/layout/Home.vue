@@ -1,14 +1,16 @@
 <template>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <file-upload-form class="pb-4"/>
+            <div class="col">
+                <file-upload-form class="pb-4"/>
+            </div>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <examples-list  class="pb-4"/>
             </div>
             <div class="col-md-6">
-                <about  class="pb-4"/>
+                <about class="pb-4"/>
             </div>
         </div>
     </div>
