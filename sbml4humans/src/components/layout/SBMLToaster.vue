@@ -91,5 +91,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/SBMLToaster.scss";
+@import "@/assets/styles/scss/components/layout/Toaster.scss";
 </style>

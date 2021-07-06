@@ -68,5 +68,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/Example.scss";
+@import "@/assets/styles/scss/components/layout/Toaster.scss";
 </style>
