@@ -1,12 +1,14 @@
 <template>
     <div class="container">
         <div class="row">
+            <file-upload-form class="pb-4"/>
+        </div>
+        <div class="row">
             <div class="col-md-6">
-                <upload-sbml></upload-sbml>
-                <examples-list></examples-list>
+                <examples-list  class="pb-4"/>
             </div>
             <div class="col-md-6">
-                <about></about>
+                <about  class="pb-4"/>
             </div>
         </div>
     </div>
@@ -16,7 +18,7 @@
 import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
-import ExamplesListContainer from "@/components/layout/ExamplesListContainer.vue";
+import ExamplesList from "@/components/layout/ExamplesList.vue";
 import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 import About from "@/components/layout/About.vue";
 
@@ -28,9 +30,9 @@ import About from "@/components/layout/About.vue";
  */
 export default defineComponent({
     components: {
-        "examples-list": ExamplesListContainer,
-        "upload-sbml": FileUploadForm,
-        about: About,
+        ExamplesList: ExamplesList,
+        FileUploadForm: FileUploadForm,
+        About: About,
     },
 });
 </script>
