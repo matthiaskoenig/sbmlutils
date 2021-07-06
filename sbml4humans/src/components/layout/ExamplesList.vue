@@ -76,11 +76,4 @@ export default defineComponent({
 .list-container{
     overflow-y: scroll;
 }
-
-@media only screen and (max-width: 600px) {
-    .list-container {
-        width: 100%;
-    }
-}
-
 </style>

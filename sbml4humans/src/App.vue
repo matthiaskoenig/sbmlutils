@@ -1,19 +1,16 @@
 <template>
     <navbar />
-    <main-window />
+    <router-view />
 </template>
 
 <script lang="ts">
 import Navbar from "@/components/layout/Navbar.vue";
-import MainWindow from "@/components/layout/MainWindow.vue";
-import browserStackMixin from "@/mixins";
 
 export default {
     name: "app",
 
     components: {
         navbar: Navbar,
-        "main-window": MainWindow,
     },
 };
 </script>
