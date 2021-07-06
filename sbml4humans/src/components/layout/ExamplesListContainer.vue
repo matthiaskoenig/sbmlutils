@@ -1,7 +1,7 @@
 <template>
-    <div class="container">
+    <div>
         <h1>Examples</h1>
-        <p>Choose from the below list of example SBML models to generate a report.</p>
+        Choose from the below list of example SBML models to generate a report.
         <a-list class="list-container">
             <example
                 v-for="ex in examples"
@@ -73,5 +73,14 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/ExamplesListContainer.scss";
+.list-container{
+    overflow-y: scroll;
+}
+
+@media only screen and (max-width: 600px) {
+    .list-container {
+        width: 100%;
+    }
+}
+
 </style>

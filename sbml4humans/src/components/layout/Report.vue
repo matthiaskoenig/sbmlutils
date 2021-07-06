@@ -1,11 +1,12 @@
 <template>
-    <div class="row">
-        <div class="left-container">
-            <!--<list-of-sbases ref="list"></list-of-sbases>-->
-            <table-list-view-toggle></table-list-view-toggle>
-        </div>
-        <div class="right-container">
-            <detail-container></detail-container>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <table-list-view-toggle></table-list-view-toggle>
+            </div>
+            <div class="col-md-9">
+                <detail-container></detail-container>
+            </div>
         </div>
     </div>
 </template>
@@ -14,7 +15,6 @@
 import { defineComponent } from "vue";
 
 /* Compartments */
-import ListOfSBases from "@/components/sbml/listOf/ListOfSBases";
 import DetailContainer from "@/components/layout/DetailContainer";
 import TableListViewToggle from  "@/components/layout/TableListViewToggle.vue";
 
@@ -23,7 +23,6 @@ import TableListViewToggle from  "@/components/layout/TableListViewToggle.vue";
  */
 export default defineComponent({
     components: {
-        //"list-of-sbases": ListOfSBases,
         "detail-container": DetailContainer,
         "table-list-view-toggle": TableListViewToggle,
     },
@@ -31,5 +30,4 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/ReportContainer.scss";
 </style>

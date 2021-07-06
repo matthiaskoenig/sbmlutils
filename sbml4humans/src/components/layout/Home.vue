@@ -1,15 +1,13 @@
 <template>
-    <div class="divider">
-        <div class="left-container">
-            <div class="file-upload">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
                 <upload-sbml></upload-sbml>
-            </div>
-            <div class="about">
                 <examples-list></examples-list>
             </div>
-        </div>
-        <div class="right-container">
-            <about></about>
+            <div class="col-md-6">
+                <about></about>
+            </div>
         </div>
     </div>
 </template>
@@ -38,5 +36,5 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@import "@/assets/styles/scss/components/layout/HomeInfo.scss";
+
 </style>

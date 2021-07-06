@@ -83,5 +83,25 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/listOf/ListOf.scss";
+.basics-container{
+    padding: 1% 0%;
+    max-height: 100%;
+    height: fit-content;
+
+    margin-bottom: 2px;
+}
+
+.sbase-container{
+    padding: 1% 0%;
+    height: auto;
+
+    overflow-y: scroll;
+}
+
+.table-container{
+    padding: 1% 0%;
+    height: auto;
+
+    overflow-y: scroll;
+}
 </style>

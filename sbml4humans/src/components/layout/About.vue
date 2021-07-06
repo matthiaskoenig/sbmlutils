@@ -1,9 +1,11 @@
 <template>
-    <div class="container">
+    <div>
         <h1>About</h1>
+
+        <!-- SBML -->
         <div class="section">
+            <div class="section-header">Systems Biology Markup Language</div>
             <div class="content">
-                <p>
                     The Systems Biology Markup Language (<a
                         href="http://sbml.org"
                         target="_blank"
@@ -12,24 +14,27 @@
                     models. The information in an SBML model file is organized as a list
                     of components encapsulated within the model (e.g. compartments,
                     species, parameters, reactions).
-                </p>
-                <p>
-                    The objective of the project
-                    <a
-                        href="https://sbml4humans-gsoc-2021.blogspot.com/"
-                        target="_blank"
-                        >SBML4Humans</a
-                    >
-                    is to provide an interactive and reactive report for SBML models
-                    which will allow humans (experts as well as beginners) to easily
-                    comprehend the content of a model.
-                </p>
+            </div>
+        </div>
+
+        <!-- SBML4Humans -->
+        <div class="section">
+            <div class="section-header">SBML4Humans</div>
+            <div class="content">
+                The objective of the project
+                <a href="https://sbml4humans-gsoc-2021.blogspot.com/"
+                   target="_blank">
+                    SBML4Humans
+                </a>
+                is to provide an interactive and reactive report for SBML models which
+                which will allow humans (experts as well as beginners) to easily
+                comprehend the content of a model.
             </div>
         </div>
 
         <!-- Development Team -->
-        <div class="section ml-4 mt-3">
-            <strong>Development Team</strong>
+        <div class="section">
+            <div class="section-header">Development Team</div>
             <div class="content">
                 <ul title="Developers">
                     <li>
@@ -48,8 +53,8 @@
         </div>
 
         <!-- Funding -->
-        <div class="section ml-4 mt-3">
-            <strong>Funding</strong>
+        <div class="section">
+            <div class="section-header">Funding</div>
             <div class="content">
                 <ul>
                     <li>
@@ -78,8 +83,8 @@
         </div>
 
         <!-- Citation -->
-        <div class="section ml-4 mt-3">
-            <strong>Citation</strong>
+        <div class="section">
+            <div class="section-header">Citation</div>
             <div class="content">
                 <ul>
                     <li>
@@ -122,5 +127,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/About.scss";
+
 </style>
