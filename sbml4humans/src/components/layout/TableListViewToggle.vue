@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
-import ListOfSBases from "@/components/sbml/ListOfSBases.vue";
-import ListOfTables from "@/components/sbml/ListOfTables.vue";
+import ListOfSBases from "@/components/sbmlmisc/ListOfSBases.vue";
+import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
 
 export default {
     components: {

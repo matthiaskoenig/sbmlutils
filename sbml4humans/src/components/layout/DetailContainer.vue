@@ -28,7 +28,7 @@ import { defineComponent } from "@vue/runtime-core";
 import SBase from "@/components/sbml/SBase.vue";
 import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetails.vue";
 import XMLContainer from "@/components/layout/XMLContainer.vue";
-import TableDetail from "@/components/sbml/TableDetail.vue";
+import TableDetail from "@/components/sbmlmisc/TableDetail.vue";
 
 /*
  * Component to display detailed information about the selected SBML Component.
