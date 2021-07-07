@@ -1,13 +1,13 @@
 <template>
-    <div class="card shadow-sm mr-3" v-on:click="showDetail">
+    <div class="card shadow-sm mr-3 small" v-on:click="showDetail">
         <div
-            class="tag d-flex justify-content-between"
+            class="d-flex px-2 justify-content-between text-wrap"
             v-bind:style="`background-color: ${color}`"
         >
-            <div class="right-left mr-3">
+            <div class="mr-3">
                 <strong>{{ id }}</strong>
             </div>
-            <div class="left-right">
+            <div>
                 <strong>{{ sbmlType }}</strong>
             </div>
         </div>
@@ -66,5 +66,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "src/assets/styles/scss/components/layout/SBMLLink.scss";
+@import "@/assets/styles/scss/components/layout/Toaster.scss";
 </style>

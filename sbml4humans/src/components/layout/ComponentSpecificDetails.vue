@@ -122,6 +122,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/ComponentSpecificDetails.scss";
-</style>
+<style lang="scss" scoped></style>

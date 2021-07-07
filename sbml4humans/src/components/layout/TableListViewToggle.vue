@@ -26,5 +26,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/TableListViewToggle.scss";
+.tab-container {
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+}
 </style>

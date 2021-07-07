@@ -16,7 +16,7 @@ import { defineComponent } from "vue";
 
 /* Compartments */
 import DetailContainer from "@/components/layout/DetailContainer";
-import TableListViewToggle from  "@/components/layout/TableListViewToggle.vue";
+import TableListViewToggle from "@/components/layout/TableListViewToggle.vue";
 
 /**
  * Component to hold all components to show the generated report.
@@ -29,5 +29,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

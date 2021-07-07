@@ -1,19 +1,19 @@
 <template>
     <div class="card shadow-sm" v-on:click="getExample()">
         <div
-            class="tag d-flex justify-content-between"
+            class="d-flex px-2 justify-content-between"
             v-bind:style="`background-color: ${color}`"
         >
-            <div class="left-text">
+            <div>
                 <strong>{{ sbmlType }}</strong>
             </div>
         </div>
-        <div class="card-body">
-            <h6 class="card-subtitle d-flex justify-content-between">
-                <div class="name" v-if="info.name">Name: {{ info.name }}</div>
-                <div class="sbo" v-if="info.sbo">{{ info.sbo }}</div>
+        <div class="px-2">
+            <h6 class="d-flex justify-content-between pt-1 text-dark">
+                <div v-if="info.name">Name: {{ info.name }}</div>
+                <div v-if="info.sbo">{{ info.sbo }}</div>
             </h6>
-            <div class="meta d-flex justify-content-between text-primary">
+            <div class="d-flex justify-content-between text-primary py-0">
                 <div v-if="info.metaId">Meta ID: {{ info.metaId }}</div>
                 <div v-if="info.id">SID: {{ info.id }}</div>
             </div>

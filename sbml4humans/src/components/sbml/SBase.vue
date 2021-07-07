@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex justify-content-between w-100">
+    <div class="d-flex justify-content-between">
         <h1 class="sbmlType px-2 py-1" v-bind:style="`background-color: ${color}`">
             {{ info.sbmlType }}
         </h1>

@@ -1,18 +1,18 @@
 <template>
-    <nav class="ml-auto" aria-label="breadcrumb">
-        <ol class="breadcrumb">
+    <div class="ml-auto">
+        <ol>
             <i
                 class="fa fa-arrow-circle-left mr-3"
                 v-on:click="goBack()"
                 v-bind:style="styleBack"
             ></i>
             <i
-                class="fa fa-arrow-circle-right"
+                class="fa fa-arrow-circle-right mr-3"
                 v-on:click="goForward()"
                 v-bind:style="styleForward"
             ></i>
         </ol>
-    </nav>
+    </div>
 </template>
 
 <script lang="ts">
@@ -78,6 +78,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/DetailViewNav.scss";
-</style>
+<style lang="scss" scoped></style>

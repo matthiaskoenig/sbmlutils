@@ -1,25 +1,25 @@
 <template>
     <div class="card shadow-sm" v-if="visible" v-on:click="showDetail">
         <div
-            class="tag d-flex justify-content-between"
+            class="d-flex px-2 justify-content-between"
             v-bind:style="`background-color: ${color}`"
         >
-            <div class="right-left">
+            <div class="mr-3">
                 <strong>{{ info.id }}</strong>
                 {{ info.name ? "(" + info.name + ")" : "" }}
             </div>
-            <div class="left-right">
+            <div>
                 <strong>{{ sbmlType }}</strong>
             </div>
         </div>
-        <div v-if="info.metaId || info.sbo" class="card-body">
+        <div v-if="info.metaId || info.sbo" class="px-2 py-0">
             <div class="d-flex justify-content-between">
                 <span class="text-primary" v-if="info.metaId">
                     metaId:
                     <span v-if="info.metaId.length < 20">{{ info.metaId }}</span>
                     <span v-else>{{ info.metaId.substring(0, 20) + "..." }}</span>
                 </span>
-                <span class="sbo" v-if="info.sbo">{{ info.sbo }}</span>
+                <span v-if="info.sbo">{{ info.sbo }}</span>
             </div>
         </div>
     </div>

@@ -1,16 +1,12 @@
 <template>
     <div class="card shadow-sm" v-if="visible" v-on:click="showDetail">
         <div
-            class="tag d-flex justify-content-between"
+            class="d-flex justify-content-between px-2"
             v-bind:style="`background-color: ${color}`"
         >
-            <div class="left-right">
-                <strong
-                    >ListOf{{
-                        sbmlType === "Species" ? sbmlType : sbmlType + "s"
-                    }}</strong
-                >
-            </div>
+            <strong
+                >ListOf{{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
+            >
         </div>
     </div>
 </template>

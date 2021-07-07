@@ -58,5 +58,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/DetailContainer.scss";
+.detail-container {
+    height: 85vh;
+    word-wrap: break-word;
+    overflow-y: scroll;
+}
 </style>
