@@ -2,7 +2,7 @@
     <!-- Compartment -->
     <div class="data" v-if="info.compartment">
         <div class="label"><strong>compartment: </strong></div>
-        <div class="ml-4">
+        <div class="ml-3">
             <SBMLLink
                 v-bind:pk="'Compartment:' + info.compartment"
                 v-bind:sbmlType="String('Compartment')"
@@ -115,9 +115,9 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row col-12">
         <!-- List of Reactant Reactions -->
-        <div class="col data" v-if="info.reactant && info.reactant.length">
+        <div class="col-sm-3 data" v-if="info.reactant && info.reactant.length">
             <div class="label">
                 <strong>reactant:</strong>
             </div>
@@ -131,7 +131,7 @@
             </div>
         </div>
         <!-- List of Product Reactions -->
-        <div class="col data" v-if="info.product && info.product.length">
+        <div class="col-sm-3 data" v-if="info.product && info.product.length">
             <div class="label">
                 <strong>product:</strong>
             </div>
@@ -146,7 +146,7 @@
         </div>
 
         <!-- List of Modifier Reactions -->
-        <div class="col data" v-if="info.modifier && info.modifier.length">
+        <div class="col-sm-3 data" v-if="info.modifier && info.modifier.length">
             <div class="label">
                 <strong>modifier:</strong>
             </div>

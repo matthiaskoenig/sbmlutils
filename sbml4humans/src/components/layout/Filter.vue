@@ -1,5 +1,8 @@
 <template>
-    <button class="btn btn-info mx-2 d-flex" v-on:click="menuVisible = !menuVisible">
+    <button
+        class="btn btn-info d-flex mx-2 py-1"
+        v-on:click="menuVisible = !menuVisible"
+    >
         <i class="fa fa-filter mr-2" style="color: black" />
         <span class="filter-label">Filter&nbsp;{{ filterFraction }}</span>
     </button>
@@ -179,5 +182,105 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/Filter.scss";
+.btn {
+    width: max-content;
+    font-size: 14px;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.filter {
+    position: absolute;
+    width: 50%;
+    height: max-content;
+    top: 66px;
+
+    margin: 0 auto;
+    padding: 1% 1%;
+
+    border-radius: 10px;
+
+    align-content: center;
+    background-color: white;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.selector {
+    margin-left: 5px;
+    margin-bottom: 13px;
+    display: flex;
+}
+
+.tag {
+    margin-bottom: 3px;
+    padding: 2px 5px;
+
+    border-radius: 5px;
+
+    font-size: small;
+}
+
+.tag:hover {
+    cursor: pointer;
+}
+
+.tag:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.tag-list {
+    width: 100%;
+    height: 100%;
+
+    margin: 0 auto;
+    padding: 1% 1%;
+
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.badge {
+    min-width: 20px;
+    width: fit-content;
+    height: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+
+    border-radius: 20px;
+
+    // stick to the button
+    margin-left: -10px;
+    margin-top: -5px;
+
+    font-size: small;
+    font-weight: 400;
+    text-align: center;
+
+    color: white;
+    background-color: black;
+}
+
+.master-select {
+    display: flex;
+    flex-direction: row;
+    width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+    flex-wrap: wrap;
+}
+
+.label {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 5px;
+}
+
+.fa {
+    font-size: 18px;
+}
 </style>

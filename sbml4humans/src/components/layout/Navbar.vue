@@ -1,10 +1,7 @@
 <template>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <router-link class="navbar-brand" to="/">
-            <img
-                class="logo"
-                src="@/assets/images/sbmlutils-logo-60.png"
-            />
+            <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
             SBML4Humans
         </router-link>
 
@@ -14,7 +11,6 @@
         ></search-and-filter>
 
         <!-- Static switch -->
-        <!--
         <div class="static ml-auto" title="Turn ON Static to disconnect from the API">
             <p class="label">Static</p>
             <label class="switch">
@@ -27,7 +23,6 @@
                 <span class="slider round"></span>
             </label>
         </div>
-        -->
     </nav>
 </template>
 
@@ -68,7 +63,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.navbar{
+.navbar {
     margin-bottom: 2%;
 }
 
@@ -117,8 +112,8 @@ export default defineComponent({
     right: 0;
     bottom: 0;
     background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
 }
 
 .slider:before {
@@ -129,16 +124,16 @@ export default defineComponent({
     left: 0px;
     bottom: 0px;
     background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
 }
 
 input:checked + .slider {
-    background-color: #2196F3;
+    background-color: #2196f3;
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 1px #2196f3;
 }
 
 input:checked + .slider:before {
@@ -155,5 +150,4 @@ input:checked + .slider:before {
 .slider.round:before {
     border-radius: 50%;
 }
-
 </style>
