@@ -11,6 +11,7 @@
         ></search-and-filter>
 
         <!-- Static switch -->
+        <!--
         <div class="static ml-auto" title="Turn ON Static to disconnect from the API">
             <p class="label">Static</p>
             <label class="switch">
@@ -23,6 +24,7 @@
                 <span class="slider round"></span>
             </label>
         </div>
+        -->
     </nav>
 </template>
 
