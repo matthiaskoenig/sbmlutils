@@ -1,9 +1,9 @@
 ## TODO 
-- [ ] add support for uncertainties & add uncertainty examples (`distributions_example.xml` and `uncertainty_example.xml`)
-- [ ] move local scss in files; cleanup css (use bootstrap grid & spacing)
+- [x] add support for uncertainties & add uncertainty examples (`distributions_example.xml` and `uncertainty_example.xml`)
+- [x] move local scss in files; cleanup css (use bootstrap grid & spacing)
 - [.] annotations/notes to SBase detail view
-- [ ] color of compartment & reaction is identical on Species
-- [ ] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
+- [x] color of compartment & reaction is identical on Species
+- [.] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
 - [.] constant/initialConcentration attribute missing on species
 
 Math rendering

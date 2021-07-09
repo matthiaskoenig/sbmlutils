@@ -1,4 +1,5 @@
 <template>
+    <!-- CORE -->
     <div class="d-flex justify-content-between">
         <h1 class="sbmlType px-2 py-1" v-bind:style="`background-color: ${color}`">
             {{ info.sbmlType }}
@@ -43,6 +44,25 @@
             </ul>
         </div>
     </div>
+
+    <div class="data" v-if="info.cvterms">
+        <div class="label"><strong>cvterms:</strong></div>
+        <div class="ml-4">
+            <ul title="CVTerms">
+                <li v-for="cvterm in info.cvterms" v-bind:key="cvterm.qualifier">
+                    <div>qualifier: {{ cvterm.qualifier }}</div>
+                    <div>resources:</div>
+                    <ul class="ml-4">
+                        <li v-for="resource in cvterm.resources" v-bind:key="resource">
+                            {{ resource }}
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- COMP -->
     <div class="data" v-if="info.replacedBy">
         <div class="label"><strong>replacedBy:</strong></div>
         <div class="ml-4">
@@ -81,20 +101,33 @@
             </ul>
         </div>
     </div>
-    <div class="data" v-if="info.cvterms">
-        <div class="label"><strong>cvterms:</strong></div>
+
+    <!-- DISTRIB -->
+    <div class="data" v-if="info.uncertainties">
+        <div class="label"><strong>uncertainties:</strong></div>
         <div class="ml-4">
-            <ul title="CVTerms">
-                <li v-for="cvterm in info.cvterms" v-bind:key="cvterm.qualifier">
-                    <div>qualifier: {{ cvterm.qualifier }}</div>
-                    <div>resources:</div>
-                    <ul class="ml-4">
-                        <li v-for="resource in cvterm.resources" v-bind:key="resource">
-                            {{ resource }}
+            <ol title="Uncertainties">
+                <li v-for="uncertainty in info.uncertainties" v-bind:key="uncertainty">
+                    Uncertainty Parameters
+                    <ul title="Uncertainty Parameters">
+                        <li
+                            v-for="param in uncertainty.uncertaintyParameters"
+                            v-bind:key="param"
+                        >
+                            <ul>
+                                <li v-if="param.var">var: {{ param.var }}</li>
+                                <li v-if="param.value">value: {{ param.value }}</li>
+                                <li v-if="param.units">units: {{ param.units }}</li>
+                                <li v-if="param.type">type: {{ param.type }}</li>
+                                <li v-if="param.definitionURL">
+                                    definitionURL: {{ param.definitionURL }}
+                                </li>
+                                <li v-if="param.math">math: {{ param.math }}</li>
+                            </ul>
                         </li>
                     </ul>
                 </li>
-            </ul>
+            </ol>
         </div>
     </div>
 </template>
