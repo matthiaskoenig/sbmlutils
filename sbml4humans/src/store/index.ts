@@ -6,6 +6,9 @@ import BASE_URLS from "@/data/urls";
 import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 
+const static_alert =
+    "Cannot connect to API in 'static' mode. Switch off 'static' and refresh.";
+
 export default createStore({
     state: {
         // list of examples
@@ -172,9 +175,7 @@ export default createStore({
 
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
-                alert(
-                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch examples."
-                );
+                alert(static_alert);
                 return;
             }
 
@@ -198,9 +199,7 @@ export default createStore({
 
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
-                alert(
-                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this example."
-                );
+                alert(static_alert);
                 return;
             }
 
@@ -224,9 +223,7 @@ export default createStore({
 
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
-                alert(
-                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this file."
-                );
+                alert(static_alert);
                 return;
             }
 

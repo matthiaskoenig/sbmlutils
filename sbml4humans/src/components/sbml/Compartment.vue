@@ -112,5 +112,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/SBase.scss";
+@import "@/assets/styles/scss/SBase.scss";
 </style>

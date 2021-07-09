@@ -39,6 +39,10 @@
         <assignment-rule v-bind:info="info"></assignment-rule>
     </div>
 
+    <div id="initialAssignmentDiv" v-if="sbmlType === 'InitialAssignment'">
+        <initial-assignment v-bind:info="info"></initial-assignment>
+    </div>
+
     <div id="rateRuleDiv" v-if="sbmlType === 'RateRule'">
         <rate-rule v-bind:info="info"></rate-rule>
     </div>
@@ -85,6 +89,7 @@ import Constraint from "@/components/sbml/Constraint.vue";
 import Event from "@/components/sbml/Event.vue";
 import Objective from "@/components/sbml/Objective.vue";
 import GeneProduct from "@/components/sbml/GeneProduct.vue";
+import InitialAssignment from "@/components/sbml/InitialAssignment.vue";
 
 /*
  * Component to inject a specific SBML component as required by in the parent component.
@@ -102,6 +107,7 @@ export default defineComponent({
     },
 
     components: {
+        InitialAssignment: InitialAssignment,
         "sbml-document": SBMLDocument,
         model: Model,
         port: Port,

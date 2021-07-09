@@ -67,8 +67,8 @@ async def upload_sbml(request: Request) -> Response:
 def examples() -> Response:
     """Get sbml4humans example SBML models."""
     api_examples = []
-    for key in examples_info:
-        api_examples.append(examples_info[key]["model"])
+    for example in examples_info.values():
+        api_examples.append(example["metadata"])
 
     content = {"examples": api_examples}
     return _render_json_content(content)

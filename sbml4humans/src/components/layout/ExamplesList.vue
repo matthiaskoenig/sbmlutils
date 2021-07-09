@@ -4,11 +4,9 @@
         Choose from the below list of example SBML models to generate a report.
         <a-list class="list-container">
             <example
-                v-for="ex in examples"
-                v-bind:key="ex.fetchId"
-                v-bind:info="ex"
-                sbmlType="Model"
-                title="Click to generate report for this model"
+                v-for="example in examples"
+                v-bind:key="example.id"
+                v-bind:example="example"
             ></example>
         </a-list>
         <loading parent="example"></loading>
@@ -30,24 +28,6 @@ export default defineComponent({
     components: {
         example: Example,
         loading: Loading,
-    },
-
-    data(): Record<string, unknown> {
-        return {
-            listOfExamples: [
-                {
-                    fetchId: String,
-                    name: String,
-                    id: String,
-                    sbo: String,
-                    metaId: String,
-                },
-            ],
-            msg: {
-                type: String,
-                default: "Loading Examples ...",
-            },
-        };
     },
 
     created(): void {

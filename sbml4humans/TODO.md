@@ -1,6 +1,6 @@
 ## TODO 
+- [ ] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
 - [x] add support for uncertainties & add uncertainty examples (`distributions_example.xml` and `uncertainty_example.xml`)
-- [x] move local scss in files; cleanup css (use bootstrap grid & spacing)
 - [.] annotations/notes to SBase detail view
 - [x] color of compartment & reaction is identical on Species
 - [.] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black

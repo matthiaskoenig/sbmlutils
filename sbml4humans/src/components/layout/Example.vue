@@ -2,27 +2,24 @@
     <div class="card shadow-sm" v-on:click="getExample()">
         <div
             class="d-flex px-2 justify-content-between"
-            v-bind:style="`background-color: ${color}`"
+            style="background-color: #66c2a5"
         >
             <div>
-                <strong>{{ sbmlType }}</strong>
+                <strong>{{ example.id }}</strong>
             </div>
         </div>
         <div class="px-2">
-            <h6 class="d-flex justify-content-between pt-1 text-dark">
-                <div v-if="info.name">Name: {{ info.name }}</div>
-                <div v-if="info.sbo">{{ info.sbo }}</div>
-            </h6>
-            <div class="d-flex justify-content-between text-primary py-0">
-                <div v-if="info.metaId">Meta ID: {{ info.metaId }}</div>
-                <div v-if="info.id">SID: {{ info.id }}</div>
-            </div>
+            <div><span class="text-primary">name</span>: {{ example.name }}</div>
+            <div><span class="text-primary">description</span>: {{
+                    example.description
+                }}</div>
+            <div><span class="text-primary">packages</span>: {{ example.packages }}</div>
+            <div><span class="text-primary">keywords</span>: {{ example.keywords }}</div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import colors from "@/data/colorScheme";
 import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "vue";
@@ -32,11 +29,7 @@ import { defineComponent } from "vue";
  */
 export default defineComponent({
     props: {
-        sbmlType: {
-            type: String,
-            default: "Model",
-        },
-        info: {
+        example: {
             type: Object,
             default: TYPES.Model,
         },
@@ -50,15 +43,10 @@ export default defineComponent({
             },
         };
     },
-
-    mounted(): void {
-        this.color = colors.componentColor[this.sbmlType];
-    },
-
     methods: {
         getExample(): void {
             const payload = {
-                exampleId: this.info.fetchId,
+                exampleId: this.example.id,
             };
 
             store.dispatch("fetchExampleReport", payload);
@@ -68,5 +56,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/Toaster.scss";
+@import "@/assets/styles/scss/Toaster.scss";
 </style>
