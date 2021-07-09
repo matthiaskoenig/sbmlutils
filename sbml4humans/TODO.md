@@ -1,10 +1,17 @@
 ## TODO 
 - [ ] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
-- [x] add support for uncertainties & add uncertainty examples (`distributions_example.xml` and `uncertainty_example.xml`)
+
+- [ ] bug: filter menu should not close on select/deselect click  
+- [ ] bug: no scrollbar on examples  
+- [ ] layout: upload only half-width on landing page 
+- [ ] layout: add SBML logo and GSOC logo to about page  
 - [.] annotations/notes to SBase detail view
-- [x] color of compartment & reaction is identical on Species
 - [.] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
 - [.] constant/initialConcentration attribute missing on species
+
+- [ ] refactor the TableView (drop ListOf prefixes from table navigation; make all tables visible at once with scrolling via menu)
+- [ ] refactor navigation: Tables/Details/ListOf ...
+
 
 Math rendering
 - [ ] issues with google chrome
@@ -12,7 +19,6 @@ Math rendering
 Filter
 - [.] more robust handling of state --- not migrating to localStorage for testing purposes
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
-
 
 ## List of existing problems:
 - [] Unit math strings are not longer coming from backend
@@ -23,11 +29,7 @@ Filter
 - [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
     - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
     - no solution for now -> switching to elasticsearch based on JSON in future
-
-
-## List of New Changes in the Backend:
-- [] Changed the PK to the form "{sbmlType}:{_uuid}". This was required as the change introducing the model specific components list was not working without it.
-
+    
 # MK:
 - [ ] Support of combine archives & resolve external model definitions
 
