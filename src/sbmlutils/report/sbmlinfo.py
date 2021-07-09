@@ -1163,20 +1163,26 @@ if __name__ == "__main__":
 
     print("-" * 80)
     from sbmlutils.test import (
-        ICG_BODY,
-        ICG_BODY_FLAT,
-        ICG_LIVER,
-        MODEL_DEFINITIONS_SBML,
-        RECON3D_SBML,
+        COMP_ICG_BODY,
+        COMP_ICG_BODY_FLAT,
+        COMP_ICG_LIVER,
+        COMP_MODEL_DEFINITIONS_SBML,
+        FBC_RECON3D_SBML,
+        FBC_ECOLI_CORE_SBML,
+        DISTRIB_DISTRIBUTIONS_SBML,
+        DISTRIB_UNCERTAINTIES_SBML,
         REPRESSILATOR_SBML,
     )
 
     for source in [
-        # ICG_BODY,
-        # ICG_LIVER,
-        # ICG_BODY_FLAT,
-        MODEL_DEFINITIONS_SBML,
-        # RECON3D_SBML,
+        # COMP_ICG_BODY,
+        # COMP_ICG_BODY_FLAT,
+        # COMP_ICG_LIVER,
+        # COMP_MODEL_DEFINITIONS_SBML,
+        # FBC_RECON3D_SBML,
+        # FBC_ECOLI_CORE_SBML,
+        DISTRIB_DISTRIBUTIONS_SBML,
+        # DISTRIB_UNCERTAINTIES_SBML,
         # REPRESSILATOR_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)

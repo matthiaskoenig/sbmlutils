@@ -1,74 +1,111 @@
 """Example models for the sbml4humans API."""
+from typing import List, Dict
+
 from sbmlutils.test import (
-    ICG_BODY,
-    ICG_BODY_FLAT,
-    ICG_LIVER,
-    MODEL_DEFINITIONS_SBML,
-    RECON3D_SBML,
     REPRESSILATOR_SBML,
+    FBC_ECOLI_CORE_SBML,
+    FBC_RECON3D_SBML,
+    COMP_ICG_BODY,
+    COMP_ICG_BODY_FLAT,
+    COMP_ICG_LIVER,
+    COMP_MODEL_DEFINITIONS_SBML,
+    DISTRIB_UNCERTAINTIES_SBML,
+    DISTRIB_DISTRIBUTIONS_SBML,
 )
 
 
 # Data and Endpoints for Example Models
-examples_info = {
-    "repressilator": {
+examples: List[Dict] = [
+    {
         "file": REPRESSILATOR_SBML,
-        "model": {
-            "fetchId": "repressilator",
-            "name": "Elowitz2000 - Repressilator",
-            "id": "BIOMD0000000012",
-            "sbo": None,
-            "metaId": "_000001",
+        "metadata": {
+            "id": "repressilator",
+            "name": "BIOMD0000000012 - Elowitz2000 - Repressilator (biomodels)",
+            "description": "Ellowitz 2000 repressilator example",
+            "packages": [],
+            "keywords": ["kinetic"],
         },
     },
-    "model_definitions": {
-        "file": MODEL_DEFINITIONS_SBML,
-        "model": {
-            "fetchId": "model_definitions",
-            "name": "",
-            "id": "model_definitions_example",
-            "sbo": None,
-            "metaId": None,
+    {
+        "file": FBC_ECOLI_CORE_SBML,
+        "metadata": {
+            "id": "ecoli_core",
+            "name": "E.coli core metabolism (BiGG)",
+            "description": "Small-scale FBC example",
+            "packages": ["fbc", "groups"],
+            "keywords": ["fbc"],
         },
     },
-    "recon3d": {
-        "file": RECON3D_SBML,
-        "model": {
-            "fetchId": "recon3d",
-            "name": None,
-            "id": "Recon3D",
-            "sbo": None,
-            "metaId": None,
+    {
+        "file": COMP_MODEL_DEFINITIONS_SBML,
+        "metadata": {
+            "id": "model_definitions",
+            "name": "Comp ModelDefinitions",
+            "description": "Example model for comp ModelDefinitions",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
         },
     },
-    "icg_liver": {
-        "file": ICG_LIVER,
-        "model": {
-            "fetchId": "icg_liver",
-            "name": "icg_liver",
+    {
+        "file": DISTRIB_DISTRIBUTIONS_SBML,
+        "metadata": {
+            "id": "distributions",
+            "name": "Distrib distributions",
+            "description": "Example model for distrib distributions",
+            "packages": ["distrib"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": DISTRIB_UNCERTAINTIES_SBML,
+        "metadata": {
+            "id": "uncertainties",
+            "name": "Distrib uncertainties",
+            "description": "Example model for distrib uncertainties",
+            "packages": ["distrib"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": COMP_ICG_BODY_FLAT,
+        "metadata": {
+            "id": "icg_body_flat",
+            "name": "Flattened ICG comp model",
+            "description": "Example model for comp flattening",
+            "packages": [],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": COMP_ICG_BODY,
+        "metadata": {
+            "id": "icg_body",
+            "name": "ICG comp model",
+            "description": "Example model for comp",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": COMP_ICG_LIVER,
+        "metadata": {
             "id": "icg_liver",
-            "sbo": None,
-            "metaId": "meta_icg_liver",
+            "name": "ICG comp submodel",
+            "description": "Example model for comp submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
         },
     },
-    "icg_body_flat": {
-        "file": ICG_BODY_FLAT,
-        "model": {
-            "fetchId": "icg_body_flat",
-            "name": "icg_body",
-            "id": "icg_body",
-            "sbo": None,
-            "metaId": "meta_icg_body",
+    {
+        "file": FBC_RECON3D_SBML,
+        "metadata": {
+            "id": "recon3d",
+            "name": "RECON3D human metabolism (BiGG)",
+            "description": "Genome-scale FBC example",
+            "packages": ["fbc", "groups"],
+            "keywords": ["fbc"],
         },
     },
-    "icg_body": {
-        "file": ICG_BODY,
-        "model": {
-            "fetchId": "icg_body",
-            "name": "icg_body",
-            "id": "icg_body",
-            "sbo": None,
-            "metaId": "meta_icg_body",
-        },
-    },
-}
+]
+
+examples_info = {example["metadata"]["id"]: example for example in examples}
