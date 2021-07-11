@@ -6,14 +6,21 @@
         <div class="section">
             <div class="section-header">Systems Biology Markup Language</div>
             <div class="content">
-                    The Systems Biology Markup Language (<a
-                        href="http://sbml.org"
-                        target="_blank"
-                        >SBML</a
-                    >) is a standard format for the representation and exchange of
-                    models. The information in an SBML model file is organized as a list
-                    of components encapsulated within the model (e.g. compartments,
-                    species, parameters, reactions).
+                <div class="row">
+                    <div class="col-2">
+                        <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
+                    </div>
+                    <div class="col-10">
+                        The Systems Biology Markup Language (<a
+                            href="http://sbml.org"
+                            target="_blank"
+                            >SBML</a
+                        >) is a standard format for the representation and exchange of
+                        models. The information in an SBML model file is organized as a
+                        list of components encapsulated within the model (e.g.
+                        compartments, species, parameters, reactions).
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -22,8 +29,7 @@
             <div class="section-header">SBML4Humans</div>
             <div class="content">
                 The objective of the project
-                <a href="https://sbml4humans-gsoc-2021.blogspot.com/"
-                   target="_blank">
+                <a href="https://sbml4humans-gsoc-2021.blogspot.com/" target="_blank">
                     SBML4Humans
                 </a>
                 is to provide an interactive and reactive report for SBML models which
@@ -58,9 +64,23 @@
             <div class="content">
                 <ul>
                     <li>
-                        <a href="https://summerofcode.withgoogle.com/"
-                            >Google Summer of Code 2021</a
-                        >
+                        <div class="row">
+                            <div class="col-2">
+                                <img class="gsoc" src="@/assets/images/gsoc.jpeg" />
+                            </div>
+                            <div class="col-10">
+                                <span>
+                                    <a href="https://summerofcode.withgoogle.com/"
+                                        >Google Summer of Code 2021</a
+                                    >
+                                    A global program focused on bringing more student
+                                    developers into open source software development.
+                                    Students work with an open source organization on a
+                                    10 week programming project during their break from
+                                    school.
+                                </span>
+                            </div>
+                        </div>
                     </li>
                     <li>
                         Matthias König supported by the Federal Ministry of Education
@@ -127,5 +147,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.logo {
+    height: 40px;
+    margin: 25px 0;
+}
 
+.gsoc {
+    height: 100px;
+    width: 100px;
+}
 </style>

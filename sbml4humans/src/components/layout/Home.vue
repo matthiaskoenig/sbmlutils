@@ -1,16 +1,18 @@
 <template>
     <div class="container-fluid px-10">
-        <div class="row">
-            <div class="col">
-                <file-upload-form class="pb-4" />
+        <div class="row px-5">
+            <div class="col-md-6 d-flex flex-column" style="height: 90vh">
+                <div class="row h-25 mb-5">
+                    <file-upload-form class="pb-4" style="width: 80%" />
+                </div>
+                <div class="row h-75">
+                    <examples-list />
+                </div>
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-6">
-                <examples-list class="pb-4" />
-            </div>
-            <div class="col-md-6">
-                <about class="pb-4" />
+                <div class="row">
+                    <about class="pb-4" />
+                </div>
             </div>
         </div>
     </div>
@@ -40,5 +42,4 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-
 </style>

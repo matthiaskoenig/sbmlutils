@@ -1,16 +1,14 @@
 <template>
-    <div>
-        <h1>Examples</h1>
-        Choose from the below list of example SBML models to generate a report.
-        <a-list class="list-container">
-            <example
-                v-for="example in examples"
-                v-bind:key="example.id"
-                v-bind:example="example"
-            ></example>
-        </a-list>
-        <loading parent="example"></loading>
-    </div>
+    <h1>Examples</h1>
+    Choose from the below list of example SBML models to generate a report.
+    <a-list class="list-container">
+        <example
+            v-for="example in examples"
+            v-bind:key="example.id"
+            v-bind:example="example"
+        ></example>
+    </a-list>
+    <loading parent="example"></loading>
 </template>
 
 <script lang="ts">
@@ -53,7 +51,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.list-container{
+.list-container {
+    height: 100%;
+    width: 90%;
     overflow-y: scroll;
 }
 </style>
