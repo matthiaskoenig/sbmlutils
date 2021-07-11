@@ -12,9 +12,7 @@
                     title="Click to browse and upload a file from your device"
                 />
             </div>
-            <button class="btn btn-primary" type="submit">
-                Submit
-            </button>
+            <button class="btn btn-primary" type="submit">Submit</button>
             <div class="invalid-tooltip">
                 Upload a valid SBML file or COMBINE archive containing SBML
             </div>
@@ -81,5 +79,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

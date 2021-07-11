@@ -2,9 +2,9 @@
 - [ ] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
 
 - [ ] bug: filter menu should not close on select/deselect click  
-- [ ] bug: no scrollbar on examples  
-- [ ] layout: upload only half-width on landing page 
-- [ ] layout: add SBML logo and GSOC logo to about page  
+- [x] bug: no scrollbar on examples  
+- [x] layout: upload only half-width on landing page 
+- [x] layout: add SBML logo and GSOC logo to about page  
 - [.] annotations/notes to SBase detail view
 - [.] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
 - [.] constant/initialConcentration attribute missing on species
