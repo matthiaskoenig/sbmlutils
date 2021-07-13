@@ -1,5 +1,5 @@
 <template>
-    <span>Models</span>
+    <span>Document and Models</span>
     <a-list class="basics-container">
         <toaster
             v-for="component in collectReportBasics"
@@ -7,20 +7,11 @@
             v-bind:sbmlType="component.sbmlType"
             v-bind:info="component"
             v-bind:visible="Boolean(visibility[component.sbmlType])"
-            v-bind:isModel="Boolean(true)"
         ></toaster>
     </a-list>
 
-    <span class="mt-2">SBML Components</span>
-    <a-list class="sbase-container">
-        <toaster
-            v-for="sbase in collectSBases"
-            v-bind:key="sbase.pk"
-            v-bind:sbmlType="sbase.sbmlType"
-            v-bind:info="sbase"
-            v-bind:visible="Boolean(visibility[sbase.sbmlType])"
-        ></toaster>
-    </a-list>
+    <span class="mt-2">List of Components</span>
+    <list-of-tables></list-of-tables>
 </template>
 
 <script lang="ts">
@@ -30,10 +21,12 @@ import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
 import SBMLToaster from "@/components/layout/SBMLToaster.vue";
+import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
 
 export default defineComponent({
     components: {
         toaster: SBMLToaster,
+        "list-of-tables": ListOfTables,
     },
 
     methods: {

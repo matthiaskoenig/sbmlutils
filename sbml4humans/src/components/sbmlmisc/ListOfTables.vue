@@ -4,8 +4,8 @@
             v-for="(listOfPKs, sbmlType) in collectTables"
             v-bind:key="sbmlType"
             v-bind:sbmlType="sbmlType"
-            v-bind:listOfPKs="listOfPKs"
             v-bind:visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
+            v-on:click="focusTable(sbmlType)"
         ></toaster>
     </a-list>
 </template>
@@ -61,6 +61,10 @@ export default defineComponent({
 
             return searchedSbases;
         },
+
+        focusTable(sbmlType: string) {
+            store.dispatch("updateCurrentFocussedTable", sbmlType);
+        },
     },
 
     computed: {
@@ -69,7 +73,18 @@ export default defineComponent({
          * applies search filtering on the response set.
          */
         collectTables(): Record<string, Array<string>> {
-            return store.getters.tables;
+            let tables: Record<string, Array<string>> = {};
+
+            const componentPKsMap: Record<string, Array<string>> =
+                store.getters.componentPKsMap;
+
+            for (let sbmlType in componentPKsMap) {
+                if (componentPKsMap[sbmlType].length > 0) {
+                    tables[sbmlType] = componentPKsMap[sbmlType];
+                }
+            }
+
+            return tables;
         },
 
         /**
@@ -82,26 +97,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.basics-container{
-    padding: 1% 0%;
-    max-height: 100%;
-    height: fit-content;
-
-    margin-bottom: 2px;
-}
-
-.sbase-container{
-    padding: 1% 0%;
-    height: auto;
-
-    overflow-y: scroll;
-}
-
-.table-container{
-    padding: 1% 0%;
-    height: auto;
-
-    overflow-y: scroll;
-}
-</style>
+<style lang="scss" scoped></style>

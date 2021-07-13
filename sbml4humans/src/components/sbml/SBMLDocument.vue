@@ -68,8 +68,17 @@ export default defineComponent({
     },
 
     computed: {
-        listOfModels(): Array<Record<string, string>> {
-            return store.getters.reportBasics;
+        listOfModels(): Array<Record<string, unknown>> {
+            let reportBasics: Array<Record<string, unknown>> = [];
+            (store.getters.reportBasics as Array<Record<string, unknown>>).forEach(
+                (object) => {
+                    if (object.sbmlType != "SBMLDocument") {
+                        reportBasics.push(object);
+                    }
+                }
+            );
+
+            return reportBasics;
         },
     },
 });

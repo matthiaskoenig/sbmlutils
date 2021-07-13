@@ -2,6 +2,14 @@ import store from "@/store/index";
 import allSBML from "@/data/allSBMLMap";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 
+function initializeComponentWiseLists(): Record<string, Array<string>> {
+    const map = {};
+    listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
+        map[sbmlType] = [];
+    });
+    return map;
+}
+
 /**
  * Collects the SBML Document and all model definitions from the backend API
  * response. It then collects other SBML objects in these definitions. Also
@@ -17,24 +25,28 @@ function assembleSBasesInReport(
 
     const sbases: Array<Record<string, unknown>> = [];
     const counts: Record<string, Record<string, number>> = {};
-    let allObjectsMap: Record<string, unknown> = {};
+    const allObjectsMap: Record<string, unknown> = {};
     const componentPKsMap: Record<string, Record<string, Array<string>>> = {};
+    const componentWiseLists: Record<string, Array<string>> =
+        initializeComponentWiseLists();
 
     // collecting doc
     if (report.doc) {
         sbases.push(report.doc as Record<string, unknown>);
         allObjectsMap[(report.doc as Record<string, unknown>).pk as string] =
             report.doc;
+        componentWiseLists["SBMLDocument"] = [
+            (report.doc as Record<string, unknown>).pk as string,
+        ];
     }
 
-    // collecting main model
     const model: Record<string, unknown> = report.model as Record<string, unknown>;
     if (model) {
         const pk = model.pk as string;
+        componentWiseLists["Model"].push(pk);
 
         counts[pk] = allSBML.counts;
 
-        counts[pk]["SBMLDocument"] = 1;
         counts[pk]["Model"] = 1;
 
         sbases.push(model);
@@ -42,14 +54,17 @@ function assembleSBasesInReport(
         allObjectsMap[pk] = model;
         componentPKsMap[pk] = {};
 
-        componentPKsMap[pk]["SBMLDocument"] = [
-            (report.doc as Record<string, unknown>).pk as string,
-        ];
         componentPKsMap[pk]["Model"] = [pk];
 
         // collecting all other components
         sbases.push(
-            ...collectSBasesInModel(model, counts, allObjectsMap, componentPKsMap)
+            ...collectSBasesInModel(
+                model,
+                counts,
+                allObjectsMap,
+                componentPKsMap,
+                componentWiseLists
+            )
         );
     }
 
@@ -70,20 +85,28 @@ function assembleSBasesInReport(
 
                 allObjectsMap[pk] = md;
                 componentPKsMap[pk]["Model"] = [pk];
+                componentWiseLists["Model"].push(pk);
 
                 // collecting all other components
                 sbases.push(
-                    ...collectSBasesInModel(md, counts, allObjectsMap, componentPKsMap)
+                    ...collectSBasesInModel(
+                        md,
+                        counts,
+                        allObjectsMap,
+                        componentPKsMap,
+                        componentWiseLists
+                    )
                 );
             }
         }
     });
 
-    allObjectsMap = createComponentLists(allObjectsMap);
+    //allObjectsMap = createComponentLists(allObjectsMap);
 
     store.dispatch("updateCounts", counts);
     store.dispatch("updateAllObjectsMap", allObjectsMap);
     store.dispatch("updateComponentPKsMap", componentPKsMap);
+    store.dispatch("updateComponentWiseLists", componentWiseLists);
 
     return sbases;
 }
@@ -99,7 +122,8 @@ function collectSBasesInModel(
     model: Record<string, unknown>,
     counts: Record<string, Record<string, number>>,
     allObjectsMap: Record<string, unknown>,
-    componentPKsMap: Record<string, Record<string, Array<unknown>>>
+    componentPKsMap: Record<string, Record<string, Array<unknown>>>,
+    componentWiseLists: Record<string, Array<string>>
 ): Array<Record<string, unknown>> {
     const sbasesInModel: Array<Record<string, unknown>> = [];
 
@@ -126,6 +150,7 @@ function collectSBasesInModel(
                 const pk = sbase.pk as string;
                 allObjectsMap[pk] = sbase;
                 componentPKsMap[model.pk as string][sbmlType].push(pk);
+                componentWiseLists[sbmlType].push(pk);
             });
         }
     }
@@ -134,22 +159,16 @@ function collectSBasesInModel(
 }
 
 function createComponentLists(allObjectsMap: Record<string, unknown>) {
-    console.log("Here at 137");
-    const listsMap: Record<string, Record<string, Array<string>>> = {};
+    const listsMap: Record<string, Array<string>> = {};
     listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
-        listsMap["ListOf" + sbmlType] = {
-            table: ["True"],
-            sbmlType: [sbmlType],
-            objects: [],
-        };
+        listsMap[sbmlType] = [];
         for (const pk in allObjectsMap) {
             if ((allObjectsMap[pk] as Record<string, unknown>).sbmlType === sbmlType) {
-                listsMap["ListOf" + sbmlType]["objects"].push(pk);
+                listsMap[sbmlType].push(pk);
             }
         }
     });
 
-    allObjectsMap = { ...allObjectsMap, ...listsMap };
     return allObjectsMap;
 }
 

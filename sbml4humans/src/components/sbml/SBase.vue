@@ -54,7 +54,7 @@
                     <div>resources:</div>
                     <ul class="ml-4">
                         <li v-for="resource in cvterm.resources" v-bind:key="resource">
-                            {{ resource }}
+                            <a v-bind:href="resource" target="_blank">{{ resource }}</a>
                         </li>
                     </ul>
                 </li>
@@ -145,7 +145,7 @@ import DetailViewNav from "@/components/layout/DetailViewNav.vue";
  */
 export default defineComponent({
     components: {
-        "detail-view-nav": DetailViewNav,
+        //"detail-view-nav": DetailViewNav,
     },
 
     props: {

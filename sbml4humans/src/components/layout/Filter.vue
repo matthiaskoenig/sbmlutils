@@ -44,7 +44,7 @@
         </div>
 
         <!-- Buttons for select all and de-select all -->
-        <div class="master-select">
+        <div class="master-select" v-on:click="menuVisible = !menuVisible">
             <!-- Select All -->
             <button ref="select" class="btn btn-info mx-1" v-on:click="selectAll()">
                 <div class="label">Select All</div>

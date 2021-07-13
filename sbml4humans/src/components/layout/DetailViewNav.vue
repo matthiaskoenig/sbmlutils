@@ -1,5 +1,5 @@
 <template>
-    <div class="ml-auto">
+    <div class="detailNav">
         <ol>
             <i
                 class="fa fa-arrow-circle-left mr-3"
@@ -78,4 +78,18 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.detailNav {
+    position: fixed;
+    width: max-content;
+    padding: 0;
+    right: 20px;
+
+    z-index: 50;
+}
+
+.fa {
+    background-color: white;
+    border-radius: 12px;
+}
+</style>
