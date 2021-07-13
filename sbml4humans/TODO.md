@@ -1,7 +1,7 @@
 ## TODO 
 - [ ] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
 
-- [ ] bug: filter menu should not close on select/deselect click  
+- [x] bug: filter menu should not close on select/deselect click  
 - [x] bug: no scrollbar on examples  
 - [x] layout: upload only half-width on landing page 
 - [x] layout: add SBML logo and GSOC logo to about page  

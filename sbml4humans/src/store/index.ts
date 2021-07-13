@@ -33,6 +33,8 @@ export default createStore({
         /* For core and comp functionality */
         currentModel: "",
 
+        detailVisibility: false,
+
         /* For Search and Filter feature */
         visibility: {
             SBMLDocument: true,
@@ -68,9 +70,13 @@ export default createStore({
 
         componentPKsMap: {},
 
+        componentWiseLists: {},
+
         historyStack: [],
 
         stackPointer: 0,
+
+        currentFocussedTable: "",
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -90,6 +96,9 @@ export default createStore({
         },
         SET_LOADING_MESSAGE(state, payload) {
             state.loadingMessage = payload;
+        },
+        SET_DETAIL_VISIBILITY(state) {
+            state.detailVisibility = !state.detailVisibility;
         },
         SET_STATIC(state, payload) {
             window.localStorage.setItem("static", payload);
@@ -112,11 +121,15 @@ export default createStore({
         SET_COMPONENT_PKS_MAP(state, payload) {
             state.componentPKsMap = payload;
         },
+        SET_COMPONENT_WISE_LISTS(state, payload) {
+            state.componentWiseLists = payload;
+        },
         SET_SEARCHED_SBASES_PKS(state, payload) {
             state.searchedSBasesPKs = payload;
         },
         PUSH_TO_HISTORY_STACK(state, payload) {
             (state.historyStack as Array<string>).push(payload);
+            state.detailVisibility = true;
         },
         MOVE_STACK_POINTER_BACK(state) {
             if (state.stackPointer > 0) {
@@ -132,6 +145,9 @@ export default createStore({
             state.historyStack = [];
             state.stackPointer = 0;
         },
+        SET_CURRENT_FOCUSSED_TABLE(state, payload) {
+            state.currentFocussedTable = payload;
+        },
     },
     actions: {
         updateCurrentModel(context, payload) {
@@ -146,11 +162,13 @@ export default createStore({
 
             // set the current model to main model in the report by default
             this.dispatch("updateCurrentModel", payload.data.report.model.pk);
+            this.dispatch("updateCurrentFocussedTable", "");
 
             INITIALIZATION_HELPERS.assembleSBasesInReport(payload.data.report);
 
             // set the history stack to contain Doc pk by default
             this.dispatch("initializeHistoryStack", payload.data.report.doc.pk);
+            this.dispatch("toggleDetailVisibility");
 
             // redirect to report view
             router.push("/report");
@@ -252,6 +270,9 @@ export default createStore({
         updateStatic(context, payload) {
             context.commit("SET_STATIC", payload);
         },
+        toggleDetailVisibility(context) {
+            context.commit("SET_DETAIL_VISIBILITY");
+        },
         updateVisibility(context, payload) {
             context.commit("SET_VISIBILITY", payload);
         },
@@ -268,8 +289,14 @@ export default createStore({
         updateComponentPKsMap(context, payload) {
             context.commit("SET_COMPONENT_PKS_MAP", payload);
         },
+        updateComponentWiseLists(context, payload) {
+            context.commit("SET_COMPONENT_WISE_LISTS", payload);
+        },
         updateSearchedSBasesPKs(context, payload) {
             context.commit("SET_SEARCHED_SBASES_PKS", payload);
+        },
+        updateCurrentFocussedTable(context, payload) {
+            context.commit("SET_CURRENT_FOCUSSED_TABLE", payload);
         },
     },
     modules: {},
@@ -282,6 +309,9 @@ export default createStore({
         },
         reportBasics(state) {
             const basicComponents: Array<Record<string, unknown>> = [];
+            basicComponents.push(
+                state.allObjectsMap[state.componentWiseLists["SBMLDocument"][0]]
+            );
 
             const componentPKsMap = state.componentPKsMap;
             for (const modelPK in componentPKsMap) {

@@ -1,12 +1,10 @@
 <template>
-    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail">
+    <div class="card shadow-sm" v-if="visible">
         <div
             class="d-flex justify-content-between px-2"
             v-bind:style="`background-color: ${color}`"
         >
-            <strong
-                >ListOf{{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
-            >
+            <strong>{{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong>
         </div>
     </div>
 </template>
@@ -28,10 +26,6 @@ export default defineComponent({
         visible: {
             type: Boolean,
             default: true,
-        },
-        listOfPKs: {
-            type: Array,
-            default: Array,
         },
     },
 
