@@ -79,6 +79,7 @@ __all__ = [
     "ModelDefinition",
     "Submodel",
     "ReplacedElement",
+    "ReplacedBy",
     "Port",
 ]
 
@@ -821,7 +822,7 @@ class Species(Sbase):
         boundaryCondition: bool = False,
         charge: Optional[float] = None,
         chemicalFormula: Optional[str] = None,
-        conversionFactor: Optional[float] = None,
+        conversionFactor: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
