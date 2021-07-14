@@ -21,6 +21,12 @@ from collections import namedtuple
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import libsbml
+# FIXME: make complete
+from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
+from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
+from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
+
+
 import numpy as np
 
 from sbmlutils.equation import Equation
@@ -31,26 +37,10 @@ from sbmlutils.utils import deprecated
 from sbmlutils.validation import check
 
 
-logger = logging.getLogger(__name__)
-
-SBML_LEVEL = 3  # default SBML level
-SBML_VERSION = 1  # default SBML version
-PORT_SUFFIX = "_port"
-PREFIX_EXCHANGE_REACTION = "EX_"
-
-PACKAGE_COMP = "comp"
-PACKAGE_FBC = "fbc"
-PACKAGE_DISTRIB = "distrib"
-PACKAGE_LAYOUT = "layout"
-
-ALLOWED_PACKAGES = {
-    PACKAGE_COMP,
-    PACKAGE_FBC,
-    PACKAGE_DISTRIB,
-    PACKAGE_LAYOUT,
-}
-
 __all__ = [
+    "UNCERTTYPE_MEAN",
+    "UNCERTTYPE_STANDARDDEVIATION",
+    "UNCERTTYPE_RANGE",
     "SBML_LEVEL",
     "SBML_VERSION",
     "PORT_SUFFIX",
@@ -78,10 +68,31 @@ __all__ = [
     "ExternalModelDefinition",
     "ModelDefinition",
     "Submodel",
+    "Deletion",
     "ReplacedElement",
     "ReplacedBy",
     "Port",
 ]
+
+logger = logging.getLogger(__name__)
+
+SBML_LEVEL = 3  # default SBML level
+SBML_VERSION = 1  # default SBML version
+PORT_SUFFIX = "_port"
+PREFIX_EXCHANGE_REACTION = "EX_"
+
+PACKAGE_COMP = "comp"
+PACKAGE_FBC = "fbc"
+PACKAGE_DISTRIB = "distrib"
+PACKAGE_LAYOUT = "layout"
+
+ALLOWED_PACKAGES = {
+    PACKAGE_COMP,
+    PACKAGE_FBC,
+    PACKAGE_DISTRIB,
+    PACKAGE_LAYOUT,
+}
+
 
 
 def create_objects(
@@ -163,21 +174,20 @@ class Notes:
         notes_str = "\n".join(tokens)
         self.xml = libsbml.XMLNode.convertStringToXMLNode(notes_str)
         if self.xml is None:
-            raise ValueError("XMLNode could not be generated for:\n{}".format(notes))
+            raise ValueError(f"XMLNode could not be generated for:\n{notes}")
 
 
-def set_notes(model: libsbml.Model, notes: Union[Notes, str]) -> None:
-    """Set notes information on model.
+def set_notes(sbase: libsbml.SBase, notes: Union[Notes, str]) -> None:
+    """Set notes information on SBase.
 
-    :param model: Model
+    :param sbase: SBase
     :param notes: notes information (xml string)
     :return:
     """
     if not isinstance(notes, Notes):
-        logger.error("Using notes strings is deprecated, use 'Notes' instead.")
         notes = Notes(notes)
 
-    check(model.setNotes(notes.xml), message="Setting notes on model")
+    check(sbase.setNotes(notes.xml), message=f"Setting notes on '{sbase}'")
 
 
 class ModelUnits:
@@ -361,6 +371,9 @@ class Sbase:
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
+        if self.notes is not None:
+            set_notes(obj, self.notes)
+
         if self.annotations:
             # annotations could have been added after initial processing
             for annotation in Sbase._process_annotations(self.annotations):  # type: ignore
@@ -412,6 +425,9 @@ class Sbase:
             return None
 
         objects = []
+
+        # FIXME: check that distrib package is activated
+
         for uncertainty in self.uncertainties:  # type: Uncertainty
             objects.append(uncertainty.create_sbml(obj, model))
         return objects
@@ -1121,13 +1137,40 @@ Formula = namedtuple("Formula", "value unit")
 
 
 class Reaction(Sbase):
-    """Reaction."""
+    """Reaction.
+
+    Class for creating libsbml.Reaction.
+
+    Equations are of the form
+    '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]'
+
+    The equation consists of
+    - substrates concatenated via '+' on the left side
+      (with optional stoichiometric coefficients)
+    - separation characters separating the left and right equation sides:
+      '<=>' or '<->' for reversible reactions,
+      '=>' or '->' for irreversible reactions (irreversible reactions
+      are written from left to right)
+    - products concatenated via '+' on the right side
+      (with optional stoichiometric coefficients)
+    - optional list of modifiers within brackets [] separated by ','
+
+    Examples of valid equations are:
+        '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
+        'c__gal1p => c__gal + c__phos',
+        'e__h2oM <-> c__h2oM',
+        '3 atp + 2.0 phos + ki <-> 16.98 tet',
+        'c__gal1p => c__gal + c__phos [c__udp, c__utp]',
+        'A_ext => A []',
+        '=> cit',
+        'acoa =>',
+    """
 
     def __init__(
         self,
         sid: str,
         equation: Union[Equation, str],
-        formula: Optional[Union[Formula, Tuple[str, UnitType]]] = None,
+        formula: Optional[Union[Formula, Tuple[str, UnitType], str]] = None,
         pars: Optional[List[Parameter]] = None,
         rules: Optional[List[Rule]] = None,
         compartment: Optional[str] = None,
@@ -1180,15 +1223,19 @@ class Reaction(Sbase):
 
     @staticmethod
     def _process_formula(
-        formula: Optional[Union[Formula, Tuple[str, UnitType]]]
+        formula: Optional[Union[Formula, Tuple[str, UnitType], str]]
     ) -> Optional[Formula]:
         """Process reaction formula (kinetic law)."""
         if formula is None:
             return None
-        if isinstance(formula, Formula):
+        elif isinstance(formula, Formula):
             return formula
-        else:
+        elif isinstance(formula, (tuple, list)):
             return Formula(*formula)
+        elif isinstance(formula, str):
+            return Formula(value=formula, unit=None)
+        else:
+            raise ValueError(f"Unsupported formula: '{formula}'")
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Reaction:
         """Create Reaction SBML in model."""

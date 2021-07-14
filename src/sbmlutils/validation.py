@@ -162,6 +162,8 @@ def validate_doc(
     """
     if not name:
         name = str(doc)
+    if str(name).startswith("/"):
+        name = "file://" + str(name)
 
     # set the unit checking, similar for the other settings
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, units_consistency)
