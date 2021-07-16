@@ -9,7 +9,6 @@ from sbmlutils.examples import (
     assignment,
     boundary_condition1,
     boundary_condition2,
-    core1,
     core2,
     distrib_comp,
     distrib_distributions,
@@ -21,7 +20,9 @@ from sbmlutils.examples import (
     model_definitions,
     reaction,
     simple_reaction,
+    substance_units,
 )
+from sbmlutils.examples.minimal_example import core1
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory
 from sbmlutils.examples.tiny_model import factory as tiny_factory
@@ -46,6 +47,7 @@ testdata = [
     fbc_mass_charge,
     reaction,
     simple_reaction,
+    substance_units,
     tiny_factory,
     model_definitions,
 ]
