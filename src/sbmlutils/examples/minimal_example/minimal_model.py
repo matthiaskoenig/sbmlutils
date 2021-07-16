@@ -42,4 +42,4 @@ def create(tmp: bool = False) -> FactoryResult:
 
 if __name__ == "__main__":
     fac_result = create()
-    visualize_sbml(sbml_path=fac_result.sbml_path)
+    visualize_sbml(sbml_path=fac_result.sbml_path, delete_session=True)

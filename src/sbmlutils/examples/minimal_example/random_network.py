@@ -10,8 +10,8 @@ from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 import random
 
-n_species = 20  # 500
-n_links = 40  # 1000
+n_species = 500
+n_links = 1000
 
 # -------------------------------------------------------------------------------------
 mid: str = "random_network"
