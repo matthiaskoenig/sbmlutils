@@ -2,7 +2,7 @@
     <div>
         <h1>Upload SBML</h1>
         <form class="needs-validation" @submit.prevent="submitForm">
-            <div class="mb-3">
+            <div class="form-group">
                 <input
                     type="file"
                     ref="fileField"
@@ -12,7 +12,9 @@
                     title="Click to browse and upload a file from your device"
                 />
             </div>
+            <div class="form-group">
             <button class="btn btn-primary" type="submit">Submit</button>
+            </div>
             <div class="invalid-tooltip">
                 Upload a valid SBML file or COMBINE archive containing SBML
             </div>

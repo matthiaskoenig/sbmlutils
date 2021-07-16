@@ -25,7 +25,7 @@
         </div>
 
         <div ref="Species" v-if="sbmlType === 'Species' && visibility['Species']">
-            <table-of-species v-bind:listOfPKs="pks"></table-of-species>
+            <species-table v-bind:listOfPKs="pks"></species-table>
         </div>
 
         <div ref="Parameter" v-if="sbmlType === 'Parameter' && visibility['Parameter']">
@@ -108,7 +108,7 @@ import { defineComponent } from "@vue/runtime-core";
 
 import TableOfModels from "@/components/tables/Model.vue";
 import TableOfCompartments from "@/components/tables/Compartment.vue";
-import TableOfSpecies from "@/components/tables/Species.vue";
+import SpeciesTable from "@/components/tables/SpeciesTable.vue";
 import TableOfParameters from "@/components/tables/Parameter.vue";
 import TableOfInitialAssignments from "@/components/tables/InitialAssignment.vue";
 import TableOfAssignmentRules from "@/components/tables/AssignmentRule.vue";
@@ -127,7 +127,7 @@ export default defineComponent({
     components: {
         "table-of-models": TableOfModels,
         "table-of-compartments": TableOfCompartments,
-        "table-of-species": TableOfSpecies,
+        SpeciesTable,
         "table-of-parameters": TableOfParameters,
         "table-of-initial-assignments": TableOfInitialAssignments,
         "table-of-assignment-rules": TableOfAssignmentRules,

@@ -1,6 +1,7 @@
 <template>
     <h1>Examples</h1>
-    Choose from the below list of example SBML models to generate a report.
+    Choose from the list of examples to generate a report.
+
     <a-list class="list-container">
         <example
             v-for="example in examples"

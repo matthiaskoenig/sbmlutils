@@ -1,6 +1,6 @@
 <template>
     <div class="w-100">
-        <h2
+        <strong
             class="sbmlType"
             v-bind:style="`background-color: ${color}`"
             data-toggle="collapse"
@@ -8,9 +8,9 @@
             role="button"
         >
             ListOfSpecies
-        </h2>
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleSpecies">
+        <table class="table table-striped table-bordered table-sm table-condensed" id="collapsibleSpecies">
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
@@ -33,21 +33,22 @@
                             v-if="object.id"
                             class="links"
                             v-on:click="openComponent(object.pk)"
-                            >{{ object.id }}</span
                         >
+                            {{ object.id }}
+                        </span>
                     </td>
                     <td>
                         <span v-if="object.name">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.initialAmount">{{
-                            object.initialAmount
-                        }}</span>
+                        <span v-if="object.initialAmount">
+                            {{ object.initialAmount }}
+                        </span>
                     </td>
                     <td>
-                        <span v-if="object.initialConcentration">{{
-                            object.initialConcentration
-                        }}</span>
+                        <span v-if="object.initialConcentration">
+                            {{ object.initialConcentration }}
+                        </span>
                     </td>
                     <td>
                         <span v-if="object.substanceUnits">{{
@@ -55,11 +56,10 @@
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.hasOnlySubstanceUnits">
-                            <boolean-symbol
-                                v-bind:value="object.hasOnlySubstanceUnits"
-                            ></boolean-symbol
-                        ></span>
+                        <boolean-symbol
+                            v-if="object.hasOnlySubstanceUnits"
+                            :value="object.hasOnlySubstanceUnits"
+                        />
                     </td>
                     <td>
                         <span v-if="object.boundaryCondition">{{
@@ -70,9 +70,7 @@
                         <span v-if="object.constant">{{ object.constant }}</span>
                     </td>
                     <td>
-                        <span v-if="object.units">
-                            <katex v-bind:mathStr="object.units"></katex>
-                        </span>
+                        <katex v-if="object.units" v-bind:mathStr="object.units" />
                     </td>
                     <td>
                         <span v-if="object.derivedUnits">
@@ -100,6 +98,7 @@ import { defineComponent } from "vue";
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
+// use a mixin to define the reusable parts once;
 export default defineComponent({
     components: {
         katex: Katex,
@@ -139,12 +138,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    padding: 2px 5px;
-}
-
-.table {
-    overflow-x: scroll;
+@import "@/assets/styles/scss/SBaseTable.scss";
+.table-condensed{
+  font-size: 12px;
 }
 </style>

@@ -1,10 +1,10 @@
 <template>
-    <div class="card shadow-sm" v-on:click="getExample()">
+    <div class="card shadow-sm" v-on:click="getExample()" title="Click to create report for example">
         <div
             class="d-flex px-2 justify-content-between"
             style="background-color: #66c2a5"
         >
-            <div>
+            <div><i class="far fa-file-code mr-2" style="color: black" />
                 <strong>{{ example.id }}</strong>
             </div>
         </div>

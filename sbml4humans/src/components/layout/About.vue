@@ -7,10 +7,10 @@
             <div class="section-header">Systems Biology Markup Language</div>
             <div class="content">
                 <div class="row">
-                    <div class="col-2">
+                    <div class="col-md-2">
                         <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
                     </div>
-                    <div class="col-10">
+                    <div class="col-md-10">
                         The Systems Biology Markup Language (<a
                             href="http://sbml.org"
                             target="_blank"
@@ -35,6 +35,8 @@
                 is to provide an interactive and reactive report for SBML models which
                 which will allow humans (experts as well as beginners) to easily
                 comprehend the content of a model.
+                <br />
+                SBML4Humans is part of the <a target="_blank" href="https://github.com/matthiaskoenig/sbmlutils">sbmlutils</a> project.
             </div>
         </div>
 
@@ -83,7 +85,7 @@
                         </div>
                     </li>
                     <li>
-                        Matthias König supported by the Federal Ministry of Education
+                        Matthias König is supported by the Federal Ministry of Education
                         and Research (BMBF, Germany) within the research network Systems
                         Medicine of the Liver (<a
                             href="https://lisym.org/"
