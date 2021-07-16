@@ -1,16 +1,16 @@
 ## TODO 
-- [ ] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
+- [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
 
 - [x] bug: filter menu should not close on select/deselect click  
 - [x] bug: no scrollbar on examples  
 - [x] layout: upload only half-width on landing page 
 - [x] layout: add SBML logo and GSOC logo to about page  
 - [.] annotations/notes to SBase detail view
-- [.] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
+- [x] use icons in Details View: true/false/none -> check/check-circle green/times-circle red/ fa-ban black
 - [.] constant/initialConcentration attribute missing on species
 
-- [ ] refactor the TableView (drop ListOf prefixes from table navigation; make all tables visible at once with scrolling via menu)
-- [ ] refactor navigation: Tables/Details/ListOf ...
+- [x] refactor the TableView (drop ListOf prefixes from table navigation; make all tables visible at once with scrolling via menu)
+- [x] refactor navigation: Tables/Details/ListOf ...
 
 
 Math rendering

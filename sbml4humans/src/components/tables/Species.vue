@@ -55,9 +55,11 @@
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.hasOnlySubstanceUnits">{{
-                            object.hasOnlySubstanceUnits
-                        }}</span>
+                        <span v-if="object.hasOnlySubstanceUnits">
+                            <boolean-symbol
+                                v-bind:value="object.hasOnlySubstanceUnits"
+                            ></boolean-symbol
+                        ></span>
                     </td>
                     <td>
                         <span v-if="object.boundaryCondition">{{
@@ -96,10 +98,12 @@ import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
 import Katex from "@/components/layout/Katex.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
         katex: Katex,
+        "boolean-symbol": BooleanSymbol,
     },
 
     props: {

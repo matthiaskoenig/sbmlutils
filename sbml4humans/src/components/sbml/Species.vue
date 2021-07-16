@@ -117,7 +117,7 @@
 
     <div class="row col-12">
         <!-- List of Reactant Reactions -->
-        <div class="col-sm-3 data" v-if="info.reactant && info.reactant.length">
+        <div class="col-sm-4 data" v-if="info.reactant && info.reactant.length">
             <div class="label">
                 <strong>reactant:</strong>
             </div>
@@ -131,7 +131,7 @@
             </div>
         </div>
         <!-- List of Product Reactions -->
-        <div class="col-sm-3 data" v-if="info.product && info.product.length">
+        <div class="col-sm-4 data" v-if="info.product && info.product.length">
             <div class="label">
                 <strong>product:</strong>
             </div>
@@ -146,7 +146,7 @@
         </div>
 
         <!-- List of Modifier Reactions -->
-        <div class="col-sm-3 data" v-if="info.modifier && info.modifier.length">
+        <div class="col-sm-4 data" v-if="info.modifier && info.modifier.length">
             <div class="label">
                 <strong>modifier:</strong>
             </div>
