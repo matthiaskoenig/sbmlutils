@@ -1,16 +1,8 @@
 <template>
-    <div class="card shadow-sm mr-3 small" v-on:click="showDetail">
-        <div
-            class="d-flex px-2 justify-content-between text-wrap"
-            v-bind:style="`background-color: ${color}`"
-        >
-            <div class="mr-3">
+    <div class="tablet card shadow-sm mr-3 small" v-on:click="showDetail" v-bind:style="`background-color: ${color}`">
+            <div class="mr-auto">
                 <strong>{{ id }}</strong>
             </div>
-            <div>
-                <strong>{{ sbmlType }}</strong>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -67,4 +59,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/assets/styles/scss/Toaster.scss";
+
+.tablet {
+    padding: 1px 5px;
+}
 </style>

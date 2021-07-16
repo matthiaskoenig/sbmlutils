@@ -13,7 +13,10 @@
 
     <!-- Constant -->
     <div class="data" v-if="info.constant">
-        <div class="label"><strong>constant:</strong> {{ info.constant }}</div>
+        <div class="label">
+            <strong>constant:</strong
+            ><boolean-symbol v-bind:value="info.constant"></boolean-symbol>
+        </div>
     </div>
 
     <!-- Units -->
@@ -86,6 +89,7 @@ import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
 import SBMLLink from "@/components/layout/SBMLLink.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 /**
  * Component to define display of Compartment objects.
@@ -94,6 +98,7 @@ export default defineComponent({
     components: {
         katex: Katex,
         SBMLLink: SBMLLink,
+        "boolean-symbol": BooleanSymbol,
     },
 
     props: {

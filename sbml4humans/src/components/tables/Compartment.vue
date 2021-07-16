@@ -45,7 +45,11 @@
                         <span v-if="object.size">{{ object.size }}</span>
                     </td>
                     <td>
-                        <span v-if="object.constant">{{ object.constant }}</span>
+                        <span v-if="object.constant"
+                            ><boolean-symbol
+                                v-bind:value="object.constant"
+                            ></boolean-symbol
+                        ></span>
                     </td>
                     <td>
                         <span v-if="object.units">
@@ -76,10 +80,12 @@ import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
 import Katex from "@/components/layout/Katex.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
         katex: Katex,
+        "boolean-symbol": BooleanSymbol,
     },
 
     props: {
