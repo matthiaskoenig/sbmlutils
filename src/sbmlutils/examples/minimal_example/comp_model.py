@@ -2,11 +2,12 @@
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import create_model, FactoryResult
+from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
+
 
 n_cells = 10
 # -------------------------------------------------------------------------------------
@@ -20,19 +21,22 @@ for k in range(n_cells):
         Compartment(sid=f"cell{k}", value=1.0),
     )
     species.append(
-        Species(sid=f"S{k}", initialConcentration=10.0 if k==0 else 0.0,
-                compartment=f"cell{k}")
+        Species(
+            sid=f"S{k}",
+            initialConcentration=10.0 if k == 0 else 0.0,
+            compartment=f"cell{k}",
+        )
     )
 
-parameters: List[Parameter] = [
-    Parameter("D", 0.01)
-]
+parameters: List[Parameter] = [Parameter("D", 0.01)]
 
 # transport reactions to couple cells
 reactions: List[Reaction] = []
-for k in range(n_cells-1):
+for k in range(n_cells - 1):
     reactions.append(
-        Reaction(sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"),
+        Reaction(
+            sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"
+        ),
     )
 
 # -------------------------------------------------------------------------------------
@@ -47,30 +51,30 @@ submodels: List[Submodel] = []
 for k in range(n_cells):
     externalModelDefinitions.append(
         ExternalModelDefinition(
-            sid=f"emd{k}", source=f"minimal_model.xml", modelRef="minimal_model"
+            sid=f"emd{k}", source="minimal_model.xml", modelRef="minimal_model"
         ),
     )
-    submodels.append(
-        Submodel(sid=f"submodel{k}", modelRef=f"emd{k}")
+    submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))
+    replacedElements.extend(
+        [
+            # replace compartments
+            ReplacedElement(
+                sid=f"cell{k}_RE",
+                metaId=f"cell{k}_RE",
+                elementRef=f"cell{k}",
+                submodelRef=f"submodel{k}",
+                portRef=f"cell{PORT_SUFFIX}",
+            ),
+            # replace species
+            ReplacedElement(
+                sid=f"S{k}_RE",
+                metaId=f"S{k}_RE",
+                elementRef=f"S{k}",
+                submodelRef=f"submodel{k}",
+                portRef=f"S1{PORT_SUFFIX}",
+            ),
+        ]
     )
-    replacedElements.extend([
-        # replace compartments
-        ReplacedElement(
-            sid=f"cell{k}_RE",
-            metaId=f"cell{k}_RE",
-            elementRef=f"cell{k}",
-            submodelRef=f"submodel{k}",
-            portRef=f"cell{PORT_SUFFIX}",
-        ),
-        # replace species
-        ReplacedElement(
-            sid=f"S{k}_RE",
-            metaId=f"S{k}_RE",
-            elementRef=f"S{k}",
-            submodelRef=f"submodel{k}",
-            portRef=f"S1{PORT_SUFFIX}",
-        ),
-    ])
 # -------------------------------------------------------------------------------------
 
 
@@ -88,7 +92,7 @@ if __name__ == "__main__":
     from sbmlutils.comp import flatten_sbml
 
     fac_result = create()
-    sbml_path_flat = Path(__file__).parent/ "comp_model_flat.xml"
+    sbml_path_flat = Path(__file__).parent / "comp_model_flat.xml"
 
     # flatten SBML model
     flatten_sbml(fac_result.sbml_path, filepath=sbml_path_flat)

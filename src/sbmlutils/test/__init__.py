@@ -27,7 +27,6 @@ GLUCOSE_SBML = MODELS_DIR / "glucose" / "Hepatic_glucose_3.xml"
 VDP_SBML = MODELS_DIR / "van_der_pol" / "van_der_pol.xml"
 
 
-
 GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
 REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
@@ -49,7 +48,6 @@ DISTRIB_UNCERTAINTIES_SBML = MODELS_DIR / "distrib" / "uncertainty_example.xml"
 
 
 # Medium Sized Models
-
 
 
 TESTSUITE_PATH = DATA_DIR / "testsuite"

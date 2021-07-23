@@ -5,12 +5,13 @@ This demonstrates just the very core SBML functionality.
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import create_model, FactoryResult
+from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
+
 
 # -------------------------------------------------------------------------------------
 mid: str = "minimal_model"

@@ -5,12 +5,13 @@ This demonstrates just the very core SBML functionality.
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import create_model, FactoryResult
+from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
+
 
 n_chain = 20
 # -------------------------------------------------------------------------------------
@@ -32,8 +33,7 @@ for k in range(n_chain):
     )
     reactions.append(
         Reaction(
-            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}",
-            formula=f"k{k+1} * S{k+1}"
+            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}", formula=f"k{k+1} * S{k+1}"
         ),
     )
 # -------------------------------------------------------------------------------------

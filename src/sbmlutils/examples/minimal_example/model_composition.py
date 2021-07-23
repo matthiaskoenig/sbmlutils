@@ -2,9 +2,10 @@
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import create_model, FactoryResult
+from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
+
 
 # -------------------------------------------------------------------------------------
 mid: str = "model_composition"
@@ -33,4 +34,3 @@ def create(tmp: bool = False) -> FactoryResult:
 if __name__ == "__main__":
     fac_result = create()
     visualize_sbml(sbml_path=fac_result.sbml_path)
-

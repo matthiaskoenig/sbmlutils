@@ -21,13 +21,10 @@ from collections import namedtuple
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import libsbml
-# FIXME: make complete
-from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
-from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
-from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
-
-
 import numpy as np
+from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
+from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
+from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
 
 from sbmlutils.equation import Equation
 from sbmlutils.metadata import BQB, BQM
@@ -36,6 +33,8 @@ from sbmlutils.metadata.sbo import SBO_EXCHANGE_REACTION
 from sbmlutils.utils import deprecated
 from sbmlutils.validation import check
 
+
+# FIXME: make complete import of all DISTRIB constants
 
 __all__ = [
     "UNCERTTYPE_MEAN",
@@ -92,7 +91,6 @@ ALLOWED_PACKAGES = {
     PACKAGE_DISTRIB,
     PACKAGE_LAYOUT,
 }
-
 
 
 def create_objects(

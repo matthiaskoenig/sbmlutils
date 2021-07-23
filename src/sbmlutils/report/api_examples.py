@@ -1,16 +1,16 @@
 """Example models for the sbml4humans API."""
-from typing import List, Dict
+from typing import Dict, List
 
 from sbmlutils.test import (
-    REPRESSILATOR_SBML,
-    FBC_ECOLI_CORE_SBML,
-    FBC_RECON3D_SBML,
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
     COMP_ICG_LIVER,
     COMP_MODEL_DEFINITIONS_SBML,
-    DISTRIB_UNCERTAINTIES_SBML,
     DISTRIB_DISTRIBUTIONS_SBML,
+    DISTRIB_UNCERTAINTIES_SBML,
+    FBC_ECOLI_CORE_SBML,
+    FBC_RECON3D_SBML,
+    REPRESSILATOR_SBML,
 )
 
 

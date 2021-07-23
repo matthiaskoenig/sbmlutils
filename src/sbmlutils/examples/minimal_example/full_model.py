@@ -5,14 +5,15 @@ This demonstrates just the very core SBML functionality.
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import create_model, FactoryResult
+import libsbml
+
+from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.units import *
 
-import libsbml
 
 # -------------------------------------------------------------------------------------
 mid: str = "full_model"
@@ -62,21 +63,17 @@ compartments: List[Compartment] = [
         constant=True,
         # annotation and sbo support
         sboTerm=SBO_PHYSICAL_COMPARTMENT,
-        annotations=[
-            (BQB.IS, "ncit/C48694")
-        ],
+        annotations=[(BQB.IS, "ncit/C48694")],
         # provenance via notes
         notes="Overall cell compartment with volume set to an arbitrary "
-              "value of 1.0.",
+        "value of 1.0.",
         # uncertainties
         uncertainties=[
             Uncertainty(
                 formula="normal(1.0, 0.1)",
                 uncertParameters=[
                     UncertParameter(type=UNCERTTYPE_MEAN, value=1.0),
-                    UncertParameter(
-                        type=UNCERTTYPE_STANDARDDEVIATION, value=0.1
-                    ),
+                    UncertParameter(type=UNCERTTYPE_STANDARDDEVIATION, value=0.1),
                 ],
                 uncertSpans=[
                     UncertSpan(
@@ -87,7 +84,6 @@ compartments: List[Compartment] = [
                 ],
             )
         ],
-
     ),
 ]
 species: List[Species] = [
@@ -108,7 +104,7 @@ species: List[Species] = [
             (BQB.IS, "chebi/CHEBI:4167"),
             (BQB.IS, "inchikey/WQZGKKKJIJFFOK-GASJEMHNSA-N"),
         ],
-        notes="Species represents D-glucopyranose."
+        notes="Species represents D-glucopyranose.",
     ),
     Species(
         sid="S2",
@@ -121,9 +117,7 @@ species: List[Species] = [
         sboTerm=SBO_SIMPLE_CHEMICAL,
         chemicalFormula="C6H11O9P",
         charge=0,
-        annotations=[
-            (BQB.IS, "chebi/CHEBI:58225")
-        ]
+        annotations=[(BQB.IS, "chebi/CHEBI:58225")],
     ),
 ]
 parameters: List[Parameter] = [
@@ -144,22 +138,26 @@ reactions: List[Reaction] = [
         formula=("k1 * S1", UNIT_mmole_per_min),  # [liter/min]* [mmole/liter]
         pars=[
             Parameter(
-                sid="J0_lb", value=0.0, constant=True, unit=UNIT_mmole_per_min,
-                name="lower flux bound J0"
+                sid="J0_lb",
+                value=0.0,
+                constant=True,
+                unit=UNIT_mmole_per_min,
+                name="lower flux bound J0",
             ),
             Parameter(
-                sid="J0_ub", value=1000.0, constant=True, unit=UNIT_mmole_per_min,
-                name="upper flux bound J0"
+                sid="J0_ub",
+                value=1000.0,
+                constant=True,
+                unit=UNIT_mmole_per_min,
+                name="upper flux bound J0",
             ),
         ],
         # additional fbc information (here used for constraint testing)
         lowerFluxBound="J0_lb",
         upperFluxBound="J0_ub",
         notes="Simplified hexokinase reaction ignoring ATP, ADP cofactors."
-              "Reaction is not mass and charge balanced.",
-        annotations=[
-            (BQB.IS, "uniprot/P17710")
-        ]
+        "Reaction is not mass and charge balanced.",
+        annotations=[(BQB.IS, "uniprot/P17710")],
     ),
 ]
 constraints: List[Constraint] = [
