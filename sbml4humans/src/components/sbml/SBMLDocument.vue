@@ -12,7 +12,7 @@
                 <ul class="ml-4" title="List of Plugins">
                     <li
                         v-for="plugin in info.packages.plugins"
-                        v-bind:key="plugin.prefix + plugin.version"
+                        :key="plugin.prefix + plugin.version"
                     >
                         prefix: {{ plugin.prefix }}, version: {{ plugin.version }}
                     </li>
@@ -28,12 +28,9 @@
             <div
                 class="ml-4 d-flex justify-content-between"
                 v-for="model in listOfModels"
-                v-bind:key="model"
+                :key="model"
             >
-                <SBMLLink
-                    v-bind:pk="model.pk"
-                    v-bind:sbmlType="String('Model')"
-                ></SBMLLink>
+                <SBMLLink :pk="model.pk" :sbmlType="String('Model')"></SBMLLink>
             </div>
         </div>
     </div>

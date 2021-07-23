@@ -2,11 +2,10 @@
     <div class="card shadow-sm" v-if="visible" v-on:click="showDetail">
         <div
             class="d-flex px-2 justify-content-between"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
         >
-            <div class="mr-3">
+            <div class="mr-3 text-break">
                 <strong>{{ info.id }}</strong>
-                {{ info.name ? "(" + info.name + ")" : "" }}
             </div>
             <div>
                 <strong>{{ sbmlType }}</strong>

@@ -3,10 +3,10 @@
     <a-list class="basics-container">
         <toaster
             v-for="component in collectReportBasics"
-            v-bind:key="component.pk"
-            v-bind:sbmlType="component.sbmlType"
-            v-bind:info="component"
-            v-bind:visible="Boolean(visibility[component.sbmlType])"
+            :key="component.pk"
+            :sbmlType="component.sbmlType"
+            :info="component"
+            :visible="Boolean(visibility[component.sbmlType])"
         ></toaster>
     </a-list>
 
@@ -102,7 +102,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.basics-container{
+.basics-container {
     padding: 1% 0%;
     max-height: 100%;
     height: fit-content;
@@ -110,17 +110,16 @@ export default defineComponent({
     margin-bottom: 2px;
 }
 
-.sbase-container{
+.sbase-container {
     padding: 1% 0%;
     height: auto;
     overflow-y: scroll;
 }
 
-.table-container{
+.table-container {
     padding: 1% 0%;
     height: auto;
 
     overflow-y: scroll;
 }
-
 </style>

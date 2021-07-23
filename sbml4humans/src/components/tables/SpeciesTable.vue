@@ -1,33 +1,36 @@
 <template>
-    <div class="w-100">
+    <div class="mt-8">
         <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleSpecies"
             role="button"
         >
-            ListOfSpecies
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfSpecies
         </strong>
 
-        <table class="table table-striped table-bordered table-sm table-condensed" id="collapsibleSpecies">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleSpecies"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
-                    <th scope="col">initialAmount</th>
-                    <th scope="col">initialConcentration</th>
-                    <th scope="col">substanceUnits</th>
-                    <th scope="col">hasOnlySubstanceUnits</th>
-                    <th scope="col">boundaryCondition</th>
+                    <th scope="col">initial Amount</th>
+                    <th scope="col">initial Concentration</th>
+                    <th scope="col">substance Units</th>
+                    <th scope="col">hasOnly SubstanceUnits</th>
+                    <th scope="col">boundary Condition</th>
                     <th scope="col">constant</th>
                     <th scope="col">units</th>
-                    <th scope="col">derivedUnits</th>
+                    <th scope="col">derived Units</th>
                     <th scope="col">assignment</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -55,7 +58,7 @@
                             object.substanceUnits
                         }}</span>
                     </td>
-                    <td>
+                    <td class="text-center align-middle">
                         <boolean-symbol
                             v-if="object.hasOnlySubstanceUnits"
                             :value="object.hasOnlySubstanceUnits"
@@ -66,15 +69,18 @@
                             object.boundaryCondition
                         }}</span>
                     </td>
-                    <td>
-                        <span v-if="object.constant">{{ object.constant }}</span>
+                    <td class="text-center align-middle">
+                        <boolean-symbol
+                            v-if="object.constant"
+                            :value="object.constant"
+                        />
                     </td>
                     <td>
-                        <katex v-if="object.units" v-bind:mathStr="object.units" />
+                        <katex v-if="object.units" :mathStr="object.units" />
                     </td>
                     <td>
                         <span v-if="object.derivedUnits">
-                            <katex v-bind:mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                     <td>
@@ -92,6 +98,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
@@ -127,6 +134,10 @@ export default defineComponent({
         color(): string {
             return colorScheme.componentColor["Species"];
         },
+
+        icon(): string {
+            return icons.icons["Species"];
+        },
     },
 
     methods: {
@@ -139,7 +150,4 @@ export default defineComponent({
 
 <style lang="scss">
 @import "@/assets/styles/scss/SBaseTable.scss";
-.table-condensed{
-  font-size: 12px;
-}
 </style>

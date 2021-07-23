@@ -1,103 +1,95 @@
 <template>
     <div
-        class="tables-container"
         v-for="(pks, sbmlType) in getListOfTables"
-        v-bind:key="sbmlType"
+        :key="sbmlType"
+        class="tablesContainer"
     >
         <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
-            <table-of-models v-bind:listOfPKs="pks"></table-of-models>
+            <model-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="FunctionDefinition"
             v-if="sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']"
         >
-            <table-of-function-definitions
-                v-bind:listOfPKs="pks"
-            ></table-of-function-definitions>
+            <function-definition-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Compartment"
             v-if="sbmlType === 'Compartment' && visibility['Compartment']"
         >
-            <table-of-compartments v-bind:listOfPKs="pks"></table-of-compartments>
+            <compartment-table :listOfPKs="pks" />
         </div>
 
         <div ref="Species" v-if="sbmlType === 'Species' && visibility['Species']">
-            <species-table v-bind:listOfPKs="pks"></species-table>
+            <species-table :listOfPKs="pks" />
         </div>
 
         <div ref="Parameter" v-if="sbmlType === 'Parameter' && visibility['Parameter']">
-            <table-of-parameters v-bind:listOfPKs="pks"></table-of-parameters>
+            <parameter-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="InitialAssignment"
             v-if="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
         >
-            <table-of-initial-assignments
-                v-bind:listOfPKs="pks"
-            ></table-of-initial-assignments>
+            <initial-assignment-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AssignmentRule"
             v-if="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
         >
-            <table-of-assignment-rules
-                v-bind:listOfPKs="pks"
-            ></table-of-assignment-rules>
+            <assignment-rule-table :listOfPKs="pks" />
         </div>
 
         <div ref="RateRule" v-if="sbmlType === 'RateRule' && visibility['RateRule']">
-            <table-of-rate-rules v-bind:listOfPKs="pks"></table-of-rate-rules>
+            <rate-rule-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AlgebraicRule"
             v-if="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
         >
-            <table-of-algebraic-rules v-bind:listOfPKs="pks"></table-of-algebraic-rules>
+            <algebraic-rule-table :listOfPKs="pks" />
         </div>
 
         <div ref="Reaction" v-if="sbmlType === 'Reaction' && visibility['Reaction']">
-            <table-of-reactions v-bind:listOfPKs="pks"></table-of-reactions>
+            <reaction-table :listOfPKs="pks" />
         </div>
 
         <div ref="Event" v-if="sbmlType === 'Event' && visibility['Event']">
-            <table-of-events v-bind:listOfPKs="pks"></table-of-events>
+            <event-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="UnitDefinition"
             v-if="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
         >
-            <table-of-unit-definitions
-                v-bind:listOfPKs="pks"
-            ></table-of-unit-definitions>
+            <unit-definition-table :listOfPKs="pks" />
         </div>
 
         <div ref="Port" v-if="sbmlType === 'Port' && visibility['Port']">
-            <table-of-ports v-bind:listOfPKs="pks"></table-of-ports>
+            <port-table :listOfPKs="pks" />
         </div>
 
         <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
-            <table-of-objectives v-bind:listOfPKs="pks"></table-of-objectives>
+            <objective-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Constraint"
             v-if="sbmlType === 'Constraint' && visibility['Constraint']"
         >
-            <table-of-constraints v-bind:listOfPKs="pks"></table-of-constraints>
+            <constraint-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="GeneProduct"
             v-if="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
         >
-            <table-of-gene-products v-bind:listOfPKs="pks"></table-of-gene-products>
+            <gene-product-table :listOfPKs="pks" />
         </div>
     </div>
 </template>
@@ -106,41 +98,50 @@
 import store from "@/store/index";
 import { defineComponent } from "@vue/runtime-core";
 
-import TableOfModels from "@/components/tables/Model.vue";
-import TableOfCompartments from "@/components/tables/Compartment.vue";
+import "datatables.net-buttons-bs4";
+import $ from "jquery";
+
+import ModelTable from "@/components/tables/ModelTable.vue";
+import CompartmentTable from "@/components/tables/CompartmentTable.vue";
 import SpeciesTable from "@/components/tables/SpeciesTable.vue";
-import TableOfParameters from "@/components/tables/Parameter.vue";
-import TableOfInitialAssignments from "@/components/tables/InitialAssignment.vue";
-import TableOfAssignmentRules from "@/components/tables/AssignmentRule.vue";
-import TableOfRateRules from "@/components/tables/RateRule.vue";
-import TableOfAlgebraicRules from "@/components/tables/AlgebraicRule.vue";
-import TableOfReactions from "@/components/tables/Reaction.vue";
-import TableOfEvents from "@/components/tables/Event.vue";
-import TableOfUnitDefinitions from "@/components/tables/UnitDefinition.vue";
-import TableOfPorts from "@/components/tables/Port.vue";
-import TableOfObjectives from "@/components/tables/Objective.vue";
-import TableOfConstraints from "@/components/tables/Constraint.vue";
-import TableOfGeneProducts from "@/components/tables/GeneProduct.vue";
-import TableOfFunctionDefinitions from "@/components/tables/FunctionDefinition.vue";
+import ParameterTable from "@/components/tables/ParameterTable.vue";
+import InitialAssignmentTable from "@/components/tables/InitialAssignmentTable.vue";
+import AssignmentRuleTable from "@/components/tables/AssignmentRuleTable.vue";
+import RateRuleTable from "@/components/tables/RateRuleTable.vue";
+import AlgebraicRuleTable from "@/components/tables/AlgebraicRuleTable.vue";
+import ReactionTable from "@/components/tables/ReactionTable.vue";
+import EventTable from "@/components/tables/EventTable.vue";
+import UnitDefinitionTable from "@/components/tables/UnitDefinitionTable.vue";
+import PortTable from "@/components/tables/PortTable.vue";
+import ObjectiveTable from "@/components/tables/ObjectiveTable.vue";
+import ConstraintTable from "@/components/tables/ConstraintTable.vue";
+import GeneProductTable from "@/components/tables/GeneProductTable.vue";
+import FunctionDefinitionTable from "@/components/tables/FunctionDefinitionTable.vue";
 
 export default defineComponent({
     components: {
-        "table-of-models": TableOfModels,
-        "table-of-compartments": TableOfCompartments,
+        ModelTable,
+        CompartmentTable,
         SpeciesTable,
-        "table-of-parameters": TableOfParameters,
-        "table-of-initial-assignments": TableOfInitialAssignments,
-        "table-of-assignment-rules": TableOfAssignmentRules,
-        "table-of-rate-rules": TableOfRateRules,
-        "table-of-algebraic-rules": TableOfAlgebraicRules,
-        "table-of-reactions": TableOfReactions,
-        "table-of-events": TableOfEvents,
-        "table-of-unit-definitions": TableOfUnitDefinitions,
-        "table-of-ports": TableOfPorts,
-        "table-of-objectives": TableOfObjectives,
-        "table-of-constraints": TableOfConstraints,
-        "table-of-gene-products": TableOfGeneProducts,
-        "table-of-function-definitions": TableOfFunctionDefinitions,
+        ParameterTable,
+        InitialAssignmentTable,
+        AssignmentRuleTable,
+        RateRuleTable,
+        AlgebraicRuleTable,
+        ReactionTable,
+        EventTable,
+        UnitDefinitionTable,
+        PortTable,
+        ObjectiveTable,
+        ConstraintTable,
+        GeneProductTable,
+        FunctionDefinitionTable,
+    },
+
+    mounted(): void {
+        $(document).ready(() => {
+            $("table").DataTable();
+        });
     },
 
     methods: {
@@ -191,8 +192,45 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.tables-container {
+.tablesContainer {
     width: 100%;
-    overflow-x: scroll;
+    padding: 0 1%;
+}
+
+label {
+    font-size: small;
+    display: flex;
+}
+
+.dataTables_filter label {
+    display: flex;
+    margin: 15px 5px !important;
+}
+
+.dataTables_filter .form-control {
+    display: flex;
+    margin: -5px 5px !important;
+}
+
+.dataTables_length .form-control {
+    width: 75px !important;
+    margin: 10px 5px !important;
+}
+
+.dataTables_paginate li {
+    padding: 0px 0px !important;
+    margin: 2px 5px !important;
+    border-color: white !important;
+    border-radius: 0 !important;
+}
+
+.dataTables_info {
+    font-size: small;
+}
+
+.page-link {
+    font-size: small;
+    border-radius: 0 !important;
+    z-index: 0 !important;
 }
 </style>

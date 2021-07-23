@@ -3,7 +3,7 @@
     <div class="data" v-if="info.math">
         <div class="label">
             <strong>math:</strong>
-            <katex v-bind:mathStr="info.math"></katex>
+            <katex :mathStr="info.math"></katex>
         </div>
     </div>
 </template>

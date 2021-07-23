@@ -15,7 +15,7 @@
     <div class="data" v-if="info.constant">
         <div class="label">
             <strong>constant:</strong
-            ><boolean-symbol v-bind:value="info.constant"></boolean-symbol>
+            ><boolean-symbol :value="info.constant"></boolean-symbol>
         </div>
     </div>
 
@@ -23,7 +23,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <katex v-bind:mathStr="info.units"></katex>
+            <katex :mathStr="info.units"></katex>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex v-bind:mathStr="info.derivedUnits"></katex>
+            <katex :mathStr="info.derivedUnits"></katex>
         </div>
     </div>
 
@@ -44,39 +44,25 @@
     </div>
 
     <!-- List of Related Species -->
-    <div class="data" v-if="info.species">
+    <div class="data w-100" v-if="info.species">
         <div class="label">
             <strong>relatedSpecies:</strong>
         </div>
-        <div class="ml-4">
-            <div
-                class="ml-4 d-flex justify-content-between"
-                v-for="species in info.species"
-                v-bind:key="species"
-            >
-                <SBMLLink
-                    v-bind:pk="species"
-                    v-bind:sbmlType="String('Species')"
-                ></SBMLLink>
+        <div class="ml-4 tag-list">
+            <div v-for="species in info.species" :key="species">
+                <SBMLLink :pk="species" :sbmlType="String('Species')"></SBMLLink>
             </div>
         </div>
     </div>
 
     <!-- List of Related Reactions -->
-    <div class="data" v-if="info.reaction">
+    <div class="data w-100" v-if="info.reaction">
         <div class="label">
             <strong>relatedReactions:</strong>
         </div>
-        <div class="ml-4">
-            <div
-                class="ml-4 d-flex justify-content-between"
-                v-for="reaction in info.reaction"
-                v-bind:key="reaction"
-            >
-                <SBMLLink
-                    v-bind:pk="reaction"
-                    v-bind:sbmlType="String('Reaction')"
-                ></SBMLLink>
+        <div class="ml-4 tag-list">
+            <div v-for="reaction in info.reaction" :key="reaction">
+                <SBMLLink :pk="reaction" :sbmlType="String('Reaction')"></SBMLLink>
             </div>
         </div>
     </div>
@@ -118,4 +104,10 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/assets/styles/scss/SBase.scss";
+
+.tag-list {
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+}
 </style>

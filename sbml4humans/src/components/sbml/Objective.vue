@@ -12,7 +12,7 @@
             <ul title="Flux Objectives">
                 <li
                     v-for="fluxObjective in info.fluxObjectives"
-                    v-bind:key="fluxObjective.reaction"
+                    :key="fluxObjective.reaction"
                 >
                     <div v-if="fluxObjective.reaction">
                         {{ fluxObjective.reaction }}

@@ -1,8 +1,8 @@
 <template>
     <!-- CORE -->
     <div class="d-flex justify-content-between">
-        <h1 class="sbmlType px-2 py-1" v-bind:style="`background-color: ${color}`">
-            {{ info.sbmlType }}
+        <h1 class="sbmlType px-2 py-1" :style="`background-color: ${color}`">
+            <i :class="`fas fa-${icon} mr-1`"></i> {{ info.sbmlType }}
         </h1>
         <detail-view-nav></detail-view-nav>
     </div>
@@ -28,17 +28,17 @@
             <br />
             <div class="label">creators:</div>
             <ul title="Creators">
-                <li v-for="creator in info.history.creators" v-bind:key="creator.email">
+                <li v-for="creator in info.history.creators" :key="creator.email">
                     {{ creator.givenName }} {{ creator.familyName }},
-                    {{ creator.organization }} (<a
-                        v-bind:href="`mailto:${creator.email}`"
-                        >{{ creator.email }}</a
+                    {{ creator.organization }} (<a :href="`mailto:${creator.email}`">{{
+                        creator.email
+                    }}</a
                     >)
                 </li>
             </ul>
             <div class="label">modifiedDates:</div>
             <ul title="Dates Modified">
-                <li v-for="date in info.history.modifiedDates" v-bind:key="date">
+                <li v-for="date in info.history.modifiedDates" :key="date">
                     {{ date }}
                 </li>
             </ul>
@@ -49,12 +49,12 @@
         <div class="label"><strong>cvterms:</strong></div>
         <div class="ml-4">
             <ul title="CVTerms">
-                <li v-for="cvterm in info.cvterms" v-bind:key="cvterm.qualifier">
+                <li v-for="cvterm in info.cvterms" :key="cvterm.qualifier">
                     <div>qualifier: {{ cvterm.qualifier }}</div>
                     <div>resources:</div>
                     <ul class="ml-4">
-                        <li v-for="resource in cvterm.resources" v-bind:key="resource">
-                            <a v-bind:href="resource" target="_blank">{{ resource }}</a>
+                        <li v-for="resource in cvterm.resources" :key="resource">
+                            <a :href="resource" target="_blank">{{ resource }}</a>
                         </li>
                     </ul>
                 </li>
@@ -80,7 +80,7 @@
             <ul title="Replaced Elements">
                 <li
                     v-for="replacedElement in info.replacedElements"
-                    v-bind:key="replacedElement.submodelRef"
+                    :key="replacedElement.submodelRef"
                 >
                     <div>
                         submodelRef:
@@ -107,12 +107,12 @@
         <div class="label"><strong>uncertainties:</strong></div>
         <div class="ml-4">
             <ol title="Uncertainties">
-                <li v-for="uncertainty in info.uncertainties" v-bind:key="uncertainty">
+                <li v-for="uncertainty in info.uncertainties" :key="uncertainty">
                     Uncertainty Parameters
                     <ul title="Uncertainty Parameters">
                         <li
                             v-for="param in uncertainty.uncertaintyParameters"
-                            v-bind:key="param"
+                            :key="param"
                         >
                             <ul>
                                 <li v-if="param.var">var: {{ param.var }}</li>
@@ -134,20 +134,15 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
-
-import DetailViewNav from "@/components/layout/DetailViewNav.vue";
 
 /**
  * Component to define display of SBase information.
  */
 export default defineComponent({
-    components: {
-        //"detail-view-nav": DetailViewNav,
-    },
-
     props: {
         info: {
             type: Object,
@@ -168,6 +163,10 @@ export default defineComponent({
     computed: {
         color(): string {
             return colorScheme.componentColor[this.info.sbmlType];
+        },
+
+        icon(): string {
+            return icons.icons[this.info.sbmlType];
         },
     },
 });

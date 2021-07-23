@@ -1,12 +1,12 @@
 <template>
-    <h1>Examples</h1>
-    Choose from the list of examples to generate a report.
+    <h1 class="w-100">Examples</h1>
+    <p>Choose from the list of examples to generate a report.</p>
 
     <a-list class="list-container">
         <example
             v-for="example in examples"
-            v-bind:key="example.id"
-            v-bind:example="example"
+            :key="example.id"
+            :example="example"
         ></example>
     </a-list>
     <loading parent="example"></loading>
@@ -53,7 +53,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .list-container {
-    height: 100%;
     width: 90%;
     overflow-y: scroll;
 }

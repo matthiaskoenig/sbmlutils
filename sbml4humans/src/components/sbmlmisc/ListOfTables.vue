@@ -2,9 +2,9 @@
     <a-list class="table-container">
         <toaster
             v-for="(listOfPKs, sbmlType) in collectTables"
-            v-bind:key="sbmlType"
-            v-bind:sbmlType="sbmlType"
-            v-bind:visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
+            :key="sbmlType"
+            :sbmlType="sbmlType"
+            :visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
             v-on:click="focusTable(sbmlType)"
         ></toaster>
     </a-list>
@@ -75,8 +75,8 @@ export default defineComponent({
         collectTables(): Record<string, Array<string>> {
             let tables: Record<string, Array<string>> = {};
 
-            const componentPKsMap: Record<string, Array<string>> =
-                store.getters.componentPKsMap;
+            const componentPKsMap: Record<string, Array<string>> = store.getters
+                .componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {

@@ -3,7 +3,7 @@
         class="btn btn-info d-flex mx-2 py-1"
         v-on:click="menuVisible = !menuVisible"
     >
-        <i class="fa fa-filter mr-2" style="color: black" />
+        <i class="fa fa-filter mr-2 mt-1" style="color: black" />
         <span class="filter-label">Filter&nbsp;{{ filterFraction }}</span>
     </button>
 
@@ -14,14 +14,14 @@
             <div
                 class="d-flex"
                 v-for="sbmlType in sbmlTypes"
-                v-bind:key="sbmlType"
+                :key="sbmlType"
                 v-on:click="menuVisible = !menuVisible"
             >
                 <div class="selector" v-if="counts[sbmlType] > 0">
                     <div
                         class="tag"
-                        v-bind:ref="sbmlType"
-                        v-bind:style="`background-color: ${
+                        :ref="sbmlType"
+                        :style="`background-color: ${
                             visibility[sbmlType] ? colors[sbmlType] : '#f5f5f5'
                         }; color: ${visibility[sbmlType] ? '#000000' : '#d3d3d3'}`"
                         v-on:click="alterVisibility(sbmlType)"
@@ -31,9 +31,9 @@
                 </div>
                 <sup v-if="counts[sbmlType] > 0">
                     <div
-                        v-bind:ref="`${sbmlType}Badge`"
+                        :ref="`${sbmlType}Badge`"
                         class="badge"
-                        v-bind:style="`background-color: ${
+                        :style="`background-color: ${
                             visibility[sbmlType] ? '#000000' : '#f5f5f5'
                         }; color: ${visibility[sbmlType] ? '#ffffff' : '#a9a9a9'}`"
                     >

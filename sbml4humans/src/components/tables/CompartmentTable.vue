@@ -1,30 +1,34 @@
 <template>
-    <div class="w-100">
-        <h2
+    <div class="mt-8">
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
-            href="#collapsibleEvent"
+            href="#collapsibleCompartment"
             role="button"
         >
-            ListOfEvents
-        </h2>
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfCompartments
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleEvent">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleCompartment"
+            ref="dataTable"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
-                    <th scope="col">useValuesFromTriggerTime</th>
-                    <th scope="col">trigger math</th>
-                    <th scope="col">trigger initialValue</th>
-                    <th scope="col">trigger persistent</th>
-                    <th scope="col">priority</th>
-                    <th scope="col">delay</th>
+                    <th scope="col">spatial Dimensions</th>
+                    <th scope="col">size</th>
+                    <th scope="col">constant</th>
+                    <th scope="col">units</th>
+                    <th scope="col">derived Units</th>
+                    <th scope="col">assignment</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -37,34 +41,34 @@
                         <span v-if="object.name">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.useValuesFromTriggerTime">{{
-                            object.useValuesFromTriggerTime
+                        <span v-if="object.spatialDimensions">{{
+                            object.spatialDimensions
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.trigger && object.trigger.math">
-                            <katex v-bind:mathStr="object.trigger.math"></katex>
+                        <span v-if="object.size">{{ object.size }}</span>
+                    </td>
+                    <td class="text-center align-middle">
+                        <span v-if="object.constant"
+                            ><boolean-symbol :value="object.constant"></boolean-symbol
+                        ></span>
+                    </td>
+                    <td>
+                        <span v-if="object.units">
+                            <katex :mathStr="object.units"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.trigger && object.trigger.initialValue">{{
-                            object.trigger.initialValue
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.trigger && object.trigger.persistent">{{
-                            object.trigger.persistent
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.priority">
-                            <katex v-bind:mathStr="object.persistent"></katex>
+                        <span v-if="object.derivedUnits">
+                            <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.delay">
-                            <katex v-bind:mathStr="object.delay"></katex>
-                        </span>
+                        <span v-if="object.assignment"
+                            >{{ object.assignment.pk }} ({{
+                                object.assignment.sbmlType
+                            }})</span
+                        >
                     </td>
                 </tr>
             </tbody>
@@ -74,14 +78,17 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
 import Katex from "@/components/layout/Katex.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
         katex: Katex,
+        "boolean-symbol": BooleanSymbol,
     },
 
     props: {
@@ -104,7 +111,11 @@ export default defineComponent({
         },
 
         color(): string {
-            return colorScheme.componentColor["Event"];
+            return colorScheme.componentColor["Compartment"];
+        },
+
+        icon(): string {
+            return icons.icons["Compartment"];
         },
     },
 
@@ -117,12 +128,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    padding: 2px 5px;
-}
-
-.table {
-    overflow-x: scroll;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

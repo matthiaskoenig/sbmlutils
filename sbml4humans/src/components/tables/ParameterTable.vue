@@ -1,16 +1,19 @@
 <template>
-    <div class="mb-8">
-        <h2
+    <div class="mt-8">
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleParameter"
             role="button"
         >
-            ListOfParameters
-        </h2>
+           <i :class="`fas fa-${icon} mr-1`"></i> ListOfParameters
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleParameter">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleParameter"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
@@ -18,12 +21,12 @@
                     <th scope="col">value</th>
                     <th scope="col">constant</th>
                     <th scope="col">units</th>
-                    <th scope="col">derivedUnits</th>
+                    <th scope="col">derived Units</th>
                     <th scope="col">assignment</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -38,27 +41,23 @@
                     <td>
                         <span v-if="object.value">{{ object.value }}</span>
                     </td>
-                    <td>
+                    <td class="text-center align-middle">
                         <span v-if="object.constant"
-                            ><boolean-symbol
-                                v-bind:value="object.constant"
-                            ></boolean-symbol
+                            ><boolean-symbol :value="object.constant"></boolean-symbol
                         ></span>
 
                         <span v-else
-                            ><boolean-symbol
-                                v-bind:value="Boolean(false)"
-                            ></boolean-symbol
+                            ><boolean-symbol :value="Boolean(false)"></boolean-symbol
                         ></span>
                     </td>
                     <td>
                         <span v-if="object.units">
-                            <katex v-bind:mathStr="object.units"></katex>
+                            <katex :mathStr="object.units"></katex>
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits">
-                            <katex v-bind:mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                     <td>
@@ -76,11 +75,14 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
+
+import tableMixin from "@/helpers/tableMixin";
 
 export default defineComponent({
     components: {
@@ -110,6 +112,10 @@ export default defineComponent({
         color(): string {
             return colorScheme.componentColor["Parameter"];
         },
+
+        icon(): string {
+            return icons.icons["Parameter"];
+        },
     },
 
     methods: {
@@ -117,13 +123,15 @@ export default defineComponent({
             store.dispatch("pushToHistoryStack", pk);
         },
     },
+
+    // computed: {
+    //     tableMi(): Record<string, unknown> {
+    //         return tableMixin(this.listOfPKs as Array<string>);
+    //     },
+    // },
 });
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    margin-top: 20px;
-    padding: 2px 5px;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

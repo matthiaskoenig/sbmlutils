@@ -1,25 +1,24 @@
 ## TODO 
 Tables:
 - make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
-- rename in *Table similar to SpeciesTable
+- [x] rename in *Table similar to SpeciesTable
 - use Table mixin to remove redundant js code in tables
-- smaller font sizes (see styling in ListOfSpecies)
-- center align the boolean fields
-- add advanced table features: sorting rows; searching content; pagination (for many objects); datatables.js
+- [x] smaller font sizes (see styling in ListOfSpecies)
+- [x] center align the boolean fields
+- [x] add advanced table features: sorting rows; searching content; pagination(for many objects);datatables.js
 
-- [ ] icons for different type (e.g. box for compartment; ) use in cross links and headers
+- [x] icons for different type (e.g. box for compartment; ) use in cross links and headers
 
 SBML information:
 - [.] annotations/notes to SBase detail view
-- [.] constant/initialConcentration attribute missing on species
 
 Low priority
 - [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
 - [ ] include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself
   
 Minor things
-- [ ] layout: no line break in example description on firefox
-- [ ] layout: use tags for packages and keywords  
+- [x] layout: no line break in example description on firefox
+- [x] layout: use tags for packages and keywords  
 - [ ] layout: better layout of images next to text (about breakpoints)
 
 Math rendering

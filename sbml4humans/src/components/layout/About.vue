@@ -36,7 +36,11 @@
                 which will allow humans (experts as well as beginners) to easily
                 comprehend the content of a model.
                 <br />
-                SBML4Humans is part of the <a target="_blank" href="https://github.com/matthiaskoenig/sbmlutils">sbmlutils</a> project.
+                SBML4Humans is part of the
+                <a target="_blank" href="https://github.com/matthiaskoenig/sbmlutils"
+                    >sbmlutils</a
+                >
+                project.
             </div>
         </div>
 

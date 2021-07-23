@@ -14,7 +14,7 @@
             <div class="ml-4">
                 <div v-if="info.trigger.math">
                     math:
-                    <katex v-bind:mathStr="info.trigger.math"></katex>
+                    <katex :mathStr="info.trigger.math"></katex>
                 </div>
                 <div v-if="info.trigger.initialValue">
                     initialValue: {{ info.trigger.initialValue }}
@@ -30,7 +30,7 @@
     <div class="data" v-if="info.priority">
         <div class="label">
             <strong>priority:</strong>
-            <katex v-bind:mathStr="info.priority"></katex>
+            <katex :mathStr="info.priority"></katex>
         </div>
     </div>
 
@@ -38,7 +38,7 @@
     <div class="data" v-if="info.delay">
         <div class="label">
             <strong>delay:</strong>
-            <katex v-bind:mathStr="info.delay"></katex>
+            <katex :mathStr="info.delay"></katex>
         </div>
     </div>
 
@@ -48,14 +48,11 @@
             <strong>listOfEventAssignments:</strong>
             <div class="ml-4">
                 <ul title="List of Event Assignments">
-                    <li
-                        v-for="eva in info.listOfEventAssignments"
-                        v-bind:key="eva.variable"
-                    >
+                    <li v-for="eva in info.listOfEventAssignments" :key="eva.variable">
                         <div v-if="eva.variable">variable: {{ eva.variable }}</div>
                         <div v-if="eva.math">
                             math:
-                            <katex v-bind:mathStr="eva.math"></katex>
+                            <katex :mathStr="eva.math"></katex>
                         </div>
                     </li>
                 </ul>

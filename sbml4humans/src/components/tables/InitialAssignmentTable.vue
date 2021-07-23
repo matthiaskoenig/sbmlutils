@@ -1,30 +1,30 @@
 <template>
-    <div class="mb-8">
-        <h2
+    <div class="mt-8">
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
-            href="#collapsibleAssignmentRule"
+            href="#collapsibleInitialAssignment"
             role="button"
         >
-            ListOfAssignmentRules
-        </h2>
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfInitialAssignments
+        </strong>
 
         <table
-            class="table table-striped table-bordered"
-            id="collapsibleAssignmentRule"
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleInitialAssignment"
         >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
-                    <th scope="col">value</th>
+                    <th scope="col">variable</th>
                     <th scope="col">math</th>
                     <th scope="col">derivedUnits</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -37,16 +37,16 @@
                         <span v-if="object.name">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.value">{{ object.value }}</span>
+                        <span v-if="object.variable">{{ object.variable }}</span>
                     </td>
                     <td>
                         <span v-if="object.math">
-                            <katex v-bind:mathStr="object.id + '=' + object.math"></katex>
+                            <katex :mathStr="object.math"></katex>
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits">
-                            <katex v-bind:mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                 </tr>
@@ -57,6 +57,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
@@ -87,7 +88,11 @@ export default defineComponent({
         },
 
         color(): string {
-            return colorScheme.componentColor["AssignmentRule"];
+            return colorScheme.componentColor["InitialAssignment"];
+        },
+
+        icon(): string {
+            return icons.icons["InitialAssignment"];
         },
     },
 
@@ -100,9 +105,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    margin-top: 20px;
-    padding: 2px 5px;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

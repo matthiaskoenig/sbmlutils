@@ -1,27 +1,28 @@
 <template>
-    <div class="mb-8">
-        <h2
+    <div class="w-100">
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
-            href="#collapsibleAlgebraicRule"
+            href="#collapsibleObjective"
             role="button"
         >
-            ListOfAlgebraicRules
-        </h2>
+           <i :class="`fas fa-${icon} mr-1`"></i> ListOfObjectives
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleAlgebraicRule">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleObjective"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
-                    <th scope="col">value</th>
-                    <th scope="col">math</th>
-                    <th scope="col">derivedUnits</th>
+                    <th scope="col">type</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -34,18 +35,8 @@
                         <span v-if="object.name">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.value">{{ object.value }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.math">
-                            <katex
-                                v-bind:mathStr="object.id + '=' + object.math"
-                            ></katex>
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.derivedUnits">
-                            <katex v-bind:mathStr="object.derivedUnits"></katex>
+                        <span v-if="object.type">
+                            {{ object.type }}
                         </span>
                     </td>
                 </tr>
@@ -56,16 +47,11 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
-import Katex from "@/components/layout/Katex.vue";
-
 export default defineComponent({
-    components: {
-        katex: Katex,
-    },
-
     props: {
         listOfPKs: {
             type: Array,
@@ -86,7 +72,11 @@ export default defineComponent({
         },
 
         color(): string {
-            return colorScheme.componentColor["AlgebraicRule"];
+            return colorScheme.componentColor["Objective"];
+        },
+
+        icon(): string {
+            return icons.icons["Objective"];
         },
     },
 
@@ -99,9 +89,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    margin-top: 20px;
-    padding: 2px 5px;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

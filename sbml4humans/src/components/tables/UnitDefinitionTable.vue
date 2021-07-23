@@ -1,16 +1,19 @@
 <template>
     <div class="w-100">
-        <h2
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleUnitDefintion"
             role="button"
         >
-            ListOfUnitDefinitions
-        </h2>
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfUnitDefinitions
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleUnitDefintion">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleUnitDefintion"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
@@ -19,7 +22,7 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -33,7 +36,7 @@
                     </td>
                     <td>
                         <span v-if="object.units">
-                            <katex v-bind:mathStr="object.units"></katex>
+                            <katex :mathStr="object.units"></katex>
                         </span>
                     </td>
                 </tr>
@@ -44,6 +47,7 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
@@ -76,6 +80,10 @@ export default defineComponent({
         color(): string {
             return colorScheme.componentColor["UnitDefinition"];
         },
+
+        icon(): string {
+            return icons.icons["UnitDefinition"];
+        },
     },
 
     methods: {
@@ -87,12 +95,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    padding: 2px 5px;
-}
-
-.table {
-    overflow-x: scroll;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

@@ -10,7 +10,7 @@
         <br />
         <div class="ml-4">
             <ul title="Deletions">
-                <li v-for="deletion in info.deletions" v-bind:key="deletion.value">
+                <li v-for="deletion in info.deletions" :key="deletion.value">
                     type: {{ deletion.type }}, value: {{ deletion.value }}
                 </li>
             </ul>

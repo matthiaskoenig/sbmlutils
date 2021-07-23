@@ -1,13 +1,19 @@
 <template>
-    <div class="tablet card shadow-sm mr-3 small" v-on:click="showDetail" v-bind:style="`background-color: ${color}`">
-            <div class="mr-auto">
-                <strong>{{ id }}</strong>
-            </div>
+    <div
+        class="tablet card shadow-sm mr-3 small d-flex"
+        v-on:click="showDetail"
+        :style="`background-color: ${color}`"
+    >
+        <div class="d-flex justify-content-between">
+            <i :class="`fas fa-${icon} mt-1 mr-1`"></i>
+            <strong>{{ id }}</strong>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import colors from "@/data/colorScheme";
+import icons from "@/data/fontAwesome";
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
@@ -53,6 +59,10 @@ export default defineComponent({
             const parts = this.pk.split(":");
             return parts[parts.length - 1];
         },
+
+        icon(): string {
+            return icons.icons[this.sbmlType];
+        },
     },
 });
 </script>
@@ -62,5 +72,6 @@ export default defineComponent({
 
 .tablet {
     padding: 1px 5px;
+    width: fit-content;
 }
 </style>

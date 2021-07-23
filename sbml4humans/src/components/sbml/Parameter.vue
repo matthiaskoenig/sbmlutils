@@ -13,7 +13,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <Katex v-bind:mathStr="info.units" />
+            <Katex :mathStr="info.units" />
         </div>
     </div>
 
@@ -21,7 +21,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <Katex v-bind:mathStr="info.derivedUnits" />
+            <Katex :mathStr="info.derivedUnits" />
         </div>
     </div>
 

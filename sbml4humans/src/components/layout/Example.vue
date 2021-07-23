@@ -1,20 +1,36 @@
 <template>
-    <div class="card shadow-sm" v-on:click="getExample()" title="Click to create report for example">
+    <div
+        class="card shadow-sm"
+        v-on:click="getExample()"
+        title="Click to create report for example"
+    >
         <div
             class="d-flex px-2 justify-content-between"
             style="background-color: #66c2a5"
         >
-            <div><i class="far fa-file-code mr-2" style="color: black" />
+            <div>
+                <i class="far fa-file-code mr-2" style="color: black" />
                 <strong>{{ example.id }}</strong>
             </div>
         </div>
         <div class="px-2">
             <div><span class="text-primary">name</span>: {{ example.name }}</div>
-            <div><span class="text-primary">description</span>: {{
-                    example.description
-                }}</div>
-            <div><span class="text-primary">packages</span>: {{ example.packages }}</div>
-            <div><span class="text-primary">keywords</span>: {{ example.keywords }}</div>
+            <div>
+                <span class="text-primary">description</span>: {{ example.description }}
+            </div>
+            <div v-if="example.packages.length">
+                <span class="text-primary">packages</span>:
+                <span
+                    v-for="pkg in example.packages"
+                    :key="pkg"
+                    :class="`badge badge-pill badge-${badgeColor[pkg]} mr-1`"
+                    >{{ pkg }}</span
+                >
+            </div>
+            <div>
+                <span class="text-primary">keywords</span>:
+                {{ example.keywords.join(",") }}
+            </div>
         </div>
     </div>
 </template>
@@ -40,6 +56,13 @@ export default defineComponent({
             color: {
                 type: String,
                 default: "#FFFFFF",
+            },
+
+            badgeColor: {
+                distrib: "info",
+                comp: "warning",
+                fbc: "primary",
+                groups: "success",
             },
         };
     },

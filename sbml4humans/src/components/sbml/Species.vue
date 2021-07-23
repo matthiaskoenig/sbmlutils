@@ -4,8 +4,8 @@
         <div class="label"><strong>compartment: </strong></div>
         <div class="ml-3">
             <SBMLLink
-                v-bind:pk="'Compartment:' + info.compartment"
-                v-bind:sbmlType="String('Compartment')"
+                :pk="'Compartment:' + info.compartment"
+                :sbmlType="String('Compartment')"
             ></SBMLLink>
         </div>
     </div>
@@ -54,7 +54,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <Katex v-bind:mathStr="info.units" />
+            <Katex :mathStr="info.units" />
         </div>
     </div>
 
@@ -62,7 +62,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <Katex v-bind:mathStr="info.derivedUnits" />
+            <Katex :mathStr="info.derivedUnits" />
         </div>
     </div>
 
@@ -124,9 +124,9 @@
             <div class="ml-4">
                 <SBMLLink
                     v-for="reactant in info.reactant"
-                    v-bind:key="reactant"
-                    v-bind:pk="reactant"
-                    v-bind:sbmlType="String('Reaction')"
+                    :key="reactant"
+                    :pk="reactant"
+                    :sbmlType="String('Reaction')"
                 ></SBMLLink>
             </div>
         </div>
@@ -138,9 +138,9 @@
             <div class="ml-4">
                 <SBMLLink
                     v-for="product in info.product"
-                    v-bind:key="product"
-                    v-bind:pk="product"
-                    v-bind:sbmlType="String('Reaction')"
+                    :key="product"
+                    :pk="product"
+                    :sbmlType="String('Reaction')"
                 ></SBMLLink>
             </div>
         </div>
@@ -153,9 +153,9 @@
             <div class="ml-4">
                 <SBMLLink
                     v-for="modifier in info.modifier"
-                    v-bind:key="modifier"
-                    v-bind:pk="modifier"
-                    v-bind:sbmlType="String('Reaction')"
+                    :key="modifier"
+                    :pk="modifier"
+                    :sbmlType="String('Reaction')"
                 ></SBMLLink>
             </div>
         </div>

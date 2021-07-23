@@ -2,26 +2,28 @@
     <div class="container-fluid">
         <div class="report-container">
             <div class="left">
-                <!--<table-list-view-toggle></table-list-view-toggle>-->
                 <list-of-sbases></list-of-sbases>
             </div>
-            <div class="right">
+            <div class="middle">
                 <tables-container></tables-container>
             </div>
-            <detail-container></detail-container>
-            <div
+            <div class="right">
+                <detail-container></detail-container>
+            </div>
+
+            <!--<div
                 class="detailHideButton"
                 v-on:click="toggleDetailVisibility"
-                v-bind:title="`${
+                :title="`${
                     detailVisibility ? 'Hide' : 'Show'
                 } the component detail view`"
             >
                 <i
-                    v-bind:class="`fa fa-eye${detailVisibility ? '-slash' : ''}`"
+                    :class="`fa fa-eye${detailVisibility ? '-slash' : ''}`"
                     aria-hidden="true"
                     style="color: white; font-size: 36px; margin: 5px 0px"
                 ></i>
-            </div>
+            </div>-->
         </div>
     </div>
 </template>
@@ -61,18 +63,21 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .report-container {
-    height: 80vh;
+    height: 85vh;
     display: flex;
 }
 
 .left {
-    width: 20%;
-    margin-right: 2%;
+    width: 15%;
+}
+
+.middle {
+    width: 50%;
+    overflow-y: scroll;
 }
 
 .right {
-    width: 78%;
-    overflow-y: scroll;
+    width: 35%;
 }
 
 .detailHideButton {

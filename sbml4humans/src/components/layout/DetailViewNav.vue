@@ -2,14 +2,14 @@
     <div class="detailNav">
         <ol>
             <i
-                class="fa fa-arrow-circle-left mr-3"
+                class="fa fa-arrow-circle-left mr-1"
                 v-on:click="goBack()"
-                v-bind:style="styleBack"
+                :style="styleBack"
             ></i>
             <i
                 class="fa fa-arrow-circle-right mr-3"
                 v-on:click="goForward()"
-                v-bind:style="styleForward"
+                :style="styleForward"
             ></i>
         </ol>
     </div>
@@ -83,7 +83,7 @@ export default defineComponent({
     position: fixed;
     width: max-content;
     padding: 0;
-    right: 20px;
+    right: 10px;
 
     z-index: 50;
 }

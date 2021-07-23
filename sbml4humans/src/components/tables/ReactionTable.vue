@@ -1,31 +1,33 @@
 <template>
     <div class="w-100">
-        <h2
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
-            href="#collapsibleModel"
+            href="#collapsibleReaction"
             role="button"
         >
-            ListOfModels
-        </h2>
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfReactions
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleModel">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleReaction"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
-                    <th scope="col">substanceUnits</th>
-                    <th scope="col">timeUnits</th>
-                    <th scope="col">lengthUnits</th>
-                    <th scope="col">areaUnits</th>
-                    <th scope="col">volumeUnits</th>
-                    <th scope="col">extentUnits</th>
-                    <th scope="col">conversionFactor</th>
+                    <th scope="col">reversible</th>
+                    <th scope="col">compartment</th>
+                    <th scope="col">equation</th>
+                    <th scope="col">fast</th>
+                    <th scope="col">kineticLaw math</th>
+                    <th scope="col">kineticLaw derivedUnits</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -38,29 +40,28 @@
                         <span v-if="object.name">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.substanceUnits">{{
-                            object.substanceUnits
-                        }}</span>
+                        <span v-if="object.reversible">{{ object.reversible }}</span>
                     </td>
                     <td>
-                        <span v-if="object.timeUnits">{{ object.timeUnits }}</span>
+                        <span v-if="object.compartment">{{ object.compartment }}</span>
                     </td>
                     <td>
-                        <span v-if="object.lengthUnits">{{ object.lengthUnits }}</span>
+                        <span v-if="object.equation" v-html="object.equation"></span>
                     </td>
                     <td>
-                        <span v-if="object.areaUnits">{{ object.areaUnits }}</span>
+                        <span v-if="object.fast">{{ object.fast }}</span>
                     </td>
                     <td>
-                        <span v-if="object.volumeUnits">{{ object.volumeUnits }}</span>
+                        <span v-if="object.kineticLaw && object.kineticLaw.math">
+                            <katex :mathStr="object.kineticLaw.math"></katex>
+                        </span>
                     </td>
                     <td>
-                        <span v-if="object.extentUnits">{{ object.extentUnits }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.conversionFactor">{{
-                            object.conversionFactor
-                        }}</span>
+                        <span
+                            v-if="object.kineticLaw && object.kineticLaw.derivedUnits"
+                        >
+                            <katex :mathStr="object.kineticLaw.derivedUnits"></katex>
+                        </span>
                     </td>
                 </tr>
             </tbody>
@@ -70,10 +71,17 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
+import Katex from "@/components/layout/Katex.vue";
+
 export default defineComponent({
+    components: {
+        katex: Katex,
+    },
+
     props: {
         listOfPKs: {
             type: Array,
@@ -94,7 +102,11 @@ export default defineComponent({
         },
 
         color(): string {
-            return colorScheme.componentColor["Model"];
+            return colorScheme.componentColor["Reaction"];
+        },
+
+        icon(): string {
+            return icons.icons["Reaction"];
         },
     },
 
@@ -107,12 +119,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    padding: 2px 5px;
-}
-
-.table {
-    overflow-x: scroll;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

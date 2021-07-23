@@ -1,13 +1,13 @@
 <template>
-    <div class="detail-container shadow-lg col-md-5" v-if="visibility">
+    <div class="detail-container">
         <detail-view-nav></detail-view-nav>
-        <sbase v-bind:info="info"></sbase>
+        <sbase :info="info"></sbase>
         <component-specific-details
-            v-bind:info="info"
-            v-bind:sbmlType="info.sbmlType"
+            :info="info"
+            :sbmlType="info.sbmlType"
         ></component-specific-details>
         <!-- XML container -->
-        <xml-container v-if="info.xml" v-bind:xml="info.xml"></xml-container>
+        <xml-container v-if="info.xml" :xml="info.xml"></xml-container>
     </div>
 </template>
 
@@ -54,13 +54,12 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .detail-container {
-    position: absolute;
     height: 85vh;
-    right: 15px;
-    padding: 15px 15px;
+    padding: 0px 15px;
 
     word-wrap: break-word;
     overflow-y: scroll;
+    overflow-x: scroll;
 
     background-color: white;
 }

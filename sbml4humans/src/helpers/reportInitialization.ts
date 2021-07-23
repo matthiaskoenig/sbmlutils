@@ -27,8 +27,10 @@ function assembleSBasesInReport(
     const counts: Record<string, Record<string, number>> = {};
     const allObjectsMap: Record<string, unknown> = {};
     const componentPKsMap: Record<string, Record<string, Array<string>>> = {};
-    const componentWiseLists: Record<string, Array<string>> =
-        initializeComponentWiseLists();
+    const componentWiseLists: Record<
+        string,
+        Array<string>
+    > = initializeComponentWiseLists();
 
     // collecting doc
     if (report.doc) {

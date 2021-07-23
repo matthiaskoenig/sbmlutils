@@ -2,15 +2,19 @@
     <div class="card shadow-sm" v-if="visible">
         <div
             class="d-flex justify-content-between px-2"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
         >
-            <strong>{{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong>
+            <strong>
+                <i :class="`fas fa-${icon} mr-1`"></i>
+                {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
+            >
         </div>
     </div>
 </template>
 
 <script lang="ts">
 import colors from "@/data/colorScheme";
+import icons from "@/data/fontAwesome";
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
@@ -40,6 +44,12 @@ export default defineComponent({
 
     mounted(): void {
         this.color = colors.componentColor[this.sbmlType];
+    },
+
+    computed: {
+        icon(): string {
+            return icons.icons[this.sbmlType];
+        },
     },
 
     methods: {

@@ -18,7 +18,7 @@
                 <input
                     ref="static-switch"
                     type="checkbox"
-                    v-bind:checked="staticStatus"
+                    :checked="staticStatus"
                     @change="handleSwitchChange()"
                 />
                 <span class="slider round"></span>

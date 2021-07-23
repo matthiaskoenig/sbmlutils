@@ -17,11 +17,11 @@
             <div
                 class="ml-4 d-flex justify-content-between"
                 v-for="reactant in info.listOfReactants"
-                v-bind:key="reactant.species"
+                :key="reactant.species"
             >
                 <SBMLLink
-                    v-bind:pk="'Species:' + reactant.species"
-                    v-bind:sbmlType="String('Species')"
+                    :pk="'Species:' + reactant.species"
+                    :sbmlType="String('Species')"
                 ></SBMLLink>
                 [<span v-if="reactant.stoichiometry"
                     >stoichiometry: {{ reactant.stoichiometry }}</span
@@ -39,11 +39,11 @@
             <div
                 class="ml-4 d-flex justify-content-between"
                 v-for="product in info.listOfProducts"
-                v-bind:key="product.species"
+                :key="product.species"
             >
                 <SBMLLink
-                    v-bind:pk="'Species:' + product.species"
-                    v-bind:sbmlType="String('Species')"
+                    :pk="'Species:' + product.species"
+                    :sbmlType="String('Species')"
                 ></SBMLLink>
                 [<span v-if="product.stoichiometry"
                     >stoichiometry: {{ product.stoichiometry }}</span
@@ -61,11 +61,11 @@
             <div
                 class="ml-4 d-flex justify-content-between"
                 v-for="modifier in info.listOfModifiers"
-                v-bind:key="modifier"
+                :key="modifier"
             >
                 <SBMLLink
-                    v-bind:pk="'Species:' + modifier"
-                    v-bind:sbmlType="String('Species')"
+                    :pk="'Species:' + modifier"
+                    :sbmlType="String('Species')"
                 ></SBMLLink>
             </div>
         </div>
@@ -91,26 +91,26 @@
         </div>
         <div class="ml-4">
             <div v-if="info.kineticLaw.math">
-                math: <Katex v-bind:mathStr="info.kineticLaw.math" />
+                math: <Katex :mathStr="info.kineticLaw.math" />
             </div>
             <div v-if="info.kineticLaw.derivedUnits">
-                derivedUnits: <Katex v-bind:mathStr="info.kineticLaw.derivedUnits" />
+                derivedUnits: <Katex :mathStr="info.kineticLaw.derivedUnits" />
             </div>
             <div v-if="info.kineticLaw.listOfLocalParameters">
                 listOfLocalParameters:
                 <ul title="listOfLocalParameters">
                     <li
                         v-for="lpar in info.kineticLaw.listOfLocalParameters"
-                        v-bind:key="lpar.id"
+                        :key="lpar.id"
                     >
                         <div v-if="lpar.id">id: {{ lpar.id }}</div>
                         <div v-if="lpar.value">value: {{ lpar.value }}</div>
                         <div v-if="lpar.units">
-                            units: <katex v-bind:mathStr="lpar.units"></katex>
+                            units: <katex :mathStr="lpar.units"></katex>
                         </div>
                         <div v-if="lpar.derivedUnits">
                             derivedUnits:
-                            <katex v-bind:mathStr="lpar.derivedUnits"></katex>
+                            <katex :mathStr="lpar.derivedUnits"></katex>
                         </div>
                     </li>
                 </ul>

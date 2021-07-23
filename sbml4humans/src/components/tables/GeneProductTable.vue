@@ -1,26 +1,29 @@
 <template>
     <div class="w-100">
-        <h2
+        <strong
             class="sbmlType"
-            v-bind:style="`background-color: ${color}`"
+            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleGeneProduct"
             role="button"
         >
-            ListOfGeneProducts
-        </h2>
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfGeneProducts
+        </strong>
 
-        <table class="table table-striped table-bordered" id="collapsibleGeneProduct">
+        <table
+            class="table table-striped table-bordered table-sm table-condensed"
+            id="collapsibleGeneProduct"
+        >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
                     <th scope="col">label</th>
-                    <th scope="col">associatedSpecies</th>
+                    <th scope="col">associated Species</th>
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" v-bind:key="object">
+                <tr v-for="object in objects" :key="object">
                     <td>
                         <span
                             v-if="object.id"
@@ -48,11 +51,11 @@
 
 <script lang="ts">
 import store from "@/store/index";
+import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
 export default defineComponent({
-
     props: {
         listOfPKs: {
             type: Array,
@@ -75,6 +78,10 @@ export default defineComponent({
         color(): string {
             return colorScheme.componentColor["GeneProduct"];
         },
+
+        icon(): string {
+            return icons.icons["GeneProduct"];
+        },
     },
 
     methods: {
@@ -86,12 +93,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.sbmlType {
-    width: max-content;
-    padding: 2px 5px;
-}
-
-.table {
-    overflow-x: scroll;
-}
+@import "@/assets/styles/scss/SBaseTable.scss";
 </style>

@@ -4,7 +4,7 @@
             v-on:click="visible = !visible"
             :title="visible ? 'Hide SBML' : 'Show SBML'"
         >
-            <i v-bind:class="`fa fa-${visible ? 'minus' : 'plus'}-circle`"></i>
+            <i :class="`fa fa-${visible ? 'minus' : 'plus'}-circle`"></i>
         </div>
         <pre v-if="visible" ref="xmlContent" class="xml-text">
             {{ formattedXML }}
