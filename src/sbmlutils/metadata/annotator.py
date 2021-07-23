@@ -522,7 +522,8 @@ class ModelAnnotator:
                     f"Set biological qualifier: '{sbml_qualifier}'",
                 )
                 if not success:
-                    logger.error(f"Could not set biological qualifier: {qualifier}")
+                    logger.error(f"Could not set biological qualifier '{qualifier}' "
+                                 f"for '{sbase}'.")
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
@@ -531,7 +532,8 @@ class ModelAnnotator:
                     f"Set model qualifier: '{sbml_qualifier}'",
                 )
                 if not success:
-                    logger.error(f"Could not set model qualifier '{qualifier}' for '{sbase}'.")
+                    logger.error(f"Could not set model qualifier '{qualifier}' "
+                                 f"for '{sbase}'.")
             else:
                 logger.error(f"Unsupported qualifier: '{qualifier}' for '{sbase}'.")
         else:
@@ -551,6 +553,7 @@ class ModelAnnotator:
             sbase.setMetaId(utils.create_metaid(sbase))
 
         success = check(sbase.addCVTerm(cv), f"Add cvterm: '{cv}'.")
+        print("CV: ", cv.getQualifierType())
 
         if not success:
             logger.error(f"Annotation RDF for CVTerm '{cv}' could not be written "
