@@ -1,5 +1,5 @@
 <template>
-    <div class="w-100">
+    <div class="scrollable">
         <strong
             class="sbmlType"
             :style="`background-color: ${color}`"
@@ -39,8 +39,14 @@
                     <td>
                         <span v-if="object.name">{{ object.name }}</span>
                     </td>
-                    <td>
-                        <span v-if="object.reversible">{{ object.reversible }}</span>
+                    <td class="text-center align-middle">
+                        <span v-if="object.reversible">
+                            <boolean-symbol
+                                v-if="object.reversible"
+                                :value="object.reversible"
+                            />
+                        </span>
+                        <boolean-symbol v-else :value="Boolean(false)" />
                     </td>
                     <td>
                         <span v-if="object.compartment">{{ object.compartment }}</span>
@@ -48,8 +54,9 @@
                     <td>
                         <span v-if="object.equation" v-html="object.equation"></span>
                     </td>
-                    <td>
-                        <span v-if="object.fast">{{ object.fast }}</span>
+                    <td class="text-center align-middle">
+                        <boolean-symbol v-if="object.fast" :value="object.fast" />
+                        <boolean-symbol v-else :value="Boolean(false)" />
                     </td>
                     <td>
                         <span v-if="object.kineticLaw && object.kineticLaw.math">
@@ -76,10 +83,12 @@ import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
 
 import Katex from "@/components/layout/Katex.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
+        BooleanSymbol,
     },
 
     props: {

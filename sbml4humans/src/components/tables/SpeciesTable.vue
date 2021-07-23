@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-8">
+    <div class="scrollable">
         <strong
             class="sbmlType"
             :style="`background-color: ${color}`"
@@ -74,6 +74,7 @@
                             v-if="object.constant"
                             :value="object.constant"
                         />
+                        <boolean-symbol v-else :value="Boolean(false)" />
                     </td>
                     <td>
                         <katex v-if="object.units" :mathStr="object.units" />
@@ -150,4 +151,9 @@ export default defineComponent({
 
 <style lang="scss">
 @import "@/assets/styles/scss/SBaseTable.scss";
+
+.scrollable {
+    width: 100%;
+    overflow-x: scroll;
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-8">
+    <div class="scrollable">
         <strong
             class="sbmlType"
             :style="`background-color: ${color}`"

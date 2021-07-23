@@ -1,5 +1,5 @@
 <template>
-    <div class="w-100">
+    <div class="scrollable">
         <strong
             class="sbmlType"
             :style="`background-color: ${color}`"
