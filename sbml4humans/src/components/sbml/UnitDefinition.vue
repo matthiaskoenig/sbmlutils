@@ -1,6 +1,6 @@
 <template>
     <!-- Unit String -->
-    <div class="data" v-if="info.units">
+    <div class="data" v-if="info.units != null">
         <div class="label">
             <strong>units:</strong>
             <Katex :mathStr="info.units" />

@@ -1,26 +1,26 @@
 <template>
     <!-- CORE -->
     <div class="d-flex justify-content-between">
-        <div class="sbmlType px-2 py-1" :style="`background-color: ${color}`">
-            <i :class="`fas fa-${icon} mr-1`"></i> <strong>{{ info.sbmlType }}</strong>
-        </div>
+        <strong class="sbmlType" :style="`background-color: ${color}`">
+            <i :class="`fas fa-${icon} mr-2`"></i>{{ info.sbmlType }}
+        </strong>
         <detail-view-nav></detail-view-nav>
     </div>
     <h2>{{ info.id }} {{ info.name ? "(" + info.name + ")" : "" }}</h2>
 
-    <div class="data" v-if="info.id">
+    <div class="data" v-if="info.id != null">
         <div class="label"><strong>id:</strong> {{ info.id }}</div>
     </div>
-    <div class="data" v-if="info.metaId">
+    <div class="data" v-if="info.metaId != null">
         <div class="label"><strong>metaId:</strong> {{ info.metaId }}</div>
     </div>
-    <div class="data" v-if="info.name">
+    <div class="data" v-if="info.name != null">
         <div class="label"><strong>name:</strong> {{ info.name }}</div>
     </div>
-    <div class="data" v-if="info.sbo">
+    <div class="data" v-if="info.sbo != null">
         <div class="label"><strong>sbo:</strong> {{ info.sbo }}</div>
     </div>
-    <div class="data" v-if="info.history">
+    <div class="data" v-if="info.history != null">
         <div class="label"><strong>history:</strong></div>
         <br />
         <div class="ml-4">
@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    <div class="data" v-if="info.cvterms">
+    <div class="data" v-if="info.cvterms != null">
         <div class="label"><strong>cvterms:</strong></div>
         <div class="ml-4">
             <ul title="CVTerms">
@@ -63,7 +63,7 @@
     </div>
 
     <!-- COMP -->
-    <div class="data" v-if="info.replacedBy">
+    <div class="data" v-if="info.replacedBy != null">
         <div class="label"><strong>replacedBy:</strong></div>
         <div class="ml-4">
             <div>submodelRef: {{ info.replacedBy.submodelRef }}</div>
@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    <div class="data" v-if="info.replacedElements">
+    <div class="data" v-if="info.replacedElements != null">
         <div class="label"><strong>replacedElements:</strong></div>
         <div class="ml-4">
             <ul title="Replaced Elements">

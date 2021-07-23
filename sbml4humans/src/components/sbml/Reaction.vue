@@ -1,16 +1,25 @@
 <template>
     <!-- Reversible -->
-    <div class="data" v-if="info.reversible">
-        <div class="label"><strong>reversible:</strong> {{ info.reversible }}</div>
+    <div class="data" v-if="info.reversible != null">
+        <div class="label"><strong>reversible:</strong>
+            <boolean-symbol
+                v-if="info.reversible === Boolean(true)"
+                :value="info.reversible"
+            />
+            <boolean-symbol v-else :value="Boolean(false)" />
+        </div>
     </div>
 
     <!-- Compartment -->
-    <div class="data" v-if="info.compartment">
+    <div class="data" v-if="info.compartment != null">
         <div class="label"><strong>compartment:</strong> {{ info.compartment }}</div>
     </div>
 
     <!-- List of Reactants -->
-    <div class="data" v-if="info.listOfReactants && info.listOfReactants.length > 0">
+    <div
+        class="data"
+        v-if="info.listOfReactants != null && info.listOfReactants.length > 0"
+    >
         <div class="label"><strong>listOfReactants:</strong></div>
         <br />
         <div class="ml-4">
@@ -23,16 +32,19 @@
                     :pk="'Species:' + reactant.species"
                     :sbmlType="String('Species')"
                 ></SBMLLink>
-                [<span v-if="reactant.stoichiometry"
+                [<span v-if="reactant.stoichiometry != null"
                     >stoichiometry: {{ reactant.stoichiometry }}</span
                 >
-                <span v-if="reactant.constant">, constant</span>]
+                <span v-if="reactant.constant != null">, constant</span>]
             </div>
         </div>
     </div>
 
     <!-- List of Products -->
-    <div class="data" v-if="info.listOfProducts && info.listOfProducts.length > 0">
+    <div
+        class="data"
+        v-if="info.listOfProducts != null && info.listOfProducts.length > 0"
+    >
         <div class="label"><strong>listOfProducts:</strong></div>
         <br />
         <div class="ml-4">
@@ -45,16 +57,19 @@
                     :pk="'Species:' + product.species"
                     :sbmlType="String('Species')"
                 ></SBMLLink>
-                [<span v-if="product.stoichiometry"
+                [<span v-if="product.stoichiometry != null"
                     >stoichiometry: {{ product.stoichiometry }}</span
                 >
-                <span v-if="product.constant">, constant</span>]
+                <span v-if="product.constant != null">, constant</span>]
             </div>
         </div>
     </div>
 
     <!-- List of Modifiers -->
-    <div class="data" v-if="info.listOfModifiers && info.listOfModifiers.length > 0">
+    <div
+        class="data"
+        v-if="info.listOfModifiers != null && info.listOfModifiers.length > 0"
+    >
         <div class="label"><strong>listOfModifiers:</strong></div>
         <br />
         <div class="ml-4">
@@ -72,7 +87,7 @@
     </div>
 
     <!-- Equation -->
-    <div class="data" v-if="info.equation">
+    <div class="data" v-if="info.equation != null">
         <div class="label">
             <strong>equation:</strong>
             <span class="ml-2" v-html="info.equation"></span>
@@ -80,35 +95,39 @@
     </div>
 
     <!-- Fast -->
-    <div class="data" v-if="info.fast">
-        <div class="label"><strong>fast:</strong> {{ info.fast }}</div>
+    <div class="data" v-if="info.fast != null">
+        <div class="label">
+            <strong>fast:</strong>
+            <boolean-symbol v-if="info.fast === Boolean(true)" :value="info.fast" />
+            <boolean-symbol v-else :value="Boolean(false)" />
+        </div>
     </div>
 
     <!-- Kinetic Law -->
-    <div class="data" v-if="info.kineticLaw">
+    <div class="data" v-if="info.kineticLaw != null">
         <div class="label">
             <strong>kineticLaw:</strong>
         </div>
         <div class="ml-4">
-            <div v-if="info.kineticLaw.math">
+            <div v-if="info.kineticLaw.math != null">
                 math: <Katex :mathStr="info.kineticLaw.math" />
             </div>
-            <div v-if="info.kineticLaw.derivedUnits">
+            <div v-if="info.kineticLaw.derivedUnits != null">
                 derivedUnits: <Katex :mathStr="info.kineticLaw.derivedUnits" />
             </div>
-            <div v-if="info.kineticLaw.listOfLocalParameters">
+            <div v-if="info.kineticLaw.listOfLocalParameters != null">
                 listOfLocalParameters:
                 <ul title="listOfLocalParameters">
                     <li
                         v-for="lpar in info.kineticLaw.listOfLocalParameters"
                         :key="lpar.id"
                     >
-                        <div v-if="lpar.id">id: {{ lpar.id }}</div>
-                        <div v-if="lpar.value">value: {{ lpar.value }}</div>
-                        <div v-if="lpar.units">
+                        <div v-if="lpar.id != null">id: {{ lpar.id }}</div>
+                        <div v-if="lpar.value != null">value: {{ lpar.value }}</div>
+                        <div v-if="lpar.units != null">
                             units: <katex :mathStr="lpar.units"></katex>
                         </div>
-                        <div v-if="lpar.derivedUnits">
+                        <div v-if="lpar.derivedUnits != null">
                             derivedUnits:
                             <katex :mathStr="lpar.derivedUnits"></katex>
                         </div>
@@ -150,6 +169,7 @@ import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
 import SBMLLink from "@/components/layout/SBMLLink.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 /**
  * Component to define display of Reaction objects.
@@ -158,6 +178,7 @@ export default defineComponent({
     components: {
         Katex,
         SBMLLink,
+        BooleanSymbol,
     },
 
     props: {

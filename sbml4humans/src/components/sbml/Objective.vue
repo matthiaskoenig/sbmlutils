@@ -1,11 +1,11 @@
 <template>
     <!-- Type -->
-    <div class="data" v-if="info.type">
+    <div class="data" v-if="info.type != null">
         <div class="label"><strong>type:</strong> {{ info.type }}</div>
     </div>
 
     <!-- Flux Objectives -->
-    <div class="data" v-if="info.fluxObjectives.length > 0">
+    <div class="data" v-if="info.fluxObjectives != null && info.fluxObjectives.length > 0">
         <div class="label"><strong>fluxObjectives:</strong></div>
         <br />
         <div class="ml-4">
@@ -18,10 +18,10 @@
                         {{ fluxObjective.reaction }}
                     </div>
                     <div v-if="fluxObjective.sign || fluxObjective.coefficient">
-                        <span v-if="fluxObjective.sign"
+                        <span v-if="fluxObjective.sign != null"
                             >sign: {{ fluxObjective.sign }}</span
                         >
-                        <span v-if="fluxObjective.coefficient"
+                        <span v-if="fluxObjective.coefficient != null"
                             >, coefficient: {{ fluxObjective.coefficient }}</span
                         >
                     </div>

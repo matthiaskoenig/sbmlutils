@@ -1,17 +1,23 @@
 <template>
-    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail" title="Show details">
+    <div
+        class="card shadow-sm"
+        v-if="visible"
+        v-on:click="showDetail"
+        title="Show details"
+    >
         <div
-            class="d-flex px-2 justify-content-between"
+            class="d-flex justify-content-between pl-2 pr-1"
             :style="`background-color: ${color}`"
         >
             <div class="mr-3 text-break">
                 <strong>{{ info.id }}</strong>
             </div>
-            <div>
+            <div class="d-flex">
                 <strong>{{ sbmlType }}</strong>
+                <i :class="`fas fa-${icon} ml-2 mt-1`"></i>
             </div>
         </div>
-        <div v-if="info.metaId || info.sbo" class="px-2 py-0">
+        <div v-if="info.metaId || info.sbo" class="px-2">
             <div class="d-flex justify-content-between">
                 <span class="text-primary" v-if="info.metaId">
                     metaId:
@@ -26,6 +32,7 @@
 
 <script lang="ts">
 import colors from "@/data/colorScheme";
+import icons from "@/data/fontAwesome";
 import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "vue";
@@ -68,6 +75,10 @@ export default defineComponent({
          */
         visibility(): Record<string, unknown> {
             return store.state.visibility;
+        },
+
+        icon(): string {
+            return icons.icons[this.sbmlType];
         },
     },
 

@@ -11,7 +11,10 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="
+                table table-striped table-bordered table-sm table-condensed table-hover
+                compact
+            "
             id="collapsibleModel"
         >
             <thead class="thead-dark">
@@ -28,40 +31,48 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
                     <td>
                         <span
-                            v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
+                            v-if="object.id != null"
                             >{{ object.id }}</span
                         >
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.substanceUnits">{{
+                        <span v-if="object.substanceUnits != null">{{
                             object.substanceUnits
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.timeUnits">{{ object.timeUnits }}</span>
+                        <span v-if="object.timeUnits != null">{{
+                            object.timeUnits
+                        }}</span>
                     </td>
                     <td>
-                        <span v-if="object.lengthUnits">{{ object.lengthUnits }}</span>
+                        <span v-if="object.lengthUnits != null">{{
+                            object.lengthUnits
+                        }}</span>
                     </td>
                     <td>
-                        <span v-if="object.areaUnits">{{ object.areaUnits }}</span>
+                        <span v-if="object.areaUnits != null">{{
+                            object.areaUnits
+                        }}</span>
                     </td>
                     <td>
-                        <span v-if="object.volumeUnits">{{ object.volumeUnits }}</span>
+                        <span v-if="object.volumeUnits != null">{{
+                            object.volumeUnits
+                        }}</span>
                     </td>
                     <td>
-                        <span v-if="object.extentUnits">{{ object.extentUnits }}</span>
+                        <span v-if="object.extentUnits != null">{{
+                            object.extentUnits
+                        }}</span>
                     </td>
                     <td>
-                        <span v-if="object.conversionFactor">{{
+                        <span v-if="object.conversionFactor != null">{{
                             object.conversionFactor
                         }}</span>
                     </td>

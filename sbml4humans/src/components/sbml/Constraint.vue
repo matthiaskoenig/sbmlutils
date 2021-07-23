@@ -1,6 +1,6 @@
 <template>
     <!-- Math -->
-    <div class="data" v-if="info.math">
+    <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
             <katex :mathStr="info.math"></katex>
@@ -8,7 +8,7 @@
     </div>
 
     <!-- Message -->
-    <div class="data" v-if="info.message">
+    <div class="data" v-if="info.message != null">
         <div class="label"><strong>message:</strong>{{ info.message }}</div>
     </div>
 </template>

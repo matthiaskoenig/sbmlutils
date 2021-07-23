@@ -69,16 +69,16 @@ export default defineComponent({
 
 .left {
     width: 15%;
-    //max-width: 200px;
+    margin-right: 10px;
 }
 
 .middle {
-    width: 55%;
+    width: 58%;
     overflow-y: scroll;
 }
 
 .right {
-    width: 30%;
+    width: 27%;
 }
 
 .detailHideButton {

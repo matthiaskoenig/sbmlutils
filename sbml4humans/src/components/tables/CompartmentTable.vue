@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleCompartment"
             ref="dataTable"
         >
@@ -28,43 +28,47 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.spatialDimensions">{{
+                        <span v-if="object.spatialDimensions != null">{{
                             object.spatialDimensions
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.size">{{ object.size }}</span>
+                        <span v-if="object.size != null">{{ object.size }}</span>
                     </td>
                     <td class="text-center align-middle">
-                        <span v-if="object.constant"
-                            ><boolean-symbol :value="object.constant"></boolean-symbol
-                        ></span>
+                        <span v-if="object.constant != null">
+                            <boolean-symbol
+                                v-if="object.constant === Boolean(true)"
+                                :value="object.constant"
+                            />
+                            <boolean-symbol v-else :value="Boolean(false)" />
+                        </span>
                     </td>
                     <td>
-                        <span v-if="object.units">
+                        <span v-if="object.units != null">
                             <katex :mathStr="object.units"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.derivedUnits">
+                        <span v-if="object.derivedUnits != null">
                             <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.assignment"
+                        <span v-if="object.assignment != null"
                             >{{ object.assignment.pk }} ({{
                                 object.assignment.sbmlType
                             }})</span

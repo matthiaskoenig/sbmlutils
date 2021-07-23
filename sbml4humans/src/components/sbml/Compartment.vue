@@ -1,26 +1,30 @@
 <template>
     <!-- Spatial Dimensions -->
-    <div class="data" v-if="info.spatialDimensions">
+    <div class="data" v-if="info.spatialDimensions != null">
         <div class="label">
             <strong>spatialDimensions:</strong> {{ info.spatialDimensions }}
         </div>
     </div>
 
     <!-- Size -->
-    <div class="data" v-if="info.size">
+    <div class="data" v-if="info.size != null">
         <div class="label"><strong>size:</strong> {{ info.size }}</div>
     </div>
 
     <!-- Constant -->
-    <div class="data" v-if="info.constant">
+    <div class="data" v-if="info.constant != null">
         <div class="label">
             <strong>constant:</strong
-            ><boolean-symbol :value="info.constant"></boolean-symbol>
+            ><boolean-symbol
+                v-if="info.constant === Boolean(true)"
+                :value="info.constant"
+            />
+            <boolean-symbol v-else :value="Boolean(false)" />
         </div>
     </div>
 
     <!-- Units -->
-    <div class="data" v-if="info.units">
+    <div class="data" v-if="info.units != null">
         <div class="label">
             <strong>units:</strong>
             <katex :mathStr="info.units"></katex>
@@ -28,7 +32,7 @@
     </div>
 
     <!-- Derived Units -->
-    <div class="data" v-if="info.derivedUnits">
+    <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
             <katex :mathStr="info.derivedUnits"></katex>
@@ -36,7 +40,7 @@
     </div>
 
     <!-- Assignment -->
-    <div class="data" v-if="info.assignment">
+    <div class="data" v-if="info.assignment != null">
         <div class="label">
             <strong>assignment:</strong>
             <span>{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span>
@@ -44,7 +48,7 @@
     </div>
 
     <!-- List of Related Species -->
-    <div class="data w-100" v-if="info.species">
+    <div class="data w-100" v-if="info.species != null">
         <div class="label">
             <strong>relatedSpecies:</strong>
         </div>
@@ -56,7 +60,7 @@
     </div>
 
     <!-- List of Related Reactions -->
-    <div class="data w-100" v-if="info.reaction">
+    <div class="data w-100" v-if="info.reaction != null">
         <div class="label">
             <strong>relatedReactions:</strong>
         </div>

@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-sm table-condensed table-hover compact"
+            class="table table-striped table-bordered table-sm table-condensed  compact"
             id="collapsibleSpecies"
         >
             <thead class="thead-dark">
@@ -30,62 +30,70 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
                     <td>
                         <span
                             v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
                         >
                             {{ object.id }}
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.initialAmount">
+                        <span v-if="object.initialAmount != null">
                             {{ object.initialAmount }}
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.initialConcentration">
+                        <span v-if="object.initialConcentration != null">
                             {{ object.initialConcentration }}
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.substanceUnits">{{
+                        <span v-if="object.substanceUnits != null">{{
                             object.substanceUnits
                         }}</span>
                     </td>
                     <td class="text-center align-middle">
-                        <boolean-symbol
-                            v-if="object.hasOnlySubstanceUnits"
-                            :value="object.hasOnlySubstanceUnits"
-                        />
+                        <span v-if="object.hasOnlySubstanceUnits != null">
+                            <boolean-symbol
+                                v-if="object.hasOnlySubstanceUnits === Boolean(true)"
+                                :value="object.hasOnlySubstanceUnits"
+                            />
+                            <boolean-symbol
+                                v-else
+                                :value="Boolean(false)"
+                            />
+                        </span>
                     </td>
-                    <td>
-                        <span v-if="object.boundaryCondition">{{
-                            object.boundaryCondition
-                        }}</span>
+                    <td class="text-center align-middle">
+                        <span v-if="object.boundaryCondition != null">
+                            <boolean-symbol
+                                v-if="object.boundaryCondition != null && object.boundaryCondition === Boolean(true)"
+                                :value="object.boundaryCondition"
+                            />
+                            <boolean-symbol v-else :value="Boolean(false)" />
+                        </span>
                     </td>
                     <td class="text-center align-middle">
                         <boolean-symbol
-                            v-if="object.constant"
+                            v-if="object.constant != null && object.constant === Boolean(true)"
                             :value="object.constant"
                         />
                         <boolean-symbol v-else :value="Boolean(false)" />
                     </td>
                     <td>
-                        <katex v-if="object.units" :mathStr="object.units" />
+                        <katex v-if="object.units != null" :mathStr="object.units" />
                     </td>
                     <td>
-                        <span v-if="object.derivedUnits">
+                        <span v-if="object.derivedUnits != null">
                             <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.assignment"
+                        <span v-if="object.assignment != null"
                             >{{ object.assignment.pk }} ({{
                                 object.assignment.sbmlType
                             }})</span

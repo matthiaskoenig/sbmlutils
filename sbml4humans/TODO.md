@@ -2,13 +2,13 @@
 
 DetailsView:
 - [ ] add JSON button with Icon to show backend JSON for details
-- [ ] PRIORITY 3:! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
-- [ ] PRIORITY 3:! sbml: same for tables
+- [x] PRIORITY 3:! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
+- [x] PRIORITY 3:! sbml: same for tables
 
 Tables:
-- [ ] PRIORITY 1: layout: hide horizontal scrollbars if not necessary (padding/layout issue)
-- [ ] PRIORITY 2: layout: use datatables: "compact" option and remove grids
-- [ ] PRIORITY 4: layout make table rows clickable with selecting DetailView
+- [x] PRIORITY 1: layout: hide horizontal scrollbars if not necessary (padding/layout issue)
+- [x] PRIORITY 2: layout: use datatables: "compact" option and remove grids
+- [x] PRIORITY 4: layout make table rows clickable with selecting DetailView
 - [ ] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
 - [ ] use Table mixin to remove redundant js code in tables
 

@@ -7,11 +7,11 @@
             href="#collapsibleParameter"
             role="button"
         >
-           <i :class="`fas fa-${icon} mr-1`"></i> ListOfParameters
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfParameters
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleParameter"
         >
             <thead class="thead-dark">
@@ -26,23 +26,25 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
                     <td>
                         <span
-                            v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
+                            v-if="object.id != null"
                             >{{ object.id }}</span
                         >
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.value">{{ object.value }}</span>
+                        <span v-if="object.value != null">{{ object.value }}</span>
                     </td>
                     <td class="text-center align-middle">
-                        <span v-if="object.constant"
+                        <span
+                            v-if="
+                                object.constant != null &&
+                                object.constant === Boolean(true)
+                            "
                             ><boolean-symbol :value="object.constant"></boolean-symbol
                         ></span>
 
@@ -51,17 +53,17 @@
                         ></span>
                     </td>
                     <td>
-                        <span v-if="object.units">
+                        <span v-if="object.units != null">
                             <katex :mathStr="object.units"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.derivedUnits">
+                        <span v-if="object.derivedUnits != null">
                             <katex :mathStr="object.derivedUnits"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.assignment"
+                        <span v-if="object.assignment != null"
                             >{{ object.assignment.pk }} ({{
                                 object.assignment.sbmlType
                             }})</span

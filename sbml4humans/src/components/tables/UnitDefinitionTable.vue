@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="table table-striped table-bordered  table-sm table-condensed  compact"
             id="collapsibleUnitDefintion"
         >
             <thead class="thead-dark">
@@ -22,20 +22,18 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
                     <td>
                         <span
-                            v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
+                            v-if="object.id != null"
                             >{{ object.id }}</span
                         >
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.units">
+                        <span v-if="object.units != null">
                             <katex :mathStr="object.units"></katex>
                         </span>
                     </td>

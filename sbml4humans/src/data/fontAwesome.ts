@@ -16,6 +16,7 @@ const icons = {
     Parameter: "beta",
     Constraint: "less-than-equal",
     Objective: "bullseye",
+    SBMLDocument: "file-alt",
 };
 
 export default {

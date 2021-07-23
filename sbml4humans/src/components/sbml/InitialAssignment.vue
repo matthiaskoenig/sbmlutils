@@ -1,16 +1,16 @@
 <template>
     <!-- Symbol -->
-    <div class="data" v-if="info.symbol">
+    <div class="data" v-if="info.symbol != null">
         <div class="label"><strong>symbol:</strong> {{ info.symbol }}</div>
     </div>
 
     <!-- Math -->
-    <div class="data" v-if="info.math">
+    <div class="data" v-if="info.math != null">
         <div class="label"><strong>math:</strong> {{ info.math }}</div>
     </div>
 
     <!-- Derived Units -->
-    <div class="data" v-if="info.derivedUnits">
+    <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
             <katex :mathStr="info.derivedUnits"></katex>

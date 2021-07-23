@@ -1,11 +1,11 @@
 <template>
     <!-- Model Reference -->
-    <div class="data" v-if="info.modelRef">
+    <div class="data" v-if="info.modelRef != null">
         <div class="label"><strong>modelRef:</strong> {{ info.modelRef }}</div>
     </div>
 
     <!-- Deletions -->
-    <div class="data" v-if="info.deletions && info.deletions[0].type">
+    <div class="data" v-if="info.deletions != null && info.deletions[0].type">
         <div class="label"><strong>deletions:</strong></div>
         <br />
         <div class="ml-4">
@@ -18,14 +18,14 @@
     </div>
 
     <!-- Time Conversion -->
-    <div class="data" v-if="info.timeConversion">
+    <div class="data" v-if="info.timeConversion != null">
         <div class="label">
             <strong>timeConversion:</strong> {{ info.timeConversion }}
         </div>
     </div>
 
     <!-- Extent Conversion -->
-    <div class="data" v-if="info.extentConversion">
+    <div class="data" v-if="info.extentConversion != null">
         <div class="label">
             <strong>extentConversion:</strong> {{ info.extentConversion }}
         </div>

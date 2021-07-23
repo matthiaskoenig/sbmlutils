@@ -1,6 +1,6 @@
 <template>
     <!-- Math -->
-    <div class="data" v-if="info.math">
+    <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
             <katex :mathStr="info.math"></katex>

@@ -1,5 +1,5 @@
 <template>
-    <a-list class="table-container">
+    <a-list>
         <toaster
             v-for="(listOfPKs, sbmlType) in collectTables"
             :key="sbmlType"

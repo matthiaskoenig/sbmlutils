@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsiblePort"
         >
             <thead class="thead-dark">
@@ -26,35 +26,35 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
                     <td>
                         <span
-                            v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
+                            v-if="object.id != null"
                             >{{ object.id }}</span
                         >
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.portRef">{{ object.portRef }}</span>
+                        <span v-if="object.portRef != null">{{ object.portRef }}</span>
                     </td>
                     <td>
-                        <span v-if="object.idRef">{{ object.idRef }}</span>
+                        <span v-if="object.idRef != null">{{ object.idRef }}</span>
                     </td>
                     <td>
-                        <span v-if="object.unitRef">{{ object.unitRef }}</span>
+                        <span v-if="object.unitRef != null">{{ object.unitRef }}</span>
                     </td>
                     <td>
-                        <span v-if="object.metaIdRef">{{ object.metaIdRef }} </span>
+                        <span v-if="object.metaIdRef != null"
+                            >{{ object.metaIdRef }}
+                        </span>
                     </td>
                     <td>
                         <span
                             v-if="
-                                object.referencedElement &&
-                                object.referencedElement.elementId
+                                object.referencedElement != null &&
+                                object.referencedElement.elementId != null
                             "
                             >{{ object.referencedElement.elementId }}</span
                         >

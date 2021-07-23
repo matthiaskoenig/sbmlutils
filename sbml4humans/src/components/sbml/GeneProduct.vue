@@ -1,11 +1,11 @@
 <template>
     <!-- Label -->
-    <div class="data" v-if="info.label">
+    <div class="data" v-if="info.label != null">
         <div class="label"><strong>label:</strong> {{ info.label }}</div>
     </div>
 
     <!-- Associated Species -->
-    <div class="data" v-if="info.associatedSpecies">
+    <div class="data" v-if="info.associatedSpecies != null">
         <div class="label">
             <strong>associatedSpecies:</strong> {{ info.associatedSpecies }}
         </div>
