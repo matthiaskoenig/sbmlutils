@@ -2,19 +2,22 @@
 
 DetailsView:
 - [ ] add JSON button with Icon to show backend JSON for details
-- [ ] ! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
-- [ ] ! sbml: same for tables
+- [ ] PRIORITY 3:! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
+- [ ] PRIORITY 3:! sbml: same for tables
 
 Tables:
-- [ ] layout: hide horizontal scrollbars if not necessary (padding/layout issue)
-- [ ] layout: use datatables: "compact" option and remove grids
+- [ ] PRIORITY 1: layout: hide horizontal scrollbars if not necessary (padding/layout issue)
+- [ ] PRIORITY 2: layout: use datatables: "compact" option and remove grids
+
 - [ ] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
 - [ ] use Table mixin to remove redundant js code in tables
 
-
+ModelSelection
+- checkbox/radio buttons to switch available models; use `title` as explanation; more user friendly/intuitive
 
 SBML information:
-- [.] annotations/notes to SBase detail view
+- [.] annotations/notes to SBase detail view; 
+- [ ] nice rendering of CVTerms as badges: [qualifier][resource][identifier]; which is clickable; split in individual triples
 
 Low priority
 - [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
