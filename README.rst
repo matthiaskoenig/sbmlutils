@@ -56,8 +56,10 @@ Features include among others
 The documentation is available on `https://sbmlutils.readthedocs.io <https://sbmlutils.readthedocs.io>`__. 
 If you have any questions or issues please `open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__.
 
-.. image:: https://img.youtube.com/vi/SxIq8qeXxD0/0.jpg
-   :target: https://www.youtube.com/watch?v=SxIq8qeXxD0?t=1263
+.. image:: docs/presentations/reproducibility_center_2021/screenshot.png
+   :target: https://youtu.be/SxIq8qeXxD0?t=1261
+   :alt: sbmlutils introduction
+   :height: 200px
 
 How to cite
 ===========
