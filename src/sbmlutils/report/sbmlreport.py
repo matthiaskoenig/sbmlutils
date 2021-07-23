@@ -9,9 +9,7 @@ overview over the SBML elements in the model.
 """
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
-
-import libsbml
+from typing import Dict, List
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
@@ -122,8 +120,6 @@ def create_report(
     basename = sbml_path.name
     write_sbml(doc, filepath=output_dir / basename)
 
-    logging.error(f"No model in SBML file when creating model report: {doc}")
-
     # return JSON serialized model info
     model = doc.getModel()
     if model is not None:
@@ -131,5 +127,5 @@ def create_report(
         return model_info.info
     else:
         # no model exists
-        logging.error(f"No model in SBML file when creating model report: {doc}")
+        logger.error(f"No model exists in SBMLDocument, no sbmlreport created.")
         return {}

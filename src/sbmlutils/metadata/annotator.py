@@ -21,6 +21,7 @@ import pandas as pd
 
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
+from ..utils import bcolors
 
 from ..validation import check
 from .miriam import (
@@ -58,6 +59,9 @@ def annotate_sbml(
 
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
+
+    info = bcolors.OKGREEN + f"Model annotated: file://{filepath}" + bcolors.ENDC
+    print(info)
     return doc
 
 

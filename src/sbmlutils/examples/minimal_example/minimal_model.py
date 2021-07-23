@@ -35,6 +35,7 @@ def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
         modules=["sbmlutils.examples.minimal_example.minimal_model"],
+        # annotations=Path(__file__).parent / "minimal_model_annotations.xlsx",
         output_dir=Path(__file__).parent,
         units_consistency=False,
         tmp=tmp,
