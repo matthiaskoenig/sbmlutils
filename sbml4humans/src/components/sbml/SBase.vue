@@ -1,9 +1,9 @@
 <template>
     <!-- CORE -->
     <div class="d-flex justify-content-between">
-        <h1 class="sbmlType px-2 py-1" :style="`background-color: ${color}`">
-            <i :class="`fas fa-${icon} mr-1`"></i> {{ info.sbmlType }}
-        </h1>
+        <div class="sbmlType px-2 py-1" :style="`background-color: ${color}`">
+            <i :class="`fas fa-${icon} mr-1`"></i> <strong>{{ info.sbmlType }}</strong>
+        </div>
         <detail-view-nav></detail-view-nav>
     </div>
     <h2>{{ info.id }} {{ info.name ? "(" + info.name + ")" : "" }}</h2>

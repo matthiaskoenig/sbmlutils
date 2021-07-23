@@ -1,5 +1,5 @@
 <template>
-    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail">
+    <div class="card shadow-sm" v-if="visible" v-on:click="showDetail" title="Show details">
         <div
             class="d-flex px-2 justify-content-between"
             :style="`background-color: ${color}`"

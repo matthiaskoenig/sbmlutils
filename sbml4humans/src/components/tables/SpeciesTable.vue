@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="table table-striped table-sm table-condensed table-hover compact"
             id="collapsibleSpecies"
         >
             <thead class="thead-dark">

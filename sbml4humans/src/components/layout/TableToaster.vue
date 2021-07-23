@@ -1,5 +1,5 @@
 <template>
-    <div class="card shadow-sm" v-if="visible">
+    <div class="card shadow-sm" v-if="visible" :title="'Navigate to ' + sbmlType">
         <div
             class="d-flex justify-content-between px-2"
             :style="`background-color: ${color}`"
@@ -26,6 +26,10 @@ export default defineComponent({
         sbmlType: {
             type: String,
             default: "SBMLDocument",
+        },
+        count: {
+            type: Number,
+            default: 0,
         },
         visible: {
             type: Boolean,

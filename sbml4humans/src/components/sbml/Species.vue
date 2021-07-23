@@ -11,7 +11,7 @@
     </div>
 
     <!-- Initial Amount -->
-    <div class="data" v-if="info.initialAmount">
+    <div class="data" v-if="info.initialAmount != null">
         <div class="label">
             <strong>initialAmount:</strong> {{ info.initialAmount }}
         </div>

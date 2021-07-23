@@ -1,13 +1,17 @@
-## TODO 
-Tables:
-- make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
-- [x] rename in *Table similar to SpeciesTable
-- use Table mixin to remove redundant js code in tables
-- [x] smaller font sizes (see styling in ListOfSpecies)
-- [x] center align the boolean fields
-- [x] add advanced table features: sorting rows; searching content; pagination(for many objects);datatables.js
+## TODO
 
-- [x] icons for different type (e.g. box for compartment; ) use in cross links and headers
+DetailsView:
+- [ ] add JSON button with Icon to show backend JSON for details
+- [ ] ! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
+- [ ] ! sbml: same for tables
+
+Tables:
+- [ ] layout: hide horizontal scrollbars if not necessary (padding/layout issue)
+- [ ] layout: use datatables: "compact" option and remove grids
+- [ ] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
+- [ ] use Table mixin to remove redundant js code in tables
+
+
 
 SBML information:
 - [.] annotations/notes to SBase detail view
@@ -17,10 +21,10 @@ Low priority
 - [ ] include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself
   
 Minor things
-- [x] layout: no line break in example description on firefox
-- [x] layout: use tags for packages and keywords  
-- [ ] layout: better layout of images next to text (about breakpoints)
-
+- [ ] layout: add icon for SBMLDocument
+- [ ] layout: add icon next to Document & models
+- [ ] layout: ensure headings look the same (ListOf and Detail)
+- [ ] layout: Document & models width must be identical to components in toasters
 Math rendering
 - [ ] issues with google chrome
 
