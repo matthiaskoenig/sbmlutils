@@ -26,19 +26,28 @@ GLUCOSE_SBML = MODELS_DIR / "glucose" / "Hepatic_glucose_3.xml"
 
 VDP_SBML = MODELS_DIR / "van_der_pol" / "van_der_pol.xml"
 
-FBC_SBML = MODELS_DIR / "fbc" / "diauxic_fba.xml"
 
 GZ_SBML = MODELS_DIR / "iAT_PLT_636.xml.gz"
 
 REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
-MODEL_DEFINITIONS_SBML = MODELS_DIR / "comp" / "model_definitions_example.xml"
 
-RECON3D_SBML = MODELS_DIR / "bigg" / "Recon3D.xml.gz"
+# fbc
+FBC_ECOLI_CORE_SBML = MODELS_DIR / "fbc" / "e_coli_core.xml.gz"
+FBC_DIAUXIC_GROWTH_SBML = MODELS_DIR / "fbc" / "diauxic_fba.xml"
+FBC_RECON3D_SBML = MODELS_DIR / "fbc" / "Recon3D.xml.gz"
+
+# comp
+COMP_MODEL_DEFINITIONS_SBML = MODELS_DIR / "comp" / "model_definitions_example.xml"
+COMP_ICG_LIVER = MODELS_DIR / "comp" / "icg_liver.xml"
+COMP_ICG_BODY_FLAT = MODELS_DIR / "comp" / "icg_body_flat.xml"
+COMP_ICG_BODY = MODELS_DIR / "comp" / "icg_body.xml"
+
+# distrib
+DISTRIB_DISTRIBUTIONS_SBML = MODELS_DIR / "distrib" / "distributions_example.xml"
+DISTRIB_UNCERTAINTIES_SBML = MODELS_DIR / "distrib" / "uncertainty_example.xml"
+
 
 # Medium Sized Models
-ICG_LIVER = MODELS_DIR / "icg" / "icg_liver.xml"
-ICG_BODY_FLAT = MODELS_DIR / "icg" / "icg_body_flat.xml"
-ICG_BODY = MODELS_DIR / "icg" / "icg_body.xml"  # comp example model
 
 
 TESTSUITE_PATH = DATA_DIR / "testsuite"

@@ -3,7 +3,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <Katex v-bind:mathStr="info.units" />
+            <Katex :mathStr="info.units" />
         </div>
     </div>
 </template>
@@ -32,5 +32,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/Compartment.scss";
+@import "@/assets/styles/scss/SBase.scss";
 </style>

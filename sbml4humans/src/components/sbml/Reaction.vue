@@ -14,20 +14,20 @@
         <div class="label"><strong>listOfReactants:</strong></div>
         <br />
         <div class="ml-4">
-            <ul title="Reactants">
-                <li
-                    v-for="reactant in info.listOfReactants"
-                    v-bind:key="reactant.species"
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="reactant in info.listOfReactants"
+                :key="reactant.species"
+            >
+                <SBMLLink
+                    :pk="'Species:' + reactant.species"
+                    :sbmlType="String('Species')"
+                ></SBMLLink>
+                [<span v-if="reactant.stoichiometry"
+                    >stoichiometry: {{ reactant.stoichiometry }}</span
                 >
-                    <span class="links" v-on:click="openComponent(reactant.species)">{{
-                        reactant.species
-                    }}</span>
-                    [<span v-if="reactant.stoichiometry"
-                        >stoichiometry: {{ reactant.stoichiometry }}</span
-                    >
-                    <span v-if="reactant.constant">, constant</span>]
-                </li>
-            </ul>
+                <span v-if="reactant.constant">, constant</span>]
+            </div>
         </div>
     </div>
 
@@ -36,17 +36,20 @@
         <div class="label"><strong>listOfProducts:</strong></div>
         <br />
         <div class="ml-4">
-            <ul title="Products">
-                <li v-for="product in info.listOfProducts" v-bind:key="product.species">
-                    <span class="links" v-on:click="openComponent(product.species)">{{
-                        product.species
-                    }}</span>
-                    [<span v-if="product.stoichiometry"
-                        >stoichiometry: {{ product.stoichiometry }}</span
-                    >
-                    <span v-if="product.constant">, constant</span>]
-                </li>
-            </ul>
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="product in info.listOfProducts"
+                :key="product.species"
+            >
+                <SBMLLink
+                    :pk="'Species:' + product.species"
+                    :sbmlType="String('Species')"
+                ></SBMLLink>
+                [<span v-if="product.stoichiometry"
+                    >stoichiometry: {{ product.stoichiometry }}</span
+                >
+                <span v-if="product.constant">, constant</span>]
+            </div>
         </div>
     </div>
 
@@ -55,13 +58,16 @@
         <div class="label"><strong>listOfModifiers:</strong></div>
         <br />
         <div class="ml-4">
-            <ul title="Modifiers">
-                <li v-for="modifier in info.listOfModifiers" v-bind:key="modifier">
-                    <span class="links" v-on:click="openComponent(modifier)">{{
-                        modifier
-                    }}</span>
-                </li>
-            </ul>
+            <div
+                class="ml-4 d-flex justify-content-between"
+                v-for="modifier in info.listOfModifiers"
+                :key="modifier"
+            >
+                <SBMLLink
+                    :pk="'Species:' + modifier"
+                    :sbmlType="String('Species')"
+                ></SBMLLink>
+            </div>
         </div>
     </div>
 
@@ -85,26 +91,26 @@
         </div>
         <div class="ml-4">
             <div v-if="info.kineticLaw.math">
-                math: <Katex v-bind:mathStr="info.kineticLaw.math" />
+                math: <Katex :mathStr="info.kineticLaw.math" />
             </div>
             <div v-if="info.kineticLaw.derivedUnits">
-                derivedUnits: <Katex v-bind:mathStr="info.kineticLaw.derivedUnits" />
+                derivedUnits: <Katex :mathStr="info.kineticLaw.derivedUnits" />
             </div>
             <div v-if="info.kineticLaw.listOfLocalParameters">
                 listOfLocalParameters:
                 <ul title="listOfLocalParameters">
                     <li
                         v-for="lpar in info.kineticLaw.listOfLocalParameters"
-                        v-bind:key="lpar.id"
+                        :key="lpar.id"
                     >
                         <div v-if="lpar.id">id: {{ lpar.id }}</div>
                         <div v-if="lpar.value">value: {{ lpar.value }}</div>
                         <div v-if="lpar.units">
-                            units: <katex v-bind:mathStr="lpar.units"></katex>
+                            units: <katex :mathStr="lpar.units"></katex>
                         </div>
                         <div v-if="lpar.derivedUnits">
                             derivedUnits:
-                            <katex v-bind:mathStr="lpar.derivedUnits"></katex>
+                            <katex :mathStr="lpar.derivedUnits"></katex>
                         </div>
                     </li>
                 </ul>
@@ -143,6 +149,7 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
+import SBMLLink from "@/components/layout/SBMLLink.vue";
 
 /**
  * Component to define display of Reaction objects.
@@ -150,6 +157,7 @@ import Katex from "@/components/layout/Katex.vue";
 export default defineComponent({
     components: {
         Katex,
+        SBMLLink,
     },
 
     props: {
@@ -168,5 +176,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/Compartment.scss";
+@import "@/assets/styles/scss/SBase.scss";
 </style>

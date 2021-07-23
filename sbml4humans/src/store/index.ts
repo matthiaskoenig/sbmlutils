@@ -3,8 +3,11 @@ import axios from "axios";
 import router from "@/router";
 
 import BASE_URLS from "@/data/urls";
-import TYPES from "@/data/sbmlComponents";
-import MAPS from "@/data/allSBMLMap";
+import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
+import listOfSBMLTypes from "@/data/listOfSBMLTypes";
+
+const static_alert =
+    "Cannot connect to API in 'static' mode. Switch off 'static' and refresh.";
 
 export default createStore({
     state: {
@@ -13,10 +16,10 @@ export default createStore({
 
         // raw report (complete backend response)
         // contains both SBML report and Debug information
-        rawData: TYPES.RawData,
+        rawData: {},
 
         // final report
-        jsonReport: TYPES.Report,
+        jsonReport: {},
 
         // describe if the file report is still loading (REST endpoint)
         fileLoading: false,
@@ -27,12 +30,19 @@ export default createStore({
         // message to show in loading container
         loadingMessage: "",
 
+        /* For core and comp functionality */
+        currentModel: "",
+
+        detailVisibility: false,
+
         /* For Search and Filter feature */
         visibility: {
             SBMLDocument: true,
             Submodel: true,
             Port: true,
             Model: true,
+            ModelDefinition: true,
+            ExternalModelDefinition: true,
             FunctionDefinition: true,
             UnitDefinition: true,
             Compartment: true,
@@ -49,37 +59,24 @@ export default createStore({
             GeneProduct: true,
         },
 
-        counts: {
-            SBMLDocument: 0,
-            Submodel: 0,
-            Port: 0,
-            Model: 0,
-            FunctionDefinition: 0,
-            UnitDefinition: 0,
-            Compartment: 0,
-            Species: 0,
-            Reaction: 0,
-            Parameter: 0,
-            InitialAssignment: 0,
-            AssignmentRule: 0,
-            RateRule: 0,
-            AlgebraicRule: 0,
-            Objective: 0,
-            Constraint: 0,
-            Event: 0,
-            GeneProduct: 0,
-        },
+        counts: {},
 
         searchQuery: "",
 
         searchedSBasesPKs: new Set(),
 
         /* For Intercomponent Navigation */
-        allObjectsMap: MAPS.objectsMap,
+        allObjectsMap: {},
 
-        componentPKsMap: MAPS.componentsMap,
+        componentPKsMap: {},
+
+        componentWiseLists: {},
 
         historyStack: [],
+
+        stackPointer: 0,
+
+        currentFocussedTable: "",
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -100,8 +97,14 @@ export default createStore({
         SET_LOADING_MESSAGE(state, payload) {
             state.loadingMessage = payload;
         },
+        SET_DETAIL_VISIBILITY(state) {
+            state.detailVisibility = !state.detailVisibility;
+        },
         SET_STATIC(state, payload) {
             window.localStorage.setItem("static", payload);
+        },
+        SET_CURRENT_MODEL(state, payload) {
+            state.currentModel = payload;
         },
         SET_VISIBILITY(state, payload) {
             state.visibility = payload;
@@ -118,44 +121,71 @@ export default createStore({
         SET_COMPONENT_PKS_MAP(state, payload) {
             state.componentPKsMap = payload;
         },
+        SET_COMPONENT_WISE_LISTS(state, payload) {
+            state.componentWiseLists = payload;
+        },
         SET_SEARCHED_SBASES_PKS(state, payload) {
             state.searchedSBasesPKs = payload;
         },
         PUSH_TO_HISTORY_STACK(state, payload) {
             (state.historyStack as Array<string>).push(payload);
+            state.detailVisibility = true;
         },
-        POP_FROM_HISTORY_STACK(state) {
-            state.historyStack.pop();
+        MOVE_STACK_POINTER_BACK(state) {
+            if (state.stackPointer > 0) {
+                state.stackPointer--;
+            }
+        },
+        MOVE_STACK_POINTER_FORWARD(state) {
+            if (state.stackPointer < state.historyStack.length - 1) {
+                state.stackPointer++;
+            }
         },
         CLEAR_HISTORY_STACK(state) {
             state.historyStack = [];
+            state.stackPointer = 0;
+        },
+        SET_CURRENT_FOCUSSED_TABLE(state, payload) {
+            state.currentFocussedTable = payload;
         },
     },
     actions: {
-        initializeReportView(context, payload) {
+        updateCurrentModel(context, payload) {
+            context.commit("SET_CURRENT_MODEL", payload);
+        },
+        initializeReport(context, payload) {
             // dump the raw data fetched from the backend
             context.commit("SET_RAW_DATA", payload.data);
 
             // update the SBML report to be rendered in the frontend
             context.commit("SET_JSON_REPORT", payload.data.report);
 
+            // set the current model to main model in the report by default
+            this.dispatch("updateCurrentModel", payload.data.report.model.pk);
+            this.dispatch("updateCurrentFocussedTable", "");
+
+            INITIALIZATION_HELPERS.assembleSBasesInReport(payload.data.report);
+
             // set the history stack to contain Doc pk by default
-            context.commit("CLEAR_HISTORY_STACK");
-            context.commit("PUSH_TO_HISTORY_STACK", payload.data.report.doc.pk);
+            this.dispatch("initializeHistoryStack", payload.data.report.doc.pk);
+            this.dispatch("toggleDetailVisibility");
 
             // redirect to report view
             router.push("/report");
         },
         pushToHistoryStack(context, payload) {
             context.commit("PUSH_TO_HISTORY_STACK", payload);
-        },
-        popFromHistoryStack(context) {
-            context.commit("POP_FROM_HISTORY_STACK");
+            context.commit("MOVE_STACK_POINTER_FORWARD");
         },
         initializeHistoryStack(context, payload) {
             context.commit("CLEAR_HISTORY_STACK");
-
             this.dispatch("pushToHistoryStack", payload);
+        },
+        moveStackPointerBack(context) {
+            context.commit("MOVE_STACK_POINTER_BACK");
+        },
+        moveStackPointerForward(context) {
+            context.commit("MOVE_STACK_POINTER_FORWARD");
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
@@ -163,9 +193,7 @@ export default createStore({
 
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
-                alert(
-                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch examples."
-                );
+                alert(static_alert);
                 return;
             }
 
@@ -189,9 +217,7 @@ export default createStore({
 
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
-                alert(
-                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this example."
-                );
+                alert(static_alert);
                 return;
             }
 
@@ -204,7 +230,7 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
-                this.dispatch("initializeReportView", res);
+                this.dispatch("initializeReport", res);
             } else {
                 alert("Failed to fetch example report from API");
             }
@@ -215,9 +241,7 @@ export default createStore({
 
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
-                alert(
-                    "Cannot connect to API if Static is selected. Please switch off Static and refresh to fetch report for this file."
-                );
+                alert(static_alert);
                 return;
             }
 
@@ -233,7 +257,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", false);
 
             if (res.status === 200) {
-                this.dispatch("initializeReportView", res);
+                this.dispatch("initializeReport", res);
             } else {
                 alert("Failed to fetch report from API.");
             }
@@ -245,6 +269,9 @@ export default createStore({
         // update the static flag according to the state of the switch on the navbar
         updateStatic(context, payload) {
             context.commit("SET_STATIC", payload);
+        },
+        toggleDetailVisibility(context) {
+            context.commit("SET_DETAIL_VISIBILITY");
         },
         updateVisibility(context, payload) {
             context.commit("SET_VISIBILITY", payload);
@@ -262,9 +289,67 @@ export default createStore({
         updateComponentPKsMap(context, payload) {
             context.commit("SET_COMPONENT_PKS_MAP", payload);
         },
+        updateComponentWiseLists(context, payload) {
+            context.commit("SET_COMPONENT_WISE_LISTS", payload);
+        },
         updateSearchedSBasesPKs(context, payload) {
             context.commit("SET_SEARCHED_SBASES_PKS", payload);
         },
+        updateCurrentFocussedTable(context, payload) {
+            context.commit("SET_CURRENT_FOCUSSED_TABLE", payload);
+        },
     },
     modules: {},
+    getters: {
+        componentPKsMap(state) {
+            return state.componentPKsMap[state.currentModel];
+        },
+        counts(state) {
+            return state.counts[state.currentModel];
+        },
+        reportBasics(state) {
+            const basicComponents: Array<Record<string, unknown>> = [];
+            basicComponents.push(
+                state.allObjectsMap[state.componentWiseLists["SBMLDocument"][0]]
+            );
+
+            const componentPKsMap = state.componentPKsMap;
+            for (const modelPK in componentPKsMap) {
+                basicComponents.push(state.allObjectsMap[modelPK]);
+            }
+
+            return basicComponents;
+        },
+        sbases(state, getters) {
+            const modelComponentsMap = getters.componentPKsMap as Record<
+                string,
+                Array<string>
+            >;
+
+            const sbases: Array<Record<string, unknown>> = [];
+            listOfSBMLTypes.listOfSBMLTypes.forEach((key) => {
+                const componentPKs = modelComponentsMap[key];
+                if (componentPKs) {
+                    componentPKs.forEach((pk) => {
+                        sbases.push(state.allObjectsMap[pk]);
+                    });
+                }
+            });
+            return sbases;
+        },
+        tables(state) {
+            const componentPKsList = {} as Record<string, Array<string>>;
+            listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
+                componentPKsList[sbmlType] = [];
+                for (const modelPK in state.componentPKsMap) {
+                    if (state.componentPKsMap[modelPK][sbmlType]) {
+                        componentPKsList[sbmlType].push(
+                            ...state.componentPKsMap[modelPK][sbmlType]
+                        );
+                    }
+                }
+            });
+            return componentPKsList;
+        },
+    },
 });

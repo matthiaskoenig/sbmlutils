@@ -233,14 +233,14 @@ class SBMLDocumentInfo:
         """Calculate primary key."""
 
         if not hasattr(sbase, "pk"):
-            pk: str
+            pk: str = f"{SBMLDocumentInfo._sbml_type(sbase)}:"
             if sbase.isSetId():
-                pk = sbase.getId()
+                pk += sbase.getId()
             elif sbase.isSetMetaId():
-                pk = sbase.getMetaId()
+                pk += sbase.getMetaId()
             else:
                 xml = sbase.toSBML()
-                pk = SBMLDocumentInfo._uuid(xml)
+                pk += SBMLDocumentInfo._uuid(xml)
             sbase.pk = pk
 
         return pk
@@ -249,9 +249,9 @@ class SBMLDocumentInfo:
     def _uuid(xml: str) -> str:
         """Generate unique identifier.
 
-        Sha256 digest of the identifier (mostly the xml string).
+        SHA1 digest of the identifier (mostly the xml string).
         """
-        return str(hashlib.sha256(xml.encode("utf-8")).digest())
+        return str(hashlib.sha1(xml.encode("utf-8")).hexdigest())
 
     @classmethod
     def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:
@@ -1163,20 +1163,26 @@ if __name__ == "__main__":
 
     print("-" * 80)
     from sbmlutils.test import (
-        ICG_BODY,
-        ICG_BODY_FLAT,
-        ICG_LIVER,
-        MODEL_DEFINITIONS_SBML,
-        RECON3D_SBML,
+        COMP_ICG_BODY,
+        COMP_ICG_BODY_FLAT,
+        COMP_ICG_LIVER,
+        COMP_MODEL_DEFINITIONS_SBML,
+        DISTRIB_DISTRIBUTIONS_SBML,
+        DISTRIB_UNCERTAINTIES_SBML,
+        FBC_ECOLI_CORE_SBML,
+        FBC_RECON3D_SBML,
         REPRESSILATOR_SBML,
     )
 
     for source in [
-        ICG_BODY,
-        # ICG_LIVER,
-        # ICG_BODY_FLAT,
-        MODEL_DEFINITIONS_SBML,
-        # RECON3D_SBML,
+        # COMP_ICG_BODY,
+        # COMP_ICG_BODY_FLAT,
+        # COMP_ICG_LIVER,
+        # COMP_MODEL_DEFINITIONS_SBML,
+        # FBC_RECON3D_SBML,
+        # FBC_ECOLI_CORE_SBML,
+        DISTRIB_DISTRIBUTIONS_SBML,
+        # DISTRIB_UNCERTAINTIES_SBML,
         # REPRESSILATOR_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)

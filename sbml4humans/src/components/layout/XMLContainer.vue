@@ -2,11 +2,11 @@
     <div class="xml-container">
         <div
             v-on:click="visible = !visible"
-            :title="!visible ? 'Hide SBML' : 'Show SBML'"
+            :title="visible ? 'Hide SBML' : 'Show SBML'"
         >
-            <i v-bind:class="`fa fa-${!visible ? 'minus' : 'plus'}-circle`"></i>
+            <i :class="`fa fa-${visible ? 'minus' : 'plus'}-circle`"></i>
         </div>
-        <pre v-if="!visible" ref="xmlContent" class="xml-text">
+        <pre v-if="visible" ref="xmlContent" class="xml-text">
             {{ formattedXML }}
         </pre>
     </div>
@@ -32,7 +32,7 @@ export default defineComponent({
         return {
             visible: {
                 type: Boolean,
-                default: false,
+                default: true,
             },
         };
     },
@@ -61,5 +61,25 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/XMLContainer.scss";
+pre {
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+}
+
+.xml-container {
+    margin-top: 2%;
+    display: flex;
+    flex-direction: row;
+}
+
+.xml-text {
+    margin-top: 2%;
+    overflow-y: scroll;
+
+    font-family: "Courier New", Courier, monospace;
+    font-size: small;
+}
 </style>

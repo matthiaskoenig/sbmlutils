@@ -1,10 +1,12 @@
 <template>
-    <div class="search">
+    <div class="d-flex w-100">
+        <i class="fa fa-search mx-2 mt-1" style="color: black"></i>
         <input
             class="form-control"
             type="text"
-            placeholder="&nbsp; &#128270; &nbsp; Search for an SBML Component"
+            placeholder="Search in SBML"
             @input="updateSearchQuery"
+            style="font-size: small"
         />
     </div>
 </template>
@@ -29,6 +31,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/Search.scss";
-</style>
+<style lang="scss" scoped></style>

@@ -1,12 +1,13 @@
 <template>
     <div class="detail-container">
-        <sbase v-bind:info="info"></sbase>
+        <detail-view-nav></detail-view-nav>
+        <sbase :info="info"></sbase>
         <component-specific-details
-            v-bind:info="info"
-            v-bind:sbmlType="info.sbmlType"
+            :info="info"
+            :sbmlType="info.sbmlType"
         ></component-specific-details>
         <!-- XML container -->
-        <xml-container v-if="info.xml" v-bind:xml="info.xml"></xml-container>
+        <xml-container v-if="info.xml" :xml="info.xml"></xml-container>
     </div>
 </template>
 
@@ -18,6 +19,7 @@ import { defineComponent } from "@vue/runtime-core";
 import SBase from "@/components/sbml/SBase.vue";
 import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetails.vue";
 import XMLContainer from "@/components/layout/XMLContainer.vue";
+import DetailViewNav from "@/components/layout/DetailViewNav.vue";
 
 /*
  * Component to display detailed information about the selected SBML Component.
@@ -27,6 +29,7 @@ export default defineComponent({
         sbase: SBase,
         "component-specific-details": ComponentSpecificDetails,
         "xml-container": XMLContainer,
+        "detail-view-nav": DetailViewNav,
     },
 
     computed: {
@@ -34,16 +37,30 @@ export default defineComponent({
          * Reactively returns the detailInfo from Vuex state/localStorage.
          */
         info(): Record<string, unknown> {
-            const currentStackTopPK = store.state.historyStack[store.state.historyStack.length - 1];
-
-            const detailInfo = store.state.allObjectsMap[currentStackTopPK];
+            const detailInfo =
+                store.state.allObjectsMap[
+                    store.state.historyStack[store.state.stackPointer]
+                ];
 
             return detailInfo;
+        },
+
+        visibility(): boolean {
+            return store.state.detailVisibility;
         },
     },
 });
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/DetailContainer.scss";
+.detail-container {
+    height: 85vh;
+    padding: 0px 15px;
+
+    word-wrap: break-word;
+    overflow-y: scroll;
+    overflow-x: scroll;
+
+    background-color: white;
+}
 </style>

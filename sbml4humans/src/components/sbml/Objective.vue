@@ -12,7 +12,7 @@
             <ul title="Flux Objectives">
                 <li
                     v-for="fluxObjective in info.fluxObjectives"
-                    v-bind:key="fluxObjective.reaction"
+                    :key="fluxObjective.reaction"
                 >
                     <div v-if="fluxObjective.reaction">
                         {{ fluxObjective.reaction }}
@@ -49,5 +49,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/Compartment.scss";
+@import "@/assets/styles/scss/SBase.scss";
 </style>

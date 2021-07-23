@@ -87,7 +87,6 @@ species: List[Species] = [
 ]
 
 reactions = [
-
     Reaction(
         sid="HEX1SYNTHESIS",
         name="hexokinase synthesis",
@@ -96,7 +95,9 @@ reactions = [
         sboTerm=SBO_BIOCHEMICAL_REACTION,
         pars=[
             Parameter(
-                sid="HEX1SYNTHESIS_k", value=1.0, unit=UNIT_mmole_per_min,
+                sid="HEX1SYNTHESIS_k",
+                value=1.0,
+                unit=UNIT_mmole_per_min,
                 sboTerm=SBO_MAXIMAL_VELOCITY,
             ),
         ],
@@ -113,14 +114,17 @@ reactions = [
         sboTerm=SBO_BIOCHEMICAL_REACTION,
         pars=[
             Parameter(
-                sid="HEX1_Vmax", value=1.0, unit=UNIT_mmole_per_min,
+                sid="HEX1_Vmax",
+                value=1.0,
+                unit=UNIT_mmole_per_min,
                 sboTerm=SBO_MAXIMAL_VELOCITY,
             ),
             Parameter(
-                sid="HEX1_Km_glc", value=0.1, unit=UNIT_mM,
+                sid="HEX1_Km_glc",
+                value=0.1,
+                unit=UNIT_mM,
                 sboTerm=SBO_MICHAELIS_CONSTANT,
             ),
-
         ],
         formula=(
             "HEX1_Vmax * hex1 * glc/(HEX1_Km_glc + glc)",

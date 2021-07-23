@@ -1,28 +1,41 @@
 <template>
-    <div class="card shadow-sm" v-on:click="getExample()">
+    <div
+        class="card shadow-sm"
+        v-on:click="getExample()"
+        title="Click to create report for example"
+    >
         <div
-            class="tag d-flex justify-content-between"
-            v-bind:style="`background-color: ${color}`"
+            class="d-flex px-2 justify-content-between"
+            style="background-color: #66c2a5"
         >
-            <div class="left-text">
-                <strong>{{ sbmlType }}</strong>
+            <div>
+                <i class="far fa-file-code mr-2" style="color: black" />
+                <strong>{{ example.id }}</strong>
             </div>
         </div>
-        <div class="card-body">
-            <h6 class="card-subtitle d-flex justify-content-between">
-                <div class="name" v-if="info.name">Name: {{ info.name }}</div>
-                <div class="sbo" v-if="info.sbo">{{ info.sbo }}</div>
-            </h6>
-            <div class="meta d-flex justify-content-between text-primary">
-                <div v-if="info.metaId">Meta ID: {{ info.metaId }}</div>
-                <div v-if="info.id">SID: {{ info.id }}</div>
+        <div class="px-2">
+            <div><span class="text-primary">name</span>: {{ example.name }}</div>
+            <div>
+                <span class="text-primary">description</span>: {{ example.description }}
+            </div>
+            <div v-if="example.packages.length">
+                <span class="text-primary">packages</span>:
+                <span
+                    v-for="pkg in example.packages"
+                    :key="pkg"
+                    :class="`badge badge-pill badge-${badgeColor[pkg]} mr-1`"
+                    >{{ pkg }}</span
+                >
+            </div>
+            <div>
+                <span class="text-primary">keywords</span>:
+                {{ example.keywords.join(",") }}
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import colors from "@/data/colorScheme";
 import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "vue";
@@ -32,11 +45,7 @@ import { defineComponent } from "vue";
  */
 export default defineComponent({
     props: {
-        sbmlType: {
-            type: String,
-            default: "Model",
-        },
-        info: {
+        example: {
             type: Object,
             default: TYPES.Model,
         },
@@ -48,17 +57,19 @@ export default defineComponent({
                 type: String,
                 default: "#FFFFFF",
             },
+
+            badgeColor: {
+                distrib: "info",
+                comp: "warning",
+                fbc: "primary",
+                groups: "success",
+            },
         };
     },
-
-    mounted(): void {
-        this.color = colors.componentColor[this.sbmlType];
-    },
-
     methods: {
         getExample(): void {
             const payload = {
-                exampleId: this.info.fetchId,
+                exampleId: this.example.id,
             };
 
             store.dispatch("fetchExampleReport", payload);
@@ -68,5 +79,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/Example.scss";
+@import "@/assets/styles/scss/Toaster.scss";
 </style>

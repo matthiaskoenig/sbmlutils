@@ -1,5 +1,5 @@
 <template>
-    <div class="search-filter-container">
+    <div class="search-filter-container d-flex w-50 mx-auto">
         <search-component></search-component>
         <filter-component></filter-component>
     </div>
@@ -23,6 +23,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/SearchAndFilter.scss";
-</style>
+<style lang="scss" scoped></style>

@@ -13,14 +13,17 @@
 
     <!-- Constant -->
     <div class="data" v-if="info.constant">
-        <div class="label"><strong>constant:</strong> {{ info.constant }}</div>
+        <div class="label">
+            <strong>constant:</strong
+            ><boolean-symbol :value="info.constant"></boolean-symbol>
+        </div>
     </div>
 
     <!-- Units -->
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <katex v-bind:mathStr="info.units"></katex>
+            <katex :mathStr="info.units"></katex>
         </div>
     </div>
 
@@ -28,7 +31,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex v-bind:mathStr="info.derivedUnits"></katex>
+            <katex :mathStr="info.derivedUnits"></katex>
         </div>
     </div>
 
@@ -41,40 +44,26 @@
     </div>
 
     <!-- List of Related Species -->
-    <div class="data" v-if="info.species">
+    <div class="data w-100" v-if="info.species">
         <div class="label">
             <strong>relatedSpecies:</strong>
         </div>
-        <div class="ml-4">
-            <ul title="List of Related Species">
-                <li
-                    v-for="species in info.species"
-                    v-bind:key="species"
-                    class="links"
-                    v-on:click="openComponent(species)"
-                >
-                    {{ species }}
-                </li>
-            </ul>
+        <div class="ml-4 tag-list">
+            <div v-for="species in info.species" :key="species">
+                <SBMLLink :pk="species" :sbmlType="String('Species')"></SBMLLink>
+            </div>
         </div>
     </div>
 
     <!-- List of Related Reactions -->
-    <div class="data" v-if="info.reaction">
+    <div class="data w-100" v-if="info.reaction">
         <div class="label">
             <strong>relatedReactions:</strong>
         </div>
-        <div class="ml-4">
-            <ul title="List of Related Reactions">
-                <li
-                    v-for="reaction in info.reactions"
-                    v-bind:key="reaction"
-                    class="links"
-                    v-on:click="openComponent(reaction)"
-                >
-                    {{ reaction }}
-                </li>
-            </ul>
+        <div class="ml-4 tag-list">
+            <div v-for="reaction in info.reaction" :key="reaction">
+                <SBMLLink :pk="reaction" :sbmlType="String('Reaction')"></SBMLLink>
+            </div>
         </div>
     </div>
 </template>
@@ -85,6 +74,8 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
+import SBMLLink from "@/components/layout/SBMLLink.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 /**
  * Component to define display of Compartment objects.
@@ -92,6 +83,8 @@ import Katex from "@/components/layout/Katex.vue";
 export default defineComponent({
     components: {
         katex: Katex,
+        SBMLLink: SBMLLink,
+        "boolean-symbol": BooleanSymbol,
     },
 
     props: {
@@ -110,5 +103,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/Compartment.scss";
+@import "@/assets/styles/scss/SBase.scss";
+
+.tag-list {
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+}
 </style>

@@ -1,25 +1,21 @@
 <template>
-    <div class="container">
+    <div style="width: 85%">
         <h1>Upload SBML</h1>
         <form class="needs-validation" @submit.prevent="submitForm">
-            <div class="form-row">
-                <div class="col-md-12 mb-3">
-                    <input
-                        type="file"
-                        ref="fileField"
-                        class="form-control"
-                        v-on:change="handleFileUpload()"
-                        required
-                        title="Click to browse and upload a file from your device"
-                    />
-                    <div class="invalid-tooltip">
-                        Upload a valid SBML file or COMBINE archive containing SBML
-                    </div>
-                </div>
+            <div class="form-group d-flex">
+                <input
+                    type="file"
+                    ref="fileField"
+                    class="form-control mr-2"
+                    v-on:change="handleFileUpload()"
+                    required
+                    title="Click to browse and upload a file from your device"
+                />
+                <button class="btn btn-info" type="submit">Submit</button>
             </div>
-            <button class="btn btn-info w-25" type="submit" style="border-radius: 25px">
-                Submit
-            </button>
+            <div class="invalid-tooltip">
+                Upload a valid SBML file or COMBINE archive containing SBML
+            </div>
         </form>
         <loading parent="file"></loading>
     </div>
@@ -83,6 +79,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@import "@/assets/styles/scss/components/layout/FileUpload.scss";
-</style>
+<style lang="scss" scoped></style>

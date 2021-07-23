@@ -13,18 +13,18 @@ from sbmlutils.fbc.cobra import (
 )
 from sbmlutils.fbc.fbc import add_default_flux_bounds
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.test import DEMO_SBML, FBC_SBML
+from sbmlutils.test import DEMO_SBML, FBC_DIAUXIC_GROWTH_SBML
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_load_cobra_model() -> None:
-    model = read_cobra_model(FBC_SBML)
+    model = read_cobra_model(FBC_DIAUXIC_GROWTH_SBML)
     assert model
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_reaction_info() -> None:
-    cobra_model = read_cobra_model(FBC_SBML)
+    cobra_model = read_cobra_model(FBC_DIAUXIC_GROWTH_SBML)
     df = cobra_reaction_info(cobra_model)
     assert df is not None
 

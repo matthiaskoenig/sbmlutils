@@ -9,7 +9,6 @@ from sbmlutils.examples import (
     assignment,
     boundary_condition1,
     boundary_condition2,
-    core1,
     core2,
     distrib_comp,
     distrib_distributions,
@@ -25,6 +24,14 @@ from sbmlutils.examples import (
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory
+from sbmlutils.examples.minimal_example import (
+    comp_model,
+    full_model,
+    linear_chain,
+    minimal_model,
+    model_composition,
+    random_network,
+)
 from sbmlutils.examples.tiny_model import factory as tiny_factory
 
 
@@ -33,7 +40,12 @@ testdata = [
     amount_species,
     boundary_condition1,
     boundary_condition2,
-    core1,
+    minimal_model,
+    comp_model,
+    random_network,
+    full_model,
+    model_composition,
+    linear_chain,
     core2,
     dallaman_factory,
     assignment,

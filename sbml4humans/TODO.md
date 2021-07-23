@@ -1,36 +1,36 @@
-## TODO 
-- [x] make loading report component (modal); use in Upload & Examples
-- [x] define global styles for components to make large containers look consistent 
-     (heading sizes, color scheme used for page)
-- [x] include fontawesome icons: https://fontawesome.com/v6.0/; plus/minus icon for XML
-- [x] color code DetailView with sbmlType color (mapping: sbmlType: color)  
-- [x] add SId and Name to title of components: `<strong>UnitDefinition</strong> time (minute)`
-- [.] make the scss imports work (should be clickable in idea frontend; perhaps use `src` on style) -- still not working :/
-- [x] hide scrollbars if not needed
-- [.] add cvterms & annotations to SBase Detail view --- annotation left
-- [x] Fix Species in for loop
+## TODO
 
+DetailsView:
+- [ ] add JSON button with Icon to show backend JSON for details
+- [ ] ! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
+- [ ] ! sbml: same for tables
+
+Tables:
+- [ ] layout: hide horizontal scrollbars if not necessary (padding/layout issue)
+- [ ] layout: use datatables: "compact" option and remove grids
+- [ ] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
+- [ ] use Table mixin to remove redundant js code in tables
+
+
+
+SBML information:
+- [.] annotations/notes to SBase detail view
+
+Low priority
+- [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
+- [ ] include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself
+  
+Minor things
+- [ ] layout: add icon for SBMLDocument
+- [ ] layout: add icon next to Document & models
+- [ ] layout: ensure headings look the same (ListOf and Detail)
+- [ ] layout: Document & models width must be identical to components in toasters
 Math rendering
 - [ ] issues with google chrome
-- [x] reactions: kineticLaw Math
-
-Intercomponent navigation
-- [x] intercomponent links: Species -> compartments; Reaction: -> Species
-- [x] back/forward navigation for via stack of ids;
-- [x] add models on SBMLDocument Details views for easy access/entry point (just links not green boxes)
 
 Filter
-- [x] move search (always visible) & filter to navigation bar (collapsable)
 - [.] more robust handling of state --- not migrating to localStorage for testing purposes
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
-
-Improve generated latex (backend, MK)
-- [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
-    - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
-- [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
-
-Add intercomponent-links in JSON (MK):
-- [ ] in processing JSON links have to be generated (backend); `links`: {'reactants': [pk1, pk2, ..], ..., parameters: [pk10, pk12], ...} 
 
 ## List of existing problems:
 - [] Unit math strings are not longer coming from backend
@@ -41,8 +41,11 @@ Add intercomponent-links in JSON (MK):
 - [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
     - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
     - no solution for now -> switching to elasticsearch based on JSON in future
+    
+# MK:
+- [ ] Support of combine archives & resolve external model definitions
 
-## Things to ask:
-- [ ] how to store and display the components for model defintions and external model definitions
-- [ ] do we need a forward button as well in the detail nav bar 
-- [ ] how to handle multiple occurences of the same component in the detail nav bar
+Improve generated latex (backend, MK)
+- [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
+    - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
+- [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)

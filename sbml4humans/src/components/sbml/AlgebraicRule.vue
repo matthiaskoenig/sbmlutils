@@ -16,7 +16,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex v-bind:mathStr="info.derivedUnits"></katex>
+            <katex :mathStr="info.derivedUnits"></katex>
         </div>
     </div>
 </template>
@@ -32,5 +32,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/Compartment.scss";
+@import "@/assets/styles/scss/SBase.scss";
 </style>

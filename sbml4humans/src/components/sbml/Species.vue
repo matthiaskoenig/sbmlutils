@@ -1,11 +1,17 @@
 <template>
     <!-- Compartment -->
     <div class="data" v-if="info.compartment">
-        <div class="label"><strong>compartment:</strong> {{ info.compartment }}</div>
+        <div class="label"><strong>compartment: </strong></div>
+        <div class="ml-3">
+            <SBMLLink
+                :pk="'Compartment:' + info.compartment"
+                :sbmlType="String('Compartment')"
+            ></SBMLLink>
+        </div>
     </div>
 
     <!-- Initial Amount -->
-    <div class="data" v-if="info.initialAmount">
+    <div class="data" v-if="info.initialAmount != null">
         <div class="label">
             <strong>initialAmount:</strong> {{ info.initialAmount }}
         </div>
@@ -48,7 +54,7 @@
     <div class="data" v-if="info.units">
         <div class="label">
             <strong>units:</strong>
-            <Katex v-bind:mathStr="info.units" />
+            <Katex :mathStr="info.units" />
         </div>
     </div>
 
@@ -56,7 +62,7 @@
     <div class="data" v-if="info.derivedUnits">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <Katex v-bind:mathStr="info.derivedUnits" />
+            <Katex :mathStr="info.derivedUnits" />
         </div>
     </div>
 
@@ -109,60 +115,49 @@
         </div>
     </div>
 
-    <!-- List of Reactant Reactions -->
-    <div class="data" v-if="info.reactant">
-        <div class="label">
-            <strong>reactantIn:</strong>
-        </div>
-        <div class="ml-4">
-            <ul title="List of Reactions in which species is Reactant">
-                <li
+    <div class="row col-12">
+        <!-- List of Reactant Reactions -->
+        <div class="col-sm-4 data" v-if="info.reactant && info.reactant.length">
+            <div class="label">
+                <strong>reactant:</strong>
+            </div>
+            <div class="ml-4">
+                <SBMLLink
                     v-for="reactant in info.reactant"
-                    v-bind:key="reactant"
-                    class="links"
-                    v-on:click="openComponent(reactant)"
-                >
-                    {{ reactant }}
-                </li>
-            </ul>
+                    :key="reactant"
+                    :pk="reactant"
+                    :sbmlType="String('Reaction')"
+                ></SBMLLink>
+            </div>
         </div>
-    </div>
-
-    <!-- List of Product Reactions -->
-    <div class="data" v-if="info.product">
-        <div class="label">
-            <strong>productIn:</strong>
-        </div>
-        <div class="ml-4">
-            <ul title="List of Reactions in which species is Product">
-                <li
+        <!-- List of Product Reactions -->
+        <div class="col-sm-4 data" v-if="info.product && info.product.length">
+            <div class="label">
+                <strong>product:</strong>
+            </div>
+            <div class="ml-4">
+                <SBMLLink
                     v-for="product in info.product"
-                    v-bind:key="product"
-                    class="links"
-                    v-on:click="openComponent(product)"
-                >
-                    {{ product }}
-                </li>
-            </ul>
+                    :key="product"
+                    :pk="product"
+                    :sbmlType="String('Reaction')"
+                ></SBMLLink>
+            </div>
         </div>
-    </div>
 
-    <!-- List of Modifier Reactions -->
-    <div class="data" v-if="info.modifier">
-        <div class="label">
-            <strong>modifierIn:</strong>
-        </div>
-        <div class="ml-4">
-            <ul title="List of Reactions in which species is Modifier">
-                <li
+        <!-- List of Modifier Reactions -->
+        <div class="col-sm-4 data" v-if="info.modifier && info.modifier.length">
+            <div class="label">
+                <strong>modifier:</strong>
+            </div>
+            <div class="ml-4">
+                <SBMLLink
                     v-for="modifier in info.modifier"
-                    v-bind:key="modifier"
-                    class="links"
-                    v-on:click="openComponent(modifier)"
-                >
-                    {{ modifier }}
-                </li>
-            </ul>
+                    :key="modifier"
+                    :pk="modifier"
+                    :sbmlType="String('Reaction')"
+                ></SBMLLink>
+            </div>
         </div>
     </div>
 </template>
@@ -172,6 +167,7 @@ import store from "@/store/index";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
+import SBMLLink from "@/components/layout/SBMLLink.vue";
 import Katex from "@/components/layout/Katex.vue";
 
 /**
@@ -180,6 +176,7 @@ import Katex from "@/components/layout/Katex.vue";
 export default defineComponent({
     components: {
         Katex,
+        SBMLLink,
     },
 
     props: {
@@ -198,5 +195,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/components/sbml/Species.scss";
+@import "@/assets/styles/scss/SBase.scss";
 </style>
