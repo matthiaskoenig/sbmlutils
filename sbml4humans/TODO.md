@@ -8,7 +8,7 @@ DetailsView:
 Tables:
 - [ ] PRIORITY 1: layout: hide horizontal scrollbars if not necessary (padding/layout issue)
 - [ ] PRIORITY 2: layout: use datatables: "compact" option and remove grids
-
+- [ ] PRIORITY 4: layout make table rows clickable with selecting DetailView
 - [ ] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
 - [ ] use Table mixin to remove redundant js code in tables
 
