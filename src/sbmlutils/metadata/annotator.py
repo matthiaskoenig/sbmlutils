@@ -21,8 +21,8 @@ import pandas as pd
 
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from ..utils import bcolors
 
+from ..utils import bcolors
 from ..validation import check
 from .miriam import (
     BQB,
@@ -361,8 +361,10 @@ class ModelAnnotator:
                     # find the subset of ids matching the pattern
                     pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)  # type: ignore
                     if not pattern_ids:
-                        logger.warning(f"No SBML objects found matching SId annotation "
-                                       f"pattern: '{pattern}'")
+                        logger.warning(
+                            f"No SBML objects found matching SId annotation "
+                            f"pattern: '{pattern}'"
+                        )
                     elements = ModelAnnotator._elements_from_ids(
                         self.model, pattern_ids, sbml_type=a.sbml_type
                     )
@@ -479,8 +481,8 @@ class ModelAnnotator:
                     splugin = s.getPlugin("fbc")
                     if splugin is None:
                         logger.error(
-                            f"FbcSpeciesPlugin does not exist, add `packages = ['fbc']`"
-                            f" to model definition."
+                            "FbcSpeciesPlugin does not exist, add `packages = ['fbc']`"
+                            " to model definition."
                         )
                     else:
                         if ex_a.annotation_type == "formula":
@@ -522,8 +524,10 @@ class ModelAnnotator:
                     f"Set biological qualifier: '{sbml_qualifier}'",
                 )
                 if not success:
-                    logger.error(f"Could not set biological qualifier '{qualifier}' "
-                                 f"for '{sbase}'.")
+                    logger.error(
+                        f"Could not set biological qualifier '{qualifier}' "
+                        f"for '{sbase}'."
+                    )
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
@@ -532,8 +536,10 @@ class ModelAnnotator:
                     f"Set model qualifier: '{sbml_qualifier}'",
                 )
                 if not success:
-                    logger.error(f"Could not set model qualifier '{qualifier}' "
-                                 f"for '{sbase}'.")
+                    logger.error(
+                        f"Could not set model qualifier '{qualifier}' "
+                        f"for '{sbase}'."
+                    )
             else:
                 logger.error(f"Unsupported qualifier: '{qualifier}' for '{sbase}'.")
         else:
@@ -555,8 +561,10 @@ class ModelAnnotator:
         success = check(sbase.addCVTerm(cv), f"Add cvterm: '{cv}'.")
 
         if not success:
-            logger.error(f"Annotation RDF for CVTerm '{cv}' could not be written "
-                         f"for '{sbase}'.")
+            logger.error(
+                f"Annotation RDF for CVTerm '{cv}' could not be written "
+                f"for '{sbase}'."
+            )
             logger.error(libsbml.OperationReturnValue_toString(success))
             logger.error(f"{sbase}, {qualifier}, {resource}")
 

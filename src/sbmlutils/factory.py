@@ -927,8 +927,10 @@ class Species(Sbase):
         if (self.charge is not None) or (self.chemicalFormula is not None):
             obj_fbc: libsbml.FbcSpeciesPlugin = obj.getPlugin("fbc")
             if obj_fbc is None:
-                logger.error(f"FbcSpeciesPlugin does not exist, add `packages = ['fbc']` "
-                             f"to model definition.")
+                logger.error(
+                    "FbcSpeciesPlugin does not exist, add `packages = ['fbc']` "
+                    "to model definition."
+                )
             else:
                 if self.charge is not None:
                     obj_fbc.setCharge(int(self.charge))

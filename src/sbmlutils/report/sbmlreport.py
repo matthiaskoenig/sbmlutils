@@ -127,5 +127,5 @@ def create_report(
         return model_info.info
     else:
         # no model exists
-        logger.error(f"No model exists in SBMLDocument, no sbmlreport created.")
+        logger.error("No model exists in SBMLDocument, no sbmlreport created.")
         return {}
