@@ -1,6 +1,6 @@
 <template>
     <!-- Compartment -->
-    <div class="data" v-if="info.compartment">
+    <div class="data" v-if="info.compartment != null">
         <div class="label"><strong>compartment: </strong></div>
         <div class="ml-3">
             <SBMLLink
@@ -18,40 +18,57 @@
     </div>
 
     <!-- Initial Concentration -->
-    <div class="data" v-if="info.initialConcentration">
+    <div class="data" v-if="info.initialConcentration != null">
         <div class="label">
             <strong>initialConcentration:</strong> {{ info.initialConcentration }}
         </div>
     </div>
 
     <!-- Substance Units -->
-    <div class="data" v-if="info.substanceUnits">
+    <div class="data" v-if="info.substanceUnits != null">
         <div class="label">
             <strong>substanceUnits:</strong> {{ info.substanceUnits }}
         </div>
     </div>
 
     <!-- Has Only Substance Units -->
-    <div class="data" v-if="info.hasOnlySubstanceUnits">
+    <div class="data" v-if="info.hasOnlySubstanceUnits != null">
         <div class="label">
-            <strong>hasOnlySubstanceUnits:</strong> {{ info.hasOnlySubstanceUnits }}
+            <strong>hasOnlySubstanceUnits:</strong>
+            <boolean-symbol
+                v-if="info.hasOnlySubstanceUnits === Boolean(true)"
+                :value="info.hasOnlySubstanceUnits"
+            />
+            <boolean-symbol v-else :value="Boolean(false)" />
         </div>
     </div>
 
     <!-- Boundary Condition -->
-    <div class="data" v-if="info.boundaryCondition">
+    <div class="data" v-if="info.boundaryCondition != null">
         <div class="label">
-            <strong>boundaryCondition:</strong> {{ info.boundaryCondition }}
+            <strong>boundaryCondition:</strong>
+            <boolean-symbol
+                v-if="info.boundaryCondition === Boolean(true)"
+                :value="info.boundaryCondition"
+            />
+            <boolean-symbol v-else :value="Boolean(false)" />
         </div>
     </div>
 
     <!-- Constant -->
-    <div class="data" v-if="info.constant">
-        <div class="label"><strong>constant:</strong> {{ info.constant }}</div>
+    <div class="data" v-if="info.constant != null">
+        <div class="label">
+            <strong>constant:</strong>
+            <boolean-symbol
+                v-if="info.constant === Boolean(true)"
+                :value="info.constant"
+            />
+            <boolean-symbol v-else :value="Boolean(false)" />
+        </div>
     </div>
 
     <!-- Units -->
-    <div class="data" v-if="info.units">
+    <div class="data" v-if="info.units != null">
         <div class="label">
             <strong>units:</strong>
             <Katex :mathStr="info.units" />
@@ -59,7 +76,7 @@
     </div>
 
     <!-- Derived Units -->
-    <div class="data" v-if="info.derivedUnits">
+    <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
             <Katex :mathStr="info.derivedUnits" />
@@ -67,7 +84,7 @@
     </div>
 
     <!-- Assignment -->
-    <div class="data" v-if="info.assignment">
+    <div class="data" v-if="info.assignment != null">
         <div class="label">
             <strong>assignment:</strong>
             <span>{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span>
@@ -78,7 +95,7 @@
     <div
         class="data"
         v-if="
-            info.conversionFactor &&
+            info.conversionFactor != null &&
             (info.conversionFactor.sid ||
                 info.conversionFactor.value ||
                 info.conversionFactor.units)
@@ -121,7 +138,7 @@
             <div class="label">
                 <strong>reactant:</strong>
             </div>
-            <div class="ml-4">
+            <div class="ml-0">
                 <SBMLLink
                     v-for="reactant in info.reactant"
                     :key="reactant"
@@ -135,7 +152,7 @@
             <div class="label">
                 <strong>product:</strong>
             </div>
-            <div class="ml-4">
+            <div class="ml-0">
                 <SBMLLink
                     v-for="product in info.product"
                     :key="product"
@@ -150,7 +167,7 @@
             <div class="label">
                 <strong>modifier:</strong>
             </div>
-            <div class="ml-4">
+            <div class="ml-0">
                 <SBMLLink
                     v-for="modifier in info.modifier"
                     :key="modifier"
@@ -169,6 +186,7 @@ import { defineComponent } from "@vue/runtime-core";
 
 import SBMLLink from "@/components/layout/SBMLLink.vue";
 import Katex from "@/components/layout/Katex.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 /**
  * Component to define display of Species objects.
@@ -177,6 +195,7 @@ export default defineComponent({
     components: {
         Katex,
         SBMLLink,
+        BooleanSymbol,
     },
 
     props: {

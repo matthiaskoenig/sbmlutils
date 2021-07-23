@@ -207,6 +207,11 @@ label {
     margin: 15px 5px !important;
 }
 
+.dataTables_wrapper .row {
+    width: 100% !important;
+    padding: 0 0 !important;
+}
+
 .dataTables_filter .form-control {
     display: flex;
     margin: -5px 5px !important;

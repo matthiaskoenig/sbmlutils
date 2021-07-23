@@ -1,11 +1,11 @@
 <template>
     <!-- Variable -->
-    <div class="data" v-if="info.sid">
+    <div class="data" v-if="info.sid != null">
         <div class="label"><strong>variable:</strong> {{ info.sid }}</div>
     </div>
 
     <!-- Math -->
-    <div class="data" v-if="info.math">
+    <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
             <katex :mathStr="info.math"></katex>
@@ -13,7 +13,7 @@
     </div>
 
     <!-- Derived Units -->
-    <div class="data" v-if="info.derivedUnits">
+    <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
             <katex :mathStr="info.derivedUnits"></katex>

@@ -1,16 +1,23 @@
 <template>
     <!-- Value -->
-    <div class="data" v-if="info.value">
+    <div class="data" v-if="info.value != null">
         <div class="label"><strong>value:</strong> {{ info.value }}</div>
     </div>
 
     <!-- Constant -->
-    <div class="data" v-if="info.constant">
-        <div class="label"><strong>constant:</strong> {{ info.constant }}</div>
+    <div class="data" v-if="info.constant != null">
+        <div class="label">
+            <strong>constant:</strong>
+            <boolean-symbol
+                v-if="info.constant === Boolean(true)"
+                :value="info.constant"
+            />
+            <boolean-symbol v-else :value="Boolean(false)" />
+        </div>
     </div>
 
     <!-- Units -->
-    <div class="data" v-if="info.units">
+    <div class="data" v-if="info.units != null">
         <div class="label">
             <strong>units:</strong>
             <Katex :mathStr="info.units" />
@@ -18,7 +25,7 @@
     </div>
 
     <!-- Derived Units -->
-    <div class="data" v-if="info.derivedUnits">
+    <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
             <Katex :mathStr="info.derivedUnits" />
@@ -26,7 +33,7 @@
     </div>
 
     <!-- Assignment -->
-    <div class="data" v-if="info.assignment">
+    <div class="data" v-if="info.assignment != null">
         <div class="label">
             <strong>assignment:</strong>
             <span>{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span>
@@ -39,6 +46,7 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 /**
  * Component to define display of Parameter objects.
@@ -46,6 +54,7 @@ import Katex from "@/components/layout/Katex.vue";
 export default defineComponent({
     components: {
         Katex,
+        BooleanSymbol,
     },
 
     props: {

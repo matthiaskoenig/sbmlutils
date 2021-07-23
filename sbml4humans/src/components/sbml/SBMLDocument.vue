@@ -1,13 +1,13 @@
 <template>
     <!-- Package Information -->
-    <div class="data" v-if="info.packages">
+    <div class="data" v-if="info.packages != null">
         <div class="label">
             <strong>packages: </strong>
-            <div class="ml-4" v-if="info.packages.document">
+            <div class="ml-4" v-if="info.packages.document != null">
                 document: Level {{ info.packages.document.level }} Version
                 {{ info.packages.document.version }}
             </div>
-            <div class="ml-4" v-if="info.packages.plugins">
+            <div class="ml-4" v-if="info.packages.plugins != null">
                 plugins:
                 <ul class="ml-4" title="List of Plugins">
                     <li

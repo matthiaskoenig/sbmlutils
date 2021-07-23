@@ -1,6 +1,6 @@
 <template>
     <!-- Use Values From Trigger Time -->
-    <div class="data" v-if="info.useValuesFromTriggerTime">
+    <div class="data" v-if="info.useValuesFromTriggerTime != null">
         <div class="label">
             <strong>useValuesFromTriggerTime:</strong>
             {{ info.useValuesFromTriggerTime }}
@@ -8,18 +8,18 @@
     </div>
 
     <!-- Trigger -->
-    <div class="data" v-if="info.trigger">
+    <div class="data" v-if="info.trigger != null">
         <div class="label">
             <strong>trigger:</strong>
             <div class="ml-4">
-                <div v-if="info.trigger.math">
+                <div v-if="info.trigger.math != null">
                     math:
                     <katex :mathStr="info.trigger.math"></katex>
                 </div>
-                <div v-if="info.trigger.initialValue">
+                <div v-if="info.trigger.initialValue != null">
                     initialValue: {{ info.trigger.initialValue }}
                 </div>
-                <div v-if="info.trigger.peristent">
+                <div v-if="info.trigger.peristent != null">
                     persistent: {{ info.trigger.peristent }}
                 </div>
             </div>
@@ -27,7 +27,7 @@
     </div>
 
     <!-- Priority -->
-    <div class="data" v-if="info.priority">
+    <div class="data" v-if="info.priority != null">
         <div class="label">
             <strong>priority:</strong>
             <katex :mathStr="info.priority"></katex>
@@ -35,7 +35,7 @@
     </div>
 
     <!-- Delay -->
-    <div class="data" v-if="info.delay">
+    <div class="data" v-if="info.delay != null">
         <div class="label">
             <strong>delay:</strong>
             <katex :mathStr="info.delay"></katex>
@@ -43,7 +43,13 @@
     </div>
 
     <!-- List of Event Assignments -->
-    <div class="data" v-if="info.listOfEventAssignments.length > 0">
+    <div
+        class="data"
+        v-if="
+            info.listOfEventAssignments != null &&
+            info.listOfEventAssignments.length > 0
+        "
+    >
         <div class="label">
             <strong>listOfEventAssignments:</strong>
             <div class="ml-4">

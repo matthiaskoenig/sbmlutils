@@ -8,7 +8,6 @@
         </div>
     -->
 
-
     <a-list class="basics-container">
         <toaster
             v-for="component in collectReportBasics"

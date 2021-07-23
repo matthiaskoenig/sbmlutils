@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleEvent"
         >
             <thead class="thead-dark">
@@ -27,45 +27,53 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object">
+                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
                     <td>
                         <span
-                            v-if="object.id"
-                            class="links"
-                            v-on:click="openComponent(object.pk)"
+                            v-if="object.id != null"
                             >{{ object.id }}</span
                         >
                     </td>
                     <td>
-                        <span v-if="object.name">{{ object.name }}</span>
+                        <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.useValuesFromTriggerTime">{{
+                        <span v-if="object.useValuesFromTriggerTime != null">{{
                             object.useValuesFromTriggerTime
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.trigger && object.trigger.math">
+                        <span
+                            v-if="object.trigger != null && object.trigger.math != null"
+                        >
                             <katex :mathStr="object.trigger.math"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.trigger && object.trigger.initialValue">{{
-                            object.trigger.initialValue
-                        }}</span>
+                        <span
+                            v-if="
+                                object.trigger != null &&
+                                object.trigger.initialValue != null
+                            "
+                            >{{ object.trigger.initialValue }}</span
+                        >
                     </td>
                     <td>
-                        <span v-if="object.trigger && object.trigger.persistent">{{
-                            object.trigger.persistent
-                        }}</span>
+                        <span
+                            v-if="
+                                object.trigger != null &&
+                                object.trigger.persistent != null
+                            "
+                            >{{ object.trigger.persistent }}</span
+                        >
                     </td>
                     <td>
-                        <span v-if="object.priority">
+                        <span v-if="object.priority != null">
                             <katex :mathStr="object.persistent"></katex>
                         </span>
                     </td>
                     <td>
-                        <span v-if="object.delay">
+                        <span v-if="object.delay != null">
                             <katex :mathStr="object.delay"></katex>
                         </span>
                     </td>
