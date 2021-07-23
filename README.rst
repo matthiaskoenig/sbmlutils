@@ -56,6 +56,8 @@ Features include among others
 The documentation is available on `https://sbmlutils.readthedocs.io <https://sbmlutils.readthedocs.io>`__. 
 If you have any questions or issues please `open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__.
 
+[![sbmlutils introduction](https://img.youtube.com/vi/SxIq8qeXxD0/0.jpg)](https://www.youtube.com/watch?v=SxIq8qeXxD0?t=1263)
+https://youtu.be/SxIq8qeXxD0?t=1263
 How to cite
 ===========
 .. image:: https://zenodo.org/badge/55952847.svg
