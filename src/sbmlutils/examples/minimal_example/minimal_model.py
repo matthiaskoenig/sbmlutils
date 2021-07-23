@@ -14,6 +14,7 @@ from sbmlutils.units import *
 
 
 # -------------------------------------------------------------------------------------
+# packages: List[str] = ['fbc']
 mid: str = "minimal_model"
 compartments: List[Compartment] = [
     Compartment(sid="cell", value=1.0, port=True),

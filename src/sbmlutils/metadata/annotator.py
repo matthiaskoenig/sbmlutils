@@ -553,7 +553,7 @@ class ModelAnnotator:
             sbase.setMetaId(utils.create_metaid(sbase))
 
         success = check(sbase.addCVTerm(cv), f"Add cvterm: '{cv}'.")
-        print("CV: ", cv.getQualifierType())
+        print("CV: ", cv.getQualifierType(), cv.getModelQualifierType(), cv.getBiologicalQualifierType(), cv.getResources())
 
         if not success:
             logger.error(f"Annotation RDF for CVTerm '{cv}' could not be written "

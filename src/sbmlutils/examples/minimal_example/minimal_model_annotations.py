@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     doc = annotate_sbml(
         source=base_path / "minimal_model.xml",
-        annotations_path=base_path / 'minimal_model_annotations.xlsx',
+        annotations_path=base_path / 'minimal_model_annotations2.xlsx',
         filepath=base_path / 'minimal_model_annotations.xml'
     )
 
