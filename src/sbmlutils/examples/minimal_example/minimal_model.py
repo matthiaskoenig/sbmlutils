@@ -27,7 +27,7 @@ parameters: List[Parameter] = [
     Parameter(sid="k1", value=0.1),
 ]
 reactions: List[Reaction] = [
-    Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S1"),
+    Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S2"),
 ]
 # -------------------------------------------------------------------------------------
 
@@ -45,4 +45,4 @@ def create(tmp: bool = False) -> FactoryResult:
 
 if __name__ == "__main__":
     fac_result = create()
-    visualize_sbml(sbml_path=fac_result.sbml_path, delete_session=False)
+    visualize_sbml(sbml_path=fac_result.sbml_path, delete_session=True)
