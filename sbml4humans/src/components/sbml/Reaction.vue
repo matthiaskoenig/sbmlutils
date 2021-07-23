@@ -1,7 +1,8 @@
 <template>
     <!-- Reversible -->
     <div class="data" v-if="info.reversible != null">
-        <div class="label"><strong>reversible:</strong>
+        <div class="label">
+            <strong>reversible:</strong>
             <boolean-symbol
                 v-if="info.reversible === Boolean(true)"
                 :value="info.reversible"
@@ -23,11 +24,7 @@
         <div class="label"><strong>listOfReactants:</strong></div>
         <br />
         <div class="ml-4">
-            <div
-                class="ml-4 d-flex justify-content-between"
-                v-for="reactant in info.listOfReactants"
-                :key="reactant.species"
-            >
+            <div v-for="reactant in info.listOfReactants" :key="reactant.species">
                 <SBMLLink
                     :pk="'Species:' + reactant.species"
                     :sbmlType="String('Species')"
@@ -48,11 +45,7 @@
         <div class="label"><strong>listOfProducts:</strong></div>
         <br />
         <div class="ml-4">
-            <div
-                class="ml-4 d-flex justify-content-between"
-                v-for="product in info.listOfProducts"
-                :key="product.species"
-            >
+            <div v-for="product in info.listOfProducts" :key="product.species">
                 <SBMLLink
                     :pk="'Species:' + product.species"
                     :sbmlType="String('Species')"
@@ -74,7 +67,7 @@
         <br />
         <div class="ml-4">
             <div
-                class="ml-4 d-flex justify-content-between"
+                class="d-flex"
                 v-for="modifier in info.listOfModifiers"
                 :key="modifier"
             >
