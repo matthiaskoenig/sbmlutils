@@ -48,17 +48,21 @@
     <div class="data" v-if="info.cvterms != null">
         <div class="label"><strong>cvterms:</strong></div>
         <div class="ml-4">
-            <ul title="CVTerms">
-                <li v-for="cvterm in info.cvterms" :key="cvterm.qualifier">
-                    <div>qualifier: {{ cvterm.qualifier }}</div>
-                    <div>resources:</div>
-                    <ul class="ml-4">
-                        <li v-for="resource in cvterm.resources" :key="resource">
-                            <a :href="resource" target="_blank">{{ resource }}</a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+            <div v-for="cvterm in info.cvterms" :key="cvterm.qualifier">
+                <CVTermBadge
+                    v-for="resource in cvterm.resources"
+                    :key="resource"
+                    :qualifier="cvterm.qualifier"
+                    :resource="resource"
+                />
+                <!--<div>qualifier: {{ cvterm.qualifier }}</div>
+                <div>resources:</div>
+                <ul class="ml-4">
+                    <li v-for="resource in cvterm.resources" :key="resource">
+                        <a :href="resource" target="_blank">{{ resource }}</a>
+                    </li>
+                </ul>-->
+            </div>
         </div>
     </div>
 
@@ -139,10 +143,16 @@ import colorScheme from "@/data/colorScheme";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
+import CVTermBadge from "@/components/sbmlmisc/CVTermBadge.vue";
+
 /**
  * Component to define display of SBase information.
  */
 export default defineComponent({
+    components: {
+        CVTermBadge,
+    },
+
     props: {
         info: {
             type: Object,
