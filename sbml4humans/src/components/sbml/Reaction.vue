@@ -132,7 +132,7 @@
 
     <!-- FBC -->
     <div class="data" v-if="info.fbc">
-        <div class="label"><strong>FBC:</strong> {{ info.fbc }}</div>
+        <div class="label"><strong>FBC:</strong></div>
         <div class="ml-4">
             <div v-if="info.fbc.bounds">
                 <div v-if="info.fbc.bounds.lowerFluxBound">
