@@ -2,12 +2,13 @@
     <div class="scrollable">
         <strong
             class="sbmlType"
-            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleModel"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfModels
+
+            <i :class="`fas fa-${icon} mr-1`" :style="`background-color: ${color}`" />
+            ListOfModels
         </strong>
 
         <table

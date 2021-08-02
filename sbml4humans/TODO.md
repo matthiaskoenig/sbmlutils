@@ -1,23 +1,28 @@
 ## TODO
 
-DetailsView:
-- [x] add JSON button with Icon to show backend JSON for details
-- [x] PRIORITY 3:! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
-- [x] PRIORITY 3:! sbml: same for tables
+DetailView:
+- [ ] make table or similar thing (smaller font sizes)
+- [ ] notes/cvterms and additional information at bottom; 
+- [ ] use vue magic (slots/mixins?)
+
+Annotations/Notes:
+- [ ] build a fast api dummy backend endpoint which gives you `resource_info = {term: abcd, name: protein ABC, definition: This is the protein ABC important for ..., synonyms: [protein abc, ABC1B]`} with a time delay (sleep 0.2 s) which you query with resources of cvterms 'urn:miriam:chebi:CHEBI%3A33699'; 
+'https://identifiers.org/CHEBI:33699'
+  
+- [ ] build simple rendering of information in DetailView
+- [ ] build caching layer for resources: {resource: resource_info}; if resource in cache use cache else query; timeouts, cache sizes;
+- [.] annotations/notes to SBase detail view;
+
+Layout:
+- [ ] JSON and XML should be closed on first loading
+- [ ] fix colors in table headings
 
 Tables:
-- [x] PRIORITY 1: layout: hide horizontal scrollbars if not necessary (padding/layout issue)
-- [x] PRIORITY 2: layout: use datatables: "compact" option and remove grids
-- [x] PRIORITY 4: layout make table rows clickable with selecting DetailView
-- [x] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
 - [ ] use Table mixin to remove redundant js code in tables
 
 ModelSelection
-- checkbox/radio buttons to switch available models; use `title` as explanation; more user friendly/intuitive
+- [ ] checkbox/radio buttons to switch available models; use `title` as explanation; more user friendly/intuitive
 
-SBML information:
-- [.] annotations/notes to SBase detail view; 
-- [x] nice rendering of CVTerms as badges: [qualifier][resource][identifier]; which is clickable; split in individual triples
 
 Low priority
 - [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
@@ -36,7 +41,7 @@ Filter
 - [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
 
 ## List of existing problems:
-- [] Unit math strings are not longer coming from backend
+
 - [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)
         - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
         - Solution: => refactor filter (see TODOs above)
@@ -46,9 +51,15 @@ Filter
     - no solution for now -> switching to elasticsearch based on JSON in future
     
 # MK:
-- [ ] Support of combine archives & resolve external model definitions
+## Annotations
+- [ ] refactor backend annotation code into into separate package
 
+## Units
+- [ ] Unit math strings are not longer coming from backend
 Improve generated latex (backend, MK)
 - [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
     - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
+
+## OMEX
+- [ ] Support of combine archives & resolve external model definitions

@@ -9,8 +9,8 @@
             <i :class="`fas fa-${visible ? 'minus' : 'plus'}-circle mt-1 mr-1`"></i>
             <span>XML</span>
         </div>
-        <div>
-            <pre v-if="visible" class="xml-text">
+        <div v-if="visible">
+            <pre class="xml-text">
                 {{ formattedXML }}
             </pre>
         </div>
@@ -36,7 +36,7 @@ export default defineComponent({
         return {
             visible: {
                 type: Boolean,
-                default: true,
+                default: false,
             },
         };
     },

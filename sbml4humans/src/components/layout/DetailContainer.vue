@@ -9,11 +9,12 @@
         <!-- Per SBML Component Information -->
         <component-specific-details :info="info" :sbmlType="info.sbmlType" />
 
+        <!-- JSON data about the SBML Component -->
+        <JSONContainer v-if="info" :json="info" />
+
         <!-- XML Code of the SBML Component -->
         <XMLContainer v-if="info.xml" :xml="info.xml" />
 
-        <!-- JSON data about the SBML Component -->
-        <JSONContainer v-if="info" :json="info" />
     </div>
 </template>
 
