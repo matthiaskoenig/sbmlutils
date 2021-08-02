@@ -1,13 +1,13 @@
 <template>
     <a-list>
-        <toaster
+        <table-toaster
             v-for="(listOfPKs, sbmlType) in collectTables"
             :key="sbmlType"
             :sbmlType="sbmlType"
             :count="listOfPKs.length"
             :visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
             v-on:click="focusTable(sbmlType)"
-        ></toaster>
+        />
     </a-list>
 </template>
 
@@ -21,7 +21,7 @@ import TableToaster from "@/components/layout/TableToaster.vue";
 
 export default defineComponent({
     components: {
-        toaster: TableToaster,
+        TableToaster,
     },
 
     methods: {

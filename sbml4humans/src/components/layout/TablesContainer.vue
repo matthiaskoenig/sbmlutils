@@ -158,8 +158,8 @@ export default defineComponent({
         getListOfTables(): Record<string, Array<string>> {
             let tables: Record<string, Array<string>> = {};
 
-            const componentPKsMap: Record<string, Array<string>> =
-                store.getters.componentPKsMap;
+            const componentPKsMap: Record<string, Array<string>> = store.getters
+                .componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {

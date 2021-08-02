@@ -3,13 +3,10 @@
     <p>Choose from the list of examples to generate a report.</p>
 
     <a-list class="list-container">
-        <example
-            v-for="example in examples"
-            :key="example.id"
-            :example="example"
-        ></example>
+        <example v-for="example in examples" :key="example.id" :example="example" />
     </a-list>
-    <loading parent="example"></loading>
+
+    <loading parent="example" />
 </template>
 
 <script lang="ts">
@@ -25,8 +22,8 @@ import Loading from "@/components/layout/Loading.vue";
  */
 export default defineComponent({
     components: {
-        example: Example,
-        loading: Loading,
+        Example,
+        Loading,
     },
 
     created(): void {

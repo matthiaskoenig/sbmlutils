@@ -27,7 +27,7 @@
     <div class="data" v-if="info.units != null">
         <div class="label">
             <strong>units:</strong>
-            <katex :mathStr="info.units"></katex>
+            <katex :mathStr="info.units" />
         </div>
     </div>
 
@@ -35,7 +35,7 @@
     <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex :mathStr="info.derivedUnits"></katex>
+            <katex :mathStr="info.derivedUnits" />
         </div>
     </div>
 
@@ -54,7 +54,7 @@
         </div>
         <div class="ml-4 tag-list">
             <div v-for="species in info.species" :key="species">
-                <SBMLLink :pk="species" :sbmlType="String('Species')"></SBMLLink>
+                <SBMLLink :pk="species" :sbmlType="String('Species')" />
             </div>
         </div>
     </div>
@@ -66,7 +66,7 @@
         </div>
         <div class="ml-4 tag-list">
             <div v-for="reaction in info.reaction" :key="reaction">
-                <SBMLLink :pk="reaction" :sbmlType="String('Reaction')"></SBMLLink>
+                <SBMLLink :pk="reaction" :sbmlType="String('Reaction')" />
             </div>
         </div>
     </div>
@@ -86,9 +86,9 @@ import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
  */
 export default defineComponent({
     components: {
-        katex: Katex,
-        SBMLLink: SBMLLink,
-        "boolean-symbol": BooleanSymbol,
+        Katex,
+        SBMLLink,
+        BooleanSymbol,
     },
 
     props: {
@@ -108,10 +108,4 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/assets/styles/scss/SBase.scss";
-
-.tag-list {
-    width: auto;
-    display: flex;
-    flex-wrap: wrap;
-}
 </style>

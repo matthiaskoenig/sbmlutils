@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed  compact"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleSpecies"
         >
             <thead class="thead-dark">
@@ -30,11 +30,14 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id"
-                        >
+                        <span v-if="object.id">
                             {{ object.id }}
                         </span>
                     </td>
@@ -62,16 +65,16 @@
                                 v-if="object.hasOnlySubstanceUnits === Boolean(true)"
                                 :value="object.hasOnlySubstanceUnits"
                             />
-                            <boolean-symbol
-                                v-else
-                                :value="Boolean(false)"
-                            />
+                            <boolean-symbol v-else :value="Boolean(false)" />
                         </span>
                     </td>
                     <td class="text-center align-middle">
                         <span v-if="object.boundaryCondition != null">
                             <boolean-symbol
-                                v-if="object.boundaryCondition != null && object.boundaryCondition === Boolean(true)"
+                                v-if="
+                                    object.boundaryCondition != null &&
+                                    object.boundaryCondition === Boolean(true)
+                                "
                                 :value="object.boundaryCondition"
                             />
                             <boolean-symbol v-else :value="Boolean(false)" />
@@ -79,7 +82,10 @@
                     </td>
                     <td class="text-center align-middle">
                         <boolean-symbol
-                            v-if="object.constant != null && object.constant === Boolean(true)"
+                            v-if="
+                                object.constant != null &&
+                                object.constant === Boolean(true)
+                            "
                             :value="object.constant"
                         />
                         <boolean-symbol v-else :value="Boolean(false)" />
@@ -89,7 +95,7 @@
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                     <td>
@@ -117,7 +123,7 @@ import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 // use a mixin to define the reusable parts once;
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     },
 

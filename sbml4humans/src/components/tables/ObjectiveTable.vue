@@ -7,11 +7,11 @@
             href="#collapsibleObjective"
             role="button"
         >
-           <i :class="`fas fa-${icon} mr-1`"></i> ListOfObjectives
+            <i :class="`fas fa-${icon} mr-1`"></i> ListOfObjectives
         </strong>
 
         <table
-            class="table table-striped table-bordered  table-sm table-condensed  compact"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleObjective"
         >
             <thead class="thead-dark">
@@ -22,12 +22,14 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>

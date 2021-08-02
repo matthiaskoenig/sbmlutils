@@ -6,7 +6,7 @@
             <SBMLLink
                 :pk="'Compartment:' + info.compartment"
                 :sbmlType="String('Compartment')"
-            ></SBMLLink>
+            />
         </div>
     </div>
 
@@ -144,7 +144,7 @@
                     :key="reactant"
                     :pk="reactant"
                     :sbmlType="String('Reaction')"
-                ></SBMLLink>
+                />
             </div>
         </div>
         <!-- List of Product Reactions -->
@@ -158,7 +158,7 @@
                     :key="product"
                     :pk="product"
                     :sbmlType="String('Reaction')"
-                ></SBMLLink>
+                />
             </div>
         </div>
 
@@ -173,7 +173,7 @@
                     :key="modifier"
                     :pk="modifier"
                     :sbmlType="String('Reaction')"
-                ></SBMLLink>
+                />
             </div>
         </div>
     </div>

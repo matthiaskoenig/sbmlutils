@@ -2,31 +2,31 @@
     <div class="xml-container">
         <div
             v-on:click="visible = !visible"
-            :title="visible ? 'Hide SBML' : 'Show SBML'"
+            :title="visible ? 'Hide JSON' : 'Show JSON'"
             class="d-flex"
             style="cursor: pointer"
         >
             <i :class="`fas fa-${visible ? 'minus' : 'plus'}-circle mt-1 mr-1`"></i>
-            <span>XML</span>
+            <span>JSON</span>
         </div>
         <div>
             <pre v-if="visible" class="xml-text">
-                {{ formattedXML }}
+                {{ json }}
             </pre>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import xmlFormatter from "xml-formatter";
+import store from "@/store/index";
 import { defineComponent } from "vue";
 
 /**
- * Component for rendering XML/SBML.
+ * Component for rendering JSON/SBML.
  */
 export default defineComponent({
     props: {
-        xml: {
+        json: {
             type: String,
             required: true,
         },
@@ -41,15 +41,12 @@ export default defineComponent({
         };
     },
 
-    computed: {
+    methods: {
         /**
-         * Formats and returns the raw XML string passed from the parent into
-         * pretty-printed form.
+         * Update the current json displayed
          */
-        formattedXML(): string {
-            let formattedXML: string;
-            formattedXML = this.xml != null ? xmlFormatter(this.xml) : "";
-            return formattedXML;
+        updateModalJSON() {
+            store.dispatch("updateJSON", this.json);
         },
     },
 });

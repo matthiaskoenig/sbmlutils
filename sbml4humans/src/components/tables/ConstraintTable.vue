@@ -23,19 +23,21 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
                         <span v-if="object.math != null">
-                            <katex :mathStr="object.math"></katex>
+                            <katex :mathStr="object.math" />
                         </span>
                     </td>
                     <td>
@@ -57,7 +59,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

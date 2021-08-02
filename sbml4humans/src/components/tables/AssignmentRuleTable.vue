@@ -41,12 +41,12 @@
                     </td>
                     <td>
                         <span v-if="object.math != null">
-                            <katex :mathStr="object.id + '=' + object.math"></katex>
+                            <katex :mathStr="object.id + '=' + object.math" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                 </tr>
@@ -65,7 +65,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

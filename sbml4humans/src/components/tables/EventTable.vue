@@ -27,12 +27,14 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
@@ -46,7 +48,7 @@
                         <span
                             v-if="object.trigger != null && object.trigger.math != null"
                         >
-                            <katex :mathStr="object.trigger.math"></katex>
+                            <katex :mathStr="object.trigger.math" />
                         </span>
                     </td>
                     <td>
@@ -69,12 +71,12 @@
                     </td>
                     <td>
                         <span v-if="object.priority != null">
-                            <katex :mathStr="object.persistent"></katex>
+                            <katex :mathStr="object.persistent" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.delay != null">
-                            <katex :mathStr="object.delay"></katex>
+                            <katex :mathStr="object.delay" />
                         </span>
                     </td>
                 </tr>
@@ -93,7 +95,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

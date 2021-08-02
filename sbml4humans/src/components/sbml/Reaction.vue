@@ -28,7 +28,7 @@
                 <SBMLLink
                     :pk="'Species:' + reactant.species"
                     :sbmlType="String('Species')"
-                ></SBMLLink>
+                />
                 [<span v-if="reactant.stoichiometry != null"
                     >stoichiometry: {{ reactant.stoichiometry }}</span
                 >
@@ -49,7 +49,7 @@
                 <SBMLLink
                     :pk="'Species:' + product.species"
                     :sbmlType="String('Species')"
-                ></SBMLLink>
+                />
                 [<span v-if="product.stoichiometry != null"
                     >stoichiometry: {{ product.stoichiometry }}</span
                 >
@@ -71,10 +71,7 @@
                 v-for="modifier in info.listOfModifiers"
                 :key="modifier"
             >
-                <SBMLLink
-                    :pk="'Species:' + modifier"
-                    :sbmlType="String('Species')"
-                ></SBMLLink>
+                <SBMLLink :pk="'Species:' + modifier" :sbmlType="String('Species')" />
             </div>
         </div>
     </div>
@@ -118,11 +115,11 @@
                         <div v-if="lpar.id != null">id: {{ lpar.id }}</div>
                         <div v-if="lpar.value != null">value: {{ lpar.value }}</div>
                         <div v-if="lpar.units != null">
-                            units: <katex :mathStr="lpar.units"></katex>
+                            units: <katex :mathStr="lpar.units" />
                         </div>
                         <div v-if="lpar.derivedUnits != null">
                             derivedUnits:
-                            <katex :mathStr="lpar.derivedUnits"></katex>
+                            <katex :mathStr="lpar.derivedUnits" />
                         </div>
                     </li>
                 </ul>

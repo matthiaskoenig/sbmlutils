@@ -2,13 +2,13 @@
     <div class="container-fluid">
         <div class="report-container">
             <div class="left">
-                <list-of-sbases></list-of-sbases>
+                <list-of-SBases />
             </div>
             <div class="middle">
-                <tables-container></tables-container>
+                <tables-container />
             </div>
             <div class="right">
-                <detail-container></detail-container>
+                <detail-container />
             </div>
 
             <!--<div
@@ -42,9 +42,9 @@ import ListOfSBases from "@/components/sbmlmisc/ListOfSBases.vue";
  */
 export default defineComponent({
     components: {
-        "detail-container": DetailContainer,
-        "tables-container": TablesContainer,
-        "list-of-sbases": ListOfSBases,
+        DetailContainer,
+        TablesContainer,
+        ListOfSBases,
     },
 
     methods: {

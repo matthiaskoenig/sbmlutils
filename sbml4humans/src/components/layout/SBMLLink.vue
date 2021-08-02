@@ -1,11 +1,11 @@
 <template>
     <div
-        class="tablet card shadow-sm mr-3 small d-flex"
+        class="tablet card shadow-sm small d-flex mr-3"
         v-on:click="showDetail"
         :style="`background-color: ${color}`"
     >
         <div class="d-flex justify-content-between">
-            <i :class="`fas fa-${icon} mt-1 mr-1`"></i>
+            <i :class="`fas fa-${icon} mt-1 mr-1`" />
             <strong>{{ id }}</strong>
         </div>
     </div>

@@ -6,9 +6,7 @@
                 <examples-list />
             </div>
             <div class="col-md-6">
-                <div class="row">
-                    <about class="pb-4" />
-                </div>
+                <about class="pb-4" />
             </div>
         </div>
     </div>
@@ -30,9 +28,9 @@ import About from "@/components/layout/About.vue";
  */
 export default defineComponent({
     components: {
-        ExamplesList: ExamplesList,
-        FileUploadForm: FileUploadForm,
-        About: About,
+        ExamplesList,
+        FileUploadForm,
+        About,
     },
 });
 </script>

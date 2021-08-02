@@ -30,7 +30,7 @@
                 v-for="model in listOfModels"
                 :key="model"
             >
-                <SBMLLink :pk="model.pk" :sbmlType="String('Model')"></SBMLLink>
+                <SBMLLink :pk="model.pk" :sbmlType="String('Model')" />
             </div>
         </div>
     </div>

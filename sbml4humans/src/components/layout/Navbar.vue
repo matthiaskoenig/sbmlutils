@@ -39,7 +39,7 @@ import SearchAndFilter from "@/components/layout/SearchAndFilter.vue";
  */
 export default defineComponent({
     components: {
-        "search-and-filter": SearchAndFilter,
+        SearchAndFilter,
     },
 
     data(): Record<string, unknown> {

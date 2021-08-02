@@ -1,7 +1,9 @@
 <template>
     <div class="d-flex mb-1">
         <div class="badge badge-success qualifier">{{ qualifier }}</div>
-        <a :href="resource" target="_blank" class="badge badge-warning resource">{{ resource }}</a>
+        <a :href="resource" target="_blank" class="badge badge-warning resource">{{
+            resource
+        }}</a>
     </div>
 </template>
 
@@ -17,12 +19,6 @@ export default defineComponent({
         resource: {
             type: String,
             default: "",
-        },
-    },
-
-    computed: {
-        color(): string {
-            return "primary";
         },
     },
 });

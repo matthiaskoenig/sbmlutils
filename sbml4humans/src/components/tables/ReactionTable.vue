@@ -27,12 +27,14 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
@@ -73,7 +75,7 @@
                                 object.kineticLaw.math != null
                             "
                         >
-                            <katex :mathStr="object.kineticLaw.math"></katex>
+                            <katex :mathStr="object.kineticLaw.math" />
                         </span>
                     </td>
                     <td>
@@ -83,7 +85,7 @@
                                 object.kineticLaw.derivedUnits != null
                             "
                         >
-                            <katex :mathStr="object.kineticLaw.derivedUnits"></katex>
+                            <katex :mathStr="object.kineticLaw.derivedUnits" />
                         </span>
                     </td>
                 </tr>

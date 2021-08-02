@@ -26,12 +26,14 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
@@ -54,12 +56,12 @@
                     </td>
                     <td>
                         <span v-if="object.units != null">
-                            <katex :mathStr="object.units"></katex>
+                            <katex :mathStr="object.units" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                     <td>
@@ -88,7 +90,7 @@ import tableMixin from "@/helpers/tableMixin";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     },
 

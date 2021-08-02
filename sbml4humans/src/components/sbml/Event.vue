@@ -14,7 +14,7 @@
             <div class="ml-4">
                 <div v-if="info.trigger.math != null">
                     math:
-                    <katex :mathStr="info.trigger.math"></katex>
+                    <katex :mathStr="info.trigger.math" />
                 </div>
                 <div v-if="info.trigger.initialValue != null">
                     initialValue: {{ info.trigger.initialValue }}
@@ -30,7 +30,7 @@
     <div class="data" v-if="info.priority != null">
         <div class="label">
             <strong>priority:</strong>
-            <katex :mathStr="info.priority"></katex>
+            <katex :mathStr="info.priority" />
         </div>
     </div>
 
@@ -38,7 +38,7 @@
     <div class="data" v-if="info.delay != null">
         <div class="label">
             <strong>delay:</strong>
-            <katex :mathStr="info.delay"></katex>
+            <katex :mathStr="info.delay" />
         </div>
     </div>
 
@@ -58,7 +58,7 @@
                         <div v-if="eva.variable">variable: {{ eva.variable }}</div>
                         <div v-if="eva.math">
                             math:
-                            <katex :mathStr="eva.math"></katex>
+                            <katex :mathStr="eva.math" />
                         </div>
                     </li>
                 </ul>
@@ -78,7 +78,7 @@ import Katex from "@/components/layout/Katex.vue";
  */
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

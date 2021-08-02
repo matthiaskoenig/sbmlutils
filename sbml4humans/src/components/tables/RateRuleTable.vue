@@ -11,7 +11,7 @@
         </strong>
 
         <table
-            class="table table-striped table-bordered  table-sm table-condensed  compact"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleRateRule"
         >
             <thead class="thead-dark">
@@ -24,12 +24,14 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
+                        <span v-if="object.id != null">{{ object.id }}</span>
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
@@ -39,12 +41,12 @@
                     </td>
                     <td>
                         <span v-if="object.math != null">
-                            <katex :mathStr="object.id + '=' + object.math"></katex>
+                            <katex :mathStr="object.id + '=' + object.math" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                 </tr>
@@ -63,7 +65,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

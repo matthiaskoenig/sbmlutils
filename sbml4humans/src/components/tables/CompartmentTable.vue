@@ -59,12 +59,12 @@
                     </td>
                     <td>
                         <span v-if="object.units != null">
-                            <katex :mathStr="object.units"></katex>
+                            <katex :mathStr="object.units" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                     <td>
@@ -91,7 +91,7 @@ import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     },
 

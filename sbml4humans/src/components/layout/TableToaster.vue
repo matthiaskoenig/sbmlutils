@@ -5,7 +5,7 @@
             :style="`background-color: ${color}`"
         >
             <strong>
-                <i :class="`fas fa-${icon} mr-1`"></i>
+                <i :class="`fas fa-${icon} mr-1`" />
                 {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
             >
         </div>

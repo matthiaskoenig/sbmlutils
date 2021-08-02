@@ -3,7 +3,7 @@
     <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
-            <katex :mathStr="info.math"></katex>
+            <katex :mathStr="info.math" />
         </div>
     </div>
 
@@ -24,7 +24,7 @@ import Katex from "@/components/layout/Katex.vue";
  */
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

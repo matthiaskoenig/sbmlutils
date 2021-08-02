@@ -1,7 +1,7 @@
 <template>
-    <list-of-tables></list-of-tables>
+    <list-of-tables />
 
-    <div><strong>Document & Models</strong></div>
+    <div class="mt-3"><strong>Document & Models</strong></div>
     <!--
         <div v-for="component in collectReportBasics" :key="component.pk">
             <a-checkbox/>{{component.pk}} | {{component.sbmlType}}
@@ -9,13 +9,13 @@
     -->
 
     <a-list class="basics-container">
-        <toaster
+        <SBML-toaster
             v-for="component in collectReportBasics"
             :key="component.pk"
             :sbmlType="component.sbmlType"
             :info="component"
             :visible="Boolean(visibility[component.sbmlType])"
-        ></toaster>
+        />
     </a-list>
 </template>
 
@@ -30,8 +30,8 @@ import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
 
 export default defineComponent({
     components: {
-        toaster: SBMLToaster,
-        "list-of-tables": ListOfTables,
+        SBMLToaster,
+        ListOfTables,
     },
 
     methods: {

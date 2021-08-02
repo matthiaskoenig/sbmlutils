@@ -8,7 +8,7 @@
     <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
-            <katex :mathStr="info.math"></katex>
+            <katex :mathStr="info.math" />
         </div>
     </div>
 
@@ -16,7 +16,7 @@
     <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex :mathStr="info.derivedUnits"></katex>
+            <katex :mathStr="info.derivedUnits" />
         </div>
     </div>
 </template>

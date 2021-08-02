@@ -5,7 +5,10 @@
     </div>
 
     <!-- Flux Objectives -->
-    <div class="data" v-if="info.fluxObjectives != null && info.fluxObjectives.length > 0">
+    <div
+        class="data"
+        v-if="info.fluxObjectives != null && info.fluxObjectives.length > 0"
+    >
         <div class="label"><strong>fluxObjectives:</strong></div>
         <br />
         <div class="ml-4">
