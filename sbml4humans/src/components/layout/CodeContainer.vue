@@ -20,9 +20,7 @@
             </div>
         </div>
         <div v-if="visible">
-            <pre class="xml-text">
-                {{ language === 0 ? formattedXML : info }}
-            </pre>
+            <pre class="xml-text">{{ language === 0 ? formattedXML : info }}</pre>
         </div>
     </div>
 </template>

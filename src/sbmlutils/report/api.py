@@ -152,8 +152,9 @@ DUMMY_ADDITIONAL_INFO = {
     "synonyms": ["syn1", "syn2"]
 }
 
+
 @app.get("/resource_info/{resource_id}")
-def get_resource_info(resource_id:str) -> Response:
+def get_resource_info(resource_id: str) -> Response:
     try:
         resource_id = _normalize_resource_id(resource_id)
         query_params = _get_identifier_and_term(resource_id)
@@ -182,6 +183,7 @@ def _normalize_resource_id(resource_id: str) -> str:
             i -= 1
 
     return resource_id
+
 
 def _get_identifier_and_term(resource_id: str) -> Dict:
     parts = resource_id.split(':')

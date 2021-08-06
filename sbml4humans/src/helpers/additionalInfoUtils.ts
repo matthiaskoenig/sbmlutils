@@ -1,6 +1,28 @@
 import axios from "axios";
 import urls from "@/data/urls";
 
+/*
+Use abstraction layer for caching:
+
+see for instance:
+
+Use the following to cache the axios requests:
+https://github.com/RasCarlito/axios-cache-adapter
+https://www.npmjs.com/package/axios-cache-adapter
+
+Some alternatives with similar patterns:
+https://stackoverflow.com/questions/49671255/vue-js-cache-http-requests-with-axios
+https://github.com/kuitos/axios-extensions#cacheadapterenhancer
+ */
+
+
+
+/**
+ * Caching CVTerm/annotation information.
+ * To avoid redundant web service queries information is cached in the front end.
+ * @param additionalInfo
+ * @param resourceID
+ */
 function cacheAdditionalInfo(
     additionalInfo: Record<string, unknown>,
     resourceID: string
