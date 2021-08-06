@@ -2,12 +2,11 @@
     <div class="scrollable">
         <strong
             class="sbmlType"
-            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleCompartment"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfCompartments
+            <i :class="`table-header fas fa-${icon} mr-1`"></i> ListOfCompartments
         </strong>
 
         <table

@@ -2,7 +2,6 @@
     <div class="scrollable">
         <strong
             class="sbmlType"
-            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleParameter"
             role="button"
@@ -85,8 +84,6 @@ import { defineComponent } from "vue";
 
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
-
-import tableMixin from "@/helpers/tableMixin";
 
 export default defineComponent({
     components: {

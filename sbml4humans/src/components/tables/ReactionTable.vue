@@ -1,12 +1,6 @@
 <template>
     <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleReaction"
-            role="button"
-        >
+        <strong class="sbmlType" href="#collapsibleReaction" role="button">
             <i :class="`fas fa-${icon} mr-1`"></i> ListOfReactions
         </strong>
 

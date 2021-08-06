@@ -32,6 +32,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 .symbol {
     display: inline-flex;
-    margin: 0px 5px;
+    margin-top: 2px;
 }
 </style>

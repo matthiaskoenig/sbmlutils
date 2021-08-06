@@ -3,12 +3,12 @@
         <strong
             class="sbmlType"
             data-toggle="collapse"
-            href="#collapsibleModel"
+            href="#collapsibleSubmodel"
             role="button"
         >
 
             <i :class="`fas fa-${icon} mr-1`" />
-            ListOfModels
+            ListOfSubmodels
         </strong>
 
         <table
@@ -16,19 +16,15 @@
                 table table-striped table-bordered table-sm table-condensed table-hover
                 compact
             "
-            id="collapsibleModel"
+            id="collapsibleSubmodel"
         >
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">id</th>
                     <th scope="col">name</th>
-                    <th scope="col">substance Units</th>
-                    <th scope="col">time Units</th>
-                    <th scope="col">length Units</th>
-                    <th scope="col">area Units</th>
-                    <th scope="col">volume Units</th>
-                    <th scope="col">extent Units</th>
-                    <th scope="col">conversion Factor</th>
+                    <th scope="col">modelRef</th>
+                    <th scope="col">timeConversion</th>
+                    <th scope="col">extentConversion</th>
                 </tr>
             </thead>
             <tbody class="table-body">
@@ -45,38 +41,18 @@
                         <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.substanceUnits != null">{{
-                            object.substanceUnits
+                        <span v-if="object.modelRef != null">{{
+                            object.modelRef
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.timeUnits != null">{{
-                            object.timeUnits
+                        <span v-if="object.timeConversion != null">{{
+                            object.timeConversion
                         }}</span>
                     </td>
                     <td>
-                        <span v-if="object.lengthUnits != null">{{
-                            object.lengthUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.areaUnits != null">{{
-                            object.areaUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.volumeUnits != null">{{
-                            object.volumeUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.extentUnits != null">{{
-                            object.extentUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.conversionFactor != null">{{
-                            object.conversionFactor
+                        <span v-if="object.extentConversion != null">{{
+                            object.extentConversion
                         }}</span>
                     </td>
                 </tr>
@@ -112,11 +88,11 @@ export default defineComponent({
         },
 
         color(): string {
-            return colorScheme.componentColor["Model"];
+            return colorScheme.componentColor["Submodel"];
         },
 
         icon(): string {
-            return icons.icons["Model"];
+            return icons.icons["Submodel"];
         },
     },
 

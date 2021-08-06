@@ -1,17 +1,75 @@
 <template>
-    <!-- Spatial Dimensions -->
-    <div class="data" v-if="info.spatialDimensions != null">
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.spatialDimensions != null">
+                <td class="label-td"><div class="label">spatialDimensions</div></td>
+                <td>{{ info.spatialDimensions }}</td>
+            </tr>
+            <tr v-if="info.size != null">
+                <td class="label-td"><div class="label">size</div></td>
+                <td>{{ info.size }}</td>
+            </tr>
+            <tr v-if="info.constant != null">
+                <td class="label-td"><div class="label">constant</div></td>
+                <td>
+                    <boolean-symbol
+                        v-if="info.constant === Boolean(true)"
+                        :value="info.constant"
+                    />
+                    <boolean-symbol v-else :value="Boolean(false)" />
+                </td>
+            </tr>
+            <tr v-if="info.units != null">
+                <td class="label-td"><div class="label">units</div></td>
+                <td><katex :mathStr="info.units" /></td>
+            </tr>
+            <tr v-if="info.derivedUnits != null">
+                <td class="label-td"><div class="label">derivedUnits</div></td>
+                <td><katex :mathStr="info.derivedUnits" /></td>
+            </tr>
+            <tr v-if="info.assignment != null">
+                <td class="label-td"><div class="label">assignment</div></td>
+                <td>
+                    <span
+                        >{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span
+                    >
+                </td>
+            </tr>
+            <tr v-if="info.species && info.species.length">
+                <td class="label-td"><div class="label">species</div></td>
+                <td >
+                    <SBMLLink
+                        v-for="species in info.species"
+                        :key="species"
+                        :pk="species"
+                        :sbmlType="String('Species')"
+                    />
+                </td>
+            </tr>
+            <tr v-if="info.reaction && info.reaction.length">
+                <td class="label-td"><div class="label">reaction</div></td>
+                <td >
+                    <SBMLLink
+                        v-for="reaction in info.reaction"
+                        :key="reaction"
+                        :pk="reaction"
+                        :sbmlType="String('Reaction')"
+                    />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- <div class="data" v-if="info.spatialDimensions != null">
         <div class="label">
             <strong>spatialDimensions:</strong> {{ info.spatialDimensions }}
         </div>
     </div>
 
-    <!-- Size -->
     <div class="data" v-if="info.size != null">
         <div class="label"><strong>size:</strong> {{ info.size }}</div>
     </div>
 
-    <!-- Constant -->
     <div class="data" v-if="info.constant != null">
         <div class="label">
             <strong>constant:</strong
@@ -23,7 +81,6 @@
         </div>
     </div>
 
-    <!-- Units -->
     <div class="data" v-if="info.units != null">
         <div class="label">
             <strong>units:</strong>
@@ -31,7 +88,6 @@
         </div>
     </div>
 
-    <!-- Derived Units -->
     <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
@@ -39,7 +95,6 @@
         </div>
     </div>
 
-    <!-- Assignment -->
     <div class="data" v-if="info.assignment != null">
         <div class="label">
             <strong>assignment:</strong>
@@ -47,7 +102,6 @@
         </div>
     </div>
 
-    <!-- List of Related Species -->
     <div class="data w-100" v-if="info.species != null">
         <div class="label">
             <strong>relatedSpecies:</strong>
@@ -59,7 +113,6 @@
         </div>
     </div>
 
-    <!-- List of Related Reactions -->
     <div class="data w-100" v-if="info.reaction != null">
         <div class="label">
             <strong>relatedReactions:</strong>
@@ -69,7 +122,7 @@
                 <SBMLLink :pk="reaction" :sbmlType="String('Reaction')" />
             </div>
         </div>
-    </div>
+    </div> -->
 </template>
 
 <script lang="ts">

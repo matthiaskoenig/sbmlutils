@@ -1,10 +1,25 @@
 <template>
-    <!-- Variable -->
-    <div class="data" v-if="info.sid != null">
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.sid != null">
+                <td class="label-td"><div class="label">variable</div></td>
+                <td>{{ info.sid }}</td>
+            </tr>
+            <tr v-if="info.math != null">
+                <td class="label-td"><div class="label">math</div></td>
+                <td><katex :mathStr="info.math" /></td>
+            </tr>
+            <tr v-if="info.derivedUnits != null">
+                <td class="label-td"><div class="label">derivedUnits</div></td>
+                <td><katex :mathStr="info.derivedUnits" /></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- <div class="data" v-if="info.sid != null">
         <div class="label"><strong>variable:</strong> {{ info.sid }}</div>
     </div>
 
-    <!-- Math -->
     <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
@@ -12,13 +27,12 @@
         </div>
     </div>
 
-    <!-- Derived Units -->
     <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
             <katex :mathStr="info.derivedUnits" />
         </div>
-    </div>
+    </div> -->
 </template>
 
 <script>

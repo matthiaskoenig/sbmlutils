@@ -27,17 +27,14 @@ import { defineComponent } from "vue";
 export default defineComponent({
     props: {
         json: {
-            type: String,
+            type: Object,
             required: true,
         },
     },
 
     data(): Record<string, unknown> {
         return {
-            visible: {
-                type: Boolean,
-                default: false,
-            },
+            visible: false,
         };
     },
 

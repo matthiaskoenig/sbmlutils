@@ -34,10 +34,7 @@ export default defineComponent({
 
     data(): Record<string, unknown> {
         return {
-            visible: {
-                type: Boolean,
-                default: false,
-            },
+            visible: false,
         };
     },
 

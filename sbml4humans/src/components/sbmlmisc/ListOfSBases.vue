@@ -1,7 +1,5 @@
 <template>
-    <list-of-tables />
-
-    <div class="mt-3"><strong>Document & Models</strong></div>
+    <div><strong>Document & Models</strong></div>
     <!--
         <div v-for="component in collectReportBasics" :key="component.pk">
             <a-checkbox/>{{component.pk}} | {{component.sbmlType}}
@@ -17,6 +15,9 @@
             :visible="Boolean(visibility[component.sbmlType])"
         />
     </a-list>
+
+    <div class="mt-3"><strong>SBML Components</strong></div>
+    <list-of-tables />
 </template>
 
 <script lang="ts">

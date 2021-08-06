@@ -74,6 +74,10 @@
             <port-table :listOfPKs="pks" />
         </div>
 
+        <div ref="Submodel" v-if="sbmlType === 'Submodel' && visibility['Submodel']">
+            <submodel-table :listOfPKs="pks" />
+        </div>
+
         <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
             <objective-table :listOfPKs="pks" />
         </div>
@@ -104,6 +108,7 @@ import $ from "jquery";
 import ModelTable from "@/components/tables/ModelTable.vue";
 import CompartmentTable from "@/components/tables/CompartmentTable.vue";
 import SpeciesTable from "@/components/tables/SpeciesTable.vue";
+import SubmodelTable from "@/components/tables/SubmodelTable.vue";
 import ParameterTable from "@/components/tables/ParameterTable.vue";
 import InitialAssignmentTable from "@/components/tables/InitialAssignmentTable.vue";
 import AssignmentRuleTable from "@/components/tables/AssignmentRuleTable.vue";
@@ -123,6 +128,7 @@ export default defineComponent({
         ModelTable,
         CompartmentTable,
         SpeciesTable,
+        SubmodelTable,
         ParameterTable,
         InitialAssignmentTable,
         AssignmentRuleTable,

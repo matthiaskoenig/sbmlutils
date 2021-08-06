@@ -1,15 +1,26 @@
 <template>
-    <!-- Label -->
-    <div class="data" v-if="info.label != null">
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.label != null">
+                <td class="label-td"><div class="label">label</div></td>
+                <td>{{ info.label }}</td>
+            </tr>
+            <tr v-if="info.associatedSpecies != null">
+                <td class="label-td"><div class="label">associatedSpecies</div></td>
+                <td>{{ info.associatedSpecies }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- <div class="data" v-if="info.label != null">
         <div class="label"><strong>label:</strong> {{ info.label }}</div>
     </div>
 
-    <!-- Associated Species -->
     <div class="data" v-if="info.associatedSpecies != null">
         <div class="label">
             <strong>associatedSpecies:</strong> {{ info.associatedSpecies }}
         </div>
-    </div>
+    </div> -->
 </template>
 
 <script lang="ts">

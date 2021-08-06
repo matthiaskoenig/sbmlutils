@@ -1,14 +1,21 @@
 <template>
-    <div class="d-flex mb-1">
+    <div class="d-flex">
         <div class="badge badge-success qualifier">{{ qualifier }}</div>
         <a :href="resource" target="_blank" class="badge badge-warning resource">{{
             resource
         }}</a>
     </div>
+    <div class="mt-1 mb-2 ml-2" v-if="addInfo != null">
+        <strong>{{ addInfo.name }}:</strong> {{ addInfo.definition }} <br />
+        <span v-if="addInfo.synonyms != null"
+            >Synonyms: {{ addInfo.synonyms.join() }}</span
+        >
+    </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import additionalInfoUtils from "@/helpers/additionalInfoUtils";
 
 export default defineComponent({
     props: {
@@ -20,6 +27,21 @@ export default defineComponent({
             type: String,
             default: "",
         },
+    },
+
+    data() {
+        return {
+            addInfo: {},
+        };
+    },
+
+    created() {
+        const parts = this.resource.split("/");
+        const resourceID = parts[parts.length - 1];
+
+        additionalInfoUtils.getAdditionalInfo(resourceID).then((res) => {
+            this.addInfo = res;
+        });
     },
 });
 </script>

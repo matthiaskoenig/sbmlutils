@@ -14,8 +14,8 @@ Annotations/Notes:
 - [.] annotations/notes to SBase detail view;
 
 Layout:
-- [ ] JSON and XML should be closed on first loading
-- [ ] fix colors in table headings
+- [x] JSON and XML should be closed on first loading
+- [x] fix colors in table headings
 
 Tables:
 - [ ] use Table mixin to remove redundant js code in tables

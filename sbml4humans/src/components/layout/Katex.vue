@@ -1,5 +1,5 @@
 <template>
-    <span ref="katexEl" class="katex ml-4" v-html="katexMath"></span>
+    <span ref="katexEl" class="katex" v-html="katexMath"></span>
 </template>
 
 <script lang="ts">

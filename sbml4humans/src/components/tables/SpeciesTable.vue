@@ -2,7 +2,6 @@
     <div class="scrollable">
         <strong
             class="sbmlType"
-            :style="`background-color: ${color}`"
             data-toggle="collapse"
             href="#collapsibleSpecies"
             role="button"

@@ -1,16 +1,27 @@
 <template>
-    <!-- Math -->
-    <div class="data" v-if="info.math != null">
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.message != null">
+                <td class="label-td"><div class="label">message</div></td>
+                <td>{{ info.message }}</td>
+            </tr>
+            <tr v-if="info.math != null">
+                <td class="label-td"><div class="label">math</div></td>
+                <td><katex :mathStr="info.math" /></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- <div class="data" v-if="info.math != null">
         <div class="label">
             <strong>math:</strong>
             <katex :mathStr="info.math" />
         </div>
     </div>
 
-    <!-- Message -->
     <div class="data" v-if="info.message != null">
         <div class="label"><strong>message:</strong>{{ info.message }}</div>
-    </div>
+    </div> -->
 </template>
 
 <script lang="ts">
