@@ -21,7 +21,8 @@
                                     >sign: {{ fluxObjective.sign }}</span
                                 >
                                 <span v-if="fluxObjective.coefficient != null"
-                                    >, coefficient: {{ fluxObjective.coefficient }}</span
+                                    >, coefficient:
+                                    {{ fluxObjective.coefficient }}</span
                                 >
                             </div>
                         </li>

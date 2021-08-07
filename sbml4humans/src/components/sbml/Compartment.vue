@@ -37,7 +37,7 @@
             </tr>
             <tr v-if="info.species && info.species.length">
                 <td class="label-td"><div class="label">species</div></td>
-                <td >
+                <td>
                     <SBMLLink
                         v-for="species in info.species"
                         :key="species"
@@ -48,7 +48,7 @@
             </tr>
             <tr v-if="info.reaction && info.reaction.length">
                 <td class="label-td"><div class="label">reaction</div></td>
-                <td >
+                <td>
                     <SBMLLink
                         v-for="reaction in info.reaction"
                         :key="reaction"

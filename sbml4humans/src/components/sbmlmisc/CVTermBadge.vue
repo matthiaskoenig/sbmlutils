@@ -38,8 +38,7 @@ export default defineComponent({
     created() {
         const parts = this.resource.split("/");
         const resourceID = parts[parts.length - 1];
-
-        additionalInfoUtils.getAdditionalInfo(resourceID).then((res) => {
+        additionalInfoUtils.fetchAdditionalInfo(resourceID).then((res) => {
             this.addInfo = res;
         });
     },

@@ -15,7 +15,8 @@
                                 v-for="plugin in info.packages.plugins"
                                 :key="plugin.prefix + plugin.version"
                             >
-                                prefix: {{ plugin.prefix }}, version: {{ plugin.version }}
+                                prefix: {{ plugin.prefix }}, version:
+                                {{ plugin.version }}
                             </li>
                         </ul>
                     </div>

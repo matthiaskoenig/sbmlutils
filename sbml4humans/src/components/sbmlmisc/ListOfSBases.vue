@@ -1,11 +1,5 @@
 <template>
-    <div><strong>Document & Models</strong></div>
-    <!--
-        <div v-for="component in collectReportBasics" :key="component.pk">
-            <a-checkbox/>{{component.pk}} | {{component.sbmlType}}
-        </div>
-    -->
-
+    <strong><i class="fas fa-file-medical-alt mr-2"></i>Document & Models</strong>
     <a-list class="basics-container">
         <SBML-toaster
             v-for="component in collectReportBasics"
@@ -16,7 +10,9 @@
         />
     </a-list>
 
-    <div class="mt-3"><strong>SBML Components</strong></div>
+    <div class="mt-3">
+        <i class="fas fa-tablets mr-2"></i><strong>SBML Components</strong>
+    </div>
     <list-of-tables />
 </template>
 

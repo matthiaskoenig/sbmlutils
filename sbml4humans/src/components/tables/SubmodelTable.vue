@@ -6,7 +6,6 @@
             href="#collapsibleSubmodel"
             role="button"
         >
-
             <i :class="`fas fa-${icon} mr-1`" />
             ListOfSubmodels
         </strong>
@@ -35,7 +34,9 @@
                     v-on:click="openComponent(object.pk)"
                 >
                     <td>
-                        <span v-if="object.id != null">{{ object.id }}</span>
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
+                        >
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>

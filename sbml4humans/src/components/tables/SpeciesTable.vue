@@ -37,7 +37,7 @@
                 >
                     <td>
                         <span v-if="object.id">
-                            {{ object.id }}
+                            <strong>{{ object.id }}</strong>
                         </span>
                     </td>
                     <td>

@@ -28,7 +28,9 @@
                     v-on:click="openComponent(object.pk)"
                 >
                     <td>
-                        <span v-if="object.id != null"><strong>{{ object.id }}</strong></span>
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
+                        >
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>

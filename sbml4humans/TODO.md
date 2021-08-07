@@ -1,36 +1,36 @@
 ## TODO
 
 Annotations/Notes:
-- [ ] build caching layer for resources, use cache adaptor
+- [x] build caching layer for resources, use cache adaptor
   https://github.com/RasCarlito/axios-cache-adapter
   https://www.npmjs.com/package/axios-cache-adapter
 - [.] annotations/notes to SBase detail view;
 
 Layout:
-- [ ] restructure navbar: small on the left side; start tables & details on top of page (full height)
+- [x] restructure navbar: small on the left side; start tables & details on top of page (full height)
 - [ ] remove colors from navigation menu & from DetailView
-- [ ] make `name` a subtitle in the DetailView
-- [ ] ids bold in table
-- [ ] layout: add icon for SBMLDocument
-- [ ] layout: add icon next to Document & models
-- [ ] layout: Document & models width must be identical to components in toasters
-- [ ] layout: Reduce space between tables by moving search & entries next to heading
+- [x] make `name` a subtitle in the DetailView
+- [x] ids bold in table
+- [x] layout: add icon for SBMLDocument
+- [x] layout: add icon next to Document & models
+- [x] layout: Document & models width must be identical to components in toasters
+- [~] layout: Reduce space between tables by moving search & entries next to heading
 
 Search:
 - [ ] fix search: make search filter all tables for matching elements
 
 Filter:
-- [ ] remove filter functionality (hide)
+- [x] remove filter functionality (hide)
 
 Deployment:
-- fix jquery issue -> use npm package for datatables: https://datatables.net/download/npm
+- [ ] fix jquery issue -> use npm package for datatables: https://datatables.net/download/npm
 - [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
 - [ ] npm fontawesome (see https://www.npmjs.com/package/vue-awesome): include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself
 
 Static report:
 - Remove/Fix websocket calls
 - [ ] create static report 
-- [ ]option for download static report
+- [ ] option for download static report
   
 # ---------------------    
 # MK:

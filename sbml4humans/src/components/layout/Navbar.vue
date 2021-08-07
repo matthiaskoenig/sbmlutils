@@ -1,14 +1,14 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <router-link class="navbar-brand" to="/">
             <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
             SBML4Humans
         </router-link>
 
         <!-- Search and Filter component (visible only in report view) -->
-        <search-and-filter
+        <!--<search-and-filter
             v-if="['Report', 'report'].includes($route.name)"
-        ></search-and-filter>
+        ></search-and-filter>-->
 
         <!-- Static switch -->
         <!--
@@ -32,16 +32,10 @@
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
-import SearchAndFilter from "@/components/layout/SearchAndFilter.vue";
-
 /**
  * Navbar component for providing main links in the application
  */
 export default defineComponent({
-    components: {
-        SearchAndFilter,
-    },
-
     data(): Record<string, unknown> {
         return {
             // stores a copy of the browser's localStorage (not in use currently, FIXME!!)

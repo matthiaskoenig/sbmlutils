@@ -1,4 +1,5 @@
 <template>
+    <navbar />
     <div class="container-fluid px-10">
         <div class="row px-5">
             <div class="col-md-6 d-flex flex-column" style="height: 110vh">
@@ -19,6 +20,7 @@ import { defineComponent } from "@vue/runtime-core";
 import ExamplesList from "@/components/layout/ExamplesList.vue";
 import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 import About from "@/components/layout/About.vue";
+import Navbar from "@/components/layout/Navbar.vue";
 
 /**
  * Component to display the components to appear on the landing page.
@@ -31,6 +33,7 @@ export default defineComponent({
         ExamplesList,
         FileUploadForm,
         About,
+        Navbar,
     },
 });
 </script>

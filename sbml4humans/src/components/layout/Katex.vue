@@ -33,6 +33,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .katex {
-    font-size: 1.0em;
+    font-size: 1em;
 }
 </style>

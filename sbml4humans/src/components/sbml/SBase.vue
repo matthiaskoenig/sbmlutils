@@ -4,7 +4,7 @@
             <i :class="`fas fa-${icon} mr-2`"></i>{{ info.sbmlType }}
         </strong>
     </div>
-    <h2>{{ info.id }} {{ info.name ? "(" + info.name + ")" : "" }}</h2>
+    <h2>{{ info.id }}</h2>
 
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>

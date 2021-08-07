@@ -70,7 +70,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .detail-container {
-    height: 85vh;
+    height: 98vh;
     padding-left: 15px;
 
     word-wrap: break-word;
