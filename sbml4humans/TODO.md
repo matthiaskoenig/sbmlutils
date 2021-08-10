@@ -1,5 +1,7 @@
 ## TODO
 
+- [ ] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/
+
 Layout:
 - [ ] make `name` a subtitle in the DetailView
 - [ ] fix table navigation; on click should scroll to table
@@ -14,6 +16,8 @@ Layout:
 Fixes:
 - [ ] fix: "Failed to resolve component: a-spin" warning on loading
 - [ ] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
+
+- [ ] check dependency issues npm; remove package-lock.json and node_modules and do clean install
 
 Static report:  // a server is always required 
 - Remove/Fix websocket calls
