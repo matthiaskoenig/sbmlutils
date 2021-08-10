@@ -1,8 +1,5 @@
 <template>
-    <strong
-        ><font-awesome-icon icon="file-medical-alt" class="mr-2" />Document &
-        Models</strong
-    >
+    <strong>Document & Models</strong>
     <a-list class="basics-container">
         <SBML-toaster
             v-for="component in collectReportBasics"
@@ -14,9 +11,7 @@
     </a-list>
 
     <div class="mt-3">
-        <font-awesome-icon icon="tablets" class="mr-2" /><strong
-            >SBML Components</strong
-        >
+        <strong>SBases</strong>
     </div>
     <list-of-tables />
 </template>

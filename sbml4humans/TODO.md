@@ -1,31 +1,19 @@
 ## TODO
 
-Annotations/Notes:
-- [x] build caching layer for resources, use cache adaptor
-  https://github.com/RasCarlito/axios-cache-adapter
-  https://www.npmjs.com/package/axios-cache-adapter
-- [x] annotations/notes to SBase detail view;
-
 Layout:
-- [x] restructure navbar: small on the left side; start tables & details on top of page (full height)
-- [x] remove colors from navigation menu & from DetailView
-- [x] make `name` a subtitle in the DetailView
-- [x] ids bold in table
-- [x] layout: add icon for SBMLDocument
-- [x] layout: add icon next to Document & models
-- [x] layout: Document & models width must be identical to components in toasters
+- [ ] make `name` a subtitle in the DetailView
+- [ ] fix table navigation; on click should scroll to table
+- [ ] Table header replace "ListOf*" -> "*" e.g. ListOfCompartments -> Compartments  
+- [ ] hide tables if no results in global search  
+- [ ] re-add colors to navigation 
+- [ ] add count badges to the SBase navigation to get fast overview of number of components
+- [ ] icons for table sorting are missing
+- [ ] hide table & table navigation when switching visibility via toggle  
 - [~] layout: Reduce space between tables by moving search & entries next to heading
 
-Search:
-- [x] fix search: make search filter all tables for matching elements
-
-Filter:
-- [x] remove filter functionality (hide)
-
-Deployment:
-- [x] fix jquery issue -> use npm package for datatables: https://datatables.net/download/npm
-- [x] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
-- [x] npm fontawesome (see https://www.npmjs.com/package/vue-awesome): include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself 
+Fixes:
+- [ ] fix: "Failed to resolve component: a-spin" warning on loading
+- [ ] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
 
 Static report:  // a server is always required 
 - Remove/Fix websocket calls
