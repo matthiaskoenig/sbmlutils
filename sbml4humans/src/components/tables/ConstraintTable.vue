@@ -6,7 +6,7 @@
             href="#collapsibleConstraint"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfConstraints
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfConstraints
         </strong>
 
         <table

@@ -6,7 +6,7 @@
             href="#collapsibleSpecies"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfSpecies
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfSpecies
         </strong>
 
         <table

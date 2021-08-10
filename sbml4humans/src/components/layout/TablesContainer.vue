@@ -4,106 +4,117 @@
         :key="sbmlType"
         class="tablesContainer"
     >
-        <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
-            <model-table :listOfPKs="pks" />
+        <div ref="Model" v-show="sbmlType === 'Model' && visibility['Model']">
+            <model-table ref="#model-table" :listOfPKs="pks" />
         </div>
 
         <div
             ref="FunctionDefinition"
-            v-if="sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']"
+            v-show="
+                sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']
+            "
         >
             <function-definition-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Compartment"
-            v-if="sbmlType === 'Compartment' && visibility['Compartment']"
+            v-show="sbmlType === 'Compartment' && visibility['Compartment']"
         >
             <compartment-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Species" v-if="sbmlType === 'Species' && visibility['Species']">
+        <div ref="Species" v-show="sbmlType === 'Species' && visibility['Species']">
             <species-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Parameter" v-if="sbmlType === 'Parameter' && visibility['Parameter']">
+        <div
+            ref="Parameter"
+            v-show="sbmlType === 'Parameter' && visibility['Parameter']"
+        >
             <parameter-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="InitialAssignment"
-            v-if="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
+            v-show="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
         >
             <initial-assignment-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AssignmentRule"
-            v-if="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
+            v-show="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
         >
             <assignment-rule-table :listOfPKs="pks" />
         </div>
 
-        <div ref="RateRule" v-if="sbmlType === 'RateRule' && visibility['RateRule']">
+        <div ref="RateRule" v-show="sbmlType === 'RateRule' && visibility['RateRule']">
             <rate-rule-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AlgebraicRule"
-            v-if="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
+            v-show="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
         >
             <algebraic-rule-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Reaction" v-if="sbmlType === 'Reaction' && visibility['Reaction']">
+        <div ref="Reaction" v-show="sbmlType === 'Reaction' && visibility['Reaction']">
             <reaction-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Event" v-if="sbmlType === 'Event' && visibility['Event']">
+        <div ref="Event" v-show="sbmlType === 'Event' && visibility['Event']">
             <event-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="UnitDefinition"
-            v-if="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
+            v-show="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
         >
             <unit-definition-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Port" v-if="sbmlType === 'Port' && visibility['Port']">
+        <div ref="Port" v-show="sbmlType === 'Port' && visibility['Port']">
             <port-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Submodel" v-if="sbmlType === 'Submodel' && visibility['Submodel']">
+        <div ref="Submodel" v-show="sbmlType === 'Submodel' && visibility['Submodel']">
             <submodel-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
+        <div
+            ref="Objective"
+            v-show="sbmlType === 'Objective' && visibility['Objective']"
+        >
             <objective-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Constraint"
-            v-if="sbmlType === 'Constraint' && visibility['Constraint']"
+            v-show="sbmlType === 'Constraint' && visibility['Constraint']"
         >
             <constraint-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="GeneProduct"
-            v-if="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
+            v-show="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
         >
             <gene-product-table :listOfPKs="pks" />
         </div>
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import store from "@/store/index";
 import { defineComponent } from "@vue/runtime-core";
-
+//import "datatables.net";
 import "datatables.net-buttons-bs4";
 import $ from "jquery";
+
+// import $ = require("jquery");
+//import dt from require("datatables.net");
 
 import ModelTable from "@/components/tables/ModelTable.vue";
 import CompartmentTable from "@/components/tables/CompartmentTable.vue";
@@ -144,44 +155,81 @@ export default defineComponent({
         FunctionDefinitionTable,
     },
 
-    mounted(): void {
+    mounted() {
         $(document).ready(() => {
             $("table").DataTable();
         });
     },
 
     methods: {
-        scrollToElement(sbmlType: string) {
-            const el: HTMLElement = this.$refs[sbmlType] as HTMLElement;
+        scrollToElement(sbmlType) {
+            const el = this.$refs[sbmlType];
             if (el) {
                 // Use el.scrollIntoView() to instantly scroll to the element
                 el.scrollIntoView({ behavior: "smooth" });
             }
         },
+
+        /**
+         * Filters SBML objects on the basis of the search query.
+         * @param sbases Array of SBML objects to filter.
+         * @param searchQuery The search query to look for in the SBML objects' data
+         */
+        filterForSearchResults(sBasePKs, searchQuery = "") {
+            const allSBMLComponents = store.state.allObjectsMap;
+
+            let searchedSBasePKs = [];
+            searchedSBasePKs.push(
+                ...sBasePKs.filter((pk) => {
+                    const sbmlComponent = allSBMLComponents[pk];
+                    return searchQuery
+                        .toLowerCase()
+                        .split(" ")
+                        .every((attr) =>
+                            (
+                                sbmlComponent.name +
+                                sbmlComponent.id +
+                                sbmlComponent.metaId +
+                                sbmlComponent.sbo
+                            )
+                                .toString()
+                                .toLowerCase()
+                                .includes(attr)
+                        );
+                })
+            );
+            return searchedSBasePKs;
+        },
     },
 
     computed: {
-        getListOfTables(): Record<string, Array<string>> {
-            let tables: Record<string, Array<string>> = {};
+        getListOfTables() {
+            let tables = {};
 
-            const componentPKsMap: Record<string, Array<string>> = store.getters
-                .componentPKsMap;
+            const componentPKsMap = store.getters.componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {
-                    tables[sbmlType] = componentPKsMap[sbmlType];
+                    tables[sbmlType] = this.filterForSearchResults(
+                        componentPKsMap[sbmlType],
+                        this.searchQuery
+                    );
                 }
             }
 
             return tables;
         },
 
-        visibility(): Record<string, boolean> {
+        visibility() {
             return store.state.visibility;
         },
 
         currentFocussedTable() {
             return store.state.currentFocussedTable;
+        },
+
+        searchQuery() {
+            return store.state.searchQuery;
         },
     },
 
@@ -243,5 +291,10 @@ label {
     font-size: small;
     border-radius: 0 !important;
     z-index: 0 !important;
+}
+
+.pagination {
+    width: fit-content;
+    margin-left: auto;
 }
 </style>

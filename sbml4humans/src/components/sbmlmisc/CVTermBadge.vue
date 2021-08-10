@@ -39,7 +39,8 @@ export default defineComponent({
         const parts = this.resource.split("/");
         const resourceID = parts[parts.length - 1];
         additionalInfoUtils.fetchAdditionalInfo(resourceID).then((res) => {
-            this.addInfo = res;
+            console.log(res);
+            this.addInfo = res as Record<string, unknown>;
         });
     },
 });

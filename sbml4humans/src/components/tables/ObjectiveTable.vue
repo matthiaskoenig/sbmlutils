@@ -6,7 +6,7 @@
             href="#collapsibleObjective"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfObjectives
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfObjectives
         </strong>
 
         <table

@@ -4,11 +4,11 @@ Annotations/Notes:
 - [x] build caching layer for resources, use cache adaptor
   https://github.com/RasCarlito/axios-cache-adapter
   https://www.npmjs.com/package/axios-cache-adapter
-- [.] annotations/notes to SBase detail view;
+- [x] annotations/notes to SBase detail view;
 
 Layout:
 - [x] restructure navbar: small on the left side; start tables & details on top of page (full height)
-- [ ] remove colors from navigation menu & from DetailView
+- [x] remove colors from navigation menu & from DetailView
 - [x] make `name` a subtitle in the DetailView
 - [x] ids bold in table
 - [x] layout: add icon for SBMLDocument
@@ -17,20 +17,20 @@ Layout:
 - [~] layout: Reduce space between tables by moving search & entries next to heading
 
 Search:
-- [ ] fix search: make search filter all tables for matching elements
+- [x] fix search: make search filter all tables for matching elements
 
 Filter:
 - [x] remove filter functionality (hide)
 
 Deployment:
-- [ ] fix jquery issue -> use npm package for datatables: https://datatables.net/download/npm
-- [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
-- [ ] npm fontawesome (see https://www.npmjs.com/package/vue-awesome): include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself
+- [x] fix jquery issue -> use npm package for datatables: https://datatables.net/download/npm
+- [x] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
+- [x] npm fontawesome (see https://www.npmjs.com/package/vue-awesome): include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself 
 
-Static report:
+Static report:  // a server is always required 
 - Remove/Fix websocket calls
-- [ ] create static report 
-- [ ] option for download static report
+- [~] create static report 
+- [~] option for download static report
   
 # ---------------------    
 # MK:

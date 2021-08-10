@@ -9,7 +9,7 @@
             style="background-color: #66c2a5"
         >
             <div>
-                <i class="far fa-file-code mr-2" style="color: black" />
+                <font-awesome-icon icon="file-code" class="mr-2" />
                 <strong>{{ example.id }}</strong>
             </div>
         </div>

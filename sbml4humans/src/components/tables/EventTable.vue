@@ -6,7 +6,7 @@
             href="#collapsibleEvent"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfEvents
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfEvents
         </strong>
 
         <table

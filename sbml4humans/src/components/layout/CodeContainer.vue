@@ -1,16 +1,12 @@
 <template>
     <div class="xml-container">
-        <!-- <i
-            :class="`fas fa-${visible ? 'minus' : 'plus'}-circle mt-1 mr-2`"
-            v-on:click="visible = !visible"
-        ></i> -->
         <div
             :title="visible ? 'Hide Code' : 'Show Code'"
             class="d-flex"
             style="cursor: pointer"
         >
             <div class="mr-4" v-if="info.xml != null" v-on:click="toggleToXML()">
-                <i class="fas fa-code mr-1"></i>
+                <font-awesome-icon icon="code" class="mr-1" />
                 <span><strong>XML</strong></span>
             </div>
 

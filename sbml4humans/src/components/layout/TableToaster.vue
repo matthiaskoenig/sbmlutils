@@ -1,11 +1,11 @@
 <template>
-    <div class="card shadow-sm" v-if="visible" :title="'Navigate to ' + sbmlType">
+    <div class="card" v-if="visible" :title="'Navigate to ' + sbmlType">
         <div
             class="d-flex justify-content-between px-2"
             :style="`background-color: ${color}`"
         >
             <strong>
-                <i :class="`fas fa-${icon} mr-1`" />
+                <font-awesome-icon :icon="`${icon}`" class="mr-1" />
                 {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
             >
         </div>

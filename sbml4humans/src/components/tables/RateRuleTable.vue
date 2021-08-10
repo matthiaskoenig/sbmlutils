@@ -6,7 +6,7 @@
             href="#collapsibleRateRule"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfRateRules
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfRateRules
         </strong>
 
         <table

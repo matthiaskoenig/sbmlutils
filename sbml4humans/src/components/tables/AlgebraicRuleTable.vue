@@ -6,7 +6,7 @@
             href="#collapsibleAlgebraicRule"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfAlgebraicRules
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" />ListOfAlgebraicRules
         </strong>
 
         <table

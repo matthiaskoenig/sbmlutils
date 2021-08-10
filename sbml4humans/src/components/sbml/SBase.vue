@@ -1,7 +1,7 @@
 <template>
     <div class="d-flex justify-content-between">
         <strong class="sbmlType" :style="`background-color: ${color}`">
-            <i :class="`fas fa-${icon} mr-2`"></i>{{ info.sbmlType }}
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" />{{ info.sbmlType }}
         </strong>
     </div>
     <h2>{{ info.id }}</h2>

@@ -6,7 +6,7 @@
             href="#collapsibleCompartment"
             role="button"
         >
-            <i :class="`table-header fas fa-${icon} mr-1`"></i> ListOfCompartments
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfCompartments
         </strong>
 
         <table

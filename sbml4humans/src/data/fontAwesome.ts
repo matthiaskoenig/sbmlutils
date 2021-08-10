@@ -13,7 +13,7 @@ const icons = {
     Model: "file-code",
     Port: "plug",
     Submodel: "sitemap",
-    Parameter: "beta",
+    Parameter: "stream",
     Constraint: "less-than-equal",
     Objective: "bullseye",
     SBMLDocument: "file-alt",

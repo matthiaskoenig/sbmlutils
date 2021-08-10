@@ -2,7 +2,7 @@
     <div class="holder">
         <div class="selector"></div>
         <div
-            class="card shadow-sm d-flex"
+            class="card d-flex"
             v-if="visible"
             v-on:click="showDetail"
             title="Show details"
@@ -16,7 +16,7 @@
                 </div>
                 <div class="d-flex">
                     <strong>{{ sbmlType }}</strong>
-                    <i :class="`fas fa-${icon} ml-2 mt-1`"></i>
+                    <font-awesome-icon :icon="`${icon}`" class="ml-2 mt-1" />
                 </div>
             </div>
             <div v-if="info.metaId || info.sbo" class="px-2">

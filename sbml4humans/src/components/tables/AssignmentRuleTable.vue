@@ -6,7 +6,7 @@
             href="#collapsibleAssignmentRule"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfAssignmentRules
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfAssignmentRules
         </strong>
 
         <table

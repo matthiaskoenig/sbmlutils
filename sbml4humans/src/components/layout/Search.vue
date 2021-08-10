@@ -1,6 +1,6 @@
 <template>
     <div class="d-flex">
-        <i class="fa fa-search mx-2 mt-1" style="color: black; font-size: 18px" />
+        <font-awesome-icon icon="search" class="mx-2 mt-2" />
         <input
             class="form-control"
             type="text"

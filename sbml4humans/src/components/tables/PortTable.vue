@@ -6,7 +6,7 @@
             href="#collapsiblePort"
             role="button"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfPorts
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfPorts
         </strong>
 
         <table

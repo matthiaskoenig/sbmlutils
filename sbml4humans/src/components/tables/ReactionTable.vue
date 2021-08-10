@@ -1,7 +1,7 @@
 <template>
     <div class="scrollable">
         <strong class="sbmlType" href="#collapsibleReaction" role="button">
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfReactions
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfReactions
         </strong>
 
         <table

@@ -19,16 +19,17 @@ const api = axios.create({
 async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
+    //return { "bruh": "bruh" };
     const QUERY_URL = urls.API_BASE_URL + urls.RESOURCE_INFO_URL + resourceID;
-    let res;
-    api({
+    console.log(QUERY_URL);
+    let res = api({
         url: QUERY_URL,
         method: "get",
-    }).then(async (response) => {
-        res = response;
+    }).then((response) => {
+        res = response.data;
+        return res;
     });
-
-    return res.data;
+    return res;
 }
 
 export default {
