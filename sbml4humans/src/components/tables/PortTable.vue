@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsiblePort"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfPorts
+    <div ref="portDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Ports
         </strong>
 
         <table
@@ -106,6 +101,16 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["portDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["portDiv"] as HTMLDivElement).style.display = "block";
+            }
         },
     },
 });

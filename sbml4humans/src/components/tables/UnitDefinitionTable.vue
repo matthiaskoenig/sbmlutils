@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleUnitDefintion"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfUnitDefinitions
+    <div ref="unitDefinitionDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> UnitDefinitions
         </strong>
 
         <table
@@ -90,6 +85,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["unitDefinitionDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["unitDefinitionDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

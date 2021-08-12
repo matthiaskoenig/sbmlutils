@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleEvent"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfEvents
+    <div ref="eventDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Events
         </strong>
 
         <table
@@ -130,6 +125,16 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["eventDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["eventDiv"] as HTMLDivElement).style.display = "block";
+            }
         },
     },
 });

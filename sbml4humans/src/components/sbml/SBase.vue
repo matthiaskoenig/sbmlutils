@@ -1,10 +1,11 @@
 <template>
     <div class="d-flex justify-content-between">
-        <strong class="sbmlType" :style="`background-color: ${color}`">
+        <strong class="sbmlType">
             <font-awesome-icon :icon="`${icon}`" class="mr-1" />{{ info.sbmlType }}
         </strong>
     </div>
     <h2>{{ info.id }}</h2>
+    <h5>{{ info.name }}</h5>
 
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>

@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleGeneProduct"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfGeneProducts
+    <div ref="geneProductDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> GeneProducts
         </strong>
 
         <table
@@ -88,6 +83,17 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["geneProductDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["geneProductDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

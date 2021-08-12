@@ -3,11 +3,11 @@
 - [ ] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/
 
 Layout:
-- [ ] make `name` a subtitle in the DetailView
-- [ ] fix table navigation; on click should scroll to table
-- [ ] Table header replace "ListOf*" -> "*" e.g. ListOfCompartments -> Compartments  
+- [x] make `name` a subtitle in the DetailView
+- [x] fix table navigation; on click should scroll to table
+- [x] Table header replace "ListOf*" -> "*" e.g. ListOfCompartments -> Compartments  
 - [ ] hide tables if no results in global search  
-- [ ] re-add colors to navigation 
+- [x] re-add colors to navigation 
 - [ ] add count badges to the SBase navigation to get fast overview of number of components
 - [ ] icons for table sorting are missing
 - [ ] hide table & table navigation when switching visibility via toggle  

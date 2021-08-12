@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleFunctionDefinition"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfFunctionDefinitions
+    <div ref="functionDefinitionDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> FunctionDefinitions
         </strong>
 
         <table
@@ -90,6 +85,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["functionDefinitionDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["functionDefinitionDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

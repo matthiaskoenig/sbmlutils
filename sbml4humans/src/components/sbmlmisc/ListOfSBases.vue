@@ -1,4 +1,6 @@
 <template>
+    <!--<PanelMenu :model="items" />-->
+
     <strong>Document & Models</strong>
     <a-list class="basics-container">
         <SBML-toaster
@@ -29,6 +31,61 @@ export default defineComponent({
     components: {
         SBMLToaster,
         ListOfTables,
+    },
+
+    data() {
+        return {
+            items: [
+                {
+                    label: "Document & Models",
+                    items: [
+                        {
+                            label: "New",
+                            icon: "pi pi-fw pi-plus",
+                            items: [
+                                {
+                                    label: "Bookmark",
+                                    icon: "pi pi-fw pi-bookmark",
+                                },
+                                {
+                                    label: "Video",
+                                    icon: "pi pi-fw pi-video",
+                                },
+                            ],
+                        },
+                        {
+                            label: "Delete",
+                            icon: "pi pi-fw pi-trash",
+                        },
+                        {
+                            label: "Export",
+                            icon: "pi pi-fw pi-external-link",
+                        },
+                    ],
+                },
+                {
+                    label: "SBases",
+                    items: [
+                        {
+                            label: "Left",
+                            icon: "pi pi-fw pi-align-left",
+                        },
+                        {
+                            label: "Right",
+                            icon: "pi pi-fw pi-align-right",
+                        },
+                        {
+                            label: "Center",
+                            icon: "pi pi-fw pi-align-center",
+                        },
+                        {
+                            label: "Justify",
+                            icon: "pi pi-fw pi-align-justify",
+                        },
+                    ],
+                },
+            ],
+        };
     },
 
     methods: {

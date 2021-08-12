@@ -23,7 +23,7 @@
                 <span
                     v-for="pkg in example.packages"
                     :key="pkg"
-                    :class="`badge badge-pill badge-${badgeColor[pkg]} mr-1`"
+                    :class="`badge badge-pill badge-${badgeColor[pkg]} package-badge mr-1`"
                     >{{ pkg }}</span
                 >
             </div>

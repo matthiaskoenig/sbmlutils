@@ -4,102 +4,94 @@
         :key="sbmlType"
         class="tablesContainer"
     >
-        <div ref="Model" v-show="sbmlType === 'Model' && visibility['Model']">
+        <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
             <model-table ref="#model-table" :listOfPKs="pks" />
         </div>
 
         <div
             ref="FunctionDefinition"
-            v-show="
-                sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']
-            "
+            v-if="sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']"
         >
             <function-definition-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Compartment"
-            v-show="sbmlType === 'Compartment' && visibility['Compartment']"
+            v-if="sbmlType === 'Compartment' && visibility['Compartment']"
         >
             <compartment-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Species" v-show="sbmlType === 'Species' && visibility['Species']">
+        <div ref="Species" v-if="sbmlType === 'Species' && visibility['Species']">
             <species-table :listOfPKs="pks" />
         </div>
 
-        <div
-            ref="Parameter"
-            v-show="sbmlType === 'Parameter' && visibility['Parameter']"
-        >
+        <div ref="Parameter" v-if="sbmlType === 'Parameter' && visibility['Parameter']">
             <parameter-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="InitialAssignment"
-            v-show="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
+            v-if="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
         >
             <initial-assignment-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AssignmentRule"
-            v-show="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
+            v-if="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
         >
             <assignment-rule-table :listOfPKs="pks" />
         </div>
 
-        <div ref="RateRule" v-show="sbmlType === 'RateRule' && visibility['RateRule']">
+        <div ref="RateRule" v-if="sbmlType === 'RateRule' && visibility['RateRule']">
             <rate-rule-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AlgebraicRule"
-            v-show="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
+            v-if="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
         >
             <algebraic-rule-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Reaction" v-show="sbmlType === 'Reaction' && visibility['Reaction']">
+        <div ref="Reaction" v-if="sbmlType === 'Reaction' && visibility['Reaction']">
             <reaction-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Event" v-show="sbmlType === 'Event' && visibility['Event']">
+        <div ref="Event" v-if="sbmlType === 'Event' && visibility['Event']">
             <event-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="UnitDefinition"
-            v-show="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
+            v-if="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
         >
             <unit-definition-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Port" v-show="sbmlType === 'Port' && visibility['Port']">
+        <div ref="Port" v-if="sbmlType === 'Port' && visibility['Port']">
             <port-table :listOfPKs="pks" />
         </div>
 
-        <div ref="Submodel" v-show="sbmlType === 'Submodel' && visibility['Submodel']">
+        <div ref="Submodel" v-if="sbmlType === 'Submodel' && visibility['Submodel']">
             <submodel-table :listOfPKs="pks" />
         </div>
 
-        <div
-            ref="Objective"
-            v-show="sbmlType === 'Objective' && visibility['Objective']"
-        >
+        <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
             <objective-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Constraint"
-            v-show="sbmlType === 'Constraint' && visibility['Constraint']"
+            v-if="sbmlType === 'Constraint' && visibility['Constraint']"
         >
             <constraint-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="GeneProduct"
-            v-show="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
+            v-if="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
         >
             <gene-product-table :listOfPKs="pks" />
         </div>
@@ -109,12 +101,10 @@
 <script>
 import store from "@/store/index";
 import { defineComponent } from "@vue/runtime-core";
-//import "datatables.net";
+import "datatables.net";
 import "datatables.net-buttons-bs4";
+import "datatables.net-dt";
 import $ from "jquery";
-
-// import $ = require("jquery");
-//import dt from require("datatables.net");
 
 import ModelTable from "@/components/tables/ModelTable.vue";
 import CompartmentTable from "@/components/tables/CompartmentTable.vue";
@@ -155,7 +145,7 @@ export default defineComponent({
         FunctionDefinitionTable,
     },
 
-    mounted() {
+    created() {
         $(document).ready(() => {
             $("table").DataTable();
         });
@@ -182,20 +172,12 @@ export default defineComponent({
             searchedSBasePKs.push(
                 ...sBasePKs.filter((pk) => {
                     const sbmlComponent = allSBMLComponents[pk];
-                    return searchQuery
+                    const componentMeta =
+                        sbmlComponent.id + sbmlComponent.metaId + sbmlComponent.sbo + sbmlComponent.name;
+                    return componentMeta
+                        .replace(" ", "")
                         .toLowerCase()
-                        .split(" ")
-                        .every((attr) =>
-                            (
-                                sbmlComponent.name +
-                                sbmlComponent.id +
-                                sbmlComponent.metaId +
-                                sbmlComponent.sbo
-                            )
-                                .toString()
-                                .toLowerCase()
-                                .includes(attr)
-                        );
+                        .includes(searchQuery.replace(" ", "").toLowerCase());
                 })
             );
             return searchedSBasePKs;
@@ -296,5 +278,68 @@ label {
 .pagination {
     width: fit-content;
     margin-left: auto;
+}
+
+
+table.dataTable>thead>tr>th:not(.sorting_disabled),
+table.dataTable>thead>tr>td:not(.sorting_disabled) {
+	padding-right: 30px;
+}
+
+table.dataTable>thead .sorting,
+table.dataTable>thead .sorting_asc,
+table.dataTable>thead .sorting_desc,
+table.dataTable>thead .sorting_asc_disabled,
+table.dataTable>thead .sorting_desc_disabled {
+	cursor: pointer;
+	position: relative;
+}
+
+table.dataTable>thead .sorting:before,
+table.dataTable>thead .sorting:after,
+table.dataTable>thead .sorting_asc:before,
+table.dataTable>thead .sorting_asc:after,
+table.dataTable>thead .sorting_desc:before,
+table.dataTable>thead .sorting_desc:after,
+table.dataTable>thead .sorting_asc_disabled:before,
+table.dataTable>thead .sorting_asc_disabled:after,
+table.dataTable>thead .sorting_desc_disabled:before,
+table.dataTable>thead .sorting_desc_disabled:after {
+	position: absolute;
+	display: inline;
+	opacity: .1;
+    margin: auto 2px;
+}
+
+table.dataTable>thead .sorting:before,
+table.dataTable>thead .sorting_asc:before,
+table.dataTable>thead .sorting_desc:before,
+table.dataTable>thead .sorting_asc_disabled:before,
+table.dataTable>thead .sorting_desc_disabled:before {
+	right: 1em;
+	content: "↑";
+    margin-top: auto;
+    margin: 0 2px;
+}
+
+table.dataTable>thead .sorting:after,
+table.dataTable>thead .sorting_asc:after,
+table.dataTable>thead .sorting_desc:after,
+table.dataTable>thead .sorting_asc_disabled:after,
+table.dataTable>thead .sorting_desc_disabled:after {
+	right: .5em;
+	content: "↓";
+    margin-top: auto;
+    margin: 0 2px;
+}
+
+table.dataTable>thead .sorting_asc:before,
+table.dataTable>thead .sorting_desc:after {
+	opacity: 1;
+}
+
+table.dataTable>thead .sorting_asc_disabled:before,
+table.dataTable>thead .sorting_desc_disabled:after {
+	opacity: 0;
 }
 </style>

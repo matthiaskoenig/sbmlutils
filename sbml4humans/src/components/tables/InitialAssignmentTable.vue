@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleInitialAssignment"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" />ListOfInitialAssignments
+    <div ref="initialAssignmentDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" />InitialAssignments
         </strong>
 
         <table
@@ -102,6 +97,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["initialAssignmentDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["initialAssignmentDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

@@ -1,17 +1,11 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleSpecies"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfSpecies
+    <div ref="speciesDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Species
         </strong>
 
         <table
             class="table table-striped table-bordered table-sm table-condensed compact"
-            id="collapsibleSpecies"
         >
             <thead class="thead-dark">
                 <tr>
@@ -36,7 +30,7 @@
                     v-on:click="openComponent(object.pk)"
                 >
                     <td>
-                        <span v-if="object.id">
+                        <span v-if="object.id != null">
                             <strong>{{ object.id }}</strong>
                         </span>
                     </td>
@@ -110,11 +104,14 @@
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import store from "@/store/index";
 import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
+
+import "datatables.net-buttons-bs4";
+import $ from "jquery";
 
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
@@ -134,29 +131,65 @@ export default defineComponent({
     },
 
     computed: {
-        objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+        objects() {
+            let listOfObjects = [];
             const allObjectsMap = store.state.allObjectsMap;
 
-            (this.listOfPKs as Array<string>).forEach((pk) => {
+            (this.listOfPKs).forEach((pk) => {
                 listOfObjects.push(allObjectsMap[pk]);
             });
 
             return listOfObjects;
         },
 
-        color(): string {
+        color(){
             return colorScheme.componentColor["Species"];
         },
 
-        icon(): string {
+        icon(){
             return icons.icons["Species"];
         },
     },
 
     methods: {
-        openComponent(pk: string): void {
+        openComponent(pk) {
             store.dispatch("pushToHistoryStack", pk);
+        },
+
+        filterForSearchResults(sBasePKs, searchQuery = "") {
+            const allSBMLComponents = store.state.allObjectsMap;
+
+            let searchedSBasePKs = [];
+            searchedSBasePKs.push(
+                ...sBasePKs.filter((pk) => {
+                    const sbmlComponent = allSBMLComponents[pk];
+                    return searchQuery
+                        .toLowerCase()
+                        .split(" ")
+                        .every((attr) =>
+                            (
+                                sbmlComponent.name +
+                                sbmlComponent.id +
+                                sbmlComponent.metaId +
+                                sbmlComponent.sbo
+                            )
+                                .toString()
+                                .toLowerCase()
+                                .includes(attr)
+                        );
+                })
+            );
+            return searchedSBasePKs;
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["speciesDiv"]).style.display = "none";
+            } else {
+                (this.$refs["speciesDiv"]).style.display = "block";
+            }
         },
     },
 });

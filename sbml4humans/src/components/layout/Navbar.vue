@@ -59,10 +59,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.navbar {
-    margin-bottom: 2%;
-}
-
 .logo {
     height: 40px;
     margin-right: 10px;

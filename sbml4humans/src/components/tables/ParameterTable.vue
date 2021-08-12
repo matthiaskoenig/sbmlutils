@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleParameter"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfParameters
+    <div ref="parameterDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Parameters
         </strong>
 
         <table
@@ -127,11 +122,15 @@ export default defineComponent({
         },
     },
 
-    // computed: {
-    //     tableMi(): Record<string, unknown> {
-    //         return tableMixin(this.listOfPKs as Array<string>);
-    //     },
-    // },
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["parameterDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["parameterDiv"] as HTMLDivElement).style.display = "block";
+            }
+        },
+    },
 });
 </script>
 

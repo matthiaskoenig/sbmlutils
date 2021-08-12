@@ -1,12 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            data-toggle="collapse"
-            href="#collapsibleAssignmentRule"
-            role="button"
-        >
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> ListOfAssignmentRules
+    <div ref="assignmentRuleDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> AssignmentRules
         </strong>
 
         <table
@@ -100,6 +95,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["assignmentRuleDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["assignmentRuleDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });
