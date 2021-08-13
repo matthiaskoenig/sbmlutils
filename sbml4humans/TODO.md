@@ -36,7 +36,6 @@ Improve generated latex (backend, MK)
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
 
 ## Deployment
-- [ ] FIXME: hardcoded backend urls in frontend (-> env variables)
-- [ ] FIXME: test on server
+- [ ] fix hardcoded backend urls in frontend (-> env variables)
 
 
