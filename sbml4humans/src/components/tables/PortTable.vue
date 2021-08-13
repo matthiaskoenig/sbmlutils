@@ -1,13 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsiblePort"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfPorts
+    <div ref="portDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Ports
         </strong>
 
         <table
@@ -26,11 +20,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
@@ -103,6 +101,16 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["portDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["portDiv"] as HTMLDivElement).style.display = "block";
+            }
         },
     },
 });

@@ -1,11 +1,12 @@
 <template>
-    <!-- Math -->
-    <div class="data" v-if="info.math != null">
-        <div class="label">
-            <strong>math:</strong>
-            <katex :mathStr="info.math"></katex>
-        </div>
-    </div>
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.math != null">
+                <td class="label-td"><div class="label">math</div></td>
+                <td><katex :mathStr="info.math" /></td>
+            </tr>
+        </tbody>
+    </table>
 </template>
 
 <script lang="ts">
@@ -19,7 +20,7 @@ import Katex from "@/components/layout/Katex.vue";
  */
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {

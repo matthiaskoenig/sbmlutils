@@ -8,7 +8,7 @@
     </button>
 
     <div class="filter" v-if="menuVisible" v-on:click="menuVisible = !menuVisible">
-        <p class="ml-4 .text-dark">Click on a tag to hide that SBML component</p>
+        <p class="ml-4 text-dark">Click on a tag to hide that SBML component</p>
         <div class="tag-list">
             <!-- Selectively Displaying Filter buttons for all SBML Types  -->
             <div

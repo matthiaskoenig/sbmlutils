@@ -1,17 +1,11 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleObjective"
-            role="button"
-        >
-           <i :class="`fas fa-${icon} mr-1`"></i> ListOfObjectives
+    <div ref="objectiveDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Objectives
         </strong>
 
         <table
-            class="table table-striped table-bordered  table-sm table-condensed  compact"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleObjective"
         >
             <thead class="thead-dark">
@@ -22,11 +16,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
@@ -81,6 +79,16 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["objectiveDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["objectiveDiv"] as HTMLDivElement).style.display = "block";
+            }
         },
     },
 });

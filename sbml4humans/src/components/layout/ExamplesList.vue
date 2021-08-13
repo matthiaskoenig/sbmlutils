@@ -2,14 +2,11 @@
     <h1 class="w-100">Examples</h1>
     <p>Choose from the list of examples to generate a report.</p>
 
-    <a-list class="list-container">
-        <example
-            v-for="example in examples"
-            :key="example.id"
-            :example="example"
-        ></example>
-    </a-list>
-    <loading parent="example"></loading>
+    <ScrollPanel class="list-container">
+        <example v-for="example in examples" :key="example.id" :example="example" />
+    </ScrollPanel>
+
+    <loading parent="example" />
 </template>
 
 <script lang="ts">
@@ -25,8 +22,8 @@ import Loading from "@/components/layout/Loading.vue";
  */
 export default defineComponent({
     components: {
-        example: Example,
-        loading: Loading,
+        Example,
+        Loading,
     },
 
     created(): void {

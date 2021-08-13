@@ -1,17 +1,11 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleInitialAssignment"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfInitialAssignments
+    <div ref="initialAssignmentDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" />InitialAssignments
         </strong>
 
         <table
-            class="table table-striped table-bordered  table-sm table-condensed  compact"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleInitialAssignment"
         >
             <thead class="thead-dark">
@@ -24,27 +18,33 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
                     </td>
                     <td>
-                        <span v-if="object.variable != null">{{ object.variable }}</span>
+                        <span v-if="object.variable != null">{{
+                            object.variable
+                        }}</span>
                     </td>
                     <td>
                         <span v-if="object.math != null">
-                            <katex :mathStr="object.math"></katex>
+                            <katex :mathStr="object.math" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                 </tr>
@@ -63,7 +63,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {
@@ -97,6 +97,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["initialAssignmentDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["initialAssignmentDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

@@ -25,7 +25,7 @@ function assembleSBasesInReport(
 
     const sbases: Array<Record<string, unknown>> = [];
     const counts: Record<string, Record<string, number>> = {};
-    const allObjectsMap: Record<string, unknown> = {};
+    const allObjectsMap: Record<string, unknown> = {}; // object lookup map
     const componentPKsMap: Record<string, Record<string, Array<string>>> = {};
     const componentWiseLists: Record<
         string,
@@ -115,6 +115,7 @@ function assembleSBasesInReport(
 
 /**
  * Collects SBML objects inside a particular model definition.
+ *
  * @param model The SBML model
  * @param counts Global counts map
  * @param allObjectsMap Global map for all SBML objects

@@ -9,7 +9,7 @@ import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 const tableMixin = (listOfPKs: Array<string>): Record<string, unknown> => {
     const components = {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     };
 

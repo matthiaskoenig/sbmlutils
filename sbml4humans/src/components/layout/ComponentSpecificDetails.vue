@@ -1,70 +1,70 @@
 <template>
     <div id="documentDiv" v-if="sbmlType === 'SBMLDocument'">
-        <sbml-document :info="info"></sbml-document>
+        <SBMLDocument :info="info" />
     </div>
 
     <div id="modelDiv" v-if="sbmlType === 'Model'">
-        <model :info="info"></model>
+        <model :info="info" />
     </div>
 
     <div id="portDiv" v-if="sbmlType === 'Port'">
-        <port :info="info"></port>
+        <port :info="info" />
     </div>
 
     <div id="functionDefinitionDiv" v-if="sbmlType === 'FunctionDefinition'">
-        <function-definition :info="info"></function-definition>
+        <function-definition :info="info" />
     </div>
 
     <div id="unitDefinitionDiv" v-if="sbmlType === 'UnitDefinition'">
-        <unit-definition :info="info"></unit-definition>
+        <unit-definition :info="info" />
     </div>
 
     <div id="compartmentDiv" v-if="sbmlType === 'Compartment'">
-        <compartment :info="info"></compartment>
+        <compartment :info="info" />
     </div>
 
     <div id="speciesDiv" v-if="sbmlType === 'Species'">
-        <species :info="info"></species>
+        <species :info="info" />
     </div>
 
     <div id="parameterDiv" v-if="sbmlType === 'Parameter'">
-        <parameter :info="info"></parameter>
+        <parameter :info="info" />
     </div>
 
     <div id="reactionDiv" v-if="sbmlType === 'Reaction'">
-        <reaction :info="info"></reaction>
+        <reaction :info="info" />
     </div>
 
     <div id="assignmentRuleDiv" v-if="sbmlType === 'AssignmentRule'">
-        <assignment-rule :info="info"></assignment-rule>
+        <assignment-rule :info="info" />
     </div>
 
     <div id="initialAssignmentDiv" v-if="sbmlType === 'InitialAssignment'">
-        <initial-assignment :info="info"></initial-assignment>
+        <initial-assignment :info="info" />
     </div>
 
     <div id="rateRuleDiv" v-if="sbmlType === 'RateRule'">
-        <rate-rule :info="info"></rate-rule>
+        <rate-rule :info="info" />
     </div>
 
     <div id="algebraicRuleDiv" v-if="sbmlType === 'AlgebraicRule'">
-        <algebraic-rule :info="info"></algebraic-rule>
+        <algebraic-rule :info="info" />
     </div>
 
     <div id="constraintDiv" v-if="sbmlType === 'Constraint'">
-        <constraint :info="info"></constraint>
+        <constraint :info="info" />
     </div>
 
     <div id="eventDiv" v-if="sbmlType === 'Event'">
-        <event :info="info"></event>
+        <event :info="info" />
     </div>
 
     <div id="objectiveDiv" v-if="sbmlType === 'Objective'">
-        <objective :info="info"></objective>
+        <objective :info="info" />
     </div>
 
     <div id="geneProductDiv" v-if="sbmlType === 'GeneProduct'">
-        <gene-product :info="info"></gene-product>
+        <gene-product :info="info" />
     </div>
 </template>
 
@@ -107,23 +107,23 @@ export default defineComponent({
     },
 
     components: {
-        InitialAssignment: InitialAssignment,
-        "sbml-document": SBMLDocument,
-        model: Model,
-        port: Port,
-        "function-definition": FunctionDefinition,
-        "unit-definition": UnitDefinition,
-        compartment: Compartment,
-        species: Species,
-        parameter: Parameter,
-        reaction: Reaction,
-        "assignment-rule": AssignmentRule,
-        "rate-rule": RateRule,
-        "algebraic-rule": AlgebraicRule,
-        constraint: Constraint,
-        event: Event,
-        objective: Objective,
-        "gene-product": GeneProduct,
+        InitialAssignment,
+        SBMLDocument,
+        Model,
+        Port,
+        FunctionDefinition,
+        UnitDefinition,
+        Compartment,
+        Species,
+        Parameter,
+        Reaction,
+        AssignmentRule,
+        RateRule,
+        AlgebraicRule,
+        Constraint,
+        Event,
+        Objective,
+        GeneProduct,
     },
 });
 </script>

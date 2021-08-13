@@ -1,13 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleAssignmentRule"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfAssignmentRules
+    <div ref="assignmentRuleDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> AssignmentRules
         </strong>
 
         <table
@@ -31,7 +25,9 @@
                     v-on:click="openComponent(object.pk)"
                 >
                     <td>
-                        <span v-if="object.id != null">{{ object.id }}</span>
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
+                        >
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
@@ -41,12 +37,12 @@
                     </td>
                     <td>
                         <span v-if="object.math != null">
-                            <katex :mathStr="object.id + '=' + object.math"></katex>
+                            <katex :mathStr="object.id + '=' + object.math" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                 </tr>
@@ -65,7 +61,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {
@@ -99,6 +95,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["assignmentRuleDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["assignmentRuleDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

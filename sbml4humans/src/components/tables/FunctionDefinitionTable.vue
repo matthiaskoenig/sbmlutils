@@ -1,17 +1,11 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleFunctionDefinition"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfFunctionDefinitions
+    <div ref="functionDefinitionDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> FunctionDefinitions
         </strong>
 
         <table
-            class="table table-striped table-bordered  table-sm table-condensed  compact"
+            class="table table-striped table-bordered table-sm table-condensed compact"
             id="collapsibleFunctionDefinition"
         >
             <thead class="thead-dark">
@@ -22,11 +16,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
@@ -34,7 +32,7 @@
                     </td>
                     <td>
                         <span v-if="object.math != null">
-                            <katex :mathStr="object.math"></katex>
+                            <katex :mathStr="object.math" />
                         </span>
                     </td>
                 </tr>
@@ -53,7 +51,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {
@@ -87,6 +85,18 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["functionDefinitionDiv"] as HTMLDivElement).style.display =
+                    "none";
+            } else {
+                (this.$refs["functionDefinitionDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

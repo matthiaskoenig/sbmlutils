@@ -1,13 +1,16 @@
 <template>
-    <div class="detail-container">
-        <detail-view-nav></detail-view-nav>
-        <sbase :info="info"></sbase>
-        <component-specific-details
-            :info="info"
-            :sbmlType="info.sbmlType"
-        ></component-specific-details>
-        <!-- XML container -->
-        <xml-container v-if="info.xml" :xml="info.xml"></xml-container>
+    <div ref="detailContainer" class="detail-container">
+        <!-- Back and Forward Buttons -->
+        <detail-view-nav />
+
+        <!-- SBase Information -->
+        <SBase :info="info" />
+
+        <!-- Per SBML Component Information -->
+        <component-specific-details :info="info" :sbmlType="info.sbmlType" />
+
+        <!-- Additional Information for the component -->
+        <additional-data :info="info" />
     </div>
 </template>
 
@@ -18,18 +21,18 @@ import { defineComponent } from "@vue/runtime-core";
 /* Components */
 import SBase from "@/components/sbml/SBase.vue";
 import ComponentSpecificDetails from "@/components/layout/ComponentSpecificDetails.vue";
-import XMLContainer from "@/components/layout/XMLContainer.vue";
 import DetailViewNav from "@/components/layout/DetailViewNav.vue";
+import AdditionalData from "@/components/layout/AdditionalData.vue";
 
 /*
  * Component to display detailed information about the selected SBML Component.
  */
 export default defineComponent({
     components: {
-        sbase: SBase,
-        "component-specific-details": ComponentSpecificDetails,
-        "xml-container": XMLContainer,
-        "detail-view-nav": DetailViewNav,
+        SBase,
+        ComponentSpecificDetails,
+        DetailViewNav,
+        AdditionalData,
     },
 
     computed: {
@@ -49,18 +52,32 @@ export default defineComponent({
             return store.state.detailVisibility;
         },
     },
+
+    watch: {
+        info: {
+            handler() {
+                const el = this.$refs["detailContainer"] as HTMLDivElement;
+                if (el) {
+                    el.scrollTop = 0;
+                }
+            },
+            deep: true,
+            immediate: true,
+        },
+    },
 });
 </script>
 
 <style lang="scss" scoped>
 .detail-container {
-    height: 85vh;
-    padding: 0px 15px;
+    height: 98vh;
+    padding-left: 15px;
 
     word-wrap: break-word;
     overflow-y: scroll;
     overflow-x: scroll;
 
     background-color: white;
+    font-size: small;
 }
 </style>

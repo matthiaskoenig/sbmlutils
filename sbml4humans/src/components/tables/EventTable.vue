@@ -1,13 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleEvent"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfEvents
+    <div ref="eventDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Events
         </strong>
 
         <table
@@ -27,11 +21,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
@@ -46,7 +44,7 @@
                         <span
                             v-if="object.trigger != null && object.trigger.math != null"
                         >
-                            <katex :mathStr="object.trigger.math"></katex>
+                            <katex :mathStr="object.trigger.math" />
                         </span>
                     </td>
                     <td>
@@ -69,12 +67,12 @@
                     </td>
                     <td>
                         <span v-if="object.priority != null">
-                            <katex :mathStr="object.persistent"></katex>
+                            <katex :mathStr="object.persistent" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.delay != null">
-                            <katex :mathStr="object.delay"></katex>
+                            <katex :mathStr="object.delay" />
                         </span>
                     </td>
                 </tr>
@@ -93,7 +91,7 @@ import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
     },
 
     props: {
@@ -127,6 +125,16 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["eventDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["eventDiv"] as HTMLDivElement).style.display = "block";
+            }
         },
     },
 });

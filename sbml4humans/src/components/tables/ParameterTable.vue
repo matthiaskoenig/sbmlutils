@@ -1,13 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleParameter"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfParameters
+    <div ref="parameterDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Parameters
         </strong>
 
         <table
@@ -26,11 +20,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
@@ -54,12 +52,12 @@
                     </td>
                     <td>
                         <span v-if="object.units != null">
-                            <katex :mathStr="object.units"></katex>
+                            <katex :mathStr="object.units" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                     <td>
@@ -84,11 +82,9 @@ import { defineComponent } from "vue";
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
-import tableMixin from "@/helpers/tableMixin";
-
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     },
 
@@ -126,11 +122,15 @@ export default defineComponent({
         },
     },
 
-    // computed: {
-    //     tableMi(): Record<string, unknown> {
-    //         return tableMixin(this.listOfPKs as Array<string>);
-    //     },
-    // },
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["parameterDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["parameterDiv"] as HTMLDivElement).style.display = "block";
+            }
+        },
+    },
 });
 </script>
 

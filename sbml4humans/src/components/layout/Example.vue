@@ -9,7 +9,7 @@
             style="background-color: #66c2a5"
         >
             <div>
-                <i class="far fa-file-code mr-2" style="color: black" />
+                <font-awesome-icon icon="file-code" class="mr-2" />
                 <strong>{{ example.id }}</strong>
             </div>
         </div>
@@ -23,7 +23,7 @@
                 <span
                     v-for="pkg in example.packages"
                     :key="pkg"
-                    :class="`badge badge-pill badge-${badgeColor[pkg]} mr-1`"
+                    :class="`badge badge-pill badge-${badgeColor[pkg]} package-badge mr-1`"
                     >{{ pkg }}</span
                 >
             </div>

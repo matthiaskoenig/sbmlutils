@@ -1,6 +1,7 @@
 <template>
     <div style="width: 85%">
         <h1>Upload SBML</h1>
+
         <form class="needs-validation" @submit.prevent="submitForm">
             <div class="form-group d-flex">
                 <input
@@ -17,7 +18,8 @@
                 Upload a valid SBML file or COMBINE archive containing SBML
             </div>
         </form>
-        <loading parent="file"></loading>
+
+        <loading parent="file" />
     </div>
 </template>
 
@@ -32,7 +34,7 @@ import Loading from "@/components/layout/Loading.vue";
  */
 export default defineComponent({
     components: {
-        loading: Loading,
+        Loading,
     },
 
     data(): Record<string, unknown> {

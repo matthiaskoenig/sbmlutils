@@ -1,13 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleReaction"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfReactions
+    <div ref="reactionDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Reactions
         </strong>
 
         <table
@@ -27,11 +21,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
                         >
                     </td>
                     <td>
@@ -73,7 +71,7 @@
                                 object.kineticLaw.math != null
                             "
                         >
-                            <katex :mathStr="object.kineticLaw.math"></katex>
+                            <katex :mathStr="object.kineticLaw.math" />
                         </span>
                     </td>
                     <td>
@@ -83,7 +81,7 @@
                                 object.kineticLaw.derivedUnits != null
                             "
                         >
-                            <katex :mathStr="object.kineticLaw.derivedUnits"></katex>
+                            <katex :mathStr="object.kineticLaw.derivedUnits" />
                         </span>
                     </td>
                 </tr>
@@ -138,6 +136,16 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["reactionDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["reactionDiv"] as HTMLDivElement).style.display = "block";
+            }
         },
     },
 });

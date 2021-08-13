@@ -1,22 +1,17 @@
 <template>
-    <list-of-tables></list-of-tables>
-
-    <div><strong>Document & Models</strong></div>
-    <!--
-        <div v-for="component in collectReportBasics" :key="component.pk">
-            <a-checkbox/>{{component.pk}} | {{component.sbmlType}}
-        </div>
-    -->
-
-    <a-list class="basics-container">
-        <toaster
+    <strong>Document & Models</strong>
+    <ScrollPanel class="basics-container">
+        <SBML-toaster
             v-for="component in collectReportBasics"
             :key="component.pk"
             :sbmlType="component.sbmlType"
             :info="component"
             :visible="Boolean(visibility[component.sbmlType])"
-        ></toaster>
-    </a-list>
+        />
+    </ScrollPanel>
+
+    <strong>SBases</strong>
+    <list-of-tables />
 </template>
 
 <script lang="ts">
@@ -30,8 +25,63 @@ import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
 
 export default defineComponent({
     components: {
-        toaster: SBMLToaster,
-        "list-of-tables": ListOfTables,
+        SBMLToaster,
+        ListOfTables,
+    },
+
+    data() {
+        return {
+            items: [
+                {
+                    label: "Document & Models",
+                    items: [
+                        {
+                            label: "New",
+                            icon: "pi pi-fw pi-plus",
+                            items: [
+                                {
+                                    label: "Bookmark",
+                                    icon: "pi pi-fw pi-bookmark",
+                                },
+                                {
+                                    label: "Video",
+                                    icon: "pi pi-fw pi-video",
+                                },
+                            ],
+                        },
+                        {
+                            label: "Delete",
+                            icon: "pi pi-fw pi-trash",
+                        },
+                        {
+                            label: "Export",
+                            icon: "pi pi-fw pi-external-link",
+                        },
+                    ],
+                },
+                {
+                    label: "SBases",
+                    items: [
+                        {
+                            label: "Left",
+                            icon: "pi pi-fw pi-align-left",
+                        },
+                        {
+                            label: "Right",
+                            icon: "pi pi-fw pi-align-right",
+                        },
+                        {
+                            label: "Center",
+                            icon: "pi pi-fw pi-align-center",
+                        },
+                        {
+                            label: "Justify",
+                            icon: "pi pi-fw pi-align-justify",
+                        },
+                    ],
+                },
+            ],
+        };
     },
 
     methods: {

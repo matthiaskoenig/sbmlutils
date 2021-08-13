@@ -1,6 +1,6 @@
 <template>
     <strong>
-        <i :class="`fas fa-${icon} mr-1`"></i>
+        <i :class="`fas fa-${icon} mr-1`" />
         {{
             isTable
                 ? "ListOf" + (sbmlType === "Species" ? sbmlType : sbmlType + "s")

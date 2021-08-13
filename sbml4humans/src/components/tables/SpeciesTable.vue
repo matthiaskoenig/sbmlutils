@@ -1,18 +1,11 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleSpecies"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfSpecies
+    <div ref="speciesDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Species
         </strong>
 
         <table
-            class="table table-striped table-bordered table-sm table-condensed  compact"
-            id="collapsibleSpecies"
+            class="table table-striped table-bordered table-sm table-condensed compact"
         >
             <thead class="thead-dark">
                 <tr>
@@ -30,12 +23,15 @@
                 </tr>
             </thead>
             <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
+                <tr
+                    v-for="object in objects"
+                    :key="object"
+                    class="links"
+                    v-on:click="openComponent(object.pk)"
+                >
                     <td>
-                        <span
-                            v-if="object.id"
-                        >
-                            {{ object.id }}
+                        <span v-if="object.id != null">
+                            <strong>{{ object.id }}</strong>
                         </span>
                     </td>
                     <td>
@@ -62,16 +58,16 @@
                                 v-if="object.hasOnlySubstanceUnits === Boolean(true)"
                                 :value="object.hasOnlySubstanceUnits"
                             />
-                            <boolean-symbol
-                                v-else
-                                :value="Boolean(false)"
-                            />
+                            <boolean-symbol v-else :value="Boolean(false)" />
                         </span>
                     </td>
                     <td class="text-center align-middle">
                         <span v-if="object.boundaryCondition != null">
                             <boolean-symbol
-                                v-if="object.boundaryCondition != null && object.boundaryCondition === Boolean(true)"
+                                v-if="
+                                    object.boundaryCondition != null &&
+                                    object.boundaryCondition === Boolean(true)
+                                "
                                 :value="object.boundaryCondition"
                             />
                             <boolean-symbol v-else :value="Boolean(false)" />
@@ -79,7 +75,10 @@
                     </td>
                     <td class="text-center align-middle">
                         <boolean-symbol
-                            v-if="object.constant != null && object.constant === Boolean(true)"
+                            v-if="
+                                object.constant != null &&
+                                object.constant === Boolean(true)
+                            "
                             :value="object.constant"
                         />
                         <boolean-symbol v-else :value="Boolean(false)" />
@@ -89,7 +88,7 @@
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                     <td>
@@ -102,14 +101,27 @@
                 </tr>
             </tbody>
         </table>
+
+        <DataTable :value="species" v-if="species.length">
+            <Column field="id" header="id">
+                 <template #body="props">
+                     <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column field="pk" header="pk"></Column>
+        </DataTable>
+
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import store from "@/store/index";
 import icons from "@/data/fontAwesome";
 import colorScheme from "@/data/colorScheme";
 import { defineComponent } from "vue";
+
+import "datatables.net-buttons-bs4";
+import $ from "jquery";
 
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
@@ -117,7 +129,7 @@ import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 // use a mixin to define the reusable parts once;
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     },
 
@@ -129,29 +141,74 @@ export default defineComponent({
     },
 
     computed: {
-        objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+        objects() {
+            // FIXME: remove code duplication (table mixins!)
+            let listOfObjects = [];
             const allObjectsMap = store.state.allObjectsMap;
 
-            (this.listOfPKs as Array<string>).forEach((pk) => {
+            (this.listOfPKs).forEach((pk) => {
                 listOfObjects.push(allObjectsMap[pk]);
             });
 
             return listOfObjects;
         },
-
-        color(): string {
+        species() {
+            let species = [];
+            for (const proxy of this.objects) {
+                // FIXME: handle via not creating proxies in the first place
+                species.push(JSON.parse(JSON.stringify(proxy)));
+            }
+            //console.log(species);
+            return species;
+        },
+        color(){
             return colorScheme.componentColor["Species"];
         },
 
-        icon(): string {
+        icon(){
             return icons.icons["Species"];
         },
     },
 
     methods: {
-        openComponent(pk: string): void {
+        openComponent(pk) {
             store.dispatch("pushToHistoryStack", pk);
+        },
+
+        filterForSearchResults(sBasePKs, searchQuery = "") {
+            const allSBMLComponents = store.state.allObjectsMap;
+
+            let searchedSBasePKs = [];
+            searchedSBasePKs.push(
+                ...sBasePKs.filter((pk) => {
+                    const sbmlComponent = allSBMLComponents[pk];
+                    return searchQuery
+                        .toLowerCase()
+                        .split(" ")
+                        .every((attr) =>
+                            (
+                                sbmlComponent.name +
+                                sbmlComponent.id +
+                                sbmlComponent.metaId +
+                                sbmlComponent.sbo
+                            )
+                                .toString()
+                                .toLowerCase()
+                                .includes(attr)
+                        );
+                })
+            );
+            return searchedSBasePKs;
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["speciesDiv"]).style.display = "none";
+            } else {
+                (this.$refs["speciesDiv"]).style.display = "block";
+            }
         },
     },
 });

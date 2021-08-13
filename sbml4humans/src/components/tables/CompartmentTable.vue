@@ -1,13 +1,7 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleCompartment"
-            role="button"
-        >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfCompartments
+    <div ref="compartmentDiv" class="scrollable">
+        <strong class="sbmlType">
+            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Compartments
         </strong>
 
         <table
@@ -35,7 +29,9 @@
                     v-on:click="openComponent(object.pk)"
                 >
                     <td>
-                        <span v-if="object.id != null">{{ object.id }}</span>
+                        <span v-if="object.id != null"
+                            ><strong>{{ object.id }}</strong></span
+                        >
                     </td>
                     <td>
                         <span v-if="object.name != null">{{ object.name }}</span>
@@ -59,12 +55,12 @@
                     </td>
                     <td>
                         <span v-if="object.units != null">
-                            <katex :mathStr="object.units"></katex>
+                            <katex :mathStr="object.units" />
                         </span>
                     </td>
                     <td>
                         <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
+                            <katex :mathStr="object.derivedUnits" />
                         </span>
                     </td>
                     <td>
@@ -91,7 +87,7 @@ import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
-        katex: Katex,
+        Katex,
         "boolean-symbol": BooleanSymbol,
     },
 
@@ -126,6 +122,17 @@ export default defineComponent({
     methods: {
         openComponent(pk: string): void {
             store.dispatch("pushToHistoryStack", pk);
+        },
+    },
+
+    watch: {
+        listOfPKs(pks) {
+            if (pks.length == 0) {
+                (this.$refs["compartmentDiv"] as HTMLDivElement).style.display = "none";
+            } else {
+                (this.$refs["compartmentDiv"] as HTMLDivElement).style.display =
+                    "block";
+            }
         },
     },
 });

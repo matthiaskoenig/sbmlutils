@@ -1,14 +1,14 @@
 <template>
-    <a-list>
-        <toaster
+    <ScrollPanel style="width: 100%; height: auto">
+        <table-toaster
             v-for="(listOfPKs, sbmlType) in collectTables"
             :key="sbmlType"
             :sbmlType="sbmlType"
             :count="listOfPKs.length"
             :visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
             v-on:click="focusTable(sbmlType)"
-        ></toaster>
-    </a-list>
+        />
+    </ScrollPanel>
 </template>
 
 <script lang="ts">
@@ -21,7 +21,7 @@ import TableToaster from "@/components/layout/TableToaster.vue";
 
 export default defineComponent({
     components: {
-        toaster: TableToaster,
+        TableToaster,
     },
 
     methods: {
