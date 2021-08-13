@@ -14,6 +14,7 @@ from sbmlutils.units import *
 
 
 # -------------------------------------------------------------------------------------
+# packages: List[str] = ['fbc']
 mid: str = "minimal_model"
 compartments: List[Compartment] = [
     Compartment(sid="cell", value=1.0, port=True),
@@ -26,7 +27,7 @@ parameters: List[Parameter] = [
     Parameter(sid="k1", value=0.1),
 ]
 reactions: List[Reaction] = [
-    Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S1"),
+    Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S2"),
 ]
 # -------------------------------------------------------------------------------------
 
@@ -35,6 +36,7 @@ def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
         modules=["sbmlutils.examples.minimal_example.minimal_model"],
+        # annotations=Path(__file__).parent / "minimal_model_annotations.xlsx",
         output_dir=Path(__file__).parent,
         units_consistency=False,
         tmp=tmp,

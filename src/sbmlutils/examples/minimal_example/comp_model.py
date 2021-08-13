@@ -23,6 +23,7 @@ for k in range(n_cells):
     species.append(
         Species(
             sid=f"S{k}",
+            # metaId=f"meta_S{k}",
             initialConcentration=10.0 if k == 0 else 0.0,
             compartment=f"cell{k}",
         )

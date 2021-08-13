@@ -22,6 +22,7 @@ import pandas as pd
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
+from ..utils import bcolors
 from ..validation import check
 from .miriam import (
     BQB,
@@ -58,6 +59,9 @@ def annotate_sbml(
 
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
+
+    info = bcolors.OKGREEN + f"Model annotated: file://{filepath}" + bcolors.ENDC
+    print(info)
     return doc
 
 
@@ -356,6 +360,11 @@ class ModelAnnotator:
                 if ids:
                     # find the subset of ids matching the pattern
                     pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)  # type: ignore
+                    if not pattern_ids:
+                        logger.warning(
+                            f"No SBML objects found matching SId annotation "
+                            f"pattern: '{pattern}'"
+                        )
                     elements = ModelAnnotator._elements_from_ids(
                         self.model, pattern_ids, sbml_type=a.sbml_type
                     )
@@ -472,7 +481,8 @@ class ModelAnnotator:
                     splugin = s.getPlugin("fbc")
                     if splugin is None:
                         logger.error(
-                            "FBC SPlugin not found for species, " "no fbc: {}".format(s)
+                            "FbcSpeciesPlugin does not exist, add `packages = ['fbc']`"
+                            " to model definition."
                         )
                     else:
                         if ex_a.annotation_type == "formula":
@@ -513,8 +523,11 @@ class ModelAnnotator:
                     cv.setBiologicalQualifierType(str(sbml_qualifier)),
                     f"Set biological qualifier: '{sbml_qualifier}'",
                 )
-                if success != 0:
-                    logger.error(f"Could not set biological qualifier: {qualifier}")
+                if not success:
+                    logger.error(
+                        f"Could not set biological qualifier '{qualifier}' "
+                        f"for '{sbase}'."
+                    )
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
                 sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
@@ -522,30 +535,36 @@ class ModelAnnotator:
                     cv.setModelQualifierType(str(sbml_qualifier)),
                     f"Set model qualifier: '{sbml_qualifier}'",
                 )
-                if success != 0:
-                    logger.error(f"Could not set model qualifier: {qualifier}")
+                if not success:
+                    logger.error(
+                        f"Could not set model qualifier '{qualifier}' "
+                        f"for '{sbase}'."
+                    )
             else:
-                logger.error(f"Unsupported qualifier: '{qualifier}'")
+                logger.error(f"Unsupported qualifier: '{qualifier}' for '{sbase}'.")
         else:
             msg = (
                 f"qualifier is not a string, but: '{qualifier}' of type "
-                f"'{type(qualifier)}'."
+                f"'{type(qualifier)}' for '{sbase}'."
             )
             logger.error(msg)
             raise ValueError(msg)
 
-        success = check(cv.addResource(resource), f"Add resource: '{resource}'")
-        if success != 0:
-            logger.error(f"Could not add resource: {resource}")
+        success = check(cv.addResource(resource), f"Add resource: '{resource}'.")
+        if not success:
+            logger.error(f"Could not add resource: {resource} for '{sbase}'.")
 
         # meta id has to be set
         if not sbase.isSetMetaId():
             sbase.setMetaId(utils.create_metaid(sbase))
 
-        success = sbase.addCVTerm(cv)
+        success = check(sbase.addCVTerm(cv), f"Add cvterm: '{cv}'.")
 
-        if success != 0:
-            logger.error(f"Annotation RDF for CVTerm could not be written: {cv}")
+        if not success:
+            logger.error(
+                f"Annotation RDF for CVTerm '{cv}' could not be written "
+                f"for '{sbase}'."
+            )
             logger.error(libsbml.OperationReturnValue_toString(success))
             logger.error(f"{sbase}, {qualifier}, {resource}")
 
