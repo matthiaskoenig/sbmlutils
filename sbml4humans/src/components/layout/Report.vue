@@ -8,7 +8,6 @@
                         SBML4Humans
                     </router-link>
 
-                    <!-- Search and Filter component (visible only in report view) -->
                     <search-and-filter
                         class="mt-2"
                         v-if="['Report', 'report'].includes($route.name)"

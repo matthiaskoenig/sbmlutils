@@ -1,20 +1,20 @@
 ## TODO
 
-- [ ] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/
+- [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/
 
 Layout:
 - [x] make `name` a subtitle in the DetailView
 - [x] fix table navigation; on click should scroll to table
 - [x] Table header replace "ListOf*" -> "*" e.g. ListOfCompartments -> Compartments  
-- [ ] hide tables if no results in global search  
+- [x] hide tables if no results in global search  
 - [x] re-add colors to navigation 
-- [ ] add count badges to the SBase navigation to get fast overview of number of components
-- [ ] icons for table sorting are missing
-- [ ] hide table & table navigation when switching visibility via toggle  
+- [x] add count badges to the SBase navigation to get fast overview of number of components
+- [x] icons for table sorting are missing
+- [x] hide table & table navigation when switching visibility via toggle  
 - [~] layout: Reduce space between tables by moving search & entries next to heading
 
 Fixes:
-- [ ] fix: "Failed to resolve component: a-spin" warning on loading
+- [x] fix: "Failed to resolve component: a-spin" warning on loading
 - [ ] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
 
 - [ ] check dependency issues npm; remove package-lock.json and node_modules and do clean install

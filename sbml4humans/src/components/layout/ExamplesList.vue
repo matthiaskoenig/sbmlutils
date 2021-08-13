@@ -2,9 +2,9 @@
     <h1 class="w-100">Examples</h1>
     <p>Choose from the list of examples to generate a report.</p>
 
-    <a-list class="list-container">
+    <ScrollPanel class="list-container">
         <example v-for="example in examples" :key="example.id" :example="example" />
-    </a-list>
+    </ScrollPanel>
 
     <loading parent="example" />
 </template>

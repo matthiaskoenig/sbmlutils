@@ -1,8 +1,6 @@
 <template>
-    <!--<PanelMenu :model="items" />-->
-
     <strong>Document & Models</strong>
-    <a-list class="basics-container">
+    <ScrollPanel class="basics-container">
         <SBML-toaster
             v-for="component in collectReportBasics"
             :key="component.pk"
@@ -10,11 +8,9 @@
             :info="component"
             :visible="Boolean(visibility[component.sbmlType])"
         />
-    </a-list>
+    </ScrollPanel>
 
-    <div class="mt-3">
-        <strong>SBases</strong>
-    </div>
+    <strong>SBases</strong>
     <list-of-tables />
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-    <a-list>
+    <ScrollPanel style="width: 100%; height: auto">
         <table-toaster
             v-for="(listOfPKs, sbmlType) in collectTables"
             :key="sbmlType"
@@ -8,7 +8,7 @@
             :visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
             v-on:click="focusTable(sbmlType)"
         />
-    </a-list>
+    </ScrollPanel>
 </template>
 
 <script lang="ts">

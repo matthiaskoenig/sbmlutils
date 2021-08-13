@@ -116,6 +116,7 @@ import AssignmentRuleTable from "@/components/tables/AssignmentRuleTable.vue";
 import RateRuleTable from "@/components/tables/RateRuleTable.vue";
 import AlgebraicRuleTable from "@/components/tables/AlgebraicRuleTable.vue";
 import ReactionTable from "@/components/tables/ReactionTable.vue";
+//import ReactionPrimeTable from "@/components/tables/ReactionPrimeTable.vue";
 import EventTable from "@/components/tables/EventTable.vue";
 import UnitDefinitionTable from "@/components/tables/UnitDefinitionTable.vue";
 import PortTable from "@/components/tables/PortTable.vue";
@@ -166,6 +167,8 @@ export default defineComponent({
          * @param searchQuery The search query to look for in the SBML objects' data
          */
         filterForSearchResults(sBasePKs, searchQuery = "") {
+            if (searchQuery === "") return sBasePKs;
+
             const allSBMLComponents = store.state.allObjectsMap;
 
             let searchedSBasePKs = [];
@@ -173,7 +176,7 @@ export default defineComponent({
                 ...sBasePKs.filter((pk) => {
                     const sbmlComponent = allSBMLComponents[pk];
                     const componentMeta =
-                        sbmlComponent.id + sbmlComponent.metaId + sbmlComponent.sbo + sbmlComponent.name;
+                        sbmlComponent.id + sbmlComponent.metaId + sbmlComponent.sbo;
                     return componentMeta
                         .replace(" ", "")
                         .toLowerCase()
@@ -280,66 +283,65 @@ label {
     margin-left: auto;
 }
 
-
-table.dataTable>thead>tr>th:not(.sorting_disabled),
-table.dataTable>thead>tr>td:not(.sorting_disabled) {
-	padding-right: 30px;
+table.dataTable > thead > tr > th:not(.sorting_disabled),
+table.dataTable > thead > tr > td:not(.sorting_disabled) {
+    padding-right: 30px;
 }
 
-table.dataTable>thead .sorting,
-table.dataTable>thead .sorting_asc,
-table.dataTable>thead .sorting_desc,
-table.dataTable>thead .sorting_asc_disabled,
-table.dataTable>thead .sorting_desc_disabled {
-	cursor: pointer;
-	position: relative;
+table.dataTable > thead .sorting,
+table.dataTable > thead .sorting_asc,
+table.dataTable > thead .sorting_desc,
+table.dataTable > thead .sorting_asc_disabled,
+table.dataTable > thead .sorting_desc_disabled {
+    cursor: pointer;
+    position: relative;
 }
 
-table.dataTable>thead .sorting:before,
-table.dataTable>thead .sorting:after,
-table.dataTable>thead .sorting_asc:before,
-table.dataTable>thead .sorting_asc:after,
-table.dataTable>thead .sorting_desc:before,
-table.dataTable>thead .sorting_desc:after,
-table.dataTable>thead .sorting_asc_disabled:before,
-table.dataTable>thead .sorting_asc_disabled:after,
-table.dataTable>thead .sorting_desc_disabled:before,
-table.dataTable>thead .sorting_desc_disabled:after {
-	position: absolute;
-	display: inline;
-	opacity: .1;
+table.dataTable > thead .sorting:before,
+table.dataTable > thead .sorting:after,
+table.dataTable > thead .sorting_asc:before,
+table.dataTable > thead .sorting_asc:after,
+table.dataTable > thead .sorting_desc:before,
+table.dataTable > thead .sorting_desc:after,
+table.dataTable > thead .sorting_asc_disabled:before,
+table.dataTable > thead .sorting_asc_disabled:after,
+table.dataTable > thead .sorting_desc_disabled:before,
+table.dataTable > thead .sorting_desc_disabled:after {
+    position: absolute;
+    display: inline;
+    opacity: 0.1;
     margin: auto 2px;
 }
 
-table.dataTable>thead .sorting:before,
-table.dataTable>thead .sorting_asc:before,
-table.dataTable>thead .sorting_desc:before,
-table.dataTable>thead .sorting_asc_disabled:before,
-table.dataTable>thead .sorting_desc_disabled:before {
-	right: 1em;
-	content: "↑";
+table.dataTable > thead .sorting:before,
+table.dataTable > thead .sorting_asc:before,
+table.dataTable > thead .sorting_desc:before,
+table.dataTable > thead .sorting_asc_disabled:before,
+table.dataTable > thead .sorting_desc_disabled:before {
+    right: 1em;
+    content: "↑";
     margin-top: auto;
     margin: 0 2px;
 }
 
-table.dataTable>thead .sorting:after,
-table.dataTable>thead .sorting_asc:after,
-table.dataTable>thead .sorting_desc:after,
-table.dataTable>thead .sorting_asc_disabled:after,
-table.dataTable>thead .sorting_desc_disabled:after {
-	right: .5em;
-	content: "↓";
+table.dataTable > thead .sorting:after,
+table.dataTable > thead .sorting_asc:after,
+table.dataTable > thead .sorting_desc:after,
+table.dataTable > thead .sorting_asc_disabled:after,
+table.dataTable > thead .sorting_desc_disabled:after {
+    right: 0.5em;
+    content: "↓";
     margin-top: auto;
     margin: 0 2px;
 }
 
-table.dataTable>thead .sorting_asc:before,
-table.dataTable>thead .sorting_desc:after {
-	opacity: 1;
+table.dataTable > thead .sorting_asc:before,
+table.dataTable > thead .sorting_desc:after {
+    opacity: 1;
 }
 
-table.dataTable>thead .sorting_asc_disabled:before,
-table.dataTable>thead .sorting_desc_disabled:after {
-	opacity: 0;
+table.dataTable > thead .sorting_asc_disabled:before,
+table.dataTable > thead .sorting_desc_disabled:after {
+    opacity: 0;
 }
 </style>
