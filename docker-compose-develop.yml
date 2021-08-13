@@ -8,7 +8,8 @@
 # serve containers
 #   docker-compose -f docker-compose-develop.yml up --detach
 #   docker-compose -f docker-compose-develop.yml up
-
+#
+# FIXME: correct ports/urls for frontend -> backend communication; env variables
 # -----------------------------------------------------------------------------
 
 version: '3'
@@ -21,26 +22,19 @@ volumes:
 
 services:
 
-#  backend:
-#    restart: always
-#    build: ./backend
-#    volumes:
-#      - ./backend:/code
-#      - django_static:/static
-#      - django_media:/media
-#    env_file:
-#      - .env.local
-#    expose:
-#      - "8000"
-#    ports:
-#      - "8000:8000"
-#    links:
-#      - postgres:postgres
-#      - elasticsearch:elasticsearch
-#    depends_on:
-#      - postgres
-#      - elasticsearch
-#    command: bash -c "/usr/local/bin/python manage.py runserver 0.0.0.0:8000"
+  backend:
+    restart: always
+    build: .
+    volumes:
+      - .:/code
+    environment:
+      - MODULE_NAME="sbmlutils.report.api"
+      - VARIABLE_NAME="api"
+    expose:
+      - "80"
+    ports:
+      - "1444:80"
+    command: bash -c "/start.sh"
 
   frontend:
     restart: always

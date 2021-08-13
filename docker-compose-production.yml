@@ -6,6 +6,8 @@
 # serve containers
 #   docker-compose -f docker-compose-production.yml up --detach
 #   docker-compose -f docker-compose-production.yml up
+#
+# FIXME: fix import issue of the backend container
 # -----------------------------------------------------------------------------
 version: '3'
 
@@ -17,28 +19,19 @@ volumes:
 
 services:
 
-#  backend:
-#    restart: always
-#    build: ./backend
-#    volumes:
-#      - ./backend:/code
-#      - django_static:/static
-#      - django_media:/media
-#    env_file:
-#      - .env.production
-#    expose:
-#      - "8000"
-#      - "25"
-#    ports:
-#      - "8000:8000"
-#      - "1025:25"
-#    links:
-#      - postgres:postgres
-#      - elasticsearch:elasticsearch
-#    depends_on:
-#      - postgres
-#      - elasticsearch
-#    command: bash -c "/usr/local/bin/gunicorn pkdb_app.wsgi:application --log-config gunicorn_logging.conf -w 4 --timeout 900 --bind 0.0.0.0:8000"
+  backend:
+    restart: always
+    build: .
+    volumes:
+      - .:/code
+    environment:
+      - MODULE_NAME="sbmlutils.report.api"
+      - VARIABLE_NAME="api"
+    expose:
+      - "80"
+    ports:
+      - "1444:80"
+    command: ["/start.sh"] # bash -c "/start.sh"
 
   frontend:
     build:
@@ -59,7 +52,7 @@ services:
       - ./nginx/config/conf.d:/etc/nginx/conf.d
       - vue_dist:/vue
     depends_on:
-      # - backend
+      - backend
       - frontend
-#    links:
-#      - backend:backend
+    links:
+      - backend:backend

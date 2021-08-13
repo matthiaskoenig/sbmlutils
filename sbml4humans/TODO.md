@@ -25,6 +25,8 @@ Static report:  // a server is always required
 # MK:
 ## Annotations
 - [ ] refactor backend annotation code into into separate package
+## OMEX
+- [ ] Support of combine archives & resolve external model definitions
 
 ## Units
 - [ ] Unit math strings are not longer coming from backend
@@ -34,6 +36,9 @@ Improve generated latex (backend, MK)
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
 
 ## Deployment
+- [ ] FIXME: fix sbmlimport error in orchestration
+- [ ] FIXME: hardcoded backend urls in frontend (-> env variables)
+- [ ] FIMXE: caching of requirements.txt and npm packages
+- [ ] FIXME: test on server
 
-## OMEX
-- [ ] Support of combine archives & resolve external model definitions
+

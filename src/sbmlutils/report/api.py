@@ -19,12 +19,12 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
 
 
 logger = logging.getLogger(__name__)
-app = FastAPI()
+api = FastAPI()
 
 # API Permissions Data
 origins = ["127.0.0.1", "*"]
 
-app.add_middleware(
+api.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
@@ -33,13 +33,13 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@api.get("/")
 def read_root() -> Dict:
     """Information to be returned by root path of the API."""
     return {"sbmlutils": "sbml4humans"}
 
 
-@app.post("/sbml")
+@api.post("/sbml")
 async def upload_sbml(request: Request) -> Response:
     """Upload SBML file and return JSON report.
 
@@ -63,7 +63,7 @@ async def upload_sbml(request: Request) -> Response:
     return _render_json_content(content)
 
 
-@app.get("/examples")
+@api.get("/examples")
 def examples() -> Response:
     """Get sbml4humans example SBML models."""
     api_examples = []
@@ -74,7 +74,7 @@ def examples() -> Response:
     return _render_json_content(content)
 
 
-@app.get("/examples/{example_id}")
+@api.get("/examples/{example_id}")
 def example(example_id: str) -> Response:
     """Endpoint to get specific example.
 
@@ -153,7 +153,7 @@ DUMMY_ADDITIONAL_INFO = {
 }
 
 
-@app.get("/resource_info/{resource_id}")
+@api.get("/resource_info/{resource_id}")
 def get_resource_info(resource_id: str) -> Response:
     try:
         resource_id = _normalize_resource_id(resource_id)
@@ -208,7 +208,7 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
 if __name__ == "__main__":
     # shell command: uvicorn sbmlutils.report.api:app --reload --port 1444
     uvicorn.run(
-        "sbmlutils.report.api:app",
+        "sbmlutils.report.api:api",
         host="localhost",
         port=1444,
         log_level="info",
