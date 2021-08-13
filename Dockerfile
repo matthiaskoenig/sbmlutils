@@ -1,5 +1,6 @@
-#
+# -------------------------------------------------------------------------------------
 # Container to serve FastAPI backend api from sbmlutils
+# -------------------------------------------------------------------------------------
 # https://fastapi.tiangolo.com/deployment/docker/
 # see https://github.com/tiangolo/uvicorn-gunicorn-docker for env variables
 
@@ -8,7 +9,8 @@
 
 # start container
 #  docker run -d --name mycontainer -p 80:80 -e MODULE_NAME="sbmlutils.report.api" -e VARIABLE_NAME="api" myimage
-
+#  docker run -d --name mycontainer -p 80:80 myimage
+# -------------------------------------------------------------------------------------
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 # Caching of python requirements
@@ -28,6 +30,9 @@ WORKDIR /code
 
 # Install sbmlutils
 RUN pip install -e .
+
+ENV MODULE_NAME="sbmlutils.report.api"
+ENV VARIABLE_NAME="api"
 
 EXPOSE 80
 

@@ -6,8 +6,6 @@
 # serve containers
 #   docker-compose -f docker-compose-production.yml up --detach
 #   docker-compose -f docker-compose-production.yml up
-#
-# FIXME: fix import issue of the backend container
 # -----------------------------------------------------------------------------
 version: '3'
 
@@ -24,14 +22,11 @@ services:
     build: .
     volumes:
       - .:/code
-    environment:
-      - MODULE_NAME="sbmlutils.report.api"
-      - VARIABLE_NAME="api"
     expose:
       - "80"
     ports:
       - "1444:80"
-    command: ["/start.sh"] # bash -c "/start.sh"
+    command: ["/start.sh"]
 
   frontend:
     build:
@@ -45,7 +40,7 @@ services:
 
   nginx:
     restart: always
-    image: nginx:1.19.2
+    image: nginx:1.21.1
     ports:
       - 8084:80
     volumes:

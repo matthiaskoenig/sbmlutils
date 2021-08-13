@@ -36,9 +36,7 @@ Improve generated latex (backend, MK)
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
 
 ## Deployment
-- [ ] FIXME: fix sbmlimport error in orchestration
 - [ ] FIXME: hardcoded backend urls in frontend (-> env variables)
-- [ ] FIMXE: caching of requirements.txt and npm packages
 - [ ] FIXME: test on server
 
 
