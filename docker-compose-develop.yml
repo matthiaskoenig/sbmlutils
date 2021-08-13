@@ -1,0 +1,55 @@
+# -----------------------------------------------------------------------------
+# DOCKER COMPOSE DEVELOPMENT
+# -----------------------------------------------------------------------------
+#
+# build containers
+#   docker-compose -f docker-compose-develop.yml build --no-cache
+#   docker-compose -f docker-compose-develop.yml build
+# serve containers
+#   docker-compose -f docker-compose-develop.yml up --detach
+#   docker-compose -f docker-compose-develop.yml up
+
+# -----------------------------------------------------------------------------
+
+version: '3'
+
+volumes:
+  vue_dist:
+    driver: local
+  node_modules:
+    driver: local
+
+services:
+
+#  backend:
+#    restart: always
+#    build: ./backend
+#    volumes:
+#      - ./backend:/code
+#      - django_static:/static
+#      - django_media:/media
+#    env_file:
+#      - .env.local
+#    expose:
+#      - "8000"
+#    ports:
+#      - "8000:8000"
+#    links:
+#      - postgres:postgres
+#      - elasticsearch:elasticsearch
+#    depends_on:
+#      - postgres
+#      - elasticsearch
+#    command: bash -c "/usr/local/bin/python manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    restart: always
+    build:
+      context: ./sbml4humans
+      dockerfile: Dockerfile-develop
+    ports:
+      - "8083:3456"
+    volumes:
+      - ./sbml4humans:/app
+      - node_modules:/app/node_modules/
+      - vue_dist:/usr/share/nginx/html

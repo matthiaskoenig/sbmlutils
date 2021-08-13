@@ -5,102 +5,102 @@
         class="tablesContainer"
     >
         <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
-            <model-table ref="#model-table" :listOfPKs="pks" />
+            <model-table ref="#model-table" :listOfPKs="pks"/>
         </div>
 
         <div
             ref="FunctionDefinition"
             v-if="sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']"
         >
-            <function-definition-table :listOfPKs="pks" />
+            <function-definition-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="Compartment"
             v-if="sbmlType === 'Compartment' && visibility['Compartment']"
         >
-            <compartment-table :listOfPKs="pks" />
+            <compartment-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Species" v-if="sbmlType === 'Species' && visibility['Species']">
-            <species-table :listOfPKs="pks" />
+            <species-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Parameter" v-if="sbmlType === 'Parameter' && visibility['Parameter']">
-            <parameter-table :listOfPKs="pks" />
+            <parameter-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="InitialAssignment"
             v-if="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
         >
-            <initial-assignment-table :listOfPKs="pks" />
+            <initial-assignment-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="AssignmentRule"
             v-if="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
         >
-            <assignment-rule-table :listOfPKs="pks" />
+            <assignment-rule-table :listOfPKs="pks"/>
         </div>
 
         <div ref="RateRule" v-if="sbmlType === 'RateRule' && visibility['RateRule']">
-            <rate-rule-table :listOfPKs="pks" />
+            <rate-rule-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="AlgebraicRule"
             v-if="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
         >
-            <algebraic-rule-table :listOfPKs="pks" />
+            <algebraic-rule-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Reaction" v-if="sbmlType === 'Reaction' && visibility['Reaction']">
-            <reaction-table :listOfPKs="pks" />
+            <reaction-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Event" v-if="sbmlType === 'Event' && visibility['Event']">
-            <event-table :listOfPKs="pks" />
+            <event-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="UnitDefinition"
             v-if="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
         >
-            <unit-definition-table :listOfPKs="pks" />
+            <unit-definition-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Port" v-if="sbmlType === 'Port' && visibility['Port']">
-            <port-table :listOfPKs="pks" />
+            <port-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Submodel" v-if="sbmlType === 'Submodel' && visibility['Submodel']">
-            <submodel-table :listOfPKs="pks" />
+            <submodel-table :listOfPKs="pks"/>
         </div>
 
         <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
-            <objective-table :listOfPKs="pks" />
+            <objective-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="Constraint"
             v-if="sbmlType === 'Constraint' && visibility['Constraint']"
         >
-            <constraint-table :listOfPKs="pks" />
+            <constraint-table :listOfPKs="pks"/>
         </div>
 
         <div
             ref="GeneProduct"
             v-if="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
         >
-            <gene-product-table :listOfPKs="pks" />
+            <gene-product-table :listOfPKs="pks"/>
         </div>
     </div>
 </template>
 
 <script>
 import store from "@/store/index";
-import { defineComponent } from "@vue/runtime-core";
+import {defineComponent} from "@vue/runtime-core";
 import "datatables.net";
 import "datatables.net-buttons-bs4";
 import "datatables.net-dt";
@@ -157,7 +157,7 @@ export default defineComponent({
             const el = this.$refs[sbmlType];
             if (el) {
                 // Use el.scrollIntoView() to instantly scroll to the element
-                el.scrollIntoView({ behavior: "smooth" });
+                el.scrollIntoView({behavior: "smooth"});
             }
         },
 
@@ -169,7 +169,18 @@ export default defineComponent({
         filterForSearchResults(sBasePKs, searchQuery = "") {
             if (searchQuery === "") return sBasePKs;
 
+            // THIS IS BAD CURRENTLY
             const allSBMLComponents = store.state.allObjectsMap;
+
+            /*
+            TODO: get subset of objects were any of the information matches
+
+            Try: search on the object string; i.e search in JSON.stringify(proxy)
+            Better: search on all stringified values()
+            -> some false positives due to field names;
+            TODO: Do this once globally (initialization); => state.state.allObjectsSearchMap; { pk: searchableObjectString }
+             */
+
 
             let searchedSBasePKs = [];
             searchedSBasePKs.push(
@@ -193,6 +204,7 @@ export default defineComponent({
 
             const componentPKsMap = store.getters.componentPKsMap;
 
+            // THIS IS A GOOD STRATEGY FOR GLOBAL FILTERING
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {
                     tables[sbmlType] = this.filterForSearchResults(

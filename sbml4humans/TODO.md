@@ -1,22 +1,19 @@
 ## TODO
 
-- [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/
+- [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/ 
+  Probably migrating datatables for now (some minor bugs exist)
+  - [ ] Create working example for SpeciesTable
+  - [ ] Fix Proxy issue with data in global map -> should just be objects!  
+  - [ ] Global search: search on all table fields    
+  - [ ] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
+  - [ ] fix: remove datatables and nginx  
 
 Layout:
-- [x] make `name` a subtitle in the DetailView
-- [x] fix table navigation; on click should scroll to table
-- [x] Table header replace "ListOf*" -> "*" e.g. ListOfCompartments -> Compartments  
-- [x] hide tables if no results in global search  
-- [x] re-add colors to navigation 
-- [x] add count badges to the SBase navigation to get fast overview of number of components
-- [x] icons for table sorting are missing
-- [x] hide table & table navigation when switching visibility via toggle  
+- [ ] Remove bootstrap completely; use PrimeVue for spacing & grid & form
+- [ ] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
 - [~] layout: Reduce space between tables by moving search & entries next to heading
 
 Fixes:
-- [x] fix: "Failed to resolve component: a-spin" warning on loading
-- [ ] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
-
 - [ ] check dependency issues npm; remove package-lock.json and node_modules and do clean install
 
 Static report:  // a server is always required 

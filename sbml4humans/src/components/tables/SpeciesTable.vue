@@ -101,6 +101,16 @@
                 </tr>
             </tbody>
         </table>
+
+        <DataTable :value="species" v-if="species.length">
+            <Column field="id" header="id">
+                 <template #body="props">
+                     <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column field="pk" header="pk"></Column>
+        </DataTable>
+
     </div>
 </template>
 
@@ -132,6 +142,7 @@ export default defineComponent({
 
     computed: {
         objects() {
+            // FIXME: remove code duplication (table mixins!)
             let listOfObjects = [];
             const allObjectsMap = store.state.allObjectsMap;
 
@@ -141,7 +152,15 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
+        species() {
+            let species = [];
+            for (const proxy of this.objects) {
+                // FIXME: handle via not creating proxies in the first place
+                species.push(JSON.parse(JSON.stringify(proxy)));
+            }
+            //console.log(species);
+            return species;
+        },
         color(){
             return colorScheme.componentColor["Species"];
         },
