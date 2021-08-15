@@ -2,15 +2,15 @@
 
 - [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/ 
   Probably migrating datatables for now (some minor bugs exist)
-  - [ ] Create working example for SpeciesTable
-  - [ ] Fix Proxy issue with data in global map -> should just be objects!  
-  - [ ] Global search: search on all table fields    
-  - [ ] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
-  - [ ] fix: remove datatables and nginx  
+  - [x] Create working example for SpeciesTable
+  - [x] Fix Proxy issue with data in global map -> should just be objects!  
+  - [x] Global search: search on all table fields    
+  - [x] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
+  - [x] fix: remove datatables and jquery  
 
 Layout:
 - [ ] Remove bootstrap completely; use PrimeVue for spacing & grid & form
-- [ ] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
+- [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
 - [~] layout: Reduce space between tables by moving search & entries next to heading
 
 Fixes:

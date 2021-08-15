@@ -1,15 +1,19 @@
 <template>
-    <div class="detailNav">
-        <i
-            class="fa fa-arrow-circle-left mr-1"
-            v-on:click="goBack()"
-            :style="styleBack"
-        ></i>
-        <i
-            class="fa fa-arrow-circle-right mr-3"
-            v-on:click="goForward()"
-            :style="styleForward"
-        ></i>
+    <div class="detailNav mr-3">
+        <span :style="styleBackward" class="mr-2">
+            <font-awesome-icon
+                icon="arrow-left"
+                v-on:click="goBack()"
+                style="font-size: 16px; border: 2px solid black; border-radius: 50%; width: 30px; height: 30px; padding: 2%; background-color: black; color: white"
+            ></font-awesome-icon>
+        </span>
+        <span :style="styleForward">
+            <font-awesome-icon
+                icon="arrow-right"
+                v-on:click="goForward()"
+                style="font-size: 16px; border: 2px solid black; border-radius: 50%; width: 30px; height: 30px; padding: 2%; background-color: black; color: white"
+            ></font-awesome-icon>
+        </span>
     </div>
 </template>
 

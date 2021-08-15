@@ -1,120 +1,145 @@
 <template>
     <div ref="reactionDiv" class="scrollable">
-        <strong class="sbmlType">
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Reactions
-        </strong>
-
-        <table
-            class="table table-striped table-bordered table-sm table-condensed compact"
-            id="collapsibleReaction"
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">reversible</th>
-                    <th scope="col">compartment</th>
-                    <th scope="col">equation</th>
-                    <th scope="col">fast</th>
-                    <th scope="col">kineticLaw math</th>
-                    <th scope="col">kineticLaw derivedUnits</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr
-                    v-for="object in objects"
-                    :key="object"
-                    class="links"
-                    v-on:click="openComponent(object.pk)"
-                >
-                    <td>
-                        <span v-if="object.id != null"
-                            ><strong>{{ object.id }}</strong></span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td class="text-center align-middle">
-                        <span v-if="object.reversible != null">
-                            <boolean-symbol
-                                v-if="object.reversible === Boolean(true)"
-                                :value="object.reversible"
-                            />
-                            <boolean-symbol v-else :value="Boolean(false)" />
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.compartment != null">{{
-                            object.compartment
-                        }}</span>
-                    </td>
-                    <td>
-                        <span
-                            v-if="object.equation != null"
-                            v-html="object.equation"
-                        ></span>
-                    </td>
-                    <td class="text-center align-middle">
-                        <span v-if="object.fast != null">
-                            <boolean-symbol
-                                v-if="object.fast === Boolean(true)"
-                                :value="object.fast"
-                            />
-                            <boolean-symbol v-else :value="Boolean(false)" />
-                        </span>
-                    </td>
-                    <td>
-                        <span
-                            v-if="
-                                object.kineticLaw != null &&
-                                object.kineticLaw.math != null
-                            "
-                        >
-                            <katex :mathStr="object.kineticLaw.math" />
-                        </span>
-                    </td>
-                    <td>
-                        <span
-                            v-if="
-                                object.kineticLaw != null &&
-                                object.kineticLaw.derivedUnits != null
-                            "
-                        >
-                            <katex :mathStr="object.kineticLaw.derivedUnits" />
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <template #header class="table-header">
+                <div class="d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
+                        />
+                    </span>
+                </div>
+            </template>
+
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column
+                field="name"
+                header="name"
+                sortable
+                style="width: fit-content"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="reversible"
+                header="reversible"
+                bodyStyle="text-align: center"
+            >
+                <template #body="slotProps">
+                    <boolean-symbol :value="slotProps.data.reversible" />
+                </template>
+            </Column>
+            <Column
+                field="compartment"
+                header="compartment"
+                sortable
+                style="width: fit-content"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="equation"
+                header="equation"
+            >
+                <template #body="slotProps">
+                    <span v-html="slotProps.data.equation" />
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="fast"
+                header="fast"
+                bodyStyle="text-align: center"
+            >
+                <template #body="slotProps">
+                    <boolean-symbol :value="slotProps.data.fast" />
+                </template>
+            </Column>
+            <Column
+                field="kineticLaw"
+                header="kLaw math"
+                sortable
+                style="width: fit-content"
+            >
+                <template #body="slotProps">
+                    <span
+                        v-if="
+                            slotProps.data.kineticLaw != null &&
+                            slotProps.data.kineticLaw.math != null
+                        "
+                    >
+                        <katex :mathStr="slotProps.data.kineticLaw.math" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                field="kineticLaw"
+                header="kLaw derivedUnits"
+                sortable
+                style="width: fit-content"
+            >
+                <template #body="slotProps">
+                    <span
+                        v-if="
+                            slotProps.data.kineticLaw != null &&
+                            slotProps.data.kineticLaw.derivedUnits != null
+                        "
+                    >
+                        <katex :mathStr="slotProps.data.kineticLaw.derivedUnits" />
+                    </span>
+                </template>
+            </Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
-
-import Katex from "@/components/layout/Katex.vue";
-import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
-    components: {
-        Katex,
-        BooleanSymbol,
-    },
-
     props: {
         listOfPKs: {
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("Reaction"),
+        },
     },
 
     computed: {
         objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
             (this.listOfPKs as Array<string>).forEach((pk) => {
@@ -123,31 +148,9 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
-        color(): string {
-            return colorScheme.componentColor["Reaction"];
-        },
-
-        icon(): string {
-            return icons.icons["Reaction"];
-        },
     },
 
-    methods: {
-        openComponent(pk: string): void {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-    },
-
-    watch: {
-        listOfPKs(pks) {
-            if (pks.length == 0) {
-                (this.$refs["reactionDiv"] as HTMLDivElement).style.display = "none";
-            } else {
-                (this.$refs["reactionDiv"] as HTMLDivElement).style.display = "block";
-            }
-        },
-    },
+    mixins: [tableMixin("Reaction")],
 });
 </script>
 

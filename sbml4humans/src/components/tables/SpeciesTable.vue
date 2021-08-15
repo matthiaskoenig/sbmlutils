@@ -1,224 +1,170 @@
 <template>
     <div ref="speciesDiv" class="scrollable">
-        <strong class="sbmlType">
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Species
-        </strong>
-
-        <table
-            class="table table-striped table-bordered table-sm table-condensed compact"
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">initial Amount</th>
-                    <th scope="col">initial Concentration</th>
-                    <th scope="col">substance Units</th>
-                    <th scope="col">hasOnly SubstanceUnits</th>
-                    <th scope="col">boundary Condition</th>
-                    <th scope="col">constant</th>
-                    <th scope="col">units</th>
-                    <th scope="col">derived Units</th>
-                    <th scope="col">assignment</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr
-                    v-for="object in objects"
-                    :key="object"
-                    class="links"
-                    v-on:click="openComponent(object.pk)"
-                >
-                    <td>
-                        <span v-if="object.id != null">
-                            <strong>{{ object.id }}</strong>
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.initialAmount != null">
-                            {{ object.initialAmount }}
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.initialConcentration != null">
-                            {{ object.initialConcentration }}
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.substanceUnits != null">{{
-                            object.substanceUnits
-                        }}</span>
-                    </td>
-                    <td class="text-center align-middle">
-                        <span v-if="object.hasOnlySubstanceUnits != null">
-                            <boolean-symbol
-                                v-if="object.hasOnlySubstanceUnits === Boolean(true)"
-                                :value="object.hasOnlySubstanceUnits"
-                            />
-                            <boolean-symbol v-else :value="Boolean(false)" />
-                        </span>
-                    </td>
-                    <td class="text-center align-middle">
-                        <span v-if="object.boundaryCondition != null">
-                            <boolean-symbol
-                                v-if="
-                                    object.boundaryCondition != null &&
-                                    object.boundaryCondition === Boolean(true)
-                                "
-                                :value="object.boundaryCondition"
-                            />
-                            <boolean-symbol v-else :value="Boolean(false)" />
-                        </span>
-                    </td>
-                    <td class="text-center align-middle">
-                        <boolean-symbol
-                            v-if="
-                                object.constant != null &&
-                                object.constant === Boolean(true)
-                            "
-                            :value="object.constant"
+            <template #header class="table-header">
+                <div class="d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
                         />
-                        <boolean-symbol v-else :value="Boolean(false)" />
-                    </td>
-                    <td>
-                        <katex v-if="object.units != null" :mathStr="object.units" />
-                    </td>
-                    <td>
-                        <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits" />
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.assignment != null"
-                            >{{ object.assignment.pk }} ({{
-                                object.assignment.sbmlType
-                            }})</span
-                        >
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <DataTable :value="species" v-if="species.length">
-            <Column field="id" header="id">
-                 <template #body="props">
-                     <strong>{{ props.data.id }}</strong>
+                    </span>
+                </div>
+            </template>
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
                 </template>
             </Column>
-            <Column field="pk" header="pk"></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="name"
+                header="name"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="initialAmount"
+                header="initial Amount"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="initialConcentration"
+                header="initial Concentration"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="substanceUnits"
+                header="substance Units"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="hasOnlySubstanceUnits"
+                header="hasOnly SubstanceUnits"
+                bodyStyle="text-align: center"
+            >
+                <template #body="slotProps">
+                    <boolean-symbol :value="slotProps.data.hasOnlySubstanceUnits" />
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="boundaryCondition"
+                header="boundary Condition"
+                bodyStyle="text-align: center"
+            >
+                <template #body="slotProps">
+                    <boolean-symbol :value="slotProps.data.boundaryCondition" />
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="constant"
+                header="constant"
+                bodyStyle="text-align: center"
+            >
+                <template #body="slotProps">
+                    <boolean-symbol :value="slotProps.data.constant" />
+                </template>
+            </Column>
+            <Column sortable style="width: fit-content" field="units" header="units">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.units != null">
+                        <katex :mathStr="slotProps.data.units" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="derivedUnits"
+                header="derived Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.derivedUnits != null">
+                        <katex :mathStr="slotProps.data.derivedUnits" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="assignment"
+                header="assignment"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.assignment != null">
+                        {{ slotProps.data.assignment.pk }} ({{
+                            slotProps.data.assignment.sbmlType
+                        }})
+                    </span>
+                </template>
+            </Column>
         </DataTable>
-
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
-import "datatables.net-buttons-bs4";
-import $ from "jquery";
-
-import Katex from "@/components/layout/Katex.vue";
-import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
-
-// use a mixin to define the reusable parts once;
 export default defineComponent({
-    components: {
-        Katex,
-        "boolean-symbol": BooleanSymbol,
-    },
-
     props: {
         listOfPKs: {
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("Species"),
+        },
     },
 
     computed: {
-        objects() {
-            // FIXME: remove code duplication (table mixins!)
-            let listOfObjects = [];
+        objects(): Array<Record<string, unknown>> {
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
-            (this.listOfPKs).forEach((pk) => {
+            (this.listOfPKs as Array<string>).forEach((pk) => {
                 listOfObjects.push(allObjectsMap[pk]);
             });
 
             return listOfObjects;
         },
-        species() {
-            let species = [];
-            for (const proxy of this.objects) {
-                // FIXME: handle via not creating proxies in the first place
-                species.push(JSON.parse(JSON.stringify(proxy)));
-            }
-            //console.log(species);
-            return species;
-        },
-        color(){
-            return colorScheme.componentColor["Species"];
-        },
-
-        icon(){
-            return icons.icons["Species"];
-        },
     },
 
-    methods: {
-        openComponent(pk) {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-
-        filterForSearchResults(sBasePKs, searchQuery = "") {
-            const allSBMLComponents = store.state.allObjectsMap;
-
-            let searchedSBasePKs = [];
-            searchedSBasePKs.push(
-                ...sBasePKs.filter((pk) => {
-                    const sbmlComponent = allSBMLComponents[pk];
-                    return searchQuery
-                        .toLowerCase()
-                        .split(" ")
-                        .every((attr) =>
-                            (
-                                sbmlComponent.name +
-                                sbmlComponent.id +
-                                sbmlComponent.metaId +
-                                sbmlComponent.sbo
-                            )
-                                .toString()
-                                .toLowerCase()
-                                .includes(attr)
-                        );
-                })
-            );
-            return searchedSBasePKs;
-        },
-    },
-
-    watch: {
-        listOfPKs(pks) {
-            if (pks.length == 0) {
-                (this.$refs["speciesDiv"]).style.display = "none";
-            } else {
-                (this.$refs["speciesDiv"]).style.display = "block";
-            }
-        },
-    },
+    mixins: [tableMixin("Species")],
 });
 </script>
 
 <style lang="scss">
 @import "@/assets/styles/scss/SBaseTable.scss";
-
-.scrollable {
-    width: 100%;
-    overflow-x: scroll;
-}
 </style>

@@ -1,79 +1,93 @@
 <template>
     <div ref="rateRuleDiv" class="scrollable">
-        <strong class="sbmlType">
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> RateRules
-        </strong>
-
-        <table
-            class="table table-striped table-bordered table-sm table-condensed compact"
-            id="collapsibleRateRule"
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">value</th>
-                    <th scope="col">math</th>
-                    <th scope="col">derivedUnits</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr
-                    v-for="object in objects"
-                    :key="object"
-                    class="links"
-                    v-on:click="openComponent(object.pk)"
-                >
-                    <td>
-                        <span v-if="object.id != null"
-                            ><strong>{{ object.id }}</strong></span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.value != null">{{ object.value }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.math != null">
-                            <katex :mathStr="object.id + '=' + object.math" />
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits" />
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <template #header class="table-header">
+                <div class="d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
+                        />
+                    </span>
+                </div>
+            </template>
+
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column sortable style="width: fit-content" field="pk" header="pk"></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="value"
+                header="value"
+            ></Column>
+            <Column sortable style="width: fit-content" field="math" header="math">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.math != null">
+                        <katex :mathStr="slotProps.data.math" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="derivedUnits"
+                header="derivedUnits"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.derivedUnits != null">
+                        <katex :mathStr="slotProps.data.derivedUnits" />
+                    </span>
+                </template>
+            </Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
-
-import Katex from "@/components/layout/Katex.vue";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
-    components: {
-        Katex,
-    },
-
     props: {
         listOfPKs: {
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("RateRule"),
+        },
     },
 
     computed: {
         objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
             (this.listOfPKs as Array<string>).forEach((pk) => {
@@ -82,31 +96,9 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
-        color(): string {
-            return colorScheme.componentColor["RateRule"];
-        },
-
-        icon(): string {
-            return icons.icons["RateRule"];
-        },
     },
 
-    methods: {
-        openComponent(pk: string): void {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-    },
-
-    watch: {
-        listOfPKs(pks) {
-            if (pks.length == 0) {
-                (this.$refs["rateRuleDiv"] as HTMLDivElement).style.display = "none";
-            } else {
-                (this.$refs["rateRuleDiv"] as HTMLDivElement).style.display = "block";
-            }
-        },
-    },
+    mixins: [tableMixin("RateRule")],
 });
 </script>
 

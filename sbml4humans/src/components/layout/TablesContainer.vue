@@ -5,106 +5,102 @@
         class="tablesContainer"
     >
         <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
-            <model-table ref="#model-table" :listOfPKs="pks"/>
+            <model-table ref="#model-table" :listOfPKs="pks" />
         </div>
 
         <div
             ref="FunctionDefinition"
             v-if="sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']"
         >
-            <function-definition-table :listOfPKs="pks"/>
+            <function-definition-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Compartment"
             v-if="sbmlType === 'Compartment' && visibility['Compartment']"
         >
-            <compartment-table :listOfPKs="pks"/>
+            <compartment-table :listOfPKs="pks" />
         </div>
 
         <div ref="Species" v-if="sbmlType === 'Species' && visibility['Species']">
-            <species-table :listOfPKs="pks"/>
+            <species-table :listOfPKs="pks" />
         </div>
 
         <div ref="Parameter" v-if="sbmlType === 'Parameter' && visibility['Parameter']">
-            <parameter-table :listOfPKs="pks"/>
+            <parameter-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="InitialAssignment"
             v-if="sbmlType === 'InitialAssignment' && visibility['InitialAssignment']"
         >
-            <initial-assignment-table :listOfPKs="pks"/>
+            <initial-assignment-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AssignmentRule"
             v-if="sbmlType === 'AssignmentRule' && visibility['AssignmentRule']"
         >
-            <assignment-rule-table :listOfPKs="pks"/>
+            <assignment-rule-table :listOfPKs="pks" />
         </div>
 
         <div ref="RateRule" v-if="sbmlType === 'RateRule' && visibility['RateRule']">
-            <rate-rule-table :listOfPKs="pks"/>
+            <rate-rule-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="AlgebraicRule"
             v-if="sbmlType === 'AlgebraicRule' && visibility['AlgebraicRule']"
         >
-            <algebraic-rule-table :listOfPKs="pks"/>
+            <algebraic-rule-table :listOfPKs="pks" />
         </div>
 
         <div ref="Reaction" v-if="sbmlType === 'Reaction' && visibility['Reaction']">
-            <reaction-table :listOfPKs="pks"/>
+            <reaction-table :listOfPKs="pks" />
         </div>
 
         <div ref="Event" v-if="sbmlType === 'Event' && visibility['Event']">
-            <event-table :listOfPKs="pks"/>
+            <event-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="UnitDefinition"
             v-if="sbmlType === 'UnitDefinition' && visibility['UnitDefinition']"
         >
-            <unit-definition-table :listOfPKs="pks"/>
+            <unit-definition-table :listOfPKs="pks" />
         </div>
 
         <div ref="Port" v-if="sbmlType === 'Port' && visibility['Port']">
-            <port-table :listOfPKs="pks"/>
+            <port-table :listOfPKs="pks" />
         </div>
 
         <div ref="Submodel" v-if="sbmlType === 'Submodel' && visibility['Submodel']">
-            <submodel-table :listOfPKs="pks"/>
+            <submodel-table :listOfPKs="pks" />
         </div>
 
         <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
-            <objective-table :listOfPKs="pks"/>
+            <objective-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="Constraint"
             v-if="sbmlType === 'Constraint' && visibility['Constraint']"
         >
-            <constraint-table :listOfPKs="pks"/>
+            <constraint-table :listOfPKs="pks" />
         </div>
 
         <div
             ref="GeneProduct"
             v-if="sbmlType === 'GeneProduct' && visibility['GeneProduct']"
         >
-            <gene-product-table :listOfPKs="pks"/>
+            <gene-product-table :listOfPKs="pks" />
         </div>
     </div>
 </template>
 
 <script>
 import store from "@/store/index";
-import {defineComponent} from "@vue/runtime-core";
-import "datatables.net";
-import "datatables.net-buttons-bs4";
-import "datatables.net-dt";
-import $ from "jquery";
+import { defineComponent } from "@vue/runtime-core";
 
 import ModelTable from "@/components/tables/ModelTable.vue";
 import CompartmentTable from "@/components/tables/CompartmentTable.vue";
@@ -116,7 +112,6 @@ import AssignmentRuleTable from "@/components/tables/AssignmentRuleTable.vue";
 import RateRuleTable from "@/components/tables/RateRuleTable.vue";
 import AlgebraicRuleTable from "@/components/tables/AlgebraicRuleTable.vue";
 import ReactionTable from "@/components/tables/ReactionTable.vue";
-//import ReactionPrimeTable from "@/components/tables/ReactionPrimeTable.vue";
 import EventTable from "@/components/tables/EventTable.vue";
 import UnitDefinitionTable from "@/components/tables/UnitDefinitionTable.vue";
 import PortTable from "@/components/tables/PortTable.vue";
@@ -146,18 +141,12 @@ export default defineComponent({
         FunctionDefinitionTable,
     },
 
-    created() {
-        $(document).ready(() => {
-            $("table").DataTable();
-        });
-    },
-
     methods: {
         scrollToElement(sbmlType) {
             const el = this.$refs[sbmlType];
             if (el) {
                 // Use el.scrollIntoView() to instantly scroll to the element
-                el.scrollIntoView({behavior: "smooth"});
+                el.scrollIntoView({ behavior: "smooth" });
             }
         },
 
@@ -181,17 +170,13 @@ export default defineComponent({
             TODO: Do this once globally (initialization); => state.state.allObjectsSearchMap; { pk: searchableObjectString }
              */
 
-
             let searchedSBasePKs = [];
             searchedSBasePKs.push(
                 ...sBasePKs.filter((pk) => {
                     const sbmlComponent = allSBMLComponents[pk];
-                    const componentMeta =
-                        sbmlComponent.id + sbmlComponent.metaId + sbmlComponent.sbo;
-                    return componentMeta
-                        .replace(" ", "")
+                    return sbmlComponent.searchUtilField
                         .toLowerCase()
-                        .includes(searchQuery.replace(" ", "").toLowerCase());
+                        .includes(searchQuery.toLowerCase());
                 })
             );
             return searchedSBasePKs;

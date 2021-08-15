@@ -22,10 +22,17 @@ export default defineComponent({
      */
     computed: {
         katexMath(): string {
-            return katex.renderToString(this.mathStr, {
-                throwOnError: false,
-                output: "html",
-            });
+            if (this.mathStr === null || this.mathStr === "null") {
+                return katex.renderToString("", {
+                    throwOnError: false,
+                    output: "html",
+                });
+            } else {
+                return katex.renderToString(this.mathStr, {
+                    throwOnError: false,
+                    output: "html",
+                });
+            }
         },
     },
 });

@@ -5,7 +5,7 @@
             :style="`background-color: ${color}`"
         >
             <strong>
-                <font-awesome-icon :icon="`${icon}`" class="mr-1"/>
+                <font-awesome-icon :icon="`${icon}`" class="mr-1" />
                 {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
             >
             <Badge :value="counts[sbmlType]" severity="info"></Badge>

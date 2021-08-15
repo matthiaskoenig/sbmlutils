@@ -1,73 +1,93 @@
 <template>
     <div ref="portDiv" class="scrollable">
-        <strong class="sbmlType">
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" /> Ports
-        </strong>
-
-        <table
-            class="table table-striped table-bordered table-sm table-condensed compact"
-            id="collapsiblePort"
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">portRef</th>
-                    <th scope="col">idRef</th>
-                    <th scope="col">unitRef</th>
-                    <th scope="col">metaIdRef</th>
-                    <th scope="col">referencedElement</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr
-                    v-for="object in objects"
-                    :key="object"
-                    class="links"
-                    v-on:click="openComponent(object.pk)"
-                >
-                    <td>
-                        <span v-if="object.id != null"
-                            ><strong>{{ object.id }}</strong></span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.portRef != null">{{ object.portRef }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.idRef != null">{{ object.idRef }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.unitRef != null">{{ object.unitRef }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.metaIdRef != null"
-                            >{{ object.metaIdRef }}
-                        </span>
-                    </td>
-                    <td>
-                        <span
-                            v-if="
-                                object.referencedElement != null &&
-                                object.referencedElement.elementId != null
-                            "
-                            >{{ object.referencedElement.elementId }}</span
-                        >
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <template #header class="table-header">
+                <div class="d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
+                        />
+                    </span>
+                </div>
+            </template>
+
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="name"
+                header="name"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="portRef"
+                header="portRef"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="idRef"
+                header="idRef"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="unitRef"
+                header="unitRef"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="metaIdRef"
+                header="metaIdRef"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="referencedElement"
+                header="referencedElement"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.referencedElement != null">
+                        {{ slotProps.data.referencedElement.id }}
+                    </span>
+                </template>
+            </Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
     props: {
@@ -75,11 +95,15 @@ export default defineComponent({
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("Port"),
+        },
     },
 
     computed: {
         objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
             (this.listOfPKs as Array<string>).forEach((pk) => {
@@ -88,31 +112,9 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
-        color(): string {
-            return colorScheme.componentColor["Port"];
-        },
-
-        icon(): string {
-            return icons.icons["Port"];
-        },
     },
 
-    methods: {
-        openComponent(pk: string): void {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-    },
-
-    watch: {
-        listOfPKs(pks) {
-            if (pks.length == 0) {
-                (this.$refs["portDiv"] as HTMLDivElement).style.display = "none";
-            } else {
-                (this.$refs["portDiv"] as HTMLDivElement).style.display = "block";
-            }
-        },
-    },
+    mixins: [tableMixin("Port")],
 });
 </script>
 
