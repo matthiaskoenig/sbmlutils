@@ -66,7 +66,7 @@
     <div class="data" v-if="info.trigger != null">
         <div class="label">
             <strong>trigger:</strong>
-            <div class="ml-4">
+            <div class="p-ml-4">
                 <div v-if="info.trigger.math != null">
                     math:
                     <katex :mathStr="info.trigger.math" />
@@ -104,7 +104,7 @@
     >
         <div class="label">
             <strong>listOfEventAssignments:</strong>
-            <div class="ml-4">
+            <div class="p-ml-4">
                 <ul title="List of Event Assignments">
                     <li v-for="eva in info.listOfEventAssignments" :key="eva.variable">
                         <div v-if="eva.variable">variable: {{ eva.variable }}</div>

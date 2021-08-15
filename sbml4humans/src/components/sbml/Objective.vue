@@ -42,7 +42,7 @@
     >
         <div class="label"><strong>fluxObjectives:</strong></div>
         <br />
-        <div class="ml-4">
+        <div class="p-ml-4">
             <ul title="Flux Objectives">
                 <li
                     v-for="fluxObjective in info.fluxObjectives"

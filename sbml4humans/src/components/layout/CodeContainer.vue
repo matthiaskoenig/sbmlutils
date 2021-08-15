@@ -2,16 +2,16 @@
     <div class="xml-container">
         <div
             :title="visible ? 'Hide Code' : 'Show Code'"
-            class="d-flex"
+            class="p-d-flex"
             style="cursor: pointer"
         >
-            <div class="mr-4" v-if="info.xml != null" v-on:click="toggleToXML()">
-                <font-awesome-icon icon="code" class="mr-1" />
+            <div class="p-mr-4" v-if="info.xml != null" v-on:click="toggleToXML()">
+                <font-awesome-icon icon="code" class="p-mr-1" />
                 <span><strong>XML</strong></span>
             </div>
 
             <div v-on:click="toggleToJSON()">
-                <i class="fas fa-braces mr-1"></i>
+                <i class="fas fa-braces p-mr-1"></i>
                 <span><strong>JSON</strong></span>
             </div>
         </div>

@@ -17,12 +17,12 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="d-flex p-jc-between p-ai-center">
+                <div class="p-d-flex p-jc-between p-ai-center">
                     <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="mr-1" />
+                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
                         {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
                     </strong>
-                    <span class="p-input-icon-left ml-auto">
+                    <span class="p-input-icon-left p-ml-auto">
                         <i class="pi pi-search" />
                         <InputText
                             v-model="filters['global'].value"

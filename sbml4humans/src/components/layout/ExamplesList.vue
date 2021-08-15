@@ -3,7 +3,12 @@
     <p>Choose from the list of examples to generate a report.</p>
 
     <ScrollPanel class="list-container">
-        <example v-for="example in examples" :key="example.id" :example="example" />
+        <example
+            class="p-mb-1"
+            v-for="example in examples"
+            :key="example.id"
+            :example="example"
+        />
     </ScrollPanel>
 
     <loading parent="example" />
@@ -52,5 +57,6 @@ export default defineComponent({
 .list-container {
     width: 90%;
     overflow-y: scroll;
+    font-size: 14px;
 }
 </style>

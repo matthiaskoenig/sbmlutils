@@ -2,7 +2,7 @@
     <div v-if="loading" class="overlay">
         <div class="overlay-content">
             <div class="loader">
-                <div class="d-flex">
+                <div class="p-d-flex">
                     <ProgressSpinner />
                     <strong style="margin: auto 25px">{{ loadingMsg }}</strong>
                 </div>

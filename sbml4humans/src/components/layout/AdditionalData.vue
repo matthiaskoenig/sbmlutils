@@ -1,8 +1,8 @@
 <template>
-    <div class="ml-1">
-        <div class="mb-3" v-if="info.cvterms != null">
+    <div class="p-ml-1">
+        <div class="p-mb-3" v-if="info.cvterms != null">
             <div class="label"><strong>cvterms</strong></div>
-            <div class="ml-4">
+            <div class="p-ml-4">
                 <div v-for="cvterm in info.cvterms" :key="cvterm.qualifier">
                     <CVTermBadge
                         v-for="resource in cvterm.resources"

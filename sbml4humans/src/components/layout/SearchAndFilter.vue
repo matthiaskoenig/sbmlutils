@@ -1,5 +1,5 @@
 <template>
-    <div class="search-filter-container d-flex w-100">
+    <div class="search-filter-container p-d-flex w-100">
         <Search />
         <!--<Filter />-->
     </div>

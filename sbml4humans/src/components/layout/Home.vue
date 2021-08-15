@@ -1,13 +1,13 @@
 <template>
     <navbar />
-    <div class="container-fluid px-10">
-        <div class="row px-5">
-            <div class="col-md-6 d-flex flex-column" style="height: 110vh">
-                <file-upload-form class="pb-3" />
+    <div class="p-px-5">
+        <div class="p-grid">
+            <div class="p-col-6 p-d-flex p-flex-column" style="height: 120vh">
+                <file-upload-form class="p-pb-3" />
                 <examples-list />
             </div>
-            <div class="col-md-6">
-                <about class="pb-4" />
+            <div class="p-col-6">
+                <about class="p-pb-4" />
             </div>
         </div>
     </div>

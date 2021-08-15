@@ -34,7 +34,7 @@ export default defineComponent({
     data() {
         return {
             selectedCountries: null,
-            expandedKeys: {"0": true, "1": true},
+            expandedKeys: { "0": true, "1": true },
             reportBasics: [] as Array<Record<string, unknown>>,
             sbases: [] as Array<Record<string, unknown>>,
         };
@@ -50,20 +50,16 @@ export default defineComponent({
         //     tables: Record<string, Array<string>>
         // ): void {
         //     let basics = [] as Array<Record<string, unknown>>;
-
         //     for (let i = 0; i < reportBasics.length; i++) {
         //         const component = reportBasics[i];
         //         basics.push(component);
         //     }
-
         //     this.reportBasics = basics;
-
         //     let listOfTables = {
         //         key: 1,
         //         label: "SBases",
         //         items: [] as Array<Record<string, unknown>>,
         //     };
-
         //     let i = 0;
         //     for (const table in tables) {
         //         i++;
@@ -73,9 +69,7 @@ export default defineComponent({
         //             iconString: icons.icons[table as string],
         //         });
         //     }
-
         //     items.push(listOfTables);
-
         //     this.items = items;
         // },
     },
@@ -88,8 +82,8 @@ export default defineComponent({
         collectTables(): Record<string, Array<string>> {
             let tables: Record<string, Array<string>> = {};
 
-            const componentPKsMap: Record<string, Array<string>> =
-                store.getters.componentPKsMap;
+            const componentPKsMap: Record<string, Array<string>> = store.getters
+                .componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {

@@ -4,10 +4,6 @@ import "./registerServiceWorker";
 import router from "./router";
 import store from "./store";
 
-// bootstrap FIXME: remove
-import "../node_modules/bootstrap/dist/css/bootstrap.css";
-import "../node_modules/bootstrap/dist/js/bootstrap.bundle.js";
-
 // PrimeVue UI package
 import PrimeVue from "primevue/config";
 import Badge from "primevue/badge";
@@ -58,7 +54,7 @@ import {
     faFileMedicalAlt,
     faTablets,
     faArrowLeft,
-    faArrowRight
+    faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 

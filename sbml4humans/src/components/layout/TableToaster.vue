@@ -1,11 +1,11 @@
 <template>
-    <div class="card" v-if="visible" :title="'Navigate to ' + sbmlType">
+    <div class="p-card" v-if="visible" :title="'Navigate to ' + sbmlType">
         <div
-            class="d-flex justify-content-between px-2 py-1"
+            class="p-d-flex p-jc-between p-px-2 p-py-1"
             :style="`background-color: ${color}`"
         >
             <strong>
-                <font-awesome-icon :icon="`${icon}`" class="mr-1" />
+                <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
                 {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
             >
             <Badge :value="counts[sbmlType]" severity="info"></Badge>

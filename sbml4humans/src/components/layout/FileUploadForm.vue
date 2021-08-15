@@ -3,11 +3,11 @@
         <h1>Upload SBML</h1>
 
         <form class="needs-validation" @submit.prevent="submitForm">
-            <div class="form-group d-flex">
+            <div class="form-group p-d-flex">
                 <input
                     type="file"
                     ref="fileField"
-                    class="form-control mr-2"
+                    class="form-control p-mr-2"
                     v-on:change="handleFileUpload()"
                     required
                     title="Click to browse and upload a file from your device"

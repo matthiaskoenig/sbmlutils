@@ -9,7 +9,7 @@
                     </router-link>
 
                     <search-and-filter
-                        class="mt-2"
+                        class="p-mt-2"
                         v-if="['Report', 'report'].includes($route.name)"
                     ></search-and-filter>
                 </div>

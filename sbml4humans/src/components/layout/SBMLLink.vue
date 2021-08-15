@@ -1,7 +1,7 @@
 <template>
-    <div class="tablet d-flex mr-3" v-on:click="showDetail">
-        <div class="d-flex justify-content-between">
-            <font-awesome-icon :icon="`${icon}`" class="mt-1 mr-1" />
+    <div class="tablet p-d-flex p-mr-3" v-on:click="showDetail">
+        <div class="p-d-flex p-jc-between">
+            <font-awesome-icon :icon="`${icon}`" class="p-mt-1 p-mr-1" />
             {{ id }}
         </div>
     </div>

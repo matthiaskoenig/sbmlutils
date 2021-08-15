@@ -13,7 +13,7 @@
             </tr>
             <tr v-if="info.equation != null">
                 <td class="label-td"><div class="label">equation</div></td>
-                <td><span class="ml-2" v-html="info.equation"></span></td>
+                <td><span class="p-ml-2" v-html="info.equation"></span></td>
             </tr>
             <tr v-if="info.fast != null">
                 <td class="label-td"><div class="label">fast</div></td>
@@ -125,7 +125,7 @@
                 <td class="label-td"><div class="label">modifiers</div></td>
                 <td>
                     <div
-                        class="d-flex"
+                        class="p-d-flex"
                         v-for="modifier in info.listOfModifiers"
                         :key="modifier"
                     >
@@ -160,7 +160,7 @@
     >
         <div class="label"><strong>listOfReactants:</strong></div>
         <br />
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div v-for="reactant in info.listOfReactants" :key="reactant.species">
                 <SBMLLink
                     :pk="'Species:' + reactant.species"
@@ -180,7 +180,7 @@
     >
         <div class="label"><strong>listOfProducts:</strong></div>
         <br />
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div v-for="product in info.listOfProducts" :key="product.species">
                 <SBMLLink
                     :pk="'Species:' + product.species"
@@ -200,9 +200,9 @@
     >
         <div class="label"><strong>listOfModifiers:</strong></div>
         <br />
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div
-                class="d-flex"
+                class="p-d-flex"
                 v-for="modifier in info.listOfModifiers"
                 :key="modifier"
             >
@@ -214,7 +214,7 @@
     <div class="data" v-if="info.equation != null">
         <div class="label">
             <strong>equation:</strong>
-            <span class="ml-2" v-html="info.equation"></span>
+            <span class="p-ml-2" v-html="info.equation"></span>
         </div>
     </div>
 
@@ -230,7 +230,7 @@
         <div class="label">
             <strong>kineticLaw:</strong>
         </div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div v-if="info.kineticLaw.math != null">
                 math: <Katex :mathStr="info.kineticLaw.math" />
             </div>
@@ -261,7 +261,7 @@
 
     <div class="data" v-if="info.fbc">
         <div class="label"><strong>FBC:</strong></div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div v-if="info.fbc.bounds">
                 <div v-if="info.fbc.bounds.lowerFluxBound">
                     lowerFluxBound:

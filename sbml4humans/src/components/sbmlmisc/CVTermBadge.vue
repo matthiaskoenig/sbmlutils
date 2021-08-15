@@ -1,11 +1,11 @@
 <template>
-    <div class="d-flex">
+    <div class="p-d-flex">
         <div class="badge badge-success qualifier">{{ qualifier }}</div>
         <a :href="resource" target="_blank" class="badge badge-warning resource">{{
             resource
         }}</a>
     </div>
-    <div class="mt-1 mb-2 ml-2" v-if="addInfo != null">
+    <div class="p-mt-1 p-mb-2 p-ml-2" v-if="addInfo != null">
         <strong>{{ addInfo.name }}:</strong> {{ addInfo.definition }} <br />
         <span v-if="addInfo.synonyms != null"
             >Synonyms: {{ addInfo.synonyms.join() }}</span

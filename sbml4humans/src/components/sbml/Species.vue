@@ -140,7 +140,7 @@
     <!-- Compartment
     <div class="data" v-if="info.compartment != null">
         <div class="label"><strong>compartment: </strong></div>
-        <div class="ml-3">
+        <div class="p-ml-3">
             <SBMLLink
                 :pk="'Compartment:' + info.compartment"
                 :sbmlType="String('Compartment')"
@@ -231,7 +231,7 @@
     >
         <div class="label">
             <strong>Conversion Factor:</strong>
-            <div class="mb-4">
+            <div class="p-mb-4">
                 <ul title="Conversion Factor">
                     <li v-if="info.conversionFactor.sid">
                         sid: {{ info.conversionFactor.sid }}
@@ -250,7 +250,7 @@
     <div class="data" v-if="info.fbc && (info.fbc.formula || info.fbc.charge)">
         <div class="label">
             <strong>FBC Data:</strong>
-            <div class="mb-4">
+            <div class="p-mb-4">
                 <ul title="FBC Data">
                     <li v-if="info.fbc.formula">formula: {{ info.fbc.formula }}</li>
                     <li v-if="info.fbc.charge">charge: {{ info.fbc.charge }}</li>
@@ -259,12 +259,12 @@
         </div>
     </div>
 
-    <div class="row col-12">
+    <div class="p-grid col-12">
         <div class="col-sm-4 data" v-if="info.reactant && info.reactant.length">
             <div class="label">
                 <strong>reactant:</strong>
             </div>
-            <div class="ml-0">
+            <div class="p-ml-0">
                 <SBMLLink
                     v-for="reactant in info.reactant"
                     :key="reactant"
@@ -277,7 +277,7 @@
             <div class="label">
                 <strong>product:</strong>
             </div>
-            <div class="ml-0">
+            <div class="p-ml-0">
                 <SBMLLink
                     v-for="product in info.product"
                     :key="product"
@@ -291,7 +291,7 @@
             <div class="label">
                 <strong>modifier:</strong>
             </div>
-            <div class="ml-0">
+            <div class="p-ml-0">
                 <SBMLLink
                     v-for="modifier in info.modifier"
                     :key="modifier"

@@ -33,7 +33,7 @@
     <div class="data" v-if="info.deletions != null && info.deletions[0].type">
         <div class="label"><strong>deletions:</strong></div>
         <br />
-        <div class="ml-4">
+        <div class="p-ml-4">
             <ul title="Deletions">
                 <li v-for="deletion in info.deletions" :key="deletion.value">
                     type: {{ deletion.type }}, value: {{ deletion.value }}

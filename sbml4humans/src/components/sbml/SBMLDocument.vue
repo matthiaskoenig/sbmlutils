@@ -26,7 +26,7 @@
                 <td class="label-td"><div class="label">models</div></td>
                 <td>
                     <div
-                        class="d-flex justify-content-between"
+                        class="p-d-flex p-jc-between"
                         v-for="model in listOfModels"
                         :key="model"
                     >
@@ -40,13 +40,13 @@
     <!-- <div class="data" v-if="info.packages != null">
         <div class="label">
             <strong>packages: </strong>
-            <div class="ml-4" v-if="info.packages.document != null">
+            <div class="p-ml-4" v-if="info.packages.document != null">
                 document: Level {{ info.packages.document.level }} Version
                 {{ info.packages.document.version }}
             </div>
-            <div class="ml-4" v-if="info.packages.plugins != null">
+            <div class="p-ml-4" v-if="info.packages.plugins != null">
                 plugins:
-                <ul class="ml-4" title="List of Plugins">
+                <ul class="p-ml-4" title="List of Plugins">
                     <li
                         v-for="plugin in info.packages.plugins"
                         :key="plugin.prefix + plugin.version"
@@ -60,9 +60,9 @@
 
     <div class="data" v-if="listOfModels.length > 0">
         <div class="label"><strong>models:</strong></div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div
-                class="ml-4 d-flex justify-content-between"
+                class="p-ml-4 p-d-flex p-jc-between"
                 v-for="model in listOfModels"
                 :key="model"
             >

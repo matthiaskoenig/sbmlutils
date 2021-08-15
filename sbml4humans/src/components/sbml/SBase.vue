@@ -1,7 +1,7 @@
 <template>
-    <div class="d-flex justify-content-between">
+    <div class="p-d-flex p-jc-between">
         <strong class="sbmlType">
-            <font-awesome-icon :icon="`${icon}`" class="mr-1" />{{ info.sbmlType }}
+            <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />{{ info.sbmlType }}
         </strong>
     </div>
     <h2>{{ info.id }}</h2>
@@ -159,7 +159,7 @@
     <div class="data" v-if="info.history != null">
         <div class="label"><strong>history:</strong></div>
         <br />
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div class="label">createdDate: {{ info.history.createdDate }}</div>
             <br />
             <div class="label">creators:</div>
@@ -184,7 +184,7 @@
     <!-- COMP -->
     <!-- <div class="data" v-if="info.replacedBy != null">
         <div class="label"><strong>replacedBy:</strong></div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div>submodelRef: {{ info.replacedBy.submodelRef }}</div>
             <div>
                 replacedBySbaseref:
@@ -195,7 +195,7 @@
     </div>
     <div class="data" v-if="info.replacedElements != null">
         <div class="label"><strong>replacedElements:</strong></div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <ul title="Replaced Elements">
                 <li
                     v-for="replacedElement in info.replacedElements"
@@ -224,7 +224,7 @@
     <!-- DISTRIB -->
     <!-- <div class="data" v-if="info.uncertainties">
         <div class="label"><strong>uncertainties:</strong></div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <ol title="Uncertainties">
                 <li v-for="uncertainty in info.uncertainties" :key="uncertainty">
                     Uncertainty Parameters

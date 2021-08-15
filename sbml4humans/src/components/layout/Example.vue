@@ -1,19 +1,16 @@
 <template>
     <div
-        class="card shadow-sm"
+        class="p-card shadow-sm"
         v-on:click="getExample()"
         title="Click to create report for example"
     >
-        <div
-            class="d-flex px-2 justify-content-between"
-            style="background-color: #66c2a5"
-        >
+        <div class="p-d-flex p-px-2 p-jc-between" style="background-color: #66c2a5">
             <div>
-                <font-awesome-icon icon="file-code" class="mr-2" />
+                <font-awesome-icon icon="file-code" class="p-mr-2" />
                 <strong>{{ example.id }}</strong>
             </div>
         </div>
-        <div class="px-2">
+        <div class="p-px-2">
             <div><span class="text-primary">name</span>: {{ example.name }}</div>
             <div>
                 <span class="text-primary">description</span>: {{ example.description }}
@@ -23,7 +20,8 @@
                 <span
                     v-for="pkg in example.packages"
                     :key="pkg"
-                    :class="`badge badge-pill badge-${badgeColor[pkg]} package-badge mr-1`"
+                    :class="`package-badge p-mr-1`"
+                    :style="`background-color: ${badgeColor[pkg]}; color: ${badgeText[pkg]}`"
                     >{{ pkg }}</span
                 >
             </div>
@@ -59,10 +57,17 @@ export default defineComponent({
             },
 
             badgeColor: {
-                distrib: "info",
-                comp: "warning",
-                fbc: "primary",
-                groups: "success",
+                distrib: "#5bc0de",
+                comp: "#f0ad4e",
+                fbc: "#0275d8",
+                groups: "#5cb85c",
+            },
+
+            badgeText: {
+                distrib: "#000000",
+                comp: "#000000",
+                fbc: "#ffffff",
+                groups: "#ffffff",
             },
         };
     },

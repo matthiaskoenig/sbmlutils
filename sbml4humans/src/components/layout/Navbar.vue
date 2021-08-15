@@ -12,7 +12,7 @@
 
         <!-- Static switch -->
         <!--
-        <div class="static ml-auto" title="Turn ON Static to disconnect from the API">
+        <div class="static p-ml-auto" title="Turn ON Static to disconnect from the API">
             <p class="label">Static</p>
             <label class="switch">
                 <input

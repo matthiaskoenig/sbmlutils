@@ -106,7 +106,7 @@
         <div class="label">
             <strong>relatedSpecies:</strong>
         </div>
-        <div class="ml-4 tag-list">
+        <div class="p-ml-4 tag-list">
             <div v-for="species in info.species" :key="species">
                 <SBMLLink :pk="species" :sbmlType="String('Species')" />
             </div>
@@ -117,7 +117,7 @@
         <div class="label">
             <strong>relatedReactions:</strong>
         </div>
-        <div class="ml-4 tag-list">
+        <div class="p-ml-4 tag-list">
             <div v-for="reaction in info.reaction" :key="reaction">
                 <SBMLLink :pk="reaction" :sbmlType="String('Reaction')" />
             </div>
