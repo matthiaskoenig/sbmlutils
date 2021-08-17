@@ -156,9 +156,16 @@ DUMMY_ADDITIONAL_INFO = {
 
 @api.get("/resource_info/{resource_id}")
 def get_resource_info(resource_id: str) -> Response:
+    """Get information for given resource.
+
+    Used to resolve annotation information.
+
+    :param resource_id: unique identifier of resource (url or miriam urn)
+    :return: Response
+    """
     try:
         resource_id = _normalize_resource_id(resource_id)
-        query_params = _get_identifier_and_term(resource_id)
+        _ = _get_identifier_and_term(resource_id)
 
         print(DUMMY_ADDITIONAL_INFO)
         return Response(
@@ -204,7 +211,8 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
             "identifier": identifier.upper(),
             "term": term,
         }
-    except Exception as e:
+    except Exception:
+        # FIXME: this is too broad
         raise ValueError("Resource identifier too short")
 
 
