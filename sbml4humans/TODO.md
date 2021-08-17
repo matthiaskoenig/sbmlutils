@@ -1,14 +1,13 @@
 ## TODO
 
+- [ ] math not displayed for InitialAssignments in distribution example
+- [ ] render uncertainty nicer (currently only list)
+- [ ] make tables more compact
+- [ ] think about strategy for supporting reports: https://github.com/matthiaskoenig/sbmlutils/issues/257
+
 - [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/ 
   Probably migrating datatables for now (some minor bugs exist)
-  - [x] Create working example for SpeciesTable
-  - [x] Fix Proxy issue with data in global map -> should just be objects!  
-  - [x] Global search: search on all table fields    
-  - [x] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
-  - [x] fix: remove datatables and jquery  
-
-Layout:
+- [ ] Remove JS dependencies: datatables, jquery, bootstap
 - [ ] Remove bootstrap completely; use PrimeVue for spacing & grid & form
 - [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
 - [~] layout: Reduce space between tables by moving search & entries next to heading
@@ -27,7 +26,6 @@ Static report:  // a server is always required
 - [ ] refactor backend annotation code into into separate package
 ## OMEX
 - [ ] Support of combine archives & resolve external model definitions
-
 ## Units
 - [ ] Unit math strings are not longer coming from backend
 Improve generated latex (backend, MK)
@@ -35,7 +33,5 @@ Improve generated latex (backend, MK)
     - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
 
-## Deployment
-- [ ] fix hardcoded backend urls in frontend (-> env variables)
 
 
