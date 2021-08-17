@@ -125,6 +125,7 @@ def _render_json_content(content: Dict) -> Response:
 
     return Response(content=json_bytes, media_type="application/json")
 
+
 # FOR TESTING OF DUMMY CACHE
 REGISTRY = {
     "namespaces": [
@@ -149,7 +150,7 @@ DUMMY_ADDITIONAL_INFO = {
     "term": "Dummy Term",
     "name": "Dummy Name",
     "definition": "This is a dummy definition.",
-    "synonyms": ["syn1", "syn2"]
+    "synonyms": ["syn1", "syn2"],
 }
 
 
@@ -160,7 +161,9 @@ def get_resource_info(resource_id: str) -> Response:
         query_params = _get_identifier_and_term(resource_id)
 
         print(DUMMY_ADDITIONAL_INFO)
-        return Response(content=json.dumps(DUMMY_ADDITIONAL_INFO), media_type="application/json")
+        return Response(
+            content=json.dumps(DUMMY_ADDITIONAL_INFO), media_type="application/json"
+        )
     except Exception as e:
         logger.error(e)
 
@@ -172,21 +175,21 @@ def get_resource_info(resource_id: str) -> Response:
 
 
 def _normalize_resource_id(resource_id: str) -> str:
-    resource_id = resource_id.replace('%3A', ':')
+    resource_id = resource_id.replace("%3A", ":")
     print(resource_id)
 
     # removing escape characters of the form "%xy"
     for i in range(len(resource_id)):
         c = resource_id[i]
-        if c == '%':
-            resource_id = resource_id[:i] + resource_id[i+3:]
+        if c == "%":
+            resource_id = resource_id[:i] + resource_id[i + 3 :]
             i -= 1
 
     return resource_id
 
 
 def _get_identifier_and_term(resource_id: str) -> Dict:
-    parts = resource_id.split(':')
+    parts = resource_id.split(":")
 
     try:
         if len(parts) >= 3:
@@ -199,7 +202,7 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
         return {
             "prefix": identifier.lower(),
             "identifier": identifier.upper(),
-            "term": term
+            "term": term,
         }
     except Exception as e:
         raise ValueError("Resource identifier too short")
