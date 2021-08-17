@@ -1,18 +1,18 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <router-link class="navbar-brand" to="/">
             <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
             SBML4Humans
         </router-link>
 
         <!-- Search and Filter component (visible only in report view) -->
-        <search-and-filter
+        <!--<search-and-filter
             v-if="['Report', 'report'].includes($route.name)"
-        ></search-and-filter>
+        ></search-and-filter>-->
 
         <!-- Static switch -->
         <!--
-        <div class="static ml-auto" title="Turn ON Static to disconnect from the API">
+        <div class="static p-ml-auto" title="Turn ON Static to disconnect from the API">
             <p class="label">Static</p>
             <label class="switch">
                 <input
@@ -32,16 +32,10 @@
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
-import SearchAndFilter from "@/components/layout/SearchAndFilter.vue";
-
 /**
  * Navbar component for providing main links in the application
  */
 export default defineComponent({
-    components: {
-        "search-and-filter": SearchAndFilter,
-    },
-
     data(): Record<string, unknown> {
         return {
             // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
@@ -65,10 +59,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.navbar {
-    margin-bottom: 2%;
-}
-
 .logo {
     height: 40px;
     margin-right: 10px;

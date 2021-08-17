@@ -1,92 +1,99 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleModel"
-            role="button"
+    <div ref="modelDiv" class="scrollable">
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfModels
-        </strong>
+            <template #header class="table-header">
+                <div class="p-d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left p-ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
+                        />
+                    </span>
+                </div>
+            </template>
 
-        <table
-            class="
-                table table-striped table-bordered table-sm table-condensed table-hover
-                compact
-            "
-            id="collapsibleModel"
-        >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">substance Units</th>
-                    <th scope="col">time Units</th>
-                    <th scope="col">length Units</th>
-                    <th scope="col">area Units</th>
-                    <th scope="col">volume Units</th>
-                    <th scope="col">extent Units</th>
-                    <th scope="col">conversion Factor</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
-                    <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.substanceUnits != null">{{
-                            object.substanceUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.timeUnits != null">{{
-                            object.timeUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.lengthUnits != null">{{
-                            object.lengthUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.areaUnits != null">{{
-                            object.areaUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.volumeUnits != null">{{
-                            object.volumeUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.extentUnits != null">{{
-                            object.extentUnits
-                        }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.conversionFactor != null">{{
-                            object.conversionFactor
-                        }}</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="name"
+                header="name"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="substanceUnits"
+                header="substanceUnits"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="timeUnits"
+                header="timeUnits"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="lengthUnits"
+                header="lengthUnits"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="areaUnits"
+                header="areaUnits"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="volumeUnits"
+                header="volumeUnits"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="extentUnits"
+                header="extentUnits"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="conversionFactor"
+                header="conversionFactor"
+            ></Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
     props: {
@@ -94,11 +101,15 @@ export default defineComponent({
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("Model"),
+        },
     },
 
     computed: {
         objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
             (this.listOfPKs as Array<string>).forEach((pk) => {
@@ -107,21 +118,9 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
-        color(): string {
-            return colorScheme.componentColor["Model"];
-        },
-
-        icon(): string {
-            return icons.icons["Model"];
-        },
     },
 
-    methods: {
-        openComponent(pk: string): void {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-    },
+    mixins: [tableMixin("Model")],
 });
 </script>
 

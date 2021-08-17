@@ -1,11 +1,12 @@
 <template>
-    <!-- Unit String -->
-    <div class="data" v-if="info.units != null">
-        <div class="label">
-            <strong>units:</strong>
-            <Katex :mathStr="info.units" />
-        </div>
-    </div>
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.units != null">
+                <td class="label-td"><div class="label">units</div></td>
+                <td><katex :mathStr="info.units" /></td>
+            </tr>
+        </tbody>
+    </table>
 </template>
 
 <script>

@@ -1,27 +1,24 @@
 <template>
-    <list-of-tables></list-of-tables>
+    <!-- <PanelMenu :model="items" v-model:expandedKeys="expandedKeys" /> -->
 
-    <div><strong>Document & Models</strong></div>
-    <!--
-        <div v-for="component in collectReportBasics" :key="component.pk">
-            <a-checkbox/>{{component.pk}} | {{component.sbmlType}}
-        </div>
-    -->
-
-    <a-list class="basics-container">
-        <toaster
+    <strong>Document & Models</strong>
+    <ScrollPanel class="basics-container">
+        <SBML-toaster
             v-for="component in collectReportBasics"
             :key="component.pk"
             :sbmlType="component.sbmlType"
             :info="component"
             :visible="Boolean(visibility[component.sbmlType])"
-        ></toaster>
-    </a-list>
+        />
+    </ScrollPanel>
+
+    <strong>SBases</strong>
+    <list-of-tables class="tables-container" />
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import TYPES from "@/data/sbmlComponents";
+import icons from "@/data/fontAwesome";
 import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
@@ -30,48 +27,51 @@ import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
 
 export default defineComponent({
     components: {
-        toaster: SBMLToaster,
-        "list-of-tables": ListOfTables,
+        SBMLToaster,
+        ListOfTables,
     },
 
+    data() {
+        return {
+            selectedCountries: null,
+            expandedKeys: { "0": true, "1": true },
+            reportBasics: [] as Array<Record<string, unknown>>,
+            sbases: [] as Array<Record<string, unknown>>,
+        };
+    },
+
+    // mounted() {
+    //     this.setItems(this.collectReportBasics, this.collectTables);
+    // },
+
     methods: {
-        /**
-         * Filters SBML objects on the basis of the search query.
-         * @param sbases Array of SBML objects to filter.
-         * @param searchQuery The search query to look for in the SBML objects' data
-         */
-        filterForSearchResults(
-            sbases: Array<Record<string, unknown>> = [TYPES.SBase],
-            searchQuery = ""
-        ): Array<Record<string, unknown>> {
-            let searchedSet: Set<string> = new Set();
-
-            let searchedSbases = sbases.filter((sbase) => {
-                return searchQuery
-                    .toLowerCase()
-                    .split(" ")
-                    .every((attr) =>
-                        (
-                            (sbase.name as string) +
-                            (sbase.id as string) +
-                            (sbase.metaId as string) +
-                            (sbase.sbo as string)
-                        )
-                            .toString()
-                            .toLowerCase()
-                            .includes(attr)
-                    );
-            });
-
-            searchedSbases.forEach((sbase) => {
-                const pk = sbase.pk as string;
-                searchedSet.add(pk);
-            });
-
-            store.dispatch("updateSearchedSBasesPKs", searchedSet);
-
-            return searchedSbases;
-        },
+        // setItems(
+        //     reportBasics: Array<Record<string, unknown>>,
+        //     tables: Record<string, Array<string>>
+        // ): void {
+        //     let basics = [] as Array<Record<string, unknown>>;
+        //     for (let i = 0; i < reportBasics.length; i++) {
+        //         const component = reportBasics[i];
+        //         basics.push(component);
+        //     }
+        //     this.reportBasics = basics;
+        //     let listOfTables = {
+        //         key: 1,
+        //         label: "SBases",
+        //         items: [] as Array<Record<string, unknown>>,
+        //     };
+        //     let i = 0;
+        //     for (const table in tables) {
+        //         i++;
+        //         listOfTables.items.push({
+        //             key: "1_" + i,
+        //             label: (table === "Species" ? table : table + "s") + " (" + this.counts[table as string] + ")",
+        //             iconString: icons.icons[table as string],
+        //         });
+        //     }
+        //     items.push(listOfTables);
+        //     this.items = items;
+        // },
     },
 
     computed: {
@@ -79,14 +79,19 @@ export default defineComponent({
             return store.getters.reportBasics;
         },
 
-        /**
-         * Collects and returns SBML objects present in the report and
-         * applies search filtering on the response set.
-         */
-        collectSBases(): Array<Record<string, unknown>> {
-            let sbases: Array<Record<string, unknown>> = store.getters.sbases;
-            sbases = this.filterForSearchResults(sbases, this.searchQuery);
-            return sbases;
+        collectTables(): Record<string, Array<string>> {
+            let tables: Record<string, Array<string>> = {};
+
+            const componentPKsMap: Record<string, Array<string>> = store.getters
+                .componentPKsMap;
+
+            for (let sbmlType in componentPKsMap) {
+                if (componentPKsMap[sbmlType].length > 0) {
+                    tables[sbmlType] = componentPKsMap[sbmlType];
+                }
+            }
+
+            return tables;
         },
 
         /**
@@ -96,6 +101,10 @@ export default defineComponent({
             return store.state.visibility;
         },
 
+        counts(): Record<string, number> {
+            return store.getters.counts;
+        },
+
         /**
          * Reactively returns the searchQuery string from Vuex state/localStorage.
          */
@@ -103,6 +112,16 @@ export default defineComponent({
             return store.state.searchQuery;
         },
     },
+
+    // watch: {
+    //     collectReportBasics() {
+    //         this.setItems(this.collectReportBasics, this.collectTables);
+    //     },
+
+    //     collectTables() {
+    //         this.setItems(this.collectReportBasics, this.collectTables);
+    //     },
+    // },
 });
 </script>
 
@@ -113,6 +132,7 @@ export default defineComponent({
     height: fit-content;
 
     margin-bottom: 2px;
+    font-size: 14px !important;
 }
 
 .sbase-container {
@@ -121,10 +141,11 @@ export default defineComponent({
     overflow-y: scroll;
 }
 
-.table-container {
+.tables-container {
     padding: 1% 0%;
     height: auto;
 
     overflow-y: scroll;
+    font-size: 14px !important;
 }
 </style>

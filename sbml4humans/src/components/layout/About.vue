@@ -3,14 +3,14 @@
         <h1>About</h1>
 
         <!-- SBML -->
-        <div class="section">
+        <div class="p-mb-2">
             <div class="section-header">Systems Biology Markup Language</div>
             <div class="content">
-                <div class="row">
-                    <div class="col-md-2">
+                <div class="p-grid">
+                    <div class="p-col-2">
                         <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
                     </div>
-                    <div class="col-md-10">
+                    <div class="p-col-10">
                         The Systems Biology Markup Language (<a
                             href="http://sbml.org"
                             target="_blank"
@@ -25,7 +25,7 @@
         </div>
 
         <!-- SBML4Humans -->
-        <div class="section">
+        <div class="p-mb-4">
             <div class="section-header">SBML4Humans</div>
             <div class="content">
                 The objective of the project
@@ -45,7 +45,7 @@
         </div>
 
         <!-- Development Team -->
-        <div class="section">
+        <div>
             <div class="section-header">Development Team</div>
             <div class="content">
                 <ul title="Developers">
@@ -65,16 +65,16 @@
         </div>
 
         <!-- Funding -->
-        <div class="section">
+        <div>
             <div class="section-header">Funding</div>
             <div class="content">
                 <ul>
                     <li>
-                        <div class="row">
-                            <div class="col-2">
+                        <div class="p-grid">
+                            <div class="p-col-2">
                                 <img class="gsoc" src="@/assets/images/gsoc.jpeg" />
                             </div>
-                            <div class="col-10">
+                            <div class="p-col-10">
                                 <span>
                                     <a href="https://summerofcode.withgoogle.com/"
                                         >Google Summer of Code 2021</a
@@ -109,7 +109,7 @@
         </div>
 
         <!-- Citation -->
-        <div class="section">
+        <div>
             <div class="section-header">Citation</div>
             <div class="content">
                 <ul>
@@ -161,5 +161,9 @@ export default defineComponent({
 .gsoc {
     height: 100px;
     width: 100px;
+}
+
+.content {
+    text-align: justify;
 }
 </style>

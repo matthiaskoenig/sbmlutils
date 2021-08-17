@@ -1,0 +1,53 @@
+# -----------------------------------------------------------------------------
+# DOCKER COMPOSE DEPLOYMENT
+# build containers
+#   docker-compose -f docker-compose-production.yml build --no-cache
+#   docker-compose -f docker-compose-production.yml build
+# serve containers
+#   docker-compose -f docker-compose-production.yml up
+#   docker-compose -f docker-compose-production.yml up --detach
+# -----------------------------------------------------------------------------
+version: '3'
+
+volumes:
+  vue_dist:
+    driver: local
+  node_modules:
+    driver: local
+
+services:
+
+  backend:
+    restart: always
+    build: .
+    volumes:
+      - .:/code
+    expose:
+      - "80"
+    ports:
+      - "1444:80"
+    command: ["/start.sh"]
+
+  frontend:
+    build:
+      context: ./sbml4humans
+      dockerfile: Dockerfile-production
+    command: tail -f /dev/null
+    volumes:
+      - ./sbml4humans:/app
+      - node_modules:/app/node_modules/
+      - vue_dist:/vue
+
+  nginx:
+    restart: always
+    image: nginx:1.21.1
+    ports:
+      - 8084:80
+    volumes:
+      - ./nginx/config/conf.d:/etc/nginx/conf.d
+      - vue_dist:/vue
+    depends_on:
+      - backend
+      - frontend
+    links:
+      - backend:backend

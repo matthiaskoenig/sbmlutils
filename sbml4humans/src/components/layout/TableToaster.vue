@@ -1,13 +1,14 @@
 <template>
-    <div class="card shadow-sm" v-if="visible" :title="'Navigate to ' + sbmlType">
+    <div class="p-card" v-if="visible" :title="'Navigate to ' + sbmlType">
         <div
-            class="d-flex justify-content-between px-2"
+            class="p-d-flex p-jc-between p-px-2 p-py-1"
             :style="`background-color: ${color}`"
         >
             <strong>
-                <i :class="`fas fa-${icon} mr-1`"></i>
+                <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
                 {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}</strong
             >
+            <Badge :value="counts[sbmlType]" severity="info"></Badge>
         </div>
     </div>
 </template>
@@ -53,6 +54,20 @@ export default defineComponent({
     computed: {
         icon(): string {
             return icons.icons[this.sbmlType];
+        },
+
+        /**
+         * Reactively returns the count of each SBML component from Vuex state/localStorage.
+         */
+        counts(): Record<string, number> {
+            return store.getters.counts;
+        },
+
+        /**
+         * Reactively returns the visibility of each SBML component from Vuex state/localStorage.
+         */
+        visibility(): Record<string, boolean> {
+            return store.state.visibility as { [key: string]: boolean };
         },
     },
 

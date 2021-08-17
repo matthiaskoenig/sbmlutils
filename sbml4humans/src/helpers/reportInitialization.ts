@@ -2,6 +2,17 @@ import store from "@/store/index";
 import allSBML from "@/data/allSBMLMap";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 
+function addSearchUtilityField(sbase: Record<string, unknown>): void {
+    let searchUtilField = "";
+    for (const key in sbase) {
+        if (key === "xml") {
+            continue;
+        }
+        searchUtilField += sbase[key] + " ";
+    }
+    sbase["searchUtilField"] = searchUtilField;
+}
+
 function initializeComponentWiseLists(): Record<string, Array<string>> {
     const map = {};
     listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
@@ -25,7 +36,7 @@ function assembleSBasesInReport(
 
     const sbases: Array<Record<string, unknown>> = [];
     const counts: Record<string, Record<string, number>> = {};
-    const allObjectsMap: Record<string, unknown> = {};
+    const allObjectsMap: Record<string, unknown> = {}; // object lookup map
     const componentPKsMap: Record<string, Record<string, Array<string>>> = {};
     const componentWiseLists: Record<
         string,
@@ -34,6 +45,7 @@ function assembleSBasesInReport(
 
     // collecting doc
     if (report.doc) {
+        addSearchUtilityField(report.doc as Record<string, unknown>);
         sbases.push(report.doc as Record<string, unknown>);
         allObjectsMap[(report.doc as Record<string, unknown>).pk as string] =
             report.doc;
@@ -44,6 +56,7 @@ function assembleSBasesInReport(
 
     const model: Record<string, unknown> = report.model as Record<string, unknown>;
     if (model) {
+        addSearchUtilityField(model);
         const pk = model.pk as string;
         componentWiseLists["Model"].push(pk);
 
@@ -78,6 +91,7 @@ function assembleSBasesInReport(
             >;
             for (let i = 0; i < modelDefinitions.length; i++) {
                 const md = modelDefinitions[i];
+                addSearchUtilityField(md);
                 const pk = md.pk as string;
 
                 counts[pk] = {};
@@ -115,6 +129,7 @@ function assembleSBasesInReport(
 
 /**
  * Collects SBML objects inside a particular model definition.
+ *
  * @param model The SBML model
  * @param counts Global counts map
  * @param allObjectsMap Global map for all SBML objects
@@ -147,6 +162,7 @@ function collectSBasesInModel(
 
             counts[model.pk as string][sbmlType] = component.length as number;
             component.forEach((sbase) => {
+                addSearchUtilityField(sbase);
                 sbasesInModel.push(sbase);
 
                 const pk = sbase.pk as string;

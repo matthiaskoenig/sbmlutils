@@ -1,44 +1,38 @@
 <template>
-    <!-- Value -->
-    <div class="data" v-if="info.value != null">
-        <div class="label"><strong>value:</strong> {{ info.value }}</div>
-    </div>
-
-    <!-- Constant -->
-    <div class="data" v-if="info.constant != null">
-        <div class="label">
-            <strong>constant:</strong>
-            <boolean-symbol
-                v-if="info.constant === Boolean(true)"
-                :value="info.constant"
-            />
-            <boolean-symbol v-else :value="Boolean(false)" />
-        </div>
-    </div>
-
-    <!-- Units -->
-    <div class="data" v-if="info.units != null">
-        <div class="label">
-            <strong>units:</strong>
-            <Katex :mathStr="info.units" />
-        </div>
-    </div>
-
-    <!-- Derived Units -->
-    <div class="data" v-if="info.derivedUnits != null">
-        <div class="label">
-            <strong>derivedUnits:</strong>
-            <Katex :mathStr="info.derivedUnits" />
-        </div>
-    </div>
-
-    <!-- Assignment -->
-    <div class="data" v-if="info.assignment != null">
-        <div class="label">
-            <strong>assignment:</strong>
-            <span>{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span>
-        </div>
-    </div>
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.value != null">
+                <td><div class="label">value</div></td>
+                <td>{{ info.value }}</td>
+            </tr>
+            <tr v-if="info.constant != null">
+                <td class="label-td"><div class="label">constant</div></td>
+                <td>
+                    <boolean-symbol
+                        v-if="info.constant === Boolean(true)"
+                        :value="info.constant"
+                    />
+                    <boolean-symbol v-else :value="Boolean(false)" />
+                </td>
+            </tr>
+            <tr v-if="info.units != null">
+                <td class="label-td"><div class="label">units</div></td>
+                <td><Katex :mathStr="info.units" /></td>
+            </tr>
+            <tr v-if="info.derivedUnits != null">
+                <td class="label-td"><div class="label">derivedUnits</div></td>
+                <td><Katex :mathStr="info.derivedUnits" /></td>
+            </tr>
+            <tr v-if="info.assignment != null">
+                <td class="label-td"><div class="label">assignment</div></td>
+                <td>
+                    <span
+                        >{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span
+                    >
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </template>
 
 <script lang="ts">

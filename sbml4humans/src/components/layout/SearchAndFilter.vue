@@ -1,7 +1,7 @@
 <template>
-    <div class="search-filter-container d-flex w-50 mx-auto">
-        <search-component></search-component>
-        <filter-component></filter-component>
+    <div class="search-filter-container p-d-flex w-100">
+        <Search />
+        <!--<Filter />-->
     </div>
 </template>
 
@@ -10,15 +10,15 @@ import { defineComponent } from "vue";
 
 /* Components */
 import Search from "@/components/layout/Search.vue";
-import Filter from "@/components/layout/Filter.vue";
+//import Filter from "@/components/layout/Filter.vue";
 
 /**
  * Component to hold Search and Filter components.
  */
 export default defineComponent({
     components: {
-        "filter-component": Filter,
-        "search-component": Search,
+        //Filter,
+        Search,
     },
 });
 </script>

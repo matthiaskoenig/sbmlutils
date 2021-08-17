@@ -1,5 +1,5 @@
 <template>
-    <span ref="katexEl" class="katex ml-4" v-html="katexMath"></span>
+    <span ref="katexEl" class="katex" v-html="katexMath"></span>
 </template>
 
 <script lang="ts">
@@ -22,18 +22,23 @@ export default defineComponent({
      */
     computed: {
         katexMath(): string {
-            return katex.renderToString(this.mathStr, {
-                throwOnError: false,
-                output: "mathml",
-            });
+            if (this.mathStr === null || this.mathStr === "null") {
+                return katex.renderToString("", {
+                    throwOnError: false,
+                    output: "html",
+                });
+            } else {
+                return katex.renderToString(this.mathStr, {
+                    throwOnError: false,
+                    output: "html",
+                });
+            }
         },
     },
 });
 </script>
 
 <style lang="scss" scoped>
-@import url("https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.css");
-
 .katex {
     font-size: 1em;
 }

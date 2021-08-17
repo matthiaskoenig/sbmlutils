@@ -1,30 +1,33 @@
 <template>
-    <div
-        class="card shadow-sm"
-        v-if="visible"
-        v-on:click="showDetail"
-        title="Show details"
-    >
+    <div class="holder">
+        <div class="selector"></div>
         <div
-            class="d-flex justify-content-between pl-2 pr-1"
-            :style="`background-color: ${color}`"
+            class="p-card p-d-flex p-flex-column"
+            v-if="visible"
+            v-on:click="showDetail"
+            title="Show details"
         >
-            <div class="mr-3 text-break">
-                <strong>{{ info.id }}</strong>
+            <div
+                class="p-d-flex p-jc-between p-pl-2 p-pr-1"
+                :style="`background-color: ${color}`"
+            >
+                <div class="p-mr-3 text-break">
+                    <strong>{{ info.id }}</strong>
+                </div>
+                <div class="p-d-flex">
+                    <strong>{{ sbmlType }}</strong>
+                    <font-awesome-icon :icon="`${icon}`" class="p-ml-2 p-mt-1" />
+                </div>
             </div>
-            <div class="d-flex">
-                <strong>{{ sbmlType }}</strong>
-                <i :class="`fas fa-${icon} ml-2 mt-1`"></i>
-            </div>
-        </div>
-        <div v-if="info.metaId || info.sbo" class="px-2">
-            <div class="d-flex justify-content-between">
-                <span class="text-primary" v-if="info.metaId">
-                    metaId:
-                    <span v-if="info.metaId.length < 20">{{ info.metaId }}</span>
-                    <span v-else>{{ info.metaId.substring(0, 20) + "..." }}</span>
-                </span>
-                <span v-if="info.sbo">{{ info.sbo }}</span>
+            <div v-if="info.metaId || info.sbo" class="p-px-2">
+                <div class="p-d-flex p-jc-between">
+                    <span class="text-primary" v-if="info.metaId">
+                        metaId:
+                        <span v-if="info.metaId.length < 20">{{ info.metaId }}</span>
+                        <span v-else>{{ info.metaId.substring(0, 20) + "..." }}</span>
+                    </span>
+                    <span v-if="info.sbo">{{ info.sbo }}</span>
+                </div>
             </div>
         </div>
     </div>

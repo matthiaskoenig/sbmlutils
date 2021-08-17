@@ -1,14 +1,13 @@
 <template>
-    <div class="container-fluid px-10">
-        <div class="row px-5">
-            <div class="col-md-6 d-flex flex-column" style="height: 110vh">
-                <file-upload-form class="pb-3" />
+    <navbar />
+    <div class="p-px-5">
+        <div class="p-grid">
+            <div class="p-col-6 p-d-flex p-flex-column" style="height: 120vh">
+                <file-upload-form class="p-pb-3" />
                 <examples-list />
             </div>
-            <div class="col-md-6">
-                <div class="row">
-                    <about class="pb-4" />
-                </div>
+            <div class="p-col-6">
+                <about class="p-pb-4" />
             </div>
         </div>
     </div>
@@ -21,6 +20,7 @@ import { defineComponent } from "@vue/runtime-core";
 import ExamplesList from "@/components/layout/ExamplesList.vue";
 import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 import About from "@/components/layout/About.vue";
+import Navbar from "@/components/layout/Navbar.vue";
 
 /**
  * Component to display the components to appear on the landing page.
@@ -30,9 +30,10 @@ import About from "@/components/layout/About.vue";
  */
 export default defineComponent({
     components: {
-        ExamplesList: ExamplesList,
-        FileUploadForm: FileUploadForm,
-        About: About,
+        ExamplesList,
+        FileUploadForm,
+        About,
+        Navbar,
     },
 });
 </script>

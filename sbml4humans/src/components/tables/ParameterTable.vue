@@ -1,107 +1,123 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleParameter"
-            role="button"
+    <div ref="parameterDiv" class="scrollable">
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfParameters
-        </strong>
+            <template #header class="table-header">
+                <div class="p-d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left p-ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
+                        />
+                    </span>
+                </div>
+            </template>
 
-        <table
-            class="table table-striped table-bordered table-sm table-condensed compact"
-            id="collapsibleParameter"
-        >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">value</th>
-                    <th scope="col">constant</th>
-                    <th scope="col">units</th>
-                    <th scope="col">derived Units</th>
-                    <th scope="col">assignment</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
-                    <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.value != null">{{ object.value }}</span>
-                    </td>
-                    <td class="text-center align-middle">
-                        <span
-                            v-if="
-                                object.constant != null &&
-                                object.constant === Boolean(true)
-                            "
-                            ><boolean-symbol :value="object.constant"></boolean-symbol
-                        ></span>
-
-                        <span v-else
-                            ><boolean-symbol :value="Boolean(false)"></boolean-symbol
-                        ></span>
-                    </td>
-                    <td>
-                        <span v-if="object.units != null">
-                            <katex :mathStr="object.units"></katex>
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.derivedUnits != null">
-                            <katex :mathStr="object.derivedUnits"></katex>
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.assignment != null"
-                            >{{ object.assignment.pk }} ({{
-                                object.assignment.sbmlType
-                            }})</span
-                        >
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="name"
+                header="name"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="value"
+                header="value"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="constant"
+                header="constant"
+                bodyStyle="text-align: center"
+            >
+                <template #body="slotProps">
+                    <boolean-symbol :value="slotProps.data.constant" />
+                </template>
+            </Column>
+            <Column sortable style="width: fit-content" field="units" header="units">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.units != null">
+                        <katex :mathStr="slotProps.data.units" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="derivedUnits"
+                header="derivedUnits"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.derivedUnits != null">
+                        <katex :mathStr="slotProps.data.derivedUnits" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="assignment"
+                header="assignment"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.assignment != null">
+                        {{ slotProps.data.assignment.pk }} ({{
+                            slotProps.data.assignment.sbmlType
+                        }})
+                    </span>
+                </template>
+            </Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
-
-import Katex from "@/components/layout/Katex.vue";
-import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
-
-import tableMixin from "@/helpers/tableMixin";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
-    components: {
-        katex: Katex,
-        "boolean-symbol": BooleanSymbol,
-    },
-
     props: {
         listOfPKs: {
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("Parameter"),
+        },
     },
 
     computed: {
         objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
             (this.listOfPKs as Array<string>).forEach((pk) => {
@@ -110,27 +126,9 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
-        color(): string {
-            return colorScheme.componentColor["Parameter"];
-        },
-
-        icon(): string {
-            return icons.icons["Parameter"];
-        },
     },
 
-    methods: {
-        openComponent(pk: string): void {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-    },
-
-    // computed: {
-    //     tableMi(): Record<string, unknown> {
-    //         return tableMixin(this.listOfPKs as Array<string>);
-    //     },
-    // },
+    mixins: [tableMixin("Parameter")],
 });
 </script>
 

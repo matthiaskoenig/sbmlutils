@@ -1,15 +1,52 @@
 <template>
-    <!-- Package Information -->
-    <div class="data" v-if="info.packages != null">
+    <table class="table table-borderless table-sm table-condensed compact">
+        <tbody>
+            <tr v-if="info.packages != null">
+                <td class="label-td"><div class="label">packages</div></td>
+                <td>
+                    <div v-if="info.packages.document != null">
+                        document: Level {{ info.packages.document.level }} Version
+                        {{ info.packages.document.version }}
+                    </div>
+                    <div v-if="info.packages.plugins != null">
+                        plugins:
+                        <ul title="List of Plugins">
+                            <li
+                                v-for="plugin in info.packages.plugins"
+                                :key="plugin.prefix + plugin.version"
+                            >
+                                prefix: {{ plugin.prefix }}, version:
+                                {{ plugin.version }}
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            <tr v-if="listOfModels.length > 0">
+                <td class="label-td"><div class="label">models</div></td>
+                <td>
+                    <div
+                        class="p-d-flex p-jc-between"
+                        v-for="model in listOfModels"
+                        :key="model"
+                    >
+                        <SBMLLink :pk="model.pk" :sbmlType="String('Model')" />
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- <div class="data" v-if="info.packages != null">
         <div class="label">
             <strong>packages: </strong>
-            <div class="ml-4" v-if="info.packages.document != null">
+            <div class="p-ml-4" v-if="info.packages.document != null">
                 document: Level {{ info.packages.document.level }} Version
                 {{ info.packages.document.version }}
             </div>
-            <div class="ml-4" v-if="info.packages.plugins != null">
+            <div class="p-ml-4" v-if="info.packages.plugins != null">
                 plugins:
-                <ul class="ml-4" title="List of Plugins">
+                <ul class="p-ml-4" title="List of Plugins">
                     <li
                         v-for="plugin in info.packages.plugins"
                         :key="plugin.prefix + plugin.version"
@@ -21,19 +58,18 @@
         </div>
     </div>
 
-    <!-- List of Models -->
     <div class="data" v-if="listOfModels.length > 0">
         <div class="label"><strong>models:</strong></div>
-        <div class="ml-4">
+        <div class="p-ml-4">
             <div
-                class="ml-4 d-flex justify-content-between"
+                class="p-ml-4 p-d-flex p-jc-between"
                 v-for="model in listOfModels"
                 :key="model"
             >
-                <SBMLLink :pk="model.pk" :sbmlType="String('Model')"></SBMLLink>
+                <SBMLLink :pk="model.pk" :sbmlType="String('Model')" />
             </div>
         </div>
-    </div>
+    </div> -->
 </template>
 
 <script lang="ts">

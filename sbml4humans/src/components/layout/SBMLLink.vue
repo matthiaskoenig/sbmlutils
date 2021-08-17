@@ -1,12 +1,8 @@
 <template>
-    <div
-        class="tablet card shadow-sm mr-3 small d-flex"
-        v-on:click="showDetail"
-        :style="`background-color: ${color}`"
-    >
-        <div class="d-flex justify-content-between">
-            <i :class="`fas fa-${icon} mt-1 mr-1`"></i>
-            <strong>{{ id }}</strong>
+    <div class="tablet p-d-flex p-mr-3" v-on:click="showDetail">
+        <div class="p-d-flex p-jc-between">
+            <font-awesome-icon :icon="`${icon}`" class="p-mt-1 p-mr-1" />
+            {{ id }}
         </div>
     </div>
 </template>
@@ -71,7 +67,8 @@ export default defineComponent({
 @import "@/assets/styles/scss/Toaster.scss";
 
 .tablet {
-    padding: 1px 5px;
+    padding: 1px 0px;
     width: fit-content;
+    cursor: pointer;
 }
 </style>

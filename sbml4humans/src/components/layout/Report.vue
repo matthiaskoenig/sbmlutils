@@ -2,28 +2,26 @@
     <div class="container-fluid">
         <div class="report-container">
             <div class="left">
-                <list-of-sbases></list-of-sbases>
+                <div class="navbar">
+                    <router-link class="navbar-brand" to="/">
+                        <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
+                        SBML4Humans
+                    </router-link>
+
+                    <search-and-filter
+                        class="p-mt-2"
+                        v-if="['Report', 'report'].includes($route.name)"
+                    ></search-and-filter>
+                </div>
+
+                <list-of-SBases />
             </div>
             <div class="middle">
-                <tables-container></tables-container>
+                <tables-container />
             </div>
             <div class="right">
-                <detail-container></detail-container>
+                <detail-container />
             </div>
-
-            <!--<div
-                class="detailHideButton"
-                v-on:click="toggleDetailVisibility"
-                :title="`${
-                    detailVisibility ? 'Hide' : 'Show'
-                } the component detail view`"
-            >
-                <i
-                    :class="`fa fa-eye${detailVisibility ? '-slash' : ''}`"
-                    aria-hidden="true"
-                    style="color: white; font-size: 36px; margin: 5px 0px"
-                ></i>
-            </div>-->
         </div>
     </div>
 </template>
@@ -36,15 +34,17 @@ import { defineComponent } from "vue";
 import DetailContainer from "@/components/layout/DetailContainer.vue";
 import TablesContainer from "@/components/layout/TablesContainer.vue";
 import ListOfSBases from "@/components/sbmlmisc/ListOfSBases.vue";
+import SearchAndFilter from "@/components/layout/SearchAndFilter.vue";
 
 /**
  * Component to hold all components to show the generated report.
  */
 export default defineComponent({
     components: {
-        "detail-container": DetailContainer,
-        "tables-container": TablesContainer,
-        "list-of-sbases": ListOfSBases,
+        DetailContainer,
+        TablesContainer,
+        ListOfSBases,
+        SearchAndFilter,
     },
 
     methods: {
@@ -62,23 +62,40 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.navbar {
+    margin-bottom: 10%;
+    padding: 0;
+}
+
+.navbar-brand {
+    color: black;
+}
+
+.logo {
+    height: 30px;
+    margin-right: 2px;
+}
+
 .report-container {
-    height: 85vh;
+    height: 100vh;
     display: flex;
 }
 
 .left {
     width: 15%;
     margin-right: 10px;
+    padding-top: 10px;
 }
 
 .middle {
     width: 58%;
     overflow-y: scroll;
+    padding-top: 10px;
 }
 
 .right {
     width: 27%;
+    padding-top: 10px;
 }
 
 .detailHideButton {

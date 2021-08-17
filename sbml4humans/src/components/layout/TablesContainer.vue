@@ -5,7 +5,7 @@
         class="tablesContainer"
     >
         <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
-            <model-table :listOfPKs="pks" />
+            <model-table ref="#model-table" :listOfPKs="pks" />
         </div>
 
         <div
@@ -74,6 +74,10 @@
             <port-table :listOfPKs="pks" />
         </div>
 
+        <div ref="Submodel" v-if="sbmlType === 'Submodel' && visibility['Submodel']">
+            <submodel-table :listOfPKs="pks" />
+        </div>
+
         <div ref="Objective" v-if="sbmlType === 'Objective' && visibility['Objective']">
             <objective-table :listOfPKs="pks" />
         </div>
@@ -94,16 +98,14 @@
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import store from "@/store/index";
 import { defineComponent } from "@vue/runtime-core";
-
-import "datatables.net-buttons-bs4";
-import $ from "jquery";
 
 import ModelTable from "@/components/tables/ModelTable.vue";
 import CompartmentTable from "@/components/tables/CompartmentTable.vue";
 import SpeciesTable from "@/components/tables/SpeciesTable.vue";
+import SubmodelTable from "@/components/tables/SubmodelTable.vue";
 import ParameterTable from "@/components/tables/ParameterTable.vue";
 import InitialAssignmentTable from "@/components/tables/InitialAssignmentTable.vue";
 import AssignmentRuleTable from "@/components/tables/AssignmentRuleTable.vue";
@@ -123,6 +125,7 @@ export default defineComponent({
         ModelTable,
         CompartmentTable,
         SpeciesTable,
+        SubmodelTable,
         ParameterTable,
         InitialAssignmentTable,
         AssignmentRuleTable,
@@ -138,44 +141,77 @@ export default defineComponent({
         FunctionDefinitionTable,
     },
 
-    mounted(): void {
-        $(document).ready(() => {
-            $("table").DataTable();
-        });
-    },
-
     methods: {
-        scrollToElement(sbmlType: string) {
-            const el: HTMLElement = this.$refs[sbmlType] as HTMLElement;
+        scrollToElement(sbmlType) {
+            const el = this.$refs[sbmlType];
             if (el) {
                 // Use el.scrollIntoView() to instantly scroll to the element
                 el.scrollIntoView({ behavior: "smooth" });
             }
         },
+
+        /**
+         * Filters SBML objects on the basis of the search query.
+         * @param sbases Array of SBML objects to filter.
+         * @param searchQuery The search query to look for in the SBML objects' data
+         */
+        filterForSearchResults(sBasePKs, searchQuery = "") {
+            if (searchQuery === "") return sBasePKs;
+
+            // THIS IS BAD CURRENTLY
+            const allSBMLComponents = store.state.allObjectsMap;
+
+            /*
+            TODO: get subset of objects were any of the information matches
+
+            Try: search on the object string; i.e search in JSON.stringify(proxy)
+            Better: search on all stringified values()
+            -> some false positives due to field names;
+            TODO: Do this once globally (initialization); => state.state.allObjectsSearchMap; { pk: searchableObjectString }
+             */
+
+            let searchedSBasePKs = [];
+            searchedSBasePKs.push(
+                ...sBasePKs.filter((pk) => {
+                    const sbmlComponent = allSBMLComponents[pk];
+                    return sbmlComponent.searchUtilField
+                        .toLowerCase()
+                        .includes(searchQuery.toLowerCase());
+                })
+            );
+            return searchedSBasePKs;
+        },
     },
 
     computed: {
-        getListOfTables(): Record<string, Array<string>> {
-            let tables: Record<string, Array<string>> = {};
+        getListOfTables() {
+            let tables = {};
 
-            const componentPKsMap: Record<string, Array<string>> =
-                store.getters.componentPKsMap;
+            const componentPKsMap = store.getters.componentPKsMap;
 
+            // THIS IS A GOOD STRATEGY FOR GLOBAL FILTERING
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {
-                    tables[sbmlType] = componentPKsMap[sbmlType];
+                    tables[sbmlType] = this.filterForSearchResults(
+                        componentPKsMap[sbmlType],
+                        this.searchQuery
+                    );
                 }
             }
 
             return tables;
         },
 
-        visibility(): Record<string, boolean> {
+        visibility() {
             return store.state.visibility;
         },
 
         currentFocussedTable() {
             return store.state.currentFocussedTable;
+        },
+
+        searchQuery() {
+            return store.state.searchQuery;
         },
     },
 
@@ -237,5 +273,72 @@ label {
     font-size: small;
     border-radius: 0 !important;
     z-index: 0 !important;
+}
+
+.pagination {
+    width: fit-content;
+    margin-left: auto;
+}
+
+table.dataTable > thead > tr > th:not(.sorting_disabled),
+table.dataTable > thead > tr > td:not(.sorting_disabled) {
+    padding-right: 30px;
+}
+
+table.dataTable > thead .sorting,
+table.dataTable > thead .sorting_asc,
+table.dataTable > thead .sorting_desc,
+table.dataTable > thead .sorting_asc_disabled,
+table.dataTable > thead .sorting_desc_disabled {
+    cursor: pointer;
+    position: relative;
+}
+
+table.dataTable > thead .sorting:before,
+table.dataTable > thead .sorting:after,
+table.dataTable > thead .sorting_asc:before,
+table.dataTable > thead .sorting_asc:after,
+table.dataTable > thead .sorting_desc:before,
+table.dataTable > thead .sorting_desc:after,
+table.dataTable > thead .sorting_asc_disabled:before,
+table.dataTable > thead .sorting_asc_disabled:after,
+table.dataTable > thead .sorting_desc_disabled:before,
+table.dataTable > thead .sorting_desc_disabled:after {
+    position: absolute;
+    display: inline;
+    opacity: 0.1;
+    margin: auto 2px;
+}
+
+table.dataTable > thead .sorting:before,
+table.dataTable > thead .sorting_asc:before,
+table.dataTable > thead .sorting_desc:before,
+table.dataTable > thead .sorting_asc_disabled:before,
+table.dataTable > thead .sorting_desc_disabled:before {
+    right: 1em;
+    content: "↑";
+    margin-top: auto;
+    margin: 0 2px;
+}
+
+table.dataTable > thead .sorting:after,
+table.dataTable > thead .sorting_asc:after,
+table.dataTable > thead .sorting_desc:after,
+table.dataTable > thead .sorting_asc_disabled:after,
+table.dataTable > thead .sorting_desc_disabled:after {
+    right: 0.5em;
+    content: "↓";
+    margin-top: auto;
+    margin: 0 2px;
+}
+
+table.dataTable > thead .sorting_asc:before,
+table.dataTable > thead .sorting_desc:after {
+    opacity: 1;
+}
+
+table.dataTable > thead .sorting_asc_disabled:before,
+table.dataTable > thead .sorting_desc_disabled:after {
+    opacity: 0;
 }
 </style>

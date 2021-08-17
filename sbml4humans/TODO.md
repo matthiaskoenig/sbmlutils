@@ -1,54 +1,41 @@
 ## TODO
 
-DetailsView:
-- [ ] add JSON button with Icon to show backend JSON for details
-- [x] PRIORITY 3:! sbml: fields such as initialAmount not rendered for species (e.g. repressilator PX); `info.initialAmount != null`; update for all checks !!!
-- [x] PRIORITY 3:! sbml: same for tables
+- [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/ 
+  Probably migrating datatables for now (some minor bugs exist)
+  - [x] Create working example for SpeciesTable
+  - [x] Fix Proxy issue with data in global map -> should just be objects!  
+  - [x] Global search: search on all table fields    
+  - [x] fix: "Query.Deferred exception: col is undefined DataTable" when loading models
+  - [x] fix: remove datatables and jquery  
 
-Tables:
-- [x] PRIORITY 1: layout: hide horizontal scrollbars if not necessary (padding/layout issue)
-- [x] PRIORITY 2: layout: use datatables: "compact" option and remove grids
-- [x] PRIORITY 4: layout make table rows clickable with selecting DetailView
-- [ ] make code more compact; remove `vbind`; remove unnecassary spans/divs; remove unnecessary closing tags
-- [ ] use Table mixin to remove redundant js code in tables
+Layout:
+- [ ] Remove bootstrap completely; use PrimeVue for spacing & grid & form
+- [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
+- [~] layout: Reduce space between tables by moving search & entries next to heading
 
-ModelSelection
-- checkbox/radio buttons to switch available models; use `title` as explanation; more user friendly/intuitive
+Fixes:
+- [ ] check dependency issues npm; remove package-lock.json and node_modules and do clean install
 
-SBML information:
-- [.] annotations/notes to SBase detail view; 
-- [ ] nice rendering of CVTerms as badges: [qualifier][resource][identifier]; which is clickable; split in individual triples
-
-Low priority
-- [.] fix npm deprecations and warnings: https://github.com/matthiaskoenig/sbmlutils/issues/251
-- [ ] include offline version of font-awesome (either static files or npm package): https://fontawesome.com/v5.15/how-to-use/on-the-web/setup/hosting-font-awesome-yourself
+Static report:  // a server is always required 
+- Remove/Fix websocket calls
+- [~] create static report 
+- [~] option for download static report
   
-Minor things
-- [ ] layout: add icon for SBMLDocument
-- [ ] layout: add icon next to Document & models
-- [ ] layout: ensure headings look the same (ListOf and Detail)
-- [ ] layout: Document & models width must be identical to components in toasters
-Math rendering
-- [ ] issues with google chrome
-
-Filter
-- [.] more robust handling of state --- not migrating to localStorage for testing purposes
-- [.] simplify filter by just iterating over list of SBases --- implemented via visibility flag
-
-## List of existing problems:
-- [] Unit math strings are not longer coming from backend
-- [] Filter is slow (5-6 secs) on large models (e.g. Recon3D)
-        - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
-        - Solution: => refactor filter (see TODOs above)
-   
-- [] Search is slow (5-6 secs) on large models (e.g. Recon3D)
-    - Reason: It takes too much time to check conditions for showing and hiding the huge list of SBases.
-    - no solution for now -> switching to elasticsearch based on JSON in future
-    
+# ---------------------    
 # MK:
+## Annotations
+- [ ] refactor backend annotation code into into separate package
+## OMEX
 - [ ] Support of combine archives & resolve external model definitions
 
+## Units
+- [ ] Unit math strings are not longer coming from backend
 Improve generated latex (backend, MK)
 - [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
     - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
+
+## Deployment
+- [ ] fix hardcoded backend urls in frontend (-> env variables)
+
+

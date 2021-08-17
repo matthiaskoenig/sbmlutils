@@ -1,17 +1,37 @@
 <template>
-    <div class="detailNav">
-        <ol>
-            <i
-                class="fa fa-arrow-circle-left mr-1"
+    <div class="detailNav p-mr-3">
+        <span :style="styleBackward" class="p-mr-2">
+            <font-awesome-icon
+                icon="arrow-left"
                 v-on:click="goBack()"
-                :style="styleBack"
-            ></i>
-            <i
-                class="fa fa-arrow-circle-right mr-3"
+                style="
+                    font-size: 16px;
+                    border: 2px solid black;
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    padding: 2%;
+                    background-color: black;
+                    color: white;
+                "
+            ></font-awesome-icon>
+        </span>
+        <span :style="styleForward">
+            <font-awesome-icon
+                icon="arrow-right"
                 v-on:click="goForward()"
-                :style="styleForward"
-            ></i>
-        </ol>
+                style="
+                    font-size: 16px;
+                    border: 2px solid black;
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    padding: 2%;
+                    background-color: black;
+                    color: white;
+                "
+            ></font-awesome-icon>
+        </span>
     </div>
 </template>
 
@@ -20,14 +40,6 @@ import store from "@/store/index";
 import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
-    props: {
-        // will be useful in implementing the tabs feature
-        detailViewID: {
-            type: Number,
-            default: 0,
-        },
-    },
-
     methods: {
         goBack(): void {
             store.dispatch("moveStackPointerBack");

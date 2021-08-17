@@ -1,18 +1,20 @@
 <template>
     <div class="symbol">
-        <i
-            class="fa fa-check-circle"
-            v-if="value"
-            style="color: green; font-size: 14px"
-        ></i>
-
-        <i
-            class="fa fa-times-circle"
-            v-else-if="!value"
-            style="color: red; font-size: 14px"
-        ></i>
-
-        <i class="fa fa-ban black" style="color: red; font-size: 14px" v-else></i>
+        <span v-if="value">
+            <font-awesome-icon
+                icon="check-circle"
+                style="color: green; font-size: 14px"
+            />
+        </span>
+        <span v-else-if="!value">
+            <font-awesome-icon
+                icon="times-circle"
+                style="color: red; font-size: 14px"
+            />
+        </span>
+        <span v-else>
+            <font-awesome-icon icon="ban black" style="color: red; font-size: 14px" />
+        </span>
     </div>
 </template>
 
@@ -32,6 +34,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 .symbol {
     display: inline-flex;
-    margin: 0px 5px;
+    margin-top: 2px;
 }
 </style>

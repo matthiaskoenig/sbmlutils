@@ -1,111 +1,120 @@
 <template>
-    <div class="scrollable">
-        <strong
-            class="sbmlType"
-            :style="`background-color: ${color}`"
-            data-toggle="collapse"
-            href="#collapsibleEvent"
-            role="button"
+    <div ref="eventDiv" class="scrollable">
+        <DataTable
+            :value="objects"
+            :paginator="true"
+            :rows="10"
+            :rowsPerPageOptions="[10, 25, 50]"
+            v-model:filters="filters"
+            filterDisplay="menu"
+            sortMode="multiple"
+            v-if="objects.length > 0"
+            style="font-size: 12px"
+            class="p-datatable-sbml"
+            :globalFilterFields="['global', 'searchUtilField']"
+            responsiveLayout="scroll"
+            :rowHover="true"
+            @row-click="openComponent($event.data.pk)"
         >
-            <i :class="`fas fa-${icon} mr-1`"></i> ListOfEvents
-        </strong>
+            <template #header class="table-header">
+                <div class="p-d-flex p-jc-between p-ai-center">
+                    <strong class="sbmlType">
+                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                    </strong>
+                    <span class="p-input-icon-left p-ml-auto">
+                        <i class="pi pi-search" />
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search"
+                        />
+                    </span>
+                </div>
+            </template>
 
-        <table
-            class="table table-striped table-bordered table-sm table-condensed compact"
-            id="collapsibleEvent"
-        >
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">name</th>
-                    <th scope="col">useValuesFromTriggerTime</th>
-                    <th scope="col">trigger math</th>
-                    <th scope="col">trigger initialValue</th>
-                    <th scope="col">trigger persistent</th>
-                    <th scope="col">priority</th>
-                    <th scope="col">delay</th>
-                </tr>
-            </thead>
-            <tbody class="table-body">
-                <tr v-for="object in objects" :key="object" class="links" v-on:click="openComponent(object.pk)">
-                    <td>
-                        <span
-                            v-if="object.id != null"
-                            >{{ object.id }}</span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.name != null">{{ object.name }}</span>
-                    </td>
-                    <td>
-                        <span v-if="object.useValuesFromTriggerTime != null">{{
-                            object.useValuesFromTriggerTime
-                        }}</span>
-                    </td>
-                    <td>
-                        <span
-                            v-if="object.trigger != null && object.trigger.math != null"
-                        >
-                            <katex :mathStr="object.trigger.math"></katex>
-                        </span>
-                    </td>
-                    <td>
-                        <span
-                            v-if="
-                                object.trigger != null &&
-                                object.trigger.initialValue != null
-                            "
-                            >{{ object.trigger.initialValue }}</span
-                        >
-                    </td>
-                    <td>
-                        <span
-                            v-if="
-                                object.trigger != null &&
-                                object.trigger.persistent != null
-                            "
-                            >{{ object.trigger.persistent }}</span
-                        >
-                    </td>
-                    <td>
-                        <span v-if="object.priority != null">
-                            <katex :mathStr="object.persistent"></katex>
-                        </span>
-                    </td>
-                    <td>
-                        <span v-if="object.delay != null">
-                            <katex :mathStr="object.delay"></katex>
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            <Column sortable style="width: fit-content" field="id" header="id">
+                <template #body="props">
+                    <strong>{{ props.data.id }}</strong>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="name"
+                header="name"
+            ></Column>
+            <Column
+                field="useValuesFromTriggerTime"
+                header="useValuesFromTriggerTime"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="trigger"
+                header="triggerMath"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.trigger.math != null">
+                        <katex :mathStr="slotProps.data.trigger.math" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="trigger"
+                header="triggerPersistent"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.trigger.persistent != null">
+                        <katex :mathStr="slotProps.data.trigger.persistent" />
+                    </span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="priority"
+                header="priority"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.priority != null">
+                        <katex :mathStr="slotProps.data.priority" />
+                    </span>
+                </template>
+            </Column>
+            <Column sortable style="width: fit-content" field="delay" header="delay">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.delay != null">
+                        <katex :mathStr="slotProps.data.delay" />
+                    </span>
+                </template>
+            </Column>
+        </DataTable>
     </div>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
-import colorScheme from "@/data/colorScheme";
-import { defineComponent } from "vue";
-
-import Katex from "@/components/layout/Katex.vue";
+import tableMixin from "@/mixins/tableMixin";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
-    components: {
-        katex: Katex,
-    },
-
     props: {
         listOfPKs: {
             type: Array,
             default: Array,
         },
+        sbmlType: {
+            type: String,
+            default: String("Event"),
+        },
     },
 
     computed: {
         objects(): Array<Record<string, unknown>> {
-            let listOfObjects: Array<Record<string, unknown>> = [];
+            const listOfObjects: Array<Record<string, unknown>> = [];
             const allObjectsMap = store.state.allObjectsMap;
 
             (this.listOfPKs as Array<string>).forEach((pk) => {
@@ -114,21 +123,9 @@ export default defineComponent({
 
             return listOfObjects;
         },
-
-        color(): string {
-            return colorScheme.componentColor["Event"];
-        },
-
-        icon(): string {
-            return icons.icons["Event"];
-        },
     },
 
-    methods: {
-        openComponent(pk: string): void {
-            store.dispatch("pushToHistoryStack", pk);
-        },
-    },
+    mixins: [tableMixin("Event")],
 });
 </script>
 

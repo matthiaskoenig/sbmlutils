@@ -23,6 +23,29 @@ const componentColor = {
     GeneProduct: "#d53e4f",
 } as { [key: string]: string };
 
+// const componentColor = {
+//     SBMLDocument: "#ffffff",
+//     Submodel: "#ffffff",
+//     Port: "#ffffff",
+//     Model: "#ffffff",
+//     ModelDefinition: "#ffffff",
+//     ExternalModelDefinition: "#ffffff",
+//     FunctionDefinition: "#ffffff",
+//     UnitDefinition: "#ffffff",
+//     Compartment: "#ffffff",
+//     Species: "#ffffff",
+//     Reaction: "#ffffff",
+//     Parameter: "#ffffff",
+//     InitialAssignment: "#ffffff",
+//     AssignmentRule: "#ffffff",
+//     RateRule: "#ffffff",
+//     AlgebraicRule: "#ffffff",
+//     Objective: "#ffffff",
+//     Constraint: "#ffffff",
+//     Event: "#ffffff",
+//     GeneProduct: "#ffffff",
+// } as { [key: string]: string };
+
 export default {
     componentColor: componentColor,
 };
