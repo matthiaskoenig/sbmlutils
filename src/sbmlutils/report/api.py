@@ -217,12 +217,14 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
         # FIXME: this is too broad
         raise ValueError("Resource identifier too short")
 
+
 @api.get("/bruh/?({model_url})")
 def get_resource_info(model_url: str) -> Response:
     print(model_url)
     #data = requests.get(model_url, allow_redirects=True)
 
     #return upload_sbml(data)
+
 
 if __name__ == "__main__":
     # shell command: uvicorn sbmlutils.report.api:app --reload --port 1444

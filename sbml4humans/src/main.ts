@@ -20,9 +20,11 @@ import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
 import Menubar from "primevue/menubar";
 
-import "primevue/resources/themes/saga-blue/theme.css"; //theme
-import "primevue/resources/primevue.min.css"; //core css
-import "primeicons/primeicons.css"; //icons
+//import "primevue/resources/themes/saga-blue/theme.css";
+import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
+import "primevue/resources/primevue.min.css";
+import "primeicons/primeicons.css";
+import 'primeflex/primeflex.css';
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 
 // fontawesome

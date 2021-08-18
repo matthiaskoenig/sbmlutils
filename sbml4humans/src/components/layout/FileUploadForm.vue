@@ -1,6 +1,25 @@
 <template>
-    <div style="width: 85%">
-        <h1 style="font-weight: 500" >Upload SBML</h1>
+    <div>
+        <h1>Upload SBML</h1>
+
+        <div class="p-fluid">
+            <div class="p-field p-grid">
+                <label for="firstname" class="p-col-12 p-mb-2 p-md-2 p-mb-md-0">Firstname</label>
+                <div class="p-col-12 p-md-10">
+                    <InputText id="firstname" type="text" />
+                </div>
+                <div class="p-col-12 p-md-10">
+                 <input
+                     type="file"
+                     ref="fileField"
+                     class="inputfield w-full"
+                     v-on:change="handleFileUpload()"
+                     required
+                     title="Click to browse and upload a file from your device"
+                 >
+                </div>
+            </div>
+        </div>
 
         <form class="needs-validation" @submit.prevent="submitForm">
             <div class="form-group p-d-flex">
