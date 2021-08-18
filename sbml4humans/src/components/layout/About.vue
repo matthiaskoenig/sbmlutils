@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>About</h1>
+        <h1 style="font-weight: 500">About</h1>
 
         <!-- SBML -->
         <div class="p-mb-2">

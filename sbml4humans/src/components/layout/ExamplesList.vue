@@ -1,6 +1,6 @@
 <template>
-    <h1 class="w-100">Examples</h1>
-    <p>Choose from the list of examples to generate a report.</p>
+    <h1 class="w-100" style="font-weight: 500">Examples</h1>
+    Choose from the list of examples to generate a report.
 
     <ScrollPanel class="list-container">
         <example

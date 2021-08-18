@@ -1,31 +1,12 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <router-link class="navbar-brand" to="/">
-            <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
-            SBML4Humans
-        </router-link>
-
-        <!-- Search and Filter component (visible only in report view) -->
-        <!--<search-and-filter
-            v-if="['Report', 'report'].includes($route.name)"
-        ></search-and-filter>-->
-
-        <!-- Static switch -->
-        <!--
-        <div class="static p-ml-auto" title="Turn ON Static to disconnect from the API">
-            <p class="label">Static</p>
-            <label class="switch">
-                <input
-                    ref="static-switch"
-                    type="checkbox"
-                    :checked="staticStatus"
-                    @change="handleSwitchChange()"
-                />
-                <span class="slider round"></span>
-            </label>
-        </div>
-        -->
-    </nav>
+    <menubar :model="items">
+        <template #start>
+            <div style="display: flex">
+            <img alt="logo" src="../../../public/sbmlutils-logo-60.png" height="40" class="p-mr-2">
+            <h2 class="">SBML4Humans</h2>
+            </div>
+        </template>
+    </menubar>
 </template>
 
 <script lang="ts">
@@ -62,6 +43,13 @@ export default defineComponent({
 .logo {
     height: 40px;
     margin-right: 10px;
+    display: inline-flex;
+}
+
+.sbmlhumans {
+    text-decoration: none;
+    color: black;
+    text-decoration-line: none;
 }
 
 .static {

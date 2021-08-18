@@ -1,7 +1,7 @@
 <template>
     <div class="p-card" v-if="visible" :title="'Navigate to ' + sbmlType">
         <div
-            class="p-d-flex p-jc-between p-px-2 p-py-1"
+            class="p-d-flex p-jc-between p-px-2 p-pt-2 p-pb-1"
             :style="`background-color: ${color}`"
         >
             <strong>

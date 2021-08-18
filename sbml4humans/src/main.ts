@@ -18,6 +18,7 @@ import InputText from "primevue/inputtext";
 import PanelMenu from "primevue/panelmenu";
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
+import Menubar from "primevue/menubar";
 
 import "primevue/resources/themes/saga-blue/theme.css"; //theme
 import "primevue/resources/primevue.min.css"; //core css
@@ -108,4 +109,5 @@ createApp(App)
     .component("PanelMenu", PanelMenu)
     .component("Accordion", Accordion)
     .component("AccordionTab", AccordionTab)
+    .component("Menubar", Menubar)
     .mount("#app");

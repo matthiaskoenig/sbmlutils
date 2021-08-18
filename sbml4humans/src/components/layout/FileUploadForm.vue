@@ -1,6 +1,6 @@
 <template>
     <div style="width: 85%">
-        <h1>Upload SBML</h1>
+        <h1 style="font-weight: 500" >Upload SBML</h1>
 
         <form class="needs-validation" @submit.prevent="submitForm">
             <div class="form-group p-d-flex">

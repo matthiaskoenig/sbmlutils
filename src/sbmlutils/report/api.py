@@ -7,6 +7,7 @@ import json
 import logging
 import tempfile
 import time
+import requests
 from pathlib import Path
 from typing import Any, Dict
 
@@ -60,6 +61,7 @@ async def upload_sbml(request: Request) -> Response:
         logger.error(err)
         content = {"error": "SBML Document could not be parsed."}
 
+    print(content)
     return _render_json_content(content)
 
 
@@ -215,6 +217,12 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
         # FIXME: this is too broad
         raise ValueError("Resource identifier too short")
 
+@api.get("/bruh/?({model_url})")
+def get_resource_info(model_url: str) -> Response:
+    print(model_url)
+    #data = requests.get(model_url, allow_redirects=True)
+
+    #return upload_sbml(data)
 
 if __name__ == "__main__":
     # shell command: uvicorn sbmlutils.report.api:app --reload --port 1444

@@ -1,16 +1,14 @@
 ## TODO
 
-- [ ] math not displayed for InitialAssignments in distribution example
+- [x] math not displayed for InitialAssignments in distribution example
 - [ ] render uncertainty nicer (currently only list)
-- [ ] make tables more compact
+- [x] make tables more compact
 - [ ] think about strategy for supporting reports: https://github.com/matthiaskoenig/sbmlutils/issues/257
 
-- [~] Switch to some native Vue datatables (sorting, searching, filtering): https://www.primefaces.org/primevue/showcase/#/ 
   Probably migrating datatables for now (some minor bugs exist)
 - [ ] Remove JS dependencies: datatables, jquery, bootstap
 - [ ] Remove bootstrap completely; use PrimeVue for spacing & grid & form
 - [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
-- [~] layout: Reduce space between tables by moving search & entries next to heading
 
 Fixes:
 - [ ] check dependency issues npm; remove package-lock.json and node_modules and do clean install
