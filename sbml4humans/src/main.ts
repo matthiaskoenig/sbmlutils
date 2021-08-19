@@ -8,6 +8,7 @@ import store from "./store";
 // PrimeVue UI package
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 import "primevue/resources/primevue.min.css";
+import "primeicons/primeicons.css";
 import 'primeflex/primeflex.css';
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 
