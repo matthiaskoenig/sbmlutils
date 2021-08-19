@@ -5,7 +5,7 @@
         </strong>
     </div>
     <h2>{{ info.id }}</h2>
-    <h5>{{ info.name }}</h5>
+    <h3>{{ info.name }}</h3>
 
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>
@@ -109,38 +109,16 @@
                             :key="uncertainty"
                         >
                             Uncertainty Parameters
-                            <ul title="Uncertainty Parameters">
-                                <li
-                                    v-for="param in uncertainty.uncertaintyParameters"
-                                    :key="param"
-                                >
-                                    <ul>
-                                        <li v-if="param.var">var: {{ param.var }}</li>
-                                        <li v-if="param.value">
-                                            value: {{ param.value }}
-                                        </li>
-                                        <li v-if="param.units">
-                                            units: {{ param.units }}
-                                        </li>
-                                        <li v-if="param.type">
-                                            type: {{ param.type }}
-                                        </li>
-                                        <li v-if="param.definitionURL">
-                                            definitionURL: <a :href="param.definitionURL" target="_blank">{{ param.definitionURL }}</a>
-                                        </li>
-                                        <li v-if="param.math != null">
-                                            math: <katex :math-str="param.math" />
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
+                            <div
+                                v-for="param in uncertainty.uncertaintyParameters"
+                                :key="param"
+                            >
+                                <UncertaintyBadge :parameter="param" />
+                            </div>
                         </li>
                     </ol>
                 </td>
             </tr>
-            <!-- <tr style="opacity: 0">
-                <td>hasOnlySubstanceUnits</td>
-            </tr> -->
         </tbody>
     </table>
 </template>
@@ -152,14 +130,14 @@ import colorScheme from "@/data/colorScheme";
 import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
-import Katex from "@/components/layout/Katex.vue";
+import UncertaintyBadge from "@/components/sbmlmisc/UncertaintyBadge.vue";
 
 /**
  * Component to define display of SBase information.
  */
 export default defineComponent({
     components: {
-        Katex,
+        UncertaintyBadge,
     },
 
     props: {

@@ -1,33 +1,50 @@
 <template>
-    <div class="product-item">
-        <div class="image-container">
-            <img :src="'demo/images/product/' + slotProps.item.image" :alt="slotProps.item.name" />
-        </div>
-        <div class="product-list-detail">
-            <h6 class="p-mb-2">{{slotProps.item.name}}</h6>
-            <i class="pi pi-tag product-category-icon"></i>
-            <span class="product-category">{{slotProps.item.category}}</span>
-        </div>
-        <div class="product-list-action">
-            <h6 class="p-mb-2">${{slotProps.item.price}}</h6>
-            <span :class="'product-badge status-'+slotProps.item.inventoryStatus.toLowerCase()">{{slotProps.item.inventoryStatus}}</span>
-        </div>
+    <div class="p-d-flex p-mt-2">
+        <Tag
+            :value="`type: ${parameter.type}`"
+            severity="warning"
+            class="qualifier"
+        ></Tag>
+        <Tag
+            :value="`value: ${parameter.value}`"
+            severity="info"
+            class="resource"
+        ></Tag>
+    </div>
+    <div
+        class="p-card"
+        v-if="
+            parameter != null &&
+            parameter.definitionURL != null &&
+            parameter.math != null
+        "
+    >
+        <span class="p-d-flex url" v-if="parameter.definitionURL != null"
+            >definitionURL:
+            <a href="{{ parameter.definitionURL }}">{{
+                parameter.definitionURL
+            }}</a></span
+        >
+        <span class="math" v-if="parameter.math != null">
+            math: <katex :math-str="parameter.math"
+        /></span>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import additionalInfoUtils from "@/helpers/additionalInfoUtils";
+
+import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
+    components: {
+        Katex,
+    },
+
     props: {
-        qualifier: {
-            type: String,
-            default: "",
-        },
-        resource: {
-            type: String,
-            default: "",
+        parameter: {
+            type: Object,
+            default: Object,
         },
     },
 
@@ -36,24 +53,38 @@ export default defineComponent({
             addInfo: {},
         };
     },
-
-    created() {
-        const parts = this.resource.split("/");
-        const resourceID = parts[parts.length - 1];
-        additionalInfoUtils.fetchAdditionalInfo(resourceID).then((res) => {
-            console.log(res);
-            this.addInfo = res as Record<string, unknown>;
-        });
-    },
 });
 </script>
 
 <style lang="scss" scoped>
 .qualifier {
-    border-radius: 5px 0 0 5px;
+    padding: 0 5px;
+    border-radius: 5px 0 0 0px;
+    width: max-content;
+    border: 1px solid gray;
+    border-bottom: none;
 }
 
 .resource {
-    border-radius: 0px 5px 5px 0;
+    padding: 0 5px;
+    border-radius: 0px 5px 0 0;
+    width: max-content;
+    border: 1px solid gray;
+    border-bottom: none;
+}
+
+/*.url {
+    background-color: aqua;
+}
+
+.math {
+    background-color: rgb(13, 255, 0);
+}*/
+
+.p-card {
+    box-shadow: none !important;
+    border: 1px solid gray;
+    border-radius: 0 5px 5px 5px;
+    padding: 1px 5px;
 }
 </style>

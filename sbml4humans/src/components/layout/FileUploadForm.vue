@@ -1,42 +1,21 @@
 <template>
-    <div>
-        <h1>Upload SBML</h1>
 
-        <div class="p-fluid">
-            <div class="p-field p-grid">
-                <label for="firstname" class="p-col-12 p-mb-2 p-md-2 p-mb-md-0">Firstname</label>
-                <div class="p-col-12 p-md-10">
-                    <InputText id="firstname" type="text" />
-                </div>
-                <div class="p-col-12 p-md-10">
-                 <input
-                     type="file"
-                     ref="fileField"
-                     class="inputfield w-full"
-                     v-on:change="handleFileUpload()"
-                     required
-                     title="Click to browse and upload a file from your device"
-                 >
-                </div>
-            </div>
-        </div>
-
-        <form class="needs-validation" @submit.prevent="submitForm">
-            <div class="form-group p-d-flex">
-                <input
-                    type="file"
-                    ref="fileField"
-                    class="form-control p-mr-2"
-                    v-on:change="handleFileUpload()"
-                    required
-                    title="Click to browse and upload a file from your device"
-                />
-                <button class="btn btn-info" type="submit">Submit</button>
-            </div>
-            <div class="invalid-tooltip">
-                Upload a valid SBML file or COMBINE archive containing SBML
-            </div>
-        </form>
+    <div style="width: 85%">
+        <h1 style="font-weight: 500">Upload SBML</h1>
+        <FileUpload
+            :customUpload="true"
+            @uploader="submitForm"
+            :multiple="false"
+            :previewWidth="Number(0)"
+            :showCancelButton="false"
+            chooseLabel="Browse"
+            uploadLabel="Submit"
+            fileLimit="1"
+        >
+            <template #empty>
+                <p>Drag and drop files to here to upload.</p>
+            </template>
+        </FileUpload>
 
         <loading parent="file" />
     </div>
@@ -65,17 +44,8 @@ export default defineComponent({
     },
 
     methods: {
-        /**
-         * Sets the currently selected file to the latest uploaded file in the form.
-         */
-        handleFileUpload(): void {
-            const fileField = this.$refs.fileField as HTMLInputElement;
-            if (fileField.files != null) {
-                this.file = fileField.files[0];
-            }
-        },
-
-        async submitForm(): Promise<void> {
+        async submitForm(event): Promise<void> {
+            this.file = event.files[0];
             let formData = new FormData();
             formData.append("source", this.file as File);
 
@@ -100,4 +70,8 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+p {
+    margin: 0;
+}
+</style>

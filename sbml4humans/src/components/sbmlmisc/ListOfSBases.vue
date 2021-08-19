@@ -1,6 +1,4 @@
 <template>
-    <!-- <PanelMenu :model="items" v-model:expandedKeys="expandedKeys" /> -->
-
     <strong>Document & Models</strong>
     <ScrollPanel class="basics-container">
         <SBML-toaster
@@ -8,7 +6,6 @@
             :key="component.pk"
             :sbmlType="component.sbmlType"
             :info="component"
-            :visible="Boolean(visibility[component.sbmlType])"
         />
     </ScrollPanel>
 
@@ -18,7 +15,6 @@
 
 <script lang="ts">
 import store from "@/store/index";
-import icons from "@/data/fontAwesome";
 import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
@@ -38,40 +34,6 @@ export default defineComponent({
             reportBasics: [] as Array<Record<string, unknown>>,
             sbases: [] as Array<Record<string, unknown>>,
         };
-    },
-
-    // mounted() {
-    //     this.setItems(this.collectReportBasics, this.collectTables);
-    // },
-
-    methods: {
-        // setItems(
-        //     reportBasics: Array<Record<string, unknown>>,
-        //     tables: Record<string, Array<string>>
-        // ): void {
-        //     let basics = [] as Array<Record<string, unknown>>;
-        //     for (let i = 0; i < reportBasics.length; i++) {
-        //         const component = reportBasics[i];
-        //         basics.push(component);
-        //     }
-        //     this.reportBasics = basics;
-        //     let listOfTables = {
-        //         key: 1,
-        //         label: "SBases",
-        //         items: [] as Array<Record<string, unknown>>,
-        //     };
-        //     let i = 0;
-        //     for (const table in tables) {
-        //         i++;
-        //         listOfTables.items.push({
-        //             key: "1_" + i,
-        //             label: (table === "Species" ? table : table + "s") + " (" + this.counts[table as string] + ")",
-        //             iconString: icons.icons[table as string],
-        //         });
-        //     }
-        //     items.push(listOfTables);
-        //     this.items = items;
-        // },
     },
 
     computed: {
@@ -94,13 +56,6 @@ export default defineComponent({
             return tables;
         },
 
-        /**
-         * Reactively returns the visibility of SBML components from Vuex state/localStorage.
-         */
-        visibility(): Record<string, unknown> {
-            return store.state.visibility;
-        },
-
         counts(): Record<string, number> {
             return store.getters.counts;
         },
@@ -112,16 +67,6 @@ export default defineComponent({
             return store.state.searchQuery;
         },
     },
-
-    // watch: {
-    //     collectReportBasics() {
-    //         this.setItems(this.collectReportBasics, this.collectTables);
-    //     },
-
-    //     collectTables() {
-    //         this.setItems(this.collectReportBasics, this.collectTables);
-    //     },
-    // },
 });
 </script>
 

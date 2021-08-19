@@ -1,13 +1,14 @@
 <template>
     <div class="p-d-flex">
-        <font-awesome-icon icon="search" class="p-mx-2 p-mt-2" />
-        <input
-            class="form-control"
-            type="text"
-            placeholder="Search in SBML"
-            @input="updateSearchQuery"
-            style="font-size: small"
-        />
+        <span class="p-input-icon-left" style="margin: 0 10px">
+            <i class="pi pi-search" />
+            <InputText
+                type="text"
+                @input="updateSearchQuery"
+                placeholder="Search in SBML"
+                style="width: 180px"
+            />
+        </span>
     </div>
 </template>
 

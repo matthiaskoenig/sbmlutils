@@ -1,3 +1,4 @@
+// core
 import { createApp } from "vue";
 import App from "./App.vue";
 import "./registerServiceWorker";
@@ -5,6 +6,11 @@ import router from "./router";
 import store from "./store";
 
 // PrimeVue UI package
+import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
+import "primevue/resources/primevue.min.css";
+import 'primeflex/primeflex.css';
+import { FilterMatchMode, FilterOperator } from "primevue/api";
+
 import PrimeVue from "primevue/config";
 import Badge from "primevue/badge";
 import ProgressSpinner from "primevue/progressspinner";
@@ -15,17 +21,11 @@ import Dropdown from "primevue/dropdown";
 import Button from "primevue/button";
 import Slider from "primevue/slider";
 import InputText from "primevue/inputtext";
-import PanelMenu from "primevue/panelmenu";
-import Accordion from "primevue/accordion";
-import AccordionTab from "primevue/accordiontab";
 import Menubar from "primevue/menubar";
+import FileUpload from "primevue/fileupload";
+import Card from "primevue/card";
+import Tag from "primevue/tag";
 
-//import "primevue/resources/themes/saga-blue/theme.css";
-import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
-import "primevue/resources/primevue.min.css";
-import "primeicons/primeicons.css";
-import 'primeflex/primeflex.css';
-import { FilterMatchMode, FilterOperator } from "primevue/api";
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -92,6 +92,7 @@ library.add({
     faArrowRight,
 });
 
+// app initialization
 createApp(App)
     .use(store)
     .use(router)
@@ -108,8 +109,8 @@ createApp(App)
     .component("FilterMatchMode", FilterMatchMode)
     .component("FilterOperator", FilterOperator)
     .component("InputText", InputText)
-    .component("PanelMenu", PanelMenu)
-    .component("Accordion", Accordion)
-    .component("AccordionTab", AccordionTab)
     .component("Menubar", Menubar)
+    .component("FileUpload", FileUpload)
+    .component("Card", Card)
+    .component("Tag", Tag)
     .mount("#app");

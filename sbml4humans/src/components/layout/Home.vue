@@ -2,7 +2,7 @@
     <navbar />
     <div class="p-px-5">
         <div class="p-grid">
-            <div class="p-col-6 p-d-flex p-flex-column" style="height: 120vh">
+            <div class="p-col-6 p-d-flex p-flex-column" style="height: 130vh">
                 <file-upload-form class="p-pb-3" />
                 <examples-list />
             </div>

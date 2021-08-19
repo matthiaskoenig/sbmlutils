@@ -6,8 +6,8 @@
 - [ ] think about strategy for supporting reports: https://github.com/matthiaskoenig/sbmlutils/issues/257
 
   Probably migrating datatables for now (some minor bugs exist)
-- [ ] Remove JS dependencies: datatables, jquery, bootstap
-- [ ] Remove bootstrap completely; use PrimeVue for spacing & grid & form
+- [x] Remove JS dependencies: datatables, jquery, bootstap
+- [x] Remove bootstrap completely; use PrimeVue for spacing & grid & form
 - [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
 
 Fixes:
