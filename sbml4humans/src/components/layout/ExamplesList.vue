@@ -1,15 +1,19 @@
 <template>
-    <h1 class="w-100" style="font-weight: 500">Examples</h1>
-    Choose from the list of examples to generate a report.
+    <h1>Examples</h1>
 
-    <ScrollPanel class="list-container">
-        <example
-            class="p-mb-1"
-            v-for="example in examples"
-            :key="example.id"
-            :example="example"
-        />
-    </ScrollPanel>
+    <OrderList v-model="examples" listStyle="height:auto" dataKey="vin">
+        <template #header>
+            List of Examples
+        </template>
+
+        <template #item="slotProps">
+              <example
+                :key="slotProps.item.id"
+                :example="slotProps.item"
+            />
+
+        </template>
+    </OrderList>
 
     <loading parent="example" />
 </template>
@@ -54,9 +58,4 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.list-container {
-    width: 90%;
-    overflow-y: scroll;
-    font-size: 14px;
-}
 </style>

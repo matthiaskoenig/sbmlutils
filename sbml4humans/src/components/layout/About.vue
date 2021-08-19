@@ -4,11 +4,16 @@
 
         <!-- SBML -->
         <div class="p-mb-2">
-            <div class="section-header">Systems Biology Markup Language</div>
+            <h2>Systems Biology Markup Language</h2>
             <div class="content">
                 <div class="p-grid">
                     <div class="p-col-2">
-                        <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
+                        <!-- Fix and make this a responsive image via PrimeVue -->
+                        <Card>
+                            <template #content>
+                                <img src="@/assets/images/sbmlutils-logo-60.png" />
+                            </template>
+                        </Card>
                     </div>
                     <div class="p-col-10">
                         The Systems Biology Markup Language (<a
@@ -25,8 +30,8 @@
         </div>
 
         <!-- SBML4Humans -->
-        <div class="p-mb-4">
-            <div class="section-header">SBML4Humans</div>
+        <div class="p-mb-2">
+            <h2>SBML4Humans</h2>
             <div class="content">
                 The objective of the project
                 <a href="https://sbml4humans-gsoc-2021.blogspot.com/" target="_blank">
@@ -45,8 +50,8 @@
         </div>
 
         <!-- Development Team -->
-        <div>
-            <div class="section-header">Development Team</div>
+        <div class="p-mb-2">
+            <h2>Development Team</h2>
             <div class="content">
                 <ul title="Developers">
                     <li>
@@ -65,8 +70,8 @@
         </div>
 
         <!-- Funding -->
-        <div>
-            <div class="section-header">Funding</div>
+        <div class="p-mb-2">
+            <h2>Funding</h2>
             <div class="content">
                 <ul>
                     <li>
@@ -109,8 +114,8 @@
         </div>
 
         <!-- Citation -->
-        <div>
-            <div class="section-header">Citation</div>
+        <div class="p-mb-2">
+            <h2>Citation</h2>
             <div class="content">
                 <ul>
                     <li>

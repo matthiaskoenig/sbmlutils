@@ -26,6 +26,7 @@ import Menubar from "primevue/menubar";
 import FileUpload from "primevue/fileupload";
 import Card from "primevue/card";
 import Tag from "primevue/tag";
+import OrderList from "primevue/orderlist";
 
 
 // fontawesome
@@ -114,4 +115,5 @@ createApp(App)
     .component("FileUpload", FileUpload)
     .component("Card", Card)
     .component("Tag", Tag)
+    .component("OrderList", OrderList)
     .mount("#app");

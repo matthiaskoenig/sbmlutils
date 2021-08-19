@@ -1,6 +1,7 @@
 ## TODO
 
-- [x] math not displayed for InitialAssignments in distribution example
+- [ ] make all images responsive via simple PrimeVue solution
+- [ ] OrderList for examples; remove buttons; remove all CSS from examples; remove toaster css/remove toaster  
 - [ ] render uncertainty nicer (currently only list)
 - [x] make tables more compact
 - [ ] think about strategy for supporting reports: https://github.com/matthiaskoenig/sbmlutils/issues/257
