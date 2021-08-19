@@ -1,68 +1,34 @@
 <template>
-    <ScrollPanel style="width: 100%; height: auto">
-        <table-toaster
-            v-for="(listOfPKs, sbmlType) in collectTables"
-            :key="sbmlType"
-            :sbmlType="sbmlType"
-            :count="listOfPKs.length"
-            :visible="Boolean(visibility[sbmlType]) && listOfPKs.length > 0"
-            v-on:click="focusTable(sbmlType)"
-        />
+    <ScrollPanel style="width: 100%; height: 350px">
+        <div
+            class="p-d-flex p-card p-py-1 p-px-2 p-mb-2 clickable"
+            :style="`background-color: ${table.color}`"
+            v-for="table in collectTables"
+            :key="table"
+            v-on:click="focusTable(table.sbmlType)"
+        >
+            <font-awesome-icon
+                :icon="table.icon"
+                class="p-mr-2 p-mt-1"
+            ></font-awesome-icon>
+            <span class="p-mr-2"
+                ><strong>{{ table.sbmlType }}</strong></span
+            >
+            <span class="p-ml-auto">
+                <Badge :value="table.listOfPKs.length" severity="info"></Badge>
+            </span>
+        </div>
     </ScrollPanel>
 </template>
 
 <script lang="ts">
+import colors from "@/data/colorScheme";
+import icons from "@/data/fontAwesome";
 import store from "@/store/index";
-import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
-/* Components */
-import TableToaster from "@/components/layout/TableToaster.vue";
-
 export default defineComponent({
-    components: {
-        TableToaster,
-    },
-
     methods: {
-        /**
-         * Filters SBML objects on the basis of the search query.
-         * @param sbases Array of SBML objects to filter.
-         * @param searchQuery The search query to look for in the SBML objects' data
-         */
-        filterForSearchResults(
-            sbases: Array<Record<string, unknown>> = [TYPES.SBase],
-            searchQuery = ""
-        ): Array<Record<string, unknown>> {
-            let searchedSet: Set<string> = new Set();
-
-            let searchedSbases = sbases.filter((sbase) => {
-                return searchQuery
-                    .toLowerCase()
-                    .split(" ")
-                    .every((attr) =>
-                        (
-                            (sbase.name as string) +
-                            (sbase.id as string) +
-                            (sbase.metaId as string) +
-                            (sbase.sbo as string)
-                        )
-                            .toString()
-                            .toLowerCase()
-                            .includes(attr)
-                    );
-            });
-
-            searchedSbases.forEach((sbase) => {
-                const pk = sbase.pk as string;
-                searchedSet.add(pk);
-            });
-
-            store.dispatch("updateSearchedSBasesPKs", searchedSet);
-
-            return searchedSbases;
-        },
-
         focusTable(sbmlType: string) {
             store.dispatch("updateCurrentFocussedTable", sbmlType);
         },
@@ -73,29 +39,31 @@ export default defineComponent({
          * Collects and returns SBML objects present in the report and
          * applies search filtering on the response set.
          */
-        collectTables(): Record<string, Array<string>> {
-            let tables: Record<string, Array<string>> = {};
+        collectTables(): Array<Record<string, unknown>> {
+            let tables: Array<Record<string, unknown>> = [];
 
             const componentPKsMap: Record<string, Array<string>> = store.getters
                 .componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {
-                    tables[sbmlType] = componentPKsMap[sbmlType];
+                    tables.push({
+                        sbmlType: sbmlType,
+                        color: colors.componentColor[sbmlType],
+                        icon: icons.icons[sbmlType],
+                        listOfPKs: componentPKsMap[sbmlType],
+                    });
                 }
             }
 
             return tables;
         },
-
-        /**
-         * Reactively returns the visibility of SBML components from Vuex state/localStorage.
-         */
-        visibility(): Record<string, unknown> {
-            return store.state.visibility;
-        },
     },
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.clickable {
+    cursor: pointer;
+}
+</style>

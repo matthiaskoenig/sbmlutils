@@ -1,27 +1,32 @@
 <template>
-    <div class="container-fluid">
-        <div class="report-container">
-            <div class="left">
-                <div class="navbar">
-                    <router-link class="navbar-brand" to="/">
-                        <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
-                        SBML4Humans
-                    </router-link>
+    <div class="report-container">
+        <div class="left">
+            <div class="p-mb-3">
+                <router-link to="/">
+                    <div style="display: flex">
+                        <img
+                            alt="logo"
+                            src="../../../public/sbmlutils-logo-60.png"
+                            height="30"
+                            width="80"
+                            class="p-mr-2 p-mt-3"
+                        />
+                        <h4 class="brand">SBML4Humans</h4>
+                    </div>
+                </router-link>
 
-                    <search-and-filter
-                        class="p-mt-2"
-                        v-if="['Report', 'report'].includes($route.name)"
-                    ></search-and-filter>
-                </div>
+                <search-and-filter
+                    v-if="['Report', 'report'].includes($route.name)"
+                ></search-and-filter>
+            </div>
 
-                <list-of-SBases />
-            </div>
-            <div class="middle">
-                <tables-container />
-            </div>
-            <div class="right">
-                <detail-container />
-            </div>
+            <list-of-SBases />
+        </div>
+        <div class="middle">
+            <tables-container />
+        </div>
+        <div class="right">
+            <detail-container />
         </div>
     </div>
 </template>
@@ -62,13 +67,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.navbar {
-    margin-bottom: 10%;
-    padding: 0;
-}
-
-.navbar-brand {
-    color: black;
+.brand {
+    color: rgb(54, 53, 53);
+    font-weight: 500;
 }
 
 .logo {
@@ -77,40 +78,22 @@ export default defineComponent({
 }
 
 .report-container {
-    height: 100vh;
+    height: 95vh;
     display: flex;
+    padding: 0;
 }
 
 .left {
     width: 15%;
     margin-right: 10px;
-    padding-top: 10px;
 }
 
 .middle {
     width: 58%;
     overflow-y: scroll;
-    padding-top: 10px;
 }
 
 .right {
     width: 27%;
-    padding-top: 10px;
-}
-
-.detailHideButton {
-    position: absolute;
-    width: 50px;
-    height: 50px;
-    bottom: 20px;
-    right: 30px;
-
-    text-align: center;
-
-    border-radius: 25px;
-    background-color: #5bc0de;
-    cursor: pointer;
-
-    z-index: 100;
 }
 </style>

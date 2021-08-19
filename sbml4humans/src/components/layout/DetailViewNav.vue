@@ -1,6 +1,6 @@
 <template>
     <div class="detailNav p-mr-3">
-        <span :style="styleBackward" class="p-mr-2">
+        <span :style="styleBack" class="p-mr-2">
             <font-awesome-icon
                 icon="arrow-left"
                 v-on:click="goBack()"

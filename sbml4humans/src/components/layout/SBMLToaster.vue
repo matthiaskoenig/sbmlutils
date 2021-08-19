@@ -3,7 +3,6 @@
         <div class="selector"></div>
         <div
             class="p-card p-d-flex p-flex-column"
-            v-if="visible"
             v-on:click="showDetail"
             title="Show details"
         >
@@ -11,7 +10,7 @@
                 class="p-d-flex p-jc-between p-pl-2 p-pr-1"
                 :style="`background-color: ${color}`"
             >
-                <div class="p-mr-3 text-break">
+                <div class="p-mr-3" style="word-break: break-all">
                     <strong>{{ info.id }}</strong>
                 </div>
                 <div class="p-d-flex">
@@ -52,10 +51,6 @@ export default defineComponent({
         info: {
             type: Object,
             default: TYPES.SBMLDocument,
-        },
-        visible: {
-            type: Boolean,
-            default: true,
         },
     },
 
