@@ -1,10 +1,6 @@
 <template>
     <menubar :model="items">
         <template #start>
-<<<<<<< HEAD
-            <img alt="logo" src="../../../public/sbmlutils-logo-60.png" height="40" class="p-mr-2">
-            <span class="title">SBML4Humans</span>
-=======
             <div style="display: flex">
                 <img
                     alt="logo"
@@ -15,7 +11,6 @@
                 />
                 <h2 class="brand">SBML4Humans</h2>
             </div>
->>>>>>> d41a9bb2cba69d27d3c42626f15d357249b8d5d9
         </template>
     </menubar>
 </template>
@@ -53,28 +48,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-<<<<<<< HEAD
 .title {
     font-weight: bold;
     font-size: x-large;
-=======
-.p-menubar {
-    background-color: white;
-    border: none;
-    padding: 0 20px;
-}
-
-.logo {
-    height: 40px;
-    margin-right: 10px;
-    display: inline-flex;
-}
-
-.brand {
-    text-decoration: none;
-    color: rgb(54, 53, 53);
-    text-decoration-line: none;
-    font-weight: 500;
->>>>>>> d41a9bb2cba69d27d3c42626f15d357249b8d5d9
 }
 </style>
