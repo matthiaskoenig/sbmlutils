@@ -206,6 +206,13 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
+                res.data.examples.forEach((example) => {
+                    example["searchUtilField"] =
+                        example.id +
+                        example.description +
+                        example.keywords.join(",") +
+                        example.packages.join(",");
+                });
                 context.commit("SET_EXAMPLES", res.data.examples);
             } else {
                 alert("Failed to fetch examples from API");
