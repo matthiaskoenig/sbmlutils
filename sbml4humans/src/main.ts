@@ -23,6 +23,7 @@ import Button from "primevue/button";
 import Slider from "primevue/slider";
 import InputText from "primevue/inputtext";
 import Menubar from "primevue/menubar";
+import PanelMenu from "primevue/panelmenu";
 import FileUpload from "primevue/fileupload";
 import Card from "primevue/card";
 import Tag from "primevue/tag";
@@ -112,6 +113,7 @@ createApp(App)
     .component("FilterOperator", FilterOperator)
     .component("InputText", InputText)
     .component("Menubar", Menubar)
+    .component("PanelMenu", PanelMenu)
     .component("FileUpload", FileUpload)
     .component("Card", Card)
     .component("Tag", Tag)

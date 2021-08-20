@@ -1,21 +1,14 @@
 <template>
     <div>
-        <h1 style="font-weight: 500">About</h1>
+        <h1>About</h1>
 
         <!-- SBML -->
         <div class="p-mb-2">
             <h2>Systems Biology Markup Language</h2>
             <div class="content">
-                <div class="p-grid">
-                    <div class="p-col-2">
-                        <!-- Fix and make this a responsive image via PrimeVue -->
-                        <Card>
-                            <template #content>
-                                <img src="@/assets/images/sbmlutils-logo-60.png" />
-                            </template>
-                        </Card>
-                    </div>
-                    <div class="p-col-10">
+                <div class="p-d-flex">
+                    <img src="@/assets/images/sbmlutils-logo-60.png" class="logo" />
+                    <p>
                         The Systems Biology Markup Language (<a
                             href="http://sbml.org"
                             target="_blank"
@@ -24,7 +17,7 @@
                         models. The information in an SBML model file is organized as a
                         list of components encapsulated within the model (e.g.
                         compartments, species, parameters, reactions).
-                    </div>
+                    </p>
                 </div>
             </div>
         </div>
@@ -75,22 +68,17 @@
             <div class="content">
                 <ul>
                     <li>
-                        <div class="p-grid">
-                            <div class="p-col-2">
-                                <img class="gsoc" src="@/assets/images/gsoc.jpeg" />
-                            </div>
-                            <div class="p-col-10">
-                                <span>
-                                    <a href="https://summerofcode.withgoogle.com/"
-                                        >Google Summer of Code 2021</a
-                                    >
-                                    A global program focused on bringing more student
-                                    developers into open source software development.
-                                    Students work with an open source organization on a
-                                    10 week programming project during their break from
-                                    school.
-                                </span>
-                            </div>
+                        <div class="p-d-flex">
+                            <img class="gsoc" src="@/assets/images/gsoc.jpeg" />
+                            <p>
+                                <a href="https://summerofcode.withgoogle.com/"
+                                    >Google Summer of Code 2021</a
+                                >
+                                A global program focused on bringing more student
+                                developers into open source software development.
+                                Students work with an open source organization on a 10
+                                week programming project during their break from school.
+                            </p>
                         </div>
                     </li>
                     <li>
@@ -159,13 +147,15 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .logo {
+    max-width: 100%;
     height: 40px;
-    margin: 25px 0;
+    margin: auto 10px;
 }
 
 .gsoc {
-    height: 100px;
-    width: 100px;
+    max-width: 100%;
+    height: 80px;
+    margin: auto 10px;
 }
 
 .content {

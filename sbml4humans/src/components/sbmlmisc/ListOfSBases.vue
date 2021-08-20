@@ -29,7 +29,6 @@ export default defineComponent({
 
     data() {
         return {
-            selectedCountries: null,
             expandedKeys: { "0": true, "1": true },
             reportBasics: [] as Array<Record<string, unknown>>,
             sbases: [] as Array<Record<string, unknown>>,
@@ -44,8 +43,8 @@ export default defineComponent({
         collectTables(): Record<string, Array<string>> {
             let tables: Record<string, Array<string>> = {};
 
-            const componentPKsMap: Record<string, Array<string>> = store.getters
-                .componentPKsMap;
+            const componentPKsMap: Record<string, Array<string>> =
+                store.getters.componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {

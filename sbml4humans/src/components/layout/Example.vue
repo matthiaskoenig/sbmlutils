@@ -4,7 +4,10 @@
         v-on:click="getExample()"
         title="Click to create report for example"
     >
-        <div class="p-d-flex p-px-2 p-jc-between" style="background-color: #66c2a5">
+        <div
+            class="p-d-flex p-px-2 p-py-1 p-jc-between"
+            style="background-color: #66c2a5"
+        >
             <div>
                 <font-awesome-icon icon="file-code" class="p-mr-2" />
                 <strong>{{ example.id }}</strong>

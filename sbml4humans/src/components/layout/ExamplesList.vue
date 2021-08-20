@@ -1,17 +1,13 @@
 <template>
     <h1>Examples</h1>
 
-    <OrderList v-model="examples" listStyle="height:auto" dataKey="vin">
-        <template #header>
-            List of Examples
-        </template>
-
-        <template #item="slotProps">
-              <example
-                :key="slotProps.item.id"
-                :example="slotProps.item"
-            />
-
+    <OrderList
+        v-model="examples"
+        dataKey="vin"
+        style="width: 85%"
+    >
+        <template #item="slotProps" style="padding: 0">
+            <example :key="slotProps.item.id" :example="slotProps.item" />
         </template>
     </OrderList>
 
@@ -57,5 +53,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

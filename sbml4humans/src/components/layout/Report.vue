@@ -1,9 +1,9 @@
 <template>
     <div class="report-container">
-        <div class="left">
+        <div class="left p-card">
             <div class="p-mb-3">
                 <router-link to="/">
-                    <div style="display: flex">
+                    <div class="p-d-flex">
                         <img
                             alt="logo"
                             src="../../../public/sbmlutils-logo-60.png"
@@ -22,10 +22,10 @@
 
             <list-of-SBases />
         </div>
-        <div class="middle">
+        <div class="middle p-card">
             <tables-container />
         </div>
-        <div class="right">
+        <div class="right p-card">
             <detail-container />
         </div>
     </div>
@@ -67,6 +67,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.p-card {
+    box-shadow: none;
+    padding: 10px 10px;
+}
+
 .brand {
     color: rgb(54, 53, 53);
     font-weight: 500;
@@ -78,7 +83,7 @@ export default defineComponent({
 }
 
 .report-container {
-    height: 95vh;
+    height: 100vh;
     display: flex;
     padding: 0;
 }
