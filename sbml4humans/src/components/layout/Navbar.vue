@@ -7,16 +7,10 @@
                     src="@/assets/images/sbmlutils-logo-60.png"
                     height="35"
                 />
-                <img
-                    alt="logo"
-                    src="@/assets/images/people.png"
-                    height="35"
-                />
+                <img alt="logo" src="@/assets/images/people.png" height="35" />
                 <span class="sbml4humans p-mx-3">SBML4Humans</span>
                 <!--<InputText placeholder="Search in SBML" type="text" />-->
-
             </div>
-
         </template>
     </menubar>
 </template>
@@ -32,30 +26,29 @@ export default defineComponent({
         return {
             items: [
                 {
-                   label:'Home',
-                   icon:'pi pi-fw pi-home',
-                   to: '/'
+                    label: "Home",
+                    icon: "pi pi-fw pi-home",
+                    to: "/",
                 },
                 {
-                   label:'Report issue',
-                   icon:'pi pi-fw pi-pencil',
-                   url:'https://github.com/matthiaskoenig/sbmlutils/issues/new/choose'
+                    label: "Report issue",
+                    icon: "pi pi-fw pi-pencil",
+                    url: "https://github.com/matthiaskoenig/sbmlutils/issues/new/choose",
                 },
                 {
-                   label:'Source',
-                   icon:'pi pi-fw pi-github',
-                   url:'https://github.com/matthiaskoenig/sbmlutils'
-                }
-             ]
-        }
-    }
+                    label: "Source",
+                    icon: "pi pi-fw pi-github",
+                    url: "https://github.com/matthiaskoenig/sbmlutils",
+                },
+            ],
+        };
+    },
 });
 </script>
 
 <style lang="scss" scoped>
 .sbml4humans {
-    font-family: 'Roboto Slab', serif;
+    font-family: "Roboto Slab", serif;
     font-size: 30px;
 }
-
 </style>

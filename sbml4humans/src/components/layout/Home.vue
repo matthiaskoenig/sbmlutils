@@ -3,17 +3,16 @@
         <div class="p-grid">
             <div class="p-col-12 p-lg-6">
                 <div class="p-mx-5">
-                    <file-upload-form/>
-                    <examples/>
+                    <file-upload-form />
+                    <examples />
                 </div>
             </div>
             <div class="p-col-12 p-lg-6">
                 <div class="p-mx-5">
-                    <about/>
+                    <about />
                 </div>
             </div>
         </div>
-
     </div>
 </template>
 

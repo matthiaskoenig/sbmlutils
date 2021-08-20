@@ -1,6 +1,6 @@
 <template>
     <span class="p-input-icon-left">
-        <i class="pi pi-search"/>
+        <i class="pi pi-search" />
         <InputText
             type="text"
             @input="updateSearchQuery"

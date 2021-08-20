@@ -12,14 +12,13 @@
 </template>
 
 <script lang="ts">
-
 import store from "@/store";
 import { defineComponent } from "@vue/runtime-core";
 import SBMLObject from "@/components/layout/SBMLObject.vue";
 
 export default defineComponent({
     components: {
-        SBMLObject
+        SBMLObject,
     },
     computed: {
         coreComponents(): Array<Record<string, unknown>> {
@@ -29,5 +28,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
