@@ -49,7 +49,8 @@
                 style="width: fit-content"
                 field="substanceUnits"
                 header="substanceUnits"
-            ></Column>
+            >
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"

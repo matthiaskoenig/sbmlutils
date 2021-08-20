@@ -10,12 +10,23 @@ from sbmlutils.test import (
     DISTRIB_UNCERTAINTIES_SBML,
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
+    GLUCOSE_SBML,
     REPRESSILATOR_SBML,
 )
 
 
 # Data and Endpoints for Example Models
 examples: List[Dict] = [
+    {
+        "file": GLUCOSE_SBML,
+        "metadata": {
+            "id": "glucose",
+            "name": "Koenig2012 - Glucose",
+            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
+            "packages": [],
+            "keywords": ["kinetic"],
+        },
+    },
     {
         "file": REPRESSILATOR_SBML,
         "metadata": {

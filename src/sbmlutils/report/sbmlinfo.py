@@ -14,7 +14,7 @@ import numpy as np
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
-from sbmlutils.report import units
+from sbmlutils.report.units import udef_to_latex
 from sbmlutils.report.mathml import astnode_to_latex
 
 
@@ -125,7 +125,6 @@ class SBMLDocumentInfo:
         # add crosslinks
         self.add_compartment_links(d["compartments"], d["species"], d["reactions"])
         self.add_species_links(d["species"], d["reactions"])
-        # TODO: add symbols to math crosslinks
 
         return d
 
@@ -468,7 +467,9 @@ class SBMLDocumentInfo:
             "extentUnits",
             "conversionFactor",
         ]:
-            d[key] = _get_sbase_attribute(model, key)
+            d[f"{key}_unit"] = _get_sbase_attribute(model, key)
+            d[key] = udef_to_latex(d[f"{key}_unit"], model=model)
+            # print(d[f"{key}_unit"], '-> ', d[key])
 
         return d
 
@@ -498,22 +499,11 @@ class SBMLDocumentInfo:
         ud: libsbml.UnitDefinition
         for ud in model.getListOfUnitDefinitions():
             d = self.sbase_dict(ud)
-            d["units"] = self.ud_to_latex(ud, model=model)
+            d["units"] = udef_to_latex(ud, model=model)
 
             unit_defs.append(d)
 
         return unit_defs
-
-    @staticmethod
-    def ud_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[str]:
-        """Convert unit definition to latex."""
-
-        if ud is None or "None":
-            return None
-
-        ud_str: str = units.unitDefinitionToString(ud)
-        astnode = libsbml.parseL3FormulaWithModel(ud_str, model=model)
-        return astnode_to_latex(astnode, model=model)
 
     def compartments(
         self, model: libsbml.Model, assignments: Dict[str, Dict[str, str]]
@@ -530,10 +520,13 @@ class SBMLDocumentInfo:
             for key in ["spatialDimensions", "size", "constant"]:
                 d[key] = _get_sbase_attribute(c, key)
 
-            d["units"] = (
-                self.ud_to_latex(c.getUnits(), model=model) if c.isSetUnits() else None
+            d["units_sid"] = (
+                c.getUnits() if c.isSetUnits() else None
             )
-            d["derivedUnits"] = self.ud_to_latex(
+            d["units"] = (
+                udef_to_latex(d['units_sid'], model=model)
+            )
+            d["derivedUnits"] = udef_to_latex(
                 c.getDerivedUnitDefinition(), model=model
             )
 
@@ -568,10 +561,13 @@ class SBMLDocumentInfo:
             ]:
                 d[key] = _get_sbase_attribute(s, key)
 
-            d["units"] = (
-                self.ud_to_latex(s.getUnits(), model=model) if s.isSetUnits() else None
+            d["units_sid"] = (
+                s.getUnits() if s.isSetUnits() else None
             )
-            d["derivedUnits"] = self.ud_to_latex(
+            d["units"] = (
+                udef_to_latex(d['units_sid'], model=model)
+            )
+            d["derivedUnits"] = udef_to_latex(
                 s.getDerivedUnitDefinition(), model=model
             )
 
@@ -633,11 +629,13 @@ class SBMLDocumentInfo:
 
             d["value"] = value
             d["constant"] = p.getConstant() if p.isSetConstant() else None
-
-            d["units"] = (
-                self.ud_to_latex(p.getUnits(), model=model) if p.isSetUnits() else None
+            d["units_sid"] = (
+                p.getUnits() if p.isSetUnits() else None
             )
-            d["derivedUnits"] = self.ud_to_latex(
+            d["units"] = (
+                udef_to_latex(d['units_sid'], model=model)
+            )
+            d["derivedUnits"] = udef_to_latex(
                 p.getDerivedUnitDefinition(), model=model
             )
 
@@ -660,7 +658,7 @@ class SBMLDocumentInfo:
             d = self.sbase_dict(assignment)
             d["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             d["math"] = astnode_to_latex(assignment.getMath(), model=model)
-            d["derivedUnits"] = self.ud_to_latex(
+            d["derivedUnits"] = udef_to_latex(
                 assignment.getDerivedUnitDefinition(), model=model
             )
             assignments.append(d)
@@ -687,7 +685,7 @@ class SBMLDocumentInfo:
                 if rule.isSetMath()
                 else None
             )
-            d["derivedUnits"] = self.ud_to_latex(
+            d["derivedUnits"] = udef_to_latex(
                 rule.getDerivedUnitDefinition(), model=model
             )
 
@@ -770,7 +768,7 @@ class SBMLDocumentInfo:
                     if klaw.isSetMath()
                     else None
                 )
-                d_law["derivedUnits"] = self.ud_to_latex(
+                d_law["derivedUnits"] = udef_to_latex(
                     klaw.getDerivedUnitDefinition(), model=model
                 )
 
@@ -780,13 +778,12 @@ class SBMLDocumentInfo:
                     lpar_info = {
                         "id": lp.getId() if lp.isSetId() else None,
                         "value": lp.getValue() if lp.isSetValue() else None,
-                        "units": self.ud_to_latex(lp.getUnits(), model=model)
-                        if lp.isSetUnits()
-                        else None,
-                        "derivedUnits": self.ud_to_latex(
+                        "units_sid": lp.getUnits() if lp.isSetUnits() else None,
+                        "derivedUnits": udef_to_latex(
                             lp.getDerivedUnitDefinition(), model=model
                         ),
                     }
+                    lpar_info["units"] = udef_to_latex(lpar_info['units_sid'], model=model)
                     d_law["localParameters"].append(lpar_info)
                 d["kineticLaw"] = d_law
             else:
@@ -1171,6 +1168,7 @@ if __name__ == "__main__":
         DISTRIB_UNCERTAINTIES_SBML,
         FBC_ECOLI_CORE_SBML,
         FBC_RECON3D_SBML,
+        GLUCOSE_SBML,
         REPRESSILATOR_SBML,
     )
 
@@ -1181,8 +1179,9 @@ if __name__ == "__main__":
         # COMP_MODEL_DEFINITIONS_SBML,
         # FBC_RECON3D_SBML,
         # FBC_ECOLI_CORE_SBML,
-        DISTRIB_DISTRIBUTIONS_SBML,
+        # DISTRIB_DISTRIBUTIONS_SBML,
         # DISTRIB_UNCERTAINTIES_SBML,
+        GLUCOSE_SBML
         # REPRESSILATOR_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)
