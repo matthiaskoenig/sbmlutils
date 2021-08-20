@@ -1,21 +1,28 @@
 <template>
-    <ScrollPanel>
-        <div
-            class="p-d-flex clickable"
-            :style="`background-color: ${table.color}`"
-            v-for="table in collectTables"
-            :key="table"
-            v-on:click="focusTable(table.sbmlType)"
-        >
-            <font-awesome-icon
-                :icon="table.icon"
-                class="p-mr-2 p-mt-1"
-            ></font-awesome-icon>
-            <span class="p-mr-2"
-                ><strong>{{ table.sbmlType }}</strong> ({{table.listOfPKs.length}})</span
+    <PanelMenu :model="items">
+        <template #item="{item}">
+             <div
+                class="clickable"
+
+                v-on:click="focusTable(item.sbmlType)"
+                v-if="item.count"
             >
-        </div>
-    </ScrollPanel>
+                 <span :style="`color: ${item.color}`">
+                <font-awesome-icon
+                    :icon="item.icon"
+                    :fixedWidth="true"
+                    :border="false"
+                    size="1x"
+                    class="p-mr-2"
+                ></font-awesome-icon>
+                 </span>
+                <span class="p-mr-2">
+                    <strong>{{ item.sbmlType }}</strong> ({{item.count}})
+                </span>
+            </div>
+        </template>
+    </PanelMenu>
+
 </template>
 
 <script lang="ts">
@@ -36,7 +43,7 @@ export default defineComponent({
          * Collects and returns SBML objects present in the report and
          * applies search filtering on the response set.
          */
-        collectTables(): Array<Record<string, unknown>> {
+        items(): Array<Record<string, unknown>> {
             let tables: Array<Record<string, unknown>> = [];
 
             const componentPKsMap: Record<string, Array<string>> = store.getters
@@ -45,25 +52,31 @@ export default defineComponent({
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {
                     tables.push({
+                        label: sbmlType,
                         sbmlType: sbmlType,
                         color: colors.componentColor[sbmlType],
                         icon: icons.icons[sbmlType],
-                        listOfPKs: componentPKsMap[sbmlType],
+                        count: componentPKsMap[sbmlType].length,
                     });
                 }
             }
 
             return tables;
         },
-        // counts(): Record<string, number> {
-        //     return store.getters.counts;
-        // },
+
     },
 });
 </script>
 
 <style lang="scss" scoped>
 .clickable {
+    padding: 8px;
     cursor: pointer;
+    opacity: 100%;
+}
+.clickable:hover {
+    cursor: pointer;
+    opacity: 100%;
+    background-color: #EEEEEE;
 }
 </style>

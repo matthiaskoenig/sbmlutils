@@ -13,9 +13,11 @@
                     height="40"
                 />
                 <span class="sbml4humans p-mx-3">SBML4Humans</span>
+                <!--<InputText placeholder="Search in SBML" type="text" />-->
+
             </div>
+
         </template>
-        <InputText placeholder="Search" type="text" />
     </menubar>
 </template>
 

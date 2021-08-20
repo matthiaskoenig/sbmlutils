@@ -2,7 +2,16 @@
     <div class="p-grid">
         <div class="p-col-12 p-lg-2">
             <search v-if="['Report', 'report'].includes($route.name)" />
-            <list-of-s-bases />
+            <list-of-tables class="tables-container" />
+
+            <strong>Document & Models</strong>
+
+            <SBML-toaster
+                v-for="component in coreComponents"
+                :key="component.pk"
+                :sbmlType="component.sbmlType"
+                :info="component"
+            />
         </div>
         <div class="p-col-12 p-lg-7">
             <tables-container />
@@ -19,8 +28,9 @@ import { defineComponent } from "vue";
 
 import DetailContainer from "@/components/layout/DetailContainer.vue";
 import TablesContainer from "@/components/layout/TablesContainer.vue";
-import ListOfSBases from "@/components/sbmlmisc/ListOfSBases.vue";
 import Search from "@/components/layout/Search.vue";
+import SBMLToaster from "@/components/layout/SBMLToaster.vue";
+import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
 
 /**
  * Component to hold all components to show the generated report.
@@ -29,19 +39,13 @@ export default defineComponent({
     components: {
         DetailContainer,
         TablesContainer,
-        ListOfSBases,
         Search,
+        SBMLToaster,
+        ListOfTables,
     },
-
-    methods: {
-        toggleDetailVisibility(): void {
-            store.dispatch("toggleDetailVisibility");
-        },
-    },
-
     computed: {
-        detailVisibility(): boolean {
-            return store.state.detailVisibility;
+        coreComponents(): Array<Record<string, unknown>> {
+            return store.getters.reportBasics;
         },
     },
 });
