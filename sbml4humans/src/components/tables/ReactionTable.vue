@@ -84,7 +84,7 @@
             </Column>
             <Column
                 field="kineticLaw"
-                header="kLaw math"
+                header="math"
                 sortable
                 style="width: fit-content"
             >
@@ -101,7 +101,7 @@
             </Column>
             <Column
                 field="kineticLaw"
-                header="kLaw derivedUnits"
+                header="derivedUnits"
                 sortable
                 style="width: fit-content"
             >
