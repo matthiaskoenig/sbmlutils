@@ -1,15 +1,17 @@
 <template>
     <navbar />
     <div class="p-px-5">
+
         <div class="p-grid">
-            <div class="p-col-6 p-d-flex p-flex-column" style="height: 130vh">
-                <file-upload-form class="p-pb-3" />
-                <examples-list />
+            <div class="p-col-12 p-lg-6">
+                <file-upload-form/>
+                <examples/>
             </div>
-            <div class="p-col-6">
-                <about class="p-pb-4" />
+            <div class="p-col-12 p-lg-6">
+                <about/>
             </div>
         </div>
+
     </div>
 </template>
 
@@ -17,7 +19,7 @@
 import { defineComponent } from "@vue/runtime-core";
 
 /* Components */
-import ExamplesList from "@/components/layout/ExamplesList.vue";
+import Examples from "@/components/layout/Examples.vue";
 import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 import About from "@/components/layout/About.vue";
 import Navbar from "@/components/layout/Navbar.vue";
@@ -30,7 +32,7 @@ import Navbar from "@/components/layout/Navbar.vue";
  */
 export default defineComponent({
     components: {
-        ExamplesList,
+        Examples,
         FileUploadForm,
         About,
         Navbar,

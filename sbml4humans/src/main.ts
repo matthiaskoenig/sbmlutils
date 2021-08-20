@@ -15,7 +15,6 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import PrimeVue from "primevue/config";
 import Badge from "primevue/badge";
 import ProgressSpinner from "primevue/progressspinner";
-import ScrollPanel from "primevue/scrollpanel";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Dropdown from "primevue/dropdown";
@@ -28,6 +27,8 @@ import FileUpload from "primevue/fileupload";
 import Card from "primevue/card";
 import Tag from "primevue/tag";
 import OrderList from "primevue/orderlist";
+import ScrollPanel from "primevue/scrollpanel";
+import DataView from "primevue/dataview";
 
 
 // fontawesome
@@ -118,4 +119,5 @@ createApp(App)
     .component("Card", Card)
     .component("Tag", Tag)
     .component("OrderList", OrderList)
+    .component("DataView", DataView)
     .mount("#app");

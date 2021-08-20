@@ -1,24 +1,23 @@
 <template>
-    <div>
+    <ScrollPanel style="width: 100%;">
         <h1>About</h1>
 
         <!-- SBML -->
         <div class="p-mb-2">
             <h2>Systems Biology Markup Language</h2>
-            <div class="content">
-                <div class="p-d-flex">
-                    <img src="@/assets/images/sbmlutils-logo-60.png" class="logo" />
-                    <p>
-                        The Systems Biology Markup Language (<a
-                            href="http://sbml.org"
-                            target="_blank"
-                            >SBML</a
-                        >) is a standard format for the representation and exchange of
-                        models. The information in an SBML model file is organized as a
-                        list of components encapsulated within the model (e.g.
-                        compartments, species, parameters, reactions).
-                    </p>
-                </div>
+
+            <div class="p-d-flex content">
+                <img src="@/assets/images/sbmlutils-logo-60.png" class="image" width="100"/>
+                <p>
+                    The Systems Biology Markup Language (<a
+                        href="http://sbml.org"
+                        target="_blank"
+                        >SBML</a
+                    >) is a standard format for the representation and exchange of
+                    models. The information in an SBML model file is organized as a
+                    list of components encapsulated within the model (e.g.
+                    compartments, species, parameters, reactions).
+                </p>
             </div>
         </div>
 
@@ -42,9 +41,9 @@
             </div>
         </div>
 
-        <!-- Development Team -->
+        <!-- Team -->
         <div class="p-mb-2">
-            <h2>Development Team</h2>
+            <h2>Team</h2>
             <div class="content">
                 <ul title="Developers">
                     <li>
@@ -65,39 +64,35 @@
         <!-- Funding -->
         <div class="p-mb-2">
             <h2>Funding</h2>
-            <div class="content">
-                <ul>
-                    <li>
-                        <div class="p-d-flex">
-                            <img class="gsoc" src="@/assets/images/gsoc.jpeg" />
-                            <p>
-                                <a href="https://summerofcode.withgoogle.com/"
-                                    >Google Summer of Code 2021</a
-                                >
-                                A global program focused on bringing more student
-                                developers into open source software development.
-                                Students work with an open source organization on a 10
-                                week programming project during their break from school.
-                            </p>
-                        </div>
-                    </li>
-                    <li>
-                        Matthias König is supported by the Federal Ministry of Education
-                        and Research (BMBF, Germany) within the research network Systems
-                        Medicine of the Liver (<a
-                            href="https://lisym.org/"
-                            target="_blank"
-                            >LiSyM</a
-                        >, grant number 031L0054) and by the German Research Foundation
-                        (DFG) within the Research Unit Programme FOR 5151 "<a
-                            href="https://qualiperf.de"
-                            >QuaLiPerF</a
-                        >
-                        (Quantifying Liver Perfusion-Function Relationship in Complex
-                        Resection - A Systems Medicine Approach)" by grant number
-                        436883643.
-                    </li>
-                </ul>
+            <div class="p-d-flex content">
+                <img src="@/assets/images/gsoc.jpeg" class="image" width="100"/>
+                <p>
+                    <a href="https://summerofcode.withgoogle.com/"
+                        >Google Summer of Code 2021</a
+                    >
+                    A global program focused on bringing more student
+                    developers into open source software development.
+                    Students work with an open source organization on a 10
+                    week programming project during their break from school.
+                </p>
+            </div>
+            <div class="p-d-flex content">
+                <p>
+                    Matthias König is supported by the Federal Ministry of Education
+                    and Research (BMBF, Germany) within the research network Systems
+                    Medicine of the Liver (<a
+                        href="https://lisym.org/"
+                        target="_blank"
+                        >LiSyM</a
+                    >, grant number 031L0054) and by the German Research Foundation
+                    (DFG) within the Research Unit Programme FOR 5151 "<a
+                        href="https://qualiperf.de"
+                        >QuaLiPerF</a
+                    >
+                    (Quantifying Liver Perfusion-Function Relationship in Complex
+                    Resection - A Systems Medicine Approach)" by grant number
+                    436883643.
+                </p>
             </div>
         </div>
 
@@ -127,7 +122,7 @@
                 </ul>
             </div>
         </div>
-    </div>
+    </ScrollPanel>
 </template>
 
 <script lang="ts">
@@ -146,18 +141,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.logo {
+.image {
     max-width: 100%;
-    height: 40px;
-    margin: auto 10px;
+    margin: auto 30px;
 }
-
-.gsoc {
-    max-width: 100%;
-    height: 80px;
-    margin: auto 10px;
-}
-
 .content {
     text-align: justify;
 }
