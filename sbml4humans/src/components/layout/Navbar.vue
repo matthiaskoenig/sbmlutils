@@ -54,13 +54,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .sbml4humans {
-
     font-family: 'Roboto Slab', serif;
     font-size: 30px;
 }
 
-// FIXME: figure out how to put items right
-//.p-menubar-list {
-//   float: right;
-//}
 </style>

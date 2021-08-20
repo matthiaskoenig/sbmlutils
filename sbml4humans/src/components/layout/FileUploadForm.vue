@@ -10,7 +10,7 @@
             :showCancelButton="false"
             chooseLabel="Browse"
             uploadLabel="Submit"
-            fileLimit="1"
+            :fileLimit="1"
         >
             <template #empty>
                 <p>Drag and drop file to upload.</p>
