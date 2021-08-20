@@ -1,7 +1,7 @@
 <template>
-    <ScrollPanel style="width: 100%; height: 350px">
+    <ScrollPanel>
         <div
-            class="p-d-flex p-card p-py-1 p-px-2 p-mb-2 clickable"
+            class="p-d-flex clickable"
             :style="`background-color: ${table.color}`"
             v-for="table in collectTables"
             :key="table"
@@ -12,11 +12,8 @@
                 class="p-mr-2 p-mt-1"
             ></font-awesome-icon>
             <span class="p-mr-2"
-                ><strong>{{ table.sbmlType }}</strong></span
+                ><strong>{{ table.sbmlType }}</strong> ({{table.listOfPKs.length}})</span
             >
-            <span class="p-ml-auto">
-                <Badge :value="table.listOfPKs.length" severity="info"></Badge>
-            </span>
         </div>
     </ScrollPanel>
 </template>
@@ -58,6 +55,9 @@ export default defineComponent({
 
             return tables;
         },
+        // counts(): Record<string, number> {
+        //     return store.getters.counts;
+        // },
     },
 });
 </script>

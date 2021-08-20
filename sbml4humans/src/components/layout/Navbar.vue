@@ -4,52 +4,61 @@
             <div style="display: flex">
                 <img
                     alt="logo"
-                    src="../../../public/sbmlutils-logo-60.png"
+                    src="@/assets/images/sbmlutils-logo-60.png"
                     height="40"
-                    width="100"
-                    class="p-mr-2 p-mt-3"
                 />
-                <h2 class="brand">SBML4Humans</h2>
+                <img
+                    alt="logo"
+                    src="@/assets/images/people.png"
+                    height="40"
+                />
+                <span class="sbml4humans p-mx-3">SBML4Humans</span>
             </div>
         </template>
+        <InputText placeholder="Search" type="text" />
     </menubar>
 </template>
 
 <script lang="ts">
-import store from "@/store/index";
 import { defineComponent } from "vue";
 
 /**
  * Navbar component for providing main links in the application
  */
 export default defineComponent({
-
-    // FIXME: handle static content
-    // data(): Record<string, unknown> {
-    //     return {
-    //         // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
-    //         staticStatus: window.localStorage.getItem("static") === "true",
-    //     };
-    // },
-    //
-    // methods: {
-    //     handleSwitchChange(): void {
-    //         const staticSwitch = this.$refs["static-switch"] as HTMLInputElement;
-    //         if (staticSwitch.checked) {
-    //             store.dispatch("updateStatic", true);
-    //             this.staticStatus = window.localStorage.getItem("static") === "true";
-    //         } else {
-    //             store.dispatch("updateStatic", false);
-    //             this.staticStatus = window.localStorage.getItem("static") === "true";
-    //         }
-    //     },
-    // },
+    data() {
+        return {
+            items: [
+                {
+                   label:'Home',
+                   icon:'pi pi-fw pi-home',
+                   to: '/'
+                },
+                {
+                   label:'Report issue',
+                   icon:'pi pi-fw pi-pencil',
+                   url:'https://github.com/matthiaskoenig/sbmlutils/issues/new/choose'
+                },
+                {
+                   label:'Source',
+                   icon:'pi pi-fw pi-github',
+                   url:'https://github.com/matthiaskoenig/sbmlutils'
+                }
+             ]
+        }
+    }
 });
 </script>
 
 <style lang="scss" scoped>
-.title {
-    font-weight: bold;
-    font-size: x-large;
+.sbml4humans {
+
+    font-family: 'Roboto Slab', serif;
+    font-size: 35px;
+}
+
+// FIXME: figure out how to put items right
+.p-menubar-list {
+   float: right;
 }
 </style>

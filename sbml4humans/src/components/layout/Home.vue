@@ -1,14 +1,16 @@
 <template>
-    <navbar />
-    <div class="p-px-5">
-
+    <div>
         <div class="p-grid">
             <div class="p-col-12 p-lg-6">
-                <file-upload-form/>
-                <examples/>
+                <div class="p-mx-5">
+                    <file-upload-form/>
+                    <examples/>
+                </div>
             </div>
             <div class="p-col-12 p-lg-6">
-                <about/>
+                <div class="p-mx-5">
+                    <about/>
+                </div>
             </div>
         </div>
 
@@ -18,11 +20,9 @@
 <script lang="ts">
 import { defineComponent } from "@vue/runtime-core";
 
-/* Components */
 import Examples from "@/components/layout/Examples.vue";
 import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 import About from "@/components/layout/About.vue";
-import Navbar from "@/components/layout/Navbar.vue";
 
 /**
  * Component to display the components to appear on the landing page.
@@ -35,7 +35,6 @@ export default defineComponent({
         Examples,
         FileUploadForm,
         About,
-        Navbar,
     },
 });
 </script>

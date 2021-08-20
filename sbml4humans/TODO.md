@@ -1,21 +1,17 @@
 ## TODO
 
-- [ ] make all images responsive via simple PrimeVue solution
-- [ ] OrderList for examples; remove buttons; remove all CSS from examples; remove toaster css/remove toaster  
+- [ ] table for examples (paginate & search & sort)
+- [ ] click on icon should navigate to home page  
+- [ ] make report 100%, so only tables scroll  
+- [ ] use tooltips instead of alt/title tags (v-tooltip=)  
 - [ ] render uncertainty nicer (currently only list)
-- [x] make tables more compact
+- [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu  
+
+
+Report via URL
 - [ ] think about strategy for supporting reports: https://github.com/matthiaskoenig/sbmlutils/issues/257
 
-  Probably migrating datatables for now (some minor bugs exist)
-- [x] Remove JS dependencies: datatables, jquery, bootstap
-- [x] Remove bootstrap completely; use PrimeVue for spacing & grid & form
-- [~] Replace toaster with a real menu component: https://www.primefaces.org/primevue/showcase/#/menu
-
-Fixes:
-- [ ] check dependency issues npm; remove package-lock.json and node_modules and do clean install
-
-Static report:  // a server is always required 
-- Remove/Fix websocket calls
+Static report:
 - [~] create static report 
 - [~] option for download static report
   

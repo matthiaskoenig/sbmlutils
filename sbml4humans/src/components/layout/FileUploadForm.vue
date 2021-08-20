@@ -6,14 +6,14 @@
             :customUpload="true"
             @uploader="submitForm"
             :multiple="false"
-            :previewWidth="Number(0)"
+
             :showCancelButton="false"
             chooseLabel="Browse"
             uploadLabel="Submit"
             fileLimit="1"
         >
             <template #empty>
-                <p>Drag and drop files to here to upload.</p>
+                <p>Drag and drop file to upload.</p>
             </template>
         </FileUpload>
 

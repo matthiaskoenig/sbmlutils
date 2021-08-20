@@ -7,7 +7,7 @@
             <h2>Systems Biology Markup Language</h2>
 
             <div class="p-d-flex content">
-                <img src="@/assets/images/sbmlutils-logo-60.png" class="image" width="100"/>
+                <img src="@/assets/images/sbml-logo.png" class="image" width="100"/>
                 <p>
                     The Systems Biology Markup Language (<a
                         href="http://sbml.org"
@@ -32,7 +32,6 @@
                 is to provide an interactive and reactive report for SBML models which
                 which will allow humans (experts as well as beginners) to easily
                 comprehend the content of a model.
-                <br />
                 SBML4Humans is part of the
                 <a target="_blank" href="https://github.com/matthiaskoenig/sbmlutils"
                     >sbmlutils</a
