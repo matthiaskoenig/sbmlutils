@@ -1,6 +1,28 @@
 <template>
     <div class="holder">
-        <div class="selector"></div>
+
+<!--        <div class="selector"/>-->
+<!--        <div-->
+<!--            class="clickable"-->
+<!--            v-on:click="focusTable(item.sbmlType)"-->
+<!--            v-if="item.count"-->
+<!--        >-->
+<!--             <span :style="`color: ${item.color}`">-->
+<!--            <font-awesome-icon-->
+<!--                :icon="item.icon"-->
+<!--                :fixedWidth="true"-->
+<!--                :border="false"-->
+<!--                size="1x"-->
+<!--                class="p-mr-2"-->
+<!--            ></font-awesome-icon>-->
+<!--             </span>-->
+<!--            <span class="p-mr-2">-->
+<!--                <strong>{{ item.sbmlType }}</strong> ({{item.count}})-->
+<!--            </span>-->
+<!--        </div>-->
+
+
+        <div class="selector"/>
         <div
             class="p-card p-d-flex p-flex-column"
             v-on:click="showDetail"
@@ -95,5 +117,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/Toaster.scss";
+
 </style>

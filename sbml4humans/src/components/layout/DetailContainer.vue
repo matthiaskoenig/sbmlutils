@@ -1,7 +1,7 @@
 <template>
     <div ref="detailContainer" class="detail-container">
         <!-- Back and Forward Buttons -->
-        <detail-view-nav />
+        <!-- FIXME <detail-view-nav /> -->
 
         <!-- SBase Information -->
         <SBase :info="info" />
@@ -31,7 +31,7 @@ export default defineComponent({
     components: {
         SBase,
         ComponentSpecificDetails,
-        DetailViewNav,
+        //DetailViewNav,
         AdditionalData,
     },
 
@@ -70,14 +70,9 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .detail-container {
-    height: 98vh;
-    padding-left: 15px;
-
     word-wrap: break-word;
     overflow-y: scroll;
     overflow-x: scroll;
-
-    background-color: white;
     font-size: small;
 }
 </style>

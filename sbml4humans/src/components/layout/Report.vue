@@ -1,19 +1,11 @@
 <template>
     <div class="p-grid">
-        <div class="p-col-12 p-lg-2">
+        <div class="p-col-12 p-lg-2"  style="background-color: #efefef;">
             <search v-if="['Report', 'report'].includes($route.name)" />
-            <list-of-tables class="tables-container" />
-
-            <strong>Document & Models</strong>
-
-            <SBML-toaster
-                v-for="component in coreComponents"
-                :key="component.pk"
-                :sbmlType="component.sbmlType"
-                :info="component"
-            />
+            <component-menu class="p-mt-2"/>
+            <document-menu  class="p-mt-5"/>
         </div>
-        <div class="p-col-12 p-lg-7">
+        <div class="p-col-12 p-lg-7" style="border-right: 1px solid black;">
             <tables-container />
         </div>
         <div class="p-col-12 p-lg-3">
@@ -29,19 +21,19 @@ import { defineComponent } from "vue";
 import DetailContainer from "@/components/layout/DetailContainer.vue";
 import TablesContainer from "@/components/layout/TablesContainer.vue";
 import Search from "@/components/layout/Search.vue";
-import SBMLToaster from "@/components/layout/SBMLToaster.vue";
-import ListOfTables from "@/components/sbmlmisc/ListOfTables.vue";
+import ComponentMenu from "@/components/layout/ComponentMenu.vue";
+import DocumentMenu from "@/components/layout/DocumentMenu.vue";
 
 /**
  * Component to hold all components to show the generated report.
  */
 export default defineComponent({
     components: {
+        Search,
+        ComponentMenu,
+        DocumentMenu,
         DetailContainer,
         TablesContainer,
-        Search,
-        SBMLToaster,
-        ListOfTables,
     },
     computed: {
         coreComponents(): Array<Record<string, unknown>> {

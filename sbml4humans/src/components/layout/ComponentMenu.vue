@@ -3,8 +3,8 @@
         <template #item="{item}">
              <div
                 class="clickable"
-
                 v-on:click="focusTable(item.sbmlType)"
+
                 v-if="item.count"
             >
                  <span :style="`color: ${item.color}`">
@@ -28,7 +28,7 @@
 <script lang="ts">
 import colors from "@/data/colorScheme";
 import icons from "@/data/fontAwesome";
-import store from "@/store/index";
+import store from "@/store";
 import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
@@ -77,6 +77,6 @@ export default defineComponent({
 .clickable:hover {
     cursor: pointer;
     opacity: 100%;
-    background-color: #EEEEEE;
+    background-color: #DFDFDF;
 }
 </style>

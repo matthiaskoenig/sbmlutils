@@ -5,12 +5,12 @@
                 <img
                     alt="logo"
                     src="@/assets/images/sbmlutils-logo-60.png"
-                    height="40"
+                    height="35"
                 />
                 <img
                     alt="logo"
                     src="@/assets/images/people.png"
-                    height="40"
+                    height="35"
                 />
                 <span class="sbml4humans p-mx-3">SBML4Humans</span>
                 <!--<InputText placeholder="Search in SBML" type="text" />-->
@@ -56,11 +56,11 @@ export default defineComponent({
 .sbml4humans {
 
     font-family: 'Roboto Slab', serif;
-    font-size: 35px;
+    font-size: 30px;
 }
 
 // FIXME: figure out how to put items right
-.p-menubar-list {
-   float: right;
-}
+//.p-menubar-list {
+//   float: right;
+//}
 </style>
