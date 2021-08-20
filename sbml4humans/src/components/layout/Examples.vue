@@ -2,7 +2,7 @@
     <div class="p-mt-2">
         <DataTable
             :value="examples"
-            :paginator="examples.length > 10"
+            :paginator="true"
             :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
@@ -104,18 +104,23 @@ export default defineComponent({
                     constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
                 },
             },
+            // [#a6cee3, #1f78b4, #b2df8a, #33a02c, #fb9a99, #e31a1c, #fdbf6f, #ff7f00, #cab2d6, #6a3d9a]
             badgeColor: {
-                distrib: "#5bc0de",
-                comp: "#f0ad4e",
-                fbc: "#0275d8",
-                groups: "#5cb85c",
+                distrib: "#a6cee3",
+                comp: "#1f78b4",
+                fbc: "#b2df8a",
+                groups: "#33a02c",
+                layout: "#fb9a99",
+                render: "#e31a1c",
             },
 
             badgeText: {
                 distrib: "#000000",
-                comp: "#000000",
-                fbc: "#ffffff",
+                comp: "#ffffff",
+                fbc: "#000000",
                 groups: "#ffffff",
+                layout: "#000000",
+                render: "#ffffff",
             },
         };
     },

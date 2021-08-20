@@ -1,11 +1,11 @@
 <template>
     <div class="p-grid p-p-2">
-        <div class="p-col-12 p-lg-2" style="background-color: #efefef">
+        <div class="p-col-12 p-lg-2">
             <search v-if="['Report', 'report'].includes($route.name)" />
             <component-menu class="p-mt-2" />
             <document-menu class="p-mt-5" />
         </div>
-        <div class="p-col-12 p-lg-7" style="border-right: 1px solid black">
+        <div class="p-col-12 p-lg-7" style="border-right: 1px solid darkgray; border-left: 1px solid darkgray">
             <tables-container />
         </div>
         <div class="p-col-12 p-lg-3">
