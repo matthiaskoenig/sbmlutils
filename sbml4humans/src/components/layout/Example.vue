@@ -2,7 +2,7 @@
     <div
         class="shadow-sm"
         v-on:click="getExample()"
-        title="Click to see report for example"
+        :v-tooltip="Click to see report for example"
     >
         <div
             class="p-d-flex p-px-2 p-py-1 p-jc-between"

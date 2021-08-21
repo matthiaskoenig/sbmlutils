@@ -1,7 +1,7 @@
 <template>
     <div class="xml-container">
         <div
-            :title="visible ? 'Hide Code' : 'Show Code'"
+            ::v-tooltip="visible ? 'Hide Code' : 'Show Code'"
             class="p-d-flex"
             style="cursor: pointer"
         >

@@ -103,7 +103,7 @@
             <tr v-if="info.uncertainties != null && info.uncertainties.length > 0">
                 <td class="label-td"><div class="label">uncertainties</div></td>
                 <td>
-                    <ol title="Uncertainties">
+                    <ol :v-tooltip="Uncertainties">
                         <li
                             v-for="uncertainty in info.uncertainties"
                             :key="uncertainty"

@@ -6,10 +6,10 @@ import router from "./router";
 import store from "./store";
 
 // PrimeVue UI package
-import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
+import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
-import 'primeflex/primeflex.css';
+import "primeflex/primeflex.css";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 
 import PrimeVue from "primevue/config";
@@ -29,7 +29,6 @@ import Tag from "primevue/tag";
 import OrderList from "primevue/orderlist";
 import ScrollPanel from "primevue/scrollpanel";
 import DataView from "primevue/dataview";
-
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";

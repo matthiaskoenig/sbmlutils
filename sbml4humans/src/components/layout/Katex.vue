@@ -28,7 +28,7 @@ export default defineComponent({
                     output: "html",
                 });
             } else {
-                return katex.renderToString(this.mathStr, {
+                return katex.renderToString(String(this.mathStr), {
                     throwOnError: false,
                     output: "html",
                 });

@@ -1,9 +1,5 @@
 <template>
-    <div
-        v-for="(pks, sbmlType) in getListOfTables"
-        :key="sbmlType"
-        class="tablesContainer"
-    >
+    <div v-for="(pks, sbmlType) in getListOfTables" :key="sbmlType">
         <div ref="Model" v-if="sbmlType === 'Model' && visibility['Model']">
             <model-table ref="#model-table" :listOfPKs="pks" />
         </div>
@@ -227,5 +223,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

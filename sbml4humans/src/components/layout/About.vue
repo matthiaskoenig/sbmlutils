@@ -1,5 +1,5 @@
 <template>
-    <ScrollPanel style="width: 100%;">
+    <ScrollPanel style="width: 100%">
         <h1>About</h1>
 
         <!-- SBML -->
@@ -7,16 +7,16 @@
             <h2>Systems Biology Markup Language</h2>
 
             <div class="p-d-flex content">
-                <img src="@/assets/images/sbml-logo.png" class="image" width="100"/>
+                <img src="@/assets/images/sbml-logo.png" class="image" width="100" />
                 <p>
                     The Systems Biology Markup Language (<a
                         href="http://sbml.org"
                         target="_blank"
                         >SBML</a
                     >) is a standard format for the representation and exchange of
-                    models. The information in an SBML model file is organized as a
-                    list of components encapsulated within the model (e.g.
-                    compartments, species, parameters, reactions).
+                    models. The information in an SBML model file is organized as a list
+                    of components encapsulated within the model (e.g. compartments,
+                    species, parameters, reactions).
                 </p>
             </div>
         </div>
@@ -31,8 +31,7 @@
                 </a>
                 is to provide an interactive and reactive report for SBML models which
                 which will allow humans (experts as well as beginners) to easily
-                comprehend the content of a model.
-                SBML4Humans is part of the
+                comprehend the content of a model. SBML4Humans is part of the
                 <a target="_blank" href="https://github.com/matthiaskoenig/sbmlutils"
                     >sbmlutils</a
                 >
@@ -64,24 +63,22 @@
         <div class="p-mb-2">
             <h2>Funding</h2>
             <div class="p-d-flex content">
-                <img src="@/assets/images/gsoc.jpeg" class="image" width="100"/>
+                <img src="@/assets/images/gsoc.jpeg" class="image" width="100" />
                 <p>
                     <a href="https://summerofcode.withgoogle.com/"
                         >Google Summer of Code 2021</a
                     >
-                    A global program focused on bringing more student
-                    developers into open source software development.
-                    Students work with an open source organization on a 10
-                    week programming project during their break from school.
+                    A global program focused on bringing more student developers into
+                    open source software development. Students work with an open source
+                    organization on a 10 week programming project during their break
+                    from school.
                 </p>
             </div>
             <div class="p-d-flex content">
                 <p>
-                    Matthias König is supported by the Federal Ministry of Education
-                    and Research (BMBF, Germany) within the research network Systems
-                    Medicine of the Liver (<a
-                        href="https://lisym.org/"
-                        target="_blank"
+                    Matthias König is supported by the Federal Ministry of Education and
+                    Research (BMBF, Germany) within the research network Systems
+                    Medicine of the Liver (<a href="https://lisym.org/" target="_blank"
                         >LiSyM</a
                     >, grant number 031L0054) and by the German Research Foundation
                     (DFG) within the Research Unit Programme FOR 5151 "<a
@@ -89,8 +86,7 @@
                         >QuaLiPerF</a
                     >
                     (Quantifying Liver Perfusion-Function Relationship in Complex
-                    Resection - A Systems Medicine Approach)" by grant number
-                    436883643.
+                    Resection - A Systems Medicine Approach)" by grant number 436883643.
                 </p>
             </div>
         </div>

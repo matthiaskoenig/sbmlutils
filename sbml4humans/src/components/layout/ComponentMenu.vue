@@ -1,28 +1,26 @@
 <template>
     <PanelMenu :model="items">
-        <template #item="{item}">
-             <div
+        <template #item="{ item }">
+            <div
                 class="clickable"
                 v-on:click="focusTable(item.sbmlType)"
-
                 v-if="item.count"
             >
-                 <span :style="`color: ${item.color}`">
-                <font-awesome-icon
-                    :icon="item.icon"
-                    :fixedWidth="true"
-                    :border="false"
-                    size="1x"
-                    class="p-mr-2"
-                ></font-awesome-icon>
-                 </span>
+                <span :style="`color: ${item.color}`">
+                    <font-awesome-icon
+                        :icon="item.icon"
+                        :fixedWidth="true"
+                        :border="false"
+                        size="1x"
+                        class="p-mr-2"
+                    ></font-awesome-icon>
+                </span>
                 <span class="p-mr-2">
-                    <strong>{{ item.sbmlType }}</strong> ({{item.count}})
+                    <strong>{{ item.sbmlType }}</strong> ({{ item.count }})
                 </span>
             </div>
         </template>
     </PanelMenu>
-
 </template>
 
 <script lang="ts">
@@ -63,7 +61,6 @@ export default defineComponent({
 
             return tables;
         },
-
     },
 });
 </script>
@@ -77,6 +74,6 @@ export default defineComponent({
 .clickable:hover {
     cursor: pointer;
     opacity: 100%;
-    background-color: #DFDFDF;
+    background-color: #dfdfdf;
 }
 </style>

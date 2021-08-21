@@ -5,10 +5,10 @@
             <component-menu class="p-mt-2" />
             <document-menu class="p-mt-5" />
         </div>
-        <div class="p-col-12 p-lg-7" style="border-right: 1px solid black;">
+        <div class="p-col-12 p-lg-7 middle">
             <tables-container />
         </div>
-        <div class="p-col-12 p-lg-3">
+        <div class="p-col-12 p-lg-3 middle">
             <detail-container />
         </div>
     </div>
@@ -35,6 +35,7 @@ export default defineComponent({
         DetailContainer,
         TablesContainer,
     },
+
     computed: {
         coreComponents(): Array<Record<string, unknown>> {
             return store.getters.reportBasics;
@@ -44,4 +45,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.middle {
+    border-right: 1px solid #bfbfbf;
+    height: 89vh;
+    overflow-y: scroll;
+}
 </style>

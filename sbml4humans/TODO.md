@@ -1,14 +1,14 @@
 ## TODO
 Layout fixes
-- [ ] make DocumentMenu look like ComponentMenu
-- [ ] table for examples (paginate & search & sort)
-- [ ] click on icon should navigate to home page 
-- [ ] fix offset on navbar or bring on top  
-- [ ] make searchbar 100%  
-- [ ] make report 100%, so only tables scroll
-- [ ] remove pagination if not needed from tables
-- [ ] use tooltips instead of alt/title tags (v-tooltip=)  
-- [ ] render uncertainty nicer (currently only list)
+- [x] make DocumentMenu look like ComponentMenu
+- [x] table for examples (paginate & search & sort)
+- [x] click on icon should navigate to home page 
+- [x] fix offset on navbar or bring on top  
+- [x] make searchbar 100%  
+- [x] make report 100%, so only tables scroll
+- [x] remove pagination if not needed from tables
+- [x] use tooltips instead of alt/title tags (v-tooltip=)  
+- [x] render uncertainty nicer (currently only list)
 
 # ---------------------    
 # MK:

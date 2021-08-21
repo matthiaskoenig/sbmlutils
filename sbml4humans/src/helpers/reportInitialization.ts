@@ -117,8 +117,6 @@ function assembleSBasesInReport(
         }
     });
 
-    //allObjectsMap = createComponentLists(allObjectsMap);
-
     store.dispatch("updateCounts", counts);
     store.dispatch("updateAllObjectsMap", allObjectsMap);
     store.dispatch("updateComponentPKsMap", componentPKsMap);
@@ -174,20 +172,6 @@ function collectSBasesInModel(
     }
 
     return sbasesInModel;
-}
-
-function createComponentLists(allObjectsMap: Record<string, unknown>) {
-    const listsMap: Record<string, Array<string>> = {};
-    listOfSBMLTypes.listOfSBMLTypes.forEach((sbmlType) => {
-        listsMap[sbmlType] = [];
-        for (const pk in allObjectsMap) {
-            if ((allObjectsMap[pk] as Record<string, unknown>).sbmlType === sbmlType) {
-                listsMap[sbmlType].push(pk);
-            }
-        }
-    });
-
-    return allObjectsMap;
 }
 
 export default {

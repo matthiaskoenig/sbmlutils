@@ -74,5 +74,6 @@ export default defineComponent({
     overflow-y: scroll;
     overflow-x: scroll;
     font-size: small;
+    height: 100%;
 }
 </style>
