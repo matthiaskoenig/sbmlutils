@@ -16,11 +16,13 @@ Layout fixes
 - [ ] refactor backend annotation code into into separate package
 
 ## Units
-- [ ] Unit math strings are not longer coming from backend
+- Fix assignments (not listed)
+
 Improve generated latex (backend, MK)
 - [] In components such as Parameters and Rules, units cannot be rendered in Katex as latex conversion is facing problems in the backend.
     - Reason: Most probably the cmathml (returned by the derived units function) is having xml prototypes, which is not being parsed by the cmathml_to_latex function. 
 - [ ] update math string so it contains "sid = math"; eg. "a_tr = " (backend update math strings)
+- replace: alpha, beta, ..., gamma, ....
 
 # Later features
 Report via URL 

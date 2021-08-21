@@ -1,16 +1,15 @@
-"""Helper functions for formating SBML elements."""
+"""Helper functions for formating and rendering units.
+
+# FIXME: use pint or similar thing for simplification of units
+"""
 from typing import Dict, Optional
 
 import libsbml
 import numpy as np
 
+from sbmlutils.report.mathml import astnode_to_latex
 
-# TODO: remove everything besides units from here   ---- done
-# TODO: rename to 'helpers.py'  ---- done
 
-# -------------------------------------------------------------------------------------
-# Units
-# -------------------------------------------------------------------------------------
 UNIT_ABBREVIATIONS = {
     "kilogram": "kg",
     "meter": "m",
@@ -22,19 +21,44 @@ UNIT_ABBREVIATIONS = {
 }
 
 
-def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
+def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[str]:
+    """Convert unit definition to latex."""
+    if ud is None or ud == "None":
+        return None
+
+    if isinstance(ud, str):
+        ud = model.getUnitDefinition(ud)
+        # FIXME: handle internal units
+        # if libsbml.UnitKind_forName(ud):
+
+
+    ud_str: str = udef_to_string(ud)
+    if not ud_str:
+        return None
+
+    astnode = libsbml.parseL3FormulaWithModel(ud_str, model=model)
+    latex = astnode_to_latex(astnode, model=model)
+    print("ud", ud, "latex", latex)
+    return latex
+
+
+def udef_to_string(udef: libsbml.UnitDefinition) -> str:
     """Render formatted string for units.
 
     Units have the general format
         (multiplier * 10^scale *ukind)^exponent
         (m * 10^s *k)^e
 
+    Returns None if udef is None or no units in UnitDefinition.
+
     :param udef: unit definition which is to be converted to string
     """
     if udef is None:
-        return "None"
+        return None
 
+    # order units alphabetically
     libsbml.UnitDefinition_reorder(udef)
+
     # collect formated nominators and denominators
     nom = []
     denom = []
@@ -82,7 +106,7 @@ def unitDefinitionToString(udef: libsbml.UnitDefinition) -> str:
         return nom_str
     if (len(nom_str) == 0) and (len(denom_str) > 0):
         return f"1/({denom_str})"
-    return ""
+    return None
 
 
 def units_dict(udef: libsbml.UnitDefinition) -> Optional[Dict]:
