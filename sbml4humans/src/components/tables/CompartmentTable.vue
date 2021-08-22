@@ -2,7 +2,7 @@
     <div ref="compartmentDiv" class="scrollable">
         <DataTable
             :value="objects"
-            :paginator="true"
+            :paginator="objects.length > 10"
             :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
@@ -18,10 +18,14 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center">
-                    <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+                    <span class="sbmlType">
+                        <font-awesome-icon
+                            :icon="`${icon}`"
+                            :fixed-width="true"
+                            class="p-mr-1"
+                        />
                         {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
-                    </strong>
+                    </span>
                     <span class="p-input-icon-left p-ml-auto">
                         <i class="pi pi-search" />
                         <InputText

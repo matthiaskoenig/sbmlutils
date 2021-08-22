@@ -60,6 +60,7 @@ async def upload_sbml(request: Request) -> Response:
         logger.error(err)
         content = {"error": "SBML Document could not be parsed."}
 
+    print(content)
     return _render_json_content(content)
 
 

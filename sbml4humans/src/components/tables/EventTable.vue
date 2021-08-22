@@ -2,7 +2,7 @@
     <div ref="eventDiv" class="scrollable">
         <DataTable
             :value="objects"
-            :paginator="true"
+            :paginator="objects.length > 10"
             :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
@@ -44,10 +44,13 @@
                 field="name"
                 header="name"
             ></Column>
-            <Column
-                field="useValuesFromTriggerTime"
-                header="useValuesFromTriggerTime"
-            ></Column>
+            <Column field="useValuesFromTriggerTime" header="useValuesFromTriggerTime">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.useValuesFromTriggerTime != null">
+                        <boolean :value="slotProps.data.useValuesFromTriggerTime" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
@@ -68,7 +71,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.trigger.persistent != null">
-                        <katex :mathStr="slotProps.data.trigger.persistent" />
+                        <boolean :value="slotProps.data.trigger.persistent" />
                     </span>
                 </template>
             </Column>

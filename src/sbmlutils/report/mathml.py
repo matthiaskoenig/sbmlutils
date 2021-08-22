@@ -317,6 +317,10 @@ def cmathml_to_pmathml(
     return _expression_to_mathml(expr, printer="presentation", **settings)
 
 
+# TODO: better control over latex generation
+# class with settings and replacements !
+
+
 def formula_to_latex(
     formula: str, model: Optional[libsbml.Model] = None, **settings: Any
 ) -> str:

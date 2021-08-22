@@ -1,23 +1,19 @@
 <template>
-    <div style="width: 85%">
+    <div>
         <h1>Upload SBML</h1>
-
-        <form class="needs-validation" @submit.prevent="submitForm">
-            <div class="form-group p-d-flex">
-                <input
-                    type="file"
-                    ref="fileField"
-                    class="form-control p-mr-2"
-                    v-on:change="handleFileUpload()"
-                    required
-                    title="Click to browse and upload a file from your device"
-                />
-                <button class="btn btn-info" type="submit">Submit</button>
-            </div>
-            <div class="invalid-tooltip">
-                Upload a valid SBML file or COMBINE archive containing SBML
-            </div>
-        </form>
+        <FileUpload
+            :customUpload="true"
+            @uploader="submitForm"
+            :multiple="false"
+            :showCancelButton="false"
+            chooseLabel="Browse"
+            uploadLabel="Submit"
+            :fileLimit="1"
+        >
+            <template #empty>
+                <p>Drag and drop file to upload.</p>
+            </template>
+        </FileUpload>
 
         <loading parent="file" />
     </div>
@@ -46,17 +42,8 @@ export default defineComponent({
     },
 
     methods: {
-        /**
-         * Sets the currently selected file to the latest uploaded file in the form.
-         */
-        handleFileUpload(): void {
-            const fileField = this.$refs.fileField as HTMLInputElement;
-            if (fileField.files != null) {
-                this.file = fileField.files[0];
-            }
-        },
-
-        async submitForm(): Promise<void> {
+        async submitForm(event): Promise<void> {
+            this.file = event.files[0];
             let formData = new FormData();
             formData.append("source", this.file as File);
 
@@ -81,4 +68,8 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+p {
+    margin: 0;
+}
+</style>

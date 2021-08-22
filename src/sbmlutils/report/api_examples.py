@@ -1,7 +1,11 @@
 """Example models for the sbml4humans API."""
 from typing import Dict, List
 
+import libsbml
+
+from sbmlutils.io import read_sbml
 from sbmlutils.test import (
+    BIOMODELS_CURATED_PATH,
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
     COMP_ICG_LIVER,
@@ -10,12 +14,23 @@ from sbmlutils.test import (
     DISTRIB_UNCERTAINTIES_SBML,
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
+    GLUCOSE_SBML,
     REPRESSILATOR_SBML,
 )
 
 
 # Data and Endpoints for Example Models
 examples: List[Dict] = [
+    {
+        "file": GLUCOSE_SBML,
+        "metadata": {
+            "id": "glucose",
+            "name": "Koenig2012 - Glucose",
+            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
+            "packages": [],
+            "keywords": ["kinetic"],
+        },
+    },
     {
         "file": REPRESSILATOR_SBML,
         "metadata": {
@@ -107,5 +122,33 @@ examples: List[Dict] = [
         },
     },
 ]
+
+for k in range(1, 988):
+    if k in [649, 694, 923]:
+        continue
+    biomodel_id = f"BIOMD0000000{k:0>3}"
+    biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
+    doc: libsbml.SBMLDocument = read_sbml(biomodel_path, validate=False)
+    model: libsbml.Model = doc.getModel()
+
+    name = model.getName() if model.isSetName() else None
+    packages = []
+    for k in range(doc.getNumPlugins()):
+        plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
+        packages.append(plugin.getPrefix())
+
+    examples.append(
+        {
+            "file": biomodel_path,
+            "metadata": {
+                "id": biomodel_id,
+                "name": name,
+                "description": "",
+                "packages": packages,
+                "keywords": [],
+            },
+        }
+    )
+
 
 examples_info = {example["metadata"]["id"]: example for example in examples}

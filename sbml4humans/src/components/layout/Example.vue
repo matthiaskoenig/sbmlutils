@@ -1,10 +1,13 @@
 <template>
     <div
-        class="p-card shadow-sm"
+        class="shadow-sm"
         v-on:click="getExample()"
-        title="Click to create report for example"
+        :v-tooltip="Click to see report for example"
     >
-        <div class="p-d-flex p-px-2 p-jc-between" style="background-color: #66c2a5">
+        <div
+            class="p-d-flex p-px-2 p-py-1 p-jc-between"
+            style="background-color: #66c2a5"
+        >
             <div>
                 <font-awesome-icon icon="file-code" class="p-mr-2" />
                 <strong>{{ example.id }}</strong>
@@ -84,5 +87,34 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/Toaster.scss";
+.p-card {
+    margin: 5px 3px;
+    cursor: pointer;
+    //border-radius: 10px 10px 10px 10px !important;
+}
+
+.selector {
+    width: 100px;
+    height: 100%;
+    background-color: green;
+    z-index: 100;
+}
+
+.holder {
+    display: flex;
+    flex-direction: column;
+}
+
+.badge {
+    border-radius: 50%;
+    padding: 2px 5px;
+    text-align: center;
+}
+
+.package-badge {
+    border-radius: 10px;
+    padding: 2px 5px;
+    font-size: 11px;
+    font-weight: 600;
+}
 </style>

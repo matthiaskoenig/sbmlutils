@@ -2,7 +2,7 @@
     <div ref="reactionDiv" class="scrollable">
         <DataTable
             :value="objects"
-            :paginator="true"
+            :paginator="objects.length > 10"
             :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
@@ -84,7 +84,7 @@
             </Column>
             <Column
                 field="kineticLaw"
-                header="kLaw math"
+                header="math"
                 sortable
                 style="width: fit-content"
             >
@@ -101,7 +101,7 @@
             </Column>
             <Column
                 field="kineticLaw"
-                header="kLaw derivedUnits"
+                header="derivedUnits"
                 sortable
                 style="width: fit-content"
             >

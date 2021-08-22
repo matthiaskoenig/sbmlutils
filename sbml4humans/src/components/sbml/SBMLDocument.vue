@@ -46,7 +46,7 @@
             </div>
             <div class="p-ml-4" v-if="info.packages.plugins != null">
                 plugins:
-                <ul class="p-ml-4" title="List of Plugins">
+                <ul class="p-ml-4" :v-tooltip="List of Plugins">
                     <li
                         v-for="plugin in info.packages.plugins"
                         :key="plugin.prefix + plugin.version"

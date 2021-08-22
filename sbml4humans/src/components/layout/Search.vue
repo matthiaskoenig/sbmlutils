@@ -1,28 +1,23 @@
 <template>
-    <div class="p-d-flex">
-        <font-awesome-icon icon="search" class="p-mx-2 p-mt-2" />
-        <input
-            class="form-control"
+    <span class="p-input-icon-left">
+        <i class="pi pi-search" />
+        <InputText
             type="text"
-            placeholder="Search in SBML"
             @input="updateSearchQuery"
-            style="font-size: small"
+            placeholder="Search in SBML"
         />
-    </div>
+    </span>
 </template>
 
 <script lang="ts">
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
-/**
- * Component to make search queries on the SBML objectss present in the report.
- */
 export default defineComponent({
     methods: {
         /**
-         * Updates the searchQuery in Vuex state/localStorage to the currently searched string
-         * in the search box.
+         * Updates the searchQuery in Vuex state/localStorage to the currently
+         * searched string in the search box.
          */
         updateSearchQuery(e: Event): void {
             store.dispatch("updateSearchQuery", (e.target as HTMLInputElement).value);

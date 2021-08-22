@@ -1,27 +1,15 @@
 <template>
-    <div class="container-fluid">
-        <div class="report-container">
-            <div class="left">
-                <div class="navbar">
-                    <router-link class="navbar-brand" to="/">
-                        <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
-                        SBML4Humans
-                    </router-link>
-
-                    <search-and-filter
-                        class="p-mt-2"
-                        v-if="['Report', 'report'].includes($route.name)"
-                    ></search-and-filter>
-                </div>
-
-                <list-of-SBases />
-            </div>
-            <div class="middle">
-                <tables-container />
-            </div>
-            <div class="right">
-                <detail-container />
-            </div>
+    <div class="p-grid p-p-2">
+        <div class="p-col-12 p-lg-2">
+            <search class="p-ml-2" v-if="['Report', 'report'].includes($route.name)" />
+            <component-menu class="p-mt-2" />
+            <document-menu class="p-mt-5" />
+        </div>
+        <div class="p-col-12 p-lg-7 middle">
+            <tables-container />
+        </div>
+        <div class="p-col-12 p-lg-3 middle">
+            <detail-container />
         </div>
     </div>
 </template>
@@ -30,87 +18,36 @@
 import store from "@/store/index";
 import { defineComponent } from "vue";
 
-/* Compartments */
 import DetailContainer from "@/components/layout/DetailContainer.vue";
 import TablesContainer from "@/components/layout/TablesContainer.vue";
-import ListOfSBases from "@/components/sbmlmisc/ListOfSBases.vue";
-import SearchAndFilter from "@/components/layout/SearchAndFilter.vue";
+import Search from "@/components/layout/Search.vue";
+import ComponentMenu from "@/components/layout/ComponentMenu.vue";
+import DocumentMenu from "@/components/layout/DocumentMenu.vue";
 
 /**
  * Component to hold all components to show the generated report.
  */
 export default defineComponent({
     components: {
+        Search,
+        ComponentMenu,
+        DocumentMenu,
         DetailContainer,
         TablesContainer,
-        ListOfSBases,
-        SearchAndFilter,
-    },
-
-    methods: {
-        toggleDetailVisibility(): void {
-            store.dispatch("toggleDetailVisibility");
-        },
     },
 
     computed: {
-        detailVisibility(): boolean {
-            return store.state.detailVisibility;
+        coreComponents(): Array<Record<string, unknown>> {
+            return store.getters.reportBasics;
         },
     },
 });
 </script>
 
 <style lang="scss" scoped>
-.navbar {
-    margin-bottom: 10%;
-    padding: 0;
-}
-
-.navbar-brand {
-    color: black;
-}
-
-.logo {
-    height: 30px;
-    margin-right: 2px;
-}
-
-.report-container {
-    height: 100vh;
-    display: flex;
-}
-
-.left {
-    width: 15%;
-    margin-right: 10px;
-    padding-top: 10px;
-}
-
 .middle {
-    width: 58%;
+    border-right: 1px solid #bfbfbf;
+    height: 89vh;
     overflow-y: scroll;
-    padding-top: 10px;
-}
-
-.right {
-    width: 27%;
-    padding-top: 10px;
-}
-
-.detailHideButton {
-    position: absolute;
-    width: 50px;
-    height: 50px;
-    bottom: 20px;
-    right: 30px;
-
-    text-align: center;
-
-    border-radius: 25px;
-    background-color: #5bc0de;
-    cursor: pointer;
-
-    z-index: 100;
 }
 </style>

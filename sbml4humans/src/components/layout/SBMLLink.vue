@@ -64,7 +64,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/scss/Toaster.scss";
+//@import "@/assets/styles/scss/Toaster.scss";
 
 .tablet {
     padding: 1px 0px;

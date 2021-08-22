@@ -1,145 +1,53 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <router-link class="navbar-brand" to="/">
-            <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
-            SBML4Humans
-        </router-link>
-
-        <!-- Search and Filter component (visible only in report view) -->
-        <!--<search-and-filter
-            v-if="['Report', 'report'].includes($route.name)"
-        ></search-and-filter>-->
-
-        <!-- Static switch -->
-        <!--
-        <div class="static p-ml-auto" title="Turn ON Static to disconnect from the API">
-            <p class="label">Static</p>
-            <label class="switch">
-                <input
-                    ref="static-switch"
-                    type="checkbox"
-                    :checked="staticStatus"
-                    @change="handleSwitchChange()"
+    <menubar :model="items">
+        <template #start>
+            <router-link to="/" style="display: flex; color: black">
+                <img
+                    alt="logo"
+                    src="@/assets/images/sbmlutils-logo-60.png"
+                    height="35"
                 />
-                <span class="slider round"></span>
-            </label>
-        </div>
-        -->
-    </nav>
+                <img alt="logo" src="@/assets/images/people.png" height="35" />
+                <span class="sbml4humans p-mx-3">SBML4Humans</span>
+            </router-link>
+        </template>
+    </menubar>
 </template>
 
 <script lang="ts">
-import store from "@/store/index";
 import { defineComponent } from "vue";
 
 /**
  * Navbar component for providing main links in the application
  */
 export default defineComponent({
-    data(): Record<string, unknown> {
+    data() {
         return {
-            // stores a copy of the browser's localStorage (not in use currently, FIXME!!)
-            staticStatus: window.localStorage.getItem("static") === "true",
+            items: [
+                {
+                    label: "Home",
+                    icon: "pi pi-fw pi-home",
+                    to: "/",
+                },
+                {
+                    label: "Report issue",
+                    icon: "pi pi-fw pi-pencil",
+                    url: "https://github.com/matthiaskoenig/sbmlutils/issues/new/choose",
+                },
+                {
+                    label: "Source",
+                    icon: "pi pi-fw pi-github",
+                    url: "https://github.com/matthiaskoenig/sbmlutils",
+                },
+            ],
         };
-    },
-
-    methods: {
-        handleSwitchChange(): void {
-            const staticSwitch = this.$refs["static-switch"] as HTMLInputElement;
-            if (staticSwitch.checked) {
-                store.dispatch("updateStatic", true);
-                this.staticStatus = window.localStorage.getItem("static") === "true";
-            } else {
-                store.dispatch("updateStatic", false);
-                this.staticStatus = window.localStorage.getItem("static") === "true";
-            }
-        },
     },
 });
 </script>
 
 <style lang="scss" scoped>
-.logo {
-    height: 40px;
-    margin-right: 10px;
-}
-
-.static {
-    height: inherit;
-    display: flex;
-    flex-direction: row;
-}
-
-.label {
-    color: black;
-    margin-right: 7px;
-    height: max-content;
-    margin-top: auto;
-    margin-bottom: auto;
-}
-
-/* Toggle Switch */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-    margin-top: auto;
-    margin-bottom: auto;
-}
-
-/* Hide default HTML checkbox */
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* The slider */
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: 0.4s;
-    transition: 0.4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 0px;
-    bottom: 0px;
-    background-color: white;
-    -webkit-transition: 0.4s;
-    transition: 0.4s;
-}
-
-input:checked + .slider {
-    background-color: #2196f3;
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px #2196f3;
-}
-
-input:checked + .slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-    border-radius: 20px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
+.sbml4humans {
+    font-family: "Roboto Slab", serif;
+    font-size: 30px;
 }
 </style>

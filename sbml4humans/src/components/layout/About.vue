@@ -1,32 +1,29 @@
 <template>
-    <div>
+    <ScrollPanel style="width: 100%">
         <h1>About</h1>
 
         <!-- SBML -->
         <div class="p-mb-2">
-            <div class="section-header">Systems Biology Markup Language</div>
-            <div class="content">
-                <div class="p-grid">
-                    <div class="p-col-2">
-                        <img class="logo" src="@/assets/images/sbmlutils-logo-60.png" />
-                    </div>
-                    <div class="p-col-10">
-                        The Systems Biology Markup Language (<a
-                            href="http://sbml.org"
-                            target="_blank"
-                            >SBML</a
-                        >) is a standard format for the representation and exchange of
-                        models. The information in an SBML model file is organized as a
-                        list of components encapsulated within the model (e.g.
-                        compartments, species, parameters, reactions).
-                    </div>
-                </div>
+            <h2>Systems Biology Markup Language</h2>
+
+            <div class="p-d-flex content">
+                <img src="@/assets/images/sbml-logo.png" class="image" width="100" />
+                <p>
+                    The Systems Biology Markup Language (<a
+                        href="http://sbml.org"
+                        target="_blank"
+                        >SBML</a
+                    >) is a standard format for the representation and exchange of
+                    models. The information in an SBML model file is organized as a list
+                    of components encapsulated within the model (e.g. compartments,
+                    species, parameters, reactions).
+                </p>
             </div>
         </div>
 
         <!-- SBML4Humans -->
-        <div class="p-mb-4">
-            <div class="section-header">SBML4Humans</div>
+        <div class="p-mb-2">
+            <h2>SBML4Humans</h2>
             <div class="content">
                 The objective of the project
                 <a href="https://sbml4humans-gsoc-2021.blogspot.com/" target="_blank">
@@ -34,9 +31,7 @@
                 </a>
                 is to provide an interactive and reactive report for SBML models which
                 which will allow humans (experts as well as beginners) to easily
-                comprehend the content of a model.
-                <br />
-                SBML4Humans is part of the
+                comprehend the content of a model. SBML4Humans is part of the
                 <a target="_blank" href="https://github.com/matthiaskoenig/sbmlutils"
                     >sbmlutils</a
                 >
@@ -44,9 +39,9 @@
             </div>
         </div>
 
-        <!-- Development Team -->
-        <div>
-            <div class="section-header">Development Team</div>
+        <!-- Team -->
+        <div class="p-mb-2">
+            <h2>Team</h2>
             <div class="content">
                 <ul title="Developers">
                     <li>
@@ -65,52 +60,40 @@
         </div>
 
         <!-- Funding -->
-        <div>
-            <div class="section-header">Funding</div>
-            <div class="content">
-                <ul>
-                    <li>
-                        <div class="p-grid">
-                            <div class="p-col-2">
-                                <img class="gsoc" src="@/assets/images/gsoc.jpeg" />
-                            </div>
-                            <div class="p-col-10">
-                                <span>
-                                    <a href="https://summerofcode.withgoogle.com/"
-                                        >Google Summer of Code 2021</a
-                                    >
-                                    A global program focused on bringing more student
-                                    developers into open source software development.
-                                    Students work with an open source organization on a
-                                    10 week programming project during their break from
-                                    school.
-                                </span>
-                            </div>
-                        </div>
-                    </li>
-                    <li>
-                        Matthias König is supported by the Federal Ministry of Education
-                        and Research (BMBF, Germany) within the research network Systems
-                        Medicine of the Liver (<a
-                            href="https://lisym.org/"
-                            target="_blank"
-                            >LiSyM</a
-                        >, grant number 031L0054) and by the German Research Foundation
-                        (DFG) within the Research Unit Programme FOR 5151 "<a
-                            href="https://qualiperf.de"
-                            >QuaLiPerF</a
-                        >
-                        (Quantifying Liver Perfusion-Function Relationship in Complex
-                        Resection - A Systems Medicine Approach)" by grant number
-                        436883643.
-                    </li>
-                </ul>
+        <div class="p-mb-2">
+            <h2>Funding</h2>
+            <div class="p-d-flex content">
+                <img src="@/assets/images/gsoc.jpeg" class="image" width="100" />
+                <p>
+                    <a href="https://summerofcode.withgoogle.com/"
+                        >Google Summer of Code 2021</a
+                    >
+                    A global program focused on bringing more student developers into
+                    open source software development. Students work with an open source
+                    organization on a 10 week programming project during their break
+                    from school.
+                </p>
+            </div>
+            <div class="p-d-flex content">
+                <p>
+                    Matthias König is supported by the Federal Ministry of Education and
+                    Research (BMBF, Germany) within the research network Systems
+                    Medicine of the Liver (<a href="https://lisym.org/" target="_blank"
+                        >LiSyM</a
+                    >, grant number 031L0054) and by the German Research Foundation
+                    (DFG) within the Research Unit Programme FOR 5151 "<a
+                        href="https://qualiperf.de"
+                        >QuaLiPerF</a
+                    >
+                    (Quantifying Liver Perfusion-Function Relationship in Complex
+                    Resection - A Systems Medicine Approach)" by grant number 436883643.
+                </p>
             </div>
         </div>
 
         <!-- Citation -->
-        <div>
-            <div class="section-header">Citation</div>
+        <div class="p-mb-2">
+            <h2>Citation</h2>
             <div class="content">
                 <ul>
                     <li>
@@ -134,7 +117,7 @@
                 </ul>
             </div>
         </div>
-    </div>
+    </ScrollPanel>
 </template>
 
 <script lang="ts">
@@ -153,16 +136,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.logo {
-    height: 40px;
-    margin: 25px 0;
+.image {
+    max-width: 100%;
+    margin: auto 30px;
 }
-
-.gsoc {
-    height: 100px;
-    width: 100px;
-}
-
 .content {
     text-align: justify;
 }

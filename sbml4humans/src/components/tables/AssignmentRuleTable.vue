@@ -2,7 +2,7 @@
     <div ref="assignmentRuleDiv" class="scrollable">
         <DataTable
             :value="objects"
-            :paginator="true"
+            :paginator="objects.length > 10"
             :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"

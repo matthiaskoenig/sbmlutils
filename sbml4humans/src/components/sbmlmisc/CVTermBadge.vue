@@ -1,9 +1,9 @@
 <template>
-    <div class="p-d-flex">
-        <div class="badge badge-success qualifier">{{ qualifier }}</div>
-        <a :href="resource" target="_blank" class="badge badge-warning resource">{{
-            resource
-        }}</a>
+    <div class="p-d-flex p-mt-2">
+        <Tag :value="qualifier" severity="success" class="qualifier"></Tag>
+        <Tag :value="qualifier" severity="warning" class="resource">
+            <a :href="resource" target="_blank" class="resource">{{ resource }}</a>
+        </Tag>
     </div>
     <div class="p-mt-1 p-mb-2 p-ml-2" v-if="addInfo != null">
         <strong>{{ addInfo.name }}:</strong> {{ addInfo.definition }} <br />
@@ -39,7 +39,6 @@ export default defineComponent({
         const parts = this.resource.split("/");
         const resourceID = parts[parts.length - 1];
         additionalInfoUtils.fetchAdditionalInfo(resourceID).then((res) => {
-            console.log(res);
             this.addInfo = res as Record<string, unknown>;
         });
     },
@@ -49,9 +48,15 @@ export default defineComponent({
 <style lang="scss" scoped>
 .qualifier {
     border-radius: 5px 0 0 5px;
+    padding: 0 5px !important;
 }
 
 .resource {
+    color: black;
     border-radius: 0px 5px 5px 0;
+}
+
+.p-tag {
+    padding: 0 5px !important;
 }
 </style>

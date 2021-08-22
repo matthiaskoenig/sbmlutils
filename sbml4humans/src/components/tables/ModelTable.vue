@@ -2,7 +2,7 @@
     <div ref="modelDiv" class="scrollable">
         <DataTable
             :value="objects"
-            :paginator="true"
+            :paginator="objects.length > 10"
             :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
@@ -49,7 +49,8 @@
                 style="width: fit-content"
                 field="substanceUnits"
                 header="substanceUnits"
-            ></Column>
+            >
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
