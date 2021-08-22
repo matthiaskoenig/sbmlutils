@@ -14,8 +14,8 @@ import numpy as np
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
-from sbmlutils.report.units import udef_to_latex
 from sbmlutils.report.mathml import astnode_to_latex
+from sbmlutils.report.units import udef_to_latex
 
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
@@ -520,15 +520,9 @@ class SBMLDocumentInfo:
             for key in ["spatialDimensions", "size", "constant"]:
                 d[key] = _get_sbase_attribute(c, key)
 
-            d["units_sid"] = (
-                c.getUnits() if c.isSetUnits() else None
-            )
-            d["units"] = (
-                udef_to_latex(d['units_sid'], model=model)
-            )
-            d["derivedUnits"] = udef_to_latex(
-                c.getDerivedUnitDefinition(), model=model
-            )
+            d["units_sid"] = c.getUnits() if c.isSetUnits() else None
+            d["units"] = udef_to_latex(d["units_sid"], model=model)
+            d["derivedUnits"] = udef_to_latex(c.getDerivedUnitDefinition(), model=model)
 
             if c.pk in assignments:
                 d["assignment"] = assignments[c.pk]
@@ -561,15 +555,9 @@ class SBMLDocumentInfo:
             ]:
                 d[key] = _get_sbase_attribute(s, key)
 
-            d["units_sid"] = (
-                s.getUnits() if s.isSetUnits() else None
-            )
-            d["units"] = (
-                udef_to_latex(d['units_sid'], model=model)
-            )
-            d["derivedUnits"] = udef_to_latex(
-                s.getDerivedUnitDefinition(), model=model
-            )
+            d["units_sid"] = s.getUnits() if s.isSetUnits() else None
+            d["units"] = udef_to_latex(d["units_sid"], model=model)
+            d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
             if s.pk in assignments:
                 d["assignment"] = assignments[s.pk]
@@ -629,15 +617,9 @@ class SBMLDocumentInfo:
 
             d["value"] = value
             d["constant"] = p.getConstant() if p.isSetConstant() else None
-            d["units_sid"] = (
-                p.getUnits() if p.isSetUnits() else None
-            )
-            d["units"] = (
-                udef_to_latex(d['units_sid'], model=model)
-            )
-            d["derivedUnits"] = udef_to_latex(
-                p.getDerivedUnitDefinition(), model=model
-            )
+            d["units_sid"] = p.getUnits() if p.isSetUnits() else None
+            d["units"] = udef_to_latex(d["units_sid"], model=model)
+            d["derivedUnits"] = udef_to_latex(p.getDerivedUnitDefinition(), model=model)
 
             if p.pk in assignments:
                 d["assignment"] = assignments[p.pk]
@@ -783,7 +765,9 @@ class SBMLDocumentInfo:
                             lp.getDerivedUnitDefinition(), model=model
                         ),
                     }
-                    lpar_info["units"] = udef_to_latex(lpar_info['units_sid'], model=model)
+                    lpar_info["units"] = udef_to_latex(
+                        lpar_info["units_sid"], model=model
+                    )
                     d_law["localParameters"].append(lpar_info)
                 d["kineticLaw"] = d_law
             else:

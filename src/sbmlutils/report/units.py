@@ -31,18 +31,17 @@ def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[
         # FIXME: handle internal units
         # if libsbml.UnitKind_forName(ud):
 
-
-    ud_str: str = udef_to_string(ud)
+    ud_str: Optional[str] = udef_to_string(ud)
     if not ud_str:
         return None
 
     astnode = libsbml.parseL3FormulaWithModel(ud_str, model=model)
     latex = astnode_to_latex(astnode, model=model)
-    print("ud", ud, "latex", latex)
+    # print("ud", ud, "latex", latex)
     return latex
 
 
-def udef_to_string(udef: libsbml.UnitDefinition) -> str:
+def udef_to_string(udef: libsbml.UnitDefinition) -> Optional[str]:
     """Render formatted string for units.
 
     Units have the general format

@@ -4,8 +4,8 @@ from typing import Dict, List
 import libsbml
 
 from sbmlutils.io import read_sbml
-
 from sbmlutils.test import (
+    BIOMODELS_CURATED_PATH,
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
     COMP_ICG_LIVER,
@@ -16,7 +16,6 @@ from sbmlutils.test import (
     FBC_RECON3D_SBML,
     GLUCOSE_SBML,
     REPRESSILATOR_SBML,
-    BIOMODELS_CURATED_PATH,
 )
 
 
@@ -124,10 +123,6 @@ examples: List[Dict] = [
     },
 ]
 
-
-biomodels_paths = []
-# for k in range(1, 988)
-
 for k in range(1, 988):
     if k in [649, 694, 923]:
         continue
@@ -142,17 +137,18 @@ for k in range(1, 988):
         plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
         packages.append(plugin.getPrefix())
 
-
-    examples.append({
-        "file": biomodel_path,
-        "metadata": {
-            "id": biomodel_id,
-            "name": name,
-            "description": "",
-            "packages": packages,
-            "keywords": [],
+    examples.append(
+        {
+            "file": biomodel_path,
+            "metadata": {
+                "id": biomodel_id,
+                "name": name,
+                "description": "",
+                "packages": packages,
+                "keywords": [],
+            },
         }
-    })
+    )
 
 
 examples_info = {example["metadata"]["id"]: example for example in examples}
