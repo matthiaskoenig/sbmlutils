@@ -2,7 +2,7 @@
 
 ## Technology
 1. Backend API: ```sbmlutils``` Python package served using FastAPI service [https://fastapi.tiangolo.com/]
-2. Frontend User Interface: Build using Vue.js [https://vuejs.org/]
+2. Frontend User Interface: Build using Vue.js 3 [https://vuejs.org/]
     - TypeScript + SCSS
     - Vuex
     - Vue Router
@@ -18,6 +18,7 @@ https://github.com/vuejs/vue-devtools/releases
 
 ### Install all dependencies
 ```
+cd sbml4humans
 npm install
 ```
 

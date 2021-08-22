@@ -10,8 +10,6 @@ cp <repo>/nginx/sbml4humans.de /etc/nginx/sites-available/sbml4humans.de
 sudo ln -s /etc/nginx/sites-available/sbml4humans.de /etc/nginx/sites-enabled/
 ```
 
- 
-
 ### Certificates
 #### Initial certificates
 ```
@@ -20,7 +18,6 @@ sudo certbot certonly
 sudo service nginx start
 sudo service nginx status
 ```
-
 
 #### Certificate renewal
 ```
