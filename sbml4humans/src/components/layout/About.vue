@@ -7,7 +7,9 @@
             <h2>Systems Biology Markup Language</h2>
 
             <div class="p-d-flex content">
-                <img src="@/assets/images/sbml-logo.png" class="image" width="100" />
+                <a href="http://sbml.org" class="image">
+                    <img src="@/assets/images/sbml-logo.png" width="100" />
+                </a>
                 <p>
                     The Systems Biology Markup Language (<a
                         href="http://sbml.org"
@@ -63,7 +65,9 @@
         <div class="p-mb-2">
             <h2>Funding</h2>
             <div class="p-d-flex content">
-                <img src="@/assets/images/gsoc.jpeg" class="image" width="100" />
+                <a href="https://summerofcode.withgoogle.com/" class="image"
+                    ><img src="@/assets/images/gsoc.jpeg" width="100"
+                /></a>
                 <p>
                     <a href="https://summerofcode.withgoogle.com/"
                         >Google Summer of Code 2021</a
@@ -138,6 +142,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .image {
     max-width: 100%;
+    height: auto;
     margin: auto 30px;
 }
 .content {
