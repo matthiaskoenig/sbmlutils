@@ -56,9 +56,10 @@
             <tr v-if="info.assignment != null">
                 <td class="label-td"><div class="label">assignment</div></td>
                 <td>
-                    <span
-                        >{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span
-                    >
+                    <SBMLLink
+                        :pk="info.assignment.pk"
+                        :sbmlType="String(info.assignment.sbmlType)"
+                    />
                 </td>
             </tr>
             <tr

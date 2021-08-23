@@ -208,6 +208,7 @@ class SBMLDocumentInfo:
             if pk_symbol:
                 assignments[pk_symbol] = {
                     "pk": self._get_pk(initial_assignment),
+                    "id": pk_symbol,
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
 
@@ -217,6 +218,7 @@ class SBMLDocumentInfo:
             if pk_symbol:
                 assignments[pk_symbol] = {
                     "pk": self._get_pk(rule),
+                    "id": pk_symbol,
                     "sbmlType": self._sbml_type(rule),
                 }
 
@@ -524,8 +526,8 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(c.getDerivedUnitDefinition(), model=model)
 
-            if c.pk in assignments:
-                d["assignment"] = assignments[c.pk]
+            if c.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[c.pk.split(':')[-1]]
 
             compartments.append(d)
 
@@ -559,8 +561,9 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
-            if s.pk in assignments:
-                d["assignment"] = assignments[s.pk]
+            print(s.pk.split(':')[-1])
+            if s.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[s.pk.split(':')[-1]]
 
             if s.isSetConversionFactor():
                 cf_sid = s.getConversionFactor()
@@ -621,8 +624,8 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(p.getDerivedUnitDefinition(), model=model)
 
-            if p.pk in assignments:
-                d["assignment"] = assignments[p.pk]
+            if p.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[p.pk.split(':')[-1]]
 
             parameters.append(d)
 

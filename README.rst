@@ -49,7 +49,7 @@ with source code available from `https://github.com/matthiaskoenig/sbmlutils <ht
 Features include among others
 
 -  helper functions for model creation, manipulation, and annotation
--  HTML reports of SBML models
+-  HTML reports of SBML models `https://sbml4humans.de <https://sbml4humans.de>`__.
 -  interpolation functions to add experimental data to models
 -  file converters (XPP)
 
@@ -95,8 +95,11 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 Funding
 =======
 Matthias König is supported by the Federal Ministry of Education and Research (BMBF, Germany)
-within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054).
-
+within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054) 
+and by the German Research Foundation (DFG) within the Research Unit Programme FOR 5151 
+"`QuaLiPerF <https://qualiperf.de>`__ (Quantifying Liver Perfusion-Function Relationship in Complex Resection - 
+A Systems Medicine Approach)" by grant number 436883643.
+SBML4Humans was funded as part of `Google Summer of Code 2021 <https://summerofcode.withgoogle.com/>`__.
 
 Installation
 ============
