@@ -29,30 +29,28 @@
             <tr v-if="info.history != null">
                 <td class="label-td"><div class="label">history</div></td>
                 <td>
-                    <div>
-                        <div>createdDate:</div>
-                        {{ info.history.createdDate }}
-                        <br />
-                        <div>creators:</div>
-                        <ul title="Creators">
-                            <li
-                                v-for="creator in info.history.creators"
-                                :key="creator.email"
-                            >
-                                {{ creator.givenName }} {{ creator.familyName }},
-                                {{ creator.organization }} (<a
-                                    :href="`mailto:${creator.email}`"
-                                    >{{ creator.email }}</a
-                                >)
-                            </li>
-                        </ul>
-                        <div>modifiedDates:</div>
-                        <ul title="Dates Modified">
-                            <li v-for="date in info.history.modifiedDates" :key="date">
-                                {{ date }}
-                            </li>
-                        </ul>
-                    </div>
+                    createdDate:
+                    {{ info.history.createdDate }}
+                    <br />
+                    <div>creators:</div>
+                    <ul title="Creators">
+                        <li
+                            v-for="creator in info.history.creators"
+                            :key="creator.email"
+                        >
+                            {{ creator.givenName }} {{ creator.familyName }},
+                            {{ creator.organization }} (<a
+                                :href="`mailto:${creator.email}`"
+                                >{{ creator.email }}</a
+                            >)
+                        </li>
+                    </ul>
+                    <div>modifiedDates:</div>
+                    <ul title="Dates Modified">
+                        <li v-for="date in info.history.modifiedDates" :key="date">
+                            {{ date }}
+                        </li>
+                    </ul>
                 </td>
             </tr>
 
