@@ -14,6 +14,11 @@
             </div>
         </div>
 
+        <div v-if="info.notes != null">
+            <strong>notes</strong> <br />
+            <pre class="p-ml-4">{{ info.notes }}</pre>
+        </div>
+
         <CodeContainer :info="info" />
     </div>
 </template>
