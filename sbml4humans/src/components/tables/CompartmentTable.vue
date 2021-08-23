@@ -98,7 +98,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.assignment != null">
-                        {{ slotProps.data.assignment.pk }} ({{
+                        {{ slotProps.data.assignment.id }} ({{
                             slotProps.data.assignment.sbmlType
                         }})
                     </span>

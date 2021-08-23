@@ -26,9 +26,10 @@
             <tr v-if="info.assignment != null">
                 <td class="label-td"><div class="label">assignment</div></td>
                 <td>
-                    <span
-                        >{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span
-                    >
+                    <SBMLLink
+                        :pk="info.assignment.pk"
+                        :sbmlType="String(info.assignment.sbmlType)"
+                    />
                 </td>
             </tr>
         </tbody>
@@ -41,6 +42,7 @@ import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
 import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
+import SBMLLink from "@/components/layout/SBMLLink.vue";
 
 /**
  * Component to define display of Parameter objects.
@@ -49,6 +51,7 @@ export default defineComponent({
     components: {
         Katex,
         BooleanSymbol,
+        SBMLLink,
     },
 
     props: {
