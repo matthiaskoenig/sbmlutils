@@ -10,8 +10,6 @@ cp <repo>/nginx/sbml4humans.de /etc/nginx/sites-available/sbml4humans.de
 sudo ln -s /etc/nginx/sites-available/sbml4humans.de /etc/nginx/sites-enabled/
 ```
 
- 
-
 ### Certificates
 #### Initial certificates
 ```
@@ -21,7 +19,6 @@ sudo service nginx start
 sudo service nginx status
 ```
 
-
 #### Certificate renewal
 ```
 sudo mkdir -p /usr/share/nginx/letsencrypt
@@ -30,7 +27,7 @@ sudo certbot certonly --webroot
 
 ## Setup server
 On the actual server the containers are orchestrated using `docker-compose`.
-Login to server `denbi-node2`.
+Login to server `denbi-node-2`.
 
 ### Initial setup
 ```

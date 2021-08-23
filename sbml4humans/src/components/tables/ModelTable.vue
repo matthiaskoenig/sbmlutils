@@ -48,45 +48,86 @@
                 sortable
                 style="width: fit-content"
                 field="substanceUnits"
-                header="substanceUnits"
+                header="substance Units"
             >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.substanceUnits != null">
+                        <katex :mathStr="slotProps.data.substanceUnits" />
+                    </span>
+                </template>
             </Column>
             <Column
                 sortable
                 style="width: fit-content"
                 field="timeUnits"
-                header="timeUnits"
-            ></Column>
+                header="time Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.timeUnits != null">
+                        <katex :mathStr="slotProps.data.timeUnits" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
                 field="lengthUnits"
-                header="lengthUnits"
-            ></Column>
+                header="length Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.lengthUnits != null">
+                        <katex :mathStr="slotProps.data.lengthUnits" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
                 field="areaUnits"
-                header="areaUnits"
-            ></Column>
+                header="area Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.areaUnits != null">
+                        <katex :mathStr="slotProps.data.areaUnits" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
                 field="volumeUnits"
-                header="volumeUnits"
-            ></Column>
+                header="volume Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.volumeUnits != null">
+                        <katex :mathStr="slotProps.data.volumeUnits" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
                 field="extentUnits"
-                header="extentUnits"
-            ></Column>
+                header="extent Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.extentUnits != null">
+                        <katex :mathStr="slotProps.data.extentUnits" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
                 field="conversionFactor"
-                header="conversionFactor"
-            ></Column>
+                header="conversion Factor"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.conversionFactor != null">
+                        <katex :mathStr="slotProps.data.conversionFactor" />
+                    </span>
+                </template>
+            </Column>
         </DataTable>
     </div>
 </template>
