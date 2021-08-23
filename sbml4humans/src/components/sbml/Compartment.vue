@@ -30,10 +30,11 @@
             <tr v-if="info.assignment != null">
                 <td class="label-td"><div class="label">assignment</div></td>
                 <td>
-                    <SBMLLink
+                    <katex :mathStr="info.assignment.math" />
+                    <!--<SBMLLink
                         :pk="info.assignment.pk"
                         :sbmlType="String(info.assignment.sbmlType)"
-                    />
+                    />-->
                 </td>
             </tr>
             <tr v-if="info.species && info.species.length">
@@ -60,70 +61,6 @@
             </tr>
         </tbody>
     </table>
-
-    <!-- <div class="data" v-if="info.spatialDimensions != null">
-        <div class="label">
-            <strong>spatialDimensions:</strong> {{ info.spatialDimensions }}
-        </div>
-    </div>
-
-    <div class="data" v-if="info.size != null">
-        <div class="label"><strong>size:</strong> {{ info.size }}</div>
-    </div>
-
-    <div class="data" v-if="info.constant != null">
-        <div class="label">
-            <strong>constant:</strong
-            ><boolean-symbol
-                v-if="info.constant === Boolean(true)"
-                :value="info.constant"
-            />
-            <boolean-symbol v-else :value="Boolean(false)" />
-        </div>
-    </div>
-
-    <div class="data" v-if="info.units != null">
-        <div class="label">
-            <strong>units:</strong>
-            <katex :mathStr="info.units" />
-        </div>
-    </div>
-
-    <div class="data" v-if="info.derivedUnits != null">
-        <div class="label">
-            <strong>derivedUnits:</strong>
-            <katex :mathStr="info.derivedUnits" />
-        </div>
-    </div>
-
-    <div class="data" v-if="info.assignment != null">
-        <div class="label">
-            <strong>assignment:</strong>
-            <span>{{ info.assignment.pk }} ({{ info.assignment.sbmlType }})</span>
-        </div>
-    </div>
-
-    <div class="data w-100" v-if="info.species != null">
-        <div class="label">
-            <strong>relatedSpecies:</strong>
-        </div>
-        <div class="p-ml-4 tag-list">
-            <div v-for="species in info.species" :key="species">
-                <SBMLLink :pk="species" :sbmlType="String('Species')" />
-            </div>
-        </div>
-    </div>
-
-    <div class="data w-100" v-if="info.reaction != null">
-        <div class="label">
-            <strong>relatedReactions:</strong>
-        </div>
-        <div class="p-ml-4 tag-list">
-            <div v-for="reaction in info.reaction" :key="reaction">
-                <SBMLLink :pk="reaction" :sbmlType="String('Reaction')" />
-            </div>
-        </div>
-    </div> -->
 </template>
 
 <script lang="ts">

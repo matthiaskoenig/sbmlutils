@@ -209,6 +209,7 @@ class SBMLDocumentInfo:
                 assignments[pk_symbol] = {
                     "pk": self._get_pk(initial_assignment),
                     "id": pk_symbol,
+                    "math": astnode_to_latex(initial_assignment.getMath(), model=model),
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
 
@@ -219,6 +220,11 @@ class SBMLDocumentInfo:
                 assignments[pk_symbol] = {
                     "pk": self._get_pk(rule),
                     "id": pk_symbol,
+                    "math": (
+                        astnode_to_latex(rule.getMath(), model=model)
+                        if rule.isSetMath()
+                        else None
+                    ),
                     "sbmlType": self._sbml_type(rule),
                 }
 
@@ -561,7 +567,6 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
-            print(s.pk.split(':')[-1])
             if s.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
                 d["assignment"] = assignments[s.pk.split(':')[-1]]
 
