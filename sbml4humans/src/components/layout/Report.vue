@@ -2,13 +2,13 @@
     <div class="p-grid p-p-2">
         <div class="p-col-12 p-lg-2">
             <search class="p-ml-2" v-if="['Report', 'report'].includes($route.name)" />
-            <component-menu class="p-mt-2" />
-            <document-menu class="p-mt-5" />
+            <component-menu class="p-mt-2" style="opacity: 1" />
+            <document-menu class="p-mt-5" style="opacity: 1" />
         </div>
-        <div class="p-col-12 p-lg-7 middle">
+        <div class="p-col-12 p-lg-7 column">
             <tables-container />
         </div>
-        <div class="p-col-12 p-lg-3 middle">
+        <div class="p-col-12 p-lg-3 column">
             <detail-container />
         </div>
     </div>
@@ -44,10 +44,10 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.middle {
+<style lang="scss">
+.column {
     border-right: 1px solid #bfbfbf;
-    height: 89vh;
+    height: 90vh;
     overflow-y: scroll;
 }
 </style>

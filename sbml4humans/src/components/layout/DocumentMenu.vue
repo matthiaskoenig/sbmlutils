@@ -70,12 +70,10 @@ export default defineComponent({
 .clickable {
     padding: 8px;
     cursor: pointer;
-    opacity: 100%;
 }
 
 .clickable:hover {
     cursor: pointer;
-    opacity: 100%;
     background-color: #dfdfdf;
 }
 </style>
