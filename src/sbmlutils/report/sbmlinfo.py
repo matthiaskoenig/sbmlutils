@@ -209,9 +209,11 @@ class SBMLDocumentInfo:
                 assignments[pk_symbol] = {
                     "pk": self._get_pk(initial_assignment),
                     "id": pk_symbol,
-                    "math": astnode_to_latex(initial_assignment.getMath(), model=model),
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
+
+                math_str = f"{pk_symbol}(0) = {astnode_to_latex(initial_assignment.getMath(), model=model)}"
+                assignments[pk_symbol]["math"] = math_str
 
         rule: libsbml.Rule
         for rule in model.getListOfRules():
@@ -220,13 +222,17 @@ class SBMLDocumentInfo:
                 assignments[pk_symbol] = {
                     "pk": self._get_pk(rule),
                     "id": pk_symbol,
-                    "math": (
-                        astnode_to_latex(rule.getMath(), model=model)
-                        if rule.isSetMath()
-                        else None
-                    ),
                     "sbmlType": self._sbml_type(rule),
                 }
+
+                math_str = None
+                if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
+                    math_str = f"{pk_symbol} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+                elif assignments[pk_symbol]["sbmlType"] == "RateRule":
+                    derivative = "\\frac{d(" + pk_symbol + ")}{dt}"
+                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+
+                assignments[pk_symbol]["math"] = math_str
 
         return assignments
 
