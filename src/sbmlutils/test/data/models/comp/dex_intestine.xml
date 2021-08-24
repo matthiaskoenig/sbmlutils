@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
+  <model metaid="meta_dex_intestine" id="dex_intestine" name="dex_intestine" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole">
+    <listOfUnitDefinitions>
+      <unitDefinition id="mmole">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="min">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m2">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mM">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min_l">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="litre_per_min">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_min">
+        <listOfUnits>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="kg">
+        <listOfUnits>
+          <unit kind="kilogram" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="l_per_min">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="l_per_min_kg">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+          <unit kind="gram" exponent="-1" scale="3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment sboTerm="SBO:0000290" id="Vext" name="extern (plasma)" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vin" name="intestine" spatialDimensions="3" size="1" units="litre" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="dex_ext" name="dextormethorphan (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dex" name="dextormethorphan (intestine)" compartment="Vin" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="DEXCYP3A4LI_Vmax" value="1" units="mmole_per_min_l" constant="true"/>
+      <parameter id="DEXCYP3A4_Km_dex" value="286" units="mM" constant="true"/>
+      <parameter id="DEXCYP3A4_f" value="0.592953088876539" units="dimensionless" constant="true"/>
+      <parameter id="DEXEXP_f" value="391.163003707601" units="dimensionless" constant="true"/>
+      <parameter id="DEXCYP3A4_Vmax" value="NaN" units="mmole_per_min_l" constant="false"/>
+      <parameter id="DEXEXP_Vmax" value="NaN" units="mmole_per_min_l" constant="false"/>
+      <parameter id="DEXEXP_Km_dex" value="0.1" units="mM" constant="true"/>
+      <parameter id="DEXCYP3A4_switch" value="1" units="dimensionless" constant="true"/>
+      <parameter id="DEXCYP3A4_activity" value="1" units="dimensionless" constant="true"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="DEXCYP3A4_Vmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> DEXCYP3A4LI_Vmax </ci>
+            <ci> DEXCYP3A4_f </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="DEXEXP_Vmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> DEXCYP3A4_Vmax </ci>
+            <ci> DEXEXP_f </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction sboTerm="SBO:0000655" id="DEXEXP" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dex" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dex_ext" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> DEXEXP_Vmax </ci>
+                <ci> Vin </ci>
+                <ci> dex </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> DEXEXP_Km_dex </ci>
+                <ci> dex </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000176" id="DEXCYP3A4" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dex" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> DEXCYP3A4_Vmax </ci>
+                <ci> DEXCYP3A4_switch </ci>
+                <ci> DEXCYP3A4_activity </ci>
+                <ci> Vin </ci>
+                <ci> dex </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> dex </ci>
+                <ci> DEXCYP3A4_Km_dex </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <comp:listOfPorts>
+      <comp:port metaid="mmole_port" sboTerm="SBO:0000599" comp:unitRef="mmole" comp:id="mmole_port" comp:name="mmole_port"/>
+      <comp:port metaid="min_port" sboTerm="SBO:0000599" comp:unitRef="min" comp:id="min_port" comp:name="min_port"/>
+      <comp:port metaid="m_port" sboTerm="SBO:0000599" comp:unitRef="m" comp:id="m_port" comp:name="m_port"/>
+      <comp:port metaid="m2_port" sboTerm="SBO:0000599" comp:unitRef="m2" comp:id="m2_port" comp:name="m2_port"/>
+      <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
+      <comp:port metaid="mmole_per_min_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min" comp:id="mmole_per_min_port" comp:name="mmole_per_min_port"/>
+      <comp:port metaid="mmole_per_min_l_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min_l" comp:id="mmole_per_min_l_port" comp:name="mmole_per_min_l_port"/>
+      <comp:port metaid="litre_per_min_port" sboTerm="SBO:0000599" comp:unitRef="litre_per_min" comp:id="litre_per_min_port" comp:name="litre_per_min_port"/>
+      <comp:port metaid="per_min_port" sboTerm="SBO:0000599" comp:unitRef="per_min" comp:id="per_min_port" comp:name="per_min_port"/>
+      <comp:port metaid="kg_port" sboTerm="SBO:0000599" comp:unitRef="kg" comp:id="kg_port" comp:name="kg_port"/>
+      <comp:port metaid="l_per_min_port" sboTerm="SBO:0000599" comp:unitRef="l_per_min" comp:id="l_per_min_port" comp:name="l_per_min_port"/>
+      <comp:port metaid="l_per_min_kg_port" sboTerm="SBO:0000599" comp:unitRef="l_per_min_kg" comp:id="l_per_min_kg_port" comp:name="l_per_min_kg_port"/>
+      <comp:port metaid="DEXCYP3A4LI_Vmax_port" sboTerm="SBO:0000599" comp:idRef="DEXCYP3A4LI_Vmax" comp:id="DEXCYP3A4LI_Vmax_port" comp:name="DEXCYP3A4LI_Vmax_port"/>
+      <comp:port metaid="DEXCYP3A4_Km_dex_port" sboTerm="SBO:0000599" comp:idRef="DEXCYP3A4_Km_dex" comp:id="DEXCYP3A4_Km_dex_port" comp:name="DEXCYP3A4_Km_dex_port"/>
+      <comp:port metaid="Vext_port" sboTerm="SBO:0000599" comp:idRef="Vext" comp:id="Vext_port" comp:name="Vext_port"/>
+      <comp:port metaid="Vin_port" sboTerm="SBO:0000599" comp:idRef="Vin" comp:id="Vin_port" comp:name="Vin_port"/>
+      <comp:port metaid="dex_ext_port" sboTerm="SBO:0000599" comp:idRef="dex_ext" comp:id="dex_ext_port" comp:name="dex_ext_port"/>
+      <comp:port metaid="dex_port" sboTerm="SBO:0000599" comp:idRef="dex" comp:id="dex_port" comp:name="dex_port"/>
+    </comp:listOfPorts>
+  </model>
+</sbml>

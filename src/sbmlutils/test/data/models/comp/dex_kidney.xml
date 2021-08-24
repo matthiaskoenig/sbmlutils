@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
+  <model metaid="meta_dex_kidney" id="dex_kidney" name="dex_kidney" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole">
+    <listOfUnitDefinitions>
+      <unitDefinition id="mmole">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="min">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m2">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mM">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min_l">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="litre_per_min">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_min">
+        <listOfUnits>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="g_per_mole">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="mole" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment sboTerm="SBO:0000290" id="Vext" name="blood" spatialDimensions="3" size="4" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vki" name="kidney" spatialDimensions="3" size="1.5" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vurine" name="urine" spatialDimensions="3" size="1" units="litre" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="dex_ext" name="dextormethorphan (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dor_ext" name="dextrorphan (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dex_urine" name="dextormethorphan (urine)" compartment="Vurine" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="dor_urine" name="dextrorphan (urine)" compartment="Vurine" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="DEXEX_k" name="dex urinary excretion (kidney)" value="0.0168303529608016" units="per_min" constant="true"/>
+      <parameter id="DOREX_k" name="dor urinary excretion (kidney)" value="0.136947425510627" units="per_min" constant="true"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction sboTerm="SBO:0000655" id="DEXEX" reversible="false" fast="false" compartment="Vki">
+        <listOfReactants>
+          <speciesReference species="dex_ext" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dex_urine" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> DEXEX_k </ci>
+              <ci> Vki </ci>
+              <ci> dex_ext </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000655" id="DOREX" reversible="false" fast="false" compartment="Vki">
+        <listOfReactants>
+          <speciesReference species="dor_ext" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dor_urine" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> DOREX_k </ci>
+              <ci> Vki </ci>
+              <ci> dor_ext </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <comp:listOfPorts>
+      <comp:port metaid="mmole_port" sboTerm="SBO:0000599" comp:unitRef="mmole" comp:id="mmole_port" comp:name="mmole_port"/>
+      <comp:port metaid="min_port" sboTerm="SBO:0000599" comp:unitRef="min" comp:id="min_port" comp:name="min_port"/>
+      <comp:port metaid="m_port" sboTerm="SBO:0000599" comp:unitRef="m" comp:id="m_port" comp:name="m_port"/>
+      <comp:port metaid="m2_port" sboTerm="SBO:0000599" comp:unitRef="m2" comp:id="m2_port" comp:name="m2_port"/>
+      <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
+      <comp:port metaid="mmole_per_min_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min" comp:id="mmole_per_min_port" comp:name="mmole_per_min_port"/>
+      <comp:port metaid="mmole_per_min_l_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min_l" comp:id="mmole_per_min_l_port" comp:name="mmole_per_min_l_port"/>
+      <comp:port metaid="litre_per_min_port" sboTerm="SBO:0000599" comp:unitRef="litre_per_min" comp:id="litre_per_min_port" comp:name="litre_per_min_port"/>
+      <comp:port metaid="per_min_port" sboTerm="SBO:0000599" comp:unitRef="per_min" comp:id="per_min_port" comp:name="per_min_port"/>
+      <comp:port metaid="mg_port" sboTerm="SBO:0000599" comp:unitRef="mg" comp:id="mg_port" comp:name="mg_port"/>
+      <comp:port metaid="g_per_mole_port" sboTerm="SBO:0000599" comp:unitRef="g_per_mole" comp:id="g_per_mole_port" comp:name="g_per_mole_port"/>
+      <comp:port metaid="Vext_port" sboTerm="SBO:0000599" comp:idRef="Vext" comp:id="Vext_port" comp:name="Vext_port"/>
+      <comp:port metaid="Vki_port" sboTerm="SBO:0000599" comp:idRef="Vki" comp:id="Vki_port" comp:name="Vki_port"/>
+      <comp:port metaid="Vurine_port" sboTerm="SBO:0000599" comp:idRef="Vurine" comp:id="Vurine_port" comp:name="Vurine_port"/>
+      <comp:port metaid="dex_ext_port" sboTerm="SBO:0000599" comp:idRef="dex_ext" comp:id="dex_ext_port" comp:name="dex_ext_port"/>
+      <comp:port metaid="dor_ext_port" sboTerm="SBO:0000599" comp:idRef="dor_ext" comp:id="dor_ext_port" comp:name="dor_ext_port"/>
+      <comp:port metaid="dex_urine_port" sboTerm="SBO:0000599" comp:idRef="dex_urine" comp:id="dex_urine_port" comp:name="dex_urine_port"/>
+      <comp:port metaid="dor_urine_port" sboTerm="SBO:0000599" comp:idRef="dor_urine" comp:id="dor_urine_port" comp:name="dor_urine_port"/>
+    </comp:listOfPorts>
+  </model>
+</sbml>

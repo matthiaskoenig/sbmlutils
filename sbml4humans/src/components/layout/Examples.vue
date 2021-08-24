@@ -3,7 +3,7 @@
         <DataTable
             :value="examples"
             :paginator="true"
-            :rows="10"
+            :rows="25"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
             filterDisplay="menu"

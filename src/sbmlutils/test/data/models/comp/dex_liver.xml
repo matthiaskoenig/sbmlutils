@@ -1,0 +1,1773 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" comp:required="true">
+  <model metaid="meta_dex_liver" id="dex_liver" name="dex_liver" substanceUnits="mmole" timeUnits="min" volumeUnits="litre" areaUnits="m2" lengthUnits="m" extentUnits="mmole">
+    <listOfUnitDefinitions>
+      <unitDefinition id="mmole">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="min">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="m2">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mM">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mmole_per_min_l">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-3" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="litre_per_min">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="per_min">
+        <listOfUnits>
+          <unit kind="second" exponent="-1" scale="0" multiplier="60"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="mg">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="g_per_mole">
+        <listOfUnits>
+          <unit kind="gram" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="mole" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment sboTerm="SBO:0000290" id="Vext" name="blood" spatialDimensions="3" size="4" units="litre" constant="true"/>
+      <compartment sboTerm="SBO:0000290" id="Vli" name="liver" spatialDimensions="3" size="1.5" units="litre" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="dex_ext" name="dextormethorphan (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dor_ext" name="dextrorphan (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="qui_ext" name="quinidine (extern)" compartment="Vext" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="true" constant="true"/>
+      <species id="dex" name="dextormethorphan (liver)" compartment="Vli" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="dor" name="dextrorphan (liver)" compartment="Vli" initialConcentration="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="DEXCYP3A4LI_Vmax" value="0.00087393210832258" units="mmole_per_min_l" constant="true"/>
+      <parameter id="DEXCYP3A4_Km_dex" value="286" units="mM" constant="true"/>
+      <parameter id="DEXCYP2D6_f" value="0.0375" units="dimensionless" constant="true"/>
+      <parameter id="DEXIM_f" value="148.429898391435" units="dimensionless" constant="true"/>
+      <parameter id="DOREX_f" value="14.4947500779008" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_0" name="activity of *1 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_1" name="activity of *10 allele" value="0.25" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_2" name="activity of *100 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_3" name="activity of *101 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_4" name="activity of *10x2 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_5" name="activity of *11 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_6" name="activity of *114 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_7" name="activity of *12 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_8" name="activity of *120 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_9" name="activity of *124 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_10" name="activity of *129 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_11" name="activity of *13 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_12" name="activity of *14 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_13" name="activity of *15 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_14" name="activity of *17 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_15" name="activity of *17x2 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_16" name="activity of *18 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_17" name="activity of *19 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_18" name="activity of *1x2 allele" value="2" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_19" name="activity of *1x3 allele" value="3" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_20" name="activity of *1x4 allele" value="4" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_21" name="activity of *1x5 allele" value="5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_22" name="activity of *1x6 allele" value="6" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_23" name="activity of *2 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_24" name="activity of *20 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_25" name="activity of *21 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_26" name="activity of *27 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_27" name="activity of *29 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_28" name="activity of *29x2 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_29" name="activity of *2x2 allele" value="2" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_30" name="activity of *2x3 allele" value="3" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_31" name="activity of *2x4 allele" value="4" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_32" name="activity of *2x5 allele" value="5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_33" name="activity of *2x6 allele" value="6" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_34" name="activity of *3 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_35" name="activity of *31 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_36" name="activity of *33 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_37" name="activity of *34 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_38" name="activity of *35 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_39" name="activity of *35x2 allele" value="2" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_40" name="activity of *36 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_41" name="activity of *36x2 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_42" name="activity of *38 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_43" name="activity of *39 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_44" name="activity of *3x2 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_45" name="activity of *4 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_46" name="activity of *40 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_47" name="activity of *41 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_48" name="activity of *41x2 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_49" name="activity of *41x3 allele" value="1.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_50" name="activity of *42 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_51" name="activity of *44 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_52" name="activity of *45 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_53" name="activity of *45x2 allele" value="2" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_54" name="activity of *46 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_55" name="activity of *47 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_56" name="activity of *48 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_57" name="activity of *49 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_58" name="activity of *4x2 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_59" name="activity of *4x3 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_60" name="activity of *4x4 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_61" name="activity of *4x5 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_62" name="activity of *5 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_63" name="activity of *50 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_64" name="activity of *51 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_65" name="activity of *53 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_66" name="activity of *54 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_67" name="activity of *55 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_68" name="activity of *56 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_69" name="activity of *57 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_70" name="activity of *59 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_71" name="activity of *6 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_72" name="activity of *60 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_73" name="activity of *62 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_74" name="activity of *68 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_75" name="activity of *69 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_76" name="activity of *6x2 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_77" name="activity of *7 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_78" name="activity of *8 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_79" name="activity of *81 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_80" name="activity of *9 allele" value="0.5" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_81" name="activity of *92 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_82" name="activity of *96 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_83" name="activity of *99 allele" value="0" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_84" name="activity of *9x2 allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_definition_custom" name="activity of custom allele" value="1" units="dimensionless" constant="true"/>
+      <parameter id="cyp2d6_allele_1" name="custom allele" value="0" units="dimensionless" constant="false"/>
+      <parameter id="cyp2d6_allele_2" name="custom allele" value="0" units="dimensionless" constant="false"/>
+      <parameter id="cyp2d6_activity_1" name="Activity of allele 1" value="NaN" units="dimensionless" constant="false"/>
+      <parameter id="cyp2d6_activity_2" name="Activity of allele 2" value="NaN" units="dimensionless" constant="false"/>
+      <parameter id="DEXCYP3A4_Vmax" value="NaN" units="mmole_per_min_l" constant="false"/>
+      <parameter id="DEXCYP2D6_Vmax" value="NaN" units="mmole_per_min_l" constant="false"/>
+      <parameter id="DEXIM_Vmax" value="NaN" units="mmole_per_min_l" constant="false"/>
+      <parameter id="DOREX_Vmax" value="NaN" units="mmole_per_min_l" constant="false"/>
+      <parameter id="DEXCYP2D6_activity" value="NaN" units="dimensionless" constant="false"/>
+      <parameter id="DEXIM_Km_dex" value="0.1" units="mM" constant="true"/>
+      <parameter id="DEXCYP2D6_phenotype" name="scaling factor for activity" value="1" units="dimensionless" constant="true"/>
+      <parameter id="DEXCYP2D6_Km_dex" value="0.00389" units="mM" constant="true"/>
+      <parameter id="DEXCYP2D6_Ki_qui" value="0.0001" units="mM" constant="true"/>
+      <parameter id="DEXCYP3A4_switch" value="1" units="dimensionless" constant="true"/>
+      <parameter id="DEXCYP3A4_activity" value="1" units="dimensionless" constant="true"/>
+      <parameter id="DOREX_Km_dor" value="0.1" units="mM" constant="true"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="DEXCYP3A4_Vmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> DEXCYP3A4LI_Vmax </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="DEXCYP2D6_Vmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> DEXCYP3A4_Vmax </ci>
+            <ci> DEXCYP2D6_f </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="DEXIM_Vmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> DEXCYP3A4_Vmax </ci>
+            <ci> DEXIM_f </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="DOREX_Vmax">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <ci> DEXCYP3A4_Vmax </ci>
+            <ci> DOREX_f </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="cyp2d6_activity_1">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <piecewise>
+            <piece>
+              <ci> cyp2d6_definition_custom </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 0 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_0 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 0 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_1 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 1 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_2 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 2 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_3 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 3 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_4 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 4 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_5 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 5 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_6 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 6 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_7 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 7 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_8 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 8 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_9 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 9 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_10 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 10 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_11 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 11 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_12 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 12 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_13 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 13 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_14 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 14 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_15 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 15 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_16 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 16 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_17 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 17 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_18 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 18 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_19 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 19 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_20 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 20 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_21 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 21 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_22 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 22 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_23 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 23 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_24 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 24 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_25 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 25 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_26 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 26 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_27 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 27 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_28 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 28 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_29 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 29 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_30 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 30 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_31 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 31 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_32 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 32 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_33 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 33 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_34 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 34 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_35 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 35 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_36 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 36 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_37 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 37 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_38 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 38 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_39 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 39 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_40 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 40 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_41 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 41 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_42 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 42 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_43 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 43 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_44 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 44 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_45 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 45 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_46 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 46 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_47 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 47 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_48 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 48 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_49 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 49 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_50 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 50 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_51 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 51 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_52 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 52 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_53 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 53 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_54 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 54 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_55 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 55 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_56 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 56 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_57 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 57 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_58 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 58 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_59 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 59 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_60 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 60 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_61 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 61 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_62 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 62 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_63 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 63 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_64 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 64 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_65 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 65 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_66 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 66 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_67 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 67 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_68 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 68 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_69 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 69 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_70 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 70 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_71 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 71 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_72 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 72 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_73 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 73 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_74 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 74 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_75 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 75 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_76 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 76 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_77 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 77 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_78 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 78 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_79 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 79 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_80 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 80 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_81 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 81 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_82 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 82 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_83 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 83 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_84 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_1 </ci>
+                <cn type="integer"> 84 </cn>
+              </apply>
+            </piece>
+            <otherwise>
+              <ci> cyp2d6_definition_custom </ci>
+            </otherwise>
+          </piecewise>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="cyp2d6_activity_2">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <piecewise>
+            <piece>
+              <ci> cyp2d6_definition_custom </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 0 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_0 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 0 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_1 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 1 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_2 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 2 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_3 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 3 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_4 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 4 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_5 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 5 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_6 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 6 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_7 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 7 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_8 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 8 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_9 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 9 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_10 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 10 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_11 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 11 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_12 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 12 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_13 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 13 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_14 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 14 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_15 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 15 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_16 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 16 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_17 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 17 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_18 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 18 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_19 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 19 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_20 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 20 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_21 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 21 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_22 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 22 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_23 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 23 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_24 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 24 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_25 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 25 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_26 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 26 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_27 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 27 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_28 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 28 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_29 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 29 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_30 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 30 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_31 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 31 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_32 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 32 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_33 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 33 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_34 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 34 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_35 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 35 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_36 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 36 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_37 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 37 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_38 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 38 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_39 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 39 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_40 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 40 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_41 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 41 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_42 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 42 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_43 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 43 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_44 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 44 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_45 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 45 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_46 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 46 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_47 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 47 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_48 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 48 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_49 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 49 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_50 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 50 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_51 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 51 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_52 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 52 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_53 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 53 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_54 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 54 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_55 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 55 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_56 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 56 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_57 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 57 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_58 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 58 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_59 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 59 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_60 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 60 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_61 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 61 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_62 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 62 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_63 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 63 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_64 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 64 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_65 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 65 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_66 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 66 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_67 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 67 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_68 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 68 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_69 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 69 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_70 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 70 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_71 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 71 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_72 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 72 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_73 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 73 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_74 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 74 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_75 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 75 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_76 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 76 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_77 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 77 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_78 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 78 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_79 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 79 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_80 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 80 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_81 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 81 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_82 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 82 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_83 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 83 </cn>
+              </apply>
+            </piece>
+            <piece>
+              <ci> cyp2d6_definition_84 </ci>
+              <apply>
+                <eq/>
+                <ci> cyp2d6_allele_2 </ci>
+                <cn type="integer"> 84 </cn>
+              </apply>
+            </piece>
+            <otherwise>
+              <ci> cyp2d6_definition_custom </ci>
+            </otherwise>
+          </piecewise>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="DEXCYP2D6_activity">
+        <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+          <apply>
+            <power/>
+            <cn sbml:units="dimensionless" type="integer"> 10 </cn>
+            <apply>
+              <plus/>
+              <ci> cyp2d6_activity_1 </ci>
+              <ci> cyp2d6_activity_2 </ci>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction sboTerm="SBO:0000655" id="DEXIM" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dex_ext" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dex" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> DEXIM_Vmax </ci>
+                <ci> Vli </ci>
+                <ci> dex_ext </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> DEXIM_Km_dex </ci>
+                <ci> dex_ext </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000176" id="DEXCYP2D6" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dex" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dor" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="qui_ext"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <apply>
+                    <times/>
+                    <ci> DEXCYP2D6_Vmax </ci>
+                    <ci> DEXCYP2D6_phenotype </ci>
+                    <ci> DEXCYP2D6_activity </ci>
+                  </apply>
+                  <apply>
+                    <plus/>
+                    <cn sbml:units="dimensionless" type="integer"> 1 </cn>
+                    <apply>
+                      <divide/>
+                      <ci> qui_ext </ci>
+                      <ci> DEXCYP2D6_Ki_qui </ci>
+                    </apply>
+                  </apply>
+                </apply>
+                <ci> Vli </ci>
+                <ci> dex </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> DEXCYP2D6_Km_dex </ci>
+                <ci> dex </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000176" id="DEXCYP3A4" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dex" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> DEXCYP3A4_Vmax </ci>
+                <ci> DEXCYP3A4_switch </ci>
+                <ci> DEXCYP3A4_activity </ci>
+                <ci> Vli </ci>
+                <ci> dex </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> DEXCYP3A4_Km_dex </ci>
+                <ci> dex </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction sboTerm="SBO:0000655" id="DOREX" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="dor" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="dor_ext" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci> DOREX_Vmax </ci>
+                <ci> Vli </ci>
+                <ci> dor </ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci> DOREX_Km_dor </ci>
+                <ci> dor </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+    <comp:listOfPorts>
+      <comp:port metaid="mmole_port" sboTerm="SBO:0000599" comp:unitRef="mmole" comp:id="mmole_port" comp:name="mmole_port"/>
+      <comp:port metaid="min_port" sboTerm="SBO:0000599" comp:unitRef="min" comp:id="min_port" comp:name="min_port"/>
+      <comp:port metaid="m_port" sboTerm="SBO:0000599" comp:unitRef="m" comp:id="m_port" comp:name="m_port"/>
+      <comp:port metaid="m2_port" sboTerm="SBO:0000599" comp:unitRef="m2" comp:id="m2_port" comp:name="m2_port"/>
+      <comp:port metaid="mM_port" sboTerm="SBO:0000599" comp:unitRef="mM" comp:id="mM_port" comp:name="mM_port"/>
+      <comp:port metaid="mmole_per_min_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min" comp:id="mmole_per_min_port" comp:name="mmole_per_min_port"/>
+      <comp:port metaid="mmole_per_min_l_port" sboTerm="SBO:0000599" comp:unitRef="mmole_per_min_l" comp:id="mmole_per_min_l_port" comp:name="mmole_per_min_l_port"/>
+      <comp:port metaid="litre_per_min_port" sboTerm="SBO:0000599" comp:unitRef="litre_per_min" comp:id="litre_per_min_port" comp:name="litre_per_min_port"/>
+      <comp:port metaid="per_min_port" sboTerm="SBO:0000599" comp:unitRef="per_min" comp:id="per_min_port" comp:name="per_min_port"/>
+      <comp:port metaid="mg_port" sboTerm="SBO:0000599" comp:unitRef="mg" comp:id="mg_port" comp:name="mg_port"/>
+      <comp:port metaid="g_per_mole_port" sboTerm="SBO:0000599" comp:unitRef="g_per_mole" comp:id="g_per_mole_port" comp:name="g_per_mole_port"/>
+      <comp:port metaid="DEXCYP3A4LI_Vmax_port" sboTerm="SBO:0000599" comp:idRef="DEXCYP3A4LI_Vmax" comp:id="DEXCYP3A4LI_Vmax_port" comp:name="DEXCYP3A4LI_Vmax_port"/>
+      <comp:port metaid="DEXCYP3A4_Km_dex_port" sboTerm="SBO:0000599" comp:idRef="DEXCYP3A4_Km_dex" comp:id="DEXCYP3A4_Km_dex_port" comp:name="DEXCYP3A4_Km_dex_port"/>
+      <comp:port metaid="Vext_port" sboTerm="SBO:0000599" comp:idRef="Vext" comp:id="Vext_port" comp:name="Vext_port"/>
+      <comp:port metaid="Vli_port" sboTerm="SBO:0000599" comp:idRef="Vli" comp:id="Vli_port" comp:name="Vli_port"/>
+      <comp:port metaid="dex_ext_port" sboTerm="SBO:0000599" comp:idRef="dex_ext" comp:id="dex_ext_port" comp:name="dex_ext_port"/>
+      <comp:port metaid="dor_ext_port" sboTerm="SBO:0000599" comp:idRef="dor_ext" comp:id="dor_ext_port" comp:name="dor_ext_port"/>
+    </comp:listOfPorts>
+  </model>
+</sbml>
