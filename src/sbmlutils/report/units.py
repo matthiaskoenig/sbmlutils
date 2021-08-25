@@ -36,6 +36,9 @@ def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[
         return None
 
     astnode = libsbml.parseL3FormulaWithModel(ud_str, model=model)
+    if astnode is None:
+        return None
+
     latex = astnode_to_latex(astnode, model=model)
     # print("ud", ud, "latex", latex)
     return latex
