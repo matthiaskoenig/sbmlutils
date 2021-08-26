@@ -19,6 +19,10 @@ see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing
 import logging
 from typing import Any, List, Optional, Set
 
+import lxml.etree as ET
+from pathlib import Path
+
+
 import libsbml
 from sympy import Symbol, sympify
 from sympy.printing.latex import latex
@@ -26,7 +30,7 @@ from sympy.printing.mathml import MathMLContentPrinter, MathMLPresentationPrinte
 
 
 logger = logging.getLogger(__name__)
-
+xslt = ET.parse(str(Path(__file__).parent / "ctopff.xsl"))
 
 def formula_to_astnode(
     formula: str, model: Optional[libsbml.Model] = None
@@ -317,8 +321,6 @@ def cmathml_to_pmathml(
     return _expression_to_mathml(expr, printer="presentation", **settings)
 
 
-# TODO: better control over latex generation
-# class with settings and replacements !
 
 
 def formula_to_latex(
@@ -340,6 +342,24 @@ def formula_to_latex(
 
 
 def astnode_to_latex(
+    astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None
+) -> str:
+    xml_str: str = libsbml.writeMathMLToString(astnode)
+    xml_str = xml_str.replace('<?xml version="1.0" encoding="UTF-8"?>', '')
+
+    print(xml_str)
+
+    dom = ET.fromstring(xml_str)
+    transform = ET.XSLT(xslt)
+    newdom = transform(dom)
+    tex_bytes = ET.tostring(newdom, pretty_print=True)
+    tex_str = tex_bytes.decode("UTF-8")
+
+    print(tex_str)
+    return tex_str
+
+
+def astnode_to_tex(
     astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None, **settings: Any
 ) -> str:
     """Convert AstNode to Latex.
@@ -367,3 +387,24 @@ def cmathml_to_latex(cmathml: str, **settings: Any) -> str:
     """
     astnode = cmathml_to_astnode(cmathml)
     return astnode_to_latex(astnode, **settings)
+
+
+if __name__ == "__main__":
+    formula = "1 + 2"
+    tex = formula_to_latex(formula, model=None)
+    print("-" * 30)
+
+
+
+    # tex = """
+    # <math xmlns="http://www.w3.org/1998/Math/MathML">
+    #   <apply>
+    #     <plus/>
+    #     <cn type="integer"> 1 </cn>
+    #     <cn type="integer"> 2 </cn>
+    #   </apply>
+    # </math>
+    # """
+
+
+    # print(tex)
