@@ -1,6 +1,5 @@
 <template>
     <div>
-        <h1>Upload SBML</h1>
         <FileUpload
             :customUpload="true"
             @uploader="submitForm"

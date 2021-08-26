@@ -103,7 +103,13 @@ import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
 
+import Boolean from "@/components/layout/BooleanSymbol.vue";
+
 export default defineComponent({
+    components: {
+        Boolean,
+    },
+
     props: {
         listOfPKs: {
             type: Array,

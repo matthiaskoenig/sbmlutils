@@ -7,6 +7,7 @@ import json
 import logging
 import tempfile
 import time
+import requests
 from pathlib import Path
 from typing import Any, Dict
 
@@ -214,6 +215,26 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
     except Exception:
         # FIXME: this is too broad
         raise ValueError("Resource identifier too short")
+
+
+@api.get("/model_urls/")
+def get_report_from_model_url(url: str) -> Response:
+    data = requests.get(url)
+
+    if data.status_code == 200:
+        file_content = data.text
+        filename = url.split('=')[-1]
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / filename
+            with open(path, "w") as sbml_file:
+                sbml_file.write(file_content)
+                content = _content_for_source(source=path)
+    else:
+        content = {
+            "error": "File not found!"
+        }
+
+    return Response(content=json.dumps(content), media_type="application/json")
 
 
 if __name__ == "__main__":

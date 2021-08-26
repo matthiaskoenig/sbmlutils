@@ -1,0 +1,59 @@
+<template>
+    <h1>Submit SBML</h1>
+    <TabView class="p-mx-2 p-my-4">
+        <TabPanel>
+            <template #header>
+                <i class="pi pi-file p-mr-2"></i>
+                <span>Upload SBML File</span>
+            </template>
+            <FileUploadForm />
+        </TabPanel>
+        <TabPanel>
+            <template #header>
+                <i class="pi pi-link p-mr-2"></i>
+                <span>Submit Model URL</span>
+            </template>
+            <URLUpload />
+        </TabPanel>
+    </TabView>
+</template>
+
+<script lang="ts">
+import { defineComponent } from "@vue/runtime-core";
+
+import FileUploadForm from "@/components/layout/FileUploadForm.vue";
+import URLUpload from "@/components/layout/URLUpload.vue";
+
+export default defineComponent({
+    components: {
+        FileUploadForm,
+        URLUpload,
+    },
+});
+</script>
+
+<style>
+/*.tabs {
+    border-bottom: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    border-right: 1px solid lightgrey;
+    border-radius: 0 0 5px 5px;
+}*/
+
+.p-tabview {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.p-tabview-nav-link:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.p-tabview-panels {
+    border-bottom: 1px solid lightgrey !important;
+    border-left: 1px solid lightgrey !important;
+    border-right: 1px solid lightgrey !important;
+    border-radius: 0 5px 5px 5px !important;
+}
+</style>
