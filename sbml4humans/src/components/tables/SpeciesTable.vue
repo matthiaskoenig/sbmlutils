@@ -46,6 +46,12 @@
             <Column
                 sortable
                 style="width: fit-content"
+                field="compartment"
+                header="compartment"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
                 field="initialAmount"
                 header="initial Amount"
             ></Column>
