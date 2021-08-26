@@ -15,6 +15,13 @@
             </template>
             <URLUpload />
         </TabPanel>
+        <TabPanel>
+            <template #header>
+                <i class="pi pi-copy p-mr-2"></i>
+                <span>Paste SBML</span>
+            </template>
+            <PasteSBML />
+        </TabPanel>
     </TabView>
 </template>
 
@@ -23,11 +30,13 @@ import { defineComponent } from "@vue/runtime-core";
 
 import FileUploadForm from "@/components/layout/FileUploadForm.vue";
 import URLUpload from "@/components/layout/URLUpload.vue";
+import PasteSBML from "@/components/layout/PasteSBML.vue";
 
 export default defineComponent({
     components: {
         FileUploadForm,
         URLUpload,
+        PasteSBML,
     },
 });
 </script>
