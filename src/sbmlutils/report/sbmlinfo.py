@@ -14,7 +14,7 @@ import numpy as np
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
-from sbmlutils.report.mathml import astnode_to_latex
+from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
 from sbmlutils.report.units import udef_to_latex
 
 
@@ -211,8 +211,10 @@ class SBMLDocumentInfo:
                     "id": pk_symbol,
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
-
-                math_str = f"{pk_symbol}(0) = {astnode_to_latex(initial_assignment.getMath(), model=model)}"
+                math_str = (
+                    symbol_to_latex(pk_symbol) + "(0) = "
+                    f"{astnode_to_latex(initial_assignment.getMath())}"
+                )
                 assignments[pk_symbol]["math"] = math_str
 
         rule: libsbml.Rule
@@ -225,12 +227,15 @@ class SBMLDocumentInfo:
                     "sbmlType": self._sbml_type(rule),
                 }
 
-                math_str = None
+                math_str = ""
                 if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
-                    math_str = f"{pk_symbol} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+                    math_str = (
+                        symbol_to_latex(pk_symbol) + " = "
+                        f"{astnode_to_latex(rule.getMath()) if rule.isSetMath() else None}"
+                    )
                 elif assignments[pk_symbol]["sbmlType"] == "RateRule":
-                    derivative = "\\frac{d(" + pk_symbol + ")}{dt}"
-                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+                    derivative = "\frac{d" + symbol_to_latex(pk_symbol) + "}{{dt}}"
+                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath()) if rule.isSetMath() else None}"
 
                 assignments[pk_symbol]["math"] = math_str
 
@@ -339,7 +344,7 @@ class SBMLDocumentInfo:
                         "definitionURL": upar.getDefinitionURL()
                         if upar.isSetDefinitionURL()
                         else None,
-                        "math": astnode_to_latex(upar.getMath(), model=sbase.getModel())
+                        "math": astnode_to_latex(upar.getMath())
                         if upar.isSetMath()
                         else None,
                     }
@@ -496,9 +501,7 @@ class SBMLDocumentInfo:
         fd: libsbml.FunctionDefinition
         for fd in model.getListOfFunctionDefinitions():
             d = self.sbase_dict(fd)
-            d["math"] = (
-                astnode_to_latex(fd.getMath(), model) if fd.isSetMath() else None
-            )
+            d["math"] = astnode_to_latex(fd.getMath()) if fd.isSetMath() else None
 
             func_defs.append(d)
 
@@ -538,8 +541,10 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(c.getDerivedUnitDefinition(), model=model)
 
-            if c.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[c.pk.split(':')[-1]]
+            if (
+                c.pk.split(":")[-1] in assignments
+            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[c.pk.split(":")[-1]]
 
             compartments.append(d)
 
@@ -573,8 +578,10 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
-            if s.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[s.pk.split(':')[-1]]
+            if (
+                s.pk.split(":")[-1] in assignments
+            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[s.pk.split(":")[-1]]
 
             if s.isSetConversionFactor():
                 cf_sid = s.getConversionFactor()
@@ -635,8 +642,10 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(p.getDerivedUnitDefinition(), model=model)
 
-            if p.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[p.pk.split(':')[-1]]
+            if (
+                p.pk.split(":")[-1] in assignments
+            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[p.pk.split(":")[-1]]
 
             parameters.append(d)
 
@@ -653,7 +662,7 @@ class SBMLDocumentInfo:
         for assignment in model.getListOfInitialAssignments():
             d = self.sbase_dict(assignment)
             d["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            d["math"] = astnode_to_latex(assignment.getMath(), model=model)
+            d["math"] = astnode_to_latex(assignment.getMath())
             d["derivedUnits"] = udef_to_latex(
                 assignment.getDerivedUnitDefinition(), model=model
             )
@@ -676,11 +685,7 @@ class SBMLDocumentInfo:
         for rule in model.getListOfRules():
             d = self.sbase_dict(rule)
             d["variable"] = self._rule_variable_to_string(rule)
-            d["math"] = (
-                astnode_to_latex(rule.getMath(), model=model)
-                if rule.isSetMath()
-                else None
-            )
+            d["math"] = astnode_to_latex(rule.getMath()) if rule.isSetMath() else None
             d["derivedUnits"] = udef_to_latex(
                 rule.getDerivedUnitDefinition(), model=model
             )
@@ -719,7 +724,7 @@ class SBMLDocumentInfo:
         for constraint in model.getListOfConstraints():
             d = self.sbase_dict(constraint)
             d["math"] = (
-                astnode_to_latex(constraint.getMath(), model=model)
+                astnode_to_latex(constraint.getMath())
                 if constraint.isSetMath()
                 else None
             )
@@ -760,9 +765,7 @@ class SBMLDocumentInfo:
             if klaw:
                 d_law: Dict[str, Any] = {}
                 d_law["math"] = (
-                    astnode_to_latex(klaw.getMath(), model=model)
-                    if klaw.isSetMath()
-                    else None
+                    astnode_to_latex(klaw.getMath()) if klaw.isSetMath() else None
                 )
                 d_law["derivedUnits"] = udef_to_latex(
                     klaw.getDerivedUnitDefinition(), model=model
@@ -967,7 +970,7 @@ class SBMLDocumentInfo:
             )
             if trigger:
                 d["trigger"] = {
-                    "math": astnode_to_latex(trigger.getMath(), model=model)
+                    "math": astnode_to_latex(trigger.getMath())
                     if trigger.isSetMath()
                     else None,
                     "initialValue": trigger.initial_value,
@@ -977,16 +980,12 @@ class SBMLDocumentInfo:
                 d["trigger"] = None
 
             d["priority"] = (
-                astnode_to_latex(event.getPriority(), model=model)
-                if event.isSetPriority()
-                else None
+                astnode_to_latex(event.getPriority()) if event.isSetPriority() else None
             )
             delay: libsbml.Delay = event.getDelay() if event.isSetDelay() else None
             if delay:
                 d["delay"] = (
-                    astnode_to_latex(delay.getMath(), model=model)
-                    if delay.isSetMath()
-                    else None
+                    astnode_to_latex(delay.getMath()) if delay.isSetMath() else None
                 )
 
             assignments = []
@@ -995,7 +994,7 @@ class SBMLDocumentInfo:
                 assignments.append(
                     {
                         "variable": eva.getVariable() if eva.isSetVariable() else None,
-                        "math": astnode_to_latex(eva.getMath(), model=model)
+                        "math": astnode_to_latex(eva.getMath())
                         if eva.isSetMath()
                         else None,
                     }

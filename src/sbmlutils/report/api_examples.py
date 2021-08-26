@@ -6,16 +6,15 @@ import libsbml
 from sbmlutils.io import read_sbml
 from sbmlutils.test import (
     BIOMODELS_CURATED_PATH,
+    COMP_DEX_BODY,
+    COMP_DEX_BODY_FLAT,
+    COMP_DEX_CYP2D6,
+    COMP_DEX_INTESTINE,
+    COMP_DEX_KIDNEY,
+    COMP_DEX_LIVER,
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
     COMP_ICG_LIVER,
-
-    COMP_DEX_BODY,
-    COMP_DEX_BODY_FLAT,
-    COMP_DEX_LIVER,
-    COMP_DEX_INTESTINE,
-    COMP_DEX_KIDNEY,
-
     COMP_MODEL_DEFINITIONS_SBML,
     DISTRIB_DISTRIBUTIONS_SBML,
     DISTRIB_UNCERTAINTIES_SBML,
@@ -29,21 +28,21 @@ from sbmlutils.test import (
 # Data and Endpoints for Example Models
 examples: List[Dict] = [
     {
-        "file": GLUCOSE_SBML,
-        "metadata": {
-            "id": "glucose",
-            "name": "Koenig2012 - Glucose",
-            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
-            "packages": [],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
         "file": REPRESSILATOR_SBML,
         "metadata": {
             "id": "repressilator",
             "name": "BIOMD0000000012 - Elowitz2000 - Repressilator (biomodels)",
             "description": "Ellowitz 2000 repressilator example",
+            "packages": [],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": GLUCOSE_SBML,
+        "metadata": {
+            "id": "glucose",
+            "name": "Koenig2012 - Glucose",
+            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
             "packages": [],
             "keywords": ["kinetic"],
         },
@@ -119,6 +118,16 @@ examples: List[Dict] = [
         },
     },
     {
+        "file": COMP_DEX_CYP2D6,
+        "metadata": {
+            "id": "dex_cyp2d6",
+            "name": "CYP2D6 submodel",
+            "description": "Example model for comp submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
         "file": COMP_DEX_LIVER,
         "metadata": {
             "id": "dex_liver",
@@ -129,15 +138,15 @@ examples: List[Dict] = [
         },
     },
     {
-            "file": COMP_DEX_KIDNEY,
-            "metadata": {
-                "id": "dex_kidney",
-                "name": "Dextormethorphan comp kidney submodel",
-                "description": "Example model for comp kidney submodel",
-                "packages": ["comp"],
-                "keywords": ["kinetic"],
-            },
+        "file": COMP_DEX_KIDNEY,
+        "metadata": {
+            "id": "dex_kidney",
+            "name": "Dextormethorphan comp kidney submodel",
+            "description": "Example model for comp kidney submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
         },
+    },
     {
         "file": COMP_DEX_INTESTINE,
         "metadata": {
@@ -160,32 +169,33 @@ examples: List[Dict] = [
     },
 ]
 
-for k in range(1, 988):
-    if k in [649, 694, 923]:
-        continue
-    biomodel_id = f"BIOMD0000000{k:0>3}"
-    biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
-    doc: libsbml.SBMLDocument = read_sbml(biomodel_path, validate=False)
-    model: libsbml.Model = doc.getModel()
+if False:
+    for k in range(1, 988):
+        if k in [649, 694, 923]:
+            continue
+        biomodel_id = f"BIOMD0000000{k:0>3}"
+        biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
+        doc: libsbml.SBMLDocument = read_sbml(biomodel_path, validate=False)
+        model: libsbml.Model = doc.getModel()
 
-    name = model.getName() if model.isSetName() else None
-    packages = []
-    for k in range(doc.getNumPlugins()):
-        plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
-        packages.append(plugin.getPrefix())
+        name = model.getName() if model.isSetName() else None
+        packages = []
+        for k in range(doc.getNumPlugins()):
+            plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
+            packages.append(plugin.getPrefix())
 
-    examples.append(
-        {
-            "file": biomodel_path,
-            "metadata": {
-                "id": biomodel_id,
-                "name": name,
-                "description": "",
-                "packages": packages,
-                "keywords": [],
-            },
-        }
-    )
+        examples.append(
+            {
+                "file": biomodel_path,
+                "metadata": {
+                    "id": biomodel_id,
+                    "name": name,
+                    "description": "",
+                    "packages": packages,
+                    "keywords": [],
+                },
+            }
+        )
 
 
 examples_info = {example["metadata"]["id"]: example for example in examples}

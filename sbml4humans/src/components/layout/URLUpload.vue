@@ -1,7 +1,11 @@
 <template>
     <div>
-        <p>Type the URL of an SBML file. Example:
-        <code style="font-size: small">https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code></p>
+        <p>
+            Type the URL of an SBML file. Example:
+            <code style="font-size: small"
+                >https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code
+            >
+        </p>
         <div class="card">
             <div class="p-formgroup-inline">
                 <div class="p-field p-col-12">
@@ -21,10 +25,20 @@
             </div>
         </div>
         <loading parent="file" />
-        <p>To embed the report use the <code style="font-size: small">https://sbml4humans/model_url?url=URL</code> endpoint. Example:
-        <a href="https://sbml4humans/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml" target="_blank">
-            <code style="font-size: small">https://sbml4humans/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code>
-        </a>
+        <p>
+            To embed the report use the
+            <code style="font-size: small"
+                >https://sbml4humans.de/model_url?url=URL</code
+            >
+            endpoint. Example:
+            <a
+                href="https://sbml4humans.de/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml"
+                target="_blank"
+            >
+                <code style="font-size: small"
+                    >https://sbml4humans.de/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code
+                >
+            </a>
         </p>
     </div>
 </template>
