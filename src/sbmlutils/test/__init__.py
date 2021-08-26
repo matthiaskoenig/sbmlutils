@@ -42,6 +42,7 @@ COMP_ICG_LIVER = MODELS_DIR / "comp" / "icg_liver.xml"
 COMP_ICG_BODY_FLAT = MODELS_DIR / "comp" / "icg_body_flat.xml"
 COMP_ICG_BODY = MODELS_DIR / "comp" / "icg_body.xml"
 
+COMP_DEX_CYP2D6 = MODELS_DIR / "comp" / "cyp2d6.xml"
 COMP_DEX_LIVER = MODELS_DIR / "comp" / "dex_liver.xml"
 COMP_DEX_INTESTINE = MODELS_DIR / "comp" / "dex_intestine.xml"
 COMP_DEX_KIDNEY = MODELS_DIR / "comp" / "dex_kidney.xml"

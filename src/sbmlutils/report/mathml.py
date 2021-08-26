@@ -30,7 +30,11 @@ from sympy.printing.mathml import MathMLContentPrinter, MathMLPresentationPrinte
 
 
 logger = logging.getLogger(__name__)
-xslt = ET.parse(str(Path(__file__).parent / "ctopff.xsl"))
+xslt_cmml2pmml = ET.parse(str(Path(__file__).parent / "xslt" / "ctopff.xsl"))
+
+# XSLT2
+xslt_pmml2tex = ET.parse(str(Path(__file__).parent / "xslt" / "pmml2tex" / "pmml2tex.xsl"))
+xslt_pmml2tex = ET.parse(str(Path(__file__).parent / "xslt" / "xsltml" / "mmltex.xsl"))
 
 def formula_to_astnode(
     formula: str, model: Optional[libsbml.Model] = None
@@ -340,6 +344,7 @@ def formula_to_latex(
         latex_str = latex_str.replace(f"_{word}", word)
     return str(latex_str)
 
+latex_cache = {}
 
 def astnode_to_latex(
     astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None
@@ -347,15 +352,46 @@ def astnode_to_latex(
     xml_str: str = libsbml.writeMathMLToString(astnode)
     xml_str = xml_str.replace('<?xml version="1.0" encoding="UTF-8"?>', '')
 
-    print(xml_str)
+    if xml_str in latex_cache:
+        return latex_cache[xml_str]
 
-    dom = ET.fromstring(xml_str)
-    transform = ET.XSLT(xslt)
-    newdom = transform(dom)
-    tex_bytes = ET.tostring(newdom, pretty_print=True)
-    tex_str = tex_bytes.decode("UTF-8")
+    else:
 
-    print(tex_str)
+        # print(xml_str)
+
+        # content MathML -> presentation MathML
+        cmml_dom = ET.fromstring(xml_str)
+        transform1 = ET.XSLT(xslt_cmml2pmml)
+        pmml_dom = transform1(cmml_dom)
+
+        # content MathML -> latex
+        transform2 = ET.XSLT(xslt_pmml2tex)
+        tex_str = str(transform2(pmml_dom))
+        print(tex_str)
+        tex_str = tex_str.replace("$", "")
+
+
+        # TODO: fix underscores (single, double, multiple single)
+
+        # FIXME: piecewise
+        tex_str = tex_str.replace(r"\hfill", "")
+        tex_str = tex_str.replace(r"\multicolumn{2}{c}", "")
+        tex_str = tex_str.replace(r"\left(\{\begin{array}{ccc}", r"\begin{cases}")
+        tex_str = tex_str.replace(r"\end{array}\right)", r"\end{cases}")
+        tex_str = tex_str.replace(r"\{\begin{array}{ccc}", r"\begin{cases}")
+        tex_str = tex_str.replace(r"\end{array}", r"\end{cases}")
+
+
+
+        # FIXME: assignments
+
+        # FIXME: lambdas
+
+        # pmml_bytes = ET.tostring(pmml_dom, pretty_print=True)
+        # pmml_str = pmml_bytes.decode("UTF-8")
+
+        latex_cache[xml_str] = tex_str
+
     return tex_str
 
 
@@ -391,7 +427,10 @@ def cmathml_to_latex(cmathml: str, **settings: Any) -> str:
 
 if __name__ == "__main__":
     formula = "1 + 2"
-    tex = formula_to_latex(formula, model=None)
+    tex = astnode_to_latex(
+        libsbml.parseL3FormulaWithModel(formula, model=None),
+        model=None
+    )
     print("-" * 30)
 
 

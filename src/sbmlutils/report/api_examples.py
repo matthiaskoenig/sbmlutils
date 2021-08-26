@@ -15,6 +15,7 @@ from sbmlutils.test import (
     COMP_DEX_LIVER,
     COMP_DEX_INTESTINE,
     COMP_DEX_KIDNEY,
+    COMP_DEX_CYP2D6,
 
     COMP_MODEL_DEFINITIONS_SBML,
     DISTRIB_DISTRIBUTIONS_SBML,
@@ -119,6 +120,16 @@ examples: List[Dict] = [
         },
     },
     {
+        "file": COMP_DEX_CYP2D6,
+        "metadata": {
+            "id": "dex_cyp2d6",
+            "name": "CYP2D6 submodel",
+            "description": "Example model for comp submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
         "file": COMP_DEX_LIVER,
         "metadata": {
             "id": "dex_liver",
@@ -160,32 +171,33 @@ examples: List[Dict] = [
     },
 ]
 
-for k in range(1, 988):
-    if k in [649, 694, 923]:
-        continue
-    biomodel_id = f"BIOMD0000000{k:0>3}"
-    biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
-    doc: libsbml.SBMLDocument = read_sbml(biomodel_path, validate=False)
-    model: libsbml.Model = doc.getModel()
+if False:
+    for k in range(1, 988):
+        if k in [649, 694, 923]:
+            continue
+        biomodel_id = f"BIOMD0000000{k:0>3}"
+        biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
+        doc: libsbml.SBMLDocument = read_sbml(biomodel_path, validate=False)
+        model: libsbml.Model = doc.getModel()
 
-    name = model.getName() if model.isSetName() else None
-    packages = []
-    for k in range(doc.getNumPlugins()):
-        plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
-        packages.append(plugin.getPrefix())
+        name = model.getName() if model.isSetName() else None
+        packages = []
+        for k in range(doc.getNumPlugins()):
+            plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
+            packages.append(plugin.getPrefix())
 
-    examples.append(
-        {
-            "file": biomodel_path,
-            "metadata": {
-                "id": biomodel_id,
-                "name": name,
-                "description": "",
-                "packages": packages,
-                "keywords": [],
-            },
-        }
-    )
+        examples.append(
+            {
+                "file": biomodel_path,
+                "metadata": {
+                    "id": biomodel_id,
+                    "name": name,
+                    "description": "",
+                    "packages": packages,
+                    "keywords": [],
+                },
+            }
+        )
 
 
 examples_info = {example["metadata"]["id"]: example for example in examples}
