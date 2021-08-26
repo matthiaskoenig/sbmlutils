@@ -29,6 +29,9 @@ import Tag from "primevue/tag";
 import OrderList from "primevue/orderlist";
 import ScrollPanel from "primevue/scrollpanel";
 import DataView from "primevue/dataview";
+import TabView from "primevue/tabview";
+import TabPanel from "primevue/tabpanel";
+import Textarea from "primevue/textarea";
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -119,4 +122,7 @@ createApp(App)
     .component("Tag", Tag)
     .component("OrderList", OrderList)
     .component("DataView", DataView)
+    .component("TabView", TabView)
+    .component("TabPanel", TabPanel)
+    .component("Textarea", Textarea)
     .mount("#app");

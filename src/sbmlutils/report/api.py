@@ -7,6 +7,7 @@ import json
 import logging
 import tempfile
 import time
+import requests
 from pathlib import Path
 from typing import Any, Dict
 
@@ -32,6 +33,14 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+def _write_to_file_and_generate_report(filename: str, file_content: str, mode: str) -> Dict:
+    content = {}
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / filename
+        with open(path, mode) as sbml_file:
+            sbml_file.write(file_content)
+            content = _content_for_source(source=path)
+    return content
 
 @api.get("/")
 def read_root() -> Dict:
@@ -50,12 +59,7 @@ async def upload_sbml(request: Request) -> Response:
 
         filename = file_data["source"].filename
         file_content = await file_data["source"].read()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            path = Path(tmp_dir) / filename
-            with open(path, "wb") as sbml_file:
-                sbml_file.write(file_content)
-                content = _content_for_source(source=path)
-
+        content = _write_to_file_and_generate_report(filename, file_content, "wb")
     except IOError as err:
         logger.error(err)
         content = {"error": "SBML Document could not be parsed."}
@@ -214,6 +218,40 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
     except Exception:
         # FIXME: this is too broad
         raise ValueError("Resource identifier too short")
+
+
+@api.get("/model_urls/")
+def get_report_from_model_url(url: str) -> Response:
+    data = requests.get(url)
+
+    if data.status_code == 200:
+        filename = "temp_sbml.xml"
+        file_content = data.text
+        content = _write_to_file_and_generate_report(filename, file_content, "w")
+    else:
+        content = {
+            "error": "File not found!"
+        }
+
+    return Response(content=json.dumps(content), media_type="application/json")
+
+
+@api.post("/sbml_content")
+async def get_report_from_file_contents(request: Request) -> Response:
+    file_content = await request.body()
+    print(file_content)
+    filename = "sbml_file.xml"
+
+    try:
+        content = _write_to_file_and_generate_report(filename, file_content, "wb")
+    except Exception as e:
+        print(e)
+        content = {
+            "error": "Invalid SBML!"
+        }
+
+    print(content)
+    return Response(content=json.dumps(content), media_type="application/json")
 
 
 if __name__ == "__main__":

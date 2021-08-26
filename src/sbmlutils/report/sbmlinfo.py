@@ -212,6 +212,9 @@ class SBMLDocumentInfo:
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
 
+                math_str = f"{pk_symbol}(0) = {astnode_to_latex(initial_assignment.getMath(), model=model)}"
+                assignments[pk_symbol]["math"] = math_str
+
         rule: libsbml.Rule
         for rule in model.getListOfRules():
             pk_symbol = rule.getVariable() if rule.isSetVariable() else None
@@ -221,6 +224,15 @@ class SBMLDocumentInfo:
                     "id": pk_symbol,
                     "sbmlType": self._sbml_type(rule),
                 }
+
+                math_str = None
+                if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
+                    math_str = f"{pk_symbol} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+                elif assignments[pk_symbol]["sbmlType"] == "RateRule":
+                    derivative = "\\frac{d(" + pk_symbol + ")}{dt}"
+                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+
+                assignments[pk_symbol]["math"] = math_str
 
         return assignments
 
@@ -561,7 +573,6 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
-            print(s.pk.split(':')[-1])
             if s.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
                 d["assignment"] = assignments[s.pk.split(':')[-1]]
 

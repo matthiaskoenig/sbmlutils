@@ -9,6 +9,13 @@ from sbmlutils.test import (
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
     COMP_ICG_LIVER,
+
+    COMP_DEX_BODY,
+    COMP_DEX_BODY_FLAT,
+    COMP_DEX_LIVER,
+    COMP_DEX_INTESTINE,
+    COMP_DEX_KIDNEY,
+
     COMP_MODEL_DEFINITIONS_SBML,
     DISTRIB_DISTRIBUTIONS_SBML,
     DISTRIB_UNCERTAINTIES_SBML,
@@ -107,6 +114,36 @@ examples: List[Dict] = [
             "id": "icg_liver",
             "name": "ICG comp submodel",
             "description": "Example model for comp submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": COMP_DEX_LIVER,
+        "metadata": {
+            "id": "dex_liver",
+            "name": "Dextormethorphan comp liver submodel",
+            "description": "Example model for comp liver submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+            "file": COMP_DEX_KIDNEY,
+            "metadata": {
+                "id": "dex_kidney",
+                "name": "Dextormethorphan comp kidney submodel",
+                "description": "Example model for comp kidney submodel",
+                "packages": ["comp"],
+                "keywords": ["kinetic"],
+            },
+        },
+    {
+        "file": COMP_DEX_INTESTINE,
+        "metadata": {
+            "id": "dex_intestine",
+            "name": "Dextormethorphan comp intestine submodel",
+            "description": "Example model for comp intestine submodel",
             "packages": ["comp"],
             "keywords": ["kinetic"],
         },

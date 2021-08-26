@@ -46,6 +46,12 @@
             <Column
                 sortable
                 style="width: fit-content"
+                field="compartment"
+                header="compartment"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
                 field="initialAmount"
                 header="initial Amount"
             ></Column>
@@ -121,9 +127,9 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.assignment != null">
-                        {{ slotProps.data.assignment.id }} ({{
-                            slotProps.data.assignment.sbmlType
-                        }})
+                        <span v-if="slotProps.data.assignment != null">
+                            <katex :mathStr="slotProps.data.assignment.math" />
+                        </span>
                     </span>
                 </template>
             </Column>

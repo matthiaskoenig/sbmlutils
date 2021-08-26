@@ -14,6 +14,11 @@
             </div>
         </div>
 
+        <div v-if="info.notes != null">
+            <strong>notes</strong> <br />
+            <div class="p-ml-4" v-html="info.notes"></div>
+        </div>
+
         <CodeContainer :info="info" />
     </div>
 </template>

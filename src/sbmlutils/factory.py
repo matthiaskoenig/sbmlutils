@@ -170,9 +170,13 @@ class Notes:
 
         tokens.append("</body>")
         notes_str = "\n".join(tokens)
-        self.xml = libsbml.XMLNode.convertStringToXMLNode(notes_str)
+        self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
         if self.xml is None:
             raise ValueError(f"XMLNode could not be generated for:\n{notes}")
+
+    def __str__(self) -> str:
+        """Get string representation."""
+        return self.xml.toXMLString()
 
 
 def set_notes(sbase: libsbml.SBase, notes: Union[Notes, str]) -> None:

@@ -42,6 +42,12 @@ COMP_ICG_LIVER = MODELS_DIR / "comp" / "icg_liver.xml"
 COMP_ICG_BODY_FLAT = MODELS_DIR / "comp" / "icg_body_flat.xml"
 COMP_ICG_BODY = MODELS_DIR / "comp" / "icg_body.xml"
 
+COMP_DEX_LIVER = MODELS_DIR / "comp" / "dex_liver.xml"
+COMP_DEX_INTESTINE = MODELS_DIR / "comp" / "dex_intestine.xml"
+COMP_DEX_KIDNEY = MODELS_DIR / "comp" / "dex_kidney.xml"
+COMP_DEX_BODY_FLAT = MODELS_DIR / "comp" / "dex_body_flat.xml"
+COMP_DEX_BODY = MODELS_DIR / "comp" / "dex_body.xml"
+
 # distrib
 DISTRIB_DISTRIBUTIONS_SBML = MODELS_DIR / "distrib" / "distributions_example.xml"
 DISTRIB_UNCERTAINTIES_SBML = MODELS_DIR / "distrib" / "uncertainty_example.xml"

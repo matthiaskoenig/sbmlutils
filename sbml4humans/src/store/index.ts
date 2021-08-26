@@ -269,6 +269,56 @@ export default createStore({
                 alert("Failed to fetch report from API.");
             }
         },
+        // generate report for uploaded SBML file using model URL
+        async fetchReportUsingURL(context, payload) {
+            context.commit("SET_LOADING_MESSAGE", "Report is being generated ...");
+
+            // no queries to the API if static is ON
+            if (window.localStorage.getItem("static") === "true") {
+                alert(static_alert);
+                return;
+            }
+
+            context.commit("SET_FILE_LOADING", true);
+
+            // assembling the request parameters
+            const url = BASE_URLS.API_BASE_URL + "/model_urls?url=" + payload;
+
+            const res = await axios.get(url);
+
+            context.commit("SET_FILE_LOADING", false);
+
+            if (res.status === 200) {
+                this.dispatch("initializeReport", res);
+            } else {
+                alert("Failed to fetch report from API.");
+            }
+        },
+        // generate report for pasted SBML content
+        async fetchReportUsingSBMLContent(context, payload) {
+            context.commit("SET_LOADING_MESSAGE", "Report is being generated ...");
+
+            // no queries to the API if static is ON
+            if (window.localStorage.getItem("static") === "true") {
+                alert(static_alert);
+                return;
+            }
+
+            context.commit("SET_FILE_LOADING", true);
+
+            // assembling the request parameters
+            const url = BASE_URLS.API_BASE_URL + "/sbml_content";
+
+            const res = await axios.post(url, payload);
+
+            context.commit("SET_FILE_LOADING", false);
+
+            if (res.status === 200) {
+                this.dispatch("initializeReport", res);
+            } else {
+                alert("Failed to fetch report from API.");
+            }
+        },
         // update the detailInfo to show new data in the detail view box
         updateDetailInfo(context, payload) {
             context.commit("SET_DETAIL_INFO", payload);
