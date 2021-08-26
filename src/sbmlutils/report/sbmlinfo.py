@@ -14,7 +14,7 @@ import numpy as np
 
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import miriam
-from sbmlutils.report.mathml import astnode_to_latex
+from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
 from sbmlutils.report.units import udef_to_latex
 
 
@@ -211,8 +211,8 @@ class SBMLDocumentInfo:
                     "id": pk_symbol,
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
-
-                math_str = f"{pk_symbol}(0) = {astnode_to_latex(initial_assignment.getMath(), model=model)}"
+                math_str = symbol_to_latex(pk_symbol) + "(0) = " \
+                           f"{astnode_to_latex(initial_assignment.getMath(), model=model)}"
                 assignments[pk_symbol]["math"] = math_str
 
         rule: libsbml.Rule
@@ -227,10 +227,11 @@ class SBMLDocumentInfo:
 
                 math_str = None
                 if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
-                    math_str = f"{pk_symbol} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+                    math_str = symbol_to_latex(pk_symbol) + " = " \
+                               f"{astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath() else None}"
                 elif assignments[pk_symbol]["sbmlType"] == "RateRule":
-                    derivative = "\\frac{d(" + pk_symbol + ")}{dt}"
-                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath()else None}"
+                    derivative = "\frac{d" + symbol_to_latex(pk_symbol) + "}{{dt}}"
+                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath() else None}"
 
                 assignments[pk_symbol]["math"] = math_str
 

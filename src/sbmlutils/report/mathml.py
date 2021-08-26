@@ -22,7 +22,7 @@ from typing import Any, List, Optional, Set
 import lxml.etree as ET
 from pathlib import Path
 
-
+import re
 import libsbml
 from sympy import Symbol, sympify
 from sympy.printing.latex import latex
@@ -344,95 +344,116 @@ def formula_to_latex(
         latex_str = latex_str.replace(f"_{word}", word)
     return str(latex_str)
 
+
 # TODO: fix cache
 latex_cache = {}
+
+from functools import lru_cache
+
 
 def astnode_to_latex(
     astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None
 ) -> str:
-    xml_str: str = libsbml.writeMathMLToString(astnode)
-    xml_str = xml_str.replace('<?xml version="1.0" encoding="UTF-8"?>', '')
+    cmml_str: str = libsbml.writeMathMLToString(astnode)
+    cmml_str = cmml_str.replace('<?xml version="1.0" encoding="UTF-8"?>', '')
 
-    if xml_str in latex_cache:
-        return latex_cache[xml_str]
-
-    else:
-
-        # print(xml_str)
-
-        # content MathML -> presentation MathML
-        cmml_dom = ET.fromstring(xml_str)
-        transform1 = ET.XSLT(xslt_cmml2pmml)
-        pmml_dom = transform1(cmml_dom)
-
-        # content MathML -> latex
-        transform2 = ET.XSLT(xslt_pmml2tex)
-        tex_str = str(transform2(pmml_dom))
+    return cmml_to_latex(cmml_str)
 
 
-        tex_str = tex_str.replace("$", "")
+# @lru_cache(maxsize=10000)
+def cmml_to_latex(cmml_str: str) -> str:
 
-        # TODO: fix single underscores in variable names
-        #  \mathit{group1\_group2} -> \mathit{group1_{group2}}
-        # import re
-        # matches = re.findall(r"\mathit\{([A-Za-z0-9]+\_[A-Za-z0-9]+)\}", tex_str)
-        # for match in matches:
-        #     print(match)
-        #     tex_str.replace(r"\_", "_")
+    # content MathML -> presentation MathML
+    cmml_dom = ET.fromstring(cmml_str)
+    transform1 = ET.XSLT(xslt_cmml2pmml)
+    pmml_dom = transform1(cmml_dom)
 
-        # fix piecewise
-        tex_str = tex_str.replace(r"\hfill", "")
-        tex_str = tex_str.replace(r"\multicolumn{2}{c}", "")
-        tex_str = tex_str.replace(r"\left(\{\begin{array}{ccc}", r"\begin{cases} ")
-        tex_str = tex_str.replace(r"\end{array}\right)", r"\end{cases}")
-        tex_str = tex_str.replace(r"\{\begin{array}{ccc}", r"\begin{cases} ")
-        tex_str = tex_str.replace(r"\end{array}", r"\end{cases}")
+    # content MathML -> latex
+    transform2 = ET.XSLT(xslt_pmml2tex)
+    tex_str = str(transform2(pmml_dom))
 
-        # FIXME: assignments
+    # remove equation symbols
+    tex_str = tex_str.replace("$", "")
 
-        # fix lambda function
-        tex_str = tex_str.replace(r"}\mathit", r"}, \mathit")
-        tex_str = tex_str.replace(r"\lambda ", "\lambda(")
-        tex_str = tex_str.replace(r"}.", "}) =")
+    # fix piecewise
+    tex_str = tex_str.replace(r"\hfill", "")
+    tex_str = tex_str.replace(r"\multicolumn{2}{c}", "")
+    tex_str = tex_str.replace(r"\left(\{\begin{array}{ccc}", r"\begin{cases} ")
+    tex_str = tex_str.replace(r"\end{array}\right)", r"\end{cases}")
+    tex_str = tex_str.replace(r"\{\begin{array}{ccc}", r"\begin{cases} ")
+    tex_str = tex_str.replace(r"\end{array}", r"\end{cases}")
 
-        # fix greek symbols
-        for symbol in [
-            "alpha",
-            "beta",
-            "gamma", "Gamma"
-            "delta", "Delta",
-            "epsilon",
-            "zeta",
-            "eta",
-            "theta",
-            "iota",
-            "kappa",
-            "Lambda",  # no lowercase due to function definition
-            "mu",
-            "nu",
-            "omicron",
-            "pi"
-            "rho",
-            "sigma",
-            "tau",
-            "upsilon", "Upsilon",
-            "phi", "Phi",
-            "chi",
-            "psi", "Psi",
-            "omega", "Omega",
-        ]:
-            tex_str = tex_str.replace(symbol, f"\{symbol}")
+    # fix lambda function
+    tex_str = tex_str.replace(r"}\mathit", r"}, \mathit")
+    tex_str = tex_str.replace(r"\lambda ", "\lambda(")
+    tex_str = tex_str.replace(r"}.", "}) =")
 
+    # cleanup symbols
+    tex_str = _fix_mathit_symbols(tex_str)
 
-        print(tex_str)
-
-        # pmml_bytes = ET.tostring(pmml_dom, pretty_print=True)
-        # pmml_str = pmml_bytes.decode("UTF-8")
-
-        # latex_cache[xml_str] = tex_str
+    # print(tex_str)
+    # pmml_bytes = ET.tostring(pmml_dom, pretty_print=True)
+    # pmml_str = pmml_bytes.decode("UTF-8")
 
     return tex_str
 
+
+# symbols replaced in latex
+greek_symbols = [
+    "alpha",
+    "beta",
+    "gamma", "Gamma"
+    "delta", "Delta",
+    "epsilon",
+    "zeta",
+    "eta",
+    "theta",
+    "iota",
+    "kappa",
+    "Lambda",  # no lowercase due to function definition
+    "mu",
+    "nu",
+    "omicron",
+    "pi"
+    "rho",
+    "sigma",
+    "tau",
+    "upsilon", "Upsilon",
+    "phi", "Phi",
+    "chi",
+    "psi", "Psi",
+    "omega", "Omega",
+]
+
+
+def symbol_to_latex(symbol: str) -> str:
+    """Convert symbol to latex by packing in mathit and escaping underscores."""
+    symbol = symbol.replace('_', '\_')
+    symbol = f"\mathit{{{symbol}}}"
+    return _fix_mathit_symbols(symbol)
+
+
+def _fix_mathit_symbols(tex_str: str) -> str:
+    """Heuristic replacements for better latex rendering.
+
+    Single underscores are set down.
+    Greek symbols are rendered (with exception of small lambda).
+    """
+    # TODO: fix single underscores in variable names
+    #  \mathit{group1\_group2} -> \mathit{group1_{group2}}
+
+    # matches = re.findall(r"\mathit\{([A-Za-z0-9]+\_[A-Za-z0-9]+)\}", tex_str)
+    # for match in matches:
+    #     print(match)
+    #     tex_str.replace(r"\_", "_")
+
+    # TODO: fix single numbers at the end
+
+    # replace greek symbols
+    for symbol in greek_symbols:
+        tex_str = tex_str.replace(f"\mathit{{{symbol}}}", f"\mathit{{\{symbol}}}")
+
+    return tex_str
 
 def astnode_to_tex(
     astnode: libsbml.ASTNode, model: Optional[libsbml.Model] = None, **settings: Any
