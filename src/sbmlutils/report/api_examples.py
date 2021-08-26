@@ -28,21 +28,21 @@ from sbmlutils.test import (
 # Data and Endpoints for Example Models
 examples: List[Dict] = [
     {
-        "file": GLUCOSE_SBML,
-        "metadata": {
-            "id": "glucose",
-            "name": "Koenig2012 - Glucose",
-            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
-            "packages": [],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
         "file": REPRESSILATOR_SBML,
         "metadata": {
             "id": "repressilator",
             "name": "BIOMD0000000012 - Elowitz2000 - Repressilator (biomodels)",
             "description": "Ellowitz 2000 repressilator example",
+            "packages": [],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": GLUCOSE_SBML,
+        "metadata": {
+            "id": "glucose",
+            "name": "Koenig2012 - Glucose",
+            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
             "packages": [],
             "keywords": ["kinetic"],
         },
