@@ -344,6 +344,7 @@ def formula_to_latex(
         latex_str = latex_str.replace(f"_{word}", word)
     return str(latex_str)
 
+# TODO: fix cache
 latex_cache = {}
 
 def astnode_to_latex(
@@ -367,30 +368,68 @@ def astnode_to_latex(
         # content MathML -> latex
         transform2 = ET.XSLT(xslt_pmml2tex)
         tex_str = str(transform2(pmml_dom))
-        print(tex_str)
+
+
         tex_str = tex_str.replace("$", "")
 
+        # TODO: fix single underscores in variable names
+        #  \mathit{group1\_group2} -> \mathit{group1_{group2}}
+        # import re
+        # matches = re.findall(r"\mathit\{([A-Za-z0-9]+\_[A-Za-z0-9]+)\}", tex_str)
+        # for match in matches:
+        #     print(match)
+        #     tex_str.replace(r"\_", "_")
 
-        # TODO: fix underscores (single, double, multiple single)
-
-        # FIXME: piecewise
+        # fix piecewise
         tex_str = tex_str.replace(r"\hfill", "")
         tex_str = tex_str.replace(r"\multicolumn{2}{c}", "")
-        tex_str = tex_str.replace(r"\left(\{\begin{array}{ccc}", r"\begin{cases}")
+        tex_str = tex_str.replace(r"\left(\{\begin{array}{ccc}", r"\begin{cases} ")
         tex_str = tex_str.replace(r"\end{array}\right)", r"\end{cases}")
-        tex_str = tex_str.replace(r"\{\begin{array}{ccc}", r"\begin{cases}")
+        tex_str = tex_str.replace(r"\{\begin{array}{ccc}", r"\begin{cases} ")
         tex_str = tex_str.replace(r"\end{array}", r"\end{cases}")
-
-
 
         # FIXME: assignments
 
-        # FIXME: lambdas
+        # fix lambda function
+        tex_str = tex_str.replace(r"}\mathit", r"}, \mathit")
+        tex_str = tex_str.replace(r"\lambda ", "\lambda(")
+        tex_str = tex_str.replace(r"}.", "}) =")
+
+        # fix greek symbols
+        for symbol in [
+            "alpha",
+            "beta",
+            "gamma", "Gamma"
+            "delta", "Delta",
+            "epsilon",
+            "zeta",
+            "eta",
+            "theta",
+            "iota",
+            "kappa",
+            "Lambda",  # no lowercase due to function definition
+            "mu",
+            "nu",
+            "omicron",
+            "pi"
+            "rho",
+            "sigma",
+            "tau",
+            "upsilon", "Upsilon",
+            "phi", "Phi",
+            "chi",
+            "psi", "Psi",
+            "omega", "Omega",
+        ]:
+            tex_str = tex_str.replace(symbol, f"\{symbol}")
+
+
+        print(tex_str)
 
         # pmml_bytes = ET.tostring(pmml_dom, pretty_print=True)
         # pmml_str = pmml_bytes.decode("UTF-8")
 
-        latex_cache[xml_str] = tex_str
+        # latex_cache[xml_str] = tex_str
 
     return tex_str
 
