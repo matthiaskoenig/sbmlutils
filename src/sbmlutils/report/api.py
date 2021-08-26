@@ -37,6 +37,7 @@ api.add_middleware(
 def _write_to_file_and_generate_report(
     filename: str, file_content: str, mode: str
 ) -> Dict:
+    """Write file content to temporary file and generate reoirt."""
     content = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
         path = Path(tmp_dir) / filename
@@ -226,6 +227,7 @@ def _get_identifier_and_term(resource_id: str) -> Dict:
 
 @api.get("/model_urls/")
 def get_report_from_model_url(url: str) -> Response:
+    """Get report via URL."""
     data = requests.get(url)
 
     if data.status_code == 200:
@@ -240,8 +242,8 @@ def get_report_from_model_url(url: str) -> Response:
 
 @api.post("/sbml_content")
 async def get_report_from_file_contents(request: Request) -> Response:
+    """Create JSON report from file contents."""
     file_content = await request.body()
-    print(file_content)
     filename = "sbml_file.xml"
 
     try:

@@ -49,6 +49,7 @@ def formula_to_astnode(
 
 
 def formula_to_latex(formula: str, model: Optional[libsbml.Model] = None) -> str:
+    """Convert formula string to latex."""
     astnode = formula_to_astnode(formula, model)
     return astnode_to_latex(astnode)
 
@@ -63,7 +64,7 @@ def cmathml_to_astnode(cmathml: str) -> libsbml.ASTNode:
 
 
 def astnode_to_latex(astnode: libsbml.ASTNode) -> str:
-    """AstNode to Latex using XSLT transformation."""
+    """Convert ASTNode to Latex using XSLT transformation."""
     cmml_str: str = libsbml.writeMathMLToString(astnode)
     cmml_str = cmml_str.replace('<?xml version="1.0" encoding="UTF-8"?>', "")
 
@@ -72,7 +73,7 @@ def astnode_to_latex(astnode: libsbml.ASTNode) -> str:
 
 @lru_cache(maxsize=10000)
 def cmathml_to_latex(cmml_str: str) -> str:
-    """ContentMathML to latex conversion using XSLT transformation."""
+    """Content MathML to latex conversion using XSLT transformation."""
 
     # content MathML -> presentation MathML
     cmml_dom = ET.fromstring(cmml_str)
@@ -96,7 +97,7 @@ def cmathml_to_latex(cmml_str: str) -> str:
 
     # fix lambda function
     tex_str = tex_str.replace(r"}\mathit", r"}, \mathit")
-    tex_str = tex_str.replace(r"\lambda ", "\lambda(")
+    tex_str = tex_str.replace(r"\lambda ", r"\lambda(")
     tex_str = tex_str.replace(r"}.", "}) =")
 
     # cleanup symbols
@@ -143,8 +144,8 @@ greek_symbols = [
 
 def symbol_to_latex(symbol: str) -> str:
     """Convert symbol to latex by packing in mathit and escaping underscores."""
-    symbol = symbol.replace("_", "\_")
-    symbol = f"\mathit{{{symbol}}}"
+    symbol = symbol.replace(r"_", r"\_")
+    symbol = r"\mathit{" + symbol + "}"
     return _fix_mathit_symbols(symbol)
 
 
@@ -160,13 +161,15 @@ def _fix_mathit_symbols(tex_str: str) -> str:
     if matches:
         for m in matches:
             tex_str = tex_str.replace(
-                "\mathit{" + m[0] + "\_" + m[1] + "}",
-                "\mathit{" + m[0] + "_{" + m[1] + "}}",
+                r"\mathit{" + m[0] + r"\_" + m[1] + "}",
+                r"\mathit{" + m[0] + r"_{" + m[1] + "}}",
             )
 
     # replace greek symbols
     for symbol in greek_symbols:
-        tex_str = tex_str.replace(f"\mathit{{{symbol}}}", f"\mathit{{\{symbol}}}")
+        tex_str = tex_str.replace(
+            r"\mathit{" + symbol + "}", r"\mathit{" + f"\{symbol}" + "}"  # noqa: W605
+        )
 
     return tex_str
 

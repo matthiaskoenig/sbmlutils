@@ -176,7 +176,7 @@ class Notes:
 
     def __str__(self) -> str:
         """Get string representation."""
-        return self.xml.toXMLString()
+        return str(self.xml.toXMLString())
 
 
 def set_notes(sbase: libsbml.SBase, notes: Union[Notes, str]) -> None:

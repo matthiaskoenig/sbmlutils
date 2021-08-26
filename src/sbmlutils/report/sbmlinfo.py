@@ -227,7 +227,7 @@ class SBMLDocumentInfo:
                     "sbmlType": self._sbml_type(rule),
                 }
 
-                math_str = None
+                math_str = ""
                 if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
                     math_str = (
                         symbol_to_latex(pk_symbol) + " = "
